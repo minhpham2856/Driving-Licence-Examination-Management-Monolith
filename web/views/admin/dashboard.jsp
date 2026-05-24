@@ -54,7 +54,7 @@
                     </svg>
                     Xuất báo cáo
                 </button>
-                <a href="${pageContext.request.contextPath}/views/examiner/audit.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #ffffff;">
+                <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #ffffff;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -270,7 +270,7 @@
             </a>
 
             <!-- Card 7: Nhật ký hệ thống (SC-077) -->
-            <a href="${pageContext.request.contextPath}/views/examiner/audit.jsp" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -302,7 +302,7 @@
                 </h2>
                 
                 <div class="log-card-actions">
-                    <a href="${pageContext.request.contextPath}/views/examiner/audit.jsp" class="btn-export" style="text-decoration: none; line-height: 24px; font-weight: 500;">
+                    <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="btn-export" style="text-decoration: none; line-height: 24px; font-weight: 500;">
                         Xem toàn bộ nhật ký
                     </a>
                 </div>
