@@ -98,7 +98,7 @@
         </a>
 
         <%-- SC-073: Quản lý Máy thi --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/exam-computer.jsp"
            class="side-nav-bar__link${activeSidebar eq 'may-thi' ? ' is-active' : ''}"
            data-node-id="admin:40"
            <c:if test="${activeSidebar eq 'may-thi'}">aria-current="page"</c:if>>
