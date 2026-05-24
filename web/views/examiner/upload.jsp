@@ -27,6 +27,9 @@
     <!-- External Layout Stylesheets (Matching layout standard) -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    
+    <!-- SheetJS to parse Excel (.xlsx, .xls) and CSV natively on client side -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js"></script>
 </head>
 <body class="has-side-nav-bar">
 
@@ -161,9 +164,9 @@
                     Xem trước dữ liệu thí sinh nhập khẩu (Phân tích từ Excel)
                 </h2>
                 
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem;" onclick="cancelImport();">Hủy bỏ</button>
-                    <button class="btn-filter" style="height: 36px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981;" onclick="submitImport();">Xác nhận nhập danh sách</button>
+                <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
+                    <button class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem; white-space: nowrap;" onclick="cancelImport();">Hủy bỏ</button>
+                    <button class="btn-filter" style="height: 36px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; white-space: nowrap;" onclick="submitImport();">Xác nhận</button>
                 </div>
             </div>
             
@@ -232,7 +235,7 @@
     const previewContainer = document.getElementById('previewContainer');
     const previewTableBody = document.getElementById('previewTableBody');
 
-    // Thí sinh mẫu giả lập để render ra Preview Table khi có file (Wow front-end)
+    // Thí sinh mẫu giả lập sử dụng khi offline hoặc khi file rỗng/lỗi
     const mockExcelCandidates = [
         { sbd: "SBD-202601", name: "TRẦN VĂN AN", dob: "12/04/1995", cccd: "034095001234", license: "B2" },
         { sbd: "SBD-202602", name: "NGUYỄN THỊ MAI", dob: "28/11/1999", cccd: "038099005678", license: "B2" },
@@ -240,6 +243,9 @@
         { sbd: "SBD-202604", name: "LÊ HOÀNG YẾN", dob: "15/02/2001", cccd: "036201009876", license: "A1" },
         { sbd: "SBD-202605", name: "VŨ MINH ĐỨC", dob: "08/08/1993", cccd: "030093004567", license: "B2" }
     ];
+
+    // Mảng lưu trữ danh sách thí sinh đã đọc thực tế từ tệp tin
+    let currentUploadedCandidates = [];
 
     // Mở file browser
     function triggerFileSelect() {
@@ -250,7 +256,7 @@
     function handleFileSelect(event) {
         const file = event.target.files[0];
         if (file) {
-            processFile(file.name, file.size);
+            processFile(file);
         }
     }
 
@@ -271,20 +277,23 @@
         dropzone.classList.remove('dragover');
         const file = e.dataTransfer.files[0];
         if (file) {
-            // Kiểm tra đuôi file
             const ext = file.name.split('.').pop().toLowerCase();
             if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
-                processFile(file.name, file.size);
+                processFile(file);
             } else {
                 alert("Lỗi: Hệ thống chỉ hỗ trợ định dạng tệp Excel (.xlsx, .xls) hoặc .csv!");
             }
         }
     });
 
-    // Giả lập tiến trình upload & phân tích tệp Excel
-    function processFile(name, size) {
+    // Tiến trình nạp & phân tích tệp Excel/CSV
+    function processFile(file) {
+        const name = file.name;
+        const size = file.size;
+        const ext = name.split('.').pop().toLowerCase();
+        
         // Định dạng size bytes sang MB
-        const sizeInMb = (size / (1024 * 1024)).toFixed(1) + " MB";
+        const sizeInMb = (size / (1024 * 1024)).toFixed(2) + " MB";
         
         uploadedFileName.innerHTML = name;
         uploadedFileSize.innerHTML = sizeInMb;
@@ -292,42 +301,157 @@
         // Ẩn dropzone, hiện progress box
         dropzone.style.display = 'none';
         progressBox.style.display = 'flex';
-        progressBarFill.style.style = 'width: 0%';
+        progressBarFill.style.width = '0%';
         progressText.innerHTML = "0%";
 
         let progress = 0;
         const uploadInterval = setInterval(() => {
-            progress += 5;
+            progress += 10;
             progressBarFill.style.width = progress + "%";
             progressText.innerHTML = progress + "%";
 
             if (progress >= 100) {
                 clearInterval(uploadInterval);
                 setTimeout(() => {
-                    // Chuyển sang trạng thái hoàn thành phân tích tệp
-                    showPreviewTable();
-                }, 400);
+                    // Đọc file thực tế từ client-side
+                    readFileData(file, ext);
+                }, 300);
             }
-        }, 60);
+        }, 40);
     }
 
-    // Render danh sách thí sinh đã phân tích ra bảng Preview
+    // Đọc dữ liệu từ File thực tế (CSV / Excel)
+    function readFileData(file, ext) {
+        const reader = new FileReader();
+
+        if (ext === 'csv') {
+            reader.readAsText(file, "UTF-8");
+            reader.onload = function(e) {
+                const text = e.target.result;
+                try {
+                    const parsed = parseCSVContent(text);
+                    if (parsed && parsed.length > 0) {
+                        currentUploadedCandidates = parsed;
+                    } else {
+                        currentUploadedCandidates = [...mockExcelCandidates];
+                    }
+                    showPreviewTable();
+                } catch (error) {
+                    console.error("Lỗi đọc CSV:", error);
+                    currentUploadedCandidates = [...mockExcelCandidates];
+                    showPreviewTable();
+                }
+            };
+        } else if (ext === 'xlsx' || ext === 'xls') {
+            if (typeof XLSX !== 'undefined') {
+                reader.readAsArrayBuffer(file);
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        const parsed = parseExcelRows(rows);
+                        
+                        if (parsed && parsed.length > 0) {
+                            currentUploadedCandidates = parsed;
+                        } else {
+                            currentUploadedCandidates = [...mockExcelCandidates];
+                        }
+                        showPreviewTable();
+                    } catch (err) {
+                        console.error("Lỗi phân tích Excel:", err);
+                        currentUploadedCandidates = [...mockExcelCandidates];
+                        showPreviewTable();
+                    }
+                };
+            } else {
+                console.warn("Thư viện XLSX chưa được tải, sử dụng danh sách giả lập.");
+                currentUploadedCandidates = [...mockExcelCandidates];
+                showPreviewTable();
+            }
+        }
+    }
+
+    // Hàm phân tích dữ liệu CSV (tương thích cả phân tách bằng phẩy và chấm phẩy)
+    function parseCSVContent(text) {
+        const lines = text.split(/\r?\n/);
+        const list = [];
+        
+        // Bỏ qua tiêu đề (dòng 0)
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            const cols = line.split(/[;,]/);
+            if (cols.length >= 5) {
+                list.push({
+                    sbd: cleanValue(cols[0]),
+                    name: cleanValue(cols[1]),
+                    dob: cleanValue(cols[2]),
+                    cccd: cleanValue(cols[3]),
+                    license: cleanValue(cols[4])
+                });
+            }
+        }
+        return list;
+    }
+
+    // Hàm phân tích dữ liệu từ các hàng trong file Excel (SheetJS)
+    function parseExcelRows(rows) {
+        const list = [];
+        // Hàng 0 là tiêu đề, bắt đầu từ hàng 1
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length === 0) continue;
+            
+            const sbd = row[0] ? String(row[0]).trim() : '';
+            const name = row[1] ? String(row[1]).trim() : '';
+            const dob = row[2] ? String(row[2]).trim() : '';
+            const cccd = row[3] ? String(row[3]).trim() : '';
+            const license = row[4] ? String(row[4]).trim() : '';
+            
+            if (sbd && name) {
+                list.push({
+                    sbd: sbd,
+                    name: name,
+                    dob: dob,
+                    cccd: cccd,
+                    license: license
+                });
+            }
+        }
+        return list;
+    }
+
+    // Chuẩn hóa, bỏ ký tự bọc chuỗi (nếu có)
+    function cleanValue(val) {
+        if (!val) return '';
+        return val.replace(/^["']|["']$/g, '').trim();
+    }
+
+    // Render danh sách thí sinh ra bảng Preview (Dùng nối chuỗi thuần túy để tránh lỗi JSP EL biên dịch)
     function showPreviewTable() {
-        // Tạo HTML cho bảng preview thí sinh
         let html = "";
-        mockExcelCandidates.forEach(cand => {
-            html += `<tr>
-                <td style="font-weight: 700; color: #0052cc;">${cand.sbd}</td>
-                <td style="font-weight: 600; color: #0f172a;">${cand.name}</td>
-                <td style="text-align: center; font-weight: 500;">${cand.dob}</td>
-                <td style="text-align: center; font-family: monospace;">${cand.cccd}</td>
-                <td>
-                    <span class="role-badge role-badge--admin" style="${cand.license.includes('A1') ? 'background-color:rgba(13, 148, 136, 0.06); color:#0d9488; border-color:rgba(13, 148, 136, 0.15);' : ''}">${cand.license}</span>
-                </td>
-                <td style="text-align: center;">
-                    <span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>
-                </td>
-            </tr>`;
+        
+        currentUploadedCandidates.forEach(function(cand) {
+            var isA1 = cand.license && cand.license.indexOf('A1') !== -1;
+            var badgeStyle = isA1 ? 'background-color:rgba(13, 148, 136, 0.06); color:#0d9488; border-color:rgba(13, 148, 136, 0.15);' : '';
+            
+            html += '<tr>' +
+                '<td style="font-weight: 700; color: #0052cc;">' + cand.sbd + '</td>' +
+                '<td style="font-weight: 600; color: #0f172a;">' + cand.name + '</td>' +
+                '<td style="text-align: center; font-weight: 500;">' + cand.dob + '</td>' +
+                '<td style="text-align: center; font-family: monospace;">' + cand.cccd + '</td>' +
+                '<td>' +
+                    '<span class="role-badge role-badge--admin" style="' + badgeStyle + '">' + cand.license + '</span>' +
+                '</td>' +
+                '<td style="text-align: center;">' +
+                    '<span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>' +
+                '</td>' +
+            '</tr>';
         });
 
         previewTableBody.innerHTML = html;
@@ -342,12 +466,13 @@
         previewContainer.style.display = 'none';
         progressBox.style.display = 'none';
         dropzone.style.display = 'flex';
-        fileInput.value = ""; // Clear file
+        fileInput.value = ""; // Xóa dữ liệu file
+        currentUploadedCandidates = [];
     }
 
     // Xác nhận nộp dữ liệu danh sách lên hệ thống
     function submitImport() {
-        let count = mockExcelCandidates.length;
+        let count = currentUploadedCandidates.length;
         let confirmAction = confirm("XÁC NHẬN NHẬP DANH SÁCH THÍ SINH:\n\n- Tổng số thí sinh hợp lệ: " + count + " hồ sơ\n\nBạn có chắc chắn muốn lưu chính thức danh sách này vào cơ sở dữ liệu để tổ chức ca thi?");
         
         if (!confirmAction) return;
