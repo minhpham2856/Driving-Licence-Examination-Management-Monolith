@@ -29,9 +29,9 @@
                             <div class="site-footer__col">
                                 <h4 class="site-footer__col-title">Dịch vụ</h4>
                                 <nav class="site-footer__col-nav" aria-label="Liên kết Dịch vụ">
-                                    <a href="license-grades.jsp" class="site-footer__link">Hạng bằng B2</a>
-                                    <a href="license-grades.jsp" class="site-footer__link">Hạng bằng C</a>
-                                    <a href="#" class="site-footer__link">Ôn tập lý thuyết</a>
+                                    <a href="license-grades.jsp" class="site-footer__link">Đăng ký thi</a>
+                                    <a href="license-grades.jsp" class="site-footer__link">Các hạng bằng</a>
+                                    <a href="#" class="site-footer__link">Liên hệ đăng ký học</a>
                                 </nav>
                             </div>
 
@@ -51,8 +51,8 @@
                     <div class="site-footer__bottom">
                         <p class="site-footer__copyright">
                             &copy;
-                            <fmt:formatDate value="${now}" pattern="yyyy" /> Lái Vui. Hệ thống quản lý đào tạo lái xe an
-                            toàn.
+                            <fmt:formatDate value="${now}" pattern="yyyy" /> Lái Vui - Trung tâm đào tạo và thi sát hạch
+                            GPLX hiện đại.
                         </p>
 
                         <div class="site-footer__bottom-links">
