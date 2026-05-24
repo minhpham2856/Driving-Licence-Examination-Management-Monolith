@@ -113,7 +113,7 @@
         </a>
 
         <%-- SC-074: Quản lý Hạng GPLX --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/licence-class.jsp"
            class="side-nav-bar__link${activeSidebar eq 'hang-gplx' ? ' is-active' : ''}"
            data-node-id="admin:50"
            <c:if test="${activeSidebar eq 'hang-gplx'}">aria-current="page"</c:if>>
