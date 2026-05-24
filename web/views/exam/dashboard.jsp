@@ -13,7 +13,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/WEB-INF/views/layout/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar.jsp">
     <jsp:param name="activeSidebar" value="ds-thi-sinh" />
 </jsp:include>
 
@@ -23,7 +23,7 @@
         <p style="color: #434654;">Khu vực nội dung quản lý thi — sidebar và footer đã được style theo Figma.</p>
     </main>
 
-    <jsp:include page="/WEB-INF/views/layout/footer.jsp">
+    <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>
 </div>

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<jsp:include page="/WEB-INF/views/layout/header.jsp">
+<jsp:include page="/views/layout/header.jsp">
     <jsp:param name="title" value="Lái Vui - Trang chủ" />
     <jsp:param name="activeNav" value="gioi-thieu" />
 </jsp:include>
@@ -195,4 +195,4 @@
     </section>
 </main>
 
-<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<jsp:include page="/views/layout/footer.jsp" />
