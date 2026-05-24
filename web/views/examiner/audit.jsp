@@ -147,7 +147,7 @@
                 Bộ lọc tìm kiếm
             </h2>
             <form action="" method="GET">
-                <div class="filter-grid">
+                <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.25fr 2fr 1.8fr;">
                     <!-- Search Input -->
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Từ khóa</label>
@@ -197,7 +197,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                Tìm kiếm
+                                Tìm
                             </button>
                             <a href="audit.jsp" class="btn-reset">Đặt lại</a>
                         </div>
