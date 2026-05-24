@@ -53,7 +53,7 @@
     <nav class="side-nav-bar__menu" data-node-id="admin:7">
 
         <%-- SC-070: Dashboard Admin --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/dashboard.jsp"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="admin:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -69,7 +69,7 @@
         </a>
 
         <%-- SC-071: Quản lý Khu vực thi --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/exam-area.jsp"
            class="side-nav-bar__link${activeSidebar eq 'khu-vuc' ? ' is-active' : ''}"
            data-node-id="admin:20"
            <c:if test="${activeSidebar eq 'khu-vuc'}">aria-current="page"</c:if>>
@@ -83,7 +83,7 @@
         </a>
 
         <%-- SC-072: Quản lý Phòng thi --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/exam-room.jsp"
            class="side-nav-bar__link${activeSidebar eq 'phong-thi' ? ' is-active' : ''}"
            data-node-id="admin:30"
            <c:if test="${activeSidebar eq 'phong-thi'}">aria-current="page"</c:if>>
