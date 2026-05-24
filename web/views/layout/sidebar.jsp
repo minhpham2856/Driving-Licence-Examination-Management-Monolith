@@ -45,7 +45,7 @@
     </div>
 
     <nav class="side-nav-bar__menu" data-node-id="4:756">
-        <a href="#"
+        <a href="${pageContext.request.contextPath}/views/examiner/upload.jsp"
            class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
            data-node-id="4:757"
            <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
