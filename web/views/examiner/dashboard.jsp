@@ -47,6 +47,13 @@
             
             <!-- Quick Actions on Header -->
             <div class="page-actions" style="display: flex; gap: 10px;">
+                <a href="candidatecall.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Điều hành gọi thi
+                </a>
                 <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -342,6 +349,7 @@
                                         </td>
                                         <td>
                                             <div style="display: flex; gap: 6px; justify-content: center;">
+                                                <a href="candidatecall.jsp?sbd=${candidate.sbd}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16, 185, 129, 0.25); color: #059669; font-weight: 700;">Gọi thi</a>
                                                 <a href="view-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
                                                 <a href="edit-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(0, 82, 204, 0.25); color: #0052cc;">Sửa</a>
                                                 <a href="delete-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626;" onclick="return confirm('Bạn có chắc chắn muốn xóa thí sinh ${candidate.fullName}?');">Xóa</a>
