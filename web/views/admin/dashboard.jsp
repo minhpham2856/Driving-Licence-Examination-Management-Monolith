@@ -149,7 +149,7 @@
         <section class="admin-grid" aria-label="Phân hệ quản trị">
             
             <!-- Card 1: Khu vực thi (SC-071) -->
-            <a href="#" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/exam-area.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -169,7 +169,7 @@
             </a>
 
             <!-- Card 2: Phòng thi (SC-072) -->
-            <a href="#" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/exam-room.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -189,7 +189,7 @@
             </a>
 
             <!-- Card 3: Máy thi (SC-073) -->
-            <a href="#" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/exam-computer.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -209,7 +209,7 @@
             </a>
 
             <!-- Card 4: Hạng GPLX (SC-074) -->
-            <a href="#" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/licence-class.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -230,7 +230,7 @@
             </a>
 
             <!-- Card 5: Lệ phí thi (SC-075) -->
-            <a href="#" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/exam-fee.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -250,7 +250,7 @@
             </a>
 
             <!-- Card 6: Tài khoản hệ thống (SC-076) -->
-            <a href="#" class="admin-nav-card">
+            <a href="${pageContext.request.contextPath}/views/admin/accounts.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg">

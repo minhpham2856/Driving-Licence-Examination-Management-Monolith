@@ -128,7 +128,7 @@
         </a>
 
         <%-- SC-075: Quản lý Lệ phí thi --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/exam-fee.jsp"
            class="side-nav-bar__link${activeSidebar eq 'le-phi' ? ' is-active' : ''}"
            data-node-id="admin:60"
            <c:if test="${activeSidebar eq 'le-phi'}">aria-current="page"</c:if>>
@@ -143,7 +143,7 @@
         </a>
 
         <%-- SC-076: Quản lý Tài khoản hệ thống --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/accounts.jsp"
            class="side-nav-bar__link${activeSidebar eq 'tai-khoan' ? ' is-active' : ''}"
            data-node-id="admin:70"
            <c:if test="${activeSidebar eq 'tai-khoan'}">aria-current="page"</c:if>>
@@ -158,7 +158,7 @@
         </a>
 
         <%-- SC-077: Xem Audit toàn hệ thống --%>
-        <a href="#"
+        <a href="${ctx}/views/admin/audit.jsp"
            class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
            data-node-id="admin:80"
            <c:if test="${activeSidebar eq 'nhat-ky'}">aria-current="page"</c:if>>
