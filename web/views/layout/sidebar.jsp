@@ -45,7 +45,7 @@
     </div>
 
     <nav class="side-nav-bar__menu" data-node-id="4:756">
-        <a href="#"
+        <a href="${pageContext.request.contextPath}/views/examiner/upload.jsp"
            class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
            data-node-id="4:757"
            <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
@@ -58,7 +58,7 @@
             <span class="side-nav-bar__label" data-node-id="4:761">Tải DS Thí sinh</span>
         </a>
 
-        <a href="#"
+        <a href="${pageContext.request.contextPath}/views/examiner/grading.jsp"
            class="side-nav-bar__link${activeSidebar eq 'cham-diem' ? ' is-active' : ''}"
            data-node-id="4:762"
            <c:if test="${activeSidebar eq 'cham-diem'}">aria-current="page"</c:if>>
@@ -72,7 +72,7 @@
             <span class="side-nav-bar__label" data-node-id="4:766">Chấm điểm</span>
         </a>
 
-        <a href="#"
+        <a href="${pageContext.request.contextPath}/views/examiner/editscore.jsp"
            class="side-nav-bar__link${activeSidebar eq 'sua-diem' ? ' is-active' : ''}"
            data-node-id="4:767"
            <c:if test="${activeSidebar eq 'sua-diem'}">aria-current="page"</c:if>>
