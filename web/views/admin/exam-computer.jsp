@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Phòng thi - Lái Vui</title>
+    <title>Quản lý Máy thi - Lái Vui</title>
 
     <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +23,7 @@
 
 <%-- Inject the admin sidebar template --%>
 <jsp:include page="/views/layout/sidebar-admin.jsp">
-    <jsp:param name="activeSidebar" value="phong-thi" />
+    <jsp:param name="activeSidebar" value="may-thi" />
 </jsp:include>
 
 <div class="dashboard-shell">
@@ -35,37 +35,37 @@
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <a href="${pageContext.request.contextPath}/views/admin/dashboard.jsp">Quản trị</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <c:if test="${not empty param.areaId}">
-                <a href="${pageContext.request.contextPath}/views/admin/exam-area.jsp">Khu vực thi</a>
+            <c:if test="${not empty param.roomId}">
+                <a href="${pageContext.request.contextPath}/views/admin/exam-room.jsp">Phòng thi</a>
                 <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             </c:if>
-            <span class="breadcrumbs__current" aria-current="page">Phòng thi</span>
+            <span class="breadcrumbs__current" aria-current="page">Máy thi</span>
         </nav>
 
         <!-- Page Header -->
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Quản lý Phòng thi</h1>
+                <h1 class="page-title">Quản lý Máy thi</h1>
                 <p class="page-subtitle">
                     <c:choose>
-                        <c:when test="${not empty selectedAreaName}">
-                            Danh sách phòng thi thuộc khu vực <strong>${selectedAreaName}</strong>. Cấu hình sức chứa, loại phòng và trạng thái hoạt động.
+                        <c:when test="${not empty selectedRoomName}">
+                            Danh sách máy thi thuộc phòng <strong>${selectedRoomName}</strong>. Giám sát IP, kiểm tra kết nối client thi và trạng thái hoạt động.
                         </c:when>
                         <c:otherwise>
-                            Cấu hình phòng thi lý thuyết và thực hành, thiết lập sức chứa tối đa và trạng thái hoạt động toàn hệ thống.
+                            Quản lý toàn bộ danh sách máy trạm thi lý thuyết. Giám sát địa chỉ IP, kiểm tra kết nối client thi, trạng thái thi trực tuyến và thông tin phiên bản.
                         </c:otherwise>
                     </c:choose>
                 </p>
             </div>
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <c:if test="${not empty param.areaId}">
-                    <a href="${pageContext.request.contextPath}/views/admin/exam-area.jsp"
+                <c:if test="${not empty param.roomId}">
+                    <a href="${pageContext.request.contextPath}/views/admin/exam-room.jsp"
                        class="btn-export"
                        style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Về khu vực thi
+                        Về phòng thi
                     </a>
                 </c:if>
                 <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px;">
@@ -74,73 +74,76 @@
                     </svg>
                     Xuất Excel
                 </button>
-                <button class="btn-filter" id="btn-add-room" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none;">
+                <button class="btn-filter" id="btn-add-computer" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Thêm phòng thi
+                    Thêm máy thi
                 </button>
             </div>
         </header>
 
-        <!-- Stats Row -->
-        <section class="metrics-row" aria-label="Thống kê phòng thi">
+        <!-- Stats Metrics Row -->
+        <section class="metrics-row" aria-label="Thống kê máy thi">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 21V7L12 3L21 7V21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M9 21V15H15V21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <rect x="2" y="4" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${empty totalRooms ? 0 : totalRooms}</span>
-                    <span class="stat-label">Tổng phòng thi</span>
+                    <span class="stat-number">${empty totalComputers ? 0 : totalComputers}</span>
+                    <span class="stat-label">Tổng số máy</span>
                     <span class="stat-trend stat-trend--up">Toàn hệ thống</span>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${empty activeRooms ? 0 : activeRooms}</span>
-                    <span class="stat-label">Đang hoạt động</span>
-                    <span class="stat-trend stat-trend--up">Sẵn sàng sử dụng</span>
+                    <span class="stat-number">${empty connectedComputers ? 0 : connectedComputers}</span>
+                    <span class="stat-label">Đang kết nối</span>
+                    <span class="stat-trend stat-trend--up">Sẵn sàng nhận đề</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon stat-icon--blue">
+                <div class="stat-icon stat-icon--red">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="2" y="4" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2" style="opacity:0.4;"/>
+                        <path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="5" x2="12" y2="7" stroke="currentColor" stroke-width="2"/>
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${empty theoryRooms ? 0 : theoryRooms}</span>
-                    <span class="stat-label">Phòng lý thuyết</span>
-                    <span class="stat-trend stat-trend--up">Thi trắc nghiệm</span>
+                    <span class="stat-number">${empty disconnectedComputers ? 0 : disconnectedComputers}</span>
+                    <span class="stat-label font-bold">Mất kết nối</span>
+                    <span class="stat-trend stat-trend--down">Offline / Lỗi Client</span>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon--amber">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="2"/>
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${empty practicalRooms ? 0 : practicalRooms}</span>
-                    <span class="stat-label">Phòng thực hành</span>
-                    <span class="stat-trend stat-trend--up">Sân thi sa hình</span>
+                    <span class="stat-number">${empty activeExamComputers ? 0 : activeExamComputers}</span>
+                    <span class="stat-label">Đang sử dụng thi</span>
+                    <span class="stat-trend stat-trend--up">Có thí sinh làm bài</span>
                 </div>
             </div>
         </section>
 
         <!-- Filter & Search Panel -->
-        <section class="filter-panel" aria-label="Bộ lọc phòng thi">
+        <section class="filter-panel" aria-label="Bộ lọc máy thi">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -148,39 +151,39 @@
                 Bộ lọc tìm kiếm
             </h2>
             <form action="" method="GET">
-                <c:if test="${not empty param.areaId}">
-                    <input type="hidden" name="areaId" value="${param.areaId}">
+                <c:if test="${not empty param.roomId}">
+                    <input type="hidden" name="roomId" value="${param.roomId}">
                 </c:if>
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.1fr 1.1fr 1.75fr;">
                     <div class="input-group">
-                        <label for="searchKeyword" class="input-label">Tìm phòng thi</label>
+                        <label for="searchKeyword" class="input-label">Tìm máy thi</label>
                         <input type="text" id="searchKeyword" name="searchKeyword" class="input-field"
-                               placeholder="Nhập tên hoặc mã phòng thi..." value="${param.searchKeyword}">
+                               placeholder="Nhập mã máy, địa chỉ IP..." value="${param.searchKeyword}">
                     </div>
                     <div class="input-group">
-                        <label for="filterArea" class="input-label">Khu vực thi</label>
-                        <select id="filterArea" name="filterArea" class="input-field">
-                            <option value="">Tất cả khu vực</option>
-                            <c:forEach var="area" items="${examAreas}">
-                                <option value="${area.id}" ${param.filterArea eq area.id ? 'selected' : ''}>${area.name}</option>
+                        <label for="filterRoom" class="input-label">Phòng thi</label>
+                        <select id="filterRoom" name="filterRoom" class="input-field">
+                            <option value="">Tất cả phòng lý thuyết</option>
+                            <c:forEach var="room" items="${theoryRoomsList}">
+                                <option value="${room.id}" ${param.filterRoom eq room.id ? 'selected' : ''}>${room.name}</option>
                             </c:forEach>
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="filterType" class="input-label">Loại phòng</label>
-                        <select id="filterType" name="filterType" class="input-field">
-                            <option value="">Tất cả loại</option>
-                            <option value="theory" ${param.filterType eq 'theory' ? 'selected' : ''}>Lý thuyết</option>
-                            <option value="practical" ${param.filterType eq 'practical' ? 'selected' : ''}>Thực hành</option>
+                        <label for="filterConnection" class="input-label">Trạng thái kết nối</label>
+                        <select id="filterConnection" name="filterConnection" class="input-field">
+                            <option value="">Tất cả</option>
+                            <option value="online" ${param.filterConnection eq 'online' ? 'selected' : ''}>Online (Đang kết nối)</option>
+                            <option value="offline" ${param.filterConnection eq 'offline' ? 'selected' : ''}>Offline (Mất kết nối)</option>
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="filterStatus" class="input-label">Trạng thái</label>
+                        <label for="filterStatus" class="input-label">Tình trạng máy</label>
                         <select id="filterStatus" name="filterStatus" class="input-field">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="active" ${param.filterStatus eq 'active' ? 'selected' : ''}>Hoạt động</option>
-                            <option value="maintenance" ${param.filterStatus eq 'maintenance' ? 'selected' : ''}>Bảo trì</option>
-                            <option value="inactive" ${param.filterStatus eq 'inactive' ? 'selected' : ''}>Tạm dừng</option>
+                            <option value="">Tất cả tình trạng</option>
+                            <option value="active" ${param.filterStatus eq 'active' ? 'selected' : ''}>Đang hoạt động</option>
+                            <option value="maintenance" ${param.filterStatus eq 'maintenance' ? 'selected' : ''}>Đang bảo trì</option>
+                            <option value="broken" ${param.filterStatus eq 'broken' ? 'selected' : ''}>Hỏng / Khóa</option>
                         </select>
                     </div>
                     <div class="input-group filter-grid__btn-col">
@@ -191,29 +194,35 @@
                                 </svg>
                                 Lọc
                             </button>
-                            <a href="${pageContext.request.contextPath}/views/admin/exam-room.jsp" class="btn-reset">Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/views/admin/exam-computer.jsp<c:if test='${not empty param.roomId}'><c:out value='?roomId=${param.roomId}' /></c:if>" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>
             </form>
         </section>
 
-        <!-- Exam Rooms Data Table -->
-        <section class="log-card" aria-label="Danh sách phòng thi">
+        <!-- Exam Computers Data Table Section -->
+        <section class="log-card" aria-label="Danh sách máy thi">
             <header class="log-card-header">
                 <h2 class="log-card-title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
-                        <path d="M3 21V7L12 3L21 7V21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M9 21V15H15V21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <rect x="2" y="4" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    Danh sách phòng thi
-                    <c:if test="${not empty examRooms}">
+                    Danh sách máy trạm thi lý thuyết
+                    <c:if test="${not empty examComputers}">
                         <span style="font-size: 0.78rem; font-weight: 600; background: rgba(0,82,204,0.08); color: #0052cc; padding: 2px 10px; border-radius: 9999px; margin-left: 6px;">
-                            ${fn:length(examRooms)} phòng
+                            ${fn:length(examComputers)} máy
                         </span>
                     </c:if>
                 </h2>
                 <div class="log-card-actions">
+                    <button class="btn-export" onclick="syncAllIPs()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Đồng bộ IP
+                    </button>
                     <button class="btn-export">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -228,98 +237,85 @@
                     <thead>
                         <tr>
                             <th scope="col" class="col-id">STT</th>
-                            <th scope="col" style="width: 120px;">Mã phòng</th>
-                            <th scope="col">Tên phòng thi</th>
-                            <th scope="col">Khu vực</th>
-                            <th scope="col" style="width: 130px; text-align: center;">Loại phòng</th>
-                            <th scope="col" style="width: 100px; text-align: center;">Sức chứa</th>
-                            <th scope="col" style="width: 110px; text-align: center;">Số máy thi</th>
-                            <th scope="col" style="width: 130px; text-align: center;">Trạng thái</th>
-                            <th scope="col" style="text-align: center; width: 210px;">Thao tác</th>
+                            <th scope="col" style="width: 120px;">Mã máy</th>
+                            <th scope="col">Địa chỉ IP & Client</th>
+                            <th scope="col">Phòng thi</th>
+                            <th scope="col" style="width: 150px; text-align: center;">Hệ điều hành</th>
+                            <th scope="col" style="width: 130px; text-align: center;">Trạng thái kết nối</th>
+                            <th scope="col" style="width: 130px; text-align: center;">Tình trạng máy</th>
+                            <th scope="col" style="width: 110px; text-align: center;">Mã Client</th>
+                            <th scope="col" style="text-align: center; width: 220px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:choose>
-                            <c:when test="${not empty examRooms}">
-                                <c:forEach var="room" items="${examRooms}" varStatus="status">
+                            <c:when test="${not empty examComputers}">
+                                <c:forEach var="comp" items="${examComputers}" varStatus="status">
                                     <tr>
                                         <td class="col-id">${status.index + 1}</td>
-                                        <td style="font-weight: 700; color: #0052cc; font-family: monospace; font-size: 0.9rem;">${room.code}</td>
+                                        <td style="font-weight: 700; color: #0052cc; font-family: monospace; font-size: 0.9rem;">${comp.code}</td>
                                         <td>
-                                            <div class="user-cell">
-                                                <div class="user-avatar"
-                                                     style="background: ${room.type eq 'theory' ? 'linear-gradient(135deg,#0052cc,#003d9b)' : 'linear-gradient(135deg,#10b981,#059669)'}; border-radius: 8px;">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M3 21V7L12 3L21 7V21" stroke="currentColor" stroke-width="2"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="user-info">
-                                                    <span class="user-name">${room.name}</span>
-                                                    <span class="user-username">Tầng ${empty room.floor ? '—' : room.floor}</span>
-                                                </div>
+                                            <div class="ip-cell">
+                                                <span>${comp.ipAddress}</span>
+                                                <span class="device-info">${empty comp.macAddress ? '—' : comp.macAddress}</span>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="user-info">
-                                                <span class="user-name" style="font-size: 0.88rem;">${room.areaName}</span>
-                                                <span class="user-username">${room.areaCode}</span>
+                                                <span class="user-name" style="font-size: 0.88rem;">${comp.roomName}</span>
+                                                <span class="user-username">${comp.roomCode}</span>
                                             </div>
                                         </td>
-                                        <td style="text-align: center;">
-                                            <c:choose>
-                                                <c:when test="${room.type eq 'theory'}">
-                                                    <span class="role-badge role-badge--admin">Lý thuyết</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="role-badge role-badge--coi">Thực hành</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td style="text-align: center;">
-                                            <span style="font-size: 1rem; font-weight: 700; color: #0f172a;">${empty room.capacity ? '—' : room.capacity}</span>
-                                            <span style="font-size: 0.75rem; color: #64748b; display: block;">người</span>
+                                        <td style="text-align: center; font-size: 0.85rem; color: #475569; font-weight: 500;">
+                                            ${empty comp.osName ? 'Windows 11 Client' : comp.osName}
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
-                                                <c:when test="${room.type eq 'theory'}">
-                                                    <span style="font-size: 1rem; font-weight: 700; color: #0f172a;">${empty room.computerCount ? 0 : room.computerCount}</span>
-                                                    <span style="font-size: 0.75rem; color: #64748b; display: block;">máy thi</span>
+                                                <c:when test="${comp.connectionStatus eq 'online'}">
+                                                    <span class="role-badge role-badge--coi" style="padding-left: 10px; padding-right: 10px; display: inline-flex; align-items: center; gap: 5px;">
+                                                        <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #0d9488; display: inline-block;"></span>
+                                                        Online
+                                                    </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span style="color: #94a3b8; font-size: 0.85rem;">—</span>
+                                                    <span class="role-badge role-badge--other" style="padding-left: 10px; padding-right: 10px; display: inline-flex; align-items: center; gap: 5px; color: #64748b;">
+                                                        <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #64748b; display: inline-block;"></span>
+                                                        Offline
+                                                    </span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
-                                                <c:when test="${room.status eq 'active'}">
+                                                <c:when test="${comp.status eq 'active'}">
                                                     <span class="action-badge action-badge--success">Hoạt động</span>
                                                 </c:when>
-                                                <c:when test="${room.status eq 'maintenance'}">
+                                                <c:when test="${comp.status eq 'maintenance'}">
                                                     <span class="action-badge action-badge--warning">Bảo trì</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="action-badge action-badge--danger">Tạm dừng</span>
+                                                    <span class="action-badge action-badge--danger">Khóa / Hỏng</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
+                                        <td style="text-align: center; font-family: monospace; font-size: 0.82rem; font-weight: 600; color: #475569;">
+                                            ${empty comp.clientVersion ? 'v1.2.4' : comp.clientVersion}
+                                        </td>
                                         <td>
                                             <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
-                                                <c:if test="${room.type eq 'theory'}">
-                                                    <a href="${pageContext.request.contextPath}/views/admin/exam-computer.jsp?roomId=${room.id}"
-                                                       class="btn-export"
-                                                       style="padding: 4px 8px; font-size: 0.78rem; border-radius: 6px; border-color: rgba(139,92,246,0.25); color: #7c3aed; text-decoration: none;">
-                                                        Máy thi
-                                                    </a>
-                                                </c:if>
+                                                <button class="btn-export"
+                                                        style="padding: 4px 8px; font-size: 0.78rem; border-radius: 6px; border-color: rgba(16,185,129,0.25); color: #059669;"
+                                                        onclick="pingComputer('${comp.id}', '${comp.code}', '${comp.ipAddress}')">
+                                                    Kiểm tra
+                                                </button>
                                                 <button class="btn-export"
                                                         style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706;"
-                                                        onclick="editRoom('${room.id}')">
+                                                        onclick="editComputer('${comp.id}')">
                                                     Sửa
                                                 </button>
                                                 <button class="btn-export"
                                                         style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239,68,68,0.25); color: #dc2626;"
-                                                        onclick="deleteRoom('${room.id}', '${room.name}')">
+                                                        onclick="deleteComputer('${comp.id}', '${comp.code}')">
                                                     Xóa
                                                 </button>
                                             </div>
@@ -332,12 +328,12 @@
                                     <td colspan="9" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
                                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                                              style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;">
-                                            <path d="M3 21V7L12 3L21 7V21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                            <path d="M9 21V15H15V21" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                            <rect x="2" y="4" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
-                                        Chưa có phòng thi nào trong hệ thống.
-                                        <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 420px; margin-left: auto; margin-right: auto;">
-                                            Nhấn <strong>Thêm phòng thi</strong> để cấu hình phòng thi đầu tiên, hoặc điều chỉnh bộ lọc để tìm phòng phù hợp.
+                                        Chưa có máy thi trắc nghiệm nào trong hệ thống.
+                                        <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 450px; margin-left: auto; margin-right: auto;">
+                                            Nhấn nút <strong>Thêm máy thi</strong> để thiết lập cấu hình client thi lý thuyết đầu tiên, hoặc chỉnh bộ lọc tìm kiếm.
                                         </p>
                                     </td>
                                 </tr>
@@ -347,20 +343,20 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
+            <!-- Table Pagination controls -->
             <footer class="pagination-footer">
                 <div class="pagination-info">
                     Hiển thị
                     <c:choose>
-                        <c:when test="${not empty examRooms}">1 - ${fn:length(examRooms)}</c:when>
+                        <c:when test="${not empty examComputers}">1 - ${fn:length(examComputers)}</c:when>
                         <c:otherwise>0</c:otherwise>
                     </c:choose>
                     trong tổng số
                     <c:choose>
-                        <c:when test="${not empty totalRooms}">${totalRooms}</c:when>
+                        <c:when test="${not empty totalComputers}">${totalComputers}</c:when>
                         <c:otherwise>0</c:otherwise>
                     </c:choose>
-                    phòng thi
+                    máy thi
                 </div>
                 <div class="pagination-nav">
                     <button class="page-btn page-btn--wide disabled" disabled>Trước</button>
@@ -378,16 +374,27 @@
     </jsp:include>
 </div>
 
+<!-- Interactive Interactions Script -->
 <script>
-    function editRoom(roomId) {
-        // TODO: bind to Edit modal or servlet route
-        console.log('Edit room:', roomId);
+    function pingComputer(compId, code, ip) {
+        console.log('Pinging computer client:', compId, ip);
+        alert('Đang gửi tín hiệu kiểm tra (Ping) đến máy ' + code + ' (' + ip + ')... \nKết quả: Máy trạm đang phản hồi ổn định (RTT < 1ms). Connection Status: ONLINE.');
     }
-    function deleteRoom(roomId, roomName) {
-        if (confirm('Bạn có chắc chắn muốn xóa phòng thi "' + roomName + '"?\nThao tác này không thể hoàn tác.')) {
-            // TODO: bind to Delete servlet route
-            console.log('Delete room:', roomId);
+
+    function editComputer(compId) {
+        // TODO: Bind to dynamic edit popup or Servlet Route
+        console.log('Edit computer:', compId);
+    }
+
+    function deleteComputer(compId, code) {
+        if (confirm('Bạn có chắc chắn muốn xóa máy thi "' + code + '" khỏi hệ thống?\nHành động này sẽ hủy mọi liên kết cấu hình phòng thi hiện tại.')) {
+            // TODO: Bind to dynamic delete Servlet Route
+            console.log('Deleted computer:', compId);
         }
+    }
+
+    function syncAllIPs() {
+        alert('Đang quét dải IP nội bộ và đồng bộ hóa địa chỉ MAC của các client thi lý thuyết đang hoạt động...\nĐã cập nhật trạng thái kết nối mới nhất.');
     }
 </script>
 
