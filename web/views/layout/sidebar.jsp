@@ -58,7 +58,7 @@
             <span class="side-nav-bar__label" data-node-id="4:761">Tải DS Thí sinh</span>
         </a>
 
-        <a href="#"
+        <a href="${pageContext.request.contextPath}/views/examiner/grading.jsp"
            class="side-nav-bar__link${activeSidebar eq 'cham-diem' ? ' is-active' : ''}"
            data-node-id="4:762"
            <c:if test="${activeSidebar eq 'cham-diem'}">aria-current="page"</c:if>>
