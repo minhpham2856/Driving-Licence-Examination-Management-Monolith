@@ -1,0 +1,366 @@
+/* ========================================================
+   Layout shell — public header / sidebar / footer
+   ======================================================== */
+
+/* Fix global body flex breaking vertical page stack */
+body.public-site,
+body.has-side-nav-bar {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+body.public-site {
+    background-color: #f8fafc;
+    color: #131b2e;
+}
+
+body.has-side-nav-bar {
+    display: block;
+    background-color: #f8fafc;
+    color: #131b2e;
+}
+
+body.public-site > header,
+body.public-site > .top-nav-bar {
+    flex-shrink: 0;
+    width: 100%;
+}
+
+body.public-site > main,
+body.public-site .public-main,
+body.public-site .main-content {
+    flex: 1 0 auto;
+    width: 100%;
+    margin-left: 0 !important;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
+}
+
+body.public-site > footer,
+body.public-site > .site-footer {
+    flex-shrink: 0;
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Dashboard shell when sidebar is used */
+body.has-side-nav-bar .dashboard-shell {
+    margin-left: 260px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8fafc;
+}
+
+body.has-side-nav-bar .dashboard-shell > main,
+body.has-side-nav-bar .dashboard-shell .main-content {
+    flex: 1 0 auto;
+    margin-left: 0 !important;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
+}
+
+body.has-side-nav-bar .dashboard-shell > .site-footer {
+    flex-shrink: 0;
+    width: 100%;
+}
+
+/* ========================================================
+   Site Footer — Figma node 1:1206
+   ======================================================== */
+.site-footer {
+    width: 100%;
+    background-color: #131b2e;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #c3c6d6;
+}
+
+.site-footer__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    max-width: 1280px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 48px 32px;
+    box-sizing: border-box;
+}
+
+.site-footer__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.site-footer__brand-text {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.site-footer__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.site-footer a.site-footer__link {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #c3c6d6 !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.site-footer a.site-footer__link:hover {
+    color: #ffffff !important;
+}
+
+.site-footer__divider {
+    width: 100%;
+    max-width: 672px;
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.site-footer__copyright {
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: #c3c6d6;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* ========================================================
+   SideNavBar — Figma node 4:4
+   ======================================================== */
+.side-nav-bar {
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 17px 16px 16px;
+    background-color: #ffffff;
+    border-right: 1px solid #c3c6d6;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #000000;
+}
+
+.side-nav-bar__brand {
+    flex-shrink: 0;
+    width: 100%;
+    height: 87px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 32px;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__brand-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__logo-link {
+    display: block;
+    flex-shrink: 0;
+    width: 63px;
+    height: 63px;
+    line-height: 0;
+    text-decoration: none !important;
+}
+
+.side-nav-bar__logo-img {
+    width: 63px;
+    height: 63px;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+}
+
+.side-nav-bar__brand-title-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.side-nav-bar__brand-title {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    color: #003d9b;
+    white-space: nowrap;
+}
+
+.side-nav-bar__menu {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.side-nav-bar a.side-nav-bar__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none !important;
+    color: #000000 !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.side-nav-bar a.side-nav-bar__link:hover:not(.is-active) {
+    background-color: rgba(0, 82, 204, 0.06);
+    color: #000000 !important;
+}
+
+.side-nav-bar a.side-nav-bar__link.is-active {
+    background-color: #0052cc !important;
+    color: #ffffff !important;
+}
+
+.side-nav-bar__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: inherit;
+}
+
+.side-nav-bar__icon--sm {
+    width: 16px;
+    height: 20px;
+}
+
+.side-nav-bar__icon--md {
+    width: 24px;
+    height: 24px;
+}
+
+.side-nav-bar__icon--xs {
+    width: 18px;
+    height: 18px;
+}
+
+.side-nav-bar__icon--user {
+    width: 20px;
+    height: 17px;
+}
+
+.side-nav-bar__icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.side-nav-bar__label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.side-nav-bar__footer {
+    flex-shrink: 0;
+    width: 100%;
+    border-top: 1px solid #c3c6d6;
+    padding-top: 17px;
+    box-sizing: border-box;
+}
+
+.side-nav-bar a.side-nav-bar__logout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none !important;
+    color: #434654 !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.side-nav-bar a.side-nav-bar__logout:hover {
+    background-color: rgba(67, 70, 84, 0.06);
+    color: #131b2e !important;
+}
+
+.side-nav-bar__logout-label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .site-footer__container {
+        padding: 32px 20px;
+        gap: 20px;
+    }
+
+    .site-footer__nav {
+        gap: 16px 20px;
+    }
+
+    .site-footer__link,
+    .site-footer__brand-text,
+    .site-footer__copyright {
+        white-space: normal;
+        text-align: center;
+    }
+}
+
+@media (max-width: 992px) {
+    .side-nav-bar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .side-nav-bar.is-open {
+        transform: translateX(0);
+    }
+
+    body.has-side-nav-bar .dashboard-shell {
+        margin-left: 0;
+    }
+}

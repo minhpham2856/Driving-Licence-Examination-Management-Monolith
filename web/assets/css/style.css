@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     /* Colors */
@@ -28,8 +28,8 @@
     --info-bg: rgba(6, 182, 212, 0.15);
 
     /* Fonts */
-    --font-heading: 'Outfit', sans-serif;
-    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-heading: 'Be Vietnam Pro', 'Inter', sans-serif;
+    --font-body: 'Inter', 'Be Vietnam Pro', sans-serif;
 }
 
 /* Global Reset & Base */
@@ -85,7 +85,265 @@ body {
     transition: margin-left 0.3s ease;
 }
 
-/* Top Header */
+/* ========================================================
+   TopNavBar — Figma node 1:1221 (public header)
+   ======================================================== */
+.top-nav-bar {
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.top-nav-bar__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1280px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px 32px;
+    min-height: 86px;
+    box-sizing: border-box;
+}
+
+.top-nav-bar__logo {
+    display: block;
+    flex-shrink: 0;
+    width: 54px;
+    height: 54px;
+    line-height: 0;
+    text-decoration: none;
+}
+
+.top-nav-bar__logo-img {
+    width: 54px;
+    height: 54px;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+}
+
+.top-nav-bar__nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-shrink: 0;
+}
+
+.top-nav-bar__link {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #434654;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+    padding-bottom: 0;
+    border-bottom: 2px solid transparent;
+}
+
+.top-nav-bar__link:hover {
+    color: #003d9b;
+}
+
+.top-nav-bar__link.is-active {
+    font-weight: 700;
+    color: #003d9b;
+    border-bottom-color: #003d9b;
+    padding-bottom: 6px;
+}
+
+.top-nav-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.top-nav-bar__btn-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #003d9b;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
+}
+
+.top-nav-bar__btn-login:hover {
+    opacity: 0.85;
+}
+
+.top-nav-bar__btn-register {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 24px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #0052cc;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.top-nav-bar__btn-register:hover {
+    background-color: #0043a6;
+    color: #ffffff;
+}
+
+@media (max-width: 992px) {
+    .top-nav-bar__container {
+        flex-wrap: wrap;
+        gap: 16px;
+        min-height: auto;
+        padding: 12px 20px;
+    }
+
+    .top-nav-bar__nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .top-nav-bar__actions {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .top-nav-bar__nav {
+        gap: 12px;
+    }
+
+    .top-nav-bar__link,
+    .top-nav-bar__btn-login,
+    .top-nav-bar__btn-register {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .top-nav-bar__btn-register {
+        padding: 8px 16px;
+    }
+}
+
+/* ========================================================
+   Site Footer — Figma node 1:1206
+   ======================================================== */
+.site-footer {
+    width: 100%;
+    background-color: #131b2e;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.site-footer__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    max-width: 1280px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 48px 32px;
+    box-sizing: border-box;
+}
+
+.site-footer__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.site-footer__brand-text {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.site-footer__nav {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.site-footer__link {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #c3c6d6;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.site-footer__link:hover {
+    color: #ffffff;
+}
+
+.site-footer__divider {
+    width: 100%;
+    max-width: 672px;
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.site-footer__copyright {
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: #c3c6d6;
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .site-footer__container {
+        padding: 32px 20px;
+        gap: 20px;
+    }
+
+    .site-footer__nav {
+        gap: 16px 20px;
+    }
+
+    .site-footer__link,
+    .site-footer__brand-text,
+    .site-footer__copyright {
+        white-space: normal;
+        text-align: center;
+    }
+
+    .site-footer__brand {
+        align-items: center;
+    }
+}
+
+/* Top Header (legacy pages) */
 .top-header {
     display: flex;
     justify-content: space-between;
@@ -414,7 +672,7 @@ p {
     background: rgba(99, 102, 241, 0.05);
 }
 
-/* Sidebar Custom Styling */
+/* Sidebar Custom Styling (legacy) */
 .sidebar {
     width: 280px;
     background: var(--bg-surface);
@@ -511,6 +769,209 @@ p {
 
 .sidebar-link.active svg {
     transform: scale(1.1);
+}
+
+/* ========================================================
+   SideNavBar — Figma node 4:4 (exam sidebar)
+   ======================================================== */
+.side-nav-bar {
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 17px 16px 16px;
+    background-color: #ffffff;
+    border-right: 1px solid #c3c6d6;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.side-nav-bar__brand {
+    flex-shrink: 0;
+    width: 100%;
+    height: 87px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 32px;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__brand-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__logo-link {
+    display: block;
+    flex-shrink: 0;
+    width: 63px;
+    height: 63px;
+    line-height: 0;
+    text-decoration: none;
+}
+
+.side-nav-bar__logo-img {
+    width: 63px;
+    height: 63px;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+}
+
+.side-nav-bar__brand-title-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.side-nav-bar__brand-title {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    color: #003d9b;
+    white-space: nowrap;
+}
+
+.side-nav-bar__menu {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.side-nav-bar__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #000000;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__link:hover:not(.is-active) {
+    background-color: rgba(0, 82, 204, 0.06);
+}
+
+.side-nav-bar__link.is-active {
+    background-color: #0052cc;
+    color: #ffffff;
+}
+
+.side-nav-bar__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: inherit;
+}
+
+.side-nav-bar__icon--sm {
+    width: 16px;
+    height: 20px;
+}
+
+.side-nav-bar__icon--md {
+    width: 24px;
+    height: 24px;
+}
+
+.side-nav-bar__icon--xs {
+    width: 18px;
+    height: 18px;
+}
+
+.side-nav-bar__icon--user {
+    width: 20px;
+    height: 17px;
+}
+
+.side-nav-bar__icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.side-nav-bar__label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.side-nav-bar__footer {
+    flex-shrink: 0;
+    width: 100%;
+    border-top: 1px solid #c3c6d6;
+    padding-top: 17px;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__logout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #434654;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.side-nav-bar__logout:hover {
+    background-color: rgba(67, 70, 84, 0.06);
+    color: #131b2e;
+}
+
+.side-nav-bar__logout-label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.has-side-nav-bar .main-content,
+.has-side-nav-bar main {
+    margin-left: 260px;
+}
+
+@media (max-width: 992px) {
+    .side-nav-bar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+
+    .side-nav-bar.is-open {
+        transform: translateX(0);
+    }
+
+    .has-side-nav-bar .main-content,
+    .has-side-nav-bar main {
+        margin-left: 0;
+    }
 }
 
 .role-selector-card {
