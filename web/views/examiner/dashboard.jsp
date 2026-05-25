@@ -350,7 +350,7 @@
                                         <td>
                                             <div style="display: flex; gap: 6px; justify-content: center;">
                                                 <a href="candidatecall.jsp?sbd=${candidate.sbd}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16, 185, 129, 0.25); color: #059669; font-weight: 700;">Gọi thi</a>
-                                                <a href="view-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
+                                                <a href="candidatedetail.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
                                                 <a href="edit-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(0, 82, 204, 0.25); color: #0052cc;">Sửa</a>
                                                 <a href="delete-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626;" onclick="return confirm('Bạn có chắc chắn muốn xóa thí sinh ${candidate.fullName}?');">Xóa</a>
                                             </div>
