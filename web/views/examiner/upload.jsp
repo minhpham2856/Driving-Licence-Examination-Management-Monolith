@@ -57,9 +57,7 @@
                 <form action="${pageContext.request.contextPath}/examiner/upload" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%;">
                     <div class="upload-dropzone" style="cursor: pointer; width: 100%; box-sizing: border-box;">
                         <div class="dropzone-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <img src="${pageContext.request.contextPath}/assets/imgs/cloud-upload.svg" alt="Tải lên đám mây" style="width: 48px; height: 48px;">
                         </div>
                         <span style="font-size: 1rem; font-weight: 700; color: #0f172a; display: block; margin-bottom: 0.5rem;">Chọn tệp danh sách thí sinh</span>
                         <span style="font-size: 0.82rem; color: #64748b; display: block; margin-bottom: 1rem;">Hỗ trợ định dạng: .xlsx, .xls, .csv (Tối đa 15MB)</span>
