@@ -316,13 +316,10 @@
                 </div>
             </c:otherwise>
         </c:choose>
-
     </main>
-
     <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>
 </div>
-
 </body>
 </html>
