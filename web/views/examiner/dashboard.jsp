@@ -350,7 +350,7 @@
                                         <td>
                                             <div style="display: flex; gap: 6px; justify-content: center;">
                                                 <a href="candidatecall.jsp?sbd=${candidate.sbd}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16, 185, 129, 0.25); color: #059669; font-weight: 700;">Gọi thi</a>
-                                                <a href="view-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
+                                                <a href="candidatedetail.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
                                                 <a href="edit-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(0, 82, 204, 0.25); color: #0052cc;">Sửa</a>
                                                 <a href="delete-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626;" onclick="return confirm('Bạn có chắc chắn muốn xóa thí sinh ${candidate.fullName}?');">Xóa</a>
                                             </div>
@@ -362,11 +362,7 @@
                                 <!-- TRANG FRONT-END TRỐNG HOÀN TOÀN KHI CHƯA CÓ BACKEND TRUYỀN DỮ LIỆU (TƯƠNG TỰ AUDIT.JSP) -->
                                 <tr>
                                     <td colspan="8" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
-                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;">
-                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <circle cx="19" cy="11" r="3" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M19 8v6M16 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
+                                        <img src="${pageContext.request.contextPath}/assets/imgs/empty-candidates.svg" alt="Không có thí sinh" style="width: 64px; height: 64px; margin: 0 auto 1.5rem; display: block; opacity: 0.25;">
                                         Không tìm thấy hồ sơ thí sinh nào trong hệ thống.
                                         <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">Vui lòng thêm mới thí sinh thủ công hoặc nhập danh sách thí sinh trực tiếp từ file Excel bằng các nút chức năng phía trên.</p>
                                     </td>
