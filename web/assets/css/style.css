@@ -2166,3 +2166,100 @@ p {
     padding: 2px 6px;
     border-radius: 4px;
 }
+
+/* ========================================================
+   Admin Dashboard Layout Styles — SC-070 to SC-077
+   ======================================================== */
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.admin-nav-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-decoration: none !important;
+    color: inherit !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.admin-nav-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 82, 204, 0.08);
+    border-color: #0052cc;
+}
+.admin-nav-card__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.admin-nav-card__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(0, 82, 204, 0.08);
+    color: #0052cc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.admin-nav-card:nth-child(2) .admin-nav-card__icon { background: rgba(16, 185, 129, 0.08); color: #10b981; }
+.admin-nav-card:nth-child(3) .admin-nav-card__icon { background: rgba(245, 158, 11, 0.08); color: #f59e0b; }
+.admin-nav-card:nth-child(4) .admin-nav-card__icon { background: rgba(139, 92, 246, 0.08); color: #8b5cf6; }
+.admin-nav-card:nth-child(5) .admin-nav-card__icon { background: rgba(236, 72, 153, 0.08); color: #ec4899; }
+.admin-nav-card:nth-child(6) .admin-nav-card__icon { background: rgba(14, 165, 233, 0.08); color: #0ea5e9; }
+.admin-nav-card:nth-child(7) .admin-nav-card__icon { background: rgba(239, 68, 68, 0.08); color: #ef4444; }
+
+.admin-nav-card__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.admin-nav-card__desc {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.35rem;
+    color: #64748b;
+    flex-grow: 1;
+}
+.admin-nav-card__footer {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0052cc;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+.admin-nav-card:nth-child(2) .admin-nav-card__footer { color: #10b981; }
+.admin-nav-card:nth-child(3) .admin-nav-card__footer { color: #f59e0b; }
+.admin-nav-card:nth-child(4) .admin-nav-card__footer { color: #8b5cf6; }
+.admin-nav-card:nth-child(5) .admin-nav-card__footer { color: #ec4899; }
+.admin-nav-card:nth-child(6) .admin-nav-card__footer { color: #0ea5e9; }
+.admin-nav-card:nth-child(7) .admin-nav-card__footer { color: #ef4444; }
+
+.admin-nav-card__footer svg {
+    transition: transform 0.2s ease;
+}
+.admin-nav-card:hover .admin-nav-card__footer svg {
+    transform: translateX(4px);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 2rem 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+}
