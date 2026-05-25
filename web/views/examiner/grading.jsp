@@ -146,10 +146,7 @@
                     </c:when>
                     <c:otherwise>
                         <div style="text-align: center; color: #64748b; padding: 4rem 2rem; font-style: italic;">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #cbd5e1; margin-bottom: 1rem;">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                            <img src="${pageContext.request.contextPath}/assets/imgs/empty-grading.svg" alt="Chờ chấm điểm" style="width: 48px; height: 48px; margin-bottom: 1rem;">
                             <p style="font-size: 0.95rem; font-weight: 500;">Chưa có danh sách bài thi sa hình.</p>
                             <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">Vui lòng kết nối cơ sở dữ liệu và truyền danh sách bài thi từ Controller.</p>
                         </div>
@@ -199,9 +196,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: #cbd5e1; color: #64748b;">
-                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
+                                        <img src="${pageContext.request.contextPath}/assets/imgs/avatar-placeholder.svg" alt="Ảnh chân dung trống" style="width: 36px; height: 36px; opacity: 0.4;">
                                     </div>
                                 </c:otherwise>
                             </c:choose>
