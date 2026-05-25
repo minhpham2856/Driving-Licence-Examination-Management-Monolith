@@ -9,19 +9,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Điều hành gọi thí sinh - Lái Vui</title>
-    
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- External Layout Stylesheets (Matching layout standard) -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<%-- Inject the sidebar template --%>
 <jsp:include page="/views/layout/sidebar.jsp">
     <jsp:param name="activeSidebar" value="ds-thi-sinh" />
 </jsp:include>
@@ -29,7 +24,6 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
@@ -40,14 +34,12 @@
             <span class="breadcrumbs__current" aria-current="page">Điều hành gọi thi</span>
         </nav>
         
-        <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Điều hành gọi thí sinh</h1>
                 <p class="page-subtitle">Quản lý gọi thi, giám sát nhận diện FaceID trực tiếp, bắt đầu bài thi sát hạch cho từng thí sinh.</p>
             </div>
             
-            <!-- Quick Actions / Dropdown chọn ca & phòng thi (SC-050) -->
             <div class="page-actions" style="display: flex; gap: 10px; align-items: center; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <label for="selectSession" style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Ca thi:</label>
@@ -67,10 +59,7 @@
             </div>
         </header>
 
-        <!-- Main Calling Interface Layout -->
         <div class="call-container">
-            
-            <!-- LEFT COLUMN: Candidate Details & Local Control Buttons -->
             <div class="call-pane">
                 <header class="call-pane__header">
                     <h2 class="call-pane__title">
@@ -80,7 +69,6 @@
                         </svg>
                         Thí sinh đang được gọi
                     </h2>
-                    
                     <c:if test="${not empty param.sbd}">
                         <span class="action-badge action-badge--warning">Chờ kiểm tra FaceID</span>
                     </c:if>
@@ -88,17 +76,13 @@
 
                 <c:choose>
                     <c:when test="${not empty param.sbd}">
-                        <!-- THẾ HỆ THÔNG TIN THÍ SINH ĐƯỢC GỌI THEO SBD (MÔ PHỎNG DỮ LIỆU FRONT-END THEO PARAM) -->
-                        
                         <c:choose>
                             <c:when test="${param.sbd eq 'A1-0024'}">
-                                <!-- Thiết lập mock data thí sinh dựa vào SBD truyền tới -->
                                 <c:set var="cName" value="Nguyễn Anh Tuấn" />
                                 <c:set var="cCCCD" value="001204008912" />
                                 <c:set var="cClass" value="Hạng A1" />
                                 <c:set var="cSession" value="Khóa thi A1 - 24/05/2026" />
                                 <c:set var="cAvatar" value="N" />
-                                <c:set var="cAvatarClass" value="user-avatar--orange" />
                             </c:when>
                             <c:when test="${param.sbd eq 'B2-0145'}">
                                 <c:set var="cName" value="Trần Thị Mai" />
@@ -106,7 +90,6 @@
                                 <c:set var="cClass" value="Hạng B2" />
                                 <c:set var="cSession" value="Khóa thi B2 - 15/06/2026" />
                                 <c:set var="cAvatar" value="T" />
-                                <c:set var="cAvatarClass" value="user-avatar--purple" />
                             </c:when>
                             <c:otherwise>
                                 <c:set var="cName" value="Lê Hoàng Nam" />
@@ -114,12 +97,10 @@
                                 <c:set var="cClass" value="Hạng A1" />
                                 <c:set var="cSession" value="Khóa thi A1 - 24/05/2026" />
                                 <c:set var="cAvatar" value="L" />
-                                <c:set var="cAvatarClass" value="user-avatar--teal" />
                             </c:otherwise>
                         </c:choose>
 
                         <div class="call-grid">
-                            <!-- Mock Photo Frame -->
                             <div class="candidate-photo-frame">
                                 <div class="candidate-photo-placeholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0052cc 0%, #003d9b 100%); color: #ffffff; font-size: 3rem; font-weight: 800;">
                                     ${cAvatar}
@@ -127,7 +108,6 @@
                                 <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 82, 204, 0.85); color: #ffffff; font-size: 0.65rem; text-align: center; padding: 3px 0; font-weight: bold; text-transform: uppercase;">Ảnh hồ sơ</div>
                             </div>
 
-                            <!-- Thống tin chi tiết của thí sinh -->
                             <div class="candidate-details-list">
                                 <div class="candidate-detail-item">
                                     <span class="candidate-detail-label">Số báo danh (SBD)</span>
@@ -154,7 +134,6 @@
                             </div>
                         </div>
 
-                        <!-- Trạng thái gọi phát loa phát thanh -->
                         <div class="calling-status-wrapper">
                             <div class="calling-status-info">
                                 <div class="calling-indicator"></div>
@@ -163,49 +142,41 @@
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Đã phát 1 lần</span>
                         </div>
 
-                        <!-- Nhóm các nút điều khiển gọi thi chuyên dụng cho giám thị (SC-053, SC-058, SC-055, SC-052) -->
                         <div class="control-btn-grid">
-                            <!-- Gọi thí sinh tiếp theo (SC-053) -->
-                            <button class="btn-call-control btn-call-control--next" onclick="alert('Đang tìm thí sinh chờ tiếp theo trong hệ thống...');">
+                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=next" class="btn-call-control btn-call-control--next" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                                 Gọi tiếp theo
-                            </button>
+                            </a>
                             
-                            <!-- Đánh dấu vắng mặt (SC-058) -->
-                            <button class="btn-call-control btn-call-control--absent" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu thí sinh vắng mặt và chuyển hồ sơ sang trượt sát hạch đợt này?');">
+                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=absent&sbd=${param.sbd}" class="btn-call-control btn-call-control--absent" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu thí sinh vắng mặt?');">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 </svg>
                                 Vắng mặt
-                            </button>
+                            </a>
                             
-                            <!-- Bắt đầu bài thi (SC-055) -->
-                            <button class="btn-call-control btn-call-control--start" onclick="alert('Đã kích hoạt ca thi sát hạch cho máy trạm thí sinh ${param.sbd}. Phát lệnh thi bắt đầu!');">
+                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=start&sbd=${param.sbd}" class="btn-call-control btn-call-control--start" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M5 3l14 9-14 9V3z" fill="currentColor"/>
                                 </svg>
                                 Bắt đầu thi
-                            </button>
+                            </a>
                             
-                            <!-- Hủy kết quả thi lý thuyết / thực hành (SC-051) -->
-                            <button class="btn-call-control" style="background-color: #f97316;" onclick="var reason = prompt('Nhập lý do hủy kết quả (vi phạm quy chế thi, sử dụng điện thoại, tài liệu...):'); if(reason) alert('Đã hủy kết quả thi của thí sinh. Lý do: ' + reason);">
+                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=cancel&sbd=${param.sbd}" class="btn-call-control" style="background-color: #f97316; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; color: #ffffff;" onclick="return confirm('Hủy kết quả thi sát hạch của thí sinh này?');">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18.36 6.64L5.64 19.36M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                                 Hủy kết quả
-                            </button>
+                            </a>
                             
-                            <!-- Trở về trang danh sách -->
-                            <a href="dashboard.jsp" class="btn-call-control btn-call-control--cancel" style="text-decoration: none;">
+                            <a href="dashboard.jsp" class="btn-call-control btn-call-control--cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                 Quay lại
                             </a>
                         </div>
-
                     </c:when>
                     <c:otherwise>
-                        <!-- KHI CHƯA CÓ THÍ SINH NÀO ĐƯỢC GỌI -->
                         <div style="text-align: center; padding: 4rem 1.5rem; color: #64748b;">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1rem; display: block; opacity: 0.35; color: #64748b;">
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -213,15 +184,15 @@
                             </svg>
                             <span style="font-weight: 700; font-size: 1rem; color: #334155; display: block; margin-bottom: 0.5rem;">Đang chờ gọi thí sinh sát hạch</span>
                             Chưa có thí sinh nào được chọn gọi vào phòng thi. 
-                            <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; max-width: 360px; margin: 0.5rem auto 1.5rem;">Vui lòng bấm nút dưới đây để hệ thống tự động gọi thí sinh xếp hàng tiếp theo, hoặc chọn trực tiếp từ danh sách thí sinh.</p>
+                            <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; max-width: 360px; margin: 0.5rem auto 1.5rem;">Vui lòng bấm nút dưới đây để gọi thí sinh tiếp theo, hoặc chọn trực tiếp từ danh sách thí sinh.</p>
                             
                             <div style="display: flex; gap: 10px; justify-content: center;">
-                                <button class="btn-filter" style="height: 42px; padding: 0 1.5rem;" onclick="location.href='candidatecall.jsp?sbd=A1-0024'">
+                                <a href="candidatecall.jsp?sbd=A1-0024" class="btn-filter" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
                                         <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                     Gọi thí sinh tiếp theo
-                                </button>
+                                </a>
                                 <a href="dashboard.jsp" class="btn-reset" style="height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
                                     Danh sách thí sinh
                                 </a>
@@ -231,7 +202,6 @@
                 </c:choose>
             </div>
             
-            <!-- RIGHT COLUMN: Emulated FaceID Camera Feed (SC-054) -->
             <div class="call-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
                 <header class="call-pane__header" style="margin-bottom: 1rem;">
                     <h2 class="call-pane__title">
@@ -241,44 +211,33 @@
                         </svg>
                         Màn hình nhận diện FaceID
                     </h2>
-                    
                     <c:if test="${not empty param.sbd}">
                         <span class="action-badge" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2);">FaceID Online</span>
                     </c:if>
                 </header>
                 
-                <!-- WebCam Emulation (Live Face Scan Radar animation) -->
                 <div class="camera-feed">
                     <c:choose>
                         <c:when test="${not empty param.sbd}">
-                            <!-- Đèn chớp đỏ ghi hình LIVE -->
                             <div class="camera-feed__live-tag">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #ffffff; display: inline-block;"></span>
                                 REC LIVE
                             </div>
-                            
-                            <!-- Radar quét hoạt ảnh FaceID -->
                             <div class="camera-feed__reticle"></div>
                             <div class="camera-feed__scan-line"></div>
                             <div class="camera-feed__overlay"></div>
-                            
-                            <!-- Tên hiển thị quét mờ quét qua camera -->
                             <span style="color: rgba(16, 185, 129, 0.85); font-family: monospace; font-size: 1.25rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; z-index: 1;">
                                 SCANNING FACE...
                             </span>
-                            
-                            <!-- Trạng thái khớp khuôn mặt -->
                             <div class="face-match-status">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="3"/>
+                                    <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="3"/>
                                 </svg>
                                 99.8% KHỚP HỒ SƠ
                             </div>
                         </c:when>
-                        
                         <c:otherwise>
-                            <!-- Trạng thái camera tắt / chờ -->
                             <div style="text-align: center; color: #475569; padding: 2rem;">
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 0.75rem; display: block; opacity: 0.35;">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -291,18 +250,15 @@
                     </c:choose>
                 </div>
                 
-                <!-- Mô tả thêm về quy chế FaceID -->
                 <div style="background-color: #f8fafc; border-radius: 8px; padding: 0.85rem 1rem; border: 1px dashed #cbd5e1; margin-top: 1rem;">
                     <span style="font-size: 0.75rem; font-weight: 800; color: #1e293b; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.02em;">Quy chế sát hạch FaceID</span>
                     <p style="font-size: 0.75rem; color: #64748b; line-height: 1.45; margin: 0;">Mỗi thí sinh phải được máy quét camera tại phòng thi nhận diện thành công trước khi giám thị phát lệnh bắt đầu bài thi. Log FaceID sẽ được đối chứng khi in biên bản kết quả thi sát hạch.</p>
                 </div>
             </div>
-            
         </div>
 
     </main>
 
-    <%-- Inject the footer template --%>
     <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>
