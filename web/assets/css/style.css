@@ -647,11 +647,12 @@ p {
     box-sizing: border-box;
     border: 1px solid transparent;
     padding: 0 1.25rem;
+    white-space: nowrap;
 }
 .btn-filter {
     background-color: #0052cc;
     color: #ffffff;
-    flex: 2;
+    flex: 1.2;
 }
 .btn-filter:hover {
     background-color: #0043a6;
@@ -2261,5 +2262,4 @@ p {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
 }

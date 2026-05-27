@@ -22,7 +22,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-examiner.jsp">
     <jsp:param name="activeSidebar" value="cham-diem" />
 </jsp:include>
 
@@ -68,7 +68,7 @@
                     Khóa & Nộp điểm
                 </a>
 
-                <a href="${pageContext.request.contextPath}/examiner/grading?action=terminate&sbd=${currentCandidate.sbd}" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ef4444; border-color: #ef4444; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>" onclick="return confirm('Bạn có chắc chắn muốn đình chỉ thi thí sinh này?');">
+                <a href="${pageContext.request.contextPath}/examiner/grading?action=terminate&sbd=${currentCandidate.sbd}" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ef4444; border-color: #ef4444; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                         <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
@@ -132,7 +132,7 @@
                                     <div class="step-actions">
                                         <a href="${pageContext.request.contextPath}/examiner/grading?action=deduct&stepId=${item.stepId}&points=5&sbd=${currentCandidate.sbd}" class="btn-deduct" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>">-5đ</a>
                                         <a href="${pageContext.request.contextPath}/examiner/grading?action=deduct&stepId=${item.stepId}&points=10&sbd=${currentCandidate.sbd}" class="btn-deduct" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>">-10đ</a>
-                                        <a href="${pageContext.request.contextPath}/examiner/grading?action=disqualify&stepId=${item.stepId}&sbd=${currentCandidate.sbd}" class="btn-disqualify" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>" onclick="return confirm('Loại trực tiếp thí sinh ở bài thi này?');">LOẠI</a>
+                                        <a href="${pageContext.request.contextPath}/examiner/grading?action=disqualify&stepId=${item.stepId}&sbd=${currentCandidate.sbd}" class="btn-disqualify" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>">LOẠI</a>
                                         <a href="${pageContext.request.contextPath}/examiner/grading?action=reset&stepId=${item.stepId}&sbd=${currentCandidate.sbd}" class="btn-deduct" style="color: #64748b; border-color: #cbd5e1; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; <c:if test='${not isStarted}'>pointer-events: none; opacity: 0.5;</c:if>">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>

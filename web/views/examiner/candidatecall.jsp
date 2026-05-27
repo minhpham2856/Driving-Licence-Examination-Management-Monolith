@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-examiner.jsp">
     <jsp:param name="activeSidebar" value="ds-thi-sinh" />
 </jsp:include>
 
@@ -150,7 +150,7 @@
                                 Gọi tiếp theo
                             </a>
                             
-                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=absent&sbd=${param.sbd}" class="btn-call-control btn-call-control--absent" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;" onclick="return confirm('Bạn có chắc chắn muốn đánh dấu thí sinh vắng mặt?');">
+                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=absent&sbd=${param.sbd}" class="btn-call-control btn-call-control--absent" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 </svg>
@@ -164,7 +164,7 @@
                                 Bắt đầu thi
                             </a>
                             
-                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=cancel&sbd=${param.sbd}" class="btn-call-control" style="background-color: #f97316; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; color: #ffffff;" onclick="return confirm('Hủy kết quả thi sát hạch của thí sinh này?');">
+                            <a href="${pageContext.request.contextPath}/examiner/candidatecall?action=cancel&sbd=${param.sbd}" class="btn-call-control" style="background-color: #f97316; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; color: #ffffff;">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18.36 6.64L5.64 19.36M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
