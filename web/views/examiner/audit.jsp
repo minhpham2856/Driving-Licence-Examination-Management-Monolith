@@ -198,7 +198,7 @@
                                 </svg>
                                 Tìm
                             </button>
-                            <a href="audit.jsp" class="btn-reset">Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/views/examiner/audit.jsp" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>
