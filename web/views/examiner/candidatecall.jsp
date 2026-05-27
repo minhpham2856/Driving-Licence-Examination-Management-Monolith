@@ -29,7 +29,7 @@
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Quản lý thi</span>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="dashboard.jsp">Danh sách thí sinh</a>
+            <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp">Danh sách thí sinh</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Điều hành gọi thi</span>
         </nav>
