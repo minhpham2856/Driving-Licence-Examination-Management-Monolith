@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
+<jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="ds-thi-sinh" />
 </jsp:include>
 
@@ -29,7 +29,7 @@
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Quản lý thi</span>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp">Danh sách thí sinh</a>
+            <a href="${pageContext.request.contextPath}/views/staff/examstaff/candidatelist.jsp">Danh sách thí sinh</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Điều hành gọi thi</span>
         </nav>
@@ -154,7 +154,7 @@
                                 Hủy kết quả
                             </a>
                             
-                            <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp" class="btn-call-control btn-call-control--cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
+                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/candidatelist.jsp" class="btn-call-control btn-call-control--cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                 Quay lại
                             </a>
                         </div>
@@ -176,7 +176,7 @@
                                     </svg>
                                     Gọi thí sinh tiếp theo
                                 </a>
-                                <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp" class="btn-reset" style="height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                                <a href="${pageContext.request.contextPath}/views/staff/examstaff/candidatelist.jsp" class="btn-reset" style="height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
                                     Danh sách thí sinh
                                 </a>
                             </div>
