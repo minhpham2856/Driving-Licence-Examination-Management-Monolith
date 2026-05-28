@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-manager.jsp">
+<jsp:include page="/views/layout/sidebar-staff-exam.jsp">
     <jsp:param name="activeSidebar" value="hoc-vien" />
 </jsp:include>
 
@@ -28,9 +28,9 @@
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/manager/dashboard.jsp">Dashboard quản lý</a>
+            <a href="${pageContext.request.contextPath}/views/staff/exam/dashboard.jsp">Dashboard quản lý</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/manager/users.jsp">Danh sách học viên</a>
+            <a href="${pageContext.request.contextPath}/views/staff/exam/users.jsp">Danh sách học viên</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">
                 <c:choose>
@@ -52,7 +52,7 @@
             </div>
             
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <a href="${pageContext.request.contextPath}/views/manager/users.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
+                <a href="${pageContext.request.contextPath}/views/staff/exam/users.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -60,7 +60,7 @@
                 </a>
                 
                 <c:if test="${user.statusKey eq 'warning'}">
-                    <a href="${pageContext.request.contextPath}/views/manager/approve.jsp?id=${user.id}" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #d97706; border-color: #d97706;">
+                    <a href="${pageContext.request.contextPath}/views/staff/exam/approve.jsp?id=${user.id}" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #d97706; border-color: #d97706;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -264,7 +264,7 @@
                     <p style="font-size: 0.85rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
                         Vui lòng quay trở lại danh sách học viên và thử chọn lại.
                     </p>
-                    <a href="${pageContext.request.contextPath}/views/manager/users.jsp" class="btn-export" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; padding: 0 1.5rem; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff; margin-top: 1.5rem;">Quay lại danh sách</a>
+                    <a href="${pageContext.request.contextPath}/views/staff/exam/users.jsp" class="btn-export" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; padding: 0 1.5rem; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff; margin-top: 1.5rem;">Quay lại danh sách</a>
                 </div>
             </c:otherwise>
         </c:choose>

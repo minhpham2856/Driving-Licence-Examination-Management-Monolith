@@ -47,7 +47,7 @@
     <nav class="side-nav-bar__menu" data-node-id="manager:7">
         
         <%-- SC-030: Dashboard quản lý --%>
-        <a href="${ctx}/views/manager/dashboard.jsp"
+        <a href="${ctx}/views/staff/exam/dashboard.jsp"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="manager:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -63,7 +63,7 @@
         </a>
 
         <%-- SC-031: Danh sách registered users --%>
-        <a href="${ctx}/views/manager/users.jsp"
+        <a href="${ctx}/views/staff/exam/users.jsp"
            class="side-nav-bar__link${activeSidebar eq 'hoc-vien' ? ' is-active' : ''}"
            data-node-id="manager:20"
            <c:if test="${activeSidebar eq 'hoc-vien'}">aria-current="page"</c:if>>
@@ -79,7 +79,7 @@
         </a>
 
         <%-- SC-033: Duyệt / Từ chối hồ sơ, giấy tờ --%>
-        <a href="${ctx}/views/manager/approve.jsp"
+        <a href="${ctx}/views/staff/exam/approve.jsp"
            class="side-nav-bar__link${activeSidebar eq 'duyet-ho-so' ? ' is-active' : ''}"
            data-node-id="manager:30"
            <c:if test="${activeSidebar eq 'duyet-ho-so'}">aria-current="page"</c:if>>
@@ -93,7 +93,7 @@
         </a>
 
         <%-- SC-034: Tạo tài khoản mới cho học viên --%>
-        <a href="${ctx}/views/manager/create-user.jsp"
+        <a href="${ctx}/views/staff/exam/create-user.jsp"
            class="side-nav-bar__link${activeSidebar eq 'tao-tai-khoan' ? ' is-active' : ''}"
            data-node-id="manager:40"
            <c:if test="${activeSidebar eq 'tao-tai-khoan'}">aria-current="page"</c:if>>
@@ -108,7 +108,7 @@
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>
-        <a href="${ctx}/views/manager/report.jsp"
+        <a href="${ctx}/views/staff/exam/report.jsp"
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
            data-node-id="manager:50"
            <c:if test="${activeSidebar eq 'bao-cao'}">aria-current="page"</c:if>>
@@ -122,7 +122,7 @@
         </a>
 
         <%-- SC-036: Nhật ký thao tác --%>
-        <a href="${ctx}/views/manager/audit.jsp"
+        <a href="${ctx}/views/staff/exam/audit.jsp"
            class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
            data-node-id="manager:60"
            <c:if test="${activeSidebar eq 'nhat-ky'}">aria-current="page"</c:if>>
