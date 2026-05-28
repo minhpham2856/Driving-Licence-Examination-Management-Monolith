@@ -21,7 +21,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
+<jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="dashboard" />
 </jsp:include>
 
@@ -168,7 +168,7 @@
                                             </div>
                                         </div>
                                     </c:when>
-
+ 
                                     <c:when test="${comp.status eq 'failed'}">
                                         <div style="border: 1px solid #ef4444; background-color: rgba(239, 68, 68, 0.01); border-radius: 12px; padding: 1rem; position: relative;">
                                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
@@ -183,7 +183,7 @@
                                             </div>
                                         </div>
                                     </c:when>
-
+ 
                                     <c:otherwise>
                                         <div style="border: 1px dashed #cbd5e1; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 124px;">
                                             <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; font-family: monospace; margin-bottom: 0.5rem;">${comp.computerName}</span>
