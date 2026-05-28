@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
+<jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="tai-ds" />
 </jsp:include>
 
@@ -118,7 +118,7 @@
                     
                     <form action="${pageContext.request.contextPath}/examiner/confirm-import" method="POST" style="margin: 0;">
                         <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
-                            <a href="${pageContext.request.contextPath}/views/examiner/upload.jsp" class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
+                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload.jsp" class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
                             <button type="submit" class="btn-filter" style="height: 36px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; white-space: nowrap;">Xác nhận</button>
                         </div>
                     </form>
