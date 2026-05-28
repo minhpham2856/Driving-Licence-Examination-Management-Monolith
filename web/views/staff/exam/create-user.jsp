@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-manager.jsp">
+<jsp:include page="/views/layout/sidebar-staff-exam.jsp">
     <jsp:param name="activeSidebar" value="tao-tai-khoan" />
 </jsp:include>
 
@@ -28,7 +28,7 @@
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/manager/dashboard.jsp">Dashboard quản lý</a>
+            <a href="${pageContext.request.contextPath}/views/staff/exam/dashboard.jsp">Dashboard quản lý</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Tạo tài khoản học viên</span>
         </nav>
@@ -41,7 +41,7 @@
             </div>
             
             <div class="page-actions">
-                <a href="${pageContext.request.contextPath}/views/manager/users.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
+                <a href="${pageContext.request.contextPath}/views/staff/exam/users.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -67,7 +67,7 @@
                 </div>
 
                 <!-- Form using pure native HTML5 validation constraints (JS-free) -->
-                <form action="${pageContext.request.contextPath}/manager/create-user" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <form action="${pageContext.request.contextPath}/staff/exam/create-user" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <!-- Full Name -->
