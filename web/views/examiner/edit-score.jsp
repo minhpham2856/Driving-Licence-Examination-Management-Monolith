@@ -93,7 +93,7 @@
                     </div>
 
                     <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 0.5rem;">
-                        <a href="editscore.jsp" class="btn-reset" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
+                        <a href="edit-score.jsp" class="btn-reset" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
                         <button type="submit" class="btn-filter" style="height: 42px; padding: 0 2rem; background-color: #0052cc; border-color: #0052cc;">Xác nhận lưu</button>
                     </div>
                 </form>
@@ -108,7 +108,7 @@
                 <span>Tra cứu thí sinh đã hoàn thành thi</span>
             </div>
             
-            <form method="GET" action="editscore.jsp" class="filter-grid">
+            <form method="GET" action="edit-score.jsp" class="filter-grid">
                 <div class="input-group">
                     <label for="searchQuery" class="input-label">Tìm kiếm thí sinh</label>
                     <input type="text" id="searchQuery" name="query" class="input-field" placeholder="Nhập SBD, họ tên thí sinh..." value="${param.query}">
@@ -145,7 +145,7 @@
                 
                 <div class="btn-group">
                     <button type="submit" class="btn-filter" style="flex: 1.5; height: 42px;">Tìm</button>
-                    <a href="editscore.jsp" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 42px;">Đặt lại</a>
+                    <a href="edit-score.jsp" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 42px;">Đặt lại</a>
                 </div>
             </form>
         </section>
@@ -208,7 +208,7 @@
                                             </c:choose>
                                         </td>
                                         <td style="text-align: center;">
-                                            <a href="editscore.jsp?editSbd=${candidate.sbd}&editName=${candidate.name}&editClass=${candidate.licenseClass}&editTheory=${candidate.theoryScore}&editPractice=${candidate.practiceScore}&editRoad=${candidate.roadScore}&query=${param.query}&licenseClass=${param.licenseClass}&resultStatus=${param.resultStatus}" 
+                                            <a href="edit-score.jsp?editSbd=${candidate.sbd}&editName=${candidate.name}&editClass=${candidate.licenseClass}&editTheory=${candidate.theoryScore}&editPractice=${candidate.practiceScore}&editRoad=${candidate.roadScore}&query=${param.query}&licenseClass=${param.licenseClass}&resultStatus=${param.resultStatus}" 
                                                class="btn-export" style="border-color: #0052cc; color: #0052cc; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 26px;">
                                                 Sửa điểm
                                             </a>

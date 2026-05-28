@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-manager.jsp">
+<jsp:include page="/views/layout/sidebar-staff-exam.jsp">
     <jsp:param name="activeSidebar" value="duyet-ho-so" />
 </jsp:include>
 
@@ -28,7 +28,7 @@
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/manager/dashboard.jsp">Dashboard quản lý</a>
+            <a href="${pageContext.request.contextPath}/views/staff/exam/dashboard.jsp">Dashboard quản lý</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Duyệt hồ sơ giấy tờ</span>
         </nav>
@@ -144,7 +144,7 @@
                                 </h3>
                             </div>
                             
-                            <form action="${pageContext.request.contextPath}/manager/approve" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 1.25rem;">
+                            <form action="${pageContext.request.contextPath}/staff/exam/approve" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 1.25rem;">
                                 <input type="hidden" name="id" value="${user.id}">
                                 
                                 <!-- Approval Options -->
