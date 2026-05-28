@@ -21,7 +21,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
+<jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="ds-thi-sinh" />
 </jsp:include>
 
@@ -235,7 +235,7 @@
                                 </svg>
                                 Lọc
                             </button>
-                            <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp" class="btn-reset">Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/candidatelist.jsp" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>
@@ -350,7 +350,7 @@
                                         <td>
                                             <div style="display: flex; gap: 6px; justify-content: center;">
                                                 <a href="candidatecall.jsp?sbd=${candidate.sbd}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16, 185, 129, 0.25); color: #059669; font-weight: 700;">Gọi thi</a>
-                                                <a href="${pageContext.request.contextPath}/views/examiner/view-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
+                                                <a href="${pageContext.request.contextPath}/views/staff/examstaff/view-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;">Xem</a>
                                                 <a href="edit-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(0, 82, 204, 0.25); color: #0052cc;">Sửa</a>
                                                 <a href="delete-candidate.jsp?id=${candidate.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626;">Xóa</a>
                                             </div>
