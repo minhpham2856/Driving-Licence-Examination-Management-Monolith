@@ -42,13 +42,13 @@
                 <img src="${logoUrl}" alt="Lái Vui" width="63" height="63" class="side-nav-bar__logo-img" data-node-id="4:752">
             </a>
             <div class="side-nav-bar__brand-title-wrap" data-node-id="4:753">
-                <h1 class="side-nav-bar__brand-title" data-node-id="4:755">Quản lý thi</h1>
+                <h1 class="side-nav-bar__brand-title" data-node-id="4:755">Ban Sát Hạch</h1>
             </div>
         </div>
     </div>
 
     <nav class="side-nav-bar__menu" data-node-id="4:756">
-        <a href="${ctx}/views/examiner/dashboard.jsp"
+        <a href="${ctx}/views/staff/examstaff/dashboard.jsp"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="examiner:dash"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -63,7 +63,7 @@
             <span class="side-nav-bar__label" data-node-id="examiner:dash-lbl">Dashboard</span>
         </a>
 
-        <a href="${pageContext.request.contextPath}/views/examiner/upload.jsp"
+        <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload.jsp"
            class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
            data-node-id="4:757"
            <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
@@ -76,7 +76,7 @@
             <span class="side-nav-bar__label" data-node-id="4:761">Tải DS Thí sinh</span>
         </a>
 
-        <a href="${pageContext.request.contextPath}/views/examiner/grading.jsp"
+        <a href="${pageContext.request.contextPath}/views/staff/examstaff/grading.jsp"
            class="side-nav-bar__link${activeSidebar eq 'cham-diem' ? ' is-active' : ''}"
            data-node-id="4:762"
            <c:if test="${activeSidebar eq 'cham-diem'}">aria-current="page"</c:if>>
@@ -90,7 +90,7 @@
             <span class="side-nav-bar__label" data-node-id="4:766">Chấm điểm</span>
         </a>
 
-        <a href="${pageContext.request.contextPath}/views/examiner/editscore.jsp"
+        <a href="${pageContext.request.contextPath}/views/staff/examstaff/editscore.jsp"
            class="side-nav-bar__link${activeSidebar eq 'sua-diem' ? ' is-active' : ''}"
            data-node-id="4:767"
            <c:if test="${activeSidebar eq 'sua-diem'}">aria-current="page"</c:if>>
@@ -103,7 +103,7 @@
             <span class="side-nav-bar__label" data-node-id="4:771">Sửa điểm</span>
         </a>
 
-        <a href="${ctx}/views/examiner/candidatelist.jsp"
+        <a href="${ctx}/views/staff/examstaff/candidatelist.jsp"
            class="side-nav-bar__link${activeSidebar eq 'ds-thi-sinh' ? ' is-active' : ''}"
            data-node-id="4:772"
            <c:if test="${activeSidebar eq 'ds-thi-sinh'}">aria-current="page"</c:if>>
@@ -117,7 +117,7 @@
             <span class="side-nav-bar__label" data-node-id="4:776">DS thí sinh</span>
         </a>
 
-        <a href="${ctx}/views/examiner/report.jsp"
+        <a href="${ctx}/views/staff/examstaff/report.jsp"
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
            data-node-id="4:777"
            <c:if test="${activeSidebar eq 'bao-cao'}">aria-current="page"</c:if>>
@@ -130,7 +130,7 @@
             <span class="side-nav-bar__label" data-node-id="4:781">Báo cáo</span>
         </a>
 
-        <a href="${ctx}/views/examiner/audit.jsp"
+        <a href="${ctx}/views/staff/examstaff/audit.jsp"
            class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
            data-node-id="4:782"
            <c:if test="${activeSidebar eq 'nhat-ky'}">aria-current="page"</c:if>>
