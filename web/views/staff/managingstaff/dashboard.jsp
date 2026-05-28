@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-manager.jsp">
+<jsp:include page="/views/layout/sidebar-managingstaff.jsp">
     <jsp:param name="activeSidebar" value="dashboard" />
 </jsp:include>
 
@@ -39,7 +39,7 @@
             </div>
             
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <a href="${pageContext.request.contextPath}/views/manager/create-user.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
+                <a href="${pageContext.request.contextPath}/views/staff/managingstaff/create-user.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <circle cx="8" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
@@ -48,7 +48,7 @@
                     Thêm học viên mới
                 </a>
                 
-                                <a href="${pageContext.request.contextPath}/views/manager/approve.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
+                <a href="${pageContext.request.contextPath}/views/staff/managingstaff/approve.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -117,7 +117,7 @@
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M22 12A10 10 0 0 1 12 22M2 12A10 10 0 0 1 12 2" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/>
+                        <path d="M22 12A10 10 0 0 1 12 22M2 12A10 10 0 0 1 12 2M2 12A10 10 0 0 1 12 2" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/>
                         <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
@@ -202,7 +202,7 @@
                             Hồ sơ mới gửi chờ duyệt
                         </h2>
                         
-                        <a href="${pageContext.request.contextPath}/views/manager/approve.jsp" style="font-size: 0.8rem; font-weight: 700; color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        <a href="${pageContext.request.contextPath}/views/staff/managingstaff/approve.jsp" style="font-size: 0.8rem; font-weight: 700; color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                             Xem tất cả hồ sơ chờ duyệt
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -233,7 +233,7 @@
                                                 </td>
                                                 <td style="color: #64748b;">${sub.submitDate}</td>
                                                 <td style="text-align: center;">
-                                                    <a href="${pageContext.request.contextPath}/views/manager/approve.jsp?id=${sub.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border-color: rgba(217, 119, 6, 0.25); color: #d97706; font-weight: 700; text-decoration: none;">Xem & Duyệt</a>
+                                                    <a href="${pageContext.request.contextPath}/views/staff/managingstaff/approve.jsp?id=${sub.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border-color: rgba(217, 119, 6, 0.25); color: #d97706; font-weight: 700; text-decoration: none;">Xem & Duyệt</a>
                                                 </td>
                                             </tr>
                                         </c:forEach>
@@ -340,7 +340,7 @@
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                        <a href="${pageContext.request.contextPath}/views/manager/users.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
+                        <a href="${pageContext.request.contextPath}/views/staff/managingstaff/users.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
                                 <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
                                 <path d="M3 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -348,7 +348,7 @@
                             <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Học viên mới</span>
                         </a>
 
-                        <a href="${pageContext.request.contextPath}/views/manager/approve.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
+                        <a href="${pageContext.request.contextPath}/views/staff/managingstaff/approve.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #d97706;">
                                 <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -356,7 +356,7 @@
                             <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Duyệt hồ sơ</span>
                         </a>
 
-                        <a href="${pageContext.request.contextPath}/views/manager/users.jsp?filterStatus=active" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
+                        <a href="${pageContext.request.contextPath}/views/staff/managingstaff/users.jsp?filterStatus=active" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981;">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
@@ -364,7 +364,7 @@
                             <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Xem học viên</span>
                         </a>
 
-                        <a href="${pageContext.request.contextPath}/views/manager/create-user.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
+                        <a href="${pageContext.request.contextPath}/views/staff/managingstaff/create-user.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #7c3aed;">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 <circle cx="8" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
