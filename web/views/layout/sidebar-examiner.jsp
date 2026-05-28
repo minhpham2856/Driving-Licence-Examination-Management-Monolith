@@ -72,7 +72,7 @@
             <span class="side-nav-bar__label" data-node-id="4:766">Chấm điểm</span>
         </a>
 
-        <a href="${pageContext.request.contextPath}/views/examiner/editscore.jsp"
+        <a href="${pageContext.request.contextPath}/views/examiner/edit-score.jsp"
            class="side-nav-bar__link${activeSidebar eq 'sua-diem' ? ' is-active' : ''}"
            data-node-id="4:767"
            <c:if test="${activeSidebar eq 'sua-diem'}">aria-current="page"</c:if>>

@@ -54,7 +54,7 @@
                         </a>
                         
                         <c:if test="${candidateDetail.statusKey eq 'warning'}">
-                            <a href="${pageContext.request.contextPath}/views/examiner/candidatecall.jsp?sbd=${candidateDetail.sbd}" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #059669; border-color: #059669;">
+                            <a href="${pageContext.request.contextPath}/views/examiner/candidate-call.jsp?sbd=${candidateDetail.sbd}" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #059669; border-color: #059669;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
                                     <path d="M3 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -64,7 +64,7 @@
                         </c:if>
 
                         <c:if test="${candidateDetail.statusKey eq 'success' or candidateDetail.statusKey eq 'danger'}">
-                            <a href="${pageContext.request.contextPath}/views/examiner/editscore.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
+                            <a href="${pageContext.request.contextPath}/views/examiner/edit-score.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>

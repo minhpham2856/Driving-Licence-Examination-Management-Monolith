@@ -1,0 +1,181 @@
+html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #faf8ff;
+    color: #131b2e;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow: hidden; /* Guarantee NO scroll */
+}
+
+@media (max-height: 600px) {
+    html, body {
+        overflow-y: auto; /* Fallback on extremely small viewports to maintain accessibility */
+    }
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.face-shell {
+    flex: 1 0 auto;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+.face-main {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 32px 80px; /* Clear 64px header and footer with compact padding */
+    box-sizing: border-box;
+    background: #f8fafc;
+}
+
+.face-content {
+    width: 100%;
+    max-width: 962px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px; /* Compact gap */
+}
+
+.guide-card {
+    width: 100%;
+    max-width: 533px; /* Match webcam frame width for uniform look */
+    background: #f2f3ff;
+    border: 1px solid #e2e7ff;
+    border-radius: 10px;
+    padding: 10px 16px;
+    box-sizing: border-box;
+}
+
+.guide-title {
+    margin: 0 0 6px;
+    color: #003d9b;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.guide-list {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+.guide-item {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.guide-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    display: block;
+}
+
+.guide-text {
+    margin: 0;
+    color: #131b2e;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.camera-frame {
+    width: 100%;
+    max-width: 40vw;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border: 2px solid #e2e7ff;
+    border-radius: 20px;
+    background: #000000;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.camera-frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.2);
+    mix-blend-mode: saturation;
+    pointer-events: none;
+}
+
+.capture-wrap {
+    padding-top: 4px;
+}
+
+.capture-btn {
+    width: 200px;
+    height: 48px;
+    border: 0;
+    border-radius: 9999px;
+    background: #003d9b;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: "Roboto", "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.capture-btn-icon {
+    width: 18px;
+    height: 16px;
+    display: block;
+    flex: 0 0 18px;
+}
+
+@media (max-width: 768px) {
+    .face-main {
+        padding: 72px 16px 72px;
+    }
+
+    .guide-list {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .guide-text {
+        white-space: normal;
+    }
+
+    .camera-frame {
+        max-width: 480px;
+    }
+
+    .capture-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+}

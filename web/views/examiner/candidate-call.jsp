@@ -187,7 +187,7 @@
                             <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; max-width: 360px; margin: 0.5rem auto 1.5rem;">Vui lòng bấm nút dưới đây để gọi thí sinh tiếp theo, hoặc chọn trực tiếp từ danh sách thí sinh.</p>
                             
                             <div style="display: flex; gap: 10px; justify-content: center;">
-                                <a href="candidatecall.jsp?sbd=A1-0024" class="btn-filter" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                                <a href="candidate-call.jsp?sbd=A1-0024" class="btn-filter" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
                                         <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
