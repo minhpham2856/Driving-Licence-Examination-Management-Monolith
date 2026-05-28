@@ -35,7 +35,7 @@
 <body class="has-side-nav-bar">
 
 <%-- Inject the sidebar template --%>
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
+<jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="bao-cao" />
 </jsp:include>
 
