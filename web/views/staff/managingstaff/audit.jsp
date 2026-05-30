@@ -24,16 +24,14 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs Navigation -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Nhật ký thao tác</span>
+            <span class="breadcrumbs__separator">/</span>
+            <span class="breadcrumbs__current">Nhật ký thao tác</span>
         </nav>
         
-        <!-- Page Header -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Nhật Ký Thao Tác Quản Lý</h1>
@@ -50,9 +48,7 @@
             </div>
         </header>
 
-        <!-- KPI Metrics Row -->
-        <section class="metrics-row" aria-label="Số liệu kiểm toán quản lý">
-            <!-- Metric 1: Total Operations -->
+        <section class="metrics-row">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -67,7 +63,6 @@
                 </div>
             </div>
             
-            <!-- Metric 2: Approved Count -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -82,7 +77,6 @@
                 </div>
             </div>
             
-            <!-- Metric 3: Rejected Count -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--red">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,7 +91,6 @@
                 </div>
             </div>
             
-            <!-- Metric 4: Created Accounts -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--purple">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -114,8 +107,7 @@
             </div>
         </section>
 
-        <!-- Filters & Search Form Section -->
-        <section class="filter-panel" aria-label="Bộ lọc tìm kiếm">
+        <section class="filter-panel">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -124,14 +116,12 @@
             </h2>
             <form action="" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.5fr 2fr 1.5fr;">
-                    <!-- Keyword Search -->
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Từ khóa thao tác</label>
                         <input type="text" id="searchKeyword" name="searchKeyword" class="input-field" 
                                placeholder="Tìm người thao tác, nội dung, IP..." value="${param.searchKeyword}">
                     </div>
                     
-                    <!-- Action Type Dropdown -->
                     <div class="input-group">
                         <label for="filterAction" class="input-label">Loại thao tác</label>
                         <select id="filterAction" name="filterAction" class="input-field">
@@ -145,17 +135,15 @@
                         </select>
                     </div>
                     
-                    <!-- Date Range Selection -->
                     <div class="input-group">
                         <label class="input-label">Khoảng thời gian</label>
                         <div class="date-range-inputs" style="display: flex; align-items: center; gap: 6px;">
-                            <input type="date" name="startDate" class="input-field" value="${param.startDate}" style="padding: 0.5rem;" aria-label="Từ ngày">
+                            <input type="date" name="startDate" class="input-field" value="${param.startDate}" style="padding: 0.5rem;">
                             <span style="font-size: 0.8rem; color: #64748b;">đến</span>
-                            <input type="date" name="endDate" class="input-field" value="${param.endDate}" style="padding: 0.5rem;" aria-label="Đến ngày">
+                            <input type="date" name="endDate" class="input-field" value="${param.endDate}" style="padding: 0.5rem;">
                         </div>
                     </div>
                     
-                    <!-- Action Button Row -->
                     <div class="input-group filter-grid__btn-col">
                         <div class="btn-group">
                             <button type="submit" class="btn-filter">
@@ -171,8 +159,7 @@
             </form>
         </section>
 
-        <!-- Audit Logs Table Section -->
-        <section class="log-card" aria-label="Danh sách nhật ký thao tác">
+        <section class="log-card">
             <header class="log-card-header">
                 <h2 class="log-card-title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
@@ -265,7 +252,6 @@
                 </table>
             </div>
 
-            <!-- Table Pagination controls -->
             <footer class="pagination-footer">
                 <div class="pagination-info">
                     Hiển thị
