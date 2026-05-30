@@ -24,16 +24,14 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Báo cáo thống kê đào tạo</span>
         </nav>
         
-        <!-- Header -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Báo Cáo Thống Kê Đào Tạo</h1>
@@ -50,9 +48,7 @@
             </div>
         </header>
 
-        <!-- KPI Metrics -->
-        <section class="metrics-row" aria-label="Thống kê đào tạo">
-            <!-- Stat Card 1 -->
+        <section class="metrics-row">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -67,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Stat Card 2 -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -82,7 +77,6 @@
                 </div>
             </div>
 
-            <!-- Stat Card 3 -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--purple">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,7 +91,6 @@
                 </div>
             </div>
 
-            <!-- Stat Card 4 -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--red">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -113,8 +106,7 @@
             </div>
         </section>
 
-        <!-- Filters Section -->
-        <section class="filter-panel" aria-label="Bộ lọc báo cáo">
+        <section class="filter-panel">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -123,7 +115,6 @@
             </h2>
             <form action="" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2.5fr 2fr 1.5fr;">
-                    <!-- Filter 1 -->
                     <div class="input-group">
                         <label for="filterSession" class="input-label">Đợt thi sát hạch</label>
                         <select id="filterSession" name="filterSession" class="input-field">
@@ -134,7 +125,6 @@
                         </select>
                     </div>
 
-                    <!-- Filter 2 -->
                     <div class="input-group">
                         <label for="filterClass" class="input-label">Hạng bằng sát hạch</label>
                         <select id="filterClass" name="filterClass" class="input-field">
@@ -146,7 +136,6 @@
                         </select>
                     </div>
 
-                    <!-- Filter Actions -->
                     <div class="input-group filter-grid__btn-col">
                         <div class="btn-group">
                             <button type="submit" class="btn-filter">
@@ -162,8 +151,7 @@
             </form>
         </section>
 
-        <!-- Reports Table -->
-        <section class="log-card" aria-label="Bảng tổng hợp đỗ trượt">
+        <section class="log-card">
             <header class="log-card-header">
                 <h2 class="log-card-title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">

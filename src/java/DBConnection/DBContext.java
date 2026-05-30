@@ -1,4 +1,4 @@
-package Utils;
+package DBConnection;
 
 import java.sql.*;
 import java.util.logging.Level;
@@ -12,7 +12,7 @@ public class DBContext {
         try {
             String user = "sa";
             String pass = "sa";
-            String url = "jdbc:sqlserver://localhost\\SQLEXPRESS:1433;databaseName=Y25SU1B1";
+            String url = "jdbc:sqlserver://localhost\\SQLEXPRESS:1433;databaseName=DLEM_DB";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, user, pass);
         } catch (ClassNotFoundException | SQLException ex) {
