@@ -1,0 +1,27 @@
+package Services;
+
+import Models.User;
+
+public interface AuthService {
+
+    /**
+     * Registers new registrant
+     *
+     * @return null if successful, else returns error msg
+     */
+    String register(String username, String email, String password);
+
+    /**
+     * Validates credentials
+     *
+     * @return User if credentials match, else null
+     */
+    User login(String identifier, String password);
+
+    /**
+     * Handles forgot password requests by generating a temporary password and updating the DB.
+     *
+     * @return Status or error msg.
+     */
+    String forgotPassword(String email);
+}
