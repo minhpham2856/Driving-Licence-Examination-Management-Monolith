@@ -434,3 +434,67 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
         margin-left: 0;
     }
 }
+
+/* ========================================================
+   Sidebar Submenu Navigation Hierarchy Styles
+   ======================================================== */
+.side-nav-bar__menu-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.side-nav-bar__submenu {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 12px;
+    margin-top: 4px;
+    border-left: 1.5px solid #e2e8f0;
+    margin-left: 23px;
+    transition: border-color 0.2s ease;
+}
+
+.side-nav-bar__link.is-active + .side-nav-bar__submenu {
+    display: flex;
+    border-left-color: #0052cc;
+}
+
+.side-nav-bar__submenu-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    color: #475569 !important;
+    transition: all 0.15s ease;
+    font-weight: 500;
+}
+
+.side-nav-bar__submenu-link:hover {
+    color: #0052cc !important;
+    background-color: rgba(0, 82, 204, 0.04);
+}
+
+.side-nav-bar__submenu-link.is-active {
+    color: #0052cc !important;
+    font-weight: 700;
+    background-color: rgba(0, 82, 204, 0.08);
+}
+
+.submenu-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #94a3b8;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.side-nav-bar__submenu-link:hover .submenu-dot,
+.side-nav-bar__submenu-link.is-active .submenu-dot {
+    background-color: #0052cc;
+    transform: scale(1.3);
+}
+
