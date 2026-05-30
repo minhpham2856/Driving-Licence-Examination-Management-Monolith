@@ -24,16 +24,14 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Tạo tài khoản học viên</span>
         </nav>
         
-        <!-- Header -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Tạo Tài Khoản Học Viên Mới</h1>
@@ -50,10 +48,8 @@
             </div>
         </header>
 
-        <!-- Main Form Panel -->
         <div class="report-grid" style="grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
             
-            <!-- Left Pane: Registration Form -->
             <div class="report-pane" style="padding: 2rem;">
                 <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.5rem; padding-bottom: 0;">
                     <h2 class="grading-pane__title" style="font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
@@ -66,17 +62,14 @@
                     </h2>
                 </div>
 
-                <!-- Form using pure native HTML5 validation constraints (JS-free) -->
                 <form action="${pageContext.request.contextPath}/manager/create-user" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                        <!-- Full Name -->
                         <div class="input-group">
                             <label for="fullName" class="input-label">Họ và tên học viên <span style="color: #ef4444;">*</span></label>
                             <input type="text" id="fullName" name="fullName" class="input-field" placeholder="Ví dụ: Nguyễn Văn A" required minlength="3" maxlength="50">
                         </div>
 
-                        <!-- Identity Card (CCCD) -->
                         <div class="input-group">
                             <label for="cccd" class="input-label">Số Căn cước công dân (12 chữ số) <span style="color: #ef4444;">*</span></label>
                             <input type="text" id="cccd" name="cccd" class="input-field" placeholder="Ví dụ: 030098001234" required pattern="[0-9]{12}" title="Vui lòng nhập đúng 12 chữ số CCCD hợp lệ">
@@ -84,13 +77,11 @@
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                        <!-- Phone Number -->
                         <div class="input-group">
                             <label for="phone" class="input-label">Số điện thoại liên hệ <span style="color: #ef4444;">*</span></label>
                             <input type="tel" id="phone" name="phone" class="input-field" placeholder="Ví dụ: 0987654321" required pattern="0[0-9]{9}" title="Số điện thoại phải bắt đầu bằng số 0 và bao gồm đúng 10 chữ số">
                         </div>
 
-                        <!-- Email -->
                         <div class="input-group">
                             <label for="email" class="input-label">Địa chỉ Email <span style="color: #ef4444;">*</span></label>
                             <input type="email" id="email" name="email" class="input-field" placeholder="Ví dụ: hocvien@gmail.com" required>
@@ -98,13 +89,11 @@
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                        <!-- DOB -->
                         <div class="input-group">
                             <label for="dob" class="input-label">Ngày sinh <span style="color: #ef4444;">*</span></label>
                             <input type="date" id="dob" name="dob" class="input-field" required>
                         </div>
 
-                        <!-- Gender -->
                         <div class="input-group">
                             <label for="gender" class="input-label">Giới tính <span style="color: #ef4444;">*</span></label>
                             <select id="gender" name="gender" class="input-field" required>
@@ -115,14 +104,12 @@
                         </div>
                     </div>
 
-                    <!-- Hometown Address -->
                     <div class="input-group">
                         <label for="address" class="input-label">Địa chỉ quê quán / Nơi thường trú <span style="color: #ef4444;">*</span></label>
                         <input type="text" id="address" name="address" class="input-field" placeholder="Ví dụ: Thanh Xuân, Hà Nội" required minlength="5" maxlength="150">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                        <!-- Account Type (User Type) -->
                         <div class="input-group">
                             <label for="userType" class="input-label">Phân loại học viên <span style="color: #ef4444;">*</span></label>
                             <select id="userType" name="userType" class="input-field" required>
@@ -132,7 +119,6 @@
                             </select>
                         </div>
 
-                        <!-- Registered License Class -->
                         <div class="input-group">
                             <label for="licenseClass" class="input-label">Hạng GPLX sát hạch <span style="color: #ef4444;">*</span></label>
                             <select id="licenseClass" name="licenseClass" class="input-field" required>
@@ -146,7 +132,6 @@
                         </div>
                     </div>
 
-                    <!-- System Default Password Hint -->
                     <div class="input-group" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                         <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Thông tin tài khoản đăng nhập mặc định:</span>
                         <span style="font-size: 0.8rem; color: #64748b; display: block; line-height: 1.4;">
@@ -164,10 +149,8 @@
                 </form>
             </div>
 
-            <!-- Right Pane: Rules & Verification Info -->
             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                 
-                <!-- System Constraints & Rules Card -->
                 <div class="report-pane" style="padding: 1.5rem;">
                     <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.25rem; padding-bottom: 0;">
                         <h2 class="grading-pane__title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: #003d9b;">
@@ -201,7 +184,6 @@
                     </div>
                 </div>
 
-                <!-- Legal Compliance info -->
                 <div class="report-pane" style="padding: 1.5rem;">
                     <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.25rem; padding-bottom: 0;">
                         <h2 class="grading-pane__title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">

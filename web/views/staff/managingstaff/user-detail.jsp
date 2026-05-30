@@ -24,14 +24,13 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/users.jsp">Danh sách học viên</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">
                 <c:choose>
                     <c:when test="${not empty userDetail}">${userDetail.fullName}</c:when>
@@ -44,7 +43,6 @@
         <c:choose>
             <c:when test="${not empty user}">
 
-        <!-- Header -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">${user.fullName}</h1>
@@ -72,7 +70,6 @@
         </header>
 
         <div class="profile-grid">
-            <!-- Sidebar: User profile stats card -->
             <aside class="profile-sidebar">
                 <div class="profile-sidebar-card">
                     <div class="profile-avatar-wrap">
@@ -124,10 +121,8 @@
                 </div>
             </aside>
 
-            <!-- Main Content: Uploaded Documents and Exam Registration History -->
             <section class="profile-main-content" style="gap: 1.5rem;">
                 
-                <!-- Uploaded Legal Documents Card -->
                 <div class="log-card">
                     <div class="log-card-header" style="border-bottom: none; padding-bottom: 0.5rem;">
                         <h2 class="log-card-title" style="display: flex; align-items: center; gap: 8px;">
@@ -146,7 +141,6 @@
                         
                         <div class="report-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem; width: 100%;">
                             
-                            <!-- Card 1: CCCD Photo -->
                             <div class="profile-score-card" style="padding: 1rem; min-height: 180px; align-items: center; justify-content: space-between;">
                                 <div style="text-align: center; width: 100%;">
                                     <span class="score-card-part" style="display: block; margin-bottom: 0.5rem;">GIẤY TỜ 1</span>
@@ -163,7 +157,6 @@
                                 <span class="action-badge action-badge--success" style="font-size: 0.7rem; padding: 2px 8px; margin-top: 0.75rem;">Hợp lệ</span>
                             </div>
 
-                            <!-- Card 2: Health Certificate -->
                             <div class="profile-score-card" style="padding: 1rem; min-height: 180px; align-items: center; justify-content: space-between;">
                                 <div style="text-align: center; width: 100%;">
                                     <span class="score-card-part" style="display: block; margin-bottom: 0.5rem;">GIẤY TỜ 2</span>
@@ -178,7 +171,6 @@
                                 <span class="action-badge action-badge--success" style="font-size: 0.7rem; padding: 2px 8px; margin-top: 0.75rem;">Hợp lệ</span>
                             </div>
 
-                            <!-- Card 3: 3x4 Portrait Photo -->
                             <div class="profile-score-card" style="padding: 1rem; min-height: 180px; align-items: center; justify-content: space-between;">
                                 <div style="text-align: center; width: 100%;">
                                     <span class="score-card-part" style="display: block; margin-bottom: 0.5rem;">GIẤY TỜ 3</span>
@@ -194,7 +186,6 @@
                     </div>
                 </div>
 
-                <!-- Exam Registration History Card -->
                 <div class="log-card">
                     <div class="log-card-header" style="border-bottom: none; padding-bottom: 0.5rem;">
                         <h2 class="log-card-title" style="display: flex; align-items: center; gap: 8px;">

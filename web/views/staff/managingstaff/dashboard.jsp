@@ -24,14 +24,12 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Dashboard quản lý</span>
         </nav>
         
-        <!-- Header -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Dashboard Quản Lý</h1>
@@ -58,9 +56,7 @@
             </div>
         </header>
 
-        <!-- KPI Metrics -->
-        <section class="metrics-row" aria-label="Thống kê đào tạo">
-            <!-- Card 1: Total Registered Users -->
+        <section class="metrics-row">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -78,7 +74,6 @@
                 </div>
             </div>
 
-            <!-- Card 2: Free Candidates waiting for approval -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--amber">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -95,7 +90,6 @@
                 </div>
             </div>
 
-            <!-- Card 3: Upcoming Exams -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--purple">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,7 +106,6 @@
                 </div>
             </div>
 
-            <!-- Card 4: Active Approved Students -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -131,13 +124,10 @@
             </div>
         </section>
 
-        <!-- Main Dashboard Split Content -->
         <div class="report-grid" style="grid-template-columns: 1.6fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
             
-            <!-- Left Pane: Upcoming Exams & Recent Pending Submissions -->
             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                 
-                <!-- Upcoming Exams Table Panel -->
                 <div class="report-pane" style="padding: 1.5rem;">
                     <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1rem; padding-bottom: 0;">
                         <h2 class="grading-pane__title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
@@ -190,7 +180,6 @@
                     </div>
                 </div>
 
-                <!-- Recent Pending Approvals Panel -->
                 <div class="report-pane" style="padding: 1.5rem;">
                     <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1rem; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center;">
                         <h2 class="grading-pane__title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
@@ -253,10 +242,8 @@
 
             </div>
 
-            <!-- Right Pane: License Class Statistics & Quick Links -->
             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                 
-                <!-- License Class Distribution Progress Bars Card -->
                 <div class="report-pane" style="padding: 1.5rem;">
                     <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.25rem; padding-bottom: 0;">
                         <h2 class="grading-pane__title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
@@ -270,7 +257,6 @@
 
                     <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                         
-                        <!-- A1 Class -->
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
                                 <span style="font-weight: 700; color: #0d9488;">Hạng A1 (Mô tô &lt; 175cc)</span>
@@ -281,7 +267,6 @@
                             </div>
                         </div>
 
-                        <!-- A2 Class -->
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
                                 <span style="font-weight: 700; color: #8b5cf6;">Hạng A2 (Mô tô &gt;= 175cc)</span>
@@ -292,7 +277,6 @@
                             </div>
                         </div>
 
-                        <!-- B1 Class -->
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
                                 <span style="font-weight: 700; color: #0052cc;">Hạng B1 (Ô tô tự động)</span>
@@ -303,7 +287,6 @@
                             </div>
                         </div>
 
-                        <!-- B2 Class -->
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
                                 <span style="font-weight: 700; color: #f59e0b;">Hạng B2 (Ô tô số sàn)</span>
@@ -314,7 +297,6 @@
                             </div>
                         </div>
 
-                        <!-- C Class -->
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
                                 <span style="font-weight: 700; color: #ef4444;">Hạng C (Ô tô tải lớn)</span>
@@ -328,7 +310,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Action Panel -->
                 <div class="report-pane" style="padding: 1.5rem;">
                     <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.25rem; padding-bottom: 0;">
                         <h2 class="grading-pane__title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
