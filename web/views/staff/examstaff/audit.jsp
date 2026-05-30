@@ -21,8 +21,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<%-- Inject the sidebar template --%>
-<jsp:include page="/views/layout/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="nhat-ky" />
 </jsp:include>
 
@@ -68,8 +67,7 @@
                             <c:otherwise>
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </c:otherwise>
+                                </c:otherwise>
                         </c:choose>
                         ${empty totalOperationsTrend ? '+0% tháng này' : totalOperationsTrend}
                     </span>
@@ -96,8 +94,7 @@
                             <c:otherwise>
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </c:otherwise>
+                                </c:otherwise>
                         </c:choose>
                         ${empty dataCorrectionsTrend ? '+0 đợt thi mới' : dataCorrectionsTrend}
                     </span>
@@ -199,7 +196,7 @@
                                 </svg>
                                 Tìm
                             </button>
-                            <a href="audit.jsp" class="btn-reset">Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit.jsp" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>
