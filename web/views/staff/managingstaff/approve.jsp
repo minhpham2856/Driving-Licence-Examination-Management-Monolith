@@ -24,23 +24,19 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Duyệt hồ sơ giấy tờ</span>
         </nav>
         
-        <!-- Check if specific student ID is selected for approval -->
         <c:choose>
             <c:when test="${not empty param.id}">
-                <!-- DETAILED REVIEW AND APPROVAL FORM FOR A SINGLE STUDENT -->
                 <c:choose>
                     <c:when test="${not empty user}">
 
-                <!-- Header -->
                 <header class="page-header">
                     <div class="page-title-wrap">
                         <h1 class="page-title">Thẩm Định Hồ Sơ: ${user.fullName}</h1>
@@ -59,10 +55,8 @@
 
                 <div class="profile-grid">
                     
-                    <!-- Left Column: Verification Form -->
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         
-                        <!-- Profile Quick Summary Card -->
                         <div class="report-pane" style="padding: 1.5rem;">
                             <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.25rem; padding-bottom: 0;">
                                 <h2 class="grading-pane__title" style="font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
@@ -102,14 +96,12 @@
                             </div>
                         </div>
 
-                        <!-- Legal Document Previews -->
                         <div class="report-pane" style="padding: 1.5rem;">
                             <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 1.25rem; padding-bottom: 0;">
                                 <h2 class="grading-pane__title" style="font-size: 1.05rem;">Giấy tờ đính kèm đối chiếu</h2>
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                                <!-- Portrait photo -->
                                 <div>
                                     <span class="quick-info-label" style="display: block; margin-bottom: 6px;">1. Ảnh thẻ chân dung 3x4:</span>
                                     <div class="face-photo-placeholder" style="width: 100px; height: 133px; border-style: solid; border-color: #cbd5e1; background-color: #f8fafc; color: #64748b; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
@@ -117,7 +109,6 @@
                                     </div>
                                 </div>
 
-                                <!-- CCCD Photo preview mock -->
                                 <div>
                                     <span class="quick-info-label" style="display: block; margin-bottom: 6px;">2. Căn cước công dân (Mặt trước):</span>
                                     <div class="face-photo-placeholder" style="width: 100%; aspect-ratio: 1.6; border-style: solid; border-color: #cbd5e1; background-color: #f8fafc; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #0052cc; font-weight: 700; gap: 8px;">
@@ -135,7 +126,6 @@
 
                     </div>
 
-                    <!-- Right Column: Rejection/Approval Form -->
                     <aside class="profile-sidebar" style="position: sticky; top: 1.5rem;">
                         <div class="profile-sidebar-card" style="align-items: flex-start;">
                             <div class="sidebar-card-header" style="padding-bottom: 0.5rem; margin-bottom: 1.25rem;">
@@ -147,7 +137,6 @@
                             <form action="${pageContext.request.contextPath}/manager/approve" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 1.25rem;">
                                 <input type="hidden" name="id" value="${user.id}">
                                 
-                                <!-- Approval Options -->
                                 <div class="input-group">
                                     <label class="input-label" style="margin-bottom: 8px;">Quyết định duyệt:</label>
                                     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -162,7 +151,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Rejection Reason Textarea -->
                                 <div class="input-group">
                                     <label for="rejectionReason" class="input-label">Lý do từ chối (nếu từ chối):</label>
                                     <textarea id="rejectionReason" name="rejectionReason" class="input-field" rows="4" placeholder="Nhập lý do chi tiết (ví dụ: ảnh CCCD bị mờ nét, giấy khám sức khỏe quá hạn 6 tháng...)" style="height: auto; resize: vertical; padding: 10px; font-size: 0.85rem;"></textarea>
@@ -196,8 +184,6 @@
             </c:when>
             
             <c:otherwise>
-                <!-- LIST OF ALL PENDING REGISTRATIONS CURRENTLY WAITING FOR REVIEW -->
-                <!-- Header -->
                 <header class="page-header">
                     <div class="page-title-wrap">
                         <h1 class="page-title">Hồ Sơ Chờ Phê Duyệt</h1>

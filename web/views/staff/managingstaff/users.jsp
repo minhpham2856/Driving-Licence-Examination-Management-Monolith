@@ -24,16 +24,14 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+            <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Danh sách học viên</span>
         </nav>
         
-        <!-- Header -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Danh Sách Học Viên</h1>
@@ -58,8 +56,7 @@
             </div>
         </header>
 
-        <!-- Filters & Search Panel -->
-        <section class="filter-panel" aria-label="Bộ lọc tìm kiếm">
+        <section class="filter-panel">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -68,13 +65,11 @@
             </h2>
             <form action="" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.25fr 1.25fr 1.8fr;">
-                    <!-- Search Keyword -->
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Tìm học viên</label>
                         <input type="text" id="searchKeyword" name="searchKeyword" class="input-field" placeholder="Nhập tên, mã học viên, CCCD..." value="${param.searchKeyword}">
                     </div>
                     
-                    <!-- User Type Dropdown -->
                     <div class="input-group">
                         <label for="filterUserType" class="input-label">Loại học viên</label>
                         <select id="filterUserType" name="filterUserType" class="input-field">
@@ -84,7 +79,6 @@
                         </select>
                     </div>
                     
-                    <!-- License Class Dropdown -->
                     <div class="input-group">
                         <label for="filterClass" class="input-label">Hạng bằng</label>
                         <select id="filterClass" name="filterClass" class="input-field">
@@ -97,7 +91,6 @@
                         </select>
                     </div>
                     
-                    <!-- Approval Status Dropdown -->
                     <div class="input-group">
                         <label for="filterStatus" class="input-label">Trạng thái hồ sơ</label>
                         <select id="filterStatus" name="filterStatus" class="input-field">
@@ -108,7 +101,6 @@
                         </select>
                     </div>
                     
-                    <!-- Search Button -->
                     <div class="input-group filter-grid__btn-col">
                         <div class="btn-group">
                             <button type="submit" class="btn-filter">
@@ -124,8 +116,7 @@
             </form>
         </section>
 
-        <!-- Main Candidates Table Section -->
-        <section class="log-card" aria-label="Bảng danh sách học viên">
+        <section class="log-card">
             <header class="log-card-header">
                 <h2 class="log-card-title">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
@@ -205,7 +196,6 @@
                 </table>
             </div>
             
-            <!-- Table Pagination Area -->
             <footer class="pagination-footer">
                 <div class="pagination-info">
                     <c:choose>
@@ -218,9 +208,9 @@
                     </c:choose>
                 </div>
                 <div class="pagination-nav">
-                    <button class="page-btn page-btn--wide disabled" disabled aria-label="Trang trước">Trước</button>
+                    <button class="page-btn page-btn--wide disabled" disabled>Trước</button>
                     <button class="page-btn active">1</button>
-                    <button class="page-btn page-btn--wide disabled" disabled aria-label="Trang tiếp theo">Sau</button>
+                    <button class="page-btn page-btn--wide disabled" disabled>Sau</button>
                 </div>
             </footer>
         </section>
