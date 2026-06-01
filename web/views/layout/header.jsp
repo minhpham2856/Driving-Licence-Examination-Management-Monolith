@@ -16,7 +16,7 @@
 <c:if test="${empty activeNav}">
     <c:choose>
         <c:when
-            test="${fn:contains(pageContext.request.requestURI, 'home.jsp') or fn:contains(pageContext.request.requestURI, 'about') or pageContext.request.requestURI eq '/' or fn:endsWith(pageContext.request.requestURI, '/')}">
+            test="${fn:contains(pageContext.request.requestURI, 'home') or pageContext.request.requestURI eq '/' or fn:endsWith(pageContext.request.requestURI, '/')}">
             <c:set var="activeNav" value="gioi-thieu" />
         </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'process')}">
@@ -54,19 +54,19 @@
         <header class="top-nav-bar" role="banner">
             <div class="top-nav-bar__container">
                 <!--LOGO-->
-                <a href="home.jsp" class="top-nav-bar__logo">
+                <a href="${ctx}/home" class="top-nav-bar__logo">
                     <img src="${logoUrl}" alt="Lái Vui" width="54" height="54" class="top-nav-bar__logo-img">
                 </a>
 
                 <nav class="top-nav-bar__nav">
-                    <a href="home.jsp" class="top-nav-bar__link${activeNav eq 'gioi-thieu' ? ' is-active' : ''}">Giới thiệu</a>
-                    <a href="process.jsp" class="top-nav-bar__link${activeNav eq 'quy-trinh' ? ' is-active' : ''}">Quy trình</a>
-                    <a href="license-categories.jsp" class="top-nav-bar__link${activeNav eq 'hang-bang' ? ' is-active' : ''}">Hạng bằng</a>
+                    <a href="${ctx}/home" class="top-nav-bar__link${activeNav eq 'gioi-thieu' ? ' is-active' : ''}">Giới thiệu</a>
+                    <a href="${ctx}/process" class="top-nav-bar__link${activeNav eq 'quy-trinh' ? ' is-active' : ''}">Quy trình</a>
+                    <a href="${ctx}/license-categories" class="top-nav-bar__link${activeNav eq 'hang-bang' ? ' is-active' : ''}">Hạng bằng</a>
                 </nav>
 
                 <div class="top-nav-bar__actions" data-node-id="1:1232">
-                    <a href="login.jsp" class="top-nav-bar__btn-login">Đăng nhập</a>
-                    <a href="register.jsp" class="top-nav-bar__btn-register">Đăng ký</a>
+                    <a href="${ctx}/login" class="top-nav-bar__btn-login">Đăng nhập</a>
+                    <a href="${ctx}/register" class="top-nav-bar__btn-register">Đăng ký</a>
                 </div>
             </div>
         </header>

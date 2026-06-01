@@ -102,7 +102,7 @@
                                 <input class="form-input" type="text" id="username" name="username" placeholder="exampleUser123" required minlength="3" maxlength="32">
                             </div>
                         </div>
-                        
+
                         <div class="form-group form-group--half">
                             <label class="form-label" for="email">Email</label>
                             <div class="input-wrapper">
@@ -110,7 +110,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Password Field -->
                     <div class="form-group">
                         <label class="form-label" for="password">Mật khẩu</label>
@@ -129,10 +129,7 @@
                     
                     <!-- Terms and Conditions Checkbox -->
                     <div class="form-terms-group">
-                        <div class="checkbox-custom-wrap">
-                            <input type="checkbox" id="terms" name="terms" class="checkbox-native" required>
-                            <span class="checkbox-visual"></span>
-                        </div>
+                        <input type="checkbox" id="terms" name="terms" required>
                         <label for="terms" class="form-terms-text">
                             Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a> của Lái Vui.
                         </label>
@@ -142,7 +139,7 @@
                     <div class="form-submit-wrap">
                         <button type="submit" class="btn-submit-register">Đăng ký ngay</button>
                         <p class="alternate-auth-prompt">
-                            Bạn đã có tài khoản? <a href="login.jsp">Đăng nhập</a>
+                            Bạn đã có tài khoản? <a href="${pageContext.request.contextPath}/login">Đăng nhập</a>
                         </p>
                     </div>
                 </form>

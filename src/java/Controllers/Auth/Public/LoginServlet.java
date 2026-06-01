@@ -60,10 +60,14 @@ public class LoginServlet extends HttpServlet {
             String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
             if ("ManagingStaff".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/staff/managingstaff/dashboard.jsp");
+            } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
+                response.sendRedirect(request.getContextPath() + "/views/admin/examstaff/dashboard.jsp");
+            } else if ("Examiner".equalsIgnoreCase(roleName)) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard.jsp");
             } else if ("Admin".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/public/home.jsp");
+                response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
             } else {
-                response.sendRedirect(request.getContextPath() + "/views/public/home.jsp");
+                response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
             }
         }
     }

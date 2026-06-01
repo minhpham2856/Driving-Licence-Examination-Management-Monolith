@@ -85,7 +85,7 @@
                     <div class="form-group">
                         <div class="form-label-row">
                             <label class="form-label" for="password">Mật khẩu</label>
-                            <a href="forgot-password.jsp" class="forgot-password-link">Quên mật khẩu?</a>
+                            <a href="${pageContext.request.contextPath}/forgot-password" class="forgot-password-link">Quên mật khẩu?</a>
                         </div>
                         <div class="input-icon-wrapper">
                             <span class="input-icon">
@@ -106,10 +106,7 @@
 
                     <!-- Remember Me Checkbox -->
                     <div class="remember-me-group">
-                        <div class="checkbox-custom-wrap">
-                            <input type="checkbox" id="rememberMe" name="rememberMe" class="checkbox-native">
-                            <span class="checkbox-visual"></span>
-                        </div>
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
                         <label for="rememberMe" class="remember-me-text">Ghi nhớ đăng nhập</label>
                     </div>
 
@@ -125,7 +122,7 @@
 
                         <div class="alternate-prompt-wrap">
                             <p class="alternate-prompt-text">Chưa có tài khoản?</p>
-                            <a href="register.jsp" class="btn-capsule-register">
+                            <a href="${pageContext.request.contextPath}/register" class="btn-capsule-register">
                                 Đăng ký ngay
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="5" y1="12" x2="19" y2="12"/>
