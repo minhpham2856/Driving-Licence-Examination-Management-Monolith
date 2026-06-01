@@ -6,17 +6,17 @@ import DAO.UserDAO;
 import DAO.Impl.PersonDAOImpl;
 import DAO.Impl.RoleDAOImpl;
 import DAO.Impl.UserDAOImpl;
-import Models.Person;
 import Models.Role;
 import Models.User;
 import Services.AuthService;
-import org.mindrot.jbcrypt.BCrypt;
+import Services.EmailService;
 
 public class AuthServiceImpl implements AuthService {
 
     private final PersonDAO personDAO = new PersonDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final RoleDAO roleDAO = new RoleDAOImpl();
+    private final EmailService emailService = new EmailServiceImpl();
 
     @Override
     public String register(String username, String email, String password) {
@@ -24,35 +24,21 @@ public class AuthServiceImpl implements AuthService {
             return "Tên đăng nhập đã tồn tại.";
         }
 
-        if (personDAO.getByEmail(email) != null) {
-            return "Địa chỉ email đã được sử dụng.";
+        if (userDAO.getByEmail(email) != null || personDAO.getByEmail(email) != null) {
+            return "Email đã được sử dụng.";
         }
 
         Role role = roleDAO.getByName("Registrant");
-        int roleId = 6; // roleId = 6 -> Registrant
+        int roleId = 6; // roleId = 6 -> registrant
         if (role != null) {
             roleId = role.getId();
         }
 
-        // Create new default personal info
-        Person person = new Person();
-        person.setFullName(username);
-        person.setDateOfBirth(java.sql.Date.valueOf("2000-01-01")); // Avoid null exception
-        person.setPhoneNo("");
-        person.setEmail(email);
-        person.setIsWalkIn(false);
-        person.setApprovalStatus("Pending");
-
-        if (!personDAO.insert(person)) {
-            return "Lỗi! Vui lòng thử lại.";
-        }
-
-        // Hash pw
-        String passwordHash = BCrypt.hashpw(password, BCrypt.gensalt());
         User user = new User();
-        user.setPersonId(person.getId());
+        user.setPersonId(null);
         user.setUsername(username);
-        user.setPasswordHash(passwordHash);
+        user.setEmail(email);
+        user.setPasswordHash(password);
         user.setRoleId(roleId);
         user.setIsActive(true);
 
@@ -70,38 +56,41 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
 
-        return BCrypt.checkpw(password, user.getPasswordHash()) ? user : null; // if correct pw then returns user
+        return password.equals(user.getPasswordHash()) ? user : null;
     }
 
     @Override
     public String forgotPassword(String email) {
-        Person person = personDAO.getByEmail(email);
-        if (person == null) {
-            return "Không tìm thấy email";
+        User user = userDAO.getByEmail(email);
+        if (user == null) {
+            user = userDAO.getByIdentifier(email);
         }
-
-        User user = userDAO.getByIdentifier(email);
         if (user == null) {
             return "Không tìm thấy tài khoản";
         }
 
         String tempPassword = String.valueOf((int) ((Math.random() * 900000) + 100000));
-        String hashed = BCrypt.hashpw(tempPassword, BCrypt.gensalt());
 
-        if (!userDAO.updatePassword(user.getId(), hashed)) {
+        if (!userDAO.updatePassword(user.getId(), tempPassword)) {
             return "Không thể cập nhật mật khẩu khôi phục. Vui lòng thử lại.";
         }
 
-        System.out.println("==========================================================================");
-        System.out.println("[LOG_TEST]");
-        System.out.println("Đến: " + email);
-        System.out.println("Tiêu đề: [Lái Vui] Khôi phục mật khẩu tài khoản");
-        System.out.println("Nội dung:");
-        System.out.println("  Xin chào " + user.getUsername() + ",");
-        System.out.println("  Mật khẩu của bạn đã được khôi phục thành công");
-        System.out.println("  Mật khẩu tạm thời mới là: " + tempPassword);
-        System.out.println("  Vui lòng đăng nhập lại và đổi mật khẩu trong phần cài đặt tài khoản.");
-        System.out.println("==========================================================================");
+        String subject = "[Lái Vui] Khôi phục mật khẩu tài khoản";
+        String content = """
+                Xin chào %s,
+
+                Mật khẩu của bạn đã được khôi phục thành công.
+                Mật khẩu tạm thời mới là: %s
+
+                Vui lòng đăng nhập lại và đổi mật khẩu trong phần cài đặt tài khoản.
+
+                Trân trọng,
+                Trung tâm Lái Vui
+                """.formatted(user.getUsername(), tempPassword);
+
+        if (!emailService.sendTextEmail(email, subject, content)) {
+            return "Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại.";
+        }
 
         return null;
     }

@@ -57,7 +57,7 @@
         <div class="workspace-layout">
             <!-- Sidebar: Filter Column -->
             <aside class="filter-sidebar-wrap">
-                <form method="GET" action="license-categories.jsp" class="filter-card">
+                <form method="GET" action="${pageContext.request.contextPath}/license-categories" class="filter-card">
                     <input type="hidden" name="submit" value="true">
 
                     <div class="filter-card__header">
@@ -68,7 +68,7 @@
                             <span>Bộ lọc</span>
                         </div>
                         <c:if test="${not isFirstLoad}">
-                            <a href="license-categories.jsp" class="btn-reset-text">Xóa tất cả</a>
+                            <a href="${pageContext.request.contextPath}/license-categories" class="btn-reset-text">Xóa tất cả</a>
                         </c:if>
                     </div>
 
@@ -77,45 +77,40 @@
                         <h3 class="filter-group__title">LOẠI PHƯƠNG TIỆN</h3>
                         <div class="filter-group__options">
                             <label class="filter-option">
-                                <input type="checkbox" name="type" value="xe-may" class="filter-checkbox"
+                                <input type="checkbox" name="type" value="xe-may"
                                        <c:if test="${fn:contains(typeParams, 'xe-may')}">checked</c:if>>
-                                       <span class="filter-checkbox-custom"></span>
-                                       <span class="filter-label-text">Xe máy</span>
-                                </label>
+                                <span class="filter-label-text">Xe máy</span>
+                            </label>
 
-                                <label class="filter-option">
-                                    <input type="checkbox" name="type" value="o-to-con" class="filter-checkbox"
-                                    <c:if test="${fn:contains(typeParams, 'o-to-con')}">checked</c:if>>
-                                    <span class="filter-checkbox-custom"></span>
-                                    <span class="filter-label-text">Ô tô con</span>
-                                </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="type" value="o-to-con"
+                                       <c:if test="${fn:contains(typeParams, 'o-to-con')}">checked</c:if>>
+                                <span class="filter-label-text">Ô tô con</span>
+                            </label>
 
-                                <label class="filter-option">
-                                    <input type="checkbox" name="type" value="xe-tai-khach" class="filter-checkbox"
-                                    <c:if test="${fn:contains(typeParams, 'xe-tai-khach')}">checked</c:if>>
-                                    <span class="filter-checkbox-custom"></span>
-                                    <span class="filter-label-text">Xe tải / Khách</span>
-                                </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="type" value="xe-tai-khach"
+                                       <c:if test="${fn:contains(typeParams, 'xe-tai-khach')}">checked</c:if>>
+                                <span class="filter-label-text">Xe tải / Khách</span>
+                            </label>
                                   <!-- Group 2: Thời gian đào tạo -->
                         <div class="filter-group filter-group--bordered">
                             <h3 class="filter-group__title">THỜI GIAN ĐÀO TẠO</h3>
                             <div class="filter-group__options">
                                 <label class="filter-option">
-                                    <input type="checkbox" name="duration" value="duoi-3-thang" class="filter-checkbox"
+                                    <input type="checkbox" name="duration" value="duoi-3-thang"
                                            <c:if test="${fn:contains(durationParams, 'duoi-3-thang')}">checked</c:if>>
-                                    <span class="filter-checkbox-custom"></span>
                                     <span class="filter-label-text">Dưới 3 tháng</span>
                                 </label>
 
                                 <label class="filter-option">
-                                    <input type="checkbox" name="duration" value="tu-3-6-thang" class="filter-checkbox"
+                                    <input type="checkbox" name="duration" value="tu-3-6-thang"
                                            <c:if test="${fn:contains(durationParams, 'tu-3-6-thang')}">checked</c:if>>
-                                    <span class="filter-checkbox-custom"></span>
                                     <span class="filter-label-text">Từ 3-6 tháng</span>
                                 </label>
 
                                 <!-- Hidden checkbox to allow "other" duration categories when no duration filter is set -->
-                                <input type="checkbox" name="duration" value="other" class="filter-checkbox filter-checkbox--hidden"
+                                <input type="checkbox" name="duration" value="other"
                                        <c:if test="${fn:contains(durationParams, 'other')}">checked</c:if> style="display:none;">
                             </div>
                         </div>
@@ -309,7 +304,7 @@
                         </svg>
                         <h3 class="no-results-title">Không tìm thấy kết quả phù hợp</h3>
                         <p class="no-results-desc">Vui lòng thay đổi lựa chọn bộ lọc hoặc đặt lại bộ lọc để xem các hạng bằng khác.</p>
-                        <a href="license-categories.jsp" class="btn-reset-filters">Đặt lại bộ lọc</a>
+                        <a href="${pageContext.request.contextPath}/license-categories" class="btn-reset-filters">Đặt lại bộ lọc</a>
                     </div>
                 </c:if>
             </section>

@@ -11,7 +11,7 @@ public class DBContext {
     public DBContext() {
         try {
             String user = "sa";
-            String pass = "sa";
+            String pass = "123";
             String url = "jdbc:sqlserver://localhost\\SQLEXPRESS:1433;databaseName=DLEM_DB";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, user, pass);

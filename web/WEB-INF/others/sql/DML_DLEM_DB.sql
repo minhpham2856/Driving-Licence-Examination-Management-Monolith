@@ -33,18 +33,18 @@ INSERT INTO Person (govIdNo, fullName, dateOfBirth, gender, phoneNo, email, addr
 
 -- ============================================
 -- 3. USERS (System Accounts)
--- (Default password for all seeded accounts: admin123)
+-- (Default password for all seeded accounts: admin123 — stored as plain text for development)
 -- ============================================
 INSERT INTO [User] (personId, username, passwordHash, roleId) VALUES
-(1, 'admin123',       '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 1),
-(2, 'shv_abc',   '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 2),
-(3, 'shv_123',   '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 2),
-(4, 'cbql_123','$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 3),
-(5, 'cbkt_111',  '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 4),
-(6, 'cbkt_222',  '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 4),
-(7,  'user123', '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 6),
-(8,  'nguyenVan_An12', '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 6),
-(9,  'us_hello', '$2b$12$LJ3m4ys3uI0FXm0eVMHhOeUfeOtVXoV.GMfLmZR4qK7pHj3hHLp5y', 6);
+(1, 'admin123',       'admin123', 1),
+(2, 'shv_abc',   'admin123', 2),
+(3, 'shv_123',   'admin123', 2),
+(4, 'cbql_123','admin123', 3),
+(5, 'cbkt_111',  'admin123', 4),
+(6, 'cbkt_222',  'admin123', 4),
+(7,  'user123', 'admin123', 6),
+(8,  'nguyenVan_An12', 'admin123', 6),
+(9,  'us_hello', 'admin123', 6);
 
 -- ============================================
 -- 5. Candidate DOCUMENTS
