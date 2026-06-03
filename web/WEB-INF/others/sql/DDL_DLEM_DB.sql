@@ -63,18 +63,20 @@ CREATE TABLE Role (
 
 CREATE TABLE [User] (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    personId INT NULL UNIQUE REFERENCES Person(id),
+    personId INT NULL REFERENCES Person(id),
     username NVARCHAR(100) NOT NULL UNIQUE,
-    email NVARCHAR(255) NULL UNIQUE,
+    email NVARCHAR(255) NULL,
     passwordHash NVARCHAR(255) NOT NULL,
     roleId INT NOT NULL REFERENCES Role(id),
     isActive BIT NOT NULL DEFAULT 1,
     lastLoginAt DATETIME2 NULL,
     createdAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     INDEX IX_User_username (username),
-    INDEX IX_User_email (email),
     INDEX IX_User_roleId (roleId)
 );
+
+CREATE UNIQUE INDEX UQ_User_personId ON [User](personId) WHERE personId IS NOT NULL;
+CREATE UNIQUE INDEX UQ_User_email ON [User](email) WHERE email IS NOT NULL;
 
 -- ============================================
 -- LICENSE & EXAM STRUCTURE

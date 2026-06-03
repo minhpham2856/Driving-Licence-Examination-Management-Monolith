@@ -1,250 +1,167 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Điều hành gọi thí sinh - Lái Vui</title>
+    <title>Gọi thí sinh - Lái Vui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
-<body class="has-side-nav-bar">
+<body class="has-side-nav-bar examiner-portal">
 
 <jsp:include page="/views/layout/sidebar-examiner.jsp">
-    <jsp:param name="activeSidebar" value="ds-thi-sinh" />
+    <jsp:param name="activeSidebar" value="goi-thi-sinh" />
 </jsp:include>
 
-<div class="dashboard-shell">
-    <main class="main-content">
-        
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Quản lý thi</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp">Danh sách thí sinh</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Điều hành gọi thi</span>
-        </nav>
-        
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Điều hành gọi thí sinh</h1>
-                <p class="page-subtitle">Quản lý gọi thi, giám sát nhận diện FaceID trực tiếp, bắt đầu bài thi sát hạch cho từng thí sinh.</p>
+<div class="examiner-shell">
+    <jsp:include page="/views/layout/header-examiner.jsp" />
+
+    <main class="examiner-main examiner-main--dashboard">
+        <section class="examiner-toolbar examiner-toolbar--tools">
+            <div class="examiner-toolbar__group">
+                <a href="#" class="examiner-btn examiner-btn--primary">
+                    <svg width="16" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 11v2h4v-2h-4M16 17.6c.96.71 2.21 1.65 3.2 2.4.4-.53.8-1.07 1.2-1.6-.99-.75-2.24-1.69-3.2-2.4-.4.54-.8 1.07-1.2 1.6M19.2 5.6c-.99.75-2.24 1.69-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.71 2.21-1.65 3.2-2.4-.4-.53-.8-1.07-1.2-1.6M2 10c-.55 0-1 .45-1 1v2c0 .55.45 1 1 1h1v4h2v-4h1l5 3V7L7 10H2m11.5 2c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z" fill="currentColor"/></svg>
+                    Gọi thí sinh
+                </a>
+                <a href="#" class="examiner-btn examiner-btn--white">
+                    <svg width="15" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3M16 19H8v-5h8v5M19 12c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1M18 3H6v4h12V3z" fill="currentColor"/></svg>
+                    In đề thi
+                </a>
+                <a href="#" class="examiner-btn examiner-btn--white">
+                    <svg width="14" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6M16 18H8v-2h8v2m0-4H8v-2h8v2m-3-5V3.5L18.5 9H13z" fill="currentColor"/></svg>
+                    In kết quả thi
+                </a>
             </div>
-            
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <label for="selectSession" style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Ca thi:</label>
-                    <select id="selectSession" class="input-field" style="height: 32px; padding: 2px 8px; font-size: 0.8rem; width: 140px; border-radius: 6px;">
-                        <option value="ca01">Ca Sáng 24/05</option>
-                        <option value="ca02">Ca Chiều 24/05</option>
-                    </select>
+            <div class="examiner-toolbar__group">
+                <div class="examiner-search">
+                    <svg class="examiner-search__icon" viewBox="0 0 18 18" fill="none"><path d="M7.5 13.5C10.8137 13.5 13.5 10.8137 13.5 7.5C13.5 4.18629 10.8137 1.5 7.5 1.5C4.18629 1.5 1.5 4.18629 1.5 7.5C1.5 10.8137 4.18629 13.5 7.5 13.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 12L16.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <input type="text" class="examiner-search__input" placeholder="Tìm kiếm SBD, Tên...">
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px; border-left: 1px solid #cbd5e1; padding-left: 10px;">
-                    <label for="selectRoom" style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Phòng thi:</label>
-                    <select id="selectRoom" class="input-field" style="height: 32px; padding: 2px 8px; font-size: 0.8rem; width: 160px; border-radius: 6px;">
-                        <option value="rm01">Phòng Lý thuyết 01</option>
-                        <option value="rm02">Phòng Thực hành A</option>
-                        <option value="rm03">Sân Sa hình hạng B</option>
-                    </select>
-                </div>
+                <a href="#" class="examiner-btn examiner-btn--primary">
+                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 13.5C10.8137 13.5 13.5 10.8137 13.5 7.5C13.5 4.18629 10.8137 1.5 7.5 1.5C4.18629 1.5 1.5 4.18629 1.5 7.5C1.5 10.8137 4.18629 13.5 7.5 13.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 12L16.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Tìm kiếm
+                </a>
+                <a href="${pageContext.request.contextPath}/views/examiner/candidate-call.jsp" class="examiner-btn examiner-btn--white examiner-btn--icon">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35C12.2 0.9 10.2 0 8 0C3.58 0 0 3.58 0 8C0 12.42 3.58 16 8 16C11.73 16 14.84 13.45 15.73 10H13.65C12.83 12.33 10.61 14 8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C9.66 2 11.14 2.69 12.22 3.78L9 7H16V0L13.65 2.35Z" fill="currentColor"/></svg>
+                </a>
             </div>
-        </header>
+        </section>
 
-        <div class="call-container">
-            <div class="call-pane">
-                <header class="call-pane__header">
-                    <h2 class="call-pane__title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
-                            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                            <path d="M3 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Thí sinh đang được gọi
-                    </h2>
-                    <c:if test="${not empty callingCandidate or not empty param.sbd}">
-                        <span class="action-badge action-badge--warning">Chờ kiểm tra FaceID</span>
-                    </c:if>
-                </header>
-
-                <c:choose>
-                    <c:when test="${not empty callingCandidate or not empty param.sbd}">
-                        <c:set var="cSbd" value="${empty callingCandidate ? param.sbd : callingCandidate.sbd}" />
-                        <c:set var="cName" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Nguyễn Anh Tuấn' : (cSbd eq 'B2-0145' ? 'Trần Thị Mai' : 'Thí sinh')) : callingCandidate.fullName}" />
-                        <c:set var="cCCCD" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? '001204008912' : (cSbd eq 'B2-0145' ? '038201004567' : 'CCCD/Hộ chiếu')) : callingCandidate.cccd}" />
-                        <c:set var="cClass" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Hạng A1' : (cSbd eq 'B2-0145' ? 'Hạng B2' : 'Chưa rõ')) : callingCandidate.licenseClass}" />
-                        <c:set var="cSession" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Khóa thi A1 - 24/05/2026' : (cSbd eq 'B2-0145' ? 'Khóa thi B2 - 15/06/2026' : 'Chưa xếp khóa')) : callingCandidate.sessionName}" />
-                        <c:set var="cAvatar" value="${empty callingCandidate ? fn:substring(cName, 0, 1) : fn:substring(callingCandidate.fullName, 0, 1)}" />
-
-                        <div class="call-grid">
-                            <div class="candidate-photo-frame">
-                                <div class="candidate-photo-placeholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0052cc 0%, #003d9b 100%); color: #ffffff; font-size: 3rem; font-weight: 800;">
-                                    ${cAvatar}
-                                </div>
-                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 82, 204, 0.85); color: #ffffff; font-size: 0.65rem; text-align: center; padding: 3px 0; font-weight: bold; text-transform: uppercase;">Ảnh hồ sơ</div>
-                            </div>
-
-                            <div class="candidate-details-list">
-                                <div class="candidate-detail-item">
-                                    <span class="candidate-detail-label">Số báo danh (SBD)</span>
-                                    <span class="candidate-detail-value" style="color: #0052cc; font-size: 1.25rem; font-weight: 800;">${cSbd}</span>
-                                </div>
-                                <div class="candidate-detail-item">
-                                    <span class="candidate-detail-label">Họ và tên</span>
-                                    <span class="candidate-detail-value">${cName}</span>
-                                </div>
-                                <div class="candidate-detail-item">
-                                    <span class="candidate-detail-label">Số CCCD / Hộ chiếu</span>
-                                    <span class="candidate-detail-value" style="font-family: monospace;">${cCCCD}</span>
-                                </div>
-                                <div class="candidate-detail-item">
-                                    <span class="candidate-detail-label">Hạng sát hạch</span>
-                                    <span class="candidate-detail-value">
-                                        <span class="role-badge role-badge--coi" style="font-size: 0.8rem; padding: 0.15rem 0.6rem;">${cClass}</span>
-                                    </span>
-                                </div>
-                                <div class="candidate-detail-item" style="grid-column: span 2;">
-                                    <span class="candidate-detail-label">Khóa sát hạch</span>
-                                    <span class="candidate-detail-value" style="color: #475569; font-weight: 500;">${cSession}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="calling-status-wrapper">
-                            <div class="calling-status-info">
-                                <div class="calling-indicator"></div>
-                                <span style="font-size: 0.9rem; font-weight: 700; color: #0052cc;">Hệ thống phát loa: "Mời thí sinh ${cName} vào phòng thi!"</span>
-                            </div>
-                            <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Đã phát 1 lần</span>
-                        </div>
-
-                        <div class="control-btn-grid">
-                            <a href="candidatecall.jsp?sbd=${cSbd eq 'A1-0024' ? 'B2-0145' : 'A1-0024'}" class="btn-call-control btn-call-control--next" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Gọi tiếp theo
-                            </a>
-                            
-                            <a href="candidatecall.jsp" class="btn-call-control btn-call-control--absent" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                Vắng mặt
-                            </a>
-                            
-                            <a href="candidatecall.jsp" class="btn-call-control btn-call-control--start" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5 3l14 9-14 9V3z" fill="currentColor"/>
-                                </svg>
-                                Bắt đầu thi
-                            </a>
-                            
-                            <a href="candidatecall.jsp" class="btn-call-control" style="background-color: #f97316; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; color: #ffffff;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M18.36 6.64L5.64 19.36M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Hủy kết quả
-                            </a>
-                            
-                            <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp" class="btn-call-control btn-call-control--cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
-                                Quay lại
-                            </a>
-                        </div>
-                    </c:when>
-                    <c:otherwise>
-                        <div style="text-align: center; padding: 4rem 1.5rem; color: #64748b;">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1rem; display: block; opacity: 0.35; color: #64748b;">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <span style="font-weight: 700; font-size: 1rem; color: #334155; display: block; margin-bottom: 0.5rem;">Đang chờ gọi thí sinh sát hạch</span>
-                            Chưa có thí sinh nào được chọn gọi vào phòng thi. 
-                            <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; max-width: 360px; margin: 0.5rem auto 1.5rem;">Vui lòng bấm nút dưới đây để gọi thí sinh tiếp theo, hoặc chọn trực tiếp từ danh sách thí sinh.</p>
-                            
-                            <div style="display: flex; gap: 10px; justify-content: center;">
-                                <a href="candidate-call.jsp?sbd=A1-0024" class="btn-filter" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
-                                        <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Gọi thí sinh tiếp theo
-                                </a>
-                                <a href="${pageContext.request.contextPath}/views/examiner/candidatelist.jsp" class="btn-reset" style="height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
-                                    Danh sách thí sinh
-                                </a>
-                            </div>
-                        </div>
-                    </c:otherwise>
-                </c:choose>
+        <section class="examiner-card examiner-card--dashboard-table">
+            <div class="examiner-card__head">
+                <h3 class="examiner-card__title">Danh sách thí sinh chờ sát hạch lý thuyết</h3>
+                <span class="examiner-card__badge">Tổng: 45 thí sinh</span>
             </div>
-            
-            <div class="call-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
-                <header class="call-pane__header" style="margin-bottom: 1rem;">
-                    <h2 class="call-pane__title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981;">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                        Màn hình nhận diện FaceID
-                    </h2>
-                    <c:if test="${not empty callingCandidate or not empty param.sbd}">
-                        <span class="action-badge" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2);">FaceID Online</span>
-                    </c:if>
-                </header>
-                
-                <div class="camera-feed">
-                    <c:choose>
-                        <c:when test="${not empty callingCandidate or not empty param.sbd}">
-                            <div class="camera-feed__live-tag">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #ffffff; display: inline-block;"></span>
-                                REC LIVE
-                            </div>
-                            <div class="camera-feed__reticle"></div>
-                            <div class="camera-feed__scan-line"></div>
-                            <div class="camera-feed__overlay"></div>
-                            <span style="color: rgba(16, 185, 129, 0.85); font-family: monospace; font-size: 1.25rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; z-index: 1;">
-                                SCANNING FACE...
-                            </span>
-                            <div class="face-match-status">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="3"/>
-                                    <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="3"/>
-                                </svg>
-                                ${empty callingCandidate.faceMatchRate ? '99.8%' : callingCandidate.faceMatchRate} KHỚP HỒ SƠ
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div style="text-align: center; color: #475569; padding: 2rem;">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 0.75rem; display: block; opacity: 0.35;">
-                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                <span style="font-size: 0.85rem; font-weight: 600; display: block;">Camera FaceID offline</span>
-                                Chờ gọi thí sinh để bắt đầu nhận diện
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-                
-                <div style="background-color: #f8fafc; border-radius: 8px; padding: 0.85rem 1rem; border: 1px dashed #cbd5e1; margin-top: 1rem;">
-                    <span style="font-size: 0.75rem; font-weight: 800; color: #1e293b; text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.02em;">Quy chế sát hạch FaceID</span>
-                    <p style="font-size: 0.75rem; color: #64748b; line-height: 1.45; margin: 0;">Mỗi thí sinh phải được máy quét camera tại phòng thi nhận diện thành công trước khi giám thị phát lệnh bắt đầu bài thi. Log FaceID sẽ được đối chứng khi in biên bản kết quả thi sát hạch.</p>
-                </div>
+            <div class="examiner-table-wrap">
+                <table class="examiner-table examiner-table--dark examiner-table--call">
+                    <colgroup>
+                        <col style="width:50px">
+                        <col style="width:64px">
+                        <col style="width:120px">
+                        <col style="width:96px">
+                        <col style="width:128px">
+                        <col style="width:160px">
+                        <col style="width:128px">
+                        <col style="width:200px">
+                        <col style="width:64px">
+                        <col style="width:190px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th class="examiner-table__center">STT</th>
+                            <th class="examiner-table__center">Chọn</th>
+                            <th>Tên</th>
+                            <th class="examiner-table__center">SBD</th>
+                            <th>Ngày sinh</th>
+                            <th>Số căn cước</th>
+                            <th>Ngày thi</th>
+                            <th>Địa chỉ</th>
+                            <th class="examiner-table__center">Vắng</th>
+                            <th class="examiner-table__center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="examiner-table__center examiner-table__mono">01</td>
+                            <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                            <td class="examiner-table__name">
+                                <span class="examiner-table__name-lines">
+                                    <span>Nguyễn Văn</span>
+                                    <span>An</span>
+                                </span>
+                            </td>
+                            <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">1001</td>
+                            <td class="examiner-table__mono-md">12/05/1995</td>
+                            <td class="examiner-table__mono-md examiner-text-ink">001095001234</td>
+                            <td class="examiner-table__mono-md">25/10/2023</td>
+                            <td class="examiner-table__ellipsis">123 Lê Lợi, Quận 1, TP.HCM</td>
+                            <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                            <td>
+                                <div class="examiner-actions">
+                                    <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="examiner-link-action">Chi tiết</a>
+                                    <span class="examiner-actions__sep">|</span>
+                                    <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="examiner-link-action">Sửa TT</a>
+                                    <span class="examiner-actions__sep">|</span>
+                                    <a href="${pageContext.request.contextPath}/views/examiner/result-details-edit.jsp" class="examiner-link-action">Sửa KQ</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="examiner-table__row--alt">
+                            <td class="examiner-table__center examiner-table__mono">02</td>
+                            <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                            <td class="examiner-table__name">Trần Thị Bình</td>
+                            <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">1002</td>
+                            <td class="examiner-table__mono-md">08/11/1998</td>
+                            <td class="examiner-table__mono-md examiner-text-ink">079198005678</td>
+                            <td class="examiner-table__mono-md">25/10/2023</td>
+                            <td class="examiner-table__ellipsis">456 Nguyễn Huệ, Quận 1, TP.HCM</td>
+                            <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                            <td>
+                                <div class="examiner-actions">
+                                    <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="examiner-link-action">Chi tiết</a>
+                                    <span class="examiner-actions__sep">|</span>
+                                    <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="examiner-link-action">Sửa TT</a>
+                                    <span class="examiner-actions__sep">|</span>
+                                    <a href="${pageContext.request.contextPath}/views/examiner/result-details-edit.jsp" class="examiner-link-action">Sửa KQ</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="examiner-table__center examiner-table__mono">03</td>
+                            <td class="examiner-table__center"><input type="checkbox" class="examiner-check" checked></td>
+                            <td class="examiner-table__name">
+                                <span class="examiner-table__name-lines">
+                                    <span>Lê Hoàng</span>
+                                    <span>Cường</span>
+                                </span>
+                            </td>
+                            <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">1003</td>
+                            <td class="examiner-table__mono-md">22/03/2000</td>
+                            <td class="examiner-table__mono-md examiner-text-ink">001200009012</td>
+                            <td class="examiner-table__mono-md">25/10/2023</td>
+                            <td class="examiner-table__ellipsis">789 Trần Hưng Đạo, Quận 5, TP.HCM</td>
+                            <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                            <td>
+                                <div class="examiner-actions">
+                                    <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="examiner-link-action">Chi tiết</a>
+                                    <span class="examiner-actions__sep">|</span>
+                                    <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="examiner-link-action">Sửa TT</a>
+                                    <span class="examiner-actions__sep">|</span>
+                                    <a href="${pageContext.request.contextPath}/views/examiner/result-details-edit.jsp" class="examiner-link-action">Sửa KQ</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-
+        </section>
     </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
 </div>
 
 </body>
