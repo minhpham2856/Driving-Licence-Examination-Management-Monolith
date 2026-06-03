@@ -68,8 +68,8 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession();
         session.setAttribute(Attributes.Session.USER, UserDTO.fromUser(user));
 
-        // redirect to dashboard
-        response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
+        // redirect to dashboard servlet (filter maps JSP URLs too)
+        response.sendRedirect(request.getContextPath() + "/registrant/dashboard");
     }
 
     // forward back to login page with an error message
