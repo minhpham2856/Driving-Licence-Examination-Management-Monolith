@@ -5,6 +5,10 @@ import java.util.List;
 
 public interface ProfileDAO {
 
+    Profile getById(int profileId);
+
+    Profile getByUserId(int userId);
+
     Profile getByGovIdNo(String govIdNo);
 
     Profile getByPhoneNo(String phoneNo);

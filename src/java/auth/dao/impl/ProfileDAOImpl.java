@@ -23,6 +23,44 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
                      """;
 
     @Override
+    public Profile getById(int profileId) {
+        if (profileId <= 0) {
+            return null;
+        }
+        String sql = PROFILE_SELECT + " where ProfileId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSet(rs);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to find profile by id: {0}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public Profile getByUserId(int userId) {
+        if (userId <= 0) {
+            return null;
+        }
+        String sql = PROFILE_SELECT + " where UserId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSet(rs);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to find profile by user id: {0}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
     public Profile getByGovIdNo(String govIdNo) {
         String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
