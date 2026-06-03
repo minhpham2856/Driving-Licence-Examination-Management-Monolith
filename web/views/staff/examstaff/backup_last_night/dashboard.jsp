@@ -1,56 +1,7 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-
-<%
-    DAO.ExamSessionDAO sessionDAO = new DAO.Impl.ExamSessionDAOImpl();
-    java.util.List<Models.ExamSession> allSessions = null;
-    try {
-        allSessions = sessionDAO.getAllSessions();
-    } catch (Exception e) {
-        e.printStackTrace();
-        allSessions = new java.util.ArrayList<>();
-    }
-    pageContext.setAttribute("allSessions", allSessions);
-
-    // Retrieve or load selected sessionId
-    String sessIdParam = request.getParameter("sessionId");
-    int sessionId = 2; // Default session
-    if (sessIdParam != null && !sessIdParam.isEmpty()) {
-        try {
-            sessionId = Integer.parseInt(sessIdParam);
-        } catch (Exception e) {}
-    } else if (session.getAttribute("selectedSessionId") != null) {
-        sessionId = (Integer) session.getAttribute("selectedSessionId");
-    }
-    session.setAttribute("selectedSessionId", sessionId);
-
-    // Retrieve current session details for display
-    Models.ExamSession currentSession = null;
-    for (Models.ExamSession s : allSessions) {
-        if (s.getId() == sessionId) {
-            currentSession = s;
-            break;
-        }
-    }
-    pageContext.setAttribute("currentSession", currentSession);
-
-    // Load queue for this session if session changed or first time
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
-    Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
-    if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        try {
-            qList = regDAO.getCandidatesBySession(sessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new java.util.ArrayList<>();
-        }
-        session.setAttribute("candidateQueue", qList);
-        session.setAttribute("lastLoadedSessionId", sessionId);
-    }
-%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -248,25 +199,11 @@
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Tổng quan ca thi sát hạch</h1>
-                <p class="page-subtitle">Giám sát trực quan tiến độ đón tiếp, làm thủ tục hồ sơ và trạng thái thi của thí sinh trong ngày từ cơ sở dữ liệu thực.</p>
+                <p class="page-subtitle">Giám sát trực quan tiến độ đón tiếp, phân bổ, làm thủ tục hồ sơ và trạng thái thi của thí sinh trong ngày.</p>
             </div>
             
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <!-- Modern Glassmorphic Shift Selector -->
-                <form action="dashboard.jsp" method="GET" style="margin: 0; display: inline-flex; align-items: center;">
-                    <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 8px; padding: 4px 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); height: 42px;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;">Ca sát hạch:</span>
-                        <select id="sessionId" name="sessionId" onchange="this.form.submit()" style="height: 30px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 700; color: #1e293b; padding: 0 10px; background: #ffffff; cursor: pointer; outline: none; font-size: 0.82rem; max-width: 320px;">
-                            <c:forEach var="sess" items="${allSessions}">
-                                <option value="${sess.id}" ${sessionScope.selectedSessionId eq sess.id ? 'selected' : ''}>
-                                    Ca #${sess.id} - ${sess.sessionName}
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                </form>
-                
-                <a href="allocation" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #475569; border-color: #e2e8f0; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <div class="page-actions" style="display: flex; gap: 10px;">
+                <a href="allocation.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #475569; border-color: #e2e8f0; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="3" width="7" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
                         <rect x="14" y="3" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
@@ -275,7 +212,7 @@
                     </svg>
                     Phân bổ khu vực
                 </a>
-                <a href="procedure" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; gap: 6px;">
+                <a href="procedure.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="2" y="3" width="20" height="18" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
                         <circle cx="7.5" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
@@ -289,29 +226,15 @@
             </div>
         </header>
 
-        <!-- Dynamic parameters from JSTL connected to DB session candidateQueue -->
-        <c:set var="totalCandidatesCount" value="${fn:length(sessionScope.candidateQueue)}" />
-        <c:set var="completedCount" value="0" />
-        <c:set var="processingCount" value="0" />
-        <c:set var="pendingCount" value="0" />
-
-        <c:forEach var="c" items="${sessionScope.candidateQueue}">
-            <c:choose>
-                <c:when test="${not empty c.photoUrl and c.paymentCompleted}">
-                    <c:set var="completedCount" value="${completedCount + 1}" />
-                </c:when>
-                <c:when test="${sessionScope.callingSbd eq c.sbd}">
-                    <c:set var="processingCount" value="${processingCount + 1}" />
-                </c:when>
-                <c:otherwise>
-                    <c:set var="pendingCount" value="${pendingCount + 1}" />
-                </c:otherwise>
-            </c:choose>
-        </c:forEach>
+        <!-- Dynamic parameters or standard values simulation using JSTL -->
+        <c:set var="totalCandidatesCount" value="120" />
+        <c:set var="completedCount" value="48" />
+        <c:set var="processingCount" value="18" />
+        <c:set var="pendingCount" value="54" />
         
-        <c:set var="completedPercent" value="${totalCandidatesCount gt 0 ? (completedCount * 100.0) / totalCandidatesCount : 0.0}" />
-        <c:set var="processingPercent" value="${totalCandidatesCount gt 0 ? (processingCount * 100.0) / totalCandidatesCount : 0.0}" />
-        <c:set var="pendingPercent" value="${totalCandidatesCount gt 0 ? (pendingCount * 100.0) / totalCandidatesCount : 0.0}" />
+        <c:set var="completedPercent" value="${(completedCount * 100) / totalCandidatesCount}" />
+        <c:set var="processingPercent" value="${(processingCount * 100) / totalCandidatesCount}" />
+        <c:set var="pendingPercent" value="${(pendingCount * 100) / totalCandidatesCount}" />
 
         <!-- KPI Metrics Row -->
         <section class="metrics-row" aria-label="Chỉ số ca thi">
@@ -323,18 +246,9 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">
-                        <c:choose>
-                            <c:when test="${not empty currentSession}">
-                                ${currentSession.sessionName}
-                            </c:when>
-                            <c:otherwise>
-                                Ca Sát Hạch #${sessionScope.selectedSessionId}
-                            </c:otherwise>
-                        </c:choose>
-                    </span>
-                    <span class="stat-label">Hạng ${not empty currentSession ? currentSession.licenseCode : 'Đang tải'} | ${not empty currentSession ? currentSession.examDate : 'N/A'}</span>
-                    <span class="stat-trend stat-trend--up">Trạng thái: ${not empty currentSession ? currentSession.status : 'Active'}</span>
+                    <span class="stat-number" style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">Ca Sáng 24/05</span>
+                    <span class="stat-label">Đợt thi sát hạch</span>
+                    <span class="stat-trend stat-trend--up">Đang diễn ra</span>
                 </div>
             </div>
             
@@ -348,7 +262,7 @@
                 <div class="stat-info">
                     <span class="stat-number">${totalCandidatesCount}</span>
                     <span class="stat-label">Tổng thí sinh ca thi</span>
-                    <span class="stat-trend stat-trend--up">Hàng đợi động</span>
+                    <span class="stat-trend stat-trend--up">100% hồ sơ hợp lệ</span>
                 </div>
             </div>
             
@@ -378,7 +292,7 @@
                 <div class="stat-info">
                     <span class="stat-number" style="color: #d97706;">${processingCount}</span>
                     <span class="stat-label">Đang làm thủ tục</span>
-                    <span class="stat-trend stat-trend--up">Tại quầy / Bàn chờ</span>
+                    <span class="stat-trend stat-trend--up">Tại quầy / bàn chờ</span>
                 </div>
             </div>
         </section>
@@ -403,15 +317,15 @@
             <div class="progress-legend">
                 <div class="progress-legend-item">
                     <span class="progress-legend-dot" style="background-color: #10b981;"></span>
-                    <span>Đã hoàn thành: <strong>${completedCount}</strong> học viên (<fmt:formatNumber value="${completedPercent}" maxFractionDigits="1"/>%)</span>
+                    <span>Đã hoàn thành: <strong>${completedCount}</strong> học viên (${fn:substring(completedPercent, 0, 4)}%)</span>
                 </div>
                 <div class="progress-legend-item">
                     <span class="progress-legend-dot" style="background-color: #3b82f6;"></span>
-                    <span>Đang làm hồ sơ / Đối chiếu: <strong>${processingCount}</strong> học viên (<fmt:formatNumber value="${processingPercent}" maxFractionDigits="1"/>%)</span>
+                    <span>Đang làm hồ sơ / Đối chiếu: <strong>${processingCount}</strong> học viên (${fn:substring(processingPercent, 0, 4)}%)</span>
                 </div>
                 <div class="progress-legend-item">
                     <span class="progress-legend-dot" style="background-color: #f59e0b;"></span>
-                    <span>Chưa đến / Chờ gọi: <strong>${pendingCount}</strong> học viên (<fmt:formatNumber value="${pendingPercent}" maxFractionDigits="1"/>%)</span>
+                    <span>Chưa đến / Chờ gọi: <strong>${pendingCount}</strong> học viên (${fn:substring(pendingPercent, 0, 4)}%)</span>
                 </div>
             </div>
         </div>
@@ -433,32 +347,57 @@
                 </div>
                 
                 <div class="room-candidate-list">
-                    <c:set var="waitRenderCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.isPresent and sessionScope.callingSbd ne c.sbd and c.theoryPassed eq 'none' and waitRenderCount lt 4}">
-                            <c:set var="waitRenderCount" value="${waitRenderCount + 1}" />
-                            <div class="room-candidate-item">
-                                <div class="candidate-meta">
-                                    <span class="candidate-sbd">SBD: ${c.sbd}</span>
-                                    <span class="candidate-step candidate-step--waiting">Hạng ${c.clazz}</span>
-                                </div>
-                                <div class="candidate-name">${c.name}</div>
-                                <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-                                    <span>Trạng thái: Đang chờ</span>
-                                    <span style="font-weight: 600; color: #475569;">SĐT: ${c.phoneNo}</span>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${waitRenderCount eq 0}">
-                        <div class="empty-room-state">
-                            Không có thí sinh nào đang chờ ở phòng chờ.
+                    <!-- Simulate Candidates in Waiting Room using JSTL -->
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd">SBD: B2-0239</span>
+                            <span class="candidate-step candidate-step--waiting">Hạng B2</span>
                         </div>
-                    </c:if>
+                        <div class="candidate-name">Phạm Minh Hoàng</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Trạng thái: Đang chờ</span>
+                            <span style="font-weight: 600; color: #475569;">Thời gian chờ: 15p</span>
+                        </div>
+                    </div>
+                    
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd">SBD: A1-0182</span>
+                            <span class="candidate-step candidate-step--waiting">Hạng A1</span>
+                        </div>
+                        <div class="candidate-name">Lê Thị Thanh Huyền</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Trạng thái: Đang chờ</span>
+                            <span style="font-weight: 600; color: #475569;">Thời gian chờ: 12p</span>
+                        </div>
+                    </div>
+                    
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd">SBD: B2-0199</span>
+                            <span class="candidate-step candidate-step--waiting">Hạng B2</span>
+                        </div>
+                        <div class="candidate-name">Đặng Văn Lâm</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Trạng thái: Đang chờ</span>
+                            <span style="font-weight: 600; color: #475569;">Thời gian chờ: 8p</span>
+                        </div>
+                    </div>
+
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd">SBD: A1-0185</span>
+                            <span class="candidate-step candidate-step--waiting">Hạng A1</span>
+                        </div>
+                        <div class="candidate-name">Nguyễn Hoàng Nam</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Trạng thái: Đang chờ</span>
+                            <span style="font-weight: 600; color: #475569;">Thời gian chờ: 5p</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <a href="candidatecall" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
+                <a href="candidatecall.jsp" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
                     Xem phòng điều hành gọi thi &rarr;
                 </a>
             </div>
@@ -477,42 +416,51 @@
                 </div>
                 
                 <div class="room-candidate-list">
-                    <c:set var="activeCalledCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${sessionScope.callingSbd eq c.sbd and (empty c.photoUrl or not c.paymentCompleted) and activeCalledCount lt 3}">
-                            <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
-                            <c:set var="isPhotoDone" value="${not empty c.photoUrl}" />
-                            <c:set var="isPayDone" value="${c.paymentCompleted}" />
-                            <c:set var="stepNum" value="${not isPhotoDone ? '2' : '3'}" />
-                            <c:set var="stepName" value="${not isPhotoDone ? 'Chụp ảnh' : 'Lệ phí'}" />
-                            
-                            <div class="room-candidate-item" style="border-left: 3px solid ${not isPhotoDone ? '#7e22ce' : '#b45309'};">
-                                <div class="candidate-meta">
-                                    <span style="font-weight: 700; color: #1e293b;">SBD: ${c.sbd}</span>
-                                    <span class="candidate-step ${not isPhotoDone ? 'candidate-step--photo' : 'candidate-step--payment'}">Bước ${stepNum}: ${stepName}</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                                    <span class="candidate-name">${c.name}</span>
-                                    <span style="font-size: 0.72rem; color: #64748b;">Hạng ${c.clazz}</span>
-                                </div>
-                                <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
-                                    <c:choose>
-                                        <c:when test="${not isPhotoDone}">Đang tiến hành chụp ảnh live chân dung FaceID.</c:when>
-                                        <c:otherwise>Đang đối chiếu hồ sơ và đóng lệ phí thi.</c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${activeCalledCount eq 0}">
-                        <div class="empty-room-state">
-                            Bàn làm thủ tục đang trống.
+                    <!-- Simulate Desks Process -->
+                    <div class="room-candidate-item" style="border-left: 3px solid #2563eb;">
+                        <div class="candidate-meta">
+                            <span style="font-weight: 700; color: #1e293b;">BÀN SỐ 01</span>
+                            <span class="candidate-step candidate-step--verify">Bước 1: Xác minh</span>
                         </div>
-                    </c:if>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span class="candidate-name">Nguyễn Anh Tuấn</span>
+                            <span class="candidate-sbd">SBD: A1-0024</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                            Đang đối chiếu CCCD và sửa đổi thông tin GPLX cũ.
+                        </div>
+                    </div>
+                    
+                    <div class="room-candidate-item" style="border-left: 3px solid #7e22ce;">
+                        <div class="candidate-meta">
+                            <span style="font-weight: 700; color: #1e293b;">BÀN SỐ 02</span>
+                            <span class="candidate-step candidate-step--photo">Bước 2: Chụp ảnh</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span class="candidate-name">Trần Thị Mai</span>
+                            <span class="candidate-sbd">SBD: B2-0145</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                            Đang điều chỉnh camera và chụp ảnh chân dung trực tiếp.
+                        </div>
+                    </div>
+                    
+                    <div class="room-candidate-item" style="border-left: 3px solid #b45309;">
+                        <div class="candidate-meta">
+                            <span style="font-weight: 700; color: #1e293b;">BÀN SỐ 03</span>
+                            <span class="candidate-step candidate-step--payment">Bước 3: Lệ phí</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span class="candidate-name">Vũ Huy Hoàng</span>
+                            <span class="candidate-sbd">SBD: B2-0112</span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
+                            Học viên đang quét mã QR chuyển khoản lệ phí thi sát hạch.
+                        </div>
+                    </div>
                 </div>
                 
-                <a href="procedure" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
+                <a href="procedure.jsp" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
                     Vào quầy làm thủ tục &rarr;
                 </a>
             </div>
@@ -531,53 +479,58 @@
                 </div>
                 
                 <div class="room-candidate-list">
-                    <c:set var="fieldRenderCount" value="0" />
-                    <!-- Show candidates currently thi sa hình -->
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none' and fieldRenderCount lt 4}">
-                            <c:set var="fieldRenderCount" value="${fieldRenderCount + 1}" />
-                            <div class="room-candidate-item" style="border-left: 3px solid #10b981;">
-                                <div class="candidate-meta">
-                                    <span class="candidate-sbd" style="color: #10b981;">${not empty c.deviceCode ? c.deviceCode : 'Xe chíp'}</span>
-                                    <span class="candidate-step candidate-step--ready">Đang thi</span>
-                                </div>
-                                <div class="candidate-name">${c.name}</div>
-                                <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-                                    <span>SBD: ${c.sbd} (${c.clazz})</span>
-                                    <span style="font-weight: 800; color: #10b981;">Đang thực hiện...</span>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <!-- If room monitor is not full, show completed candidates -->
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${(c.practicalPassed eq 'passed' or c.practicalPassed eq 'failed') and fieldRenderCount lt 4}">
-                            <c:set var="fieldRenderCount" value="${fieldRenderCount + 1}" />
-                            <c:set var="isPass" value="${c.practicalPassed eq 'passed'}" />
-                            <div class="room-candidate-item" style="border-left: 3px solid ${isPass ? '#10b981' : '#ef4444'};">
-                                <div class="candidate-meta">
-                                    <span class="candidate-sbd" style="color: ${isPass ? '#10b981' : '#ef4444'};">${c.sbd} (${c.clazz})</span>
-                                    <span class="candidate-step ${isPass ? 'candidate-step--ready' : 'candidate-step--waiting'}" style="background-color: ${isPass ? '#ecfdf5' : '#fef2f2'}; color: ${isPass ? '#047857' : '#991b1b'};">${isPass ? 'Đạt' : 'Trượt'}</span>
-                                </div>
-                                <div class="candidate-name">${c.name}</div>
-                                <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-                                    <span>Thi sa hình: ${c.practicalScore}</span>
-                                    <span style="font-weight: 800; color: ${isPass ? '#10b981' : '#ef4444'};">${isPass ? 'HOÀN THÀNH' : 'HỎNG'}</span>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${fieldRenderCount eq 0}">
-                        <div class="empty-room-state">
-                            Chưa có thí sinh nào ra sân thi thực hành.
+                    <!-- Simulate Candidates on Field -->
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd" style="color: #10b981;">Xe số 05 (A1)</span>
+                            <span class="candidate-step candidate-step--ready">Đang thực hiện</span>
                         </div>
-                    </c:if>
+                        <div class="candidate-name">Phan Thanh Tùng</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Bài: Đường vòng số 8</span>
+                            <span style="font-weight: 800; color: #10b981;">95 điểm</span>
+                        </div>
+                    </div>
+                    
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd" style="color: #10b981;">Xe số 08 (B2)</span>
+                            <span class="candidate-step candidate-step--ready">Đang thực hiện</span>
+                        </div>
+                        <div class="candidate-name">Nguyễn Thị Thu Hà</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Bài: Dừng & khởi hành ngang dốc</span>
+                            <span style="font-weight: 800; color: #10b981;">100 điểm</span>
+                        </div>
+                    </div>
+                    
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd" style="color: #10b981;">Xe số 12 (B2)</span>
+                            <span class="candidate-step candidate-step--ready">Đang thực hiện</span>
+                        </div>
+                        <div class="candidate-name">Trần Đình Trọng</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Bài: Ghép xe dọc vào nơi đỗ</span>
+                            <span style="font-weight: 800; color: #b45309;">90 điểm</span>
+                        </div>
+                    </div>
+
+                    <div class="room-candidate-item">
+                        <div class="candidate-meta">
+                            <span class="candidate-sbd" style="color: #10b981;">Xe số 02 (A1)</span>
+                            <span class="candidate-step candidate-step--ready">Đang thực hiện</span>
+                        </div>
+                        <div class="candidate-name">Bùi Tiến Dũng</div>
+                        <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                            <span>Bài: Đường gồ ghề</span>
+                            <span style="font-weight: 800; color: #10b981;">100 điểm</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <a href="report.jsp" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
-                    Xem báo cáo kết quả thi sát hạch &rarr;
+                    Xem thống kê kết quả thi sát hạch &rarr;
                 </a>
             </div>
             
