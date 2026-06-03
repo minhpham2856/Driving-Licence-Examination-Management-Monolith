@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -8,12 +8,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tải danh sách thí sinh từ Excel - Lái Vui</title>
+    <title>Tải Danh Sách Thí Sinh - Ban Sát Hạch</title>
+    
+    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    
+    <style>
+        .upload-dropzone-container {
+            border: 2px dashed rgba(0, 82, 204, 0.3);
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .upload-dropzone-container:hover {
+            border-color: #0052cc;
+            background-color: rgba(0, 82, 204, 0.02);
+            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.04);
+        }
+        
+        .custom-file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-btn-group {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .rule-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        
+        .rule-item {
+            display: flex;
+            gap: 12px;
+            align-items: start;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .rule-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rule-column-tag {
+            font-size: 0.72rem;
+            font-weight: 800;
+            background-color: #e2e8f0;
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 6px;
+            width: 70px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .preview-table-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            margin-top: 2rem;
+            margin-bottom: 2.5rem;
+        }
+    </style>
 </head>
 <body class="has-side-nav-bar">
 
@@ -24,135 +104,310 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
+        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Quản lý thi</span>
+            <span class="breadcrumbs__current">Ban Sát Hạch</span>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Tải DS Thí sinh</span>
+            <span class="breadcrumbs__current" aria-current="page">Tải danh sách thi</span>
         </nav>
         
+        <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Tải danh sách thí sinh</h1>
-                <p class="page-subtitle">Nhập danh sách hồ sơ thí sinh từ tệp Excel để tổ chức ca thi sát hạch lái xe.</p>
+                <h1 class="page-title">Nhập danh sách & Sinh số báo danh</h1>
+                <p class="page-subtitle">Tải lên danh sách học viên từ file Excel/CSV được trích xuất từ hệ thống ngoài PC08 và tự động cấp Số Báo Danh (SBD).</p>
             </div>
             
-            <div class="page-actions">
-                <a href="${pageContext.request.contextPath}/assets/templates/danh_sach_mau.xlsx" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #0052cc; border-color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <div class="page-actions" style="display: flex; gap: 10px;">
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadTemplate" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #0052cc; border-color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Tải file mẫu Excel
+                    Tải CSV Mẫu (.csv)
+                </a>
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadTestFile" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #10b981; border-color: #10b981; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Tải File Test Mẫu (.csv)
                 </a>
             </div>
         </header>
 
-        <div class="report-grid" id="uploadWorkspaceZone" style="grid-template-columns: 1.2fr 1fr;">
-            <div class="report-pane" style="display: flex; flex-direction: column; justify-content: center;">
+        <!-- Exception 1.0.E1 Alert: Invalid file or corrupted structure -->
+        <c:if test="${not empty sessionScope.uploadError}">
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 0.88rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;" class="animated shake">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444; flex-shrink: 0;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span style="font-size: 0.85rem; font-weight: 600; color: #b91c1c;">
+                    Invalid file format or structure does not match PC08 standards. Chi tiết: ${sessionScope.uploadError}
+                </span>
+            </div>
+            <% session.removeAttribute("uploadError"); %>
+        </c:if>
+
+        <!-- Layout for Dropzone and Guidelines -->
+        <div class="report-grid" style="grid-template-columns: 1.2fr 1fr; gap: 1.5rem;">
+            
+            <!-- Left Pane: File Upload Form -->
+            <div class="report-pane" style="display: flex; flex-direction: column; justify-content: center; gap: 1rem;">
                 <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 0;">
                     <h2 class="grading-pane__title" style="font-size: 1.05rem;">Tải tệp dữ liệu lên</h2>
                 </div>
                 
-                <form action="${pageContext.request.contextPath}/examiner/upload" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%;">
-                    <div class="upload-dropzone" style="cursor: pointer; width: 100%; box-sizing: border-box;">
-                        <div class="dropzone-icon">
-                            <img src="${pageContext.request.contextPath}/assets/imgs/cloud-upload.svg" alt="Tải lên đám mây" style="width: 48px; height: 48px;">
-                        </div>
-                        <span style="font-size: 1rem; font-weight: 700; color: #0f172a; display: block; margin-bottom: 0.5rem;">Chọn tệp danh sách thí sinh</span>
-                        <span style="font-size: 0.82rem; color: #64748b; display: block; margin-bottom: 1rem;">Hỗ trợ định dạng: .xlsx, .xls, .csv (Tối đa 15MB)</span>
-                        <input type="file" name="file" accept=".xlsx, .xls, .csv" required style="font-size: 0.85rem; color: #475569;">
+                <!-- Normal Flow: upload file → parse → preview -->
+                <form id="uploadForm" action="upload" method="POST" enctype="multipart/form-data"
+                      style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
+                    
+                    <!-- Target session selector -->
+                    <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <label for="examSessionId" style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
+                        <select id="examSessionId" name="examSessionId" style="height: 42px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #1e293b; outline: none; width: 100%; background: #ffffff; cursor: pointer;">
+                            <c:forEach var="sess" items="${requestScope.activeSessions}">
+                                <option value="${sess.id}" ${sessionScope.selectedImportSessionId eq sess.id ? 'selected' : ''}>
+                                    Ca #${sess.id} - ${sess.sessionName} (${sess.examDate} | Hạng ${sess.licenseCode})
+                                </option>
+                            </c:forEach>
+                        </select>
                     </div>
-                    <button type="submit" class="btn-filter" style="height: 42px; padding: 0 2rem; font-size: 0.9rem; border-radius: 8px; width: 100%; justify-content: center;">Tải lên và phân tích</button>
+
+                    <div class="upload-dropzone-container" onclick="document.getElementById('fileInput').click()">
+                        <div class="dropzone-icon" style="margin-bottom: 1rem;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span id="dropzoneLabel" style="font-size: 0.95rem; font-weight: 700; color: #0f172a; display: block; margin-bottom: 0.25rem;">
+                            Kéo thả tệp CSV danh sách PC08 vào đây hoặc click để chọn tệp...
+                        </span>
+                        <span style="font-size: 0.78rem; color: #64748b; display: block; margin-bottom: 1rem;">Chấp nhận file định dạng .csv hoặc .txt (Tối đa 15MB)</span>
+                        
+                        <!-- Chọn file → tự động submit POST để parse và hiện preview -->
+                        <input type="file" id="fileInput" name="fileInput" style="display: none;" accept=".csv,.txt"
+                               onchange="document.getElementById('dropzoneLabel').textContent = 'Đầu phân tích: ' + this.files[0].name; document.getElementById('uploadForm').submit();">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #3b82f6; flex-shrink: 0;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span style="font-size: 0.78rem; font-weight: 600; color: #1d4ed8;">
+                            Chọn file → Hệ thống phân tích và hiện bảng xem trước → Xác nhận mới lưu vào CSDL.
+                        </span>
+                    </div>
                 </form>
             </div>
             
-            <div class="report-pane">
+            <!-- Right Pane: Formatting rules & guide -->
+            <div class="report-pane rule-card">
                 <div class="grading-pane__header" style="border-bottom: none; margin-bottom: 0.75rem;">
-                    <h2 class="grading-pane__title" style="font-size: 1.05rem; color: #003d9b; display: inline-flex; align-items: center; gap: 6px;">
+                    <h2 class="grading-pane__title" style="font-size: 1.05rem; display: inline-flex; align-items: center; gap: 6px; color: #0f172a;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                             <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Quy tắc chuẩn hóa tệp Excel
+                        Quy cách dữ liệu danh sách thi (PC08)
                     </h2>
                 </div>
                 
-                <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem; line-height: 1.5;">Vui lòng điều chỉnh các cột dữ liệu trong tệp Excel của bạn khớp chính xác với cấu trúc cột mẫu:</p>
+                <p style="font-size: 0.82rem; color: #475569; margin-bottom: 1rem; line-height: 1.5;">Hệ thống hỗ trợ tệp tin CSV mã hóa UTF-8 phân tách bằng dấu phẩy, có tối thiểu 5 cột thông tin bắt buộc:</p>
                 
-                <div style="display: flex; flex-direction: column; gap: 0.65rem;">
-                    <div style="display: flex; gap: 8px; align-items: start;">
-                        <span style="font-size: 0.75rem; font-weight: 800; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; width: 62px; text-align: center; flex-shrink: 0;">CỘT A</span>
-                        <span style="font-size: 0.82rem; color: #334155; font-weight: 500;"><strong style="color: #0f172a;">Số báo danh:</strong> Định dạng chữ và số viết liền.</span>
+                <div style="display: flex; flex-direction: column;">
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 1</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">SBD cũ / ID đăng ký:</strong> Mã số ban đầu của thí sinh (được phép trống để tự tạo mới).
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: start;">
-                        <span style="font-size: 0.75rem; font-weight: 800; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; width: 62px; text-align: center; flex-shrink: 0;">CỘT B</span>
-                        <span style="font-size: 0.82rem; color: #334155; font-weight: 500;"><strong style="color: #0f172a;">Họ và tên:</strong> Chữ viết hoa có dấu tiếng Việt.</span>
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 2</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">Họ và tên:</strong> Họ tên đầy đủ (Bắt buộc).
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: start;">
-                        <span style="font-size: 0.75rem; font-weight: 800; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; width: 62px; text-align: center; flex-shrink: 0;">CỘT C</span>
-                        <span style="font-size: 0.82rem; color: #334155; font-weight: 500;"><strong style="color: #0f172a;">Ngày sinh:</strong> Định dạng DD/MM/YYYY.</span>
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 3</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">Ngày sinh:</strong> Định dạng ngày sinh của học viên (DD/MM/YYYY).
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: start;">
-                        <span style="font-size: 0.75rem; font-weight: 800; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; width: 62px; text-align: center; flex-shrink: 0;">CỘT D</span>
-                        <span style="font-size: 0.82rem; color: #334155; font-weight: 500;"><strong style="color: #0f172a;">Số CCCD/CMND:</strong> Chuỗi 12 chữ số hợp lệ.</span>
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 4</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">Số định danh / CCCD:</strong> Mã 12 chữ số định danh duy nhất (Bắt buộc).
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: start;">
-                        <span style="font-size: 0.75rem; font-weight: 800; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569; width: 62px; text-align: center; flex-shrink: 0;">CỘT E</span>
-                        <span style="font-size: 0.82rem; color: #334155; font-weight: 500;"><strong style="color: #0f172a;">Hạng GPLX:</strong> Chỉ nhận giá trị: A1, A2, B1, B2, C.</span>
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 5</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Hạng thi đăng ký sát hạch (A1, A2, B2, C,...).
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 6</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">Số điện thoại:</strong> Số điện thoại thí sinh (Tùy chọn).
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-column-tag">CỘT 7</span>
+                        <div style="font-size: 0.8rem; color: #334155;">
+                            <strong style="color: #0f172a;">Email:</strong> Hòm thư điện tử / Gmail thí sinh (Tùy chọn).
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <c:if test="${not empty importedCandidates}">
-            <div class="log-card" style="margin-top: 2rem; margin-bottom: 2.5rem;">
-                <div class="log-card-header" style="justify-content: space-between;">
-                    <h2 class="log-card-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981;">
-                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
-                            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Xem trước dữ liệu thí sinh nhập khẩu (Phân tích từ Excel)
-                    </h2>
-                    
-                    <form action="${pageContext.request.contextPath}/examiner/confirm-import" method="POST" style="margin: 0;">
-                        <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
-                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload.jsp" class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
-                            <button type="submit" class="btn-filter" style="height: 36px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; white-space: nowrap;">Xác nhận</button>
+        <!-- Preview table ( Normal Flow 5) -->
+        <c:if test="${param.preview eq 'true' and not empty sessionScope.previewCandidates}">
+            <div class="preview-table-card animated fadeIn" style="margin-top: 1.5rem;">
+                <form action="upload" method="GET" style="margin: 0;">
+                    <input type="hidden" name="action" value="save">
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <h2 style="font-size: 1.05rem; font-weight: 700; color: #10b981; display: inline-flex; align-items: center; gap: 8px; margin: 0;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Bảng xem trước (${fn:length(sessionScope.previewCandidates)} thí sinh)
+                            </h2>
+                            <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">Kiểm tra lại thông tin trước khi xác nhận lưu vào CSDL.</p>
                         </div>
-                    </form>
-                </div>
-                
-                <div class="table-responsive">
-                    <table class="audit-table" style="font-size: 0.88rem;">
-                        <thead>
-                            <tr>
-                                <th scope="col" style="width: 120px;">SBD</th>
-                                <th scope="col" style="width: 200px;">Họ và tên</th>
-                                <th scope="col" style="width: 120px; text-align: center;">Ngày sinh</th>
-                                <th scope="col" style="width: 160px; text-align: center;">Số CCCD</th>
-                                <th scope="col" style="width: 110px;">Hạng GPLX</th>
-                                <th scope="col" style="text-align: center; width: 120px;">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach var="candidate" items="${importedCandidates}">
+                        <div style="display: flex; gap: 10px;">
+                            <a href="upload" class="btn-reset" style="height: 38px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569;">Hủy bỏ</a>
+                            <c:choose>
+                                <c:when test="${sessionScope.hasInvalidRows eq true}">
+                                    <button type="button" class="btn-filter" style="height: 38px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #cbd5e1; border-color: #cbd5e1; color: #64748b; cursor: not-allowed; display: inline-flex; align-items: center; justify-content: center;" disabled>
+                                        ⚠️ Khóa (File có lỗi dữ liệu)
+                                    </button>
+                                </c:when>
+                                <c:otherwise>
+                                    <button type="submit" class="btn-filter" style="height: 38px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                                        Xác nhận &amp; Lưu danh sách
+                                    </button>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </div>
+
+                    <c:if test="${sessionScope.hasInvalidRows eq true}">
+                        <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 12px; margin-bottom: 1.25rem; font-size: 0.82rem; font-weight: 600; color: #dc2626; display: flex; gap: 8px; align-items: center;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444;">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>⚠️ Phát hiện một số dòng bị thiếu dữ liệu bắt buộc (Họ tên hoặc CCCD). Hệ thống khóa nút lưu cho tới khi sửa file nguồn.</span>
+                        </div>
+                    </c:if>
+
+                    <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                        <table class="audit-table" style="font-size: 0.88rem; width: 100%;">
+                            <thead>
                                 <tr>
-                                    <td style="font-weight: 700; color: #0052cc;">${candidate.sbd}</td>
-                                    <td style="font-weight: 600; color: #0f172a;">${candidate.name}</td>
-                                    <td style="text-align: center; font-weight: 500;">${candidate.dob}</td>
-                                    <td style="text-align: center; font-family: monospace;">${candidate.cccd}</td>
-                                    <td><span class="role-badge role-badge--admin">${candidate.licenseClass}</span></td>
-                                    <td style="text-align: center;">
-                                        <span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>
-                                    </td>
+                                    <th scope="col" style="width: 130px; text-align: left;">SBD (Tự sinh)</th>
+                                    <th scope="col" style="text-align: left;">Họ và tên</th>
+                                    <th scope="col" style="width: 100px; text-align: center;">Ngày sinh</th>
+                                    <th scope="col" style="width: 135px; text-align: center;">Số CCCD</th>
+                                    <th scope="col" style="width: 80px; text-align: center;">Hạng</th>
+                                    <th scope="col" style="width: 110px; text-align: center;">Số điện thoại</th>
+                                    <th scope="col" style="width: 140px; text-align: left;">Email</th>
+                                    <th scope="col" style="text-align: center; width: 160px;">Trạng thái</th>
                                 </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="c" items="${sessionScope.previewCandidates}">
+                                    <c:set var="rowStyle" value="" />
+                                    <c:choose>
+                                        <c:when test="${c.invalid}">
+                                            <c:set var="rowStyle" value="background-color: #fef2f2; border-left: 3px solid #ef4444;" />
+                                        </c:when>
+                                        <c:when test="${c.duplicate}">
+                                            <c:set var="rowStyle" value="background-color: #fffbeb; border-left: 3px solid #f59e0b;" />
+                                        </c:when>
+                                    </c:choose>
+                                    <tr style="${rowStyle}">
+                                        <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
+                                        <td style="font-weight: 700; color: #0f172a;">
+                                            <c:choose>
+                                                <c:when test="${empty c.fullName}"><span style="color: #ef4444; font-style: italic;">[Thiếu]</span></c:when>
+                                                <c:otherwise>${c.fullName}</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td style="text-align: center; color: #475569;">
+                                            <fmt:formatDate value="${c.dateOfBirth}" pattern="dd/MM/yyyy" />
+                                        </td>
+                                        <td style="text-align: center; font-family: monospace; color: #475569;">
+                                            <c:choose>
+                                                <c:when test="${empty c.govIdNo}"><span style="color: #ef4444; font-style: italic;">[Thiếu]</span></c:when>
+                                                <c:otherwise>${c.govIdNo}</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="role-badge ${c.licenseCode eq 'A1' ? 'role-badge--coi' : 'role-badge--admin'}" style="font-size: 0.72rem; padding: 2px 6px;">Hạng ${c.licenseCode}</span>
+                                        </td>
+                                        <td style="text-align: center; color: #475569; font-family: monospace;">
+                                            <c:choose>
+                                                <c:when test="${empty c.phoneNo}"><span style="color: #94a3b8; font-style: italic;">[Trống]</span></c:when>
+                                                <c:otherwise>${c.phoneNo}</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td style="text-align: left; color: #475569; font-family: monospace;">
+                                            <c:choose>
+                                                <c:when test="${empty c.email}"><span style="color: #94a3b8; font-style: italic;">[Trống]</span></c:when>
+                                                <c:otherwise>${c.email}</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <c:choose>
+                                                <c:when test="${c.invalid}">
+                                                    <span class="action-badge action-badge--danger" style="font-weight: 700;">THIẾU: ${c.validationMessage}</span>
+                                                </c:when>
+                                                <c:when test="${c.duplicate}">
+                                                    <span class="action-badge action-badge--warning" style="font-weight: 700; margin-right: 4px;">TRÙNG</span>
+                                                    <select name="dupAction_${c.govIdNo}" style="font-size: 0.72rem; border-radius: 6px; padding: 2px 6px; height: 26px; border: 1.5px solid #f59e0b; background: #fff; font-weight: 700; color: #b45309; outline: none; cursor: pointer;">
+                                                        <option value="overwrite">Ghi đè</option>
+                                                        <option value="skip">Bỏ qua</option>
+                                                    </select>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+        </c:if>
+
+        <!-- Success notification -->
+        <c:if test="${param.importSuccess eq 'true'}">
+            <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 12px; padding: 1.25rem; display: flex; gap: 12px; align-items: center; margin-top: 2rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);" class="animated slideInUp">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981; flex-shrink: 0;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #065f46;">Lưu danh sách chính thức thành công!</h4>
+                    <p style="margin: 4px 0 0; font-size: 0.82rem; color: #047857;">Hệ thống đã lưu thành công **${sessionScope.importedCount}** học viên từ tệp CSV trích xuất PC08, kích hoạt trạng thái có mặt ở phòng chờ và tự động ghi nhật ký Audit Log kiểm toán.</p>
                 </div>
             </div>
+            <% 
+                session.removeAttribute("importedCount");
+                session.removeAttribute("uploadedFileName");
+                session.removeAttribute("selectedImportSessionId");
+            %>
         </c:if>
 
     </main>
