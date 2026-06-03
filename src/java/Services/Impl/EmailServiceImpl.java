@@ -1,11 +1,10 @@
 package Services.Impl;
 
 import Services.EmailService;
+import Utils.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 public class EmailServiceImpl implements EmailService {
@@ -20,27 +19,15 @@ public class EmailServiceImpl implements EmailService {
 
     private void loadConfiguration() {
         props = new Properties();
+        props.put("mail.smtp.host", ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com"));
+        props.put("mail.smtp.port", ConfigManager.get("MAIL_SMTP_PORT", "587"));
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.ssl.trust", ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com"));
 
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("email.properties")) {
-            if (input == null) {
-                return;
-            }
-
-            // set properties
-            props.load(input);
-            props.put("mail.smtp.host", props.getProperty("mail.smtp.host", "smtp.gmail.com"));
-            props.put("mail.smtp.port", props.getProperty("mail.smtp.port", "587"));
-            props.put("mail.smtp.auth", props.getProperty("mail.smtp.auth", "true"));
-            props.put("mail.smtp.starttls.enable", props.getProperty("mail.smtp.starttls.enable", "true"));
-            props.put("mail.smtp.starttls.required", props.getProperty("mail.smtp.starttls.required", "true"));
-            props.put("mail.smtp.ssl.trust", props.getProperty("mail.smtp.ssl.trust", "smtp.gmail.com"));
-
-            senderUsername = props.getProperty("mail.sender.username");
-            senderPassword = props.getProperty("mail.sender.password");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        senderUsername = ConfigManager.get("MAIL_SENDER_USERNAME");
+        senderPassword = ConfigManager.get("MAIL_SENDER_PASSWORD");
     }
 
     @Override
@@ -58,7 +45,6 @@ public class EmailServiceImpl implements EmailService {
             return false;
         }
 
-        // create authenticator
         Authenticator auth = new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -66,11 +52,10 @@ public class EmailServiceImpl implements EmailService {
             }
         };
 
-        // create sesion
         Session session = Session.getInstance(props, auth);
         try {
             MimeMessage msg = new MimeMessage(session);
-            
+
             msg.setFrom(new InternetAddress(senderUsername));
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
             msg.setSubject(subject, "UTF-8");

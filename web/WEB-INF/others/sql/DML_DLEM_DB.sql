@@ -1,11 +1,28 @@
 -- ============================================
 -- DML SAMPLE DATA – DLEM_DB
 -- Driving License Examination Management System
+-- Run DDL_DLEM_DB.sql first (creates a fresh database).
 -- ============================================
 
 USE DLEM_DB;
 GO
 
+-- Clear existing data when re-seeding (optional — comment out on first run after DDL)
+DELETE FROM AuditLog;
+DELETE FROM CandidateCall;
+DELETE FROM Payment;
+DELETE FROM ExamRegistration;
+DELETE FROM ExamSession;
+DELETE FROM ExamComputer;
+DELETE FROM ExamArea;
+DELETE FROM ExamSection;
+DELETE FROM ExamType;
+DELETE FROM LicenseType;
+DELETE FROM CandidateDocument;
+DELETE FROM [User];
+DELETE FROM Person;
+DELETE FROM Role;
+GO
 -- ============================================
 -- 1. ROLES
 -- ============================================
@@ -35,16 +52,16 @@ INSERT INTO Person (govIdNo, fullName, dateOfBirth, gender, phoneNo, email, addr
 -- 3. USERS (System Accounts)
 -- (Default password for all seeded accounts: admin123 — stored as plain text for development)
 -- ============================================
-INSERT INTO [User] (personId, username, passwordHash, roleId) VALUES
-(1, 'admin123',       'admin123', 1),
-(2, 'shv_abc',   'admin123', 2),
-(3, 'shv_123',   'admin123', 2),
-(4, 'cbql_123','admin123', 3),
-(5, 'cbkt_111',  'admin123', 4),
-(6, 'cbkt_222',  'admin123', 4),
-(7,  'user123', 'admin123', 6),
-(8,  'nguyenVan_An12', 'admin123', 6),
-(9,  'us_hello', 'admin123', 6);
+INSERT INTO [User] (personId, username, email, passwordHash, roleId) VALUES
+(1, 'admin123',       'an.nguyen@email.com',   'admin123', 1),
+(2, 'shv_abc',        'binh.tran@email.com',   'admin123', 2),
+(3, 'shv_123',        'chinh.le@email.com',    'admin123', 2),
+(4, 'cbql_123',       'dung.pham@email.com',   'admin123', 3),
+(5, 'cbkt_111',       'em.hoang@email.com',    'admin123', 4),
+(6, 'cbkt_222',       'phuong.vu@email.com',   'admin123', 4),
+(7,  'user123',       'hai.do@email.com',      'admin123', 6),
+(8,  'nguyenVan_An12','kim.ngo@email.com',     'admin123', 6),
+(9,  'us_hello',      'long.bui@email.com',    'admin123', 6);
 
 -- ============================================
 -- 5. Candidate DOCUMENTS

@@ -69,7 +69,7 @@
 
                     <!-- Email / Username Field -->
                     <div class="form-group">
-                        <label class="form-label" for="identifier">Email hoặc SĐT</label>
+                        <label class="form-label" for="identifier">Tên đăng nhập, Email hoặc SĐT</label>
                         <div class="input-icon-wrapper">
                             <span class="input-icon">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

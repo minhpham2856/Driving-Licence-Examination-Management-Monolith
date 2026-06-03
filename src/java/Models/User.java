@@ -3,6 +3,7 @@ package Models;
 import java.sql.Timestamp;
 
 public class User {
+
     private int id;
     private Integer personId;
     private String username;
@@ -12,8 +13,6 @@ public class User {
     private boolean isActive;
     private Timestamp lastLoginAt;
     private Timestamp createdAt;
-
-    // Optional reference objects for details
     private Person person;
     private Role role;
 
