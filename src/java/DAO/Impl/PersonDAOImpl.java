@@ -50,13 +50,55 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
     }
 
     @Override
+    public Person getByGovIdNo(String govIdNo) {
+        String sql = """
+                     select * from Person where govIdNo = ?
+                     """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, govIdNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToPerson(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public Person getByPhoneNo(String phoneNo) {
+        String sql = """
+                     select * from Person where phoneNo = ?
+                     """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, phoneNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToPerson(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
     public boolean insert(Person person) {
         String sql = """
                      insert into Person (govIdNo, fullName, dateOfBirth, gender, phoneNo, email, address, photoUrl, isWalkIn, approvalStatus, rejectionReason) 
                      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                      """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"})) {
             if (person.getGovIdNo() == null) {
                 ps.setNull(1, Types.NVARCHAR);
             } else {
@@ -96,14 +138,17 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
             }
 
             int affectedRows = ps.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        person.setId(generatedKeys.getInt(1));
-                        return true;
-                    }
+            if (affectedRows == 0) {
+                return false;
+            }
+
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    person.setId(generatedKeys.getInt(1));
                 }
             }
+
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
         }

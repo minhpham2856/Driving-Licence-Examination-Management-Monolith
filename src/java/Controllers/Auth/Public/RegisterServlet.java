@@ -24,41 +24,61 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String username = request.getParameter("username");
+        // get attributes
+        String govIdNo = request.getParameter("govIdNo");
+        String fullName = request.getParameter("fullName");
+        String phoneNo = request.getParameter("phoneNo");
+        String dateOfBirth = request.getParameter("dateOfBirth");
+        String address = request.getParameter("address");
         String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
+        String genderParam = request.getParameter("gender");
         String terms = request.getParameter("terms");
 
-        if (username == null || username.trim().isEmpty()
-                || email == null || email.trim().isEmpty()
-                || password == null || password.trim().isEmpty()
-                || confirmPassword == null || confirmPassword.trim().isEmpty()) {
+        // blank inputs
+        if (isBlank(govIdNo) || isBlank(fullName) || isBlank(phoneNo)
+                || isBlank(dateOfBirth) || isBlank(address) || isBlank(email)) {
             request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin.");
-            request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
+            forwardRegister(request, response);
             return;
         }
 
+        // terms and condition validation
         if (terms == null) {
             request.setAttribute("error", "Bạn phải đồng ý với Điều khoản và Chính sách bảo mật.");
-            request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
+            forwardRegister(request, response);
             return;
         }
 
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu nhập lại không khớp.");
-            request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
-            return;
-        }
+        boolean gender = "1".equals(genderParam);
+     
+        // attempt to register
+        String registerError = authService.register(
+                govIdNo.trim(),
+                fullName.trim(),
+                phoneNo.trim(),
+                dateOfBirth.trim(),
+                address.trim(),
+                email.trim(),
+                gender
+        );
 
-        String registerError = authService.register(username.trim(), email.trim(), password);
         if (registerError != null) {
             request.setAttribute("error", registerError);
-            request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
+            forwardRegister(request, response);
         } else {
             HttpSession session = request.getSession();
-            session.setAttribute("successMessage", "Đăng ký tài khoản thành công!");
+            session.setAttribute("successMessage",
+                    "Đăng ký thành công! Truy cập email của bạn để xác minh đăng ký.");
             response.sendRedirect(request.getContextPath() + "/login");
         }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private void forwardRegister(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
     }
 }

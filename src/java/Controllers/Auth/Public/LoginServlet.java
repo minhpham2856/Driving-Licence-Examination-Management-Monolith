@@ -42,8 +42,7 @@ public class LoginServlet extends HttpServlet {
         String identifier = request.getParameter("identifier");
         String password = request.getParameter("password");
 
-        if (identifier == null || identifier.trim().isEmpty()
-                || password == null || password.trim().isEmpty()) {
+        if (identifier == null || identifier.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập tên đăng nhập/email/SĐT và mật khẩu.");
             request.getRequestDispatcher("/views/public/login.jsp").forward(request, response);
             return;
