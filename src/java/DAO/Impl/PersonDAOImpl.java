@@ -50,6 +50,27 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
     }
 
     @Override
+    public Person getByGovIdNo(String govIdNo) {
+        String sql = """
+                     select * from Person where govIdNo = ?
+                     """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, govIdNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToPerson(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
     public boolean insert(Person person) {
         String sql = """
                      insert into Person (govIdNo, fullName, dateOfBirth, gender, phoneNo, email, address, photoUrl, isWalkIn, approvalStatus, rejectionReason) 

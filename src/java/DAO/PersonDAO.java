@@ -8,6 +8,8 @@ public interface PersonDAO {
 
     Person getByEmail(String email);
 
+    Person getByGovIdNo(String govIdNo);
+
     boolean insert(Person person);
 
     boolean update(Person person);
