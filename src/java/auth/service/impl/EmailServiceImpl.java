@@ -13,10 +13,6 @@ import java.util.logging.Logger;
 public class EmailServiceImpl implements EmailService {
 
     private static final Logger LOG = Logger.getLogger(EmailServiceImpl.class.getName());
-    private static final String MAIL_HOST = ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com");
-    private static final String MAIL_PORT = ConfigManager.get("MAIL_SMTP_PORT", "587");
-    private static final String MAIL_USERNAME = ConfigManager.get("MAIL_SENDER_USERNAME");
-    private static final String MAIL_PASSWORD = ConfigManager.get("MAIL_SENDER_PASSWORD");
     private Properties props;
     private String senderUsername;
     private String senderPassword;
@@ -26,23 +22,35 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private void loadConfiguration() {
+        String mailHost = ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com");
+        String mailPort = ConfigManager.get("MAIL_SMTP_PORT", "587");
         props = new Properties();
-        props.put("mail.smtp.host", MAIL_HOST);
-        props.put("mail.smtp.port", MAIL_PORT);
+        props.put("mail.smtp.host", mailHost);
+        props.put("mail.smtp.port", mailPort);
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.ssl.trust", MAIL_HOST);
+        props.put("mail.smtp.ssl.trust", mailHost);
         props.put("mail.smtp.connectiontimeout", "10000");
         props.put("mail.smtp.timeout", "10000");
         props.put("mail.smtp.writetimeout", "10000");
-        senderUsername = normalize(MAIL_USERNAME);
-        senderPassword = normalizeAppPassword(MAIL_PASSWORD);
+        senderUsername = normalize(ConfigManager.get("MAIL_SENDER_USERNAME"));
+        senderPassword = normalizeAppPassword(ConfigManager.get("MAIL_SENDER_PASSWORD"));
     }
 
     public boolean isConfigured() {
-        return senderUsername != null && !senderUsername.isEmpty()
-                && senderPassword != null && !senderPassword.isEmpty();
+        return isRealCredential(senderUsername) && isRealCredential(senderPassword);
+    }
+
+    private static boolean isRealCredential(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String lower = value.trim().toLowerCase();
+        return !lower.contains("your@gmail.com")
+                && !lower.contains("your_gmail_app_password")
+                && !lower.startsWith("your_")
+                && !lower.equals("changeme");
     }
 
     @Override
