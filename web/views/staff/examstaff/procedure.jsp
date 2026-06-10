@@ -2,381 +2,14 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<%!
-    // Helper to find a free computer code (PC-01 to PC-30)
-    public String getFreeComputer(java.util.List<Models.ExamRegistration> queue) {
-        java.util.Set<String> occupied = new java.util.HashSet<>();
-        if (queue != null) {
-            for (Models.ExamRegistration c : queue) {
-                String pc = c.getComputerCode();
-                if (pc != null && !pc.isEmpty() && "none".equals(c.getTheoryPassed())) {
-                    occupied.add(pc);
-                }
-            }
-        }
-        for (int i = 1; i <= 30; i++) {
-            String pcCode = "PC-" + (i < 10 ? "0" : "") + i;
-            if (!occupied.contains(pcCode)) {
-                return pcCode;
-            }
-        }
-        return "PC-01";
-    }
-%>
-<%
-    // Retrieve the candidate queue from the session
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
-    
-    // If not exists (e.g. they visited procedure.jsp directly), initialize it
-    if (qList == null) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        try {
-            qList = regDAO.getCandidatesBySession(2); // Load default session ca thi B2 sáng (ID = 2)
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new java.util.ArrayList<>();
-        }
-        session.setAttribute("candidateQueue", qList);
-    }
-    
-    // Find active candidate
-    String sbdParam = request.getParameter("sbd");
-    if (sbdParam == null || sbdParam.trim().isEmpty()) {
-        sbdParam = (String) session.getAttribute("callingSbd");
-    }
-    Models.ExamRegistration profile = null;
-    if (sbdParam != null && !sbdParam.trim().isEmpty() && qList != null) {
-        for (Models.ExamRegistration c : qList) {
-            if (sbdParam.equals(c.getSbd())) {
-                profile = c;
-                break;
-            }
-        }
-    }
-    
-    // Process actions
-    String pAction = request.getParameter("action");
-    if ("saveProfile".equals(pAction) && profile != null) {
-        String fullName = request.getParameter("fullName");
-        String dobStr = request.getParameter("dateOfBirth");
-        String govIdNo = request.getParameter("govIdNo");
-        String email = request.getParameter("email");
-        String phoneNo = request.getParameter("phoneNo");
-        
-        try {
-            java.sql.Date sqlDob = null;
-            if (dobStr.contains("/")) {
-                String[] parts = dobStr.split("/");
-                sqlDob = java.sql.Date.valueOf(parts[2] + "-" + parts[1] + "-" + parts[0]);
-            } else {
-                sqlDob = java.sql.Date.valueOf(dobStr);
-            }
-            
-            DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-            boolean updated = regDAO.updateProfile(profile.getId(), fullName, sqlDob, govIdNo, email, phoneNo);
-            if (updated) {
-                profile.setFullName(fullName);
-                profile.setDateOfBirth(sqlDob);
-                profile.setGovIdNo(govIdNo);
-                profile.setEmail(email);
-                profile.setPhoneNo(phoneNo);
-                request.setAttribute("profileUpdatedAlert", "true");
-                
-                // Save audit log to session audit list
-                java.util.List<java.util.Map<String, String>> sessionAuditLogs = (java.util.List<java.util.Map<String, String>>) session.getAttribute("sessionAuditLogs");
-                if (sessionAuditLogs == null) {
-                    sessionAuditLogs = new java.util.ArrayList<>();
-                    session.setAttribute("sessionAuditLogs", sessionAuditLogs);
-                }
-                java.util.Map<String, String> audit = new java.util.HashMap<>();
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-                audit.put("time", sdf.format(new java.util.Date()));
-                audit.put("action", "UPDATE on Person");
-                audit.put("details", "Sửa đổi lý lịch SBD " + sbdParam);
-                sessionAuditLogs.add(0, audit);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    // Process recapture photo
-    if ("recapture".equals(pAction) && profile != null) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        boolean updated = regDAO.updatePhoto(profile.getId(), null);
-        if (updated) {
-            profile.setPhotoUrl("");
-        }
-    }
-    
-    // Process photo captured
-    String photoCapturedParam = request.getParameter("photoCaptured");
-    if ("true".equals(photoCapturedParam) && profile != null) {
-        String photoUrl = "assets/imgs/candidates/" + sbdParam + "_captured.png";
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        boolean updated = regDAO.updatePhoto(profile.getId(), photoUrl);
-        if (updated) {
-            profile.setPhotoUrl(photoUrl);
-            
-            java.util.List<java.util.Map<String, String>> sessionAuditLogs = (java.util.List<java.util.Map<String, String>>) session.getAttribute("sessionAuditLogs");
-            if (sessionAuditLogs == null) {
-                sessionAuditLogs = new java.util.ArrayList<>();
-                session.setAttribute("sessionAuditLogs", sessionAuditLogs);
-            }
-            java.util.Map<String, String> audit = new java.util.HashMap<>();
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-            audit.put("time", sdf.format(new java.util.Date()));
-            audit.put("action", "UPDATE on Person");
-            audit.put("details", "Chụp ảnh FaceID thành công SBD " + sbdParam);
-            sessionAuditLogs.add(0, audit);
-        }
-    }
-    
-    // Process payment
-    String paymentSuccessParam = request.getParameter("paymentSuccess");
-    if ("true".equals(paymentSuccessParam) && profile != null) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        boolean updatedPay = regDAO.updatePayment(profile.getId(), true);
-        if (updatedPay) {
-            profile.setIsPaymentCompleted(true);
-            
-            // Auto-allocate computer
-            String autoPC = getFreeComputer(qList);
-            regDAO.updateComputer(profile.getId(), autoPC);
-            profile.setComputerCode(autoPC);
-            
-            // Insert billing log in DB
-            try {
-                DAO.PaymentDAO payDAO = new DAO.Impl.PaymentDAOImpl();
-                Models.Payment payment = new Models.Payment();
-                payment.setExamRegistrationId(profile.getId());
-                payment.setAmount(200000.00);
-                payment.setPaymentStatus("Completed");
-                payment.setPaymentMethod("Cash");
-                payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1000000);
-                payment.setNotes("Thu lệ phí tại bàn thủ tục");
-                payDAO.insert(payment);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            
-            java.util.List<java.util.Map<String, String>> sessionAuditLogs = (java.util.List<java.util.Map<String, String>>) session.getAttribute("sessionAuditLogs");
-            if (sessionAuditLogs == null) {
-                sessionAuditLogs = new java.util.ArrayList<>();
-                session.setAttribute("sessionAuditLogs", sessionAuditLogs);
-            }
-            java.util.Map<String, String> audit = new java.util.HashMap<>();
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-            audit.put("time", sdf.format(new java.util.Date()));
-            audit.put("action", "INSERT on Payment");
-            audit.put("details", "Thu lệ phí thi 200,000 đ và Tự động cấp máy " + autoPC + " cho SBD " + sbdParam);
-            sessionAuditLogs.add(0, audit);
-            
-            // Clear current calling SBD
-            session.setAttribute("callingSbd", null);
-            
-            // Auto-call the next candidate in the queue who checked in but hasn't completed procedures
-            String nextSbd = null;
-            if (qList != null) {
-                for (Models.ExamRegistration c : qList) {
-                    boolean isDone = c.getPhotoUrl() != null && !c.getPhotoUrl().isEmpty() && c.isPaymentCompleted();
-                    if (c.isPresent() && !isDone) {
-                        nextSbd = c.getSbd();
-                        break;
-                    }
-                }
-            }
-            session.setAttribute("callingSbd", nextSbd);
-            
-            // Auto-redirect back to candidatecall.jsp after successful payment
-            response.sendRedirect("candidatecall");
-            return;
-        }
-    }
-    
-    if (profile != null) {
-        request.setAttribute("profile", profile);
-    }
-%>
+<%-- Fragment nhúng vào candidatecall.jsp — xử lý tại ProcedureServlet --%>
+<div id="procedure-desk" class="procedure-desk-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0; scroll-margin-top: 1rem;">
+    <header style="margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 4px;">Bàn làm thủ tục</h2>
+        <p style="font-size: 0.82rem; color: #64748b; margin: 0;">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh &rarr; Thu lệ phí (phần con của màn gọi thủ tục).</p>
+    </header>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bàn Làm Thủ Tục - Ban Sát Hạch</title>
-    
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- External Layout Stylesheets -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    
-    <style>
-        .procedure-steps-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .procedure-step-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        
-        .procedure-step-item--active {
-            color: #0052cc;
-        }
-        .procedure-step-item--done {
-            color: #10b981;
-        }
-        
-        .step-number-badge {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: #e2e8f0;
-            color: #475569;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 800;
-        }
-        .procedure-step-item--active .step-number-badge {
-            background-color: #0052cc;
-            color: #ffffff;
-        }
-        .procedure-step-item--done .step-number-badge {
-            background-color: #10b981;
-            color: #ffffff;
-        }
-        
-        .camera-live-frame {
-            border: 2px solid #cbd5e1;
-            border-radius: 16px;
-            aspect-ratio: 4/3;
-            background-color: #0f172a;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-        }
-        .camera-live-frame--active {
-            border-color: #3b82f6;
-        }
-        .camera-live-frame--captured {
-            border-color: #10b981;
-        }
-        
-        .camera-live-reticle {
-            width: 180px;
-            height: 240px;
-            border: 2px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
-            position: absolute;
-            z-index: 2;
-        }
-        .camera-live-frame--captured .camera-live-reticle {
-            border-color: #10b981;
-            border-style: solid;
-        }
-        
-        .scanline-effect {
-            width: 100%;
-            height: 2px;
-            background-color: rgba(59, 130, 246, 0.5);
-            position: absolute;
-            top: 0;
-            animation: scanAnimation 2.5s infinite linear;
-            z-index: 3;
-        }
-        @keyframes scanAnimation {
-            0% { top: 0%; }
-            100% { top: 100%; }
-        }
-        
-        .photo-avatar-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: #ffffff;
-            font-size: 3rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        
-        .qr-card {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            width: 180px;
-            margin: 0 auto;
-        }
-    </style>
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
-    <jsp:param name="activeSidebar" value="lam-thu-tuc" />
-</jsp:include>
-
-<div class="dashboard-shell">
-    <main class="main-content">
-        
-        <!-- Breadcrumbs Navigation -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Bàn làm thủ tục</span>
-        </nav>
-        
-        <!-- Page Header Section -->
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Bàn tiếp đón làm thủ tục</h1>
-                <p class="page-subtitle">Quy trình 3 bước nghiệp vụ khép kín: Xác minh thông tin &rarr; Chụp ảnh chân dung &rarr; Xác nhận đóng lệ phí.</p>
-            </div>
-            
-            <div class="page-actions">
-                <a href="candidatecall" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #0052cc; border-color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M3 21v-2a7 7 0 0 1 14 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    Quay lại điều hành loa gọi thi
-                </a>
-            </div>
-        </header>
-
-        <!-- Active Candidate Status Bar (Replaces Redundant Giant Selection Panel) -->
+        <!-- Active Candidate Status Bar -->
         <c:if test="${not empty requestScope.profile}">
             <div style="background-color: rgba(0, 82, 204, 0.05); border: 1px solid rgba(0, 82, 204, 0.15); border-radius: 12px; padding: 10px 16px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -386,10 +19,10 @@
                 
                 <form action="procedure" method="GET" style="display: flex; align-items: center; gap: 6px; margin: 0;">
                     <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Chuyển học viên:</span>
-                    <select name="sbd" onchange="this.form.submit()" style="height: 30px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; padding: 0 4px; color: #475569; background: #ffffff;">
+                    <select name="sbd" data-auto-submit class="procedure-switch-form__select">
                         <option value="">-- Chọn --</option>
                         <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                            <c:if test="${c.isPresent and (empty c.photoUrl or not c.paymentCompleted)}">
+                            <c:if test="${not (c.validCapturedPhoto and c.paymentCompleted)}">
                                 <option value="${c.sbd}" ${profile.sbd eq c.sbd ? 'selected' : ''}>${c.sbd} - ${c.name}</option>
                             </c:if>
                         </c:forEach>
@@ -408,7 +41,7 @@
                 <c:set var="cCccd" value="${profile.cccd}" />
                 <c:set var="cClass" value="${profile.clazz}" />
                 
-                <c:set var="currentStep" value="${param.step}" />
+                <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
                 <c:if test="${empty currentStep}">
                     <c:set var="currentStep" value="1" />
                 </c:if>
@@ -512,44 +145,70 @@
                         <!-- STEP 2: Live Camera Capture -->
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Máy quét Camera live chụp ảnh tại bàn thủ tục</h3>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung từ camera thực tế</h3>
+                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — bắt buộc chụp tại đây trước khi thu phí và in hồ sơ kết quả.</p>
                             </div>
+
+                            <c:if test="${not empty requestScope.photoRequiredMsg}">
+                                <div class="camera-error-box" style="display:block; margin-bottom:1rem;">
+                                    ${requestScope.photoRequiredMsg}
+                                </div>
+                            </c:if>
                             
                             <c:choose>
-                                <c:when test="${param.photoCaptured eq 'true' or not empty profile.photoUrl}">
+                                <c:when test="${requestScope.hasValidPhoto}">
                                     <!-- Photo captured preview -->
                                     <div class="camera-live-frame camera-live-frame--captured">
                                         <div class="camera-live-reticle"></div>
-                                        <div class="photo-avatar-placeholder">${fn:substring(cName, 0, 1)}${fn:substring(cName, 1, 2)}</div>
+                                        <c:choose>
+                                            <c:when test="${not empty profile.photoUrl}">
+                                                <img class="camera-captured-img"
+                                                     src="${pageContext.request.contextPath}/${profile.photoUrl}?t=${profile.id}"
+                                                     alt="Ảnh chân dung ${cName}">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="photo-avatar-placeholder">${fn:substring(cName, 0, 1)}</div>
+                                            </c:otherwise>
+                                        </c:choose>
                                         
-                                        <div style="position: absolute; bottom: 12px; background: rgba(16, 185, 129, 0.9); color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; z-index: 2;">
-                                            ẢNH CHỤP ĐÃ XÁC THỰC THÀNH CÔNG (LƯU DB)
+                                        <div style="position: absolute; bottom: 12px; background: rgba(16, 185, 129, 0.9); color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; z-index: 4;">
+                                            ẢNH CHỤP ĐÃ LƯU VÀO HỒ SƠ
                                         </div>
                                     </div>
                                     
                                     <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
-                                        <a href="procedure?sbd=${currentSbd}&step=2&action=recapture" class="btn-reset" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1;">Chụp lại ảnh</a>
-                                        <a href="procedure?sbd=${currentSbd}&step=3" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Xác nhận & Chuyển sang Bước 3</a>
+                                        <a href="procedure?sbd=${currentSbd}&step=2&amp;action=recapture#procedure-desk" class="btn-reset" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1;">Chụp lại ảnh</a>
+                                        <a href="procedure?sbd=${currentSbd}&step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Xác nhận & Chuyển sang Bước 3</a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
-                                    <!-- Camera streaming simulation -->
-                                    <div class="camera-live-frame camera-live-frame--active">
-                                        <div class="scanline-effect"></div>
+                                    <div id="cameraError" class="camera-error-box is-hidden"></div>
+
+                                    <div id="cameraFrame" class="camera-live-frame camera-live-frame--active">
+                                        <video id="cameraVideo" class="camera-live-video" autoplay playsinline muted></video>
+                                        <canvas id="captureCanvas" class="capture-canvas-hidden"></canvas>
                                         <div class="camera-live-reticle"></div>
+                                        <span id="cameraStatus" class="camera-status-badge">Đang khởi động camera...</span>
                                         
-                                        <span style="font-size: 0.8rem; font-family: monospace; color: rgba(255, 255, 255, 0.6); position: absolute; top: 12px; left: 12px;">REC LIVE [FPS: 30]</span>
+                                        <span style="z-index: 3; font-weight: 700; font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; position: absolute; bottom: 64px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);">
+                                            Căn chỉnh mặt vào khung hình
+                                        </span>
                                         
-                                        <span style="z-index: 1; font-weight: 700; font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); text-transform: uppercase;">Căn chỉnh mặt vào tiêu cự chính</span>
-                                        
-                                        <a href="procedure?sbd=${currentSbd}&step=2&photoCaptured=true" class="btn-filter" style="position: absolute; bottom: 15px; height: 38px; border-radius: 6px; padding: 0 1.25rem; font-size: 0.82rem; text-decoration: none; z-index: 4; display: inline-flex; align-items: center; gap: 6px;">
+                                        <button type="button" id="captureBtn" class="btn-filter" disabled
+                                                data-label-capture="Chụp ảnh chân dung"
+                                                data-label-saving="Đang lưu ảnh..."
+                                                style="position: absolute; bottom: 15px; height: 38px; border-radius: 6px; padding: 0 1.25rem; font-size: 0.82rem; z-index: 4; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/>
                                                 <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
                                             </svg>
-                                            Bấm chụp ảnh chân dung học viên
-                                        </a>
+                                            Chụp ảnh chân dung
+                                        </button>
                                     </div>
+
+                                    <p style="margin-top: 0.75rem; font-size: 0.75rem; color: #64748b;">
+                                        Trình duyệt sẽ yêu cầu quyền truy cập camera. Nếu bị từ chối, hãy bật quyền camera trong cài đặt trình duyệt rồi tải lại trang.
+                                    </p>
                                 </c:otherwise>
                             </c:choose>
                         </c:if>
@@ -559,81 +218,93 @@
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 3: Lệ phí sát hạch & Thanh toán QR Code ngân hàng</h3>
                             </div>
-                            
-                            <c:choose>
-                                <c:when test="${param.paymentSuccess eq 'true' or profile.paymentCompleted eq 'true'}">
-                                    <div style="text-align: center; padding: 2.5rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981;">
-                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        
-                                        <h4 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #047857;">Xác nhận thu lệ phí hoàn tất!</h4>
-                                        <p style="margin: 0; font-size: 0.88rem; color: #475569; max-width: 380px;">Đã nhận **200,000 đ** bằng Tiền Mặt thành công. Hóa đơn đã tạo trong hệ thống và cập nhật trạng thái thi sát hạch.</p>
-                                        
-                                        <a href="procedure" class="btn-filter" style="height: 40px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; margin-top: 1rem; padding: 0 1.5rem;">
-                                            Đón tiếp học viên tiếp theo &rarr;
-                                        </a>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <!-- Display Fee Breakdown and QR Code -->
-                                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; align-items: start;">
-                                        
-                                        <div>
-                                            <table class="report-table" style="font-size: 0.85rem; width: 100%;">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">Khoản lệ phí thi</th>
-                                                        <th scope="col" style="text-align: right; width: 100px;">Thành tiền</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Lệ phí sát hạch lý thuyết</td>
-                                                        <td style="text-align: right; font-weight: 600;">80,000 đ</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Lệ phí sát hạch mô phỏng</td>
-                                                        <td style="text-align: right; font-weight: 600;">100,000 đ</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Lệ phí cấp phôi bằng nhựa PET</td>
-                                                        <td style="text-align: right; font-weight: 600;">20,000 đ</td>
-                                                    </tr>
-                                                    <tr style="border-top: 2px solid #cbd5e1; background-color: #f8fafc;">
-                                                        <td style="font-weight: 800; color: #0f172a;">TỔNG CỘNG LỆ PHÍ:</td>
-                                                        <td style="text-align: right; font-weight: 800; color: #0052cc; font-size: 0.95rem;">200,000 đ</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                            
-                                            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                                                <a href="procedure?sbd=${currentSbd}&step=3&paymentSuccess=true" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">
-                                                    Đóng Tiền Mặt
+
+                            <c:if test="${not requestScope.hasValidPhoto}">
+                                <div class="camera-error-box" style="display:block; margin-bottom:1rem;">
+                                    Chưa có ảnh chân dung hợp lệ. Vui lòng quay lại <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk">Bước 2</a> để chụp ảnh trước khi thu lệ phí.
+                                </div>
+                            </c:if>
+
+                            <c:if test="${not empty requestScope.paymentErrorMsg}">
+                                <div class="camera-error-box" style="display:block; margin-bottom:1rem;">
+                                    ${requestScope.paymentErrorMsg}
+                                </div>
+                            </c:if>
+
+                            <c:if test="${profile.paymentCompleted}">
+                                <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 10px 12px; margin-bottom: 1rem; font-size: 0.82rem; color: #047857;">
+                                    Thí sinh này đã có bản ghi thanh toán trong hệ thống. Bấm <strong>Chuyển học viên tiếp theo</strong> để tiếp tục hàng đợi.
+                                </div>
+                            </c:if>
+
+                            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; align-items: start;">
+                                <div>
+                                    <table class="report-table" style="font-size: 0.85rem; width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Khoản lệ phí thi</th>
+                                                <th scope="col" style="text-align: right; width: 100px;">Thành tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Lệ phí sát hạch lý thuyết</td>
+                                                <td style="text-align: right; font-weight: 600;">80,000 đ</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Lệ phí sát hạch mô phỏng</td>
+                                                <td style="text-align: right; font-weight: 600;">100,000 đ</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Lệ phí cấp phôi bằng nhựa PET</td>
+                                                <td style="text-align: right; font-weight: 600;">20,000 đ</td>
+                                            </tr>
+                                            <tr style="border-top: 2px solid #cbd5e1; background-color: #f8fafc;">
+                                                <td style="font-weight: 800; color: #0f172a;">TỔNG CỘNG LỆ PHÍ:</td>
+                                                <td style="text-align: right; font-weight: 800; color: #0052cc; font-size: 0.95rem;">200,000 đ</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                                        <c:choose>
+                                            <c:when test="${profile.paymentCompleted}">
+                                                <a href="procedure?action=nextCandidate&amp;sbd=${currentSbd}" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #0052cc; border-color: #0052cc;">
+                                                    Chuyển học viên tiếp theo &rarr;
                                                 </a>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- QR Code scanner mock card -->
-                                        <div class="qr-card">
-                                            <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; width: 110px; height: 110px;">
-                                                <!-- Mock QR Code visually -->
-                                                <div style="width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 2px solid #000000; padding: 4px; box-sizing: border-box; background-color: #ffffff;">
-                                                    <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
-                                                    <div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div>
-                                                    <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div>
-                                                    <div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
-                                                </div>
-                                            </div>
-                                            
-                                            <span style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase;">VIETQR Chuyển Khoản</span>
-                                            <span style="font-size: 0.65rem; color: #64748b; text-align: center;">Tự động xác nhận khi nhận tiền</span>
-                                        </div>
-                                        
+                                            </c:when>
+                                            <c:when test="${requestScope.hasValidPhoto}">
+                                                <form action="procedure" method="POST" style="flex: 1; margin: 0;">
+                                                    <input type="hidden" name="action" value="confirmPayment">
+                                                    <input type="hidden" name="sbd" value="${currentSbd}">
+                                                    <input type="hidden" name="step" value="3">
+                                                    <button type="submit" class="btn-filter" style="width: 100%; height: 42px; border-radius: 8px; background-color: #10b981; border-color: #10b981; cursor: pointer;">
+                                                        Đóng Tiền Mặt
+                                                    </button>
+                                                </form>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="btn-filter" style="height: 42px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #94a3b8; border-color: #94a3b8; cursor: not-allowed; opacity: 0.7;">
+                                                    Cần chụp ảnh trước khi thu phí
+                                                </span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
-                                </c:otherwise>
-                            </c:choose>
+                                </div>
+
+                                <div class="qr-card">
+                                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; width: 110px; height: 110px;">
+                                        <div style="width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 2px solid #000000; padding: 4px; box-sizing: border-box; background-color: #ffffff;">
+                                            <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
+                                            <div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div>
+                                            <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div>
+                                            <div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
+                                        </div>
+                                    </div>
+                                    <span style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase;">VIETQR Chuyển Khoản</span>
+                                    <span style="font-size: 0.65rem; color: #64748b; text-align: center;">Tự động xác nhận khi nhận tiền</span>
+                                </div>
+                            </div>
                         </c:if>
                         
                     </div>
@@ -645,9 +316,18 @@
                         </div>
                         
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 1rem 0;">
-                            <div class="photo-avatar-placeholder" style="width: 80px; height: 80px; font-size: 2rem;">
-                                ${fn:substring(cName, 0, 1)}
-                            </div>
+                            <c:choose>
+                                <c:when test="${requestScope.hasValidPhoto}">
+                                    <img src="${pageContext.request.contextPath}/${profile.photoUrl}?t=${profile.id}"
+                                         alt="Ảnh ${cName}"
+                                         style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="photo-avatar-placeholder" style="width: 80px; height: 80px; font-size: 2rem;">
+                                        ${fn:substring(cName, 0, 1)}
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
                             
                             <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: #0f172a;">${cName}</h4>
                             <span style="font-family: monospace; font-weight: 800; color: #0052cc; font-size: 0.9rem;">SBD: ${currentSbd}</span>
@@ -680,7 +360,7 @@
                     </svg>
                     <span style="font-weight: 700; font-size: 1rem; color: #334155; display: block; margin-bottom: 0.5rem;">Bàn làm thủ tục trống</span>
                     Chưa có học viên nào được chọn làm thủ tục. 
-                    <p style="font-size: 0.82rem; color: #94a3b8; max-width: 380px; margin: 0.5rem auto 1.5rem;">Vui lòng chọn học viên bên dưới hoặc đợi loa tự động gọi để bắt đầu quy trình làm thủ tục 3 bước khép kín.</p>
+                    <p style="font-size: 0.82rem; color: #94a3b8; max-width: 420px; margin: 0.5rem auto 1.5rem;">Chọn thí sinh từ danh sách bên dưới, hoặc bấm <strong>Tiến hành lập hồ sơ</strong> / <strong>Hồ sơ</strong> ở hàng đợi phía trên.</p>
 
                     <!-- Beautiful interactive dropdown inside the empty state to select candidate -->
                     <div style="max-width: 520px; margin: 1.5rem auto 0; padding: 1.5rem; background: rgba(255, 255, 255, 0.9); border: 1.5px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); backdrop-filter: blur(8px);">
@@ -695,10 +375,10 @@
                                 CHỌN THÍ SINH ĐÃ ĐƯỢC GỌI VÀO PHÒNG LÀM THỦ TỤC:
                             </label>
                             <div style="position: relative; display: flex; width: 100%;">
-                                <select id="emptySbdInput" name="sbd" style="width: 100%; height: 46px; padding: 0 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 10px; border: 1.5px solid #cbd5e1; outline: none; transition: all 0.2s; background: #ffffff; color: #1e293b; appearance: none; -webkit-appearance: none; cursor: pointer;" onchange="this.form.submit()">
+                                <select id="emptySbdInput" name="sbd" data-auto-submit class="procedure-empty-sbd-select">
                                     <option value="">-- Click để chọn học viên đã được gọi --</option>
                                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                                        <c:if test="${c.isPresent and (empty c.photoUrl or not c.paymentCompleted)}">
+                                        <c:if test="${not (c.validCapturedPhoto and c.paymentCompleted)}">
                                             <option value="${c.sbd}">
                                                 ${c.sbd} - ${c.name} (Hạng ${c.clazz})
                                             </option>
@@ -714,67 +394,7 @@
                         </form>
                     </div>
 
-                    <div style="margin-top: 1.5rem;">
-                        <a href="candidatecall" class="btn-filter" style="height: 42px; padding: 0 1.5rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0052cc, #003d9b); border-color: #003d9b; color: #ffffff;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                            </svg>
-                            Đi tới màn hình gọi loa &rarr;
-                        </a>
-                    </div>
                 </div>
             </c:otherwise>
         </c:choose>
-
-    </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
 </div>
-
-<!-- Dynamic button text transformation micro-script -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const form = document.querySelector("#procedureForm");
-        if (!form) return;
-        
-        const btn = document.querySelector("#submitBtn");
-        const initialValues = {};
-        // Select only editable inputs that have a name attribute (ignoring readonly ones)
-        const inputs = form.querySelectorAll("input[name]:not([type=hidden]):not([readonly])");
-        
-        inputs.forEach(input => {
-            initialValues[input.name] = input.value;
-            input.addEventListener("input", checkChanges);
-            input.addEventListener("change", checkChanges);
-        });
-        
-        function checkChanges() {
-            let changed = false;
-            inputs.forEach(input => {
-                if (initialValues[input.name] !== input.value) {
-                    changed = true;
-                }
-            });
-            
-            if (changed) {
-                document.querySelector("#formAction").value = "saveProfile";
-                btn.innerHTML = 'Lưu thay đổi & Sang Bước 2 (Chụp ảnh) &rarr;';
-                btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-                btn.style.borderColor = '#d97706';
-                btn.style.boxShadow = '0 4px 14px rgba(245, 158, 11, 0.2)';
-            } else {
-                document.querySelector("#formAction").value = "";
-                btn.innerHTML = 'Xác nhận & Sang Bước 2 (Chụp ảnh) &rarr;';
-                btn.style.background = 'linear-gradient(135deg, #0052cc, #003d9b)';
-                btn.style.borderColor = '#003d9b';
-                btn.style.boxShadow = 'none';
-            }
-        }
-    });
-</script>
-
-</body>
-</html>
