@@ -211,6 +211,7 @@ INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES
 (N'Phòng LT 2',      N'Room',   10, N'Tầng 2, Toà B'),
 (N'Sân thi A1',      N'Ground', 15, N'Sân thi 1'),
 (N'Sân thi Ô tô 1',  N'Ground', 10, N'Sân thi 2'),
+(N'Đường trường 1',  N'Route',   8, N'Khu vực thi đường trường');
 GO
 
 -- ============================================
@@ -283,8 +284,8 @@ GO
 INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, CandidateId, ExamId) VALUES
 (N'Completed', N'BankTransfer', N'TXN-20260520-001', 430000.00, '2026-05-20 10:15:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'045'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Completed', N'BankTransfer', N'TXN-20260520-002', 430000.00, '2026-05-20 11:00:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'046'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Completed', N'Cash',         NULL,                430000.00, '2026-05-21 08:30:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Pending',   N'Cash',         NULL,                430000.00, NULL,                  (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Completed', N'Cash',         N'CASH-20260521-001', 430000.00, '2026-05-21 08:30:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Pending',   N'Cash',         N'PENDING-20260522-001', 430000.00, NULL,                  (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Completed', N'BankTransfer', N'TXN-20260522-001', 130000.00, '2026-05-22 14:20:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'));
 GO
 
