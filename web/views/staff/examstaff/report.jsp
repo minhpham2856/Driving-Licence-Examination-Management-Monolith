@@ -29,6 +29,27 @@
     if (qList == null) {
         qList = new java.util.ArrayList<>();
     }
+    String webRoot = application.getRealPath("/");
+    java.util.List<String> missingPhotoSbds = new java.util.ArrayList<>();
+    int missingPhotoCount = 0;
+    for (Models.ExamRegistration reg : qList) {
+        boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
+        reg.setValidCapturedPhoto(valid);
+        if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
+            regDAO.updatePhoto(reg.getId(), null);
+            reg.setPhotoUrl("");
+        }
+        if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {
+            missingPhotoCount++;
+            missingPhotoSbds.add(reg.getSbd() + " - " + reg.getName());
+        }
+    }
+    request.setAttribute("missingPhotoCount", missingPhotoCount);
+    request.setAttribute("missingPhotoSbds", missingPhotoSbds);
+    if (("true".equals(request.getParameter("exportExcel")) || "true".equals(request.getParameter("exportPdf")))
+            && missingPhotoCount > 0) {
+        request.setAttribute("exportBlocked", true);
+    }
     request.setAttribute("candidateList", qList);
 
     // Calculate statistics dynamically
@@ -93,7 +114,7 @@
             theoryFailed++;
         }
         
-        // Tính thống kê phần thi Sa hình (chỉ những người đã thi)
+        // Tính thống kê phần thi Thực hành (chỉ những người đã thi)
         String pPass = reg.getPracticalPassed();
         if ("passed".equalsIgnoreCase(pPass)) {
             practicalCount++;
@@ -116,12 +137,12 @@
         // Xác định thí sinh đã có kết quả cuối cùng chưa
         boolean hasFinalResult;
         if (requiresRoad) {
-            // Hạng ô tô: phải trượt sa hình HOẶC đã có kết quả đường trường
+            // Hạng ô tô: phải trượt thực hành HOẶC đã có kết quả đường trường
             hasFinalResult = "failed".equalsIgnoreCase(pPass)
                           || "passed".equalsIgnoreCase(rPass)
                           || "failed".equalsIgnoreCase(rPass);
         } else {
-            // Hạng xe máy: có kết quả sa hình là xong
+            // Hạng xe máy: có kết quả thực hành là xong
             hasFinalResult = "passed".equalsIgnoreCase(pPass)
                           || "failed".equalsIgnoreCase(pPass);
         }
@@ -192,11 +213,12 @@
 
     // Fetch real infractions from database
     java.util.List<java.util.Map<String, Object>> infractions = new java.util.ArrayList<>();
-    try (java.sql.Connection conn = java.sql.DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=DLEM_DB;trustServerCertificate=true", "sa", "123");
+    try (java.sql.Connection conn = DBConnection.DBConfig.getConnection();
          java.sql.PreparedStatement ps = conn.prepareStatement(
-             "select top 3 deductionReason, count(*) as countVal " +
-             "from ScoreDeduction " +
-             "group by deductionReason " +
+             "select top 3 sd.[Reason] as deductionReason, count(*) as countVal " +
+             "from Score_Deduction sdd " +
+             "join ScoreDeduction sd on sd.ScoreDeductionId = sdd.ScoreDeductionId " +
+             "group by sd.[Reason] " +
              "order by countVal desc")) {
         try (java.sql.ResultSet rs = ps.executeQuery()) {
             int totalInfractions = 0;
@@ -279,7 +301,10 @@
                 </div>
                 
                 <!-- Premium Export Excel Button -->
-                <a href="report.jsp?exportExcel=true" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);">
+                <a href="report.jsp?exportExcel=true"
+                   class="btn-filter"
+                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất Excel'}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M14 2v6h6M8 13h8M8 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -287,7 +312,10 @@
                     Xuất file Excel báo cáo ca thi
                 </a>
                 
-                <a href="report.jsp?exportPdf=true" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <a href="report.jsp?exportPdf=true"
+                   class="btn-export"
+                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; pointer-events: none; opacity: 0.65;' : 'background-color: #ffffff; color: #ef4444; border-color: rgba(239, 68, 68, 0.2);'}"
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất PDF'}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
                         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -298,7 +326,29 @@
         </header>
 
         <!-- Dynamic param notifications -->
-        <c:if test="${param.exportExcel eq 'true'}">
+        <c:if test="${missingPhotoCount > 0}">
+            <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 6px; font-size: 0.9rem; font-weight: 700; color: #92400e;">
+                    ${missingPhotoCount} thí sinh chưa có ảnh chân dung chụp tại bàn thủ tục
+                </h4>
+                <p style="margin: 0; font-size: 0.8rem; color: #b45309;">
+                    Không thể in/xuất hồ sơ kết quả cho đến khi tất cả thí sinh (trừ vắng thi) đã chụp ảnh thật từ camera.
+                </p>
+            </div>
+        </c:if>
+
+        <c:if test="${not empty requestScope.exportBlocked}">
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h4 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #991b1b;">Không thể xuất báo cáo</h4>
+                    <p style="margin: 4px 0 0; font-size: 0.8rem; color: #b91c1c;">
+                        Còn ${missingPhotoCount} thí sinh chưa chụp ảnh. Hoàn tất Bước 2 tại bàn thủ tục trước khi xuất Excel/PDF.
+                    </p>
+                </div>
+            </div>
+        </c:if>
+
+        <c:if test="${param.exportExcel eq 'true' and empty requestScope.exportBlocked}">
             <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 12px; padding: 1rem; display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;" class="animated slideInUp">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981; flex-shrink: 0;">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -311,7 +361,7 @@
             </div>
         </c:if>
 
-        <c:if test="${param.exportPdf eq 'true'}">
+        <c:if test="${param.exportPdf eq 'true' and empty requestScope.exportBlocked}">
             <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;" class="animated slideInUp">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444; flex-shrink: 0;">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -470,7 +520,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td style="font-weight: 600; color: #0f172a;">Sa hình thực hành</td>
+                            <td style="font-weight: 600; color: #0f172a;">Thực hành</td>
                             <td style="text-align: center; font-weight: 600;">${practicalCount}</td>
                             <td style="text-align: center; color: #059669; font-weight: 600;">${practicalPassed}</td>
                             <td style="text-align: center; color: #dc2626; font-weight: 700;">${practicalFailed}</td>
@@ -485,7 +535,7 @@
                         </tr>
                         <c:if test="${roadCount > 0}">
                             <tr>
-                                <td style="font-weight: 600; color: #0f172a;">Sát hạch đường trường</td>
+                                <td style="font-weight: 600; color: #0f172a;">Đường trường</td>
                                 <td style="text-align: center; font-weight: 600;">${roadCount}</td>
                                 <td style="text-align: center; color: #059669; font-weight: 600;">${roadPassed}</td>
                                 <td style="text-align: center; color: #dc2626; font-weight: 700;">${roadFailed}</td>
@@ -540,7 +590,7 @@
                                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            Lỗi vi phạm sa hình phổ biến nhất
+                            Lỗi vi phạm thực hành phổ biến nhất
                         </h2>
                     </header>
                     
@@ -558,7 +608,7 @@
                         </c:forEach>
                         <c:if test="${empty infractions}">
                             <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 1.5rem 0;">
-                                Chưa ghi nhận lỗi vi phạm sa hình nào trong ca thi này.
+                                Chưa ghi nhận lỗi vi phạm thực hành nào trong ca thi này.
                             </div>
                         </c:if>
                     </div>
