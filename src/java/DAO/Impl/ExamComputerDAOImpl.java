@@ -9,20 +9,21 @@ import java.util.List;
 
 public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
 
+    private static final String DEVICE_SELECT = """
+            SELECT ExamDeviceId AS id, DeviceName AS computerCode, ExamAreaId AS areaId,
+                   [Status] AS status, NULL AS lastUsedAt
+            FROM ExamDevice
+            WHERE DeviceType IN ('Computer', 'PC', N'Máy tính') OR DeviceName LIKE 'PC-%'
+            """;
+
     @Override
     public List<ExamComputer> getAvailableComputers() {
         List<ExamComputer> list = new ArrayList<>();
-        String sql = "select * from ExamComputer where status = 'Available' order by computerCode";
+        String sql = DEVICE_SELECT + " AND [Status] IN ('Available', 'Operational') ORDER BY DeviceName";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                ExamComputer ec = new ExamComputer();
-                ec.setId(rs.getInt("id"));
-                ec.setComputerCode(rs.getString("computerCode"));
-                ec.setAreaId(rs.getInt("areaId"));
-                ec.setStatus(rs.getString("status"));
-                ec.setLastUsedAt(rs.getTimestamp("lastUsedAt"));
-                list.add(ec);
+                list.add(map(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -33,18 +34,12 @@ public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
     @Override
     public List<ExamComputer> getAvailableComputersByArea(int areaId) {
         List<ExamComputer> list = new ArrayList<>();
-        String sql = "select * from ExamComputer where status = 'Available' and areaId = ? order by computerCode";
+        String sql = DEVICE_SELECT + " AND [Status] IN ('Available', 'Operational') AND ExamAreaId = ? ORDER BY DeviceName";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, areaId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    ExamComputer ec = new ExamComputer();
-                    ec.setId(rs.getInt("id"));
-                    ec.setComputerCode(rs.getString("computerCode"));
-                    ec.setAreaId(rs.getInt("areaId"));
-                    ec.setStatus(rs.getString("status"));
-                    ec.setLastUsedAt(rs.getTimestamp("lastUsedAt"));
-                    list.add(ec);
+                    list.add(map(rs));
                 }
             }
         } catch (SQLException e) {
@@ -55,7 +50,7 @@ public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
 
     @Override
     public boolean updateStatus(int id, String status) {
-        String sql = "update ExamComputer set status = ?, lastUsedAt = getutcdate() where id = ?";
+        String sql = "UPDATE ExamDevice SET [Status] = ? WHERE ExamDeviceId = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, id);
@@ -64,5 +59,15 @@ public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private ExamComputer map(ResultSet rs) throws SQLException {
+        ExamComputer ec = new ExamComputer();
+        ec.setId(rs.getInt("id"));
+        ec.setComputerCode(rs.getString("computerCode"));
+        ec.setAreaId(rs.getInt("areaId"));
+        ec.setStatus(rs.getString("status"));
+        ec.setLastUsedAt(rs.getTimestamp("lastUsedAt"));
+        return ec;
     }
 }

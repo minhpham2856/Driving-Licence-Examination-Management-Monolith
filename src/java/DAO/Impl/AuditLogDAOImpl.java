@@ -3,95 +3,66 @@ package DAO.Impl;
 import DBConnection.DBContext;
 import DAO.AuditLogDAO;
 import Models.AuditLog;
+import Models.StaffProcedureKpi;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
+    private static final String AUDIT_SELECT = """
+            SELECT a.AuditId AS id,
+                   a.EntityName AS tableName,
+                   TRY_CAST(a.EntityId AS INT) AS recordId,
+                   a.Action AS action,
+                   a.OldValue AS oldValue,
+                   a.NewValue AS newValue,
+                   a.UserId AS changedBy,
+                   a.CreatedAt AS changedAt,
+                   NULL AS ipAddress,
+                   NULL AS sessionId,
+                   p.FullName AS changerName
+            FROM Audit a
+            LEFT JOIN [User] u ON u.UserId = a.UserId
+            LEFT JOIN Profile p ON p.UserId = u.UserId
+            """;
+
     @Override
     public boolean insert(AuditLog log) {
         String sql = """
-                     insert into AuditLog (tableName, recordId, action, oldValue, newValue, changedBy, changedAt, ipAddress, sessionId)
-                     values (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                     """;
-
+                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, CreatedAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            // 1. tableName: NOT NULL
             String tbl = log.getTableName();
             if (tbl == null || tbl.trim().isEmpty()) {
-                tbl = "Person";
+                tbl = "Profile";
             }
-            ps.setString(1, tbl);
+            String act = log.getAction() != null ? log.getAction() : "UPDATE";
+            int userId = log.getChangedBy() > 0 ? log.getChangedBy() : 3;
+            int recId = log.getRecordId() != null ? log.getRecordId() : 0;
 
-            // 2. recordId: NOT NULL
-            int recId = 0;
-            if (log.getRecordId() != null) {
-                recId = log.getRecordId();
-            }
-            ps.setInt(2, recId);
-
-            // 3. action: NOT NULL & CHECK (action IN ('INSERT', 'UPDATE', 'DELETE', 'EXPORT'))
-            String rawAct = log.getAction();
-            String act = "UPDATE"; // Default
-            if (rawAct != null) {
-                String upper = rawAct.toUpperCase();
-                if (upper.contains("INSERT")) act = "INSERT";
-                else if (upper.contains("DELETE")) act = "DELETE";
-                else if (upper.contains("EXPORT")) act = "EXPORT";
-                else if (upper.contains("IMPORT")) act = "INSERT";
-                else if (upper.contains("ALLOCATE")) act = "UPDATE";
-                else if (upper.contains("ACTIVATE")) act = "UPDATE";
-                else if (upper.contains("CALL")) act = "UPDATE";
-                else if (upper.equals("INSERT") || upper.equals("UPDATE") || upper.equals("DELETE") || upper.equals("EXPORT")) {
-                    act = upper;
-                }
-            }
-            ps.setString(3, act);
-
-            // 4. oldValue: Nullable
+            ps.setInt(1, userId);
+            ps.setString(2, act);
+            ps.setString(3, log.getNewValue());
+            ps.setString(4, tbl);
+            ps.setString(5, String.valueOf(recId));
             if (log.getOldValue() != null) {
-                ps.setString(4, log.getOldValue());
+                ps.setString(6, log.getOldValue());
             } else {
-                ps.setNull(4, Types.NVARCHAR);
+                ps.setNull(6, Types.NVARCHAR);
             }
-
-            // 5. newValue: Nullable
             if (log.getNewValue() != null) {
-                ps.setString(5, log.getNewValue());
+                ps.setString(7, log.getNewValue());
             } else {
-                ps.setNull(5, Types.NVARCHAR);
+                ps.setNull(7, Types.NVARCHAR);
             }
+            ps.setTimestamp(8, log.getChangedAt() != null ? log.getChangedAt() : new Timestamp(System.currentTimeMillis()));
 
-            // 6. changedBy: NOT NULL & REFERENCES [User](id)
-            int userId = log.getChangedBy();
-            if (userId <= 0) {
-                userId = 3; // Default to staff1
-            }
-            ps.setInt(6, userId);
-
-            // 7. changedAt: NOT NULL
-            ps.setTimestamp(7, log.getChangedAt() != null ? log.getChangedAt() : new Timestamp(System.currentTimeMillis()));
-
-            // 8. ipAddress: Nullable
-            if (log.getIpAddress() != null) {
-                ps.setString(8, log.getIpAddress());
-            } else {
-                ps.setNull(8, Types.NVARCHAR);
-            }
-
-            // 9. sessionId: Nullable
-            if (log.getSessionId() != null) {
-                ps.setString(9, log.getSessionId());
-            } else {
-                ps.setNull(9, Types.NVARCHAR);
-            }
-
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        log.setId(generatedKeys.getLong(1));
+            if (ps.executeUpdate() > 0) {
+                try (ResultSet gk = ps.getGeneratedKeys()) {
+                    if (gk.next()) {
+                        log.setId(gk.getLong(1));
                         return true;
                     }
                 }
@@ -105,223 +76,102 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
     @Override
     public List<AuditLog> getLogsByUserToday(int userId) {
-        List<AuditLog> list = new ArrayList<>();
-        // Query logs created today by user, ordered by time descending
-        String sql = """
-                     select top 200 a.*, p.fullName as changerName 
-                     from AuditLog a
-                     left join [User] u on a.changedBy = u.id
-                     left join Person p on u.personId = p.id
-                     where a.changedBy = ? and a.changedAt >= CAST(GETDATE() AS DATE)
-                     order by a.changedAt desc
-                     """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToAuditLog(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND a.CreatedAt >= CAST(GETDATE() AS DATE) ORDER BY a.CreatedAt DESC",
+                ps -> ps.setInt(1, userId), true);
     }
 
     @Override
     public List<AuditLog> getAllLogsToday() {
-        List<AuditLog> list = new ArrayList<>();
-        String sql = """
-                     select top 200 a.*, p.fullName as changerName 
-                     from AuditLog a
-                     left join [User] u on a.changedBy = u.id
-                     left join Person p on u.personId = p.id
-                     where a.changedAt >= CAST(GETDATE() AS DATE)
-                     order by a.changedAt desc
-                     """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToAuditLog(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return queryLogs(AUDIT_SELECT + " WHERE a.CreatedAt >= CAST(GETDATE() AS DATE) ORDER BY a.CreatedAt DESC",
+                ps -> {}, false);
     }
 
     @Override
     public List<AuditLog> getLogsByUserAndDate(int userId, String dateStr) {
-        List<AuditLog> list = new ArrayList<>();
-        String sql;
-        boolean hasDate = dateStr != null && !dateStr.trim().isEmpty();
-        
-        if (hasDate) {
-            sql = """
-                  select top 200 a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  where a.changedBy = ? and CAST(a.changedAt AS DATE) = ?
-                  order by a.changedAt desc
-                  """;
-        } else {
-            sql = """
-                  select top 200 a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  where a.changedBy = ?
-                  order by a.changedAt desc
-                  """;
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC",
+                    ps -> {
+                        ps.setInt(1, userId);
+                        ps.setString(2, dateStr);
+                    }, true);
         }
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            if (hasDate) {
-                ps.setString(2, dateStr);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToAuditLog(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? ORDER BY a.CreatedAt DESC",
+                ps -> ps.setInt(1, userId), true);
     }
 
     @Override
     public List<AuditLog> getAllLogsByDate(String dateStr) {
-        List<AuditLog> list = new ArrayList<>();
-        String sql;
-        boolean hasDate = dateStr != null && !dateStr.trim().isEmpty();
-        
-        if (hasDate) {
-            sql = """
-                  select top 200 a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  where CAST(a.changedAt AS DATE) = ?
-                  order by a.changedAt desc
-                  """;
-        } else {
-            sql = """
-                  select top 200 a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  order by a.changedAt desc
-                  """;
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            return queryLogs(AUDIT_SELECT + " WHERE CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC",
+                    ps -> ps.setString(1, dateStr), false);
         }
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (hasDate) {
-                ps.setString(1, dateStr);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToAuditLog(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return queryLogs(AUDIT_SELECT + " ORDER BY a.CreatedAt DESC", ps -> {}, false);
     }
 
     @Override
     public List<AuditLog> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
-        List<AuditLog> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
-        String sql;
-        boolean hasDate = dateStr != null && !dateStr.trim().isEmpty();
-        
-        if (hasDate) {
-            sql = """
-                  select a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  where a.changedBy = ? and CAST(a.changedAt AS DATE) = ?
-                  order by a.changedAt desc
-                  offset ? rows fetch next ? rows only
-                  """;
-        } else {
-            sql = """
-                  select a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  where a.changedBy = ?
-                  order by a.changedAt desc
-                  offset ? rows fetch next ? rows only
-                  """;
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
+                    ps -> {
+                        ps.setInt(1, userId);
+                        ps.setString(2, dateStr);
+                        ps.setInt(3, offset);
+                        ps.setInt(4, pageSize);
+                    }, true);
         }
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            if (hasDate) {
-                ps.setString(2, dateStr);
-                ps.setInt(3, offset);
-                ps.setInt(4, pageSize);
-            } else {
-                ps.setInt(2, offset);
-                ps.setInt(3, pageSize);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToAuditLog(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
+                ps -> {
+                    ps.setInt(1, userId);
+                    ps.setInt(2, offset);
+                    ps.setInt(3, pageSize);
+                }, true);
     }
 
     @Override
     public List<AuditLog> getAllLogsByDatePaginated(String dateStr, int page, int pageSize) {
-        List<AuditLog> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
-        String sql;
-        boolean hasDate = dateStr != null && !dateStr.trim().isEmpty();
-        
-        if (hasDate) {
-            sql = """
-                  select a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  where CAST(a.changedAt AS DATE) = ?
-                  order by a.changedAt desc
-                  offset ? rows fetch next ? rows only
-                  """;
-        } else {
-            sql = """
-                  select a.*, p.fullName as changerName 
-                  from AuditLog a
-                  left join [User] u on a.changedBy = u.id
-                  left join Person p on u.personId = p.id
-                  order by a.changedAt desc
-                  offset ? rows fetch next ? rows only
-                  """;
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            return queryLogs(AUDIT_SELECT + " WHERE CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
+                    ps -> {
+                        ps.setString(1, dateStr);
+                        ps.setInt(2, offset);
+                        ps.setInt(3, pageSize);
+                    }, false);
         }
+        return queryLogs(AUDIT_SELECT + " ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
+                ps -> {
+                    ps.setInt(1, offset);
+                    ps.setInt(2, pageSize);
+                }, false);
+    }
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (hasDate) {
-                ps.setString(1, dateStr);
-                ps.setInt(2, offset);
-                ps.setInt(3, pageSize);
-            } else {
-                ps.setInt(1, offset);
-                ps.setInt(2, pageSize);
-            }
+    @Override
+    public int getLogsCountByUserAndDate(int userId, String dateStr) {
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            return count("SELECT COUNT(*) FROM Audit WHERE UserId = ? AND CAST(CreatedAt AS DATE) = ?",
+                    ps -> {
+                        ps.setInt(1, userId);
+                        ps.setString(2, dateStr);
+                    });
+        }
+        return count("SELECT COUNT(*) FROM Audit WHERE UserId = ?", ps -> ps.setInt(1, userId));
+    }
+
+    @Override
+    public int getAllLogsCountByDate(String dateStr) {
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            return count("SELECT COUNT(*) FROM Audit WHERE CAST(CreatedAt AS DATE) = ?",
+                    ps -> ps.setString(1, dateStr));
+        }
+        return count("SELECT COUNT(*) FROM Audit", ps -> {});
+    }
+
+    private List<AuditLog> queryLogs(String sql, SqlBinder binder, boolean limited) {
+        List<AuditLog> list = new ArrayList<>();
+        String finalSql = limited ? sql.replaceFirst("SELECT", "SELECT TOP 200") : sql;
+        try (PreparedStatement ps = connection.prepareStatement(finalSql)) {
+            binder.bind(ps);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToAuditLog(rs));
@@ -333,59 +183,66 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return list;
     }
 
-    @Override
-    public int getLogsCountByUserAndDate(int userId, String dateStr) {
-        int count = 0;
-        String sql;
-        boolean hasDate = dateStr != null && !dateStr.trim().isEmpty();
-        
-        if (hasDate) {
-            sql = "select count(*) from AuditLog where changedBy = ? and CAST(changedAt AS DATE) = ?";
-        } else {
-            sql = "select count(*) from AuditLog where changedBy = ?";
-        }
-
+    private int count(String sql, SqlBinder binder) {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            if (hasDate) {
-                ps.setString(2, dateStr);
-            }
+            binder.bind(ps);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    count = rs.getInt(1);
+                    return rs.getInt(1);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return count;
+        return 0;
     }
 
     @Override
-    public int getAllLogsCountByDate(String dateStr) {
-        int count = 0;
-        String sql;
-        boolean hasDate = dateStr != null && !dateStr.trim().isEmpty();
-        
+    public StaffProcedureKpi getStaffProcedureKpi(int userId, String filterDate) {
+        boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
+        String sql = """
+                SELECT COUNT(*) AS completedCount,
+                       ISNULL(SUM(x.TotalAmount), 0) AS totalFees
+                FROM (
+                    SELECT DISTINCT p.PaymentId, p.TotalAmount
+                    FROM Payment p
+                    INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
+                    WHERE p.PaymentStatus IN ('Completed', 'Paid')
+                      AND c.PhotoImageUrl IS NOT NULL
+                      AND LEN(LTRIM(RTRIM(c.PhotoImageUrl))) > 0
+                      AND EXISTS (
+                          SELECT 1
+                          FROM Audit a
+                          WHERE a.UserId = ?
+                            AND a.EntityName = 'Payment'
+                            AND a.Action = 'INSERT'
+                            AND (
+                                TRY_CAST(a.EntityId AS INT) = c.CandidateId
+                                OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'
+                                OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
+                            )
+                """;
         if (hasDate) {
-            sql = "select count(*) from AuditLog where CAST(changedAt AS DATE) = ?";
-        } else {
-            sql = "select count(*) from AuditLog";
+            sql += "                            AND CAST(a.CreatedAt AS DATE) = ?\n";
         }
-
+        sql += """
+                      )
+                ) x
+                """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
             if (hasDate) {
-                ps.setString(1, dateStr);
+                ps.setString(2, filterDate);
             }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    count = rs.getInt(1);
+                    return new StaffProcedureKpi(rs.getInt("completedCount"), rs.getDouble("totalFees"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return count;
+        return new StaffProcedureKpi(0, 0);
     }
 
     private AuditLog mapResultSetToAuditLog(ResultSet rs) throws SQLException {
@@ -405,5 +262,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         log.setSessionId(rs.getString("sessionId"));
         log.setChangerName(rs.getString("changerName"));
         return log;
+    }
+
+    @FunctionalInterface
+    private interface SqlBinder {
+        void bind(PreparedStatement ps) throws SQLException;
     }
 }
