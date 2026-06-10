@@ -2,14 +2,21 @@
 // Handles client-side interactive actions for the candidates allocation sequential pipeline
 
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("allocation.js loaded and pipeline initialized successfully!");
-    
-    // Automatically apply grid layout when the Extend All toggle state changes
+    const searchInput = document.getElementById("candidateSearch");
+    if (searchInput) {
+        searchInput.addEventListener("input", filterCandidates);
+    }
+
+    document.querySelectorAll("select[data-auto-submit]").forEach(function (sel) {
+        sel.addEventListener("change", function () { this.form.submit(); });
+    });
+
     const btnExtendAll = document.getElementById("btnExtendAll");
     if (btnExtendAll) {
-        // If there's an existing state in localStorage, apply it!
-        const isExtended = localStorage.getItem("pipeline_extended") === "true";
-        if (isExtended) {
+        btnExtendAll.addEventListener("click", function () {
+            toggleExtendAll();
+        });
+        if (localStorage.getItem("pipeline_extended") === "true") {
             toggleExtendAll(true);
         }
     }
@@ -35,34 +42,24 @@ function toggleExtendAll(forceState) {
     // Persist layout state
     localStorage.setItem("pipeline_extended", isExtended ? "true" : "false");
     
-    lists.forEach(list => {
+    lists.forEach(function (list) {
         list.classList.toggle("expanded-grid", isExtended);
     });
-    
-    // Update all row-level expand buttons to match
-    const rowButtons = document.querySelectorAll(".btn-expand-row");
-    rowButtons.forEach(rowBtn => {
-        const span = rowBtn.querySelector("span");
-        const icon = rowBtn.querySelector(".expand-icon");
-        if (isExtended) {
-            if (span) span.textContent = "Thu gọn";
-            if (icon) icon.style.transform = "rotate(180deg)";
-        } else {
-            if (span) span.textContent = "Mở rộng";
-            if (icon) icon.style.transform = "none";
-        }
+
+    document.querySelectorAll(".row-toggle-checkbox").forEach(function (cb) {
+        cb.checked = isExtended;
     });
 
-    // Update main expand all button text and icon
-    const mainSpan = btn.querySelector("span");
+    document.querySelectorAll(".btn-expand-row .expand-icon").forEach(function (icon) {
+        icon.style.transform = isExtended ? "rotate(180deg)" : "none";
+    });
+
+    const extendText = btn.querySelector(".extend-text");
+    const collapseText = btn.querySelector(".collapse-text");
     const mainIcon = btn.querySelector(".extend-all-icon");
-    if (isExtended) {
-        if (mainSpan) mainSpan.textContent = "Thu gọn tất cả";
-        if (mainIcon) mainIcon.style.transform = "rotate(180deg)";
-    } else {
-        if (mainSpan) mainSpan.textContent = "Mở rộng tất cả";
-        if (mainIcon) mainIcon.style.transform = "none";
-    }
+    if (extendText) extendText.style.display = isExtended ? "none" : "inline";
+    if (collapseText) collapseText.style.display = isExtended ? "inline" : "none";
+    if (mainIcon) mainIcon.style.transform = isExtended ? "rotate(180deg)" : "none";
 }
 
 /**

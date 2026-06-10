@@ -6,35 +6,28 @@
     // Retrieve the candidate queue from the session
     java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
     if (qList == null) {
+        Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
+        int sessId = (sessIdObj != null) ? sessIdObj : 2;
         DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(2); // Load ca thi B2 sáng (ID = 2) mặc định
+            qList = regDAO.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
         }
         session.setAttribute("candidateQueue", qList);
+        session.setAttribute("lastLoadedSessionId", sessId);
+    }
+    if (qList != null) {
+        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
+            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
     }
 
-    // Fallback self-healing checks to load active rooms, computers, and devices dynamically if accessed directly
+    // Fallback self-healing checks to load active rooms dynamically if accessed directly
     if (request.getAttribute("activeTheoryRooms") == null) {
         DAO.ExamAreaDAO areaDAO = new DAO.Impl.ExamAreaDAOImpl();
         try {
             request.setAttribute("activeTheoryRooms", areaDAO.getActiveTheoryRooms());
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-    if (request.getAttribute("availableComputers") == null) {
-        DAO.ExamComputerDAO compDAO = new DAO.Impl.ExamComputerDAOImpl();
-        try {
-            request.setAttribute("availableComputers", compDAO.getAvailableComputers());
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-    if (request.getAttribute("availableDevices") == null) {
-        DAO.ExamDeviceDAO deviceDAO = new DAO.Impl.ExamDeviceDAOImpl();
-        try {
-            request.setAttribute("availableDevices", deviceDAO.getAvailableDevices(null));
-            request.setAttribute("motorbikeDevices", deviceDAO.getAvailableDevicesByCategory("motorbike"));
-            request.setAttribute("carDevices",       deviceDAO.getAvailableDevicesByCategory("car"));
         } catch (Exception e) { e.printStackTrace(); }
     }
 %>
@@ -61,9 +54,6 @@
     <jsp:param name="activeSidebar" value="phan-bo" />
 </jsp:include>
 
-<!-- Hidden checkbox hack for expanding/collapsing all rows simultaneously -->
-<input type="checkbox" id="expand-all-toggle" class="master-toggle-checkbox" style="display: none !important;">
-
 <div class="dashboard-shell">
     <main class="main-content">
         
@@ -85,22 +75,21 @@
             
             <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
                 <!-- Real-time Candidate Search Box -->
-                <div style="position: relative; display: inline-block;">
-                    <input type="text" id="candidateSearch" placeholder="Tìm thí sinh (SBD, Họ tên, CCCD...)" oninput="filterCandidates()" style="width: 260px; height: 38px; padding: 0 12px 0 34px; font-size: 0.82rem; font-weight: 600; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; transition: all 0.2s;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b; pointer-events: none;">
+                <div class="es-search-box">
+                    <input type="text" id="candidateSearch" class="es-search-box__input" placeholder="Tìm thí sinh (SBD, Họ tên, CCCD...)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="es-search-box__icon">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                 </div>
 
-                <!-- Pure CSS Master Expand/Collapse Label -->
-                <label for="expand-all-toggle" id="btnExtendAll" class="btn-export" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-color: #cbd5e1; background-color: #ffffff; color: #475569; user-select: none;">
+                <button type="button" id="btnExtendAll" class="btn-export" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-color: #cbd5e1; background-color: #ffffff; color: #475569; user-select: none;">
                     <svg class="extend-all-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition: transform 0.3s ease;">
                         <path d="M6 9l6 6 6-6"/>
                     </svg>
                     <span class="extend-text">Mở rộng tất cả</span>
                     <span class="collapse-text" style="display: none;">Thu gọn tất cả</span>
-                </label>
+                </button>
                 
             </div>
         </header>
@@ -162,7 +151,7 @@
                 <form action="allocation" method="GET" style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 250px;">
                     <label for="sessionId" style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
                     <div style="display: flex; gap: 8px;">
-                        <select id="sessionId" name="sessionId" onchange="this.form.submit()" style="height: 38px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; color: #1e293b; padding: 0 10px; background: #ffffff; flex-grow: 1; cursor: pointer; outline: none;">
+                        <select id="sessionId" name="sessionId" data-auto-submit class="es-session-selector__select es-session-selector__select--wide">
                             <c:forEach var="sess" items="${requestScope.allSessions}">
                                 <option value="${sess.id}" ${sessionScope.selectedSessionId eq sess.id ? 'selected' : ''}>
                                     Ca #${sess.id} - ${sess.sessionName} (${sess.examDate} | ${sess.status})
@@ -210,7 +199,9 @@
                 <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
                     <c:set var="waitingCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.isPresent and not c.paymentCompleted}">
+                        <%-- Phòng chờ: chưa hoàn tất thủ tục (ảnh + lệ phí), không bị đánh dấu vắng — đồng bộ với candidatecall.jsp --%>
+                        <c:set var="procedureDone" value="${c.validCapturedPhoto and c.paymentCompleted}" />
+                        <c:if test="${not procedureDone and c.notes ne 'Absent'}">
                             <c:set var="waitingCount" value="${waitingCount + 1}" />
                             <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #ea580c;">
                                 <div class="candidate-pipe-header">
@@ -247,8 +238,8 @@
                             Phòng thi lý thuyết
                         </h3>
                         <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Phòng Máy 201</span>
-                            <span><strong>Sức chứa:</strong> 30 máy | <strong>Loại:</strong> Room</span>
+                            <span><strong>Khu vực:</strong> Phòng thi lý thuyết</span>
+                            <span><strong>Thiết bị (máy tính):</strong> Do Giám thị quản lý</span>
                         </div>
                     </div>
                     <label for="toggle-row-step-2" class="btn-expand-row" style="margin-top: 1rem;">
@@ -261,9 +252,9 @@
                 <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
                     <c:set var="theoryCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.paymentCompleted and c.theoryPassed eq 'none'}">
+                        <c:if test="${c.paymentCompleted and c.theoryPassed eq 'none' and c.notes ne 'Absent'}">
                             <c:set var="theoryCount" value="${theoryCount + 1}" />
-                            <c:set var="hasPhoto" value="${not empty c.photoUrl}" />
+                            <c:set var="hasPhoto" value="${c.validCapturedPhoto}" />
                             <c:set var="hasPaid" value="${c.paymentCompleted}" />
                             <c:set var="procedureDone" value="${hasPhoto and hasPaid}" />
                             
@@ -281,44 +272,23 @@
                                 
                                 <div class="candidate-pipe-details" style="color: #1e3a8a; font-weight: 700; margin-bottom: 4px; display: flex; flex-direction: column; gap: 4px;">
                                     <div style="display: flex; align-items: center; gap: 4px;">
-                                        <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Phòng:</span>
+                                        <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Phòng thi:</span>
                                         <span style="color: #0f172a; font-weight: 800; font-size: 0.75rem;">${empty c.allocatedAreaName ? 'Chưa gán' : c.allocatedAreaName}</span>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Máy thi:</span>
-                                        <span style="background-color: #0052cc; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.72rem; font-weight: 800;">${empty c.computerCode ? 'Chưa gán' : c.computerCode}</span>
+                                    <div style="font-size: 0.68rem; color: #64748b; font-style: italic;">
+                                        Máy tính thi do Giám thị phân công
                                     </div>
                                 </div>
                                 
-                                <!-- Override Room and Computer -->
+                                <!-- Điều chỉnh phòng thi thủ công -->
                                 <div style="display: flex; flex-direction: column; gap: 2px; margin-top: 4px;">
                                     <form action="allocation" method="GET" style="display: flex; align-items: center; gap: 4px;">
                                         <input type="hidden" name="action" value="allocateRoom">
                                         <input type="hidden" name="id" value="${c.id}">
                                         <span style="font-size: 0.62rem; font-weight: 600; color: #64748b; width: 55px;">Đổi phòng:</span>
-                                        <select name="areaId" onchange="this.form.submit()" style="height: 20px; font-size: 0.65rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; padding: 0; color: #475569; background: #ffffff; cursor: pointer; outline: none; flex-grow: 1;">
+                                        <select name="areaId" data-auto-submit class="allocation-area-select">
                                             <c:forEach var="room" items="${requestScope.activeTheoryRooms}">
                                                 <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${room.areaName}</option>
-                                            </c:forEach>
-                                        </select>
-                                    </form>
-                                    <form action="allocation" method="GET" style="display: flex; align-items: center; gap: 4px;">
-                                        <input type="hidden" name="action" value="allocatePC">
-                                        <input type="hidden" name="id" value="${c.id}">
-                                        <span style="font-size: 0.62rem; font-weight: 600; color: #64748b; width: 55px;">Đổi máy:</span>
-                                        <select name="computerCode" onchange="this.form.submit()" style="height: 20px; font-size: 0.65rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; padding: 0; color: #475569; background: #ffffff; cursor: pointer; outline: none; flex-grow: 1;">
-                                            <%-- Option 1: PC đang được gán (luôn hiện và selected, kể cả InUse) --%>
-                                            <c:if test="${not empty c.computerCode}">
-                                                <option value="${c.computerCode}" selected>${c.computerCode} ✓</option>
-                                            </c:if>
-                                            <c:if test="${empty c.computerCode}">
-                                                <option value="" selected>-- Chưa gán --</option>
-                                            </c:if>
-                                            <%-- Option 2+: Các PC khác available trong cùng phòng --%>
-                                            <c:forEach var="pc" items="${requestScope.availableComputers}">
-                                                <c:if test="${(pc.areaId eq c.allocatedAreaId or empty c.allocatedAreaId) and pc.computerCode ne c.computerCode}">
-                                                    <option value="${pc.computerCode}">${pc.computerCode}</option>
-                                                </c:if>
                                             </c:forEach>
                                         </select>
                                     </form>
@@ -368,8 +338,8 @@
                             Sân thi thực hành
                         </h3>
                         <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Sân Sa Hình Số 1</span>
-                            <span><strong>Sức chứa:</strong> 15 xe chíp | <strong>Loại:</strong> Ground</span>
+                            <span><strong>Khu vực:</strong> Sân Thực hành Số 1</span>
+                            <span><strong>Thiết bị:</strong> Do Giám thị (Examiner) quản lý</span>
                         </div>
                     </div>
                     <label for="toggle-row-step-3" class="btn-expand-row" style="margin-top: 1rem;">
@@ -382,7 +352,7 @@
                 <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
                     <c:set var="practicalCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none'}">
+                        <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none' and c.notes ne 'Absent'}">
                             <c:set var="practicalCount" value="${practicalCount + 1}" />
                             <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #10b981;">
                                 <div class="candidate-pipe-header">
@@ -391,37 +361,14 @@
                                 </div>
                                 <h4 class="candidate-pipe-name">${c.name}</h4>
                                 <div class="candidate-pipe-details">
-                                    Lý thuyết: <strong style="color: #10b981;">${c.theoryScore} (ĐẠT)</strong> tại máy ${c.computerCode}
-                                    <div style="color: #065f46; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                                        <span>Xe chíp:</span>
-                                        <span style="background-color: #10b981; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;">${c.deviceCode}</span>
+                                    Lý thuyết: <strong style="color: #10b981;">${c.theoryScore} (ĐẠT)</strong>
+                                    <c:if test="${not empty c.allocatedAreaName}"> — ${c.allocatedAreaName}</c:if>
+                                    <div style="color: #64748b; font-size: 0.72rem; margin-top: 4px; font-style: italic;">
+                                        Thiết bị thi thực hành do Giám thị phân công
                                     </div>
-                                    
-                                    <!-- Manual Vehicle Override — lọc xe theo hạng bằng -->
-                                    <form action="allocation" method="GET" style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
-                                        <input type="hidden" name="action" value="allocateDevice">
-                                        <input type="hidden" name="id" value="${c.id}">
-                                        <span style="font-size: 0.62rem; font-weight: 600; color: #64748b; width: 45px;">Đổi xe:</span>
-                                        <select name="deviceCode" onchange="this.form.submit()" style="height: 20px; font-size: 0.65rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; padding: 0; color: #475569; background: #ffffff; cursor: pointer; outline: none; flex-grow: 1;">
-                                            <c:choose>
-                                                <c:when test="${fn:startsWith(c.licenseCode,'A')}">
-                                                    <%-- Hạng A → chỉ hiện xe máy --%>
-                                                    <c:forEach var="dev" items="${requestScope.motorbikeDevices}">
-                                                        <option value="${dev.deviceName}" ${c.deviceCode eq dev.deviceName ? 'selected' : ''}>${dev.deviceName}</option>
-                                                    </c:forEach>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <%-- Hạng B/C/... → chỉ hiện ô tô --%>
-                                                    <c:forEach var="dev" items="${requestScope.carDevices}">
-                                                        <option value="${dev.deviceName}" ${c.deviceCode eq dev.deviceName ? 'selected' : ''}>${dev.deviceName}</option>
-                                                    </c:forEach>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </select>
-                                    </form>
                                 </div>
                                 <a href="allocation?action=submitPracticalScore&id=${c.id}&score=90" class="btn-pipe-action" style="background: linear-gradient(135deg, #10b981, #059669); border: none; margin-top: 6px;">
-                                    Chấm điểm Sa hình (Auto)
+                                    Chấm điểm Thực hành (Auto)
                                 </a>
                             </div>
                         </c:if>
@@ -429,7 +376,7 @@
                     
                     <c:if test="${practicalCount eq 0}">
                         <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
-                            Chưa có thí sinh nào thi đạt lý thuyết chờ sát hạch Sa hình.
+                            Chưa có thí sinh nào thi đạt lý thuyết chờ thi Thực hành.
                         </div>
                     </c:if>
                 </div>
@@ -463,7 +410,7 @@
                 <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
                     <c:set var="roadCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed' and c.roadTestPassed eq 'none'}">
+                        <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed' and c.roadTestPassed eq 'none' and c.notes ne 'Absent'}">
                             <c:set var="roadCount" value="${roadCount + 1}" />
                             <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #7c3aed;">
                                 <div class="candidate-pipe-header">
@@ -473,7 +420,7 @@
                                 <h4 class="candidate-pipe-name">${c.name}</h4>
                                 <div class="candidate-pipe-details" style="font-size: 0.72rem; color: #4b5563; line-height: 1.5; margin-bottom: 4px;">
                                     &bull; Lý thuyết: <strong style="color: #2563eb;">${c.theoryScore} (ĐẠT)</strong><br>
-                                    &bull; Sa hình: <strong style="color: #10b981;">${c.practicalScore} (ĐẠT)</strong>
+                                    &bull; Thực hành: <strong style="color: #10b981;">${c.practicalScore} (ĐẠT)</strong>
                                 </div>
                                 <a href="allocation?action=submitRoadScore&id=${c.id}&score=90" class="btn-pipe-action" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; margin-top: 6px;">
                                     Chấm điểm Đường trường (Auto)
@@ -484,7 +431,7 @@
                     
                     <c:if test="${roadCount eq 0}">
                         <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
-                            Chưa có thí sinh nào đạt Sa hình chờ thi Đường trường.
+                            Chưa có thí sinh nào đạt Thực hành chờ thi Đường trường.
                         </div>
                     </c:if>
                 </div>
@@ -518,9 +465,15 @@
                 <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
                     <c:set var="completedCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${(c.practicalPassed eq 'failed') or (c.practicalPassed eq 'passed' and not c.requiresRoadTest) or (c.requiresRoadTest and (c.roadTestPassed eq 'passed' or c.roadTestPassed eq 'failed'))}">
+                        <c:if test="${(c.notes eq 'Absent') or 
+                                      (c.notes ne 'Absent' and c.paymentCompleted and (
+                                          (c.theoryPassed eq 'failed') or 
+                                          (c.practicalPassed eq 'failed') or 
+                                          (c.practicalPassed eq 'passed' and not c.requiresRoadTest) or 
+                                          (c.requiresRoadTest and (c.roadTestPassed eq 'passed' or c.roadTestPassed eq 'failed'))
+                                      ))}">
                             <c:set var="completedCount" value="${completedCount + 1}" />
-                            <c:set var="isPass" value="${(c.practicalPassed eq 'passed' and not c.requiresRoadTest) or (c.requiresRoadTest and c.roadTestPassed eq 'passed')}" />
+                            <c:set var="isPass" value="${c.notes ne 'Absent' and ((c.practicalPassed eq 'passed' and not c.requiresRoadTest) or (c.requiresRoadTest and c.roadTestPassed eq 'passed'))}" />
                             
                             <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; background: ${isPass ? '#f0fdf4' : '#fef2f2'}; border-color: ${isPass ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; border-left: 3px solid ${isPass ? '#10b981' : '#ef4444'};">
                                 <div class="candidate-pipe-header">
@@ -531,12 +484,21 @@
                                 </div>
                                 <h4 class="candidate-pipe-name">${c.name}</h4>
                                 <div class="candidate-pipe-details" style="font-size: 0.7rem; color: #374151; line-height: 1.5;">
-                                    &bull; Lý thuyết: <strong style="color: #2563eb;">${c.theoryScore} (ĐẠT)</strong><br>
-                                    &bull; Sa hình: <strong style="color: ${c.practicalPassed eq 'passed' ? '#10b981' : '#ef4444'};">${c.practicalScore} (${c.practicalPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
-                                    <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed'}">
-                                        &bull; Đường trường: <strong style="color: ${c.roadTestPassed eq 'passed' ? '#7c3aed' : '#ef4444'};">${c.roadTestScore} (${c.roadTestPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
-                                    </c:if>
-                                    &bull; Kết luận: <strong style="color: ${isPass ? '#16a34a' : '#dc2626'};">${isPass ? 'CẤP GPLX' : 'TRƯỢT SÁT HẠCH'}</strong>
+                                    <c:choose>
+                                        <c:when test="${c.notes eq 'Absent'}">
+                                            <span style="color: #ef4444; font-weight: 700;">VẮNG THI (Hủy hồ sơ)</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            &bull; Lý thuyết: <strong style="color: ${c.theoryPassed eq 'passed' ? '#10b981' : '#ef4444'};">${c.theoryScore} (${c.theoryPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
+                                            <c:if test="${c.theoryPassed eq 'passed'}">
+                                                &bull; Thực hành: <strong style="color: ${c.practicalPassed eq 'passed' ? '#10b981' : '#ef4444'};">${c.practicalScore} (${c.practicalPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
+                                                <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed'}">
+                                                    &bull; Đường trường: <strong style="color: ${c.roadTestPassed eq 'passed' ? '#7c3aed' : '#ef4444'};">${c.roadTestScore} (${c.roadTestPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
+                                                </c:if>
+                                            </c:if>
+                                            &bull; Kết luận: <strong style="color: ${isPass ? '#16a34a' : '#dc2626'};">${isPass ? 'CẤP GPLX' : 'TRƯỢT SÁT HẠCH'}</strong>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
                         </c:if>
@@ -558,22 +520,6 @@
     </jsp:include>
 </div>
 
-<!-- Search JavaScript filter function -->
-<script>
-    function filterCandidates() {
-        var query = document.getElementById("candidateSearch").value.toLowerCase().trim();
-        var cards = document.querySelectorAll(".candidate-pipe-card");
-        
-        cards.forEach(function(card) {
-            var text = card.textContent.toLowerCase();
-            if (text.indexOf(query) > -1) {
-                card.style.display = "";
-            } else {
-                card.style.display = "none";
-            }
-        });
-    }
-</script>
-
+<script src="${pageContext.request.contextPath}/assets/js/allocation.js"></script>
 </body>
 </html>
