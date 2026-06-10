@@ -81,15 +81,16 @@ GO
 -- ============================================
 -- 3. DOCUMENTS
 -- ============================================
-INSERT INTO Document (DocumentType, DocumentUrl, ProfileId) VALUES
-(N'CCCD',         N'/docs/id/front_001.jpg', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
-(N'CCCD',         N'/docs/id/back_001.jpg',  (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
-(N'Giấy khám SK', N'/docs/health/health_001.pdf', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
-(N'CCCD',         N'/docs/id/front_002.jpg', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012346')),
-(N'CCCD',         N'/docs/id/back_002.jpg',  (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012346')),
-(N'Giấy khám SK', N'/docs/health/health_002.pdf', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012346')),
-(N'CCCD',         N'/docs/id/front_003.jpg', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012347')),
-(N'GPLX',         N'/docs/license/license_005.jpg', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012349'));
+INSERT INTO Document (DocumentType, DocumentUrl, Notes, ProfileId) VALUES
+(N'CCCD',         N'/docs/id/front_001.jpg', NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
+(N'CCCD',         N'/docs/id/back_001.jpg',  NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
+(N'Giấy khám SK', N'/docs/health/health_001.pdf', NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
+(N'Khác',         N'/docs/other/commitment_001.pdf', N'Giấy cam kết bổ sung hồ sơ', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012345')),
+(N'CCCD',         N'/docs/id/front_002.jpg', NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012346')),
+(N'CCCD',         N'/docs/id/back_002.jpg',  NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012346')),
+(N'Giấy khám SK', N'/docs/health/health_002.pdf', NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012346')),
+(N'CCCD',         N'/docs/id/front_003.jpg', NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012347')),
+(N'GPLX',         N'/docs/license/license_005.jpg', NULL, (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012349'));
 GO
 
 -- ============================================
