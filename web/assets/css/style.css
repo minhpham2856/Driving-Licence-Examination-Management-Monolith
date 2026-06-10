@@ -7730,9 +7730,96 @@ input:checked + .toggle-slider:before {
     height: 16px;
 }
 
+/* ========================================================
+   Google Material Symbols — replaces inline SVG icons.
+   Glyphs inherit `color` (like currentColor) and are sized
+   with `font-size`, so each context just sets a size below.
+   ======================================================== */
+.examiner-portal .material-symbols-outlined,
+.side-nav-bar--examiner .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    line-height: 1;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    user-select: none;
+    font-size: 20px;
+}
 
+/* Sidebar nav icons: uniform 24px box, 22px glyph */
+.side-nav-bar--examiner .side-nav-bar__icon {
+    width: 24px;
+    height: 24px;
+}
+.side-nav-bar--examiner .side-nav-bar__icon .material-symbols-outlined {
+    font-size: 22px;
+}
 
+/* Toolbar / action buttons */
+.examiner-btn .material-symbols-outlined {
+    font-size: 18px;
+}
 
+/* Search field leading icon (absolutely positioned) */
+.examiner-search__icon.material-symbols-outlined {
+    width: auto;
+    height: auto;
+    font-size: 18px;
+}
+
+/* Detail/section heading icons */
+.exr-section-title .material-symbols-outlined,
+.examiner-detail-section__icon.material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Export page: round icon tiles (color per variant) + download buttons */
+.export-row__icon .material-symbols-outlined {
+    font-size: 22px;
+}
+.export-row__icon--blue .material-symbols-outlined {
+    color: #3a56d4;
+}
+.export-row__icon--red .material-symbols-outlined {
+    color: #ba1a1a;
+}
+.export-row__icon--gray .material-symbols-outlined {
+    color: #5f6368;
+}
+.export-btn .material-symbols-outlined {
+    font-size: 15px;
+}
+
+/* Exam paper filter tabs */
+.paper-filter-tab .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Audit pagination chevrons */
+.audit-page-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Back button (detail pages) */
+.exr-back .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Large candidate photo placeholder */
+.examiner-profile__photo .material-symbols-outlined {
+    font-size: 96px;
+    color: #9aa1b1;
+}
+
+/* Result-edit page: warning banner, captcha refresh, confirm button */
+.exr-warning__icon.material-symbols-outlined {
+    font-size: 24px;
+}
+.exr-captcha__refresh .material-symbols-outlined {
+    font-size: 16px;
+}
+.exr-btn-confirm .material-symbols-outlined {
+    font-size: 16px;
+}
 
 
 
