@@ -42,6 +42,10 @@
         personalLogs = new java.util.ArrayList<>();
     }
     request.setAttribute("personalLogs", personalLogs);
+
+    Models.StaffProcedureKpi procedureKpi = logDAO.getStaffProcedureKpi(uId, filterDate);
+    request.setAttribute("myCompletedProcedures", procedureKpi.getCompletedCount());
+    request.setAttribute("myTotalFees", procedureKpi.getTotalFees());
 %>
 
 <!DOCTYPE html>
@@ -59,46 +63,6 @@
     <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    
-    <style>
-        .staff-profile-card {
-            background: linear-gradient(135deg, #0052cc 0%, #003d9b 100%);
-            color: #ffffff;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 82, 204, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
-        
-        .profile-info-group {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .profile-avatar-circle {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid rgba(255, 255, 255, 0.4);
-        }
-        
-        .profile-meta-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-    </style>
 </head>
 <body class="has-side-nav-bar">
 
@@ -181,16 +145,7 @@
             </form>
         </div>
 
-        <!-- Dynamic Statistics calculation from Session candidateQueue -->
-        <c:set var="myCompletedProcedures" value="0" />
-        <c:forEach var="c" items="${sessionScope.candidateQueue}">
-            <c:if test="${not empty c.photoUrl and c.paymentCompleted}">
-                <c:set var="myCompletedProcedures" value="${myCompletedProcedures + 1}" />
-            </c:if>
-        </c:forEach>
-        <c:set var="myTotalFees" value="${myCompletedProcedures * 200000}" />
-
-        <!-- KPI Metrics Row (Dynamic Statistics) -->
+        <!-- KPI Metrics Row (from Audit table) -->
         <section class="metrics-row" aria-label="Số liệu hoạt động cá nhân">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
@@ -219,9 +174,9 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number" style="color: #7e22ce;">${myCompletedProcedures}</span>
+                    <span class="stat-number" style="color: #7e22ce;">${requestScope.myCompletedProcedures}</span>
                     <span class="stat-label">Học viên đã làm thủ tục</span>
-                    <span class="stat-trend stat-trend--up">Hoàn thành đối chiếu, FaceID & Lệ phí</span>
+                    <span class="stat-trend stat-trend--up">Đã chụp ảnh và thanh toán (Payment + ảnh hồ sơ)</span>
                 </div>
             </div>
             
@@ -236,7 +191,7 @@
                         <fmt:formatNumber value="${myTotalFees}" type="number" /> đ
                     </span>
                     <span class="stat-label">Lệ phí đã xác nhận thu</span>
-                    <span class="stat-trend stat-trend--up">Được đối soát qua cơ sở dữ liệu</span>
+                    <span class="stat-trend stat-trend--up">Tổng từ bảng Payment (TotalAmount)</span>
                 </div>
             </div>
         </section>
@@ -316,5 +271,6 @@
     </jsp:include>
 </div>
 
+<script src="${pageContext.request.contextPath}/assets/js/audit.js"></script>
 </body>
 </html>
