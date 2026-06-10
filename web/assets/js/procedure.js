@@ -1,186 +1,279 @@
-// procedure.js
-// Handles client-side webcam streaming, photo capture, and form validation for procedure.jsp
+(function () {
+    'use strict';
 
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("procedure.js loaded successfully!");
+    var SCROLL_KEY = 'scrollProcedureDesk';
 
-    // 1. Form validation & change checking
-    initFormChangeChecking();
-
-    // 2. HTML5 Webcam live stream & capture
-    initWebcamCapture();
-});
-
-/**
- * Initializes the webcam live feed and handles photo capturing via AJAX
- */
-function initWebcamCapture() {
-    const video = document.getElementById("webcamVideo");
-    const canvas = document.getElementById("capturedCanvas");
-    const captureBtn = document.getElementById("captureBtn");
-    const cameraInstruction = document.getElementById("cameraInstruction");
-
-    if (!video || !captureBtn) return; // Not on step 2
-
-    // Get current SBD from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const sbd = urlParams.get("sbd") || "";
-
-    if (!sbd) {
-        console.error("No SBD candidate ID found in query string!");
-        return;
+    function markProcedureDeskScroll() {
+        try {
+            sessionStorage.setItem(SCROLL_KEY, '1');
+        } catch (e) { /* ignore */ }
     }
 
-    let webcamStream = null;
-
-    // Start webcam stream
-    navigator.mediaDevices.getUserMedia({
-        video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: "user"
-        },
-        audio: false
-    })
-    .then(stream => {
-        webcamStream = stream;
-        video.srcObject = stream;
-        console.log("Webcam live feed started successfully!");
-    })
-    .catch(err => {
-        console.error("Error accessing webcam: ", err);
-        if (cameraInstruction) {
-            cameraInstruction.textContent = "Không tìm thấy Camera (Sử dụng Mock Stream)";
-            cameraInstruction.style.color = "#ef4444";
+    function scrollToProcedureDesk() {
+        var el = document.getElementById('procedure-desk');
+        if (!el) {
+            return;
         }
-        // If webcam fails, mock capturing after delay
-        captureBtn.addEventListener("click", function() {
-            alert("Đã kích hoạt Mock Camera - Tạo ảnh chân dung ảo cho SBD " + sbd);
-            // Mock direct redirect for success
-            window.location.href = `procedure?sbd=${sbd}&step=2&photoCaptured=true`;
+        requestAnimationFrame(function () {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
+    }
+
+    function scrollToProcedureDeskIfNeeded() {
+        var el = document.getElementById('procedure-desk');
+        if (!el) {
+            return;
+        }
+        var shouldScroll = window.location.hash === '#procedure-desk';
+        if (!shouldScroll) {
+            try {
+                shouldScroll = sessionStorage.getItem(SCROLL_KEY) === '1';
+                sessionStorage.removeItem(SCROLL_KEY);
+            } catch (e) { /* ignore */ }
+        }
+        if (!shouldScroll && document.getElementById('procedureCameraConfig')) {
+            shouldScroll = true;
+        }
+        if (shouldScroll) {
+            scrollToProcedureDesk();
+        }
+    }
+
+    function bindProcedureNavigation() {
+        document.querySelectorAll('#procedure-desk a[href*="procedure"]').forEach(function (link) {
+            link.addEventListener('click', markProcedureDeskScroll);
+        });
+        document.querySelectorAll('#procedure-desk form').forEach(function (form) {
+            form.addEventListener('submit', markProcedureDeskScroll);
+        });
+        document.querySelectorAll('#procedure-desk select[data-auto-submit]').forEach(function (sel) {
+            sel.addEventListener('change', markProcedureDeskScroll);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('select[data-auto-submit]').forEach(function (sel) {
+            sel.addEventListener('change', function () {
+                markProcedureDeskScroll();
+                this.form.submit();
+            });
+        });
+        bindProcedureNavigation();
+        initFormChangeChecking();
+        initWebcamCapture();
+        scrollToProcedureDeskIfNeeded();
     });
 
-    // Capture photo on button click
-    captureBtn.addEventListener("click", function() {
-        if (!webcamStream || !canvas) {
-            // Fallback to redirect if stream was not loaded
-            window.location.href = `procedure?sbd=${sbd}&step=2&photoCaptured=true`;
+    function initFormChangeChecking() {
+        var form = document.querySelector('#procedureForm');
+        if (!form) {
             return;
         }
 
-        // Draw the current video frame onto the hidden canvas
-        const ctx = canvas.getContext("2d");
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        
-        // Mirror the canvas draw if needed to match mirrored video display
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Restore default transform
+        var btn = document.querySelector('#submitBtn');
+        if (!btn) {
+            return;
+        }
 
-        // Convert captured image to base64
-        const photoBase64 = canvas.toDataURL("image/png");
+        var initialValues = {};
+        var inputs = form.querySelectorAll('input[name]:not([type=hidden]):not([readonly])');
 
-        // UI Feedback: Flash screen
-        const flashEffect = document.createElement("div");
-        flashEffect.style.position = "absolute";
-        flashEffect.style.top = "0";
-        flashEffect.style.left = "0";
-        flashEffect.style.width = "100%";
-        flashEffect.style.height = "100%";
-        flashEffect.style.backgroundColor = "#ffffff";
-        flashEffect.style.zIndex = "99";
-        flashEffect.style.transition = "opacity 0.2s ease-out";
-        video.parentElement.appendChild(flashEffect);
-        setTimeout(() => {
-            flashEffect.style.opacity = "0";
-            setTimeout(() => flashEffect.remove(), 200);
-        }, 50);
+        inputs.forEach(function (input) {
+            initialValues[input.name] = input.value;
+            input.addEventListener('input', checkChanges);
+            input.addEventListener('change', checkChanges);
+        });
 
-        // Disable capture button to prevent multiple submissions
-        captureBtn.disabled = true;
-        captureBtn.innerHTML = "Đang xử lý...";
-
-        // Send base64 data to server via AJAX POST
-        const formData = new URLSearchParams();
-        formData.append("action", "saveCapturedPhoto");
-        formData.append("sbd", sbd);
-        formData.append("photoBase64", photoBase64);
-
-        fetch("procedure", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: formData.toString()
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log("Photo successfully captured and saved on server!");
-                // Turn off camera stream
-                if (webcamStream) {
-                    webcamStream.getTracks().forEach(track => track.stop());
+        function checkChanges() {
+            var changed = false;
+            inputs.forEach(function (input) {
+                if (initialValues[input.name] !== input.value) {
+                    changed = true;
                 }
-                // Redirect back to profile setup Step 2 with photoCaptured=true flag to show preview
-                window.location.href = `procedure?sbd=${sbd}&step=2&photoCaptured=true`;
+            });
+
+            var formActionInput = document.querySelector('#formAction');
+            if (changed) {
+                if (formActionInput) {
+                    formActionInput.value = 'saveProfile';
+                }
+                btn.textContent = 'L\u01b0u thay \u0111\u1ed5i & Sang B\u01b0\u1edbc 2 (Ch\u1ee5p \u1ea3nh) \u2192';
+                btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                btn.style.borderColor = '#d97706';
+                btn.style.boxShadow = '0 4px 14px rgba(245, 158, 11, 0.2)';
             } else {
-                alert("Lỗi khi lưu ảnh lên Server!");
-                captureBtn.disabled = false;
-                captureBtn.innerHTML = "Bấm chụp ảnh lại";
+                if (formActionInput) {
+                    formActionInput.value = '';
+                }
+                btn.textContent = 'X\u00e1c nh\u1eadn & Sang B\u01b0\u1edbc 2 (Ch\u1ee5p \u1ea3nh) \u2192';
+                btn.style.background = 'linear-gradient(135deg, #0052cc, #003d9b)';
+                btn.style.borderColor = '#003d9b';
+                btn.style.boxShadow = 'none';
             }
-        })
-        .catch(err => {
-            console.error("AJAX Error capturing photo: ", err);
-            alert("Lỗi kết nối khi lưu ảnh!");
-            captureBtn.disabled = false;
-            captureBtn.innerHTML = "Bấm chụp ảnh lại";
-        });
-    });
-}
-
-/**
- * Monitors inputs for changes to toggle button actions dynamically
- */
-function initFormChangeChecking() {
-    const form = document.querySelector("#procedureForm");
-    if (!form) return;
-
-    const btn = document.querySelector("#submitBtn");
-    if (!btn) return;
-
-    const initialValues = {};
-    // Monitor only inputs with a name that are not read-only or hidden
-    const inputs = form.querySelectorAll("input[name]:not([type=hidden]):not([readonly])");
-
-    inputs.forEach(input => {
-        initialValues[input.name] = input.value;
-        input.addEventListener("input", checkChanges);
-        input.addEventListener("change", checkChanges);
-    });
-
-    function checkChanges() {
-        let changed = false;
-        inputs.forEach(input => {
-            if (initialValues[input.name] !== input.value) {
-                changed = true;
-            }
-        });
-
-        const formActionInput = document.querySelector("#formAction");
-        if (changed) {
-            if (formActionInput) formActionInput.value = "saveProfile";
-            btn.innerHTML = 'Lưu thay đổi & Sang Bước 2 (Chụp ảnh) &rarr;';
-            btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-            btn.style.borderColor = '#d97706';
-            btn.style.boxShadow = '0 4px 14px rgba(245, 158, 11, 0.2)';
-        } else {
-            if (formActionInput) formActionInput.value = "";
-            btn.innerHTML = 'Xác nhận & Sang Bước 2 (Chụp ảnh) &rarr;';
-            btn.style.background = 'linear-gradient(135deg, #0052cc, #003d9b)';
-            btn.style.borderColor = '#003d9b';
-            btn.style.boxShadow = 'none';
         }
     }
-}
+
+    function cfgMsg(config, key, fallback) {
+        if (!config) {
+            return fallback;
+        }
+        var val = config.dataset[key];
+        return val && val.length ? val : fallback;
+    }
+
+    function initWebcamCapture() {
+        var config = document.getElementById('procedureCameraConfig');
+        if (!config || config.dataset.enabled !== 'true') {
+            return;
+        }
+
+        var ctxPath = config.dataset.ctxPath || '';
+        var sbd = config.dataset.sbd || '';
+        var video = document.getElementById('cameraVideo');
+        var canvas = document.getElementById('captureCanvas');
+        var captureBtn = document.getElementById('captureBtn');
+        var statusEl = document.getElementById('cameraStatus');
+        var errorEl = document.getElementById('cameraError');
+        var mediaStream = null;
+
+        var MSG = {
+            live: cfgMsg(config, 'msgLive', 'LIVE'),
+            starting: cfgMsg(config, 'msgStarting', ''),
+            unavailable: cfgMsg(config, 'msgUnavailable', ''),
+            noApi: cfgMsg(config, 'msgNoApi', ''),
+            denied: cfgMsg(config, 'msgDenied', ''),
+            notFound: cfgMsg(config, 'msgNotFound', ''),
+            openFail: cfgMsg(config, 'msgOpenFail', ''),
+            notReady: cfgMsg(config, 'msgNotReady', ''),
+            frameFail: cfgMsg(config, 'msgFrameFail', ''),
+            saveFail: cfgMsg(config, 'msgSaveFail', '')
+        };
+
+        var labelCapture = captureBtn
+            ? (captureBtn.dataset.labelCapture || 'Ch\u1ee5p \u1ea3nh ch\u00e2n dung')
+            : '';
+        var labelSaving = captureBtn
+            ? (captureBtn.dataset.labelSaving || '\u0110ang l\u01b0u \u1ea3nh...')
+            : '';
+
+        function showError(message) {
+            if (!errorEl) {
+                return;
+            }
+            errorEl.classList.remove('is-hidden');
+            errorEl.textContent = message;
+            if (statusEl) {
+                statusEl.textContent = MSG.unavailable;
+            }
+        }
+
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(function (track) { track.stop(); });
+                mediaStream = null;
+            }
+            if (video) {
+                video.srcObject = null;
+            }
+        }
+
+        function buildCompressedDataUrl(srcVideo) {
+            var maxWidth = 640;
+            var w = srcVideo.videoWidth;
+            var h = srcVideo.videoHeight;
+            if (!w || !h) {
+                return null;
+            }
+            if (w > maxWidth) {
+                h = Math.round(h * maxWidth / w);
+                w = maxWidth;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(srcVideo, 0, 0, w, h);
+            return canvas.toDataURL('image/jpeg', 0.82);
+        }
+
+        async function startCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showError(MSG.noApi);
+                return;
+            }
+            if (statusEl && MSG.starting) {
+                statusEl.textContent = MSG.starting;
+            }
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+                video.srcObject = mediaStream;
+                await video.play();
+                if (statusEl) {
+                    statusEl.textContent = MSG.live;
+                }
+                if (captureBtn) {
+                    captureBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                var msg = MSG.openFail;
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    msg = MSG.denied;
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    msg = MSG.notFound;
+                }
+                showError(msg);
+            }
+        }
+
+        async function captureAndSave() {
+            if (!video || !canvas || video.readyState < 2) {
+                showError(MSG.notReady);
+                return;
+            }
+            var dataUrl = buildCompressedDataUrl(video);
+            if (!dataUrl) {
+                showError(MSG.frameFail);
+                return;
+            }
+
+            captureBtn.disabled = true;
+            captureBtn.textContent = labelSaving;
+
+            var body = new URLSearchParams();
+            body.append('sbd', sbd);
+            body.append('action', 'saveCapturedPhoto');
+            body.append('photoBase64', dataUrl);
+
+            try {
+                var resp = await fetch(ctxPath + '/views/staff/examstaff/procedure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: body.toString(),
+                    credentials: 'same-origin'
+                });
+                var result = await resp.json();
+                if (!resp.ok || !result.success) {
+                    throw new Error(result.message || ('HTTP ' + resp.status));
+                }
+                stopCamera();
+                markProcedureDeskScroll();
+                window.location.href = ctxPath + '/views/staff/examstaff/procedure?sbd='
+                    + encodeURIComponent(sbd) + '&step=2#procedure-desk';
+            } catch (err) {
+                console.error(err);
+                showError(MSG.saveFail + (err.message || 'l\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh'));
+                captureBtn.disabled = false;
+                captureBtn.textContent = labelCapture;
+            }
+        }
+
+        if (captureBtn) {
+            captureBtn.addEventListener('click', captureAndSave);
+        }
+        window.addEventListener('pagehide', stopCamera);
+        startCamera();
+    }
+})();

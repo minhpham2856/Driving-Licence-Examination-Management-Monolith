@@ -37,14 +37,39 @@
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("callingSbd", null);
     }
+    if (qList != null) {
+        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
+            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+    }
     
-    // Find active candidate
+    // Find active candidate (bỏ qua thí sinh đã hoàn tất thủ tục)
     String sbdParam = (String) session.getAttribute("callingSbd");
     Models.ExamRegistration callingCandidate = null;
     if (sbdParam != null && !sbdParam.trim().isEmpty() && qList != null) {
         for (Models.ExamRegistration c : qList) {
             if (sbdParam.equals(c.getSbd())) {
-                callingCandidate = c;
+                boolean procedureDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
+                if (!procedureDone) {
+                    callingCandidate = c;
+                } else {
+                    String nextSbd = null;
+                    for (Models.ExamRegistration pending : qList) {
+                        if (!(pending.isPaymentCompleted() && pending.isValidCapturedPhoto())) {
+                            nextSbd = pending.getSbd();
+                            break;
+                        }
+                    }
+                    session.setAttribute("callingSbd", nextSbd);
+                    sbdParam = nextSbd;
+                    if (nextSbd != null) {
+                        for (Models.ExamRegistration pending : qList) {
+                            if (nextSbd.equals(pending.getSbd())) {
+                                callingCandidate = pending;
+                                break;
+                            }
+                        }
+                    }
+                }
                 break;
             }
         }
@@ -69,124 +94,6 @@
     <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    
-    <style>
-        .batch-btn-container {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .btn-batch {
-            width: 100%;
-            padding: 0.88rem;
-            border-radius: 12px;
-            font-size: 0.92rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            border: 1px solid #0052cc;
-            background-color: #0052cc;
-            color: #ffffff;
-            box-shadow: 0 4px 10px rgba(0, 82, 204, 0.15);
-        }
-        .btn-batch:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 15px rgba(0, 82, 204, 0.2);
-        }
-        
-        .btn-batch--alt {
-            background-color: #ffffff;
-            color: #475569;
-            border-color: #cbd5e1;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-        .btn-batch--alt:hover {
-            background-color: #f8fafc;
-            border-color: #94a3b8;
-            color: #0f172a;
-        }
-        
-        /* Premium Wave Sound Animation */
-        .soundwave-container {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border-radius: 16px;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 180px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
-            margin-bottom: 1.25rem;
-            border: 1px solid #334155;
-        }
-        
-        .soundwave-animation {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            height: 40px;
-            margin-top: 1rem;
-        }
-        
-        .soundwave-bar {
-            width: 4px;
-            height: 10px;
-            background-color: #10b981;
-            border-radius: 99px;
-            animation: waveBounce 1s infinite alternate;
-        }
-        .soundwave-bar:nth-child(2) { height: 20px; animation-delay: 0.1s; }
-        .soundwave-bar:nth-child(3) { height: 35px; animation-delay: 0.2s; }
-        .soundwave-bar:nth-child(4) { height: 45px; animation-delay: 0.3s; }
-        .soundwave-bar:nth-child(5) { height: 25px; animation-delay: 0.4s; }
-        .soundwave-bar:nth-child(6) { height: 15px; animation-delay: 0.2s; }
-        .soundwave-bar:nth-child(7) { height: 30px; animation-delay: 0.1s; }
-        .soundwave-bar:nth-child(8) { height: 40px; animation-delay: 0.5s; }
-        .soundwave-bar:nth-child(9) { height: 18px; animation-delay: 0.3s; }
-        .soundwave-bar:nth-child(10) { height: 8px; animation-delay: 0.1s; }
-        
-        @keyframes waveBounce {
-            0% { transform: scaleY(0.3); }
-            100% { transform: scaleY(1.1); }
-        }
-        
-        .waiting-list-pane {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-            height: 100%;
-        }
-        
-        .called-status-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0 0 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .active-calling-card {
-            background: rgba(15, 23, 42, 0.02);
-            border: 2px solid rgba(0, 82, 204, 0.15);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-        }
-    </style>
 </head>
 <body class="has-side-nav-bar">
 
@@ -203,23 +110,41 @@
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Ban Sát Hạch</span>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Gọi làm thủ tục</span>
+            <c:choose>
+                <c:when test="${requestScope.deskMode}">
+                    <span class="breadcrumbs__current">Gọi làm thủ tục</span>
+                    <span class="breadcrumbs__separator" aria-hidden="true">/</span>
+                    <span class="breadcrumbs__current" aria-current="page">Bàn làm thủ tục</span>
+                </c:when>
+                <c:otherwise>
+                    <span class="breadcrumbs__current" aria-current="page">Gọi làm thủ tục</span>
+                </c:otherwise>
+            </c:choose>
         </nav>
         
         <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Gọi thí sinh vào làm thủ tục</h1>
-                <p class="page-subtitle">Hệ thống điều hành phòng chờ chính, gọi loa tự động (TTS) theo hàng đợi danh sách đầy đủ và quản lý vắng mặt.</p>
+                <p class="page-subtitle">Điều hành loa gọi hàng đợi và làm thủ tục 3 bước trên cùng một màn hình.</p>
             </div>
             
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="display: flex; align-items: center; gap: 6px;">
+            <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                     <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ca thi:</span>
                     <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
                         <c:out value="${currentSession.sessionName}" /> (<c:out value="${currentSession.licenseCode}" />)
                     </span>
                 </div>
+                <a href="procedure#procedure-desk" class="btn-export" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    Bàn làm thủ tục
+                </a>
+                <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId != null ? sessionScope.selectedSessionId : 2}"
+                   target="_blank" rel="noopener"
+                   class="btn-filter" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #0f172a; border-color: #0f172a; color: #ffffff;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                    Mở màn hình TV
+                </a>
             </div>
         </header>
 
@@ -381,6 +306,14 @@
                                             <span class="role-badge role-badge--coi" style="font-size: 0.72rem; padding: 2px 8px;">Hạng ${callingCandidate.clazz}</span>
                                             <span style="font-size: 0.75rem; color: #64748b; font-family: monospace;">CCCD: ${callingCandidate.cccd}</span>
                                         </div>
+
+                                        <c:if test="${not empty requestScope.nextCallingCandidate}">
+                                            <div style="margin-top: 1rem; padding: 10px 12px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; text-align: left; width: 100%;">
+                                                <span style="font-size: 0.68rem; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">Chuẩn bị tiếp theo (hiển thị TV)</span>
+                                                <div style="margin-top: 4px; font-family: monospace; font-weight: 800; color: #059669; font-size: 1rem;">${requestScope.nextCallingCandidate.sbd}</div>
+                                                <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">${requestScope.nextCallingCandidate.name} &mdash; Hạng ${requestScope.nextCallingCandidate.clazz}</div>
+                                            </div>
+                                        </c:if>
                                         
                                         <!-- Time Limit Countdown Bar -->
                                         <div style="margin-top: 1.25rem; text-align: left; width: 100%;">
@@ -397,7 +330,7 @@
                                         </div>
                                         
                                         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
-                                            <a href="procedure?sbd=${callingCandidate.sbd}" class="btn-batch" style="background-color: #0052cc; border-color: #0052cc; height: 40px; font-size: 0.85rem;">
+                                            <a href="procedure?sbd=${callingCandidate.sbd}#procedure-desk" class="btn-batch" style="background-color: #0052cc; border-color: #0052cc; height: 40px; font-size: 0.85rem;">
                                                 Tiến hành lập hồ sơ &rarr;
                                             </a>
                                             
@@ -435,7 +368,7 @@
                             <!-- Calculate pending count (not completed procedures) dynamically -->
                             <c:set var="pendingCount" value="0" />
                             <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                                <c:set var="isCdone" value="${not empty c.photoUrl and c.paymentCompleted}" />
+                                <c:set var="isCdone" value="${c.validCapturedPhoto and c.paymentCompleted}" />
                                 <c:if test="${not isCdone}">
                                     <c:set var="pendingCount" value="${pendingCount + 1}" />
                                 </c:if>
@@ -487,7 +420,7 @@
                                 </thead>
                                 <tbody>
                                     <c:forEach var="candidate" items="${sessionScope.candidateQueue}" varStatus="status">
-                                        <c:set var="cDone" value="${not empty candidate.photoUrl and candidate.paymentCompleted}" />
+                                        <c:set var="cDone" value="${candidate.validCapturedPhoto and candidate.paymentCompleted}" />
                                         <c:if test="${not cDone}">
                                             <c:set var="isCurrentCalling" value="${candidate.sbd eq sessionScope.callingSbd}" />
                                             <!-- Highlight the active candidate being called -->
@@ -503,7 +436,7 @@
                                                 <td style="text-align: center; font-family: monospace; color: #475569;">${candidate.cccd}</td>
                                                 <td style="text-align: right;">
                                                     <div style="display: inline-flex; gap: 4px;">
-                                                        <a href="procedure?sbd=${candidate.sbd}" class="btn-filter" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">Hồ sơ</a>
+                                                        <a href="procedure?sbd=${candidate.sbd}#procedure-desk" class="btn-filter" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">Hồ sơ</a>
                                                         <a href="candidatecall?action=absent&sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #d97706; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);" title="Đẩy xuống cuối hàng chờ">Vắng tạm</a>
                                                     </div>
                                                 </td>
@@ -518,6 +451,10 @@
             </div>
             
         </div>
+
+        <c:if test="${requestScope.deskMode}">
+            <jsp:include page="/views/staff/examstaff/procedure.jsp"/>
+        </c:if>
 
         <!-- Permanent Absents List & Undo Option (Exception Safety) (UC-03) -->
         <c:if test="${not empty sessionScope.permanentAbsents}">
@@ -577,46 +514,29 @@
     </jsp:include>
 </div>
 
-<!-- Real-time JavaScript Countdown Broadcast Engine -->
-<c:if test="${not empty callingCandidate}">
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var countdownVal = 180;
-            var totalTime = 180;
-            var textEl = document.getElementById("countdownText");
-            var barEl = document.getElementById("countdownBar");
-            
-            if (textEl && barEl) {
-                var interval = setInterval(function() {
-                    countdownVal--;
-                    if (countdownVal <= 0) {
-                        clearInterval(interval);
-                        textEl.textContent = "0 Giây";
-                        barEl.style.width = "0%";
-                        // Trigger auto-absent redirect
-                        window.location.href = "candidatecall?action=autoAbsent&sbd=${callingCandidate.sbd}";
-                    } else {
-                        textEl.textContent = countdownVal + " Giây";
-                        var pct = (countdownVal / totalTime) * 100;
-                        barEl.style.width = pct + "%";
-                        
-                        // Transition warning colors
-                        if (countdownVal > 90) {
-                            barEl.style.backgroundColor = "#10b981"; // Emerald Green
-                            textEl.style.color = "#10b981";
-                        } else if (countdownVal > 30) {
-                            barEl.style.backgroundColor = "#f59e0b"; // Amber Orange
-                            textEl.style.color = "#f59e0b";
-                        } else {
-                            barEl.style.backgroundColor = "#ef4444"; // Crimson Red
-                            textEl.style.color = "#ef4444";
-                        }
-                    }
-                }, 1000);
-            }
-        });
-    </script>
+<div id="candidateCallConfig"
+     data-sbd="${not empty callingCandidate ? callingCandidate.sbd : ''}"
+     hidden></div>
+<c:if test="${requestScope.deskMode}">
+    <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
+    <c:if test="${empty currentStep}"><c:set var="currentStep" value="1" /></c:if>
+    <div id="procedureCameraConfig"
+         data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"
+         data-ctx-path="${pageContext.request.contextPath}"
+         data-sbd="${not empty requestScope.profile ? requestScope.profile.sbd : ''}"
+         data-msg-live="LIVE — Camera sẵn sàng"
+         data-msg-starting="Đang khởi động camera..."
+         data-msg-unavailable="Camera không khả dụng"
+         data-msg-no-api="Trình duyệt không hỗ trợ camera. Dùng Chrome/Edge/Firefox trên localhost hoặc HTTPS."
+         data-msg-denied="Quyền camera bị từ chối. Cho phép camera trong trình duyệt rồi tải lại trang."
+         data-msg-not-found="Không tìm thấy camera trên thiết bị."
+         data-msg-open-fail="Không thể mở camera."
+         data-msg-not-ready="Camera chưa sẵn sàng. Đợi vài giây rồi thử lại."
+         data-msg-frame-fail="Không đọc được khung hình từ camera."
+         data-msg-save-fail="Lưu ảnh thất bại: "
+         hidden></div>
+    <script src="${pageContext.request.contextPath}/assets/js/procedure.js" charset="UTF-8"></script>
 </c:if>
-
+<script src="${pageContext.request.contextPath}/assets/js/candidatecall.js" charset="UTF-8"></script>
 </body>
 </html>
