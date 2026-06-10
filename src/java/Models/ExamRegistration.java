@@ -36,6 +36,7 @@ public class ExamRegistration {
     private Integer allocatedAreaId;
     private String allocatedAreaName;
     private boolean isCalled;
+    private boolean validCapturedPhoto;
 
 
     public ExamRegistration() {
@@ -367,5 +368,13 @@ public class ExamRegistration {
 
     public void setCalled(boolean isCalled) {
         this.isCalled = isCalled;
+    }
+
+    public boolean isValidCapturedPhoto() {
+        return validCapturedPhoto;
+    }
+
+    public void setValidCapturedPhoto(boolean validCapturedPhoto) {
+        this.validCapturedPhoto = validCapturedPhoto;
     }
 }

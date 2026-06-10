@@ -1,6 +1,7 @@
 package DAO;
 
 import Models.AuditLog;
+import Models.StaffProcedureKpi;
 import java.util.List;
 
 public interface AuditLogDAO {
@@ -18,4 +19,7 @@ public interface AuditLogDAO {
     
     int getLogsCountByUserAndDate(int userId, String dateStr);
     int getAllLogsCountByDate(String dateStr);
+
+    /** Học viên đã ảnh + thanh toán, do cán bộ userId thu (qua Audit). filterDate: yyyy-MM-dd hoặc null. */
+    StaffProcedureKpi getStaffProcedureKpi(int userId, String filterDate);
 }
