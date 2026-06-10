@@ -8,22 +8,22 @@
 <c:set var="activeSidebar" value="${param.activeSidebar}" />
 <c:if test="${empty activeSidebar}">
     <c:choose>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard') or fn:contains(pageContext.request.requestURI, 'tong-quan')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
             <c:set var="activeSidebar" value="dashboard" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'users') or fn:contains(pageContext.request.requestURI, 'hoc-vien') or fn:contains(pageContext.request.requestURI, 'user-detail')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'users') or fn:contains(pageContext.request.requestURI, 'user-detail')}">
             <c:set var="activeSidebar" value="hoc-vien" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'approve') or fn:contains(pageContext.request.requestURI, 'duyet-ho-so')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'approve')}">
             <c:set var="activeSidebar" value="duyet-ho-so" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user') or fn:contains(pageContext.request.requestURI, 'tao-tai-khoan')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user')}">
             <c:set var="activeSidebar" value="tao-tai-khoan" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'report') or fn:contains(pageContext.request.requestURI, 'bao-cao')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'report')}">
             <c:set var="activeSidebar" value="bao-cao" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit') or fn:contains(pageContext.request.requestURI, 'nhat-ky')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit')}">
             <c:set var="activeSidebar" value="nhat-ky" />
         </c:when>
         <c:otherwise>
