@@ -1,7 +1,6 @@
 package DAO;
 
 import Models.User;
-import java.util.List;
 
 public interface UserDAO {
 
@@ -11,9 +10,9 @@ public interface UserDAO {
 
     User getByIdentifier(String identifier);
 
+    User getByEmail(String email);
+
     boolean insert(User user);
 
     boolean updatePassword(int userId, String passwordHash);
-
-    List<User> getByRoleName(String roleName);
 }

@@ -42,8 +42,7 @@ public class LoginServlet extends HttpServlet {
         String identifier = request.getParameter("identifier");
         String password = request.getParameter("password");
 
-        if (identifier == null || identifier.trim().isEmpty()
-                || password == null || password.trim().isEmpty()) {
+        if (identifier == null || identifier.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập tên đăng nhập/email/SĐT và mật khẩu.");
             request.getRequestDispatcher("/views/public/login.jsp").forward(request, response);
             return;
@@ -60,10 +59,14 @@ public class LoginServlet extends HttpServlet {
             String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
             if ("ManagingStaff".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/staff/managingstaff/dashboard.jsp");
+            } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
+                response.sendRedirect(request.getContextPath() + "/views/admin/examstaff/dashboard.jsp");
+            } else if ("Examiner".equalsIgnoreCase(roleName)) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard.jsp");
             } else if ("Admin".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/public/home.jsp");
+                response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
             } else {
-                response.sendRedirect(request.getContextPath() + "/views/public/home.jsp");
+                response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
             }
         }
     }

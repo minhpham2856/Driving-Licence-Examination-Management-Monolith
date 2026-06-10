@@ -9,7 +9,8 @@ public interface AuthService {
      *
      * @return null if successful, else returns error msg
      */
-    String register(String username, String email, String password);
+    String register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
+                    String address, String email, boolean gender);
 
     /**
      * Validates credentials

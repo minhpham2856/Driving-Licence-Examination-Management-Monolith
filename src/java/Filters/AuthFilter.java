@@ -18,11 +18,12 @@ public class AuthFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         HttpSession session = httpRequest.getSession(false);
 
+        
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
         if (user == null) {
             session = httpRequest.getSession(true);
-            session.setAttribute("errorMessage", "Bạn cần phải đăng nhập để truy cập khu vực này.");
+            session.setAttribute("errorMessage", "Bạn cần phải đăng nhập để truy cập.");
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }
