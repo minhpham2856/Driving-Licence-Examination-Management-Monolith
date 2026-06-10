@@ -10,6 +10,8 @@ public interface PersonDAO {
 
     Person getByGovIdNo(String govIdNo);
 
+    Person getByPhoneNo(String phoneNo);
+
     boolean insert(Person person);
 
     boolean update(Person person);

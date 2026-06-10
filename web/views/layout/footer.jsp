@@ -29,8 +29,8 @@
                 <div class="site-footer__col">
                     <h4 class="site-footer__col-title">Dịch vụ</h4>
                     <nav class="site-footer__col-nav" aria-label="Liên kết Dịch vụ">
-                        <a href="license-grades.jsp" class="site-footer__link">Đăng ký thi</a>
-                        <a href="license-grades.jsp" class="site-footer__link">Các hạng bằng</a>
+                        <a href="${ctx}/license-categories" class="site-footer__link">Đăng ký thi</a>
+                        <a href="${ctx}/license-categories" class="site-footer__link">Các hạng bằng</a>
                         <a href="#" class="site-footer__link">Liên hệ đăng ký học</a>
                     </nav>
                 </div>
