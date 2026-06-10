@@ -14,14 +14,17 @@
         <c:when test="${fn:contains(pageContext.request.requestURI, 'upload') or fn:contains(pageContext.request.requestURI, 'tai-ds')}">
             <c:set var="activeSidebar" value="tai-ds" />
         </c:when>
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'examiner-allocation') or fn:contains(pageContext.request.requestURI, 'giam-khao')}">
+            <c:set var="activeSidebar" value="phan-bo-giam-khao" />
+        </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'allocation') or fn:contains(pageContext.request.requestURI, 'phan-bo')}">
             <c:set var="activeSidebar" value="phan-bo" />
         </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'candidatecall') or fn:contains(pageContext.request.requestURI, 'goi-thi')}">
             <c:set var="activeSidebar" value="goi-thi" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'procedure') or fn:contains(pageContext.request.requestURI, 'lam-thu-tuc')}">
-            <c:set var="activeSidebar" value="lam-thu-tuc" />
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'procedure')}">
+            <c:set var="activeSidebar" value="goi-thi" />
         </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'report') or fn:contains(pageContext.request.requestURI, 'bao-cao')}">
             <c:set var="activeSidebar" value="bao-cao" />
@@ -91,6 +94,20 @@
             <span class="side-nav-bar__label" data-node-id="4:766">Phân bổ thí sinh</span>
         </a>
 
+        <a href="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation"
+           class="side-nav-bar__link${activeSidebar eq 'phan-bo-giam-khao' ? ' is-active' : ''}"
+           <c:if test="${activeSidebar eq 'phan-bo-giam-khao'}">aria-current="page"</c:if>>
+            <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <rect x="14" y="4" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M16 14h6M16 17h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__label">Phân bổ giám khảo</span>
+        </a>
+
         <a href="${pageContext.request.contextPath}/views/staff/examstaff/candidatecall"
            class="side-nav-bar__link${activeSidebar eq 'goi-thi' ? ' is-active' : ''}"
            data-node-id="4:767"
@@ -102,23 +119,6 @@
                 </svg>
             </span>
             <span class="side-nav-bar__label" data-node-id="4:771">Gọi làm thủ tục</span>
-        </a>
-
-        <a href="${ctx}/views/staff/examstaff/procedure"
-           class="side-nav-bar__link${activeSidebar eq 'lam-thu-tuc' ? ' is-active' : ''}"
-           data-node-id="4:772"
-           <c:if test="${activeSidebar eq 'lam-thu-tuc'}">aria-current="page"</c:if>>
-            <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="3" width="20" height="18" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="7.5" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M3.5 18c0-2 2-3.5 4-3.5s4 1.5 4 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="14" y1="8" x2="19" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="14" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="14" y1="16" x2="17" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="side-nav-bar__label" data-node-id="4:776">Bàn làm thủ tục</span>
         </a>
 
         <a href="${ctx}/views/staff/examstaff/report.jsp"
@@ -150,19 +150,7 @@
         <!-- Public Live Displays SC-080 / SC-081 -->
         <div style="margin: 1.25rem 1.25rem 0.5rem; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Màn hình công cộng</div>
 
-        <a href="${ctx}/views/public/live-scoreboard.jsp"
-           class="side-nav-bar__link${activeSidebar eq 'live-scoreboard' ? ' is-active' : ''}"
-           <c:if test="${activeSidebar eq 'live-scoreboard'}">aria-current="page"</c:if>>
-            <span class="side-nav-bar__icon side-nav-bar__icon--sm" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M9 17v-5M15 17v-3M12 17v-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="side-nav-bar__label">Bảng điểm Live (5s)</span>
-        </a>
-
-        <a href="${ctx}/views/public/public-call.jsp"
+        <a href="${ctx}/views/public/public-call"
            class="side-nav-bar__link${activeSidebar eq 'public-call' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'public-call'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--sm" aria-hidden="true">

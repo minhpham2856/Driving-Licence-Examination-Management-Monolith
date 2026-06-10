@@ -50,6 +50,31 @@
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", sessionId);
     }
+    if (qList != null) {
+        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
+            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+    }
+
+    java.util.List<Controllers.Staff.ExamStaff.ExaminerSlot> assignedExaminers =
+            Controllers.Staff.ExamStaff.ExaminerAssignmentStore.getBySessionId(session, sessionId);
+    int assignedWithArea = 0;
+    if (assignedExaminers != null) {
+        for (Controllers.Staff.ExamStaff.ExaminerSlot slot : assignedExaminers) {
+            if (slot.getAreaId() > 0) assignedWithArea++;
+        }
+    }
+    pageContext.setAttribute("assignedExaminerCount", assignedWithArea);
+
+    String sessionControlMsg = (String) session.getAttribute("sessionControlMsg");
+    String sessionControlError = (String) session.getAttribute("sessionControlError");
+    if (sessionControlMsg != null) {
+        request.setAttribute("sessionControlMsg", sessionControlMsg);
+        session.removeAttribute("sessionControlMsg");
+    }
+    if (sessionControlError != null) {
+        request.setAttribute("sessionControlError", sessionControlError);
+        session.removeAttribute("sessionControlError");
+    }
 %>
 
 <!DOCTYPE html>
@@ -67,163 +92,6 @@
     <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    
-    <style>
-        .progress-indicator-bar {
-            display: flex;
-            height: 12px;
-            border-radius: 999px;
-            overflow: hidden;
-            background-color: #e2e8f0;
-            margin: 1rem 0;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .progress-indicator-segment {
-            height: 100%;
-            transition: width 0.4s ease;
-        }
-        .progress-indicator-segment--success { background: linear-gradient(90deg, #10b981, #059669); }
-        .progress-indicator-segment--info { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
-        .progress-indicator-segment--pending { background: linear-gradient(90deg, #f59e0b, #d97706); }
-        .progress-indicator-segment--empty { background-color: #cbd5e1; }
-        
-        .progress-legend {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
-        }
-        .progress-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            color: #475569;
-        }
-        .progress-legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        
-        .room-monitor-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-        
-        .room-monitor-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .room-monitor-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
-        }
-        
-        .room-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 0.75rem;
-        }
-        .room-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .room-badge {
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 6px;
-        }
-        .room-badge--green { background-color: rgba(16, 185, 129, 0.1); color: #059669; }
-        .room-badge--blue { background-color: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
-        .room-badge--orange { background-color: rgba(245, 158, 11, 0.1); color: #b45309; }
-        
-        .room-candidate-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            min-height: 240px;
-        }
-        
-        .room-candidate-item {
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
-            border-radius: 12px;
-            padding: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        .room-candidate-item:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-        }
-        
-        .candidate-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-        .candidate-name {
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-        .candidate-sbd {
-            font-family: monospace;
-            font-weight: 800;
-            color: #0052cc;
-            font-size: 0.88rem;
-        }
-        .candidate-step {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .candidate-step--verify { background-color: #eff6ff; color: #1d4ed8; }
-        .candidate-step--photo { background-color: #faf5ff; color: #7e22ce; }
-        .candidate-step--payment { background-color: #fef3c7; color: #b45309; }
-        .candidate-step--ready { background-color: #ecfdf5; color: #047857; }
-        .candidate-step--waiting { background-color: #f8fafc; color: #475569; }
-        
-        .empty-room-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            color: #94a3b8;
-            font-size: 0.8rem;
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-    </style>
 </head>
 <body class="has-side-nav-bar">
 
@@ -256,7 +124,7 @@
                 <form action="dashboard.jsp" method="GET" style="margin: 0; display: inline-flex; align-items: center;">
                     <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 8px; padding: 4px 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); height: 42px;">
                         <span style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;">Ca sát hạch:</span>
-                        <select id="sessionId" name="sessionId" onchange="this.form.submit()" style="height: 30px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 700; color: #1e293b; padding: 0 10px; background: #ffffff; cursor: pointer; outline: none; font-size: 0.82rem; max-width: 320px;">
+                        <select id="sessionId" name="sessionId" class="es-session-selector__select">
                             <c:forEach var="sess" items="${allSessions}">
                                 <option value="${sess.id}" ${sessionScope.selectedSessionId eq sess.id ? 'selected' : ''}>
                                     Ca #${sess.id} - ${sess.sessionName}
@@ -289,6 +157,70 @@
             </div>
         </header>
 
+        <c:if test="${not empty requestScope.sessionControlMsg}">
+            <div style="background-color: #ecfdf5; border: 1.5px solid #10b981; border-radius: 12px; padding: 0.88rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: #047857;">${requestScope.sessionControlMsg}</span>
+            </div>
+        </c:if>
+        <c:if test="${not empty requestScope.sessionControlError}">
+            <div style="background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 12px; padding: 0.88rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: #b91c1c;">${requestScope.sessionControlError}</span>
+            </div>
+        </c:if>
+
+        <!-- Điều khiển bắt đầu / kết thúc ca thi -->
+        <section class="report-pane" style="margin-top: 1rem; border-radius: 16px; padding: 1.25rem 1.5rem; border: 1px solid #cbd5e1; background: #ffffff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">Điều khiển ca thi</h2>
+                    <p style="font-size: 0.82rem; color: #64748b; margin: 0;">
+                        Giám khảo chỉ đăng nhập được sau khi ca ở trạng thái <strong>Đang diễn ra</strong>
+                        và đã được phân vào khu vực thi
+                        (<a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}" style="color: #0052cc; font-weight: 700;">Phân bổ giám khảo</a>).
+                        Hiện có <strong>${assignedExaminerCount}</strong> giám khảo đã phân phòng.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <c:choose>
+                        <c:when test="${currentSession.status eq 'InProgress'}">
+                            <span class="role-badge role-badge--admin" style="background: #dcfce7; color: #166534; border: 1px solid #86efac;">Đang diễn ra</span>
+                            <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Kết thúc ca thi? Giám khảo sẽ không đăng nhập được nữa.');">
+                                <input type="hidden" name="action" value="endSession">
+                                <input type="hidden" name="sessionId" value="${sessionScope.selectedSessionId}">
+                                <input type="hidden" name="redirect" value="dashboard">
+                                <button type="submit" class="btn-export" style="height: 40px; padding: 0 1.25rem; border-radius: 8px; background: #fef2f2; color: #b91c1c; border-color: #fecaca; font-weight: 700;">
+                                    Kết thúc ca thi
+                                </button>
+                            </form>
+                        </c:when>
+                        <c:when test="${currentSession.status eq 'Completed' or currentSession.status eq 'Cancelled'}">
+                            <span class="role-badge" style="background: #f1f5f9; color: #64748b;">Đã kết thúc</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="role-badge role-badge--coi" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">Chưa bắt đầu</span>
+                            <c:choose>
+                                <c:when test="${assignedExaminerCount gt 0}">
+                                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi? Giám khảo đã phân công có thể đăng nhập.');">
+                                        <input type="hidden" name="action" value="startSession">
+                                        <input type="hidden" name="sessionId" value="${sessionScope.selectedSessionId}">
+                                        <input type="hidden" name="redirect" value="dashboard">
+                                        <button type="submit" class="btn-filter" style="height: 40px; padding: 0 1.25rem; border-radius: 8px; font-weight: 700;">
+                                            Bắt đầu ca thi
+                                        </button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}" class="btn-filter" style="height: 40px; padding: 0 1.25rem; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; opacity: 0.85;">
+                                        Phân giám khảo trước
+                                    </a>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </section>
+
         <!-- Dynamic parameters from JSTL connected to DB session candidateQueue -->
         <c:set var="totalCandidatesCount" value="${fn:length(sessionScope.candidateQueue)}" />
         <c:set var="completedCount" value="0" />
@@ -297,7 +229,7 @@
 
         <c:forEach var="c" items="${sessionScope.candidateQueue}">
             <c:choose>
-                <c:when test="${not empty c.photoUrl and c.paymentCompleted}">
+                <c:when test="${c.validCapturedPhoto and c.paymentCompleted}">
                     <c:set var="completedCount" value="${completedCount + 1}" />
                 </c:when>
                 <c:when test="${sessionScope.callingSbd eq c.sbd}">
@@ -479,9 +411,9 @@
                 <div class="room-candidate-list">
                     <c:set var="activeCalledCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${sessionScope.callingSbd eq c.sbd and (empty c.photoUrl or not c.paymentCompleted) and activeCalledCount lt 3}">
+                        <c:if test="${sessionScope.callingSbd eq c.sbd and (not c.validCapturedPhoto or not c.paymentCompleted) and activeCalledCount lt 3}">
                             <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
-                            <c:set var="isPhotoDone" value="${not empty c.photoUrl}" />
+                            <c:set var="isPhotoDone" value="${c.validCapturedPhoto}" />
                             <c:set var="isPayDone" value="${c.paymentCompleted}" />
                             <c:set var="stepNum" value="${not isPhotoDone ? '2' : '3'}" />
                             <c:set var="stepName" value="${not isPhotoDone ? 'Chụp ảnh' : 'Lệ phí'}" />
@@ -532,13 +464,13 @@
                 
                 <div class="room-candidate-list">
                     <c:set var="fieldRenderCount" value="0" />
-                    <!-- Show candidates currently thi sa hình -->
+                    <!-- Show candidates currently thi thực hành -->
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
                         <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none' and fieldRenderCount lt 4}">
                             <c:set var="fieldRenderCount" value="${fieldRenderCount + 1}" />
                             <div class="room-candidate-item" style="border-left: 3px solid #10b981;">
                                 <div class="candidate-meta">
-                                    <span class="candidate-sbd" style="color: #10b981;">${not empty c.deviceCode ? c.deviceCode : 'Xe chíp'}</span>
+                                    <span class="candidate-sbd" style="color: #10b981;">${c.sbd}</span>
                                     <span class="candidate-step candidate-step--ready">Đang thi</span>
                                 </div>
                                 <div class="candidate-name">${c.name}</div>
@@ -552,7 +484,7 @@
                     
                     <!-- If room monitor is not full, show completed candidates -->
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${(c.practicalPassed eq 'passed' or c.practicalPassed eq 'failed') and fieldRenderCount lt 4}">
+                        <c:if test="${c.isPaymentCompleted and (c.practicalPassed eq 'passed' or c.practicalPassed eq 'failed') and fieldRenderCount lt 4}">
                             <c:set var="fieldRenderCount" value="${fieldRenderCount + 1}" />
                             <c:set var="isPass" value="${c.practicalPassed eq 'passed'}" />
                             <div class="room-candidate-item" style="border-left: 3px solid ${isPass ? '#10b981' : '#ef4444'};">
@@ -562,7 +494,7 @@
                                 </div>
                                 <div class="candidate-name">${c.name}</div>
                                 <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-                                    <span>Thi sa hình: ${c.practicalScore}</span>
+                                    <span>Thi thực hành: ${c.practicalScore}</span>
                                     <span style="font-weight: 800; color: ${isPass ? '#10b981' : '#ef4444'};">${isPass ? 'HOÀN THÀNH' : 'HỎNG'}</span>
                                 </div>
                             </div>
@@ -591,5 +523,6 @@
     </jsp:include>
 </div>
 
+<script src="${pageContext.request.contextPath}/assets/js/dashboard.js"></script>
 </body>
 </html>
