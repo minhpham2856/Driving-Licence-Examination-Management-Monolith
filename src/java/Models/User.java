@@ -3,23 +3,23 @@ package Models;
 import java.sql.Timestamp;
 
 public class User {
+
     private int id;
-    private int personId;
+    private Integer personId;
     private String username;
+    private String email;
     private String passwordHash;
     private int roleId;
     private boolean isActive;
     private Timestamp lastLoginAt;
     private Timestamp createdAt;
-
-    // Optional reference objects for details
     private Person person;
     private Role role;
 
     public User() {
     }
 
-    public User(int id, int personId, String username, String passwordHash, int roleId, boolean isActive, Timestamp lastLoginAt, Timestamp createdAt) {
+    public User(int id, Integer personId, String username, String passwordHash, int roleId, boolean isActive, Timestamp lastLoginAt, Timestamp createdAt) {
         this.id = id;
         this.personId = personId;
         this.username = username;
@@ -38,11 +38,11 @@ public class User {
         this.id = id;
     }
 
-    public int getPersonId() {
+    public Integer getPersonId() {
         return personId;
     }
 
-    public void setPersonId(int personId) {
+    public void setPersonId(Integer personId) {
         this.personId = personId;
     }
 
@@ -52,6 +52,14 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPasswordHash() {
