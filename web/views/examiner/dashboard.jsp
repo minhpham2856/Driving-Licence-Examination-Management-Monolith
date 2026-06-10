@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
@@ -29,15 +30,15 @@
             </div>
             <div class="examiner-toolbar__group">
                 <div class="examiner-search examiner-search--wide">
-                    <svg class="examiner-search__icon" viewBox="0 0 18 18" fill="none"><path d="M7.5 13.5C10.8137 13.5 13.5 10.8137 13.5 7.5C13.5 4.18629 10.8137 1.5 7.5 1.5C4.18629 1.5 1.5 4.18629 1.5 7.5C1.5 10.8137 4.18629 13.5 7.5 13.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 12L16.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <span class="examiner-search__icon material-symbols-outlined">search</span>
                     <input type="text" class="examiner-search__input" placeholder="Tìm kiếm SBD, Tên, Căn cước...">
                 </div>
                 <a href="#" class="examiner-btn examiner-btn--primary">
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 13.5C10.8137 13.5 13.5 10.8137 13.5 7.5C13.5 4.18629 10.8137 1.5 7.5 1.5C4.18629 1.5 1.5 4.18629 1.5 7.5C1.5 10.8137 4.18629 13.5 7.5 13.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 12L16.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <span class="material-symbols-outlined">search</span>
                     Tìm kiếm
                 </a>
                 <a href="${pageContext.request.contextPath}/views/examiner/dashboard.jsp" class="examiner-btn examiner-btn--white examiner-btn--icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35C12.2 0.9 10.2 0 8 0C3.58 0 0 3.58 0 8C0 12.42 3.58 16 8 16C11.73 16 14.84 13.45 15.73 10H13.65C12.83 12.33 10.61 14 8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C9.66 2 11.14 2.69 12.22 3.78L9 7H16V0L13.65 2.35Z" fill="currentColor"/></svg>
+                    <span class="material-symbols-outlined">refresh</span>
                 </a>
             </div>
         </section>

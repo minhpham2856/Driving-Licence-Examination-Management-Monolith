@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
@@ -40,10 +41,7 @@
             <div class="export-row">
                 <div class="export-row__left">
                     <div class="export-row__icon export-row__icon--blue">
-                        <%-- People / group icon --%>
-                        <svg width="22" height="15" viewBox="0 0 24 24" fill="none">
-                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="#3a56d4"/>
-                        </svg>
+                        <span class="material-symbols-outlined">group</span>
                     </div>
                     <div class="export-row__info">
                         <p class="export-row__title">Danh sách thí sinh</p>
@@ -51,16 +49,16 @@
                     </div>
                 </div>
                 <div class="export-row__actions">
-                    <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                    <a href="${pageContext.request.contextPath}/examiner/export/candidates" class="export-btn">
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">excel</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">XML</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">docx</span>
                     </a>
                 </div>
@@ -70,10 +68,7 @@
             <div class="export-row">
                 <div class="export-row__left">
                     <div class="export-row__icon export-row__icon--blue">
-                        <%-- Clipboard / checklist icon --%>
-                        <svg width="18" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" fill="#3a56d4"/>
-                        </svg>
+                        <span class="material-symbols-outlined">assignment</span>
                     </div>
                     <div class="export-row__info">
                         <p class="export-row__title">Kết quả thi</p>
@@ -82,15 +77,15 @@
                 </div>
                 <div class="export-row__actions">
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">excel</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">XML</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">docx</span>
                     </a>
                 </div>
@@ -100,10 +95,7 @@
             <div class="export-row">
                 <div class="export-row__left">
                     <div class="export-row__icon export-row__icon--blue">
-                        <%-- Document icon --%>
-                        <svg width="18" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="#3a56d4"/>
-                        </svg>
+                        <span class="material-symbols-outlined">description</span>
                     </div>
                     <div class="export-row__info">
                         <p class="export-row__title">Biên bản thi</p>
@@ -112,15 +104,15 @@
                 </div>
                 <div class="export-row__actions">
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">excel</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">XML</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">docx</span>
                     </a>
                 </div>
@@ -130,10 +122,7 @@
             <div class="export-row">
                 <div class="export-row__left">
                     <div class="export-row__icon export-row__icon--red">
-                        <%-- Warning / alert triangle icon --%>
-                        <svg width="20" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#ba1a1a"/>
-                        </svg>
+                        <span class="material-symbols-outlined">warning</span>
                     </div>
                     <div class="export-row__info">
                         <p class="export-row__title">Biên bản vi phạm</p>
@@ -142,15 +131,15 @@
                 </div>
                 <div class="export-row__actions">
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">excel</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">XML</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">docx</span>
                     </a>
                 </div>
@@ -160,10 +149,7 @@
             <div class="export-row export-row--last">
                 <div class="export-row__left">
                     <div class="export-row__icon export-row__icon--gray">
-                        <%-- Log / list icon --%>
-                        <svg width="20" height="14" viewBox="0 0 24 24" fill="none">
-                            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" fill="#5f6368"/>
-                        </svg>
+                        <span class="material-symbols-outlined">list_alt</span>
                     </div>
                     <div class="export-row__info">
                         <p class="export-row__title">Nhật ký</p>
@@ -172,15 +158,15 @@
                 </div>
                 <div class="export-row__actions">
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">excel</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">XML</span>
                     </a>
                     <a href="#" class="export-btn">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+                        <span class="material-symbols-outlined">download</span>
                         <span class="export-btn__text">docx</span>
                     </a>
                 </div>
