@@ -8,25 +8,25 @@
 <c:set var="activeSidebar" value="${param.activeSidebar}" />
 <c:if test="${empty activeSidebar}">
     <c:choose>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard') or fn:contains(pageContext.request.requestURI, 'tong-quan')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
             <c:set var="activeSidebar" value="dashboard" />
         </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'upload')}">
             <c:set var="activeSidebar" value="tai-ds" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'grading') or fn:contains(pageContext.request.requestURI, 'cham-diem')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'grading')}">
             <c:set var="activeSidebar" value="cham-diem" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'edit-score') or fn:contains(pageContext.request.requestURI, 'sua-diem')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'edit-score')}">
             <c:set var="activeSidebar" value="sua-diem" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'candidatelist') or fn:contains(pageContext.request.requestURI, 'candidates') or fn:contains(pageContext.request.requestURI, 'ds-thi-sinh')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'candidatelist') or fn:contains(pageContext.request.requestURI, 'candidates')}">
             <c:set var="activeSidebar" value="ds-thi-sinh" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'report') or fn:contains(pageContext.request.requestURI, 'bao-cao')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'report')}">
             <c:set var="activeSidebar" value="bao-cao" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit') or fn:contains(pageContext.request.requestURI, 'nhat-ky')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit')}">
             <c:set var="activeSidebar" value="nhat-ky" />
         </c:when>
         <c:otherwise>

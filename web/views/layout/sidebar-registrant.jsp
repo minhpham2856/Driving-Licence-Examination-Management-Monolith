@@ -11,22 +11,22 @@
         <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
             <c:set var="activeSidebar" value="dashboard" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'profile') or fn:contains(pageContext.request.requestURI, 'ho-so-ca-nhan')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'profile')}">
             <c:set var="activeSidebar" value="profile" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'upload') or fn:contains(pageContext.request.requestURI, 'ho-so-bo-sung')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'upload')}">
             <c:set var="activeSidebar" value="upload-documents" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'register') or fn:contains(pageContext.request.requestURI, 'dang-ky-thi')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'register-exam')}">
             <c:set var="activeSidebar" value="register-exam" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'track') or fn:contains(pageContext.request.requestURI, 'tien-trinh')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'track')}">
             <c:set var="activeSidebar" value="track-profile" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'schedule') or fn:contains(pageContext.request.requestURI, 'lich-thi') or fn:contains(pageContext.request.requestURI, 'result') or fn:contains(pageContext.request.requestURI, 'ket-qua')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'my-exams')}">
             <c:set var="activeSidebar" value="exam-schedule" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'settings') or fn:contains(pageContext.request.requestURI, 'cai-dat')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'settings')}">
             <c:set var="activeSidebar" value="settings" />
         </c:when>
         <c:otherwise>
