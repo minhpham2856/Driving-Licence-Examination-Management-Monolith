@@ -6,8 +6,7 @@
 
 USE DLEM_DB_2;
 GO
-
-﻿-- ============================================
+-- ============================================
 -- 1. QUESTION CATEGORIES (5 Chapters)
 -- ============================================
 INSERT INTO QuestionCategory (CategoryName, Description) VALUES

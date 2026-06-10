@@ -44,6 +44,7 @@ CREATE TABLE Document (
     DocumentId INT PRIMARY KEY IDENTITY(1,1),
     DocumentType NVARCHAR(50) NOT NULL,
     DocumentUrl NVARCHAR(500) NOT NULL,
+    Notes NVARCHAR(255),
     ProfileId INT NOT NULL REFERENCES Profile(ProfileId)
 );
 GO

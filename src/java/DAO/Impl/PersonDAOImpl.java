@@ -7,11 +7,15 @@ import java.sql.*;
 
 public class PersonDAOImpl extends DBContext implements PersonDAO {
 
+    private static final String PROFILE_SELECT = """
+                     select ProfileId, FullName, DateOfBirth, PhoneNumber, Sex,
+                            GovernmentIdNumber, Address, UserId
+                     from Profile
+                     """;
+
     @Override
     public Person getById(int id) {
-        String sql = """
-                     select * from Person where id = ?
-                     """;
+        String sql = PROFILE_SELECT + " where ProfileId = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -31,7 +35,11 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
     @Override
     public Person getByEmail(String email) {
         String sql = """
-                     select * from Person where email = ?
+                     select p.ProfileId, p.FullName, p.DateOfBirth, p.PhoneNumber, p.Sex,
+                            p.GovernmentIdNumber, p.Address, p.UserId
+                     from Profile p
+                     join [User] u on u.UserId = p.UserId
+                     where u.Email = ?
                      """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -39,7 +47,9 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToPerson(rs);
+                    Person person = mapResultSetToPerson(rs);
+                    person.setEmail(email);
+                    return person;
                 }
             }
         } catch (SQLException e) {
@@ -51,9 +61,7 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
 
     @Override
     public Person getByGovIdNo(String govIdNo) {
-        String sql = """
-                     select * from Person where govIdNo = ?
-                     """;
+        String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, govIdNo);
@@ -72,9 +80,7 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
 
     @Override
     public Person getByPhoneNo(String phoneNo) {
-        String sql = """
-                     select * from Person where phoneNo = ?
-                     """;
+        String sql = PROFILE_SELECT + " where PhoneNumber = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, phoneNo);
@@ -94,48 +100,24 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
     @Override
     public boolean insert(Person person) {
         String sql = """
-                     insert into Person (govIdNo, fullName, dateOfBirth, gender, phoneNo, email, address, photoUrl, isWalkIn, approvalStatus, rejectionReason) 
-                     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     insert into Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address, UserId)
+                     values (?, ?, ?, ?, ?, ?, ?)
                      """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"})) {
-            if (person.getGovIdNo() == null) {
-                ps.setNull(1, Types.NVARCHAR);
-            } else {
-                ps.setString(1, person.getGovIdNo());
-            }
-
-            ps.setString(2, person.getFullName());
-            ps.setDate(3, person.getDateOfBirth());
-            ps.setBoolean(4, person.isGender());
-            ps.setString(5, person.getPhoneNo());
-
-            if (person.getEmail() == null) {
-                ps.setNull(6, Types.NVARCHAR);
-            } else {
-                ps.setString(6, person.getEmail());
-            }
+        try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"ProfileId"})) {
+            ps.setString(1, person.getFullName());
+            ps.setDate(2, person.getDateOfBirth());
+            ps.setString(3, person.getPhoneNo());
+            ps.setString(4, mapGenderToSex(person.isGender()));
+            ps.setString(5, person.getGovIdNo());
 
             if (person.getAddress() == null) {
-                ps.setNull(7, Types.NVARCHAR);
+                ps.setNull(6, Types.NVARCHAR);
             } else {
-                ps.setString(7, person.getAddress());
+                ps.setString(6, person.getAddress());
             }
 
-            if (person.getPhotoUrl() == null) {
-                ps.setNull(8, Types.NVARCHAR);
-            } else {
-                ps.setString(8, person.getPhotoUrl());
-            }
-
-            ps.setBoolean(9, person.isIsWalkIn());
-            ps.setString(10, person.getApprovalStatus() != null ? person.getApprovalStatus() : "Pending");
-
-            if (person.getRejectionReason() == null) {
-                ps.setNull(11, Types.NVARCHAR);
-            } else {
-                ps.setString(11, person.getRejectionReason());
-            }
+            ps.setInt(7, person.getUserId());
 
             int affectedRows = ps.executeUpdate();
             if (affectedRows == 0) {
@@ -159,51 +141,26 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
     @Override
     public boolean update(Person person) {
         String sql = """
-                     update Person 
-                     set govIdNo = ?, fullName = ?, dateOfBirth = ?, gender = ?, phoneNo = ?, email = ?, address = ?, photoUrl = ?, isWalkIn = ?, updatedAt = getutcdate(), approvalStatus = ?, rejectionReason = ? 
-                     where id = ?
+                     update Profile
+                     set FullName = ?, DateOfBirth = ?, PhoneNumber = ?, Sex = ?,
+                         GovernmentIdNumber = ?, Address = ?
+                     where ProfileId = ?
                      """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (person.getGovIdNo() == null) {
-                ps.setNull(1, Types.NVARCHAR);
-            } else {
-                ps.setString(1, person.getGovIdNo());
-            }
-
-            ps.setString(2, person.getFullName());
-            ps.setDate(3, person.getDateOfBirth());
-            ps.setBoolean(4, person.isGender());
-            ps.setString(5, person.getPhoneNo());
-
-            if (person.getEmail() == null) {
-                ps.setNull(6, Types.NVARCHAR);
-            } else {
-                ps.setString(6, person.getEmail());
-            }
+            ps.setString(1, person.getFullName());
+            ps.setDate(2, person.getDateOfBirth());
+            ps.setString(3, person.getPhoneNo());
+            ps.setString(4, mapGenderToSex(person.isGender()));
+            ps.setString(5, person.getGovIdNo());
 
             if (person.getAddress() == null) {
-                ps.setNull(7, Types.NVARCHAR);
+                ps.setNull(6, Types.NVARCHAR);
             } else {
-                ps.setString(7, person.getAddress());
+                ps.setString(6, person.getAddress());
             }
 
-            if (person.getPhotoUrl() == null) {
-                ps.setNull(8, Types.NVARCHAR);
-            } else {
-                ps.setString(8, person.getPhotoUrl());
-            }
-
-            ps.setBoolean(9, person.isIsWalkIn());
-            ps.setString(10, person.getApprovalStatus());
-
-            if (person.getRejectionReason() == null) {
-                ps.setNull(11, Types.NVARCHAR);
-            } else {
-                ps.setString(11, person.getRejectionReason());
-            }
-
-            ps.setInt(12, person.getId());
+            ps.setInt(7, person.getId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -216,21 +173,23 @@ public class PersonDAOImpl extends DBContext implements PersonDAO {
     private Person mapResultSetToPerson(ResultSet rs) throws SQLException {
         Person person = new Person();
 
-        person.setId(rs.getInt("id"));
-        person.setGovIdNo(rs.getString("govIdNo"));
-        person.setFullName(rs.getString("fullName"));
-        person.setDateOfBirth(rs.getDate("dateOfBirth"));
-        person.setGender(rs.getBoolean("gender"));
-        person.setPhoneNo(rs.getString("phoneNo"));
-        person.setEmail(rs.getString("email"));
-        person.setAddress(rs.getString("address"));
-        person.setPhotoUrl(rs.getString("photoUrl"));
-        person.setIsWalkIn(rs.getBoolean("isWalkIn"));
-        person.setCreatedAt(rs.getTimestamp("createdAt"));
-        person.setUpdatedAt(rs.getTimestamp("updatedAt"));
-        person.setApprovalStatus(rs.getString("approvalStatus"));
-        person.setRejectionReason(rs.getString("rejectionReason"));
+        person.setId(rs.getInt("ProfileId"));
+        person.setUserId(rs.getInt("UserId"));
+        person.setFullName(rs.getString("FullName"));
+        person.setDateOfBirth(rs.getDate("DateOfBirth"));
+        person.setPhoneNo(rs.getString("PhoneNumber"));
+        person.setGovIdNo(rs.getString("GovernmentIdNumber"));
+        person.setAddress(rs.getString("Address"));
+        person.setGender(mapSexToGender(rs.getString("Sex")));
 
         return person;
+    }
+
+    private String mapGenderToSex(boolean gender) {
+        return gender ? "Nữ" : "Nam";
+    }
+
+    private boolean mapSexToGender(String sex) {
+        return sex != null && "Nữ".equalsIgnoreCase(sex.trim());
     }
 }
