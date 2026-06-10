@@ -1,12 +1,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<jsp:include page="/views/layout/examiner-seed-data.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
 <c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
 <c:set var="headerTitle" value="Sửa kết quả" />
 <c:set var="backUrl" value="${ctx}/views/examiner/result-details.jsp" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit.jsp" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit.jsp?sbd=${candidate.sbd}" />
+<c:set var="currentScore" value="${candidate.correct}" />
+<c:set var="maxScore" value="35" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -68,23 +71,23 @@
                             <div class="exr-id-grid">
                                 <div class="exr-field">
                                     <p class="exr-field__label">HỌ VÀ TÊN</p>
-                                    <p class="exr-field__value">Nguyễn Văn Quyết</p>
+                                    <p class="exr-field__value">${candidate.fullName}</p>
                                 </div>
                                 <div class="exr-field">
                                     <p class="exr-field__label">CCCD / CMND</p>
-                                    <span class="exr-chip">031092004581</span>
+                                    <span class="exr-chip">${candidate.governmentId}</span>
                                 </div>
                                 <div class="exr-field">
                                     <p class="exr-field__label">SỐ BÁO DANH</p>
-                                    <span class="exr-chip">SBD-4829</span>
+                                    <span class="exr-chip">${candidate.sbd}</span>
                                 </div>
                                 <div class="exr-field">
                                     <p class="exr-field__label">NGÀY THI</p>
-                                    <p class="exr-field__value exr-field__value--sm">15/10/2026</p>
+                                    <p class="exr-field__value exr-field__value--sm">${candidate.examDate}</p>
                                 </div>
                                 <div class="exr-field">
                                     <p class="exr-field__label">HẠNG GPLX</p>
-                                    <p class="exr-field__value exr-field__value--bold">Hạng B2</p>
+                                    <p class="exr-field__value exr-field__value--bold">Hạng ${candidate.licenceClass}</p>
                                 </div>
                             </div>
                         </div>
@@ -98,16 +101,16 @@
                                 <div class="exr-score-box">
                                     <p class="exr-field__label">ĐIỂM HIỆN TẠI</p>
                                     <div class="exr-score-row">
-                                        <span class="exr-score-current">25</span>
-                                        <span class="exr-score-total">/35</span>
-                                        <span class="exr-badge-fail">KHÔNG ĐẠT</span>
+                                        <span class="exr-score-current">${currentScore}</span>
+                                        <span class="exr-score-total">/${maxScore}</span>
+                                        <span class="exr-badge-fail"><c:choose><c:when test="${candidate.passed}">ĐẠT</c:when><c:otherwise>KHÔNG ĐẠT</c:otherwise></c:choose></span>
                                     </div>
                                 </div>
                                 <div class="exr-control">
                                     <label class="exr-input-label" for="newScore">ĐIỂM MỚI</label>
                                     <div class="exr-input-suffix">
-                                        <input type="text" id="newScore" class="exr-input exr-input--mono" placeholder="Nhập điểm số">
-                                        <span class="exr-input-suffix__text">/35</span>
+                                        <input type="text" id="newScore" class="exr-input exr-input--mono" placeholder="Nhập điểm số" value="${currentScore}">
+                                        <span class="exr-input-suffix__text">/${maxScore}</span>
                                     </div>
                                 </div>
                             </div>

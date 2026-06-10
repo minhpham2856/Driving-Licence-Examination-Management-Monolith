@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<jsp:include page="/views/layout/examiner-seed-data.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
@@ -68,7 +70,7 @@
                 <section class="examiner-card examiner-card--dashboard-table">
                     <div class="examiner-card__head">
                         <h3 class="examiner-card__title">Danh sách thí sinh</h3>
-                        <span class="examiner-card__badge">Tổng: 45 thí sinh</span>
+                        <span class="examiner-card__badge">Tổng: ${fn:length(candidates)} thí sinh</span>
                     </div>
                     <div class="examiner-table-wrap">
                         <table class="examiner-table examiner-table--dark examiner-table--call">
@@ -99,78 +101,32 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="examiner-table__center examiner-table__mono">01</td>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Nguyễn Văn An</td>
-                                    <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">123</td>
-                                    <td class="examiner-table__mono-md">12/05/1995</td>
-                                    <td class="examiner-table__mono-md examiner-text-ink">001095001234</td>
-                                    <td class="examiner-table__mono-md">25/10/2023</td>
-                                    <td class="examiner-table__ellipsis">123 Lê Lợi, Quận 1, TP.HCM</td>
-                                    <td class="examiner-table__center">
-                                        <form action="${confirmUrl}" method="get">
-                                            <input type="hidden" name="sbd" value="123">
-                                            <input type="hidden" name="name" value="Nguyễn Văn An">
-                                            <input type="submit" class="examiner-link-action" value="Vắng">
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <div class="examiner-actions">
-                                            <a href="${detailUrl}" class="examiner-link-action">Chi tiết</a>|
-                                            <a href="${detailUrl}" class="examiner-link-action">Sửa TT</a>|
-                                            <a href="${resultUrl}" class="examiner-link-action">Sửa KQ</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="examiner-table__row--alt">
-                                    <td class="examiner-table__center examiner-table__mono">02</td>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Trần Thị Bình</td>
-                                    <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">124</td>
-                                    <td class="examiner-table__mono-md">08/11/1998</td>
-                                    <td class="examiner-table__mono-md examiner-text-ink">079198005678</td>
-                                    <td class="examiner-table__mono-md">25/10/2023</td>
-                                    <td class="examiner-table__ellipsis">456 Nguyễn Huệ, Quận 1, TP.HCM</td>
-                                    <td class="examiner-table__center">
-                                        <form action="${confirmUrl}" method="get">
-                                            <input type="hidden" name="sbd" value="124">
-                                            <input type="hidden" name="name" value="Trần Thị Bình">
-                                            <input type="submit" class="examiner-link-action" value="Vắng">
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <div class="examiner-actions">
-                                            <a href="${detailUrl}" class="examiner-link-action">Chi tiết</a>|
-                                            <a href="${detailUrl}" class="examiner-link-action">Sửa TT</a>|
-                                            <a href="${resultUrl}" class="examiner-link-action">Sửa KQ</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="examiner-table__center examiner-table__mono">03</td>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check" checked></td>
-                                    <td class="examiner-table__name">Lê Hoàng Cường</td>
-                                    <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">1003</td>
-                                    <td class="examiner-table__mono-md">22/03/2000</td>
-                                    <td class="examiner-table__mono-md examiner-text-ink">001200009012</td>
-                                    <td class="examiner-table__mono-md">25/10/2023</td>
-                                    <td class="examiner-table__ellipsis">789 Trần Hưng Đạo, Quận 5, TP.HCM</td>
-                                    <td class="examiner-table__center">
-                                        <form action="${confirmUrl}" method="get">
-                                            <input type="hidden" name="sbd" value="1003">
-                                            <input type="hidden" name="name" value="Lê Hoàng Cường">
-                                            <input type="submit" class="examiner-link-action" value="Vắng">
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <div class="examiner-actions">
-                                            <a href="${detailUrl}" class="examiner-link-action">Chi tiết</a>|
-                                            <a href="${detailUrl}" class="examiner-link-action">Sửa TT</a>|
-                                            <a href="${resultUrl}" class="examiner-link-action">Sửa KQ</a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <c:forEach items="${candidates}" var="c" varStatus="st">
+                                    <tr<c:if test="${st.index % 2 == 1}"> class="examiner-table__row--alt"</c:if>>
+                                        <td class="examiner-table__center examiner-table__mono">${st.count}</td>
+                                        <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                                        <td class="examiner-table__name">${c.fullName}</td>
+                                        <td class="examiner-table__center examiner-table__mono-md examiner-text-ink">${c.sbd}</td>
+                                        <td class="examiner-table__mono-md">${c.dob}</td>
+                                        <td class="examiner-table__mono-md examiner-text-ink">${c.governmentId}</td>
+                                        <td class="examiner-table__mono-md">${c.examDate}</td>
+                                        <td class="examiner-table__ellipsis">${c.address}</td>
+                                        <td class="examiner-table__center">
+                                            <form action="${confirmUrl}" method="get">
+                                                <input type="hidden" name="sbd" value="${c.sbd}">
+                                                <input type="hidden" name="name" value="${c.fullName}">
+                                                <input type="submit" class="examiner-link-action" value="Vắng">
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <div class="examiner-actions">
+                                                <a href="${detailUrl}?sbd=${c.sbd}" class="examiner-link-action">Chi tiết</a>|
+                                                <a href="${detailUrl}?sbd=${c.sbd}" class="examiner-link-action">Sửa TT</a>|
+                                                <a href="${resultUrl}?sbd=${c.sbd}" class="examiner-link-action">Sửa KQ</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
                     </div>

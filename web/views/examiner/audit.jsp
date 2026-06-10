@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<jsp:include page="/views/layout/examiner-seed-data.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
@@ -77,66 +78,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>admin_nv</td>
-                                    <td><span class="audit-badge audit-badge--update">CẬP NHẬT</span></td>
-                                    <td>Thí sinh</td>
-                                    <td class="examiner-table__mono">SBD-00123</td>
-                                    <td class="audit-td--ellipsis">Cập nhật điểm thi...</td>
-                                    <td class="audit-td--old"><s>28/30</s></td>
-                                    <td class="audit-td--new audit-new--green">30/30</td>
-                                    <td class="audit-td--reason">Phúc khảo</td>
-                                    <td class="examiner-table__mono-md">09:15:22</td>
-                                    <td class="examiner-table__mono-md">2023-10-25</td>
-                                </tr>
-                                <tr>
-                                    <td>system_auto</td>
-                                    <td><span class="audit-badge audit-badge--system">HỆ THỐNG</span></td>
-                                    <td>Phòng thi</td>
-                                    <td class="examiner-table__mono">-</td>
-                                    <td class="audit-td--ellipsis">Mở khóa ca thi s...</td>
-                                    <td class="audit-td--old">Khóa</td>
-                                    <td class="audit-td--new audit-new--blue">Mở</td>
-                                    <td class="audit-td--reason">Theo lịch trình</td>
-                                    <td class="examiner-table__mono-md">07:00:00</td>
-                                    <td class="examiner-table__mono-md">2023-10-25</td>
-                                </tr>
-                                <tr>
-                                    <td>giam_thi_01</td>
-                                    <td><span class="audit-badge audit-badge--warning">CẢNH BÁO</span></td>
-                                    <td>Thí sinh</td>
-                                    <td class="examiner-table__mono">SBD-00456</td>
-                                    <td class="audit-td--ellipsis">Đánh dấu vi phạm...</td>
-                                    <td class="audit-td--old">Bình thường</td>
-                                    <td class="audit-td--new audit-new--dark">Vi phạm</td>
-                                    <td class="audit-td--reason">Mang điện thoại</td>
-                                    <td class="examiner-table__mono-md">10:45:11</td>
-                                    <td class="examiner-table__mono-md">2023-10-24</td>
-                                </tr>
-                                <tr>
-                                    <td>admin_nv</td>
-                                    <td><span class="audit-badge audit-badge--delete">XÓA</span></td>
-                                    <td></td>
-                                    <td class="examiner-table__mono">SBD-00789</td>
-                                    <td class="audit-td--ellipsis">Xóa hồ sơ trùng ...</td>
-                                    <td class="audit-td--old">Tồn tại</td>
-                                    <td class="audit-td--new audit-new--red">Đã xóa</td>
-                                    <td class="audit-td--reason">Trùng CMND</td>
-                                    <td class="examiner-table__mono-md">14:20:05</td>
-                                    <td class="examiner-table__mono-md">2023-10-24</td>
-                                </tr>
-                                <tr>
-                                    <td>admin_nv</td>
-                                    <td><span class="audit-badge audit-badge--update">CẬP NHẬT</span></td>
-                                    <td>Thí sinh</td>
-                                    <td class="examiner-table__mono">SBD-00124</td>
-                                    <td class="audit-td--ellipsis">Sửa lỗi sai tên đệm</td>
-                                    <td class="audit-td--old">Nguyễn Văn A</td>
-                                    <td class="audit-td--new audit-new--green">Nguyễn Văn B</td>
-                                    <td class="audit-td--reason">Yêu cầu từ Cục</td>
-                                    <td class="examiner-table__mono-md">08:10:00</td>
-                                    <td class="examiner-table__mono-md">2023-10-23</td>
-                                </tr>
+                                <c:forEach items="${auditLogs}" var="log">
+                                    <tr>
+                                        <td>${log.username}</td>
+                                        <td><span class="audit-badge ${log.actionBadge}">${log.actionLabel}</span></td>
+                                        <td>${log.entityName}</td>
+                                        <td class="examiner-table__mono">${log.entityId}</td>
+                                        <td class="audit-td--ellipsis">${log.info}</td>
+                                        <td class="audit-td--old"><c:if test="${not empty log.oldValue}"><s>${log.oldValue}</s></c:if></td>
+                                        <td class="audit-td--new ${log.newValueClass}">${log.newValue}</td>
+                                        <td class="audit-td--reason">${log.reason}</td>
+                                        <td class="examiner-table__mono-md">${log.time}</td>
+                                        <td class="examiner-table__mono-md">${log.date}</td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
                     </div>

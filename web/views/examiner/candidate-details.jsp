@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<jsp:include page="/views/layout/examiner-seed-data.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
@@ -92,36 +93,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Nguyễn Văn An</td>
-                                    <td class="examiner-table__mono-md">B2-001</td>
-                                    <td class="examiner-table__mono-md">15/05/1990</td>
-                                    <td class="examiner-table__mono-md">001090123456</td>
-                                    <td class="examiner-table__mono-md">24/10/2023</td>
-                                    <td class="examiner-table__ellipsis">123 Lê Lợi, Quận 1, TP.HCM</td>
-                                    <td class="examiner-table__center"><a href="${detailUrl}" class="examiner-link-action">Xem</a></td>
-                                </tr>
-                                <tr class="examiner-table__row--alt">
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Trần Thị Bích</td>
-                                    <td class="examiner-table__mono-md">B2-002</td>
-                                    <td class="examiner-table__mono-md">22/08/1995</td>
-                                    <td class="examiner-table__mono-md">002095654321</td>
-                                    <td class="examiner-table__mono-md">24/10/2023</td>
-                                    <td class="examiner-table__ellipsis">45 Nguyễn Huệ, Quận 1, TP.HCM</td>
-                                    <td class="examiner-table__center"><a href="${detailUrl}" class="examiner-link-action">Xem</a></td>
-                                </tr>
-                                <tr>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Lê Văn Cường</td>
-                                    <td class="examiner-table__mono-md">C-015</td>
-                                    <td class="examiner-table__mono-md">10/11/1988</td>
-                                    <td class="examiner-table__mono-md">079088112233</td>
-                                    <td class="examiner-table__mono-md">24/10/2023</td>
-                                    <td class="examiner-table__ellipsis">89 Võ Văn Tần, Quận 3, TP.HCM</td>
-                                    <td class="examiner-table__center"><a href="${detailUrl}" class="examiner-link-action">Xem</a></td>
-                                </tr>
+                                <c:forEach items="${candidates}" var="c" varStatus="st">
+                                    <tr<c:if test="${st.index % 2 == 1}"> class="examiner-table__row--alt"</c:if>>
+                                        <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                                        <td class="examiner-table__name">${c.fullName}</td>
+                                        <td class="examiner-table__mono-md">${c.sbd}</td>
+                                        <td class="examiner-table__mono-md">${c.dob}</td>
+                                        <td class="examiner-table__mono-md">${c.governmentId}</td>
+                                        <td class="examiner-table__mono-md">${c.examDate}</td>
+                                        <td class="examiner-table__ellipsis">${c.address}</td>
+                                        <td class="examiner-table__center"><a href="${detailUrl}?sbd=${c.sbd}" class="examiner-link-action">Xem</a></td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
                     </div>

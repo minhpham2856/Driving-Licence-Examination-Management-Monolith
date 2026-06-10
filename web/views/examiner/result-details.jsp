@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<jsp:include page="/views/layout/examiner-seed-data.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
@@ -99,42 +100,26 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Nguyễn Văn An</td>
-                                    <td class="examiner-table__mono-md">B2-001</td>
-                                    <td class="examiner-table__mono-md">15/05/1990</td>
-                                    <td class="examiner-table__mono-md">001090123456</td>
-                                    <td class="examiner-table__center examiner-text-green examiner-table__mono-md">35</td>
-                                    <td class="examiner-table__center examiner-text-red examiner-table__mono-md">0</td>
-                                    <td class="examiner-table__center examiner-table__mono-md">0</td>
-                                    <td><span class="examiner-tag examiner-tag--pass">ĐẠT</span></td>
-                                    <td class="examiner-table__center"><a href="${editUrl}" class="examiner-link-action">Sửa</a></td>
-                                </tr>
-                                <tr class="examiner-table__row--alt">
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Trần Thị Bích</td>
-                                    <td class="examiner-table__mono-md">B2-002</td>
-                                    <td class="examiner-table__mono-md">22/08/1995</td>
-                                    <td class="examiner-table__mono-md">002095654321</td>
-                                    <td class="examiner-table__center examiner-text-green examiner-table__mono-md">30</td>
-                                    <td class="examiner-table__center examiner-text-red examiner-table__mono-md">5</td>
-                                    <td class="examiner-table__center examiner-table__mono-md">0</td>
-                                    <td><span class="examiner-tag examiner-tag--pass">ĐẠT</span></td>
-                                    <td class="examiner-table__center"><a href="${editUrl}" class="examiner-link-action">Sửa</a></td>
-                                </tr>
-                                <tr>
-                                    <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
-                                    <td class="examiner-table__name">Lê Văn Cường</td>
-                                    <td class="examiner-table__mono-md">C-015</td>
-                                    <td class="examiner-table__mono-md">10/11/1988</td>
-                                    <td class="examiner-table__mono-md">079088112233</td>
-                                    <td class="examiner-table__center examiner-text-green examiner-table__mono-md">22</td>
-                                    <td class="examiner-table__center examiner-text-red examiner-table__mono-md">13</td>
-                                    <td class="examiner-table__center examiner-table__mono-md">0</td>
-                                    <td><span class="examiner-tag examiner-tag--fail">TRƯỢT</span></td>
-                                    <td class="examiner-table__center"><a href="${editUrl}" class="examiner-link-action">Sửa</a></td>
-                                </tr>
+                                <c:forEach items="${candidates}" var="c" varStatus="st">
+                                    <tr<c:if test="${st.index % 2 == 1}"> class="examiner-table__row--alt"</c:if>>
+                                        <td class="examiner-table__center"><input type="checkbox" class="examiner-check"></td>
+                                        <td class="examiner-table__name">${c.fullName}</td>
+                                        <td class="examiner-table__mono-md">${c.sbd}</td>
+                                        <td class="examiner-table__mono-md">${c.dob}</td>
+                                        <td class="examiner-table__mono-md">${c.governmentId}</td>
+                                        <td class="examiner-table__center examiner-text-green examiner-table__mono-md">${c.correct}</td>
+                                        <td class="examiner-table__center examiner-text-red examiner-table__mono-md">${c.wrong}</td>
+                                        <td class="examiner-table__center examiner-table__mono-md">${c.unanswered}</td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${c.passed}"><span class="examiner-tag examiner-tag--pass">${c.resultLabel}</span></c:when>
+                                                <c:when test="${c.resultLabel != '—'}"><span class="examiner-tag examiner-tag--fail">${c.resultLabel}</span></c:when>
+                                                <c:otherwise>—</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="examiner-table__center"><a href="${editUrl}?sbd=${c.sbd}" class="examiner-link-action">Sửa</a></td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
                     </div>
