@@ -4,6 +4,9 @@ import Constants.ExamTypes;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import DBConnection.DBContext;
 import DAO.ExaminerAssignmentDAO;
+import Models.Person;
+import Models.Role;
+import Models.User;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +20,26 @@ import java.util.Set;
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
 
     private static final String ROOM_MAPPING_ENTITY = "Session_ExaminerArea";
+
+    private static final String EXAMINER_SELECT = """
+            SELECT u.UserId,
+                   u.Username,
+                   u.Email,
+                   u.PasswordHash,
+                   u.[Role],
+                   u.[Status],
+                   p.ProfileId,
+                   p.FullName,
+                   p.DateOfBirth,
+                   p.PhoneNumber,
+                   p.Sex,
+                   p.GovernmentIdNumber,
+                   p.Address
+            FROM [User] u
+            LEFT JOIN Profile p ON p.UserId = u.UserId
+            WHERE u.[Role] = 'Examiner' AND u.[Status] = 1
+            ORDER BY p.FullName, u.Username
+            """;
 
     private static final String SLOT_SELECT = """
             SELECT se.SessionExaminerId,
@@ -56,6 +79,20 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 GROUP BY ses.SessionId
             ) sect ON sect.SessionId = s.SessionId
             """;
+
+    @Override
+    public List<User> getActiveExaminers() {
+        List<User> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(EXAMINER_SELECT);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapExaminer(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
     @Override
     public boolean assign(ExaminerSlot slot) {
@@ -291,6 +328,42 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private User mapExaminer(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getInt("UserId"));
+        user.setUsername(rs.getString("Username"));
+        user.setEmail(rs.getString("Email"));
+        user.setPasswordHash(rs.getString("PasswordHash"));
+        user.setIsActive(rs.getBoolean("Status"));
+
+        Integer profileId = (Integer) rs.getObject("ProfileId");
+        user.setPersonId(profileId);
+
+        Role role = new Role();
+        role.setRoleName(rs.getString("Role"));
+        user.setRole(role);
+
+        if (profileId != null) {
+            Person person = new Person();
+            person.setId(profileId);
+            person.setUserId(rs.getInt("UserId"));
+            person.setFullName(rs.getString("FullName"));
+            person.setDateOfBirth(rs.getDate("DateOfBirth"));
+            person.setPhoneNo(rs.getString("PhoneNumber"));
+            person.setGovIdNo(rs.getString("GovernmentIdNumber"));
+            person.setAddress(rs.getString("Address"));
+            person.setEmail(user.getEmail());
+            person.setGender(mapSexToGender(rs.getString("Sex")));
+            user.setPerson(person);
+        }
+
+        return user;
+    }
+
+    private boolean mapSexToGender(String sex) {
+        return sex != null && "Nữ".equalsIgnoreCase(sex.trim());
     }
 
     @FunctionalInterface

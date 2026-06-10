@@ -8,7 +8,7 @@ import DAO.ExamDeviceDAO;
 
 import DAO.ExamSessionDAO;
 
-import DAO.UserDAO;
+import DAO.ExaminerAssignmentDAO;
 
 import DAO.Impl.ExamAreaDAOImpl;
 
@@ -16,7 +16,7 @@ import DAO.Impl.ExamDeviceDAOImpl;
 
 import DAO.Impl.ExamSessionDAOImpl;
 
-import DAO.Impl.UserDAOImpl;
+import DAO.Impl.ExaminerAssignmentDAOImpl;
 
 import Models.ExamArea;
 
@@ -66,7 +66,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
 
-    private final UserDAO userDAO = new UserDAOImpl();
+    private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
 
 
 
@@ -173,7 +173,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
                     session, currentSession.getExamDate(), sessionDates);
 
-            List<User> allExaminers = userDAO.getByRoleName("Examiner");
+            List<User> allExaminers = assignmentDAO.getActiveExaminers();
 
             List<User> availableExaminers = new ArrayList<>();
 
@@ -299,7 +299,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
                 slot.setSessionName(targetSession.getSessionName());
 
-                slot.setExaminerName(examiner.getPerson().getFullName());
+                slot.setExaminerName(resolveExaminerName(examiner));
 
                 slot.setExaminerUsername(examiner.getUsername());
 
@@ -381,7 +381,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         Map<Integer, User> map = new HashMap<>();
 
-        for (User u : userDAO.getByRoleName("Examiner")) {
+        for (User u : assignmentDAO.getActiveExaminers()) {
 
             map.put(u.getId(), u);
 
@@ -392,6 +392,14 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
 
+
+    private String resolveExaminerName(User examiner) {
+        if (examiner.getPerson() != null && examiner.getPerson().getFullName() != null
+                && !examiner.getPerson().getFullName().isBlank()) {
+            return examiner.getPerson().getFullName();
+        }
+        return examiner.getUsername();
+    }
 
     private int resolveStaffId(HttpSession session) {
 
