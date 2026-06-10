@@ -1,14 +1,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<jsp:include page="/views/layout/examiner-seed-data.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
 <c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
 <c:set var="headerTitle" value="Thông tin chi tiết" />
 <c:set var="backUrl" value="${ctx}/views/examiner/candidate-details.jsp" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-details-edit.jsp" />
-<c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper.jsp" />
-<c:set var="resultUrl" value="${ctx}/views/examiner/result-details-edit.jsp" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-details-edit.jsp?sbd=${candidate.sbd}" />
+<c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper.jsp?sbd=${candidate.sbd}" />
+<c:set var="resultUrl" value="${ctx}/views/examiner/result-details-edit.jsp?sbd=${candidate.sbd}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -69,7 +70,7 @@
                         <div class="examiner-profile__photo">
                             <span class="examiner-profile__photo-icon material-symbols-outlined">person</span>
                         </div>
-                        <p class="examiner-profile__name">Nguyễn Văn A</p>
+                        <p class="examiner-profile__name">${candidate.fullName}</p>
                     </div>
 
                     <div class="examiner-bento__detail">
@@ -81,27 +82,27 @@
                         <div class="examiner-fields">
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Họ và Tên</p>
-                                <p class="examiner-field__value">Nguyễn Văn A</p>
+                                <p class="examiner-field__value">${candidate.fullName}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Số báo danh (SBD)</p>
-                                <p class="examiner-field__value examiner-field__value--mono">12045</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.sbd}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Số căn cước công dân</p>
-                                <p class="examiner-field__value examiner-field__value--mono">079012345678</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.governmentId}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Ngày sinh</p>
-                                <p class="examiner-field__value examiner-field__value--mono">15/08/1995</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.dob}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Giới tính</p>
-                                <p class="examiner-field__value">Nam</p>
+                                <p class="examiner-field__value">${candidate.sex}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Địa chỉ</p>
-                                <p class="examiner-field__value examiner-field__value--ellipsis">123 Nguyễn Văn Linh, P. Tân Phong, Q.7, TP.HCM</p>
+                                <p class="examiner-field__value examiner-field__value--ellipsis">${candidate.address}</p>
                             </div>
 
                             <div class="examiner-detail-section examiner-detail-section--full">
@@ -111,31 +112,31 @@
 
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Hạng GPLX</p>
-                                <p class="examiner-field__value examiner-field__value--bold">B</p>
+                                <p class="examiner-field__value examiner-field__value--bold">${candidate.licenceClass}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Ngày thi</p>
-                                <p class="examiner-field__value examiner-field__value--mono">24/10/2023</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.examDate}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Điểm thi Lý Thuyết (LT)</p>
-                                <p class="examiner-field__value examiner-field__value--mono examiner-field__value--green">25/25</p>
+                                <p class="examiner-field__value examiner-field__value--mono examiner-field__value--green">${candidate.scoreTheory}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Điểm thi Thực Hành (TH)</p>
-                                <p class="examiner-field__value examiner-field__value--mono">x</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.scorePractical}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Điểm thi Sa Hình (SH)</p>
-                                <p class="examiner-field__value examiner-field__value--mono">90/100</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.scoreRoadLayout}</p>
                             </div>
                             <div class="examiner-field">
                                 <p class="examiner-field__label">Điểm thi Đường Trường (ĐT)</p>
-                                <p class="examiner-field__value examiner-field__value--mono">80/100</p>
+                                <p class="examiner-field__value examiner-field__value--mono">${candidate.scoreOnRoad}</p>
                             </div>
                             <div class="examiner-field examiner-field--full">
                                 <p class="examiner-field__label">Lý do sát hạch</p>
-                                <p class="examiner-field__value">Cấp mới</p>
+                                <p class="examiner-field__value">${candidate.reasonForTaking}</p>
                             </div>
                         </div>
                     </div>
