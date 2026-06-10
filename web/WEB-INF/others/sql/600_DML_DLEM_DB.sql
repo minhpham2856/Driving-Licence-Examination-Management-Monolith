@@ -7,7 +7,7 @@
 USE DLEM_DB_2;
 GO
 
--- ============================================
+﻿-- ============================================
 -- 1. QUESTION CATEGORIES (5 Chapters)
 -- ============================================
 INSERT INTO QuestionCategory (CategoryName, Description) VALUES
@@ -704,7 +704,7 @@ WHERE l.LicenceClass = N'B1'
 );
 
 -- ============================================
--- 4. CANDIDATE ANSWERS (demo paper for SBD 12045, questions 1-35)
+-- 4. CANDIDATE ANSWERS (demo paper - questions 1-35)
 -- Requires TheoryPaper row from DML_DLEM_DB.sql
 -- ============================================
 INSERT INTO CandidateAnswer (TheoryPaperId, QuestionId, Answer)
@@ -724,4 +724,4 @@ FROM TheoryPaper tp
 JOIN Exam_Candidate ec ON tp.ExamCandidateId = ec.ExamCandidateId
 JOIN Candidate c ON ec.CandidateId = c.CandidateId
 JOIN Question q ON q.QuestionNumber BETWEEN 1 AND 35
-WHERE c.CandidateNumber = N'12045';
+WHERE c.CandidateNumber = N'046';
