@@ -88,10 +88,18 @@ public class UploadServlet extends HttpServlet {
 
             if (previewList != null && !previewList.isEmpty()) {
                 int importedCount = 0;
+                int skippedCount = 0;
                 for (ExamRegistration reg : previewList) {
                     try {
                         String dupAction = request.getParameter("dupAction_" + reg.getGovIdNo());
-                        if (reg.isDuplicate() && "skip".equals(dupAction)) continue;
+                        if (reg.isDuplicate() && "skip".equals(dupAction)) {
+                            skippedCount++;
+                            continue;
+                        }
+                        if (reg.isInvalid()) {
+                            skippedCount++;
+                            continue;
+                        }
 
                         Person p = personDAO.getByGovIdNo(reg.getGovIdNo());
                         if (p == null) {
@@ -128,31 +136,26 @@ public class UploadServlet extends HttpServlet {
                             personDAO.update(p);
                         }
 
-                        boolean regExists = false;
-                        int regId = -1;
-                        String checkSql = "select id from ExamRegistration where personId = ? and examSessionId = ?";
-                        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(
-                                "jdbc:sqlserver://localhost:1433;databaseName=DLEM_DB;trustServerCertificate=true", "sa", "123");
-                             java.sql.PreparedStatement ps = conn.prepareStatement(checkSql)) {
-                            ps.setInt(1, p.getId());
-                            ps.setInt(2, selectedSessionId);
-                            try (java.sql.ResultSet rs = ps.executeQuery()) {
-                                if (rs.next()) { regExists = true; regId = rs.getInt("id"); }
-                            }
-                        }
+                        Integer existingId = regDAO.findCandidateIdByProfileAndSession(p.getId(), selectedSessionId);
+                        boolean regExists = existingId != null;
 
                         if (regExists) {
+                            int regId = existingId;
                             reg.setId(regId);
                             reg.setPersonId(p.getId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
                             regDAO.updatePresent(regId, true);
+                            regDAO.updatePhoto(regId, null);
                             importedCount++;
                         } else {
                             reg.setPersonId(p.getId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
-                            if (regDAO.insert(reg)) importedCount++;
+                            if (regDAO.insert(reg)) {
+                                regDAO.updatePhoto(reg.getId(), null);
+                                importedCount++;
+                            }
                         }
                     } catch (Exception ex) {
                         System.err.println("Error importing: " + reg.getFullName() + " - " + ex.getMessage());
@@ -162,12 +165,21 @@ public class UploadServlet extends HttpServlet {
 
                 session.removeAttribute("previewCandidates");
                 List<ExamRegistration> updatedQueue = regDAO.getCandidatesBySession(selectedSessionId);
+                CandidatePhotoHelper.normalizeQueue(request.getServletContext().getRealPath("/"), updatedQueue, regDAO);
                 session.setAttribute("candidateQueue", updatedQueue);
                 session.setAttribute("lastLoadedSessionId", selectedSessionId);
                 session.setAttribute("importedCount", importedCount);
 
-                addAuditLog(session, "IMPORT Candidates",
-                    "Nhập thành công danh sách " + importedCount + " thí sinh vào Ca thi ID: " + selectedSessionId);
+                String uploadedFile = (String) session.getAttribute("uploadedFileName");
+                if (uploadedFile == null) {
+                    uploadedFile = "danh_sach.csv";
+                }
+                ExamSession importSession = sessionDAO.getById(selectedSessionId);
+                String sessionLabel = importSession != null ? importSession.getSessionName() : ("SessionId " + selectedSessionId);
+                String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
+                        + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
+                        + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");
+                addAuditLog(session, "IMPORT Candidates", auditDetails, selectedSessionId);
 
                 response.sendRedirect("upload?importSuccess=true");
                 return;
@@ -293,16 +305,9 @@ public class UploadServlet extends HttpServlet {
                     if (!cccd.isEmpty()) {
                         Person existingP = personDAO.getByGovIdNo(cccd);
                         if (existingP != null) {
-                            String checkSql = "select 1 from ExamRegistration where personId = ? and examSessionId = ?";
-                            try (java.sql.Connection conn = java.sql.DriverManager.getConnection(
-                                    "jdbc:sqlserver://localhost:1433;databaseName=DLEM_DB;trustServerCertificate=true", "sa", "123");
-                                 java.sql.PreparedStatement ps = conn.prepareStatement(checkSql)) {
-                                ps.setInt(1, existingP.getId());
-                                ps.setInt(2, selectedSessionId);
-                                try (java.sql.ResultSet rs = ps.executeQuery()) {
-                                    if (rs.next()) reg.setDuplicate(true);
-                                }
-                            } catch (Exception e) { e.printStackTrace(); }
+                            if (regDAO.findCandidateIdByProfileAndSession(existingP.getId(), selectedSessionId) != null) {
+                                reg.setDuplicate(true);
+                            }
                         }
                     }
 
@@ -323,6 +328,10 @@ public class UploadServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {
+        addAuditLog(session, action, details, 0);
+    }
+
+    private void addAuditLog(HttpSession session, String action, String details, int recordId) {
         List<java.util.Map<String, String>> sessionAuditLogs = (List<java.util.Map<String, String>>) session.getAttribute("sessionAuditLogs");
         if (sessionAuditLogs == null) {
             sessionAuditLogs = new ArrayList<>();
@@ -335,42 +344,7 @@ public class UploadServlet extends HttpServlet {
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
 
-        try {
-            Models.User user = (Models.User) session.getAttribute("user");
-            int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
-            
-            try {
-                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            } catch (ClassNotFoundException e) {
-                System.err.println(e.getMessage());
-            }
-            
-            String dbAction = "UPDATE";
-            String upper = action.toUpperCase();
-            if (upper.contains("INSERT")) dbAction = "INSERT";
-            else if (upper.contains("DELETE")) dbAction = "DELETE";
-            else if (upper.contains("EXPORT")) dbAction = "EXPORT";
-            else if (upper.contains("IMPORT")) dbAction = "INSERT";
-            else if (upper.contains("ALLOCATE")) dbAction = "UPDATE";
-            else if (upper.contains("ACTIVATE")) dbAction = "UPDATE";
-            else if (upper.contains("CALL")) dbAction = "UPDATE";
-            
-            String tbl = action.contains("Person") ? "Person" : (action.contains("Payment") ? "Payment" : "ExamRegistration");
-            
-            String sql = "insert into AuditLog (tableName, recordId, action, newValue, changedBy, changedAt) values (?, ?, ?, ?, ?, ?)";
-            try (java.sql.Connection conn = java.sql.DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=DLEM_DB;trustServerCertificate=true", "sa", "123");
-                 java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, tbl);
-                ps.setInt(2, 0);
-                ps.setString(3, dbAction);
-                ps.setString(4, details);
-                ps.setInt(5, userId);
-                ps.setTimestamp(6, new java.sql.Timestamp(System.currentTimeMillis()));
-                ps.executeUpdate();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Utils.AuditLogHelper.persist(session, action, details, recordId);
     }
 
     private boolean isValidUTF8(byte[] bytes) {
