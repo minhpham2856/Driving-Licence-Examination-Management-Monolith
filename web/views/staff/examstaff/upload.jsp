@@ -18,82 +18,6 @@
     <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    
-    <style>
-        .upload-dropzone-container {
-            border: 2px dashed rgba(0, 82, 204, 0.3);
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            padding: 3rem 2rem;
-            text-align: center;
-            transition: all 0.2s ease;
-            position: relative;
-            cursor: pointer;
-        }
-        .upload-dropzone-container:hover {
-            border-color: #0052cc;
-            background-color: rgba(0, 82, 204, 0.02);
-            box-shadow: 0 4px 12px rgba(0, 82, 204, 0.04);
-        }
-        
-        .custom-file-input {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        
-        .upload-btn-group {
-            display: flex;
-            gap: 12px;
-            width: 100%;
-            margin-top: 1rem;
-        }
-        
-        .rule-card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1.25rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        }
-        
-        .rule-item {
-            display: flex;
-            gap: 12px;
-            align-items: start;
-            padding: 8px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .rule-item:last-child {
-            border-bottom: none;
-        }
-        
-        .rule-column-tag {
-            font-size: 0.72rem;
-            font-weight: 800;
-            background-color: #e2e8f0;
-            color: #475569;
-            padding: 2px 8px;
-            border-radius: 6px;
-            width: 70px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        
-        .preview-table-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-            margin-top: 2rem;
-            margin-bottom: 2.5rem;
-        }
-    </style>
 </head>
 <body class="has-side-nav-bar">
 
@@ -175,7 +99,7 @@
                         </select>
                     </div>
 
-                    <div class="upload-dropzone-container" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-dropzone-container">
                         <div class="dropzone-icon" style="margin-bottom: 1rem;">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -187,8 +111,7 @@
                         <span style="font-size: 0.78rem; color: #64748b; display: block; margin-bottom: 1rem;">Chấp nhận file định dạng .csv hoặc .txt (Tối đa 15MB)</span>
                         
                         <!-- Chọn file → tự động submit POST để parse và hiện preview -->
-                        <input type="file" id="fileInput" name="fileInput" style="display: none;" accept=".csv,.txt"
-                               onchange="document.getElementById('dropzoneLabel').textContent = 'Đầu phân tích: ' + this.files[0].name; document.getElementById('uploadForm').submit();">
+                        <input type="file" id="fileInput" name="fileInput" class="upload-file-input" accept=".csv,.txt">
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px;">
@@ -417,5 +340,6 @@
     </jsp:include>
 </div>
 
+<script src="${pageContext.request.contextPath}/assets/js/upload.js"></script>
 </body>
 </html>
