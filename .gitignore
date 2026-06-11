@@ -3,3 +3,6 @@
 /build/
 /nbproject/private
 nbproject/private/private.properties
+.env
+web/WEB-INF/others/config/sepay.env
+dist/
