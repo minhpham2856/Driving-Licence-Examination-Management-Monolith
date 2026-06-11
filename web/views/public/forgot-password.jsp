@@ -74,7 +74,7 @@
             
             <!-- Alternate Switch Options -->
             <div class="alternate-actions-wrap">
-                <a href="login.jsp" class="alternate-action-link">
+                <a href="${pageContext.request.contextPath}/login" class="alternate-action-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="19" y1="12" x2="5" y2="12"/>
                         <polyline points="12 19 5 12 12 5"/>
@@ -82,7 +82,7 @@
                     Quay lại đăng nhập
                 </a>
                 
-                <a href="register.jsp" class="alternate-action-link alternate-action-link--register">
+                <a href="${pageContext.request.contextPath}/register" class="alternate-action-link alternate-action-link--register">
                     Bạn chưa có tài khoản? <span>Đăng ký ngay</span>
                 </a>
             </div>

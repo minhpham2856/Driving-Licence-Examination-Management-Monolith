@@ -216,7 +216,7 @@
                     <p class="cta-desc">Gia nhập cộng đồng hơn 50.000 học viên đã tốt nghiệp tại Lái Vui và nhận chứng
                         chỉ lái xe an toàn ngay hôm nay.</p>
                     <div class="cta-buttons">
-                        <a href="register.jsp" class="btn-cta-primary">Đăng ký ngay</a>
+                        <a href="${pageContext.request.contextPath}/register" class="btn-cta-primary">Đăng ký ngay</a>
                         <a href="#" class="btn-cta-secondary">Liên hệ tư vấn</a>
                     </div>
                 </div>

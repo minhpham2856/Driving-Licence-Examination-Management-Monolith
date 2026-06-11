@@ -260,6 +260,10 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     box-sizing: border-box;
 }
 
+.side-nav-bar__brand-inner--logo-only {
+    justify-content: center;
+}
+
 .side-nav-bar__logo-link {
     display: block;
     flex-shrink: 0;
