@@ -1,359 +1,360 @@
--- ============================================
--- DATABASE: DLEM_DB
--- ============================================
-
+-- Create Database
 USE master;
 GO
 
-IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DLEM_DB')
+IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DLEM_DB_2')
 BEGIN
-    ALTER DATABASE DLEM_DB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE DLEM_DB;
+    ALTER DATABASE DLEM_DB_2 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE DLEM_DB_2;
 END
 GO
 
-CREATE DATABASE DLEM_DB;
+CREATE DATABASE DLEM_DB_2;
 GO
 
-USE DLEM_DB;
+USE DLEM_DB_2;
 GO
 
--- ============================================
--- PERSON (Handles both registrants and walk-in candidates)
--- ============================================
-
-CREATE TABLE Person (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    govIdNo NVARCHAR(50) NULL UNIQUE,
-    fullName NVARCHAR(200) NOT NULL,
-    dateOfBirth DATE NOT NULL,
-    gender BIT NOT NULL DEFAULT 0, -- 0 = Male, 1 = Female
-    phoneNo NVARCHAR(20) NOT NULL,
-    email NVARCHAR(255) NULL,
-    address NVARCHAR(500) NULL,
-    photoUrl NVARCHAR(500) NULL,
-    isWalkIn BIT NOT NULL DEFAULT 0,
-    createdAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    updatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-	approvalStatus NVARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (approvalStatus IN ('Pending', 'Approved', 'Rejected')),
-    rejectionReason NVARCHAR(500) NULL,
-    INDEX IX_Person_govIdNo (govIdNo),
-    INDEX IX_Person_phoneNo (phoneNo),
-    INDEX IX_Person_fullName (fullName)
-);
-
-CREATE TABLE CandidateDocument (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    personId INT NOT NULL REFERENCES Person(id),
-    documentType NVARCHAR(50) NOT NULL, -- 'ID_Card', 'Health_Cert', 'Residence_Proof', 'Photo', 'License_Copy'
-    documentUrl NVARCHAR(500) NOT NULL,
-    expiryDate DATE NULL,
-    createdAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    INDEX IX_CandidateDocument_personId (personId),
-);
-
--- ============================================
--- USER TABLE (System login accounts)
--- ============================================
-
-CREATE TABLE Role (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    roleName NVARCHAR(50) NOT NULL UNIQUE CHECK (roleName IN ('Admin', 'Examiner', 'ManagingStaff', 'ExamStaff', 'Candidate', 'Registrant'))
-);
-
+-- Users table
 CREATE TABLE [User] (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    personId INT NULL REFERENCES Person(id),
-    username NVARCHAR(100) NOT NULL UNIQUE,
-    email NVARCHAR(255) NULL,
-    passwordHash NVARCHAR(255) NOT NULL,
-    roleId INT NOT NULL REFERENCES Role(id),
-    isActive BIT NOT NULL DEFAULT 1,
-    lastLoginAt DATETIME2 NULL,
-    createdAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    INDEX IX_User_username (username),
-    INDEX IX_User_roleId (roleId)
+    UserId INT PRIMARY KEY IDENTITY(1,1),
+    Username NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(255) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    [Role] NVARCHAR(50) NOT NULL,
+    [Status] BIT NOT NULL DEFAULT 1
 );
+GO
 
-CREATE UNIQUE INDEX UQ_User_personId ON [User](personId) WHERE personId IS NOT NULL;
-CREATE UNIQUE INDEX UQ_User_email ON [User](email) WHERE email IS NOT NULL;
-
--- ============================================
--- LICENSE & EXAM STRUCTURE
--- ============================================
-
-CREATE TABLE LicenseType (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    licenseCode NVARCHAR(10) NOT NULL UNIQUE,
-    minAge INT NOT NULL CHECK (minAge >= 18),
-    hasTheory BIT NOT NULL DEFAULT 1,
-    hasPractical BIT NOT NULL DEFAULT 1,
-    hasRoadLayout BIT NOT NULL DEFAULT 0,
-    hasOnRoad BIT NOT NULL DEFAULT 0,
-    durationYears INT NOT NULL DEFAULT 5,
-    criticalQuestionCount INT NOT NULL DEFAULT 1
+-- Profile table
+CREATE TABLE Profile (
+    ProfileId INT PRIMARY KEY IDENTITY(1,1),
+    FullName NVARCHAR(255) NOT NULL,
+    DateOfBirth DATETIME NOT NULL,
+    PhoneNumber NVARCHAR(20) NOT NULL,
+    Sex NVARCHAR(10) NOT NULL,
+    GovernmentIdNumber NVARCHAR(100) NOT NULL UNIQUE,
+    Address NVARCHAR(500),
+    UserId INT NOT NULL REFERENCES [User](UserId)
 );
+GO
 
-CREATE TABLE ExamType (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    typeName NVARCHAR(50) NOT NULL UNIQUE CHECK (typeName IN ('Theory', 'Practical', 'RoadLayout', 'OnRoad'))
+-- Document table
+CREATE TABLE Document (
+    DocumentId INT PRIMARY KEY IDENTITY(1,1),
+    DocumentType NVARCHAR(50) NOT NULL,
+    DocumentUrl NVARCHAR(500) NOT NULL,
+    Notes NVARCHAR(255),
+    ProfileId INT NOT NULL REFERENCES Profile(ProfileId)
 );
+GO
 
-CREATE TABLE ExamSection (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examTypeId INT NOT NULL REFERENCES ExamType(id),
-    licenseTypeId INT NOT NULL REFERENCES LicenseType(id),
-    timeLimitMinutes INT NULL,
-    examFee DECIMAL(18,2) NOT NULL DEFAULT 0,
-    isActive BIT NOT NULL DEFAULT 1,
-    INDEX IX_ExamSection_licenseTypeId (licenseTypeId)
+-- Licence table
+CREATE TABLE Licence (
+    LicenceId INT PRIMARY KEY IDENTITY(1,1),
+    LicenceClass NVARCHAR(50) NOT NULL UNIQUE,
+    Description NVARCHAR(500),
+    MinimumAge INT NOT NULL,
+    ValidForYears INT NOT NULL,
+    UpgradeFromLicenceId INT NULL REFERENCES Licence(LicenceId)
 );
+GO
 
--- ============================================
--- EXAM SESSIONS & REGISTRATION
--- ============================================
-
-CREATE TABLE ExamArea (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    areaName NVARCHAR(100) NOT NULL,
-    areaType NVARCHAR(50) NOT NULL CHECK (areaType IN ('Room', 'Ground', 'Road')),
-    capacity INT NOT NULL CHECK (capacity > 0),
-    location NVARCHAR(255) NULL,
-    isActive BIT NOT NULL DEFAULT 1
-);
-
-CREATE TABLE ExamSession (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    sessionName NVARCHAR(100) NOT NULL,
-    licenseTypeId INT NOT NULL REFERENCES LicenseType(id),
-    examTypeId INT NOT NULL REFERENCES ExamType(id),
-    examDate DATE NOT NULL,
-    shiftStartTime TIME NOT NULL,
-    shiftEndTime TIME NOT NULL,
-    areaId INT NOT NULL REFERENCES ExamArea(id),
-    status NVARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (status IN ('Scheduled', 'Open', 'InProgress', 'Completed', 'Cancelled')),
-    maxCandidates INT NOT NULL CHECK (maxCandidates > 0),
-    registeredCount INT NOT NULL DEFAULT 0,
-    createdAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    INDEX IX_ExamSession_examDate (examDate),
-    INDEX IX_ExamSession_status (status)
-);
-
-
-
-
+-- ExamRegistration table
 CREATE TABLE ExamRegistration (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examSessionId INT NOT NULL REFERENCES ExamSession(id),
-    personId INT NOT NULL REFERENCES Person(id),
-    candidateNo INT NOT NULL,
-    registrationType NVARCHAR(20) NOT NULL DEFAULT 'PreRegistered' CHECK (registrationType IN ('PreRegistered', 'WalkIn')),
-    isPaymentCompleted BIT NOT NULL DEFAULT 0,
-    isPresent BIT NOT NULL DEFAULT 0,
-    presentMarkedAt DATETIME2 NULL,
-    notes NVARCHAR(500) NULL,
-    CONSTRAINT UQ_ExamRegistration_session_candidate UNIQUE (examSessionId, candidateNo),
-    CONSTRAINT UQ_ExamRegistration_session_person UNIQUE (examSessionId, personId),
-    INDEX IX_ExamRegistration_examSessionId (examSessionId),
-    INDEX IX_ExamRegistration_personId (personId),
-    INDEX IX_ExamRegistration_registrationType (registrationType)
+    ExamRegistrationId INT PRIMARY KEY IDENTITY(1,1),
+    RegistrationStatus NVARCHAR(50) NOT NULL,
+    Notes NVARCHAR(MAX),
+    ProfileId INT NOT NULL REFERENCES Profile(ProfileId),
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
 );
+GO
 
--- ============================================
--- EXAMINATION EQUIPMENT
--- ============================================
-
-CREATE TABLE ExamComputer (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    computerCode NVARCHAR(50) NOT NULL UNIQUE,
-    areaId INT NOT NULL REFERENCES ExamArea(id),
-    status NVARCHAR(20) NOT NULL DEFAULT 'Available' CHECK (status IN ('Available', 'InUse', 'Broken', 'Maintenance')),
-    lastUsedAt DATETIME2 NULL
+-- Exam table
+CREATE TABLE Exam (
+    ExamId INT PRIMARY KEY IDENTITY(1,1),
+    ExamCode NVARCHAR(50) NOT NULL UNIQUE,
+    ExamDate DATETIME NOT NULL,
+    CentreName NVARCHAR(255) NOT NULL,
+    [Status] NVARCHAR(50) NOT NULL,
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
 );
+GO
 
+-- Session table
+CREATE TABLE [Session] (
+    SessionId INT PRIMARY KEY IDENTITY(1,1),
+    SessionName NVARCHAR(100) NOT NULL,
+    StartTime DATETIME NOT NULL,
+    EndTime DATETIME NOT NULL,
+    [Status] NVARCHAR(50) NOT NULL,
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    CHECK (EndTime > StartTime)
+);
+GO
+
+-- Session_Examiner junction table
+CREATE TABLE Session_Examiner (
+    SessionExaminerId INT PRIMARY KEY IDENTITY(1,1),
+    SessionId INT NOT NULL REFERENCES [Session](SessionId),
+    ExaminerId INT NOT NULL REFERENCES [User](UserId),
+    UNIQUE (SessionId, ExaminerId)
+);
+GO
+
+-- ExamSection table
+CREATE TABLE ExamSection (
+    ExamSectionId INT PRIMARY KEY IDENTITY(1,1),
+    SectionName NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+
+-- Licence_ExamSection junction table
+CREATE TABLE Licence_ExamSection (
+    LicenceExamSectionId INT PRIMARY KEY IDENTITY(1,1),
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
+    DurationMinutes INT NULL,
+    UNIQUE (LicenceId, ExamSectionId),
+    CHECK (DurationMinutes IS NULL OR DurationMinutes >= 0) -- 0 -> không có thời gian 
+);
+GO
+
+-- Session_ExamSection junction table
+CREATE TABLE Session_ExamSection (
+    SessionExamSectionId INT PRIMARY KEY IDENTITY(1,1),
+    SessionId INT NOT NULL REFERENCES Session(SessionId),
+    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
+    UNIQUE (SessionId, ExamSectionId)
+);
+GO
+
+-- ExamArea table
+CREATE TABLE ExamArea (
+    ExamAreaId INT PRIMARY KEY IDENTITY(1,1),
+    AreaName NVARCHAR(100) NOT NULL,
+    AreaType NVARCHAR(50) NOT NULL,
+    Capacity INT NOT NULL,
+    [Location] NVARCHAR(255) NOT NULL,
+    CHECK (Capacity > 0)
+);
+GO
+
+-- Session_ExamArea junction table
+CREATE TABLE Session_ExamArea (
+    SessionExamAreaId INT PRIMARY KEY IDENTITY(1,1),
+    SessionId INT NOT NULL REFERENCES Session(SessionId),
+    ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId),
+    UNIQUE (SessionId, ExamAreaId)
+);
+GO
+
+-- ExamDevice table
 CREATE TABLE ExamDevice (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    areaId INT NOT NULL REFERENCES ExamArea(id),
-    deviceType NVARCHAR(50) NOT NULL,
-    deviceName NVARCHAR(100) NOT NULL,
-    status NVARCHAR(20) NOT NULL DEFAULT 'Operational'
+    ExamDeviceId INT PRIMARY KEY IDENTITY(1,1),
+    DeviceName NVARCHAR(100) NOT NULL,
+    DeviceType NVARCHAR(50) NOT NULL,
+    [Status] NVARCHAR(50) NOT NULL,
+    ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId)
 );
+GO
 
--- ============================================
--- QUESTION BANK (Theory)
--- ============================================
-
-CREATE TABLE QuestionCategory (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    categoryName NVARCHAR(100) NOT NULL UNIQUE,
-    description NVARCHAR(500) NULL
+-- Fee table
+CREATE TABLE Fee (
+    FeeId INT PRIMARY KEY IDENTITY(1,1),
+    FeeName NVARCHAR(100) NOT NULL,
+    FeeType NVARCHAR(50) NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CHECK (Amount >= 0)
 );
+GO
 
-CREATE TABLE Question (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    questionNo NVARCHAR(50) NOT NULL UNIQUE,
-    categoryId INT NOT NULL REFERENCES QuestionCategory(id),
-    imageUrl NVARCHAR(500) NULL,
-    correctAnswer NCHAR(1) NOT NULL CHECK (correctAnswer IN ('A', 'B', 'C', 'D')),
-    isCritical BIT NOT NULL DEFAULT 0
-);
-
-CREATE TABLE LicenseQuestion (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    licenseTypeId INT NOT NULL REFERENCES LicenseType(id),
-    questionId INT NOT NULL REFERENCES Question(id),
-    CONSTRAINT UQ_LicenseQuestion UNIQUE (licenseTypeId, questionId),
-    INDEX IX_LicenseQuestion_licenseTypeId (licenseTypeId),
-    INDEX IX_LicenseQuestion_questionId (questionId)
-);
-
--- ============================================
--- EXAM PAPERS & ANSWERS (Theory)
--- ============================================
-
-CREATE TABLE ExamPaper (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examRegistrationId INT NOT NULL REFERENCES ExamRegistration(id),
-    examComputerId INT NULL REFERENCES ExamComputer(id),
-    startedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    submittedAt DATETIME2 NULL,
-    isSubmitted BIT NOT NULL DEFAULT 0,
-    CONSTRAINT UQ_ExamPaper_examRegistrationId UNIQUE (examRegistrationId)
-);
-
-CREATE TABLE CandidateAnswer (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examPaperId INT NOT NULL REFERENCES ExamPaper(id),
-    questionId INT NOT NULL REFERENCES Question(id),
-    selectedAnswer NCHAR(1) NULL CHECK (selectedAnswer IN ('A', 'B', 'C', 'D')),
-    CONSTRAINT UQ_CandidateAnswer_examPaperId_questionId UNIQUE (examPaperId, questionId)
-);
-
--- ============================================
--- SCORING (Theory)
--- ============================================
-
-CREATE TABLE TheoryScore (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examPaperId INT NOT NULL UNIQUE REFERENCES ExamPaper(id),
-    totalRawScore INT NOT NULL DEFAULT 0,
-    finalScore INT NOT NULL DEFAULT 0,
-    calculatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
-);
-
--- ============================================
--- SCORING (Practical, RoadLayout, OnRoad)
--- ============================================
-
-CREATE TABLE PracticalScore (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examRegistrationId INT NOT NULL REFERENCES ExamRegistration(id),
-    examSectionId INT NOT NULL REFERENCES ExamSection(id),
-    baseScore INT NOT NULL DEFAULT 100,
-    totalDeductions INT NOT NULL DEFAULT 0,
-    finalScore INT NOT NULL DEFAULT 0,
-    evaluatedBy INT NOT NULL REFERENCES [User](id),
-    evaluatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    CONSTRAINT UQ_PracticalScore_registration_section UNIQUE (examRegistrationId, examSectionId),
-    INDEX IX_PracticalScore_examRegistrationId (examRegistrationId),
-    INDEX IX_PracticalScore_examSectionId (examSectionId)
-);
-
-CREATE TABLE ScoreDeduction (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    practicalScoreId INT NOT NULL REFERENCES PracticalScore(id),
-    deductionReason NVARCHAR(500) NOT NULL,
-    deductionPoints INT NOT NULL CHECK (deductionPoints > 0 AND deductionPoints <= 100),
-    note NVARCHAR(1000) NULL,
-    INDEX IX_ScoreDeduction_practicalScoreId (practicalScoreId)
-);
-
--- ============================================
--- SCORE CHANGE LOG
--- ============================================
-
-CREATE TABLE ScoreChangeLog (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    scoreType NVARCHAR(20) NOT NULL CHECK (scoreType IN ('Theory', 'Practical', 'RoadLayout', 'OnRoad')),
-    scoreId INT NOT NULL,
-    oldScore INT NOT NULL,
-    newScore INT NOT NULL,
-    changedBy INT NOT NULL REFERENCES [User](id),
-    changeReason NVARCHAR(500) NOT NULL,
-    changedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    INDEX IX_ScoreChangeLog_scoreType_scoreId (scoreType, scoreId),
-    INDEX IX_ScoreChangeLog_changedBy (changedBy)
-);
-
--- ============================================
--- EXAM RESULTS
--- ============================================
-
-CREATE TABLE ExamResult (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examRegistrationId INT NOT NULL REFERENCES ExamRegistration(id),
-    examSectionId INT NOT NULL REFERENCES ExamSection(id),
-    theoryScoreId INT NULL REFERENCES TheoryScore(id),
-    practicalScoreId INT NULL REFERENCES PracticalScore(id),
-    startTime DATETIME2 NOT NULL,
-    endTime DATETIME2 NOT NULL,
-    answersCount INT NULL,
-    correctAnswersCount INT NULL,
-    isCancelled BIT NOT NULL DEFAULT 0,
-    cancelReason NVARCHAR(500) NULL,
-    cancelledBy INT NULL REFERENCES [User](id),
-    CONSTRAINT UQ_ExamResult_registration_section UNIQUE (examRegistrationId, examSectionId),
-    INDEX IX_ExamResult_examRegistrationId (examRegistrationId),
-    INDEX IX_ExamResult_examSectionId (examSectionId)
-);
-
--- ============================================
--- PAYMENTS
--- ============================================
-
+-- Payment table (cần tạo sau Candidate)
 CREATE TABLE Payment (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examRegistrationId INT NOT NULL REFERENCES ExamRegistration(id),
-    amount DECIMAL(18,2) NOT NULL CHECK (amount > 0),
-    paymentStatus NVARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (paymentStatus IN ('Pending', 'Completed', 'Failed', 'Refunded')),
-    paymentMethod NVARCHAR(20) NOT NULL DEFAULT 'Cash' CHECK (paymentMethod IN ('Cash', 'BankTransfer')),
-    paymentDate DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    transactionReference NVARCHAR(100) NULL,
-    notes NVARCHAR(500) NULL,
-    INDEX IX_Payment_examRegistrationId (examRegistrationId),
-    INDEX IX_Payment_paymentStatus (paymentStatus)
+    PaymentId INT PRIMARY KEY IDENTITY(1,1),
+    PaymentStatus NVARCHAR(50) NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
+    TransactionReference NVARCHAR(255) UNIQUE,
+    TotalAmount DECIMAL(18,2) NOT NULL,
+    PaidAt DATETIME,
+    CandidateId INT NOT NULL, -- FK sẽ thêm sau khi tạo Candidate
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    CHECK (TotalAmount >= 0)
 );
+GO
 
--- ============================================
--- CANDIDATE CALLS
--- ============================================
-
-CREATE TABLE CandidateCall (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    examSessionId INT NOT NULL REFERENCES ExamSession(id),
-    candidateNo INT NOT NULL,
-    calledTo NVARCHAR(200) NOT NULL,
-    calledBy INT NOT NULL REFERENCES [User](id),
-    calledAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    result NVARCHAR(100) NULL
+-- Payment_Fee junction table
+CREATE TABLE Payment_Fee (
+    PaymentFeeId INT PRIMARY KEY IDENTITY(1,1),
+    PaymentId INT NOT NULL REFERENCES Payment(PaymentId),
+    FeeId INT NOT NULL REFERENCES Fee(FeeId),
+    UNIQUE (PaymentId, FeeId)
 );
+GO
 
--- ============================================
--- AUDIT LOG
--- ============================================
-
-CREATE TABLE AuditLog (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    tableName NVARCHAR(128) NOT NULL,
-    recordId INT NOT NULL,
-    action NVARCHAR(10) NOT NULL CHECK (action IN ('INSERT', 'UPDATE', 'DELETE', 'EXPORT')),
-    oldValue NVARCHAR(MAX) NULL,
-    newValue NVARCHAR(MAX) NULL,
-    changedBy INT NOT NULL REFERENCES [User](id),
-    changedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    ipAddress NVARCHAR(45) NULL,
-    sessionId NVARCHAR(100) NULL,
-    INDEX IX_AuditLog_tableName_recordId (tableName, recordId),
-    INDEX IX_AuditLog_changedBy (changedBy),
-    INDEX IX_AuditLog_changedAt (changedAt)
+-- QuestionCategory table
+CREATE TABLE QuestionCategory (
+    QuestionCategoryId INT PRIMARY KEY IDENTITY(1,1),
+    CategoryName NVARCHAR(100) NOT NULL UNIQUE,
+    Description NVARCHAR(500)
 );
+GO
+
+-- Question table
+CREATE TABLE Question (
+    QuestionId INT PRIMARY KEY IDENTITY(1,1),
+    QuestionNumber INT NOT NULL,
+    ImageUrl NVARCHAR(500),
+    CorrectAnswer NVARCHAR(10) NOT NULL,
+    IsCritical BIT NOT NULL DEFAULT 0,
+    QuestionCategoryId INT NOT NULL REFERENCES QuestionCategory(QuestionCategoryId)
+);
+GO
+
+-- Licence_Question junction table
+CREATE TABLE Licence_Question (
+    LicenceQuestionId INT PRIMARY KEY IDENTITY(1,1),
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+    QuestionId INT NOT NULL REFERENCES Question(QuestionId),
+    UNIQUE (LicenceId, QuestionId)
+);
+GO
+
+-- Candidate table
+CREATE TABLE Candidate (
+    CandidateId INT PRIMARY KEY IDENTITY(1,1),
+    CandidateNumber NVARCHAR(50) NOT NULL UNIQUE,
+    FullName NVARCHAR(255) NOT NULL,
+    DateOfBirth DATETIME NOT NULL,
+    PhoneNumber NVARCHAR(20),
+    Sex NVARCHAR(10),
+    GovernmentIdNumber NVARCHAR(100) UNIQUE,
+    Address NVARCHAR(500),
+    TakeTheory BIT,
+    TakePractical BIT,
+    TakeRoadLayout BIT,
+    TakeOnRoad BIT,
+    ReasonForTaking NVARCHAR(355),
+    PhotoImageUrl NVARCHAR(500),
+    UserId INT NOT NULL REFERENCES [User](UserId),
+    ExamRegistrationId INT NOT NULL REFERENCES ExamRegistration(ExamRegistrationId)
+);
+GO
+
+-- Thêm FK cho Payment.CandidateId sau khi có Candidate
+ALTER TABLE Payment ADD FOREIGN KEY (CandidateId) REFERENCES Candidate(CandidateId);
+GO
+
+-- Exam_Candidate junction table
+CREATE TABLE Exam_Candidate (
+    ExamCandidateId INT PRIMARY KEY IDENTITY(1,1),
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
+    SessionId INT NOT NULL REFERENCES Session(SessionId),
+    UNIQUE (ExamId, CandidateId, SessionId)
+);
+GO
+
+-- TheoryPaper table
+CREATE TABLE TheoryPaper (
+    TheoryPaperId INT PRIMARY KEY IDENTITY(1,1),
+    ExamCandidateId INT NOT NULL REFERENCES Exam_Candidate(ExamCandidateId),
+    ExamDeviceId INT NOT NULL REFERENCES ExamDevice(ExamDeviceId),
+    StartedAt DATETIME,
+    SubmittedAt DATETIME,
+    CHECK (SubmittedAt IS NULL OR SubmittedAt >= StartedAt)
+);
+GO
+
+-- CandidateAnswer table
+CREATE TABLE CandidateAnswer (
+    CandidateAnswerId INT PRIMARY KEY IDENTITY(1,1),
+    TheoryPaperId INT NOT NULL REFERENCES TheoryPaper(TheoryPaperId),
+    QuestionId INT NOT NULL REFERENCES Question(QuestionId),
+    Answer NVARCHAR(10),
+    UNIQUE (TheoryPaperId, QuestionId)
+);
+GO
+
+-- ExamResult table
+CREATE TABLE ExamResult (
+    ExamResultId INT PRIMARY KEY IDENTITY(1,1),
+    ExamCandidateId INT NOT NULL REFERENCES Exam_Candidate(ExamCandidateId),
+    IsPassed BIT NOT NULL,
+    ResultDate DATETIME NOT NULL DEFAULT GETDATE(),
+    UNIQUE (ExamCandidateId)
+);
+GO
+
+-- ExamScore table
+CREATE TABLE ExamScore (
+    ExamScoreId INT PRIMARY KEY IDENTITY(1,1),
+    ExamResultId INT NOT NULL REFERENCES ExamResult(ExamResultId),
+    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
+    Score DECIMAL(5,2) NOT NULL,
+    CHECK (Score >= 0 AND Score <= 100),
+    UNIQUE (ExamResultId, ExamSectionId)
+);
+GO
+
+-- ScoreDeduction table
+CREATE TABLE ScoreDeduction (
+    ScoreDeductionId INT PRIMARY KEY IDENTITY(1,1),
+    [Reason] NVARCHAR(500) NOT NULL,
+    Points DECIMAL(5,2) NOT NULL,
+    IsCritical BIT NOT NULL DEFAULT 0,
+    CHECK (Points > 0)
+);
+GO
+
+-- Score_Deduction junction table
+CREATE TABLE Score_Deduction (
+    ScoreDeductionDetailId INT PRIMARY KEY IDENTITY(1,1),
+    ExamScoreId INT NOT NULL REFERENCES ExamScore(ExamScoreId),
+    ScoreDeductionId INT NOT NULL REFERENCES ScoreDeduction(ScoreDeductionId),
+    UNIQUE (ExamScoreId, ScoreDeductionId)
+);
+GO
+
+-- Audit table
+CREATE TABLE Audit (
+    AuditId BIGINT PRIMARY KEY IDENTITY(1,1),
+    UserId INT NULL REFERENCES [User](UserId),
+    Action NVARCHAR(50) NOT NULL,
+    [Reason] NVARCHAR(MAX),
+    EntityName NVARCHAR(255) NOT NULL,
+    EntityId NVARCHAR(255) NOT NULL,
+    OldValue NVARCHAR(MAX),
+    NewValue NVARCHAR(MAX),
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+GO
+
+-- Indices
+CREATE INDEX IX_User_Username ON [User](Username);
+CREATE INDEX IX_User_Email ON [User](Email);
+CREATE INDEX IX_Profile_UserId ON Profile(UserId);
+CREATE INDEX IX_Profile_GovernmentId ON Profile(GovernmentIdNumber);
+CREATE INDEX IX_Document_ProfileId ON Document(ProfileId);
+CREATE INDEX IX_ExamRegistration_ProfileId ON ExamRegistration(ProfileId);
+CREATE INDEX IX_ExamRegistration_LicenceId ON ExamRegistration(LicenceId);
+CREATE INDEX IX_Exam_LicenceId ON Exam(LicenceId);
+CREATE INDEX IX_Exam_ExamCode ON Exam(ExamCode);
+CREATE INDEX IX_Session_ExamId ON Session(ExamId);
+CREATE INDEX IX_Licence_ExamSection_LicenceId ON Licence_ExamSection(LicenceId);
+CREATE INDEX IX_Licence_ExamSection_ExamSectionId ON Licence_ExamSection(ExamSectionId);
+CREATE INDEX IX_ExamDevice_ExamAreaId ON ExamDevice(ExamAreaId);
+CREATE INDEX IX_Candidate_UserId ON Candidate(UserId);
+CREATE INDEX IX_Candidate_ExamRegistrationId ON Candidate(ExamRegistrationId);
+CREATE INDEX IX_Candidate_CandidateNumber ON Candidate(CandidateNumber);
+CREATE INDEX IX_Payment_CandidateId ON Payment(CandidateId);
+CREATE INDEX IX_Payment_ExamId ON Payment(ExamId);
+CREATE INDEX IX_TheoryPaper_ExamCandidateId ON TheoryPaper(ExamCandidateId);
+CREATE INDEX IX_CandidateAnswer_TheoryPaperId ON CandidateAnswer(TheoryPaperId);
+CREATE INDEX IX_ExamResult_ExamCandidateId ON ExamResult(ExamCandidateId);
+CREATE INDEX IX_Audit_CreatedAt ON Audit(CreatedAt);
+CREATE INDEX IX_Audit_Entity ON Audit(EntityName, EntityId);
+CREATE INDEX IX_Session_Examiner_SessionId ON Session_Examiner(SessionId);
+CREATE INDEX IX_Session_Examiner_ExaminerId ON Session_Examiner(ExaminerId);
+GO

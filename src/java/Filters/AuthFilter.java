@@ -12,25 +12,26 @@ import java.io.IOException;
 public class AuthFilter implements Filter {
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         HttpSession session = httpRequest.getSession(false);
 
+        
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
         if (user == null) {
             session = httpRequest.getSession(true);
-            session.setAttribute("errorMessage", "Bạn cần phải đăng nhập để truy cập khu vực này.");
+            session.setAttribute("errorMessage", "Bạn cần phải đăng nhập để truy cập.");
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }
 
         String roleName = user.getRole() != null ? user.getRole().getRoleName() : "";
-        if ("ManagingStaff".equalsIgnoreCase(roleName)
-                || "Admin".equalsIgnoreCase(roleName)
-                || "Examiner".equalsIgnoreCase(roleName)
+        if ("ManagingStaff".equalsIgnoreCase(roleName) 
+                || "Admin".equalsIgnoreCase(roleName) 
+                || "Examiner".equalsIgnoreCase(roleName) 
                 || "ExamStaff".equalsIgnoreCase(roleName)) {
             chain.doFilter(request, response);
         } else {

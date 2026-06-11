@@ -1,0 +1,122 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
+<c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
+<c:set var="cssConfirmation" value="${ctx}/assets/css/examiner-confirmation.css" />
+<c:set var="headerTitle" value="Xác nhận vắng thi" />
+<c:set var="sbd" value="${param.sbd}" />
+<c:set var="name" value="${param.name}" />
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-call.jsp" />
+
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SÁT HẠCH</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${cssStyle}">
+        <link rel="stylesheet" href="${cssLayout}">
+        <link rel="stylesheet" href="${cssConfirmation}">
+    </head>
+    <body class="has-side-nav-bar examiner-portal">
+
+        <!--sidebar-->
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
+            <jsp:param name="activeSidebar" value="goi-thi-sinh" />
+        </jsp:include>
+
+        <div class="examiner-shell">
+            <!--header-->
+            <jsp:include page="/views/layout/header-examiner.jsp" />
+
+            <main class="examiner-main examiner-main--scroll examiner-main--confirmation">
+                <!--toolbar-->
+                <section class="examiner-toolbar">
+                    <div class="exr-toolbar-left">
+                        <a href="${backUrl}" class="exr-back">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                            QUAY LẠI
+                        </a>
+                        <h2 class="examiner-toolbar__title">Xác nhận vắng thi</h2>
+                    </div>
+                </section>
+
+                <!--confirmation-->
+                <section class="exr-grid">
+                    <div class="exr-col-left">
+                        <div class="exr-card exr-card--accent">
+                            <div class="exr-section-title">
+                                <span class="material-symbols-outlined">person</span>
+                                <span>THÔNG TIN THÍ SINH</span>
+                            </div>
+                            <div class="exr-id-grid">
+                                <div class="exr-field">
+                                    <p class="exr-field__label">HỌ VÀ TÊN</p>
+                                    <p class="exr-field__value">
+                                        <c:choose>
+                                            <c:when test="${not empty name}">${name}</c:when>
+                                            <c:otherwise><span class="exr-field__value--sm">—</span></c:otherwise>
+                                        </c:choose>
+                                    </p>
+                                </div>
+                                <div class="exr-field">
+                                    <p class="exr-field__label">SỐ BÁO DANH</p>
+                                    <c:choose>
+                                        <c:when test="${not empty sbd}">
+                                            <span class="exr-chip">${sbd}</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <p class="exr-field__value exr-field__value--sm">—</p>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="exr-warning">
+                            <span class="exr-warning__icon material-symbols-outlined">warning</span>
+                            <div class="exr-warning__body">
+                                <p class="exr-warning__title">CẢNH BÁO</p>
+                                <p class="exr-warning__text">
+                                    Thí sinh sẽ được đánh dấu <strong>vắng thi</strong> và không thể tham gia ca thi hiện tại.
+                                    Thao tác này được ghi nhận vào nhật ký hệ thống.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exr-col-right">
+                        <div class="exr-card">
+                            <div class="exr-section-title">
+                                <span class="material-symbols-outlined">event_busy</span>
+                                <span>XÁC NHẬN VẮNG THI</span>
+                            </div>
+
+                            <div class="examiner-absence-actions">
+                                <form action="${backUrl}" method="get">
+                                    <input type="hidden" name="absenceConfirmed" value="1">
+                                    <input type="hidden" name="sbd" value="${sbd}">
+                                    <button type="submit" class="examiner-btn-absence">
+                                        <span class="material-symbols-outlined">event_busy</span>
+                                        XÁC NHẬN VẮNG
+                                    </button>
+                                </form>
+                                <a href="${backUrl}" class="examiner-btn examiner-btn--white examiner-absence-cancel">Hủy bỏ</a>
+                                <p class="examiner-absence-note">
+                                    Nhấn <strong>Xác nhận vắng</strong> đồng nghĩa bạn chịu trách nhiệm về quyết định này.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+    </body>
+</html>

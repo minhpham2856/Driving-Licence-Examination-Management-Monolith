@@ -1,8 +1,10 @@
 /DLEM/nbproject/private/
 /Driving-Licence-Examination-Management-Monolith/nbproject/private/
+private/
 /build/
 /nbproject/private
 nbproject/private/private.properties
+/dist/
 .env
 web/WEB-INF/others/config/sepay.env
 dist/

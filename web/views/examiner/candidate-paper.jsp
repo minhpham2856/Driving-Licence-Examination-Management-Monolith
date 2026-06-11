@@ -1,64 +1,73 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
+<c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
+<c:set var="headerTitle" value="Đề thi" />
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit.jsp" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper.jsp" />
+
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đề thi - Lái Vui</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar examiner-portal">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SÁT HẠCH</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${cssStyle}">
+        <link rel="stylesheet" href="${cssLayout}">
+    </head>
+    <body class="has-side-nav-bar examiner-portal">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
-    <jsp:param name="activeSidebar" value="sua-thong-tin" />
-</jsp:include>
+        <!--sidebar-->
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
+            <jsp:param name="activeSidebar" value="sua-thong-tin" />
+        </jsp:include>
 
-<div class="examiner-shell">
-    <jsp:include page="/views/layout/header-examiner.jsp" />
+        <div class="examiner-shell">
+            <!--header-->
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
-    <main class="examiner-main examiner-main--scroll">
+            <main class="examiner-main examiner-main--scroll">
+                <!--toolbar-->
+                <section class="examiner-toolbar">
+                    <div class="exr-toolbar-left">
+                        <a href="${backUrl}" class="exr-back">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                            QUAY LẠI
+                        </a>
+                        <h2 class="examiner-toolbar__title">Đề thi</h2>
+                    </div>
+                    <div class="examiner-toolbar__actions">
+                        <a href="#" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">print</span>
+                            In kết quả
+                        </a>
+                        <a href="#" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">filter_alt</span>
+                            Lọc
+                        </a>
+                        <div class="paper-filter-tabs">
+                            <span class="paper-filter-tab paper-filter-tab--correct">
+                                <span class="material-symbols-outlined">check</span>
+                                Câu đúng (26)
+                            </span>
+                            <span class="paper-filter-tab paper-filter-tab--wrong">
+                                <span class="material-symbols-outlined">close</span>
+                                Câu sai (9)
+                            </span>
+                        </div>
+                        <a href="${pageUrl}" class="examiner-btn examiner-btn--white examiner-btn--icon">
+                            <span class="material-symbols-outlined">refresh</span>
+                        </a>
+                    </div>
+                </section>
 
-        <%-- Toolbar --%>
-        <section class="examiner-toolbar">
-            <div class="exr-toolbar-left">
-                <a href="${pageContext.request.contextPath}/views/examiner/candidate-details-edit.jsp" class="exr-back">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
-                    QUAY LẠI
-                </a>
-                <h2 class="examiner-toolbar__title">Đề thi</h2>
-            </div>
-            <div class="examiner-toolbar__actions">
-                <a href="#" class="examiner-btn examiner-btn--white">
-                    <svg width="15" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3M16 19H8v-5h8v5M19 12c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1M18 3H6v4h12V3z" fill="currentColor"/></svg>
-                    In kết quả
-                </a>
-                <a href="#" class="examiner-btn examiner-btn--white">
-                    <svg width="14" height="10" viewBox="0 0 24 24" fill="none"><path d="M4.25 5.61C6.27 8.2 10 12 10 12v6c0 1.1.9 2 2 2s2-.9 2-2v-6s3.72-3.8 5.74-6.39A1 1 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z" fill="currentColor"/></svg>
-                    Lọc
-                </a>
-                <div class="paper-filter-tabs">
-                    <span class="paper-filter-tab paper-filter-tab--correct">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/></svg>
-                        Câu đúng (26)
-                    </span>
-                    <span class="paper-filter-tab paper-filter-tab--wrong">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor"/></svg>
-                        Câu sai (9)
-                    </span>
-                </div>
-                <a href="${pageContext.request.contextPath}/views/examiner/candidate-paper.jsp" class="examiner-btn examiner-btn--white examiner-btn--icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35C12.2 0.9 10.2 0 8 0C3.58 0 0 3.58 0 8C0 12.42 3.58 16 8 16C11.73 16 14.84 13.45 15.73 10H13.65C12.83 12.33 10.61 14 8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C9.66 2 11.14 2.69 12.22 3.78L9 7H16V0L13.65 2.35Z" fill="currentColor"/></svg>
-                </a>
-            </div>
-        </section>
-
-        <%-- Data Table --%>
+                <!--paper table-->
         <div class="paper-table-wrap">
             <table class="paper-table">
                 <thead>
@@ -284,8 +293,8 @@
             </table>
         </div>
 
-    </main>
-</div>
+            </main>
+        </div>
 
-</body>
+    </body>
 </html>
