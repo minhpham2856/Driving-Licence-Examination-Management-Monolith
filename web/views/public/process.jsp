@@ -70,7 +70,7 @@
                         <div class="step-content">
                             <span class="step-number">BƯỚC 04</span>
                             <h3 class="step-title">Thi sát hạch</h3>
-                            <p class="step-desc">Chinh phục 3 phần thi quan trọng: Lý thuyết trên máy tính, Sa hình tự động và Lái xe đường trường thực tế.</p>
+                            <p class="step-desc">Chinh phục 3 phần thi quan trọng: Lý thuyết trên máy tính, Thực hành và Đường trường.</p>
                         </div>
                     </div>
                     
