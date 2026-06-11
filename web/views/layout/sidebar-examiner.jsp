@@ -1,38 +1,29 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
+<!--set aliases-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="logoUrl" value="${ctx}/assets/imgs/LOGO.png" />
-
 <c:set var="activeSidebar" value="${param.activeSidebar}" />
+<c:set var="requestUri" value="${pageContext.request.requestURI}" />
+
+<!--choose sidebar user is currently on-->
 <c:if test="${empty activeSidebar}">
     <c:choose>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
-            <c:set var="activeSidebar" value="dashboard" />
-        </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'candidate-call') or fn:contains(pageContext.request.requestURI, 'goi-thi-sinh')}">
-            <c:set var="activeSidebar" value="goi-thi-sinh" />
-        </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'candidate-detail') or fn:contains(pageContext.request.requestURI, 'sua-thong-tin')}">
-            <c:set var="activeSidebar" value="sua-thong-tin" />
-        </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'edit-score') or fn:contains(pageContext.request.requestURI, 'sua-ket-qua')}">
-            <c:set var="activeSidebar" value="sua-ket-qua" />
-        </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'export') or fn:contains(pageContext.request.requestURI, 'xuat-file')}">
-            <c:set var="activeSidebar" value="xuat-file" />
-        </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit') or fn:contains(pageContext.request.requestURI, 'nhat-ky')}">
-            <c:set var="activeSidebar" value="nhat-ky" />
-        </c:when>
-        <c:otherwise>
-            <c:set var="activeSidebar" value="dashboard" />
-        </c:otherwise>
+        <c:when test="${fn:contains(requestUri, 'dashboard')}"><c:set var="activeSidebar" value="dashboard" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'candidate-call') or fn:contains(requestUri, 'confirmation')}"><c:set var="activeSidebar" value="goi-thi-sinh" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'candidate-detail')}"><c:set var="activeSidebar" value="sua-thong-tin" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'result-detail')}"><c:set var="activeSidebar" value="sua-ket-qua" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'export')}"><c:set var="activeSidebar" value="xuat-file" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'audit')}"><c:set var="activeSidebar" value="nhat-ky" /></c:when>
+        <c:otherwise><c:set var="activeSidebar" value="dashboard" /></c:otherwise>
     </c:choose>
 </c:if>
 
+<!--sidebar-->
 <aside class="side-nav-bar side-nav-bar--examiner">
+    <!--sb.top-->
     <div class="side-nav-bar__brand">
         <div class="side-nav-bar__brand-inner">
             <a href="${ctx}/views/examiner/dashboard.jsp" class="side-nav-bar__logo-link">
@@ -40,16 +31,12 @@
             </a>
             <div class="side-nav-bar__brand-title-wrap">
                 <h1 class="side-nav-bar__brand-title">Sát hạch viên</h1>
-                <p class="side-nav-bar__brand-subtitle">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user.person.fullName}">${sessionScope.user.person.fullName}</c:when>
-                        <c:otherwise>Nguyễn Văn Tùng</c:otherwise>
-                    </c:choose>
-                </p>
+                <p class="side-nav-bar__brand-subtitle">${sessionScope.user.person.fullName}</p>
             </div>
         </div>
     </div>
 
+    <!--sb.menu-->
     <nav class="side-nav-bar__menu">
         <a href="${ctx}/views/examiner/dashboard.jsp"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}">
@@ -91,7 +78,7 @@
     <div class="side-nav-bar__footer">
         <a href="${ctx}/logout" class="side-nav-bar__logout">
             <span class="side-nav-bar__icon material-symbols-outlined">logout</span>
-            <span class="side-nav-bar__logout-label">Logout</span>
+            <span class="side-nav-bar__logout-label">Đăng xuất</span>
         </a>
     </div>
 </aside>
