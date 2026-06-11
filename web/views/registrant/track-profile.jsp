@@ -32,7 +32,7 @@
 
         <%-- Breadcrumbs --%>
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/registrant/dashboard.jsp">Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/registrant/dashboard">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Theo dõi tiến trình hồ sơ</span>
         </nav>
@@ -45,20 +45,17 @@
             </div>
         </header>
 
-        <%-- Alert Banner (If in supplementary upload phase) --%>
-        <section class="p-alert-banner" aria-label="Khuyến cáo tiến trình">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
-                <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            <div class="p-alert-banner__content">
-                <span class="p-alert-banner__title">Yêu cầu bổ sung tài liệu đính kèm</span>
-                <span>
-                    Hồ sơ gốc của bạn đang dừng ở bước <strong>Duyệt hồ sơ gốc</strong>. Vui lòng tải lại ảnh chụp Giấy khám sức khỏe hợp lệ mới để tiếp tục quy trình xét duyệt sang bước tiếp theo.
-                    <a href="${pageContext.request.contextPath}/views/registrant/upload-documents.jsp" class="profile-checklist-link">Upload ngay →</a>
-                </span>
-            </div>
-        </section>
+        <c:if test="${showSupplementAlert}">
+            <section class="p-alert-banner" aria-label="Khuyến cáo tiến trình">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Yêu cầu bổ sung hồ sơ</span>
+                    <span>
+                        ${not empty supplementAlertMessage ? supplementAlertMessage : 'Hồ sơ cần được bổ sung hoặc chỉnh sửa trước khi tiếp tục.'}
+                        <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Upload ngay →</a>
+                    </span>
+                </div>
+            </section>
+        </c:if>
 
         <%-- Visual Progress Timeline Card --%>
         <div class="tracking-card">
@@ -66,51 +63,15 @@
                 
                 <%-- Background and fill line --%>
                 <div class="tracking-timeline__line-bg"></div>
-                <%-- Using step class for 42% width representing Step 3 active state --%>
-                <div class="tracking-timeline__line-fill tracking-timeline__line-fill--step3"></div>
+                <div class="tracking-timeline__line-fill tracking-timeline__line-fill--step${timelineFillStep}"></div>
 
-                <%-- Step 1: Đăng ký thành công --%>
-                <div class="tracking-node tracking-node--completed">
-                    <div class="tracking-node__circle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                <c:forEach var="step" items="${trackingSteps}">
+                    <div class="tracking-node tracking-node--${step.state}">
+                        <div class="tracking-node__circle">${step.stepNumber}</div>
+                        <span class="tracking-node__title">${step.title}</span>
+                        <span class="tracking-node__desc">${step.description}</span>
                     </div>
-                    <span class="tracking-node__title">Đăng ký thành công</span>
-                    <span class="tracking-node__desc">09:45 — 20/05/2025</span>
-                </div>
-
-                <%-- Step 2: Xác minh tài liệu --%>
-                <div class="tracking-node tracking-node--completed">
-                    <div class="tracking-node__circle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </div>
-                    <span class="tracking-node__title">Xác minh định danh</span>
-                    <span class="tracking-node__desc">14:30 — 21/05/2025</span>
-                </div>
-
-                <%-- Step 3: Duyệt hồ sơ gốc --%>
-                <div class="tracking-node tracking-node--active">
-                    <div class="tracking-node__circle">3</div>
-                    <span class="tracking-node__title">Duyệt hồ sơ gốc</span>
-                    <span class="tracking-node__desc">Yêu cầu bổ sung</span>
-                </div>
-
-                <%-- Step 4: Sắp xếp đợt thi --%>
-                <div class="tracking-node">
-                    <div class="tracking-node__circle">4</div>
-                    <span class="tracking-node__title">Lập lịch dự thi</span>
-                    <span class="tracking-node__desc">Chờ xếp phòng</span>
-                </div>
-
-                <%-- Step 5: Hoàn tất sát hạch --%>
-                <div class="tracking-node">
-                    <div class="tracking-node__circle">5</div>
-                    <span class="tracking-node__title">Cấp chứng chỉ</span>
-                    <span class="tracking-node__desc">Chờ kết quả</span>
-                </div>
+                </c:forEach>
 
             </div>
         </div>
@@ -156,34 +117,8 @@
                             </c:if>
                             
                             <c:if test="${empty profileTrackingLogs}">
-                                <%-- Fallback high-fidelity historical logs --%>
                                 <tr>
-                                    <td>22/05/2025 08:30</td>
-                                    <td><strong>Kiểm duyệt Giấy khám sức khỏe</strong></td>
-                                    <td>Cán bộ coi thi</td>
-                                    <td><span class="status-badge status-badge--rejected">Từ chối</span></td>
-                                    <td>Ảnh chụp bị mờ phần dấu giáp lai ảnh. Thí sinh cần chụp lại bản gốc sắc nét hơn.</td>
-                                </tr>
-                                <tr>
-                                    <td>21/05/2025 14:30</td>
-                                    <td><strong>Xác minh tài liệu định danh</strong></td>
-                                    <td>Hệ thống tự động</td>
-                                    <td><span class="status-badge status-badge--approved">Thành công</span></td>
-                                    <td>CCCD mặt trước/mặt sau hợp lệ. Xác thực khuôn mặt thành công.</td>
-                                </tr>
-                                <tr>
-                                    <td>20/05/2025 10:15</td>
-                                    <td><strong>Thanh toán lệ phí đăng ký</strong></td>
-                                    <td>Cổng thanh toán MoMo</td>
-                                    <td><span class="status-badge status-badge--approved">Thành công</span></td>
-                                    <td>Lệ phí sát hạch GPLX Hạng B2: 1.200.000 VNĐ đã được nhận.</td>
-                                </tr>
-                                <tr>
-                                    <td>20/05/2025 09:45</td>
-                                    <td><strong>Tải lên hồ sơ gốc</strong></td>
-                                    <td>Thí sinh</td>
-                                    <td><span class="status-badge status-badge--approved">Thành công</span></td>
-                                    <td>Thí sinh gửi hồ sơ đăng ký dự thi trực tuyến.</td>
+                                    <td colspan="5">Chưa có nhật ký xử lý hồ sơ.</td>
                                 </tr>
                             </c:if>
                         </tbody>

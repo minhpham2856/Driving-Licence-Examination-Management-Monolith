@@ -34,7 +34,7 @@
 
         <%-- Breadcrumbs --%>
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/registrant/dashboard.jsp">Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/registrant/dashboard">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Cài đặt tài khoản</span>
         </nav>
@@ -48,7 +48,16 @@
         </header>
 
         <%-- Notification Banner (Mock Alert for success/info) --%>
-        <c:if test="${not empty param.success}">
+        <c:if test="${not empty error}">
+            <section class="p-alert-banner" aria-label="Thông báo lỗi">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Không thể cập nhật</span>
+                    <span>${error}</span>
+                </div>
+            </section>
+        </c:if>
+
+        <c:if test="${not empty success}">
             <section class="p-alert-banner" aria-label="Thông báo hệ thống">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
@@ -98,7 +107,8 @@
                             </div>
                         </div>
 
-                        <form action="#" method="post" id="settings-password-form">
+                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-password-form">
+                            <input type="hidden" name="action" value="password">
                             
                             <div class="p-form-grid p-form-grid--full">
                                 
@@ -189,7 +199,8 @@
                             </div>
                         </div>
 
-                        <form action="#" method="post" id="settings-deactivate-form" onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này không? Mọi lịch thi và hồ sơ hiện tại sẽ bị hủy bỏ hoàn toàn!');">
+                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-deactivate-form" onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này không?');">
+                            <input type="hidden" name="action" value="deactivate">
                             
                             <%-- Confirmation Checkbox --%>
                             <label class="danger-zone-checkbox-container">
@@ -227,7 +238,7 @@
                     </div>
 
                     <div class="p-form-body">
-                        <form action="#" method="post" id="settings-prefs-form">
+                        <form method="post" id="settings-prefs-form" onsubmit="return false;">
                             
                             <%-- SMS Notify --%>
                             <div class="toggle-switch-container">
@@ -291,23 +302,33 @@
                         <div class="security-audit-list">
                             
                             <div class="security-audit-item">
+                                <span class="security-audit-lbl">Tài khoản</span>
+                                <span class="security-audit-val">${settingsUsername}</span>
+                            </div>
+
+                            <div class="security-audit-item">
                                 <span class="security-audit-lbl">Trạng thái xác thực</span>
-                                <span class="security-audit-val" style="color: #16a34a;">Đã liên kết CCCD</span>
+                                <span class="security-audit-val" style="color: #16a34a;">
+                                    <c:choose>
+                                        <c:when test="${accountLinked}">Đã liên kết CCCD</c:when>
+                                        <c:otherwise>Chưa liên kết hồ sơ</c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
 
                             <div class="security-audit-item">
                                 <span class="security-audit-lbl">Đăng nhập lần cuối</span>
-                                <span class="security-audit-val">Hôm nay, 13:58</span>
+                                <span class="security-audit-val">${settingsLastLogin}</span>
                             </div>
 
                             <div class="security-audit-item">
-                                <span class="security-audit-lbl">Thiết bị hiện tại</span>
-                                <span class="security-audit-val">Chrome (Windows)</span>
-                            </div>
-
-                            <div class="security-audit-item">
-                                <span class="security-audit-lbl">Địa chỉ IP hiện tại</span>
-                                <span class="security-audit-val">192.168.1.15</span>
+                                <span class="security-audit-lbl">Trạng thái tài khoản</span>
+                                <span class="security-audit-val">
+                                    <c:choose>
+                                        <c:when test="${settingsAccountActive}">Đang hoạt động</c:when>
+                                        <c:otherwise>Đã vô hiệu hóa</c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
 
                         </div>
