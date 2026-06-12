@@ -11,10 +11,23 @@ import java.util.Map;
 
 public class ConfigManager {
 
+    private static final List<Path> extraPaths = new ArrayList<>();
     private static Map<String, String> fileValues = new HashMap<>();
     private static boolean loaded = false;
 
     private ConfigManager() {
+    }
+
+    public static void registerEnvFile(Path path) {
+        if (path != null) {
+            extraPaths.add(path);
+        }
+    }
+
+    public static void reload() {
+        fileValues.clear();
+        loaded = false;
+        loadIfNeeded();
     }
 
     public static String get(String key) {
@@ -62,7 +75,7 @@ public class ConfigManager {
     }
 
     private static List<Path> candidatePaths() {
-        List<Path> paths = new ArrayList<>();
+        List<Path> paths = new ArrayList<>(extraPaths);
 
         String explicitPath = System.getenv("DLEM_ENV_FILE");
         if (explicitPath != null && !explicitPath.trim().isEmpty()) {
@@ -76,7 +89,7 @@ public class ConfigManager {
 
         Path userDir = Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath();
         Path current = userDir;
-        for (int i = 0; i < 6 && current != null; i++) {
+        for (int i = 0; i < 10 && current != null; i++) {
             paths.add(current.resolve(".env"));
             current = current.getParent();
         }
@@ -84,6 +97,13 @@ public class ConfigManager {
         String catalinaBase = System.getProperty("catalina.base");
         if (catalinaBase != null && !catalinaBase.trim().isEmpty()) {
             paths.add(Paths.get(catalinaBase, ".env"));
+            paths.add(Paths.get(catalinaBase, "conf", ".env"));
+        }
+
+        String catalinaHome = System.getProperty("catalina.home");
+        if (catalinaHome != null && !catalinaHome.trim().isEmpty()) {
+            paths.add(Paths.get(catalinaHome, ".env"));
+            paths.add(Paths.get(catalinaHome, "conf", ".env"));
         }
 
         return paths;
