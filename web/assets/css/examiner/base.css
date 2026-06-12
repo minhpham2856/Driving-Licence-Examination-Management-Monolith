@@ -1,0 +1,110 @@
+/* Examiner portal — reset, typography, shell */
+body.examiner-portal,
+body.examiner-portal *,
+body.examiner-portal *::before,
+body.examiner-portal *::after {
+    box-sizing: border-box;
+}
+
+body.examiner-portal {
+    margin: 0;
+    background-color: #f6fafe;
+    color: #434654;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.examiner-portal h1,
+body.examiner-portal h2,
+body.examiner-portal h3,
+body.examiner-portal h4,
+body.examiner-portal p {
+    margin: 0;
+}
+
+body.examiner-portal button,
+body.examiner-portal input,
+body.examiner-portal select,
+body.examiner-portal textarea {
+    font: inherit;
+}
+
+body.examiner-portal table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+body.examiner-portal img {
+    max-width: 100%;
+    height: auto;
+}
+
+.examiner-shell {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f6fafe;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+body.examiner-portal .examiner-main,
+body.examiner-portal.has-side-nav-bar .examiner-main {
+    margin-left: 0 !important;
+}
+
+.examiner-main {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.examiner-main--dashboard > .examiner-toolbar,
+.examiner-main--dashboard > .examiner-summary {
+    flex-shrink: 0;
+}
+
+.examiner-main--scroll {
+    overflow: auto;
+}
+
+body.examiner-portal--inactive .examiner-main {
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.45;
+}
+
+.side-nav-bar__menu--locked .side-nav-bar__link {
+    pointer-events: none;
+    opacity: 0.45;
+}
+
+.side-nav-bar__menu--locked .side-nav-bar__link.is-active {
+    opacity: 0.45;
+}
+
+.examiner-page-desc {
+    margin: 8px 0 0;
+    font-size: 14px;
+    line-height: 24px;
+    color: #434654;
+    max-width: 640px;
+}
+
+.examiner-page-subdesc {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #434654;
+}

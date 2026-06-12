@@ -1,0 +1,148 @@
+/* ========================================================
+   Candidate Details Paper (Đề thi) — Figma node 205:1391
+   ======================================================== */
+
+/* Filter tabs in toolbar */
+.paper-filter-tabs {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #c3c6d6;
+    border-radius: 4px;
+    padding: 5px;
+    gap: 0;
+}
+
+.paper-filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.paper-filter-tab--correct {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.paper-filter-tab--wrong {
+    color: #434654;
+    background: transparent;
+}
+
+/* Table wrapper */
+.paper-table-wrap {
+    background: #fff;
+    border: 1px solid #c3c6d6;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    overflow: auto;
+    flex: 1 0 0;
+    min-height: 0;
+}
+
+.paper-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* Header */
+.paper-th {
+    background: #f0f4f8;
+    border-bottom: 1px solid #c3c6d6;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #434654;
+    letter-spacing: 0.6px;
+    text-align: left;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.paper-th--no      { width: 80px; }
+.paper-th--content { width: auto; }
+.paper-th--answer  { width: 100px; text-align: center; }
+.paper-th--student { width: 120px; text-align: center; }
+
+/* Rows */
+.paper-tr {
+    border-top: 1px solid rgba(195, 198, 214, 0.5);
+}
+.paper-tr--alt {
+    background: #f6fafe;
+}
+
+/* Cells */
+.paper-td {
+    padding: 16px;
+    font-size: 14px;
+    color: #171c1f;
+    vertical-align: top;
+}
+
+.paper-td--no {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #434654;
+    letter-spacing: 0.6px;
+}
+
+.paper-td--content {
+    font-weight: 400;
+}
+
+.paper-td--answer {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    text-align: center;
+}
+
+.paper-td--student {
+    text-align: center;
+}
+
+.paper-img {
+    display: block;
+    max-width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Answer badge */
+.paper-ans {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    padding: 6px 1px;
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.paper-ans--correct {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.paper-ans--wrong {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}

@@ -1,13 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<jsp:include page="/views/layout/examiner-seed-data.jsp" />
-
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
-<c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
 <c:set var="headerTitle" value="Đề thi" />
-<c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit.jsp?sbd=${candidate.sbd}" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper.jsp?sbd=${candidate.sbd}" />
+<c:if test="${not empty candidate}">
+    <c:set var="headerTitle" value="Đề thi — ${candidate.fullName}" />
+</c:if>
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -19,10 +18,11 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${cssStyle}">
-        <link rel="stylesheet" href="${cssLayout}">
+        <jsp:include page="/views/examiner/partials/examiner-styles.jsp">
+            <jsp:param name="pageCss" value="paper.css,result-edit.css" />
+        </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
@@ -41,7 +41,6 @@
                             <span class="material-symbols-outlined">arrow_back</span>
                             QUAY LẠI
                         </a>
-                        <h2 class="examiner-toolbar__title">Đề thi — ${candidate.fullName}</h2>
                     </div>
                     <div class="examiner-toolbar__actions">
                         <a href="#" class="examiner-btn examiner-btn--white">
@@ -55,11 +54,11 @@
                         <div class="paper-filter-tabs">
                             <span class="paper-filter-tab paper-filter-tab--correct">
                                 <span class="material-symbols-outlined">check</span>
-                                Câu đúng (${paperSummary.correctCount})
+                                Câu đúng (${empty paperSummary.correctCount ? 0 : paperSummary.correctCount})
                             </span>
                             <span class="paper-filter-tab paper-filter-tab--wrong">
                                 <span class="material-symbols-outlined">close</span>
-                                Câu sai (${paperSummary.wrongCount})
+                                Câu sai (${empty paperSummary.wrongCount ? 0 : paperSummary.wrongCount})
                             </span>
                         </div>
                         <a href="${pageUrl}" class="examiner-btn examiner-btn--white examiner-btn--icon">
@@ -80,6 +79,11 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <c:choose>
+                                <c:when test="${empty paperAnswers}">
+                                    <tr><td colspan="4" class="examiner-table__empty">Chưa có dữ liệu đề thi.</td></tr>
+                                </c:when>
+                                <c:otherwise>
                             <c:forEach items="${paperAnswers}" var="q" varStatus="st">
                                 <tr class="paper-tr<c:if test="${st.index % 2 == 1}"> paper-tr--alt</c:if>">
                                     <td class="paper-td paper-td--no">${q.questionNo}</td>
@@ -90,6 +94,8 @@
                                     </td>
                                 </tr>
                             </c:forEach>
+                                </c:otherwise>
+                            </c:choose>
                         </tbody>
                     </table>
                 </div>

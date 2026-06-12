@@ -1,0 +1,8 @@
+/*
+ * Manifest only — examiner JSPs load component files via
+ * /views/examiner/partials/examiner-styles.jsp (explicit <link> tags).
+ *
+ * Shared:  base, sidebar, header, toolbar, buttons, card, table, icons
+ * Per-page param pageCss: dashboard | audit | export | paper | result-edit |
+ *   confirmation | score-entry | devices | print | candidate-detail
+ */

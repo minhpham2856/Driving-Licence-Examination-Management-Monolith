@@ -2,10 +2,17 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
-<c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
-<c:set var="headerTitle" value="Xuất file" />
+<c:set var="headerTitle" value="Xuất dữ liệu" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
+<c:set var="exportMinutesUrl" value="${ctx}/examiner/export/minutes" />
+<c:set var="exportViolationsUrl" value="${ctx}/examiner/export/violations" />
+<c:set var="exportAuditUrl" value="${ctx}/examiner/export/audit" />
+<c:set var="exportCandidatesXmlUrl" value="${ctx}/examiner/export/candidates/xml" />
+<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
+<c:set var="exportMinutesXmlUrl" value="${ctx}/examiner/export/minutes/xml" />
+<c:set var="exportViolationsXmlUrl" value="${ctx}/examiner/export/violations/xml" />
+<c:set var="exportAuditXmlUrl" value="${ctx}/examiner/export/audit/xml" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,10 +24,11 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${cssStyle}">
-        <link rel="stylesheet" href="${cssLayout}">
+        <jsp:include page="/views/examiner/partials/examiner-styles.jsp">
+            <jsp:param name="pageCss" value="export.css" />
+        </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
@@ -32,14 +40,10 @@
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <main class="examiner-main examiner-main--scroll">
-                <!--page intro-->
-                <div class="export-header">
-                    <h2 class="export-header__title">Xuất dữ liệu hệ thống</h2>
-                    <p class="export-header__desc">
-                        Lựa chọn định dạng phù hợp để tải xuống các báo cáo, biên bản và nhật ký hệ thống<br>
-                        phục vụ cho công tác lưu trữ và kiểm tra.
-                    </p>
-                </div>
+                <p class="export-header__desc">
+                    Lựa chọn định dạng phù hợp để tải xuống các báo cáo, biên bản và nhật ký hệ thống
+                    phục vụ cho công tác lưu trữ và kiểm tra.
+                </p>
 
                 <!--export list-->
                 <div class="export-card">
@@ -58,7 +62,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportCandidatesXmlUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
@@ -80,11 +84,11 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="export-btn">
+                            <a href="${exportResultsUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportResultsXmlUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
@@ -106,11 +110,11 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="export-btn">
+                            <a href="${exportMinutesUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportMinutesXmlUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
@@ -132,11 +136,11 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="export-btn">
+                            <a href="${exportViolationsUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportViolationsXmlUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
@@ -158,11 +162,11 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="export-btn">
+                            <a href="${exportAuditUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportAuditXmlUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
