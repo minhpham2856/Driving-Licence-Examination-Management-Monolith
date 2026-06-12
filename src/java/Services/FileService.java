@@ -8,4 +8,9 @@ public interface FileService {
 
     void exportToExcel(String sheetName, List<String> headers, List<List<Object>> rows, OutputStream out)
             throws IOException;
+
+    void exportToExcel(String sheetName, List<List<Object>> preambleRows, List<String> headers,
+            List<List<Object>> rows, OutputStream out) throws IOException;
+
+    void exportToXml(XmlExportDocument document, OutputStream out) throws IOException;
 }
