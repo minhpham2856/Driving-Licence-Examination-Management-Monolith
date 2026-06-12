@@ -93,15 +93,6 @@ CREATE TABLE [Session] (
 );
 GO
 
--- Session_Examiner junction table
-CREATE TABLE Session_Examiner (
-    SessionExaminerId INT PRIMARY KEY IDENTITY(1,1),
-    SessionId INT NOT NULL REFERENCES [Session](SessionId),
-    ExaminerId INT NOT NULL REFERENCES [User](UserId),
-    UNIQUE (SessionId, ExaminerId)
-);
-GO
-
 -- ExamSection table
 CREATE TABLE ExamSection (
     ExamSectionId INT PRIMARY KEY IDENTITY(1,1),
@@ -146,6 +137,23 @@ CREATE TABLE Session_ExamArea (
     SessionId INT NOT NULL REFERENCES Session(SessionId),
     ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId),
     UNIQUE (SessionId, ExamAreaId)
+);
+GO
+
+-- Session_Examiner: phân công giám khảo theo ca (Session), kỳ thi (Exam), phần thi (ExamSection), phòng (ExamArea).
+-- ExamId / ExamSectionId / ExamAreaId nullable để tương thích INSERT legacy (SessionId, ExaminerId) từ code hiện tại.
+CREATE TABLE Session_Examiner (
+    SessionExaminerId INT PRIMARY KEY IDENTITY(1,1),
+    SessionId INT NOT NULL REFERENCES [Session](SessionId),
+    ExaminerId INT NOT NULL REFERENCES [User](UserId),
+    ExamId INT NULL REFERENCES Exam(ExamId),
+    ExamSectionId INT NULL REFERENCES ExamSection(ExamSectionId),
+    ExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
+    AssignedBy INT NULL REFERENCES [User](UserId),
+    AssignedAt DATETIME NULL DEFAULT GETDATE(),
+    UNIQUE (SessionId, ExaminerId),
+    FOREIGN KEY (SessionId, ExamSectionId) REFERENCES Session_ExamSection(SessionId, ExamSectionId),
+    FOREIGN KEY (SessionId, ExamAreaId) REFERENCES Session_ExamArea(SessionId, ExamAreaId)
 );
 GO
 
@@ -237,6 +245,8 @@ CREATE TABLE Candidate (
     TakeOnRoad BIT,
     ReasonForTaking NVARCHAR(355),
     PhotoImageUrl NVARCHAR(500),
+    IsAbsent BIT NOT NULL DEFAULT 0,
+    IsSuspended BIT NOT NULL DEFAULT 0,
     UserId INT NOT NULL REFERENCES [User](UserId),
     ExamRegistrationId INT NOT NULL REFERENCES ExamRegistration(ExamRegistrationId)
 );
@@ -357,4 +367,7 @@ CREATE INDEX IX_Audit_CreatedAt ON Audit(CreatedAt);
 CREATE INDEX IX_Audit_Entity ON Audit(EntityName, EntityId);
 CREATE INDEX IX_Session_Examiner_SessionId ON Session_Examiner(SessionId);
 CREATE INDEX IX_Session_Examiner_ExaminerId ON Session_Examiner(ExaminerId);
+CREATE INDEX IX_Session_Examiner_ExamId ON Session_Examiner(ExamId);
+CREATE INDEX IX_Session_Examiner_ExamSectionId ON Session_Examiner(ExamSectionId);
+CREATE INDEX IX_Session_Examiner_ExamAreaId ON Session_Examiner(ExamAreaId);
 GO

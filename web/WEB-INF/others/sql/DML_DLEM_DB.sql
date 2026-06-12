@@ -21,10 +21,10 @@ DELETE FROM Candidate;
 DELETE FROM ExamRegistration;
 DELETE FROM Document;
 DELETE FROM Profile;
+DELETE FROM Session_Examiner;
 DELETE FROM Session_ExamArea;
 DELETE FROM Session_ExamSection;
 DELETE FROM Licence_ExamSection;
-DELETE FROM Session_Examiner;
 DELETE FROM ExamDevice;
 DELETE FROM [Session];
 DELETE FROM Exam;
@@ -54,7 +54,9 @@ INSERT INTO [User] (Username, Email, PasswordHash, [Role], [Status]) VALUES
 (N'phuong.vu',       N'phuong.vu@gmail.com',       N'login123', N'Registrant',     1),
 (N'hai.do',          N'hai.do@gmail.com',          N'login123', N'Registrant',     1),
 (N'kim.ngo',         N'kim.ngo@gmail.com',         N'login123', N'Registrant',     1),
-(N'long.bui',        N'long.bui@gmail.com',        N'login123', N'Registrant',     0);
+(N'long.bui',        N'long.bui@gmail.com',        N'login123', N'Registrant',     0),
+(N'thi048',          N'thi048@gmail.com',          N'login123', N'Registrant',     1),
+(N'thi049',          N'thi049@gmail.com',          N'login123', N'Registrant',     1);
 GO
 
 -- ============================================
@@ -75,7 +77,9 @@ INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber
 (N'Vũ Thị Phương',           '1998-12-12', N'0967890123', N'Nữ', N'001203012350', N'34 Nguyễn Trãi, Hà Nội',   (SELECT UserId FROM [User] WHERE Username = N'phuong.vu')),
 (N'Đỗ Văn Hải',              '2001-04-20', N'0945678901', N'Nam', N'001203012351', N'90 Lê Lợi, TP.HCM',        (SELECT UserId FROM [User] WHERE Username = N'hai.do')),
 (N'Ngô Thị Kim',             '1999-09-09', N'0923456780', N'Nữ', N'001203012352', N'23 Bạch Đằng, Đà Nẵng',    (SELECT UserId FROM [User] WHERE Username = N'kim.ngo')),
-(N'Bùi Văn Long',             '1985-03-30', N'0888123456', N'Nam', N'001203012353', N'67 Điện Biên Phủ, Hà Nội', (SELECT UserId FROM [User] WHERE Username = N'long.bui'));
+(N'Bùi Văn Long',             '1985-03-30', N'0888123456', N'Nam', N'001203012353', N'67 Điện Biên Phủ, Hà Nội', (SELECT UserId FROM [User] WHERE Username = N'long.bui')),
+(N'Nguyễn Thị Hoa',          '1997-05-14', N'0911004801', N'Nữ', N'001203012354', N'18 Hoàng Hoa Thám, Hà Nội', (SELECT UserId FROM [User] WHERE Username = N'thi048')),
+(N'Trần Văn Khoa',           '1996-09-03', N'0911004901', N'Nam', N'001203012355', N'72 Cầu Giấy, Hà Nội',      (SELECT UserId FROM [User] WHERE Username = N'thi049'));
 GO
 
 -- ============================================
@@ -120,7 +124,9 @@ INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId) V
 (N'Approved', N'',   (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012350'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
 (N'Approved', N'', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012351'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B')),
 (N'Pending',  NULL,                  (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012352'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
-(N'Rejected', N'Không đủ yêu cầu sức khoẻ',         (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012353'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B'));
+(N'Rejected', N'Không đủ yêu cầu sức khoẻ',         (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012353'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B')),
+(N'Approved', N'', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012354'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B')),
+(N'Approved', N'', (SELECT ProfileId FROM Profile WHERE GovernmentIdNumber = N'001203012355'), (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B'));
 GO
 
 -- ============================================
@@ -174,7 +180,7 @@ GO
 -- 8. SESSIONS
 -- ============================================
 INSERT INTO [Session] (SessionName, StartTime, EndTime, [Status], ExamId) VALUES
-(N'Ca sáng - Lý thuyết B',  '2026-06-01 07:30:00', '2026-06-01 09:00:00', N'Open',       (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Ca sáng - Lý thuyết B',  '2026-06-01 07:30:00', '2026-06-01 09:00:00', N'InProgress', (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Ca sáng - Sa hình B',    '2026-06-01 09:30:00', '2026-06-01 11:30:00', N'Scheduled',  (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Ca chiều - Đường trường B','2026-06-01 13:00:00','2026-06-01 16:00:00', N'Scheduled', (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Ca sáng - Lý thuyết A1', '2026-06-01 07:30:00', '2026-06-01 09:00:00', N'Open',       (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601')),
@@ -182,18 +188,7 @@ INSERT INTO [Session] (SessionName, StartTime, EndTime, [Status], ExamId) VALUES
 GO
 
 -- ============================================
--- 9. SESSION EXAMINERS
--- ============================================
-INSERT INTO Session_Examiner (SessionId, ExaminerId) VALUES
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'),  (SELECT UserId FROM [User] WHERE Username = N'examiner_tung')),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Sa hình B'),    (SELECT UserId FROM [User] WHERE Username = N'examiner_tung')),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca chiều - Đường trường B'),(SELECT UserId FROM [User] WHERE Username = N'examiner_lan')),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'),  (SELECT UserId FROM [User] WHERE Username = N'examiner_lan')),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B2'), (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'));
-GO
-
--- ============================================
--- 10. SESSION EXAM SECTIONS
+-- 9. SESSION EXAM SECTIONS
 -- ============================================
 INSERT INTO Session_ExamSection (SessionId, ExamSectionId) VALUES
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'),   (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết')),
@@ -204,7 +199,7 @@ INSERT INTO Session_ExamSection (SessionId, ExamSectionId) VALUES
 GO
 
 -- ============================================
--- 11. EXAM AREAS
+-- 10. EXAM AREAS
 -- ============================================
 INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES
 (N'Phòng LT 1',      N'Room',   10, N'Tầng 2, Toà B'),
@@ -215,13 +210,65 @@ INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES
 GO
 
 -- ============================================
--- 12. SESSION EXAM AREAS
+-- 11. SESSION EXAM AREAS
 -- ============================================
 INSERT INTO Session_ExamArea (SessionId, ExamAreaId) VALUES
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'),    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 1')),
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'),   (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 2')),
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Sa hình B'),      (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi Ô tô 1')),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca chiều - Đường trường B'),(SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1'));
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca chiều - Đường trường B'),(SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1')),
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B2'),   (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 1'));
+GO
+
+-- ============================================
+-- 12. SESSION EXAMINERS (Exam + ExamSection + ExamArea + Session + Examiner)
+-- ============================================
+INSERT INTO Session_Examiner (SessionId, ExamId, ExamSectionId, ExamAreaId, ExaminerId, AssignedBy, AssignedAt) VALUES
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 1'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    '2026-05-25 08:00:00'
+),
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Sa hình B'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi Ô tô 1'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    '2026-05-25 08:05:00'
+),
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca chiều - Đường trường B'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Đường trường'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_lan'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    '2026-05-25 08:10:00'
+),
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 2'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_lan'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_minh'),
+    '2026-05-25 08:15:00'
+),
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B2'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260615'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 1'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_minh'),
+    '2026-05-25 08:20:00'
+);
 GO
 
 -- ============================================
@@ -264,7 +311,10 @@ INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
 -- B: thi lần đầu
 (N'456',N'Phạm Văn Cường',   '1990-07-07', N'0944556677', N'Nam', N'079012345682', N'56 Hai Bà Trưng, Hà Nội',                         1, NULL, 1, 1, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'hai.do'),    (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012351')),
 -- A1: thi lần đầu (lý thuyết + thực hành)
-(N'789',N'Hoàng Thị Mai',    '1999-11-30', N'0955667788', N'Nữ',  N'079012345683', N'34 Nguyễn Trãi, Hà Nội',                          1, 1,    NULL, NULL, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'kim.ngo'),   (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012352'));
+(N'789',N'Hoàng Thị Mai',    '1999-11-30', N'0955667788', N'Nữ',  N'079012345683', N'34 Nguyễn Trãi, Hà Nội',                          1, 1,    NULL, NULL, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'kim.ngo'),   (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012352')),
+-- B: ca lý thuyết đang thi (InProgress) — thêm cho examiner test
+(N'B-0048', N'Nguyễn Thị Hoa', '1997-05-14', N'0911004801', N'Nữ', N'079012345684', N'18 Hoàng Hoa Thám, Hà Nội',                     1, NULL, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi048.jpg', (SELECT UserId FROM [User] WHERE Username = N'thi048'), (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012354')),
+(N'B-0049', N'Trần Văn Khoa',  '1996-09-03', N'0911004901', N'Nam', N'079012345685', N'72 Cầu Giấy, Hà Nội',                           1, NULL, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi049.jpg', (SELECT UserId FROM [User] WHERE Username = N'thi049'), (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012355'));
 GO
 
 -- ============================================
@@ -275,7 +325,36 @@ INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId) VALUES
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'), (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123'), (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B')),
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'), (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456'),(SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B')),
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'), (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'045'),    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Sa hình B')),
-((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'),(SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'));
+((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'),(SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'), (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'B-0048'), (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'), (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'B-0049'), (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'));
+GO
+
+-- ============================================
+-- 16b. THỦ TỤC + PHÒNG THI (ca Lý thuyết B — InProgress)
+-- ============================================
+UPDATE er
+SET RegistrationStatus = N'Present',
+    Notes = N'AllocatedRoom:'
+        + CAST(ea.ExamAreaId AS NVARCHAR(10)) + N':'
+        + ea.AreaName
+FROM ExamRegistration er
+JOIN Candidate c ON c.ExamRegistrationId = er.ExamRegistrationId
+JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON s.SessionId = ec.SessionId
+CROSS JOIN ExamArea ea
+WHERE s.SessionName = N'Ca sáng - Lý thuyết B'
+  AND ea.AreaName = N'Phòng LT 1'
+  AND c.CandidateNumber IN (N'046', N'123', N'456', N'B-0048', N'B-0049');
+GO
+
+UPDATE c
+SET PhotoImageUrl = N'/docs/photos/' + REPLACE(c.CandidateNumber, N'-', N'') + N'.jpg'
+FROM Candidate c
+JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON s.SessionId = ec.SessionId
+WHERE s.SessionName = N'Ca sáng - Lý thuyết B'
+  AND (c.PhotoImageUrl IS NULL OR c.PhotoImageUrl = N'');
 GO
 
 -- ============================================
@@ -286,7 +365,17 @@ INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAm
 (N'Completed', N'BankTransfer', N'TXN-20260520-002', 430000.00, '2026-05-20 11:00:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'046'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Completed', N'Cash',         N'CASH-20260521-001', 430000.00, '2026-05-21 08:30:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
 (N'Pending',   N'Cash',         N'PENDING-20260522-001', 430000.00, NULL,                  (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Completed', N'BankTransfer', N'TXN-20260522-001', 130000.00, '2026-05-22 14:20:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'));
+(N'Completed', N'BankTransfer', N'TXN-20260522-001', 130000.00, '2026-05-22 14:20:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601')),
+(N'Completed', N'BankTransfer', N'TXN-20260528-048', 430000.00, '2026-05-28 09:00:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'B-0048'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Completed', N'Cash',         N'CASH-20260528-049', 430000.00, '2026-05-28 09:30:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'B-0049'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601'));
+GO
+
+UPDATE Payment
+SET PaymentStatus = N'Completed',
+    PaymentMethod = N'BankTransfer',
+    TransactionReference = N'TXN-20260522-456',
+    PaidAt = '2026-05-22 15:00:00'
+WHERE TransactionReference = N'PENDING-20260522-001';
 GO
 
 INSERT INTO Payment_Fee (PaymentId, FeeId)
@@ -298,7 +387,7 @@ WHERE p.TransactionReference = N'TXN-20260520-001'
 GO
 
 -- ============================================
--- 18. THEORY PAPER (answers seeded in 600_DML_DLEM_DB.sql after questions load)
+-- 18. THEORY PAPER (ca Lý thuyết B — InProgress)
 -- ============================================
 INSERT INTO TheoryPaper (ExamCandidateId, ExamDeviceId, StartedAt, SubmittedAt)
 SELECT ec.ExamCandidateId,
@@ -312,9 +401,53 @@ WHERE c.CandidateNumber = N'046'
   AND s.SessionName = N'Ca sáng - Lý thuyết B';
 GO
 
+INSERT INTO TheoryPaper (ExamCandidateId, ExamDeviceId, StartedAt, SubmittedAt)
+SELECT ec.ExamCandidateId,
+       (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'PC-LT1-01'),
+       '2026-06-01 07:40:00',
+       '2026-06-01 07:58:00'
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'123'
+  AND s.SessionName = N'Ca sáng - Lý thuyết B';
+GO
+
+-- 456: đang thi (đã bắt đầu, chưa nộp bài)
+INSERT INTO TheoryPaper (ExamCandidateId, ExamDeviceId, StartedAt, SubmittedAt)
+SELECT ec.ExamCandidateId,
+       (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'PC-LT1-02'),
+       '2026-06-01 08:05:00',
+       NULL
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'456'
+  AND s.SessionName = N'Ca sáng - Lý thuyết B';
+GO
+
 -- ============================================
--- 19. EXAM RESULTS & SCORES
+-- 19. EXAM RESULTS & SCORES (ca Lý thuyết B)
 -- ============================================
+INSERT INTO ExamResult (ExamCandidateId, IsPassed, ResultDate)
+SELECT ec.ExamCandidateId, 1, '2026-06-01 07:55:00'
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'046'
+  AND s.SessionName = N'Ca sáng - Lý thuyết B';
+GO
+
+INSERT INTO ExamScore (ExamResultId, ExamSectionId, Score)
+SELECT er.ExamResultId,
+       (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+       92.00
+FROM ExamResult er
+JOIN Exam_Candidate ec ON er.ExamCandidateId = ec.ExamCandidateId
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+WHERE c.CandidateNumber = N'046';
+GO
+
 INSERT INTO ExamResult (ExamCandidateId, IsPassed, ResultDate)
 SELECT ec.ExamCandidateId, 0, '2026-06-01 09:05:00'
 FROM Exam_Candidate ec
@@ -382,4 +515,34 @@ INSERT INTO Audit (UserId, Action, [Reason], EntityName, EntityId, OldValue, New
 ((SELECT UserId FROM [User] WHERE Username = N'admin'),          N'UPDATE',  N'Yêu cầu từ Cục',      N'Thí sinh', N'124', N'Nguyễn Văn A', N'Nguyễn Văn B', '2023-10-23 08:10:00'),
 ((SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),  N'UPDATE',  N'Chấm sai',            N'Kết quả thi', N'123', N'25/35', N'27/35', '2026-06-01 09:20:00'),
 ((SELECT UserId FROM [User] WHERE Username = N'manager_dung'),   N'APPROVE', N'Duyệt hồ sơ',         N'ExamRegistration', N'9', N'Pending', N'Approved', '2026-05-18 15:30:00');
+
+-- Phân công phòng giám khảo (legacy mapping cho code đọc qua Audit EntityName = Session_ExaminerArea)
+INSERT INTO Audit (UserId, Action, EntityName, EntityId, NewValue, CreatedAt)
+SELECT se.AssignedBy,
+       N'ASSIGN',
+       N'Session_ExaminerArea',
+       CAST(se.SessionId AS NVARCHAR(20)) + N':' + CAST(se.ExamAreaId AS NVARCHAR(20)) + N':' + CAST(se.ExaminerId AS NVARCHAR(20)),
+       ea.AreaName,
+       ISNULL(se.AssignedAt, GETDATE())
+FROM Session_Examiner se
+JOIN ExamArea ea ON ea.ExamAreaId = se.ExamAreaId
+WHERE se.ExamAreaId IS NOT NULL;
 GO
+
+-- ============================================
+-- QUICK PATCH (chạy riêng nếu DB đã seed, không muốn chạy lại toàn bộ DML)
+-- Bật ca thi đang diễn ra để test examiner (examiner_tung → Phòng LT 1, Lý thuyết)
+-- ============================================
+-- UPDATE [Session]
+-- SET [Status] = N'InProgress'
+-- WHERE SessionName = N'Ca sáng - Lý thuyết B';
+-- GO
+
+-- ============================================
+-- QUICK PATCH — thí sinh ca Lý thuyết B (chạy riêng, không reseed toàn bộ)
+-- ============================================
+-- UPDATE er SET RegistrationStatus = N'Present', Notes = N'AllocatedRoom:1:Phòng LT 1'
+-- FROM ExamRegistration er JOIN Candidate c ON c.ExamRegistrationId = er.ExamRegistrationId
+-- JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId JOIN [Session] s ON s.SessionId = ec.SessionId
+-- WHERE s.SessionName = N'Ca sáng - Lý thuyết B' AND c.CandidateNumber IN (N'046', N'123', N'456');
+-- GO
