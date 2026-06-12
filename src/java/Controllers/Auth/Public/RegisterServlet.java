@@ -1,5 +1,6 @@
 package Controllers.Auth.Public;
 
+import Models.RegisterResult;
 import Services.AuthService;
 import Services.Impl.AuthServiceImpl;
 import jakarta.servlet.ServletException;
@@ -51,8 +52,7 @@ public class RegisterServlet extends HttpServlet {
 
         boolean gender = "1".equals(genderParam);
      
-        // attempt to register
-        String registerError = authService.register(
+        RegisterResult result = authService.register(
                 govIdNo.trim(),
                 fullName.trim(),
                 phoneNo.trim(),
@@ -62,15 +62,23 @@ public class RegisterServlet extends HttpServlet {
                 gender
         );
 
-        if (registerError != null) {
-            request.setAttribute("error", registerError);
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getErrorMessage());
             forwardRegister(request, response);
-        } else {
-            HttpSession session = request.getSession();
-            session.setAttribute("successMessage",
-                    "Đăng ký thành công! Truy cập email của bạn để xác minh đăng ký.");
-            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
+
+        HttpSession session = request.getSession();
+        if (result.isEmailSent()) {
+            session.setAttribute("successMessage",
+                    "Đăng ký thành công! Kiểm tra email để lấy tên đăng nhập và mật khẩu.");
+        } else {
+            session.setAttribute("successMessage",
+                    "Đăng ký thành công! Không gửi được email — vui lòng lưu thông tin đăng nhập bên dưới.");
+            session.setAttribute("registrationUsername", result.getUsername());
+            session.setAttribute("registrationPassword", result.getPassword());
+        }
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 
     private boolean isBlank(String value) {

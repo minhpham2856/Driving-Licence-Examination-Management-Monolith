@@ -2,7 +2,9 @@ package Controllers.Auth.Public;
 
 import Models.User;
 import Services.AuthService;
+import Services.ExaminerSessionContextService;
 import Services.Impl.AuthServiceImpl;
+import Services.Impl.ExaminerSessionContextServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,6 +17,7 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();
+    private final ExaminerSessionContextService examinerSessionContext = new ExaminerSessionContextServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -33,6 +36,15 @@ public class LoginServlet extends HttpServlet {
             session.removeAttribute("errorMessage");
         }
 
+        String registrationUsername = (String) session.getAttribute("registrationUsername");
+        String registrationPassword = (String) session.getAttribute("registrationPassword");
+        if (registrationUsername != null) {
+            request.setAttribute("registrationUsername", registrationUsername);
+            request.setAttribute("registrationPassword", registrationPassword);
+            session.removeAttribute("registrationUsername");
+            session.removeAttribute("registrationPassword");
+        }
+
         request.getRequestDispatcher("/views/public/login.jsp").forward(request, response);
     }
 
@@ -48,7 +60,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        User user = authService.login(identifier.trim(), password);
+        User user = authService.login(identifier.trim(), password.trim());
         if (user == null) {
             request.setAttribute("error", "Tên đăng nhập/Email/SĐT hoặc mật khẩu không chính xác.");
             request.getRequestDispatcher("/views/public/login.jsp").forward(request, response);
@@ -62,7 +74,8 @@ public class LoginServlet extends HttpServlet {
             } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/admin/examstaff/dashboard.jsp");
             } else if ("Examiner".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard.jsp");
+                examinerSessionContext.refresh(session, user.getId());
+                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
             } else if ("Admin".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
             } else {
