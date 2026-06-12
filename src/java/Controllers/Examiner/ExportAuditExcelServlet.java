@@ -14,8 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 
-@WebServlet("/examiner/export/candidates")
-public class ExportCandidatesExcelServlet extends ExaminerExportServlet {
+@WebServlet("/examiner/export/audit")
+public class ExportAuditExcelServlet extends ExaminerExportServlet {
 
     private final FileService fileService = new FileServiceImpl();
     private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
@@ -29,8 +29,8 @@ public class ExportCandidatesExcelServlet extends ExaminerExportServlet {
             return;
         }
 
-        ExaminerExportPayload payload = exportService.buildCandidatesExport(ctx);
-        prepareExcelDownload(response, "danh-sach-thi-sinh.xlsx");
+        ExaminerExportPayload payload = exportService.buildAuditExport(ctx, request.getParameter("q"));
+        prepareExcelDownload(response, "nhat-ky.xlsx");
 
         OutputStream out = response.getOutputStream();
         fileService.exportToExcel(payload.excelSheetName(), payload.primaryHeaders(), payload.primaryRows(), out);
