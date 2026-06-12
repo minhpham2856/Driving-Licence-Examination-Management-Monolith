@@ -1,12 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<jsp:include page="/views/layout/examiner-seed-data.jsp" />
-
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
-<c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
 <c:set var="headerTitle" value="Nhật ký" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/audit.jsp" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/audit" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -18,10 +14,11 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${cssStyle}">
-        <link rel="stylesheet" href="${cssLayout}">
+        <jsp:include page="/views/examiner/partials/examiner-styles.jsp">
+            <jsp:param name="pageCss" value="audit.css" />
+        </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
@@ -35,28 +32,27 @@
             <main class="examiner-main examiner-main--dashboard">
                 <!--toolbar-->
                 <section class="examiner-toolbar examiner-toolbar--tools">
-                    <!--tb.left-->
                     <div class="examiner-toolbar__group">
-                        <a href="#" class="examiner-btn examiner-btn--white">
-                            <span class="material-symbols-outlined">print</span>In nhật ký
+                        <a href="${ctx}/examiner/export/audit?q=${searchQuery}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>Xuất Excel
                         </a>
-                        <a href="#" class="examiner-btn examiner-btn--white">
-                            <span class="material-symbols-outlined">filter_alt</span>Lọc
+                        <a href="${ctx}/examiner/export/audit/xml?q=${searchQuery}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>Xuất XML
                         </a>
                     </div>
-
-                    <!--tb.right-->
-                    <div class="examiner-toolbar__group">
+                    <form action="${pageUrl}" method="get" class="examiner-toolbar__group examiner-toolbar__search-form">
                         <div class="examiner-search examiner-search--lg">
-                            <input type="text" class="examiner-search__input" placeholder="Lọc nhật ký...">
+                            <input type="text" name="q" class="examiner-search__input"
+                                   placeholder="Lọc nhật ký..."
+                                   value="${searchQuery}">
                         </div>
-                        <a href="#" class="examiner-btn examiner-btn--primary">
+                        <button type="submit" class="examiner-btn examiner-btn--primary">
                             <span class="material-symbols-outlined">search</span>Tìm kiếm
-                        </a>
+                        </button>
                         <a href="${pageUrl}" class="examiner-btn examiner-btn--icon examiner-btn--white">
                             <span class="material-symbols-outlined">refresh</span>
                         </a>
-                    </div>
+                    </form>
                 </section>
 
                 <!--audit list-->
@@ -65,26 +61,36 @@
                         <table class="examiner-table audit-table">
                             <thead>
                                 <tr>
-                                    <th class="audit-col--user">Người dùng</th>
-                                    <th class="audit-col--action">Thao tác</th>
-                                    <th class="audit-col--target">Đối tượng</th>
-                                    <th class="audit-col--sbd">SBD</th>
-                                    <th class="audit-col--info">Thông tin</th>
-                                    <th class="audit-col--old">Cũ</th>
-                                    <th class="audit-col--new">Mới</th>
-                                    <th class="audit-col--reason">Lý do</th>
-                                    <th class="audit-col--time">Thời gian</th>
-                                    <th class="audit-col--date">Ngày</th>
+                                    <th>Người dùng</th>
+                                    <th>Thao tác</th>
+                                    <th>Đối tượng</th>
+                                    <th>SBD</th>
+                                    <th>Thông tin</th>
+                                    <th>Cũ</th>
+                                    <th>Mới</th>
+                                    <th>Lý do</th>
+                                    <th>Thời gian</th>
+                                    <th>Ngày</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                <c:choose>
+                                    <c:when test="${empty auditLogs}">
+                                        <tr><td colspan="10" class="examiner-table__empty">
+                                            <c:choose>
+                                                <c:when test="${searchActive}">Không có nhật ký phù hợp.</c:when>
+                                                <c:otherwise>Chưa có nhật ký.</c:otherwise>
+                                            </c:choose>
+                                        </td></tr>
+                                    </c:when>
+                                    <c:otherwise>
                                 <c:forEach items="${auditLogs}" var="log">
                                     <tr>
                                         <td>${log.username}</td>
                                         <td><span class="audit-badge ${log.actionBadge}">${log.actionLabel}</span></td>
                                         <td>${log.entityName}</td>
                                         <td class="examiner-table__mono">${log.entityId}</td>
-                                        <td class="audit-td--ellipsis">${log.info}</td>
+                                        <td>${log.info}</td>
                                         <td class="audit-td--old"><c:if test="${not empty log.oldValue}"><s>${log.oldValue}</s></c:if></td>
                                         <td class="audit-td--new ${log.newValueClass}">${log.newValue}</td>
                                         <td class="audit-td--reason">${log.reason}</td>
@@ -92,6 +98,8 @@
                                         <td class="examiner-table__mono-md">${log.date}</td>
                                     </tr>
                                 </c:forEach>
+                                    </c:otherwise>
+                                </c:choose>
                             </tbody>
                         </table>
                     </div>
@@ -99,17 +107,39 @@
                     <!--pagination-->
                     <div class="audit-pagination">
                         <nav class="audit-page-nav">
-                            <button class="audit-page-btn audit-page-btn--nav" disabled>
-                                <span class="material-symbols-outlined">chevron_left</span>
-                            </button>
-                            <button class="audit-page-btn audit-page-btn--active">1</button>
-                            <button class="audit-page-btn">2</button>
-                            <button class="audit-page-btn">3</button>
-                            <span class="audit-page-dots">...</span>
-                            <button class="audit-page-btn">10</button>
-                            <button class="audit-page-btn audit-page-btn--nav">
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </button>
+                            <c:url var="prevUrl" value="/views/examiner/audit">
+                                <c:param name="page" value="${auditPage - 1}" />
+                                <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
+                            </c:url>
+                            <c:url var="nextUrl" value="/views/examiner/audit">
+                                <c:param name="page" value="${auditPage + 1}" />
+                                <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
+                            </c:url>
+                            <c:choose>
+                                <c:when test="${auditPage > 1}">
+                                    <a href="${prevUrl}" class="audit-page-btn audit-page-btn--nav">
+                                        <span class="material-symbols-outlined">chevron_left</span>
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="audit-page-btn audit-page-btn--nav audit-page-btn--disabled">
+                                        <span class="material-symbols-outlined">chevron_left</span>
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
+                            <span class="audit-page-btn audit-page-btn--active">${auditPage} / ${auditTotalPages}</span>
+                            <c:choose>
+                                <c:when test="${auditPage < auditTotalPages}">
+                                    <a href="${nextUrl}" class="audit-page-btn audit-page-btn--nav">
+                                        <span class="material-symbols-outlined">chevron_right</span>
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="audit-page-btn audit-page-btn--nav audit-page-btn--disabled">
+                                        <span class="material-symbols-outlined">chevron_right</span>
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
                         </nav>
                     </div>
                 </div>
