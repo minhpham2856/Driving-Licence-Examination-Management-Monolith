@@ -1,10 +1,11 @@
 package DAO.Impl;
 
+import Constants.Db2Mappings;
 import Constants.ExamTypes;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import DBConnection.DBContext;
 import DAO.ExaminerAssignmentDAO;
-import Models.Person;
+import Models.Profile;
 import Models.Role;
 import Models.User;
 import java.sql.Date;
@@ -83,7 +84,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     @Override
     public List<User> getActiveExaminers() {
         List<User> list = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(EXAMINER_SELECT);
+        try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapExaminer(rs));
@@ -110,18 +111,18 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 VALUES (?, 'ASSIGN', ?, ?, ?, GETDATE())
                 """;
         try {
-            connection.setAutoCommit(false);
-            try (PreparedStatement ps = connection.prepareStatement(insertAssignment)) {
+            getConnection().setAutoCommit(false);
+            try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 ps.setInt(1, slot.getExamSessionId());
                 ps.setInt(2, slot.getExaminerUserId());
                 ps.executeUpdate();
             }
-            try (PreparedStatement ps = connection.prepareStatement(deleteMapping)) {
+            try (PreparedStatement ps = getConnection().prepareStatement(deleteMapping)) {
                 ps.setString(1, ROOM_MAPPING_ENTITY);
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            try (PreparedStatement ps = connection.prepareStatement(insertMapping)) {
+            try (PreparedStatement ps = getConnection().prepareStatement(insertMapping)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
                 ps.setInt(1, assignedBy);
                 ps.setString(2, ROOM_MAPPING_ENTITY);
@@ -129,11 +130,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(4, slot.getAreaName() != null ? slot.getAreaName() : String.valueOf(slot.getAreaId()));
                 ps.executeUpdate();
             }
-            connection.commit();
+            getConnection().commit();
             return true;
         } catch (SQLException e) {
             try {
-                connection.rollback();
+                getConnection().rollback();
             } catch (SQLException ignored) {
             }
             if (e.getErrorCode() == 2627 || e.getErrorCode() == 2601) {
@@ -142,7 +143,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             e.printStackTrace();
         } finally {
             try {
-                connection.setAutoCommit(true);
+                getConnection().setAutoCommit(true);
             } catch (SQLException ignored) {
             }
         }
@@ -162,28 +163,28 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         String deleteAssignment = "DELETE FROM Session_Examiner WHERE SessionId = ? AND ExaminerId = ?";
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
-            connection.setAutoCommit(false);
-            try (PreparedStatement ps = connection.prepareStatement(deleteAssignment)) {
+            getConnection().setAutoCommit(false);
+            try (PreparedStatement ps = getConnection().prepareStatement(deleteAssignment)) {
                 ps.setInt(1, sessionId);
                 ps.setInt(2, examinerId);
                 ps.executeUpdate();
             }
-            try (PreparedStatement ps = connection.prepareStatement(deleteMapping)) {
+            try (PreparedStatement ps = getConnection().prepareStatement(deleteMapping)) {
                 ps.setString(1, ROOM_MAPPING_ENTITY);
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            connection.commit();
+            getConnection().commit();
             return true;
         } catch (SQLException e) {
             try {
-                connection.rollback();
+                getConnection().rollback();
             } catch (SQLException ignored) {
             }
             e.printStackTrace();
         } finally {
             try {
-                connection.setAutoCommit(true);
+                getConnection().setAutoCommit(true);
             } catch (SQLException ignored) {
             }
         }
@@ -251,7 +252,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     private List<ExaminerSlot> querySlots(String sql, SqlBinder binder) {
         List<ExaminerSlot> list = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             binder.bind(ps);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -339,31 +340,27 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         user.setIsActive(rs.getBoolean("Status"));
 
         Integer profileId = (Integer) rs.getObject("ProfileId");
-        user.setPersonId(profileId);
+        user.setProfileId(profileId);
 
-        Role role = new Role();
-        role.setRoleName(rs.getString("Role"));
+        String roleName = rs.getString("Role");
+        Role role = Db2Mappings.roleFromName(roleName);
         user.setRole(role);
+        user.setRoleId(role.getId());
 
         if (profileId != null) {
-            Person person = new Person();
-            person.setId(profileId);
-            person.setUserId(rs.getInt("UserId"));
-            person.setFullName(rs.getString("FullName"));
-            person.setDateOfBirth(rs.getDate("DateOfBirth"));
-            person.setPhoneNo(rs.getString("PhoneNumber"));
-            person.setGovIdNo(rs.getString("GovernmentIdNumber"));
-            person.setAddress(rs.getString("Address"));
-            person.setEmail(user.getEmail());
-            person.setGender(mapSexToGender(rs.getString("Sex")));
-            user.setPerson(person);
+            Profile profile = new Profile();
+            profile.setId(profileId);
+            profile.setUserId(rs.getInt("UserId"));
+            profile.setFullName(rs.getString("FullName"));
+            profile.setDateOfBirth(rs.getDate("DateOfBirth"));
+            profile.setPhoneNo(rs.getString("PhoneNumber"));
+            profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
+            profile.setAddress(rs.getString("Address"));
+            profile.setGender(Db2Mappings.genderFromSex(rs.getString("Sex")));
+            user.setProfile(profile);
         }
 
         return user;
-    }
-
-    private boolean mapSexToGender(String sex) {
-        return sex != null && "Nữ".equalsIgnoreCase(sex.trim());
     }
 
     @FunctionalInterface

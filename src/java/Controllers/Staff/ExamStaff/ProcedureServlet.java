@@ -185,7 +185,7 @@ public class ProcedureServlet extends HttpServlet {
                 profile.setIsPresent(true);
                 regDAO.updatePresent(profile.getId(), true);
 
-                if ("Absent".equalsIgnoreCase(profile.getNotes())) {
+                if (profile.isAbsent()) {
                     clearAbsentMarking(profile);
                 }
 
@@ -302,7 +302,7 @@ public class ProcedureServlet extends HttpServlet {
         profile.setIsPaymentCompleted(true);
         profile.setIsPresent(true);
         regDAO.updatePresent(profile.getId(), true);
-        if ("Absent".equalsIgnoreCase(profile.getNotes())) {
+        if (profile.isAbsent()) {
             clearAbsentMarking(profile);
         }
         ExamAutoAllocator allocator = new ExamAutoAllocator();
@@ -465,7 +465,7 @@ public class ProcedureServlet extends HttpServlet {
 
     private void clearAbsentMarking(ExamRegistration profile) {
         regDAO.clearAbsentMarking(profile.getId());
-        profile.setNotes(null);
+        profile.setAbsent(false);
         profile.setTheoryPassed("none");
         profile.setPracticalPassed("none");
         profile.setRoadTestPassed("none");

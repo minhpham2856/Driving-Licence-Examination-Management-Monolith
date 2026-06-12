@@ -19,7 +19,7 @@ public class ExamAreaDAOImpl extends DBContext implements ExamAreaDAO {
     public List<ExamArea> getActiveTheoryRooms() {
         List<ExamArea> list = new ArrayList<>();
         String sql = AREA_SELECT + " WHERE AreaType = 'Room' ORDER BY ExamAreaId";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
@@ -34,7 +34,7 @@ public class ExamAreaDAOImpl extends DBContext implements ExamAreaDAO {
     public List<ExamArea> getAllActiveAreas() {
         List<ExamArea> list = new ArrayList<>();
         String sql = AREA_SELECT + " ORDER BY AreaType, AreaName";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
@@ -56,7 +56,7 @@ public class ExamAreaDAOImpl extends DBContext implements ExamAreaDAO {
                 WHERE sea.SessionId = ?
                 ORDER BY ea.AreaType, ea.AreaName
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, sessionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -72,7 +72,7 @@ public class ExamAreaDAOImpl extends DBContext implements ExamAreaDAO {
     @Override
     public boolean isAreaInSession(int sessionId, int areaId) {
         String sql = "SELECT 1 FROM Session_ExamArea WHERE SessionId = ? AND ExamAreaId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, sessionId);
             ps.setInt(2, areaId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -87,7 +87,7 @@ public class ExamAreaDAOImpl extends DBContext implements ExamAreaDAO {
     @Override
     public ExamArea getById(int id) {
         String sql = AREA_SELECT + " WHERE ExamAreaId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -109,7 +109,7 @@ public class ExamAreaDAOImpl extends DBContext implements ExamAreaDAO {
                 JOIN ExamDevice ed ON ed.ExamAreaId = ea.ExamAreaId
                 WHERE ed.DeviceName = ? OR ed.DeviceName LIKE ?
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, computerCode);
             ps.setString(2, "%" + computerCode + "%");
             try (ResultSet rs = ps.executeQuery()) {

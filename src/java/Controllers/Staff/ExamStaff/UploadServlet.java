@@ -1,14 +1,19 @@
 package Controllers.Staff.ExamStaff;
 
+import Constants.Db2Mappings;
 import DAO.ExamRegistrationDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.PersonDAO;
-import DAO.Impl.PersonDAOImpl;
-import Models.ExamRegistration;
-import Models.Person;
-import Models.ExamSession;
 import DAO.ExamSessionDAO;
+import DAO.ProfileDAO;
+import DAO.UserDAO;
+import DAO.Impl.ExamRegistrationDAOImpl;
 import DAO.Impl.ExamSessionDAOImpl;
+import DAO.Impl.ProfileDAOImpl;
+import DAO.Impl.UserDAOImpl;
+import Models.ExamRegistration;
+import Models.ExamSession;
+import Models.Profile;
+import Models.User;
+import Utils.UsernameGenerator;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -33,7 +38,8 @@ import java.util.List;
                  maxRequestSize = 1024 * 1024 * 30)   // 30MB
 public class UploadServlet extends HttpServlet {
 
-    private final PersonDAO personDAO = new PersonDAOImpl();
+    private final ProfileDAO profileDAO = new ProfileDAOImpl();
+    private final UserDAO userDAO = new UserDAOImpl();
     private final ExamRegistrationDAO regDAO = new ExamRegistrationDAOImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
 
@@ -101,55 +107,26 @@ public class UploadServlet extends HttpServlet {
                             continue;
                         }
 
-                        Person p = personDAO.getByGovIdNo(reg.getGovIdNo());
-                        if (p == null) {
-                            p = new Person();
-                            p.setFullName(reg.getFullName());
-                            p.setGovIdNo(reg.getGovIdNo());
-                            p.setDateOfBirth(reg.getDateOfBirth());
-                            p.setGender(true);
-                            
-                            // Use imported Phone and Email if provided, else fallback to dynamic defaults
-                            String finalPhone = (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty())
-                                    ? reg.getPhoneNo().trim()
-                                    : "09" + (int)(10000000 + Math.random() * 90000000);
-                            String finalEmail = (reg.getEmail() != null && !reg.getEmail().trim().isEmpty())
-                                    ? reg.getEmail().trim()
-                                    : "candidate" + reg.getGovIdNo() + "@dlem.com";
-                                    
-                            p.setPhoneNo(finalPhone);
-                            p.setEmail(finalEmail);
-                            p.setAddress("Hà Nội, Việt Nam");
-                            p.setIsWalkIn("WalkIn".equals(reg.getRegistrationType()));
-                            p.setApprovalStatus("Approved");
-                            personDAO.insert(p);
-                        } else {
-                            p.setFullName(reg.getFullName());
-                            p.setDateOfBirth(reg.getDateOfBirth());
-                            // Update existing phone/email if new ones are provided
-                            if (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty()) {
-                                p.setPhoneNo(reg.getPhoneNo().trim());
-                            }
-                            if (reg.getEmail() != null && !reg.getEmail().trim().isEmpty()) {
-                                p.setEmail(reg.getEmail().trim());
-                            }
-                            personDAO.update(p);
+                        Profile profile = ensureProfileForImport(reg);
+                        if (profile == null) {
+                            skippedCount++;
+                            continue;
                         }
 
-                        Integer existingId = regDAO.findCandidateIdByProfileAndSession(p.getId(), selectedSessionId);
+                        Integer existingId = regDAO.findCandidateIdByProfileAndSession(profile.getId(), selectedSessionId);
                         boolean regExists = existingId != null;
 
                         if (regExists) {
                             int regId = existingId;
                             reg.setId(regId);
-                            reg.setPersonId(p.getId());
+                            reg.setPersonId(profile.getId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
                             regDAO.updatePresent(regId, true);
                             regDAO.updatePhoto(regId, null);
                             importedCount++;
                         } else {
-                            reg.setPersonId(p.getId());
+                            reg.setPersonId(profile.getId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
                             if (regDAO.insert(reg)) {
@@ -303,9 +280,9 @@ public class UploadServlet extends HttpServlet {
 
                     // Duplicate check (only if CCCD is valid)
                     if (!cccd.isEmpty()) {
-                        Person existingP = personDAO.getByGovIdNo(cccd);
-                        if (existingP != null) {
-                            if (regDAO.findCandidateIdByProfileAndSession(existingP.getId(), selectedSessionId) != null) {
+                        Profile existingProfile = profileDAO.getByGovIdNo(cccd);
+                        if (existingProfile != null) {
+                            if (regDAO.findCandidateIdByProfileAndSession(existingProfile.getId(), selectedSessionId) != null) {
                                 reg.setDuplicate(true);
                             }
                         }
@@ -325,6 +302,62 @@ public class UploadServlet extends HttpServlet {
         }
 
         response.sendRedirect("upload");
+    }
+
+    private Profile ensureProfileForImport(ExamRegistration reg) {
+        Profile profile = profileDAO.getByGovIdNo(reg.getGovIdNo());
+
+        String finalPhone = (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty())
+                ? reg.getPhoneNo().trim()
+                : "09" + (int) (10000000 + Math.random() * 90000000);
+        String finalEmail = (reg.getEmail() != null && !reg.getEmail().trim().isEmpty())
+                ? reg.getEmail().trim()
+                : "candidate" + reg.getGovIdNo() + "@dlem.com";
+
+        if (profile == null) {
+            User user = new User();
+            user.setUsername(generateUniqueUsername(reg.getFullName()));
+            user.setEmail(finalEmail);
+            user.setPasswordHash(UsernameGenerator.randomPassword(10));
+            user.setIsActive(true);
+            user.setRole(Db2Mappings.roleFromName("Registrant"));
+
+            if (!userDAO.insert(user)) {
+                return null;
+            }
+
+            profile = new Profile();
+            profile.setUserId(user.getId());
+            profile.setFullName(reg.getFullName());
+            profile.setGovIdNo(reg.getGovIdNo());
+            profile.setDateOfBirth(reg.getDateOfBirth());
+            profile.setGender(true);
+            profile.setPhoneNo(finalPhone);
+            profile.setAddress("Hà Nội, Việt Nam");
+
+            if (!profileDAO.insert(profile)) {
+                return null;
+            }
+        } else {
+            profile.setFullName(reg.getFullName());
+            profile.setDateOfBirth(reg.getDateOfBirth());
+            if (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty()) {
+                profile.setPhoneNo(reg.getPhoneNo().trim());
+            }
+            profileDAO.update(profile);
+        }
+
+        return profile;
+    }
+
+    private String generateUniqueUsername(String fullName) {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String username = UsernameGenerator.generateFromFullName(fullName);
+            if (userDAO.getByUsername(username) == null) {
+                return username;
+            }
+        }
+        return UsernameGenerator.generateFromFullName(fullName) + System.currentTimeMillis() % 1000;
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {

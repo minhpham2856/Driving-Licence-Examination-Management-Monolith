@@ -2,6 +2,8 @@ package Services;
 
 public interface EmailService {
 
+    boolean isConfigured();
+
     /**
      * Sends a plain text email to the recipient.
      *

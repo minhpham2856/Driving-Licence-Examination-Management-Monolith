@@ -14,6 +14,8 @@ public class AuditLog {
     private String ipAddress;
     private String sessionId;
 
+    private String reason;
+
     // Additional helper field for display
     private String changerName;
 
@@ -98,6 +100,14 @@ public class AuditLog {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
     public String getChangerName() {

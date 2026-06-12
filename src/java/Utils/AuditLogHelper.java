@@ -72,6 +72,40 @@ public final class AuditLogHelper {
 
     }
 
+    public static void persistWarning(HttpSession session, String details, String reason, int recordId) {
+
+        try {
+
+            User user = (User) session.getAttribute("user");
+
+            int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
+
+            AuditLog log = new AuditLog();
+
+            log.setTableName("Candidate");
+
+            log.setRecordId(recordId > 0 ? recordId : 0);
+
+            log.setAction("WARNING");
+
+            log.setNewValue(details);
+
+            log.setReason(reason);
+
+            log.setChangedBy(userId);
+
+            log.setChangedAt(new Timestamp(System.currentTimeMillis()));
+
+            DAO.insert(log);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
 
 
     static String resolveEntityName(String action, String details) {
