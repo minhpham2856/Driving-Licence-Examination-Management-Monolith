@@ -54,7 +54,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     @Override
     public ExamSession getById(int id) {
         String sql = SESSION_SELECT + " WHERE s.SessionId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -73,7 +73,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         String sql = SESSION_SELECT
                 + " WHERE s.[Status] IN ('Scheduled', 'Open', 'InProgress')"
                 + " ORDER BY CAST(s.StartTime AS DATE), CAST(s.StartTime AS TIME)";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapResultSetToExamSession(rs));
@@ -89,7 +89,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         List<ExamSession> list = new ArrayList<>();
         String sql = SESSION_SELECT
                 + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapResultSetToExamSession(rs));
@@ -104,7 +104,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     public List<ExamSession> getSessionsByExamDate(Date examDate) {
         List<ExamSession> list = new ArrayList<>();
         String sql = SESSION_SELECT + " WHERE CAST(s.StartTime AS DATE) = ? ORDER BY CAST(s.StartTime AS TIME)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setDate(1, examDate);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -120,7 +120,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     @Override
     public boolean updateStatus(int sessionId, String status) {
         String sql = "UPDATE [Session] SET [Status] = ? WHERE SessionId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, sessionId);
             return ps.executeUpdate() > 0;
