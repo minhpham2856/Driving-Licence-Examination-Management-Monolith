@@ -5,6 +5,7 @@ import Constants.ExamSectionType;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import Services.ExamSessionControlService;
 import Services.ExaminerSessionContextService;
+import Utils.ExaminerBreadcrumbs;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -69,6 +70,9 @@ public class ExaminerSessionContextServiceImpl implements ExaminerSessionContext
         request.setAttribute(ATTR_SECTION_TYPE, session.getAttribute(ATTR_SECTION_TYPE));
         request.setAttribute(ATTR_SECTION_THEORY, session.getAttribute(ATTR_SECTION_THEORY));
         request.setAttribute(ATTR_MESSAGE, session.getAttribute(ATTR_MESSAGE));
+        request.setAttribute("headerBreadcrumbItems", ExaminerBreadcrumbs.buildItems(request));
+        request.setAttribute("headerBreadcrumb", ExaminerBreadcrumbs.resolve(request));
+        request.setAttribute("examSectionName", session.getAttribute(ATTR_EXAM_SECTION_NAME));
     }
 
     @Override

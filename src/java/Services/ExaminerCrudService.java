@@ -22,6 +22,12 @@ public interface ExaminerCrudService {
 
     int callSelectedCandidates(int sessionId, String[] sbds, User user, HttpSession session);
 
+    String autoCallScoreEntryIfNeeded(int sessionId, User user, HttpSession session);
+
+    boolean callScoreEntryCandidate(int sessionId, String sbd, User user, HttpSession session);
+
+    String deferScoreEntryAbsent(int sessionId, String sbd, User user, HttpSession session);
+
     boolean setDeviceMaintenance(int deviceId, HttpSession session);
 
     boolean setDeviceAvailable(int deviceId, HttpSession session);
@@ -36,4 +42,9 @@ public interface ExaminerCrudService {
             HttpSession session);
 
     boolean verifyPassword(User user, String password);
+
+    boolean printSignatureForm(int sessionId, String sbd, HttpSession session);
+
+    /** null = success; otherwise error code (e.g. needSignaturePrint). */
+    String completeCandidateSection(int sessionId, String sbd, HttpSession session);
 }
