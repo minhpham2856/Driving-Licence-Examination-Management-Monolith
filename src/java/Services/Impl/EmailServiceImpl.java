@@ -5,9 +5,14 @@ import Utils.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class EmailServiceImpl implements EmailService {
+
+    private static final Logger LOG = Logger.getLogger(EmailServiceImpl.class.getName());
 
     private Properties props;
     private String senderUsername;
@@ -19,15 +24,25 @@ public class EmailServiceImpl implements EmailService {
 
     private void loadConfiguration() {
         props = new Properties();
-        props.put("mail.smtp.host", ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com"));
+        String host = ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com");
+        props.put("mail.smtp.host", host);
         props.put("mail.smtp.port", ConfigManager.get("MAIL_SMTP_PORT", "587"));
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.ssl.trust", ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com"));
+        props.put("mail.smtp.ssl.trust", host);
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
+        props.put("mail.smtp.writetimeout", "10000");
 
-        senderUsername = ConfigManager.get("MAIL_SENDER_USERNAME");
-        senderPassword = ConfigManager.get("MAIL_SENDER_PASSWORD");
+        senderUsername = normalize(ConfigManager.get("MAIL_SENDER_USERNAME"));
+        senderPassword = normalizeAppPassword(ConfigManager.get("MAIL_SENDER_PASSWORD"));
+    }
+
+    @Override
+    public boolean isConfigured() {
+        return senderUsername != null && !senderUsername.isEmpty()
+                && senderPassword != null && !senderPassword.isEmpty();
     }
 
     @Override
@@ -41,7 +56,15 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private boolean sendEmail(String to, String subject, String body, boolean isHtml) {
-        if (senderUsername == null || senderPassword == null) {
+        loadConfiguration();
+
+        if (!isConfigured()) {
+            LOG.warning("Email skipped: MAIL_SENDER_USERNAME or MAIL_SENDER_PASSWORD is not configured.");
+            return false;
+        }
+
+        if (to == null || to.isBlank()) {
+            LOG.warning("Email skipped: recipient address is empty.");
             return false;
         }
 
@@ -55,9 +78,8 @@ public class EmailServiceImpl implements EmailService {
         Session session = Session.getInstance(props, auth);
         try {
             MimeMessage msg = new MimeMessage(session);
-
             msg.setFrom(new InternetAddress(senderUsername));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to.trim()));
             msg.setSubject(subject, "UTF-8");
 
             if (isHtml) {
@@ -68,9 +90,20 @@ public class EmailServiceImpl implements EmailService {
 
             Transport.send(msg);
             return true;
-
         } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to send email to " + to + ": " + e.getMessage(), e);
             return false;
         }
+    }
+
+    private static String normalize(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private static String normalizeAppPassword(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.replace(" ", "").trim();
     }
 }

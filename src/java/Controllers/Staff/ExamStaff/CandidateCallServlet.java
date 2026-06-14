@@ -169,7 +169,7 @@ public class CandidateCallServlet extends HttpServlet {
                     regDAO.updateScores(removed.getId(), 0, "failed", 0, "failed");
                     regDAO.markAbsent(removed.getId());
                     
-                    removed.setNotes("Absent");
+                    removed.setAbsent(true);
                     removed.setTheoryPassed("failed");
                     removed.setPracticalPassed("failed");
                     removed.setTheoryScore(0);
@@ -202,7 +202,7 @@ public class CandidateCallServlet extends HttpServlet {
                     ExamRegistration restored = permanentAbsents.remove(foundIdx);
                     
                     // Reset fields
-                    restored.setNotes("");
+                    restored.setAbsent(false);
                     restored.setTheoryPassed("none");
                     restored.setPracticalPassed("none");
                     restored.setTheoryScore(null);
@@ -225,7 +225,7 @@ public class CandidateCallServlet extends HttpServlet {
                 for (ExamRegistration c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
-                        c.setNotes("Absent");
+                        c.setAbsent(true);
                         c.setTheoryPassed("failed");
                         c.setPracticalPassed("failed");
                         c.setTheoryScore(0);

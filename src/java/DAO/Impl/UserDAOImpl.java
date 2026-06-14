@@ -1,13 +1,22 @@
 package DAO.Impl;
 
+import Constants.Db2Mappings;
 import DBConnection.DBContext;
 import DAO.UserDAO;
-import Models.Person;
+import Models.Profile;
 import Models.Role;
 import Models.User;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UserDAOImpl extends DBContext implements UserDAO {
+
+    private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
 
     private static final String USER_SELECT = """
                      select u.UserId,
@@ -31,7 +40,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     public User getById(int id) {
         String sql = USER_SELECT + " where u.UserId = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -50,7 +59,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where u.Username = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -67,12 +76,18 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
     @Override
     public User getByIdentifier(String identifier) {
-        String sql = USER_SELECT + " where u.Username = ? or u.Email = ? or p.PhoneNumber = ?";
+        String sql = USER_SELECT + """
+                 where u.Username = ?
+                    or u.Email = ?
+                    or p.PhoneNumber = ?
+                    or p.GovernmentIdNumber = ?
+                """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
             ps.setString(3, identifier);
+            ps.setString(4, identifier);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -90,7 +105,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where u.Email = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, email);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -107,6 +122,12 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
     @Override
     public boolean insert(User user) {
+        Connection conn = getConnection();
+        if (conn == null) {
+            LOG.severe("Cannot insert user: database connection is unavailable.");
+            return false;
+        }
+
         String sql = """
                      insert into [User] (Username, Email, PasswordHash, [Role], [Status])
                      values (?, ?, ?, ?, ?)
@@ -114,15 +135,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
         String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"UserId"})) {
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
             ps.setString(4, roleName);
             ps.setBoolean(5, user.isIsActive());
 
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows == 0) {
+            if (ps.executeUpdate() == 0) {
                 return false;
             }
 
@@ -132,9 +152,10 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                 }
             }
 
-            return true;
+            return user.getId() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Failed to insert user {0}: {1}",
+                    new Object[] { user.getEmail(), e.getMessage() });
         }
 
         return false;
@@ -148,7 +169,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      where UserId = ?
                      """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, passwordHash);
             ps.setInt(2, userId);
 
@@ -170,30 +191,26 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setIsActive(rs.getBoolean("Status"));
 
         Integer profileId = (Integer) rs.getObject("ProfileId");
-        user.setPersonId(profileId);
+        user.setProfileId(profileId);
 
-        Role role = new Role();
-        role.setRoleName(rs.getString("Role"));
+        String roleName = rs.getString("Role");
+        Role role = Db2Mappings.roleFromName(roleName);
         user.setRole(role);
+        user.setRoleId(role.getId());
 
         if (profileId != null) {
-            Person person = new Person();
-            person.setId(profileId);
-            person.setUserId(rs.getInt("UserId"));
-            person.setFullName(rs.getString("FullName"));
-            person.setDateOfBirth(rs.getDate("DateOfBirth"));
-            person.setPhoneNo(rs.getString("PhoneNumber"));
-            person.setGovIdNo(rs.getString("GovernmentIdNumber"));
-            person.setAddress(rs.getString("Address"));
-            person.setEmail(user.getEmail());
-            person.setGender(mapSexToGender(rs.getString("Sex")));
-            user.setPerson(person);
+            Profile profile = new Profile();
+            profile.setId(profileId);
+            profile.setUserId(rs.getInt("UserId"));
+            profile.setFullName(rs.getString("FullName"));
+            profile.setDateOfBirth(rs.getDate("DateOfBirth"));
+            profile.setPhoneNo(rs.getString("PhoneNumber"));
+            profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
+            profile.setAddress(rs.getString("Address"));
+            profile.setGender(Db2Mappings.genderFromSex(rs.getString("Sex")));
+            user.setProfile(profile);
         }
 
         return user;
-    }
-
-    private boolean mapSexToGender(String sex) {
-        return sex != null && "Nữ".equalsIgnoreCase(sex.trim());
     }
 }

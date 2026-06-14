@@ -99,10 +99,10 @@
             <div class="profile-info-group">
                 <!-- Visual initials avatar dynamically parsed from the staff name -->
                 <div class="profile-avatar-circle">
-                    ${fn:substring(sessionScope.user.person.fullName, 0, 2)}
+                    ${fn:substring(sessionScope.user.profile.fullName, 0, 2)}
                 </div>
                 <div class="profile-meta-text">
-                    <span style="font-size: 1.15rem; font-weight: 800;">${sessionScope.user.person.fullName}</span>
+                    <span style="font-size: 1.15rem; font-weight: 800;">${sessionScope.user.profile.fullName}</span>
                     <span style="font-size: 0.82rem; opacity: 0.85; font-family: monospace;">Tài khoản: @${sessionScope.user.username} | Mã cán bộ: CBSH-00${sessionScope.user.id}</span>
                 </div>
             </div>

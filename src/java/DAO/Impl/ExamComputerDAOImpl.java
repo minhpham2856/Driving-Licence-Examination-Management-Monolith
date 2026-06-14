@@ -20,7 +20,7 @@ public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
     public List<ExamComputer> getAvailableComputers() {
         List<ExamComputer> list = new ArrayList<>();
         String sql = DEVICE_SELECT + " AND [Status] IN ('Available', 'Operational') ORDER BY DeviceName";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
@@ -35,7 +35,7 @@ public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
     public List<ExamComputer> getAvailableComputersByArea(int areaId) {
         List<ExamComputer> list = new ArrayList<>();
         String sql = DEVICE_SELECT + " AND [Status] IN ('Available', 'Operational') AND ExamAreaId = ? ORDER BY DeviceName";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, areaId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -51,7 +51,7 @@ public class ExamComputerDAOImpl extends DBContext implements ExamComputerDAO {
     @Override
     public boolean updateStatus(int id, String status) {
         String sql = "UPDATE ExamDevice SET [Status] = ? WHERE ExamDeviceId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;

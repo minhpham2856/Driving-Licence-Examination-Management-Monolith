@@ -17,23 +17,41 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                    a.Action AS action,
                    a.OldValue AS oldValue,
                    a.NewValue AS newValue,
+                   a.Details AS details,
+                   a.Reason AS reason,
                    a.UserId AS changedBy,
                    a.CreatedAt AS changedAt,
                    NULL AS ipAddress,
                    NULL AS sessionId,
-                   p.FullName AS changerName
+                   ISNULL(u.Username, p.FullName) AS changerName
             FROM Audit a
             LEFT JOIN [User] u ON u.UserId = a.UserId
             LEFT JOIN Profile p ON p.UserId = u.UserId
             """;
 
+    private static final String SESSION_AUDIT_WHERE = """
+            WHERE EXISTS (
+                SELECT 1
+                FROM Exam_Candidate ec
+                INNER JOIN Candidate c ON c.CandidateId = ec.CandidateId
+                WHERE ec.SessionId = ?
+                  AND (
+                        TRY_CAST(a.EntityId AS INT) = c.CandidateId
+                        OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'
+                        OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
+                        OR a.OldValue LIKE N'%' + c.CandidateNumber + N'%'
+                        OR a.Details LIKE N'%' + c.CandidateNumber + N'%'
+                      )
+            )
+            """;
+
     @Override
     public boolean insert(AuditLog log) {
         String sql = """
-                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, CreatedAt)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             String tbl = log.getTableName();
             if (tbl == null || tbl.trim().isEmpty()) {
                 tbl = "Profile";
@@ -44,7 +62,11 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
             ps.setInt(1, userId);
             ps.setString(2, act);
-            ps.setString(3, log.getNewValue());
+            if (log.getReason() != null) {
+                ps.setString(3, log.getReason());
+            } else {
+                ps.setNull(3, Types.NVARCHAR);
+            }
             ps.setString(4, tbl);
             ps.setString(5, String.valueOf(recId));
             if (log.getOldValue() != null) {
@@ -57,7 +79,12 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             } else {
                 ps.setNull(7, Types.NVARCHAR);
             }
-            ps.setTimestamp(8, log.getChangedAt() != null ? log.getChangedAt() : new Timestamp(System.currentTimeMillis()));
+            if (log.getDetails() != null) {
+                ps.setString(8, log.getDetails());
+            } else {
+                ps.setNull(8, Types.NVARCHAR);
+            }
+            ps.setTimestamp(9, log.getChangedAt() != null ? log.getChangedAt() : new Timestamp(System.currentTimeMillis()));
 
             if (ps.executeUpdate() > 0) {
                 try (ResultSet gk = ps.getGeneratedKeys()) {
@@ -170,7 +197,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     private List<AuditLog> queryLogs(String sql, SqlBinder binder, boolean limited) {
         List<AuditLog> list = new ArrayList<>();
         String finalSql = limited ? sql.replaceFirst("SELECT", "SELECT TOP 200") : sql;
-        try (PreparedStatement ps = connection.prepareStatement(finalSql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(finalSql)) {
             binder.bind(ps);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -184,7 +211,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     }
 
     private int count(String sql, SqlBinder binder) {
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             binder.bind(ps);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -229,7 +256,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                       )
                 ) x
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, userId);
             if (hasDate) {
                 ps.setString(2, filterDate);
@@ -245,6 +272,112 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return new StaffProcedureKpi(0, 0);
     }
 
+    @Override
+    public List<AuditLog> getLogsForSessionPaginated(int sessionId, int page, int pageSize) {
+        return getLogsForSessionPaginated(sessionId, page, pageSize, null);
+    }
+
+    @Override
+    public int getLogsCountForSession(int sessionId) {
+        return getLogsCountForSession(sessionId, null);
+    }
+
+    @Override
+    public List<AuditLog> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safeSize;
+        String searchClause = buildSessionSearchClause(searchQuery);
+        String sql = AUDIT_SELECT + SESSION_AUDIT_WHERE + searchClause
+                + " ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        List<AuditLog> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            bindSessionParams(ps, sessionId, searchQuery);
+            ps.setInt(paramIndexAfterSearch(searchQuery), offset);
+            ps.setInt(paramIndexAfterSearch(searchQuery) + 1, safeSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToAuditLog(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public int getLogsCountForSession(int sessionId, String searchQuery) {
+        String searchClause = buildSessionSearchClause(searchQuery);
+        String sql = "SELECT COUNT(*) FROM Audit a "
+                + "LEFT JOIN [User] u ON u.UserId = a.UserId "
+                + "LEFT JOIN Profile p ON p.UserId = u.UserId "
+                + SESSION_AUDIT_WHERE + searchClause;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            bindSessionParams(ps, sessionId, searchQuery);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private static String buildSessionSearchClause(String searchQuery) {
+        if (searchQuery == null || searchQuery.isBlank()) {
+            return "";
+        }
+        return """
+                 AND (
+                    a.Action LIKE ?
+                    OR a.EntityName LIKE ?
+                    OR a.NewValue LIKE ?
+                    OR a.OldValue LIKE ?
+                    OR a.Reason LIKE ?
+                    OR a.Details LIKE ?
+                    OR ISNULL(u.Username, p.FullName) LIKE ?
+                 )
+                """;
+    }
+
+    private static void bindSessionParams(PreparedStatement ps, int sessionId, String searchQuery)
+            throws SQLException {
+        ps.setInt(1, sessionId);
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            String pattern = "%" + searchQuery.trim() + "%";
+            for (int i = 2; i <= 8; i++) {
+                ps.setString(i, pattern);
+            }
+        }
+    }
+
+    private static int paramIndexAfterSearch(String searchQuery) {
+        return (searchQuery != null && !searchQuery.isBlank()) ? 9 : 2;
+    }
+
+    @Override
+    public List<AuditLog> getViolationLogsForSession(int sessionId, int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 5000));
+        String sql = AUDIT_SELECT + SESSION_AUDIT_WHERE
+                + " AND UPPER(a.Action) = 'WARNING' ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        List<AuditLog> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            ps.setInt(2, safeLimit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToAuditLog(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     private AuditLog mapResultSetToAuditLog(ResultSet rs) throws SQLException {
         AuditLog log = new AuditLog();
         log.setId(rs.getLong("id"));
@@ -256,6 +389,8 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         log.setAction(rs.getString("action"));
         log.setOldValue(rs.getString("oldValue"));
         log.setNewValue(rs.getString("newValue"));
+        log.setDetails(rs.getString("details"));
+        log.setReason(rs.getString("reason"));
         log.setChangedBy(rs.getInt("changedBy"));
         log.setChangedAt(rs.getTimestamp("changedAt"));
         log.setIpAddress(rs.getString("ipAddress"));

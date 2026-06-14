@@ -63,6 +63,13 @@
                         <c:out value="${success}" />
                     </div>
                 </c:if>
+                <c:if test="${not empty registrationUsername}">
+                    <div style="background-color: #EFF6FF; border: 1px solid #93C5FD; color: #1E3A8A; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; font-family: 'Inter', sans-serif; font-size: 14px;">
+                        <p style="margin: 0 0 8px; font-weight: 600;">Thông tin đăng nhập của bạn</p>
+                        <p style="margin: 0 0 4px;">Tên đăng nhập: <strong><c:out value="${registrationUsername}" /></strong></p>
+                        <p style="margin: 0;">Mật khẩu: <strong><c:out value="${registrationPassword}" /></strong></p>
+                    </div>
+                </c:if>
 
                 <!-- Login Form -->
                 <form class="login-form" action="${pageContext.request.contextPath}/login" method="POST">

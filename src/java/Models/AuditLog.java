@@ -14,6 +14,9 @@ public class AuditLog {
     private String ipAddress;
     private String sessionId;
 
+    private String reason;
+    private String details;
+
     // Additional helper field for display
     private String changerName;
 
@@ -100,6 +103,14 @@ public class AuditLog {
         this.sessionId = sessionId;
     }
 
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
     public String getChangerName() {
         return changerName;
     }
@@ -109,11 +120,11 @@ public class AuditLog {
     }
 
     public String getDetails() {
-        return newValue;
+        return details;
     }
 
     public void setDetails(String details) {
-        this.newValue = details;
+        this.details = details;
     }
 
     // Helper method to get time in HH:mm format for compatibility

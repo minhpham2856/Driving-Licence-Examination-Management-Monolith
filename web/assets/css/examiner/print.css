@@ -1,0 +1,28 @@
+/* Print documents */
+.print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 17px;
+    border: 1px solid #c3c6d6;
+    border-radius: 4px;
+    background: #fff;
+    text-decoration: none;
+    color: #003d9b;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.print-btn:hover {
+    background: #f0f4f8;
+    text-decoration: none;
+}
+
+.print-btn__text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: #003d9b;
+}

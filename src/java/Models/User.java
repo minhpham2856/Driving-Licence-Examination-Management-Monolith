@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class User {
 
     private int id;
-    private Integer personId;
+    private Integer profileId;
     private String username;
     private String email;
     private String passwordHash;
@@ -13,15 +13,16 @@ public class User {
     private boolean isActive;
     private Timestamp lastLoginAt;
     private Timestamp createdAt;
-    private Person person;
+    private Profile profile;
     private Role role;
 
     public User() {
     }
 
-    public User(int id, Integer personId, String username, String passwordHash, int roleId, boolean isActive, Timestamp lastLoginAt, Timestamp createdAt) {
+    public User(int id, Integer profileId, String username, String passwordHash, int roleId,
+            boolean isActive, Timestamp lastLoginAt, Timestamp createdAt) {
         this.id = id;
-        this.personId = personId;
+        this.profileId = profileId;
         this.username = username;
         this.passwordHash = passwordHash;
         this.roleId = roleId;
@@ -38,12 +39,12 @@ public class User {
         this.id = id;
     }
 
-    public Integer getPersonId() {
-        return personId;
+    public Integer getProfileId() {
+        return profileId;
     }
 
-    public void setPersonId(Integer personId) {
-        this.personId = personId;
+    public void setProfileId(Integer profileId) {
+        this.profileId = profileId;
     }
 
     public String getUsername() {
@@ -102,12 +103,12 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public Person getPerson() {
-        return person;
+    public Profile getProfile() {
+        return profile;
     }
 
-    public void setPerson(Person person) {
-        this.person = person;
+    public void setProfile(Profile profile) {
+        this.profile = profile;
     }
 
     public Role getRole() {

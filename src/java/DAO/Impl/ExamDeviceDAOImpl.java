@@ -18,7 +18,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         sql += " ORDER BY DeviceName";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             if (typeFilter != null && !typeFilter.isEmpty()) {
                 ps.setString(1, "%" + typeFilter + "%");
             }
@@ -60,7 +60,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
                 WHERE ExamAreaId = ?
                 ORDER BY DeviceType, DeviceName
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, areaId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -82,7 +82,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
     @Override
     public boolean updateStatus(int id, String status) {
         String sql = "UPDATE ExamDevice SET [Status] = ? WHERE ExamDeviceId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;

@@ -1,0 +1,128 @@
+.examiner-summary {
+    padding: 25px;
+    background-color: #ffffff;
+    border: 1px solid #c3c6d6;
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+}
+
+.examiner-summary--dashboard {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.examiner-summary__grid {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.1fr) repeat(4, minmax(72px, 1fr));
+    grid-template-rows: auto auto;
+    gap: 16px 24px;
+    align-items: start;
+}
+
+.examiner-summary__course {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+
+.examiner-summary__stat--total {
+    grid-column: 2;
+    grid-row: 1;
+    padding-bottom: 12px;
+}
+
+.examiner-summary__stat--done {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.examiner-summary__stat--testing {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+.examiner-summary__stat--pending {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.examiner-summary__stat--pass {
+    grid-column: 4;
+    grid-row: 1;
+}
+
+.examiner-summary__stat--fail {
+    grid-column: 4;
+    grid-row: 2;
+}
+
+.examiner-summary__label {
+    margin: 0 0 4px;
+    font-size: 14px;
+    color: #434654;
+}
+
+.examiner-summary__value {
+    margin: 0;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #171c1f;
+}
+
+.examiner-summary__value--sm {
+    font-size: 14px;
+    line-height: 20px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+}
+
+.examiner-summary__value--blue {
+    color: #003d9b;
+}
+
+.examiner-summary__value--amber {
+    color: #f59e0b;
+}
+
+.examiner-summary__value--green {
+    color: #34c759;
+}
+
+.examiner-summary__value--red {
+    color: #ff3b30;
+}
+
+.examiner-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 16px;
+    border-top: 1px solid #c3c6d6;
+    font-size: 14px;
+    color: #434654;
+}
+
+.examiner-pagination__pages {
+    display: flex;
+    gap: 8px;
+}
+
+.examiner-page-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #c3c6d6;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #434654;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.examiner-page-btn.is-active {
+    background-color: #003d9b;
+    border-color: #003d9b;
+    color: #ffffff;
+}
