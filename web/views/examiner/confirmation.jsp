@@ -1,14 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="cssStyle" value="${ctx}/assets/css/style.css" />
-<c:set var="cssLayout" value="${ctx}/assets/css/layout.css" />
-<c:set var="cssConfirmation" value="${ctx}/assets/css/examiner-confirmation.css" />
 <c:set var="headerTitle" value="Xác nhận vắng thi" />
-<c:set var="sbd" value="${param.sbd}" />
-<c:set var="name" value="${param.name}" />
-<c:set var="backUrl" value="${ctx}/views/examiner/candidate-call.jsp" />
+<c:set var="sbd" value="${not empty param.sbd ? param.sbd : candidate.sbd}" />
+<c:set var="name" value="${not empty param.name ? param.name : candidate.fullName}" />
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-call" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -20,11 +16,11 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${cssStyle}">
-        <link rel="stylesheet" href="${cssLayout}">
-        <link rel="stylesheet" href="${cssConfirmation}">
+        <jsp:include page="/views/examiner/partials/examiner-styles.jsp">
+            <jsp:param name="pageCss" value="result-edit.css,confirmation.css" />
+        </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
@@ -43,7 +39,6 @@
                             <span class="material-symbols-outlined">arrow_back</span>
                             QUAY LẠI
                         </a>
-                        <h2 class="examiner-toolbar__title">Xác nhận vắng thi</h2>
                     </div>
                 </section>
 

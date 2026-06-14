@@ -109,7 +109,7 @@
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${availableExaminers}">
-                                <span class="examiner-chip chip-available">${ex.person.fullName} (@${ex.username})</span>
+                                <span class="examiner-chip chip-available">${ex.profile.fullName} (@${ex.username})</span>
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
@@ -122,7 +122,7 @@
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${busyExaminers}">
-                                <span class="examiner-chip chip-busy">${ex.person.fullName} (@${ex.username})</span>
+                                <span class="examiner-chip chip-busy">${ex.profile.fullName} (@${ex.username})</span>
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
@@ -158,7 +158,7 @@
                         <label for="examinerUserId">Giám khảo</label>
                         <select name="examinerUserId" id="examinerUserId" required>
                             <c:forEach var="ex" items="${allExaminers}">
-                                <option value="${ex.id}">${ex.person.fullName}</option>
+                                <option value="${ex.id}">${ex.profile.fullName}</option>
                             </c:forEach>
                         </select>
                     </div>

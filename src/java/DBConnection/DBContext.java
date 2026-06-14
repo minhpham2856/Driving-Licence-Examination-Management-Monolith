@@ -7,7 +7,11 @@ import java.util.logging.Logger;
 
 public class DBContext {
 
-    protected Connection connection;
+    private Connection connection;
+    
+    public Connection getConnection() {
+        return connection;
+    }
 
     public DBContext() {
         try {

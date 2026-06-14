@@ -13,7 +13,7 @@ public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO 
                 INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, NewValue, CreatedAt)
                 VALUES (?, 'CALL', ?, 'Candidate', ?, ?, GETDATE())
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             int userId = call.getCalledBy() != 0 ? call.getCalledBy() : 3;
             String entityId = call.getExamSessionId() + "-" + call.getCandidateNo();
             String detail = "calledTo=" + call.getCalledTo()

@@ -10,6 +10,8 @@ public class ExamRegistration {
     private String registrationType; // 'PreRegistered', 'WalkIn'
     private boolean isPaymentCompleted;
     private boolean isPresent;
+    private boolean absent;
+    private boolean suspended;
     private Timestamp presentMarkedAt;
     private String notes;
 
@@ -37,6 +39,11 @@ public class ExamRegistration {
     private String allocatedAreaName;
     private boolean isCalled;
     private boolean validCapturedPhoto;
+    private String address;
+    private String reasonForTaking;
+    private java.sql.Date examDate;
+    private String sectionStatus = "Pending";
+    private boolean signaturePrinted;
 
 
     public ExamRegistration() {
@@ -116,6 +123,22 @@ public class ExamRegistration {
 
     public void setIsPresent(boolean isPresent) {
         this.isPresent = isPresent;
+    }
+
+    public boolean isAbsent() {
+        return absent;
+    }
+
+    public void setAbsent(boolean absent) {
+        this.absent = absent;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
     }
 
     public Timestamp getPresentMarkedAt() {
@@ -376,5 +399,45 @@ public class ExamRegistration {
 
     public void setValidCapturedPhoto(boolean validCapturedPhoto) {
         this.validCapturedPhoto = validCapturedPhoto;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getReasonForTaking() {
+        return reasonForTaking;
+    }
+
+    public void setReasonForTaking(String reasonForTaking) {
+        this.reasonForTaking = reasonForTaking;
+    }
+
+    public java.sql.Date getExamDate() {
+        return examDate;
+    }
+
+    public void setExamDate(java.sql.Date examDate) {
+        this.examDate = examDate;
+    }
+
+    public String getSectionStatus() {
+        return sectionStatus;
+    }
+
+    public void setSectionStatus(String sectionStatus) {
+        this.sectionStatus = sectionStatus;
+    }
+
+    public boolean isSignaturePrinted() {
+        return signaturePrinted;
+    }
+
+    public void setSignaturePrinted(boolean signaturePrinted) {
+        this.signaturePrinted = signaturePrinted;
     }
 }

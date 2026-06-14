@@ -22,4 +22,14 @@ public interface AuditLogDAO {
 
     /** Học viên đã ảnh + thanh toán, do cán bộ userId thu (qua Audit). filterDate: yyyy-MM-dd hoặc null. */
     StaffProcedureKpi getStaffProcedureKpi(int userId, String filterDate);
+
+    List<AuditLog> getLogsForSessionPaginated(int sessionId, int page, int pageSize);
+
+    int getLogsCountForSession(int sessionId);
+
+    List<AuditLog> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
+
+    int getLogsCountForSession(int sessionId, String searchQuery);
+
+    List<AuditLog> getViolationLogsForSession(int sessionId, int limit);
 }

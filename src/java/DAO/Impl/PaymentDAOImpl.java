@@ -18,7 +18,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
             if (examId <= 0) {
                 return false;
             }
-            try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, payment.getPaymentStatus() != null ? payment.getPaymentStatus() : "Completed");
                 ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "Cash");
                 if (payment.getTransactionReference() == null) {
@@ -47,7 +47,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     private int resolveExamId(int candidateId) throws SQLException {
         String sql = "SELECT TOP 1 ExamId FROM Exam_Candidate WHERE CandidateId = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

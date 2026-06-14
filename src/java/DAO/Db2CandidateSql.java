@@ -1,7 +1,7 @@
 package DAO;
 
 /**
- * Truy vấn thí sinh theo schema DLEM_DB_2 (Candidate, Exam_Candidate, Session, …).
+ * Truy vấn thí sinh 
  */
 public final class Db2CandidateSql {
 
@@ -17,6 +17,8 @@ public final class Db2CandidateSql {
               CASE WHEN er.RegistrationStatus = 'WalkIn' THEN 'WalkIn' ELSE 'PreRegistered' END AS registrationType,
               CAST(CASE WHEN pay.PaymentId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS isPaymentCompleted,
               CAST(CASE WHEN er.RegistrationStatus IN ('CheckedIn','Present','Completed') THEN 1 ELSE 0 END AS BIT) AS isPresent,
+              CAST(ISNULL(c.IsAbsent, 0) AS BIT) AS isAbsent,
+              CAST(ISNULL(c.IsSuspended, 0) AS BIT) AS isSuspended,
               CAST(NULL AS DATETIME) AS presentMarkedAt,
               er.Notes AS notes,
               c.FullName AS fullName,
@@ -28,6 +30,11 @@ public final class Db2CandidateSql {
               c.PhotoImageUrl AS photoUrl,
               l.LicenceClass AS licenseCode,
               dev.DeviceName AS computerCode,
+              ISNULL(c.Address, p.Address) AS address,
+              c.ReasonForTaking AS reasonForTaking,
+              CAST(s.StartTime AS DATE) AS examDate,
+              ec.SectionStatus AS sectionStatus,
+              CAST(ISNULL(ec.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
               NULL AS allocatedAreaId,
               NULL AS allocatedAreaName,
               theory.scoreVal AS theoryScore,

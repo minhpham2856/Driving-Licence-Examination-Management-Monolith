@@ -1,0 +1,190 @@
+.audit-page-btn--disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+/* ========================================================
+   Audit Log (Nhật Ký) — Figma node 205:1808
+   ======================================================== */
+
+/* Search modifier: wider input (240px) */
+.examiner-search--lg .examiner-search__input {
+    width: 200px;
+}
+
+/* Card layout: flex-column so pagination sticks to bottom */
+.audit-card {
+    flex: 1 0 0;
+    min-height: 0;
+    background: #fff;
+    border: 1px solid #c3c6d6;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.audit-card .examiner-table-wrap {
+    flex: 1 0 0;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* Table header: slightly darker gray per Figma */
+.audit-table thead th {
+    background: #e4e9ed;
+}
+
+/* Action badge — pill shape */
+.audit-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: normal;
+}
+
+.audit-badge--update {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.audit-badge--insert {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #6366f1;
+}
+
+.audit-badge--export {
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    color: #0284c7;
+}
+
+.audit-badge--assign {
+    background: rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.3);
+    color: #4f46e5;
+}
+
+.audit-badge--import {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: #0891b2;
+}
+
+.audit-badge--approve {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #16a34a;
+}
+
+.audit-badge--system {
+    background: rgba(0, 61, 155, 0.15);
+    border: 1px solid rgba(0, 61, 155, 0.3);
+    color: #003d9b;
+}
+
+.audit-badge--warning {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #171c1f;
+}
+
+.audit-badge--delete {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+/* Cũ column: gray text */
+.audit-td--old {
+    color: #434654;
+}
+
+.audit-td--multiline {
+    white-space: pre-line;
+}
+
+/* Mới column: medium weight + color variants */
+.audit-td--new {
+    font-weight: 500;
+}
+
+.audit-new--green { color: #10b981; }
+.audit-new--blue  { color: #003d9b; }
+.audit-new--red   { color: #ef4444; }
+.audit-new--dark  { color: #171c1f; }
+
+/* Lý do column: italic gray */
+.audit-td--reason {
+    font-style: italic;
+    color: #434654;
+}
+
+/* Pagination footer */
+.audit-pagination {
+    flex-shrink: 0;
+    border-top: 1px solid #c3c6d6;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 16px;
+    background: #fff;
+}
+
+.audit-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audit-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-family: inherit;
+    color: #131b2e;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.audit-page-btn:hover:not(:disabled):not(.audit-page-btn--active) {
+    background: #f0f4f8;
+}
+
+.audit-page-btn--active {
+    background: #003d9b;
+    color: #fff;
+    font-weight: 700;
+}
+
+.audit-page-btn--nav {
+    border: 1px solid #c3c6d6;
+    color: #434654;
+}
+
+.audit-page-btn--nav:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.audit-page-dots {
+    color: #737685;
+    font-size: 16px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 24px;
+}

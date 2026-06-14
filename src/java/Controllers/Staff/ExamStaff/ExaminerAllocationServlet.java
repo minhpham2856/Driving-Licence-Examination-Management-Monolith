@@ -394,9 +394,9 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
     private String resolveExaminerName(User examiner) {
-        if (examiner.getPerson() != null && examiner.getPerson().getFullName() != null
-                && !examiner.getPerson().getFullName().isBlank()) {
-            return examiner.getPerson().getFullName();
+        if (examiner.getProfile() != null && examiner.getProfile().getFullName() != null
+                && !examiner.getProfile().getFullName().isBlank()) {
+            return examiner.getProfile().getFullName();
         }
         return examiner.getUsername();
     }
