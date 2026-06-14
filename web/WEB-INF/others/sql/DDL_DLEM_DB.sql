@@ -262,6 +262,8 @@ CREATE TABLE Exam_Candidate (
     ExamId INT NOT NULL REFERENCES Exam(ExamId),
     CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
     SessionId INT NOT NULL REFERENCES Session(SessionId),
+    SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
+    SignaturePrinted BIT NOT NULL DEFAULT 0,
     UNIQUE (ExamId, CandidateId, SessionId)
 );
 GO
@@ -337,6 +339,7 @@ CREATE TABLE Audit (
     EntityId NVARCHAR(255) NOT NULL,
     OldValue NVARCHAR(MAX),
     NewValue NVARCHAR(MAX),
+    Details NVARCHAR(MAX),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
 GO

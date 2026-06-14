@@ -262,6 +262,8 @@ CREATE TABLE Exam_Candidate (
     ExamId INT NOT NULL REFERENCES Exam(ExamId),
     CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
     SessionId INT NOT NULL REFERENCES Session(SessionId),
+    SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
+    SignaturePrinted BIT NOT NULL DEFAULT 0,
     UNIQUE (ExamId, CandidateId, SessionId)
 );
 GO
@@ -337,6 +339,7 @@ CREATE TABLE Audit (
     EntityId NVARCHAR(255) NOT NULL,
     OldValue NVARCHAR(MAX),
     NewValue NVARCHAR(MAX),
+	Details NVARCHAR(MAX),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
 GO
@@ -904,22 +907,310 @@ WHERE se.ExamAreaId IS NOT NULL;
 GO
 
 -- ============================================
--- QUICK PATCH (chạy riêng nếu DB đã seed, không muốn chạy lại toàn bộ DML)
--- Bật ca thi đang diễn ra để test examiner (examiner_tung → Phòng LT 1, Lý thuyết)
+-- 22. KHOÁ THI B-1292 — 3 giám khảo, 20 thí sinh (2 đã thi LT), ca InProgress
 -- ============================================
- UPDATE [Session]
- SET [Status] = N'InProgress'
- WHERE SessionName = N'Ca sáng - Lý thuyết B';
- GO
+INSERT INTO [User] (Username, Email, PasswordHash, [Role], [Status]) VALUES
+(N'examiner_b1292_lt', N'lt.b1292@pc08a.com',  N'login123', N'Examiner', 1),
+(N'examiner_b1292_sh', N'sh.b1292@pc08a.com',  N'login123', N'Examiner', 1),
+(N'examiner_b1292_dt', N'dt.b1292@pc08a.com',  N'login123', N'Examiner', 1);
+GO
+
+INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address, UserId) VALUES
+(N'Hoàng Văn Lý Thuyết',  '1987-02-14', N'0911292001', N'Nam', N'001087021401', N'PC08A — Phòng lý thuyết',  (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_lt')),
+(N'Trần Thị Sa Hình',      '1989-07-20', N'0911292002', N'Nữ', N'001089072001', N'PC08A — Sân sa hình',      (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_sh')),
+(N'Nguyễn Văn Đường Trường','1991-11-05', N'0911292003', N'Nam', N'001091110501', N'PC08A — Đường trường',   (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_dt'));
+GO
+
+INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], LicenceId) VALUES
+(N'B-1292', '2026-06-10 07:00:00', N'Trung tâm Sát hạch Lái Vui - Hà Nội', N'Open', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B'));
+GO
+
+INSERT INTO [Session] (SessionName, StartTime, EndTime, [Status], ExamId) VALUES
+(N'Ca B-1292 - Lý thuyết',    '2026-06-10 07:30:00', '2026-06-10 09:00:00', N'InProgress', (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292')),
+(N'Ca B-1292 - Sa hình',      '2026-06-10 09:30:00', '2026-06-10 11:30:00', N'InProgress', (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292')),
+(N'Ca B-1292 - Đường trường', '2026-06-10 13:00:00', '2026-06-10 16:00:00', N'InProgress', (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292'));
+GO
+
+INSERT INTO Session_ExamSection (SessionId, ExamSectionId) VALUES
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Lý thuyết'),    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết')),
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Sa hình'),      (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình')),
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Đường trường'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Đường trường'));
+GO
+
+INSERT INTO Session_ExamArea (SessionId, ExamAreaId) VALUES
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Lý thuyết'),    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 2')),
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Sa hình'),      (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi Ô tô 1')),
+((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Đường trường'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1'));
+GO
+
+INSERT INTO Session_Examiner (SessionId, ExamId, ExamSectionId, ExamAreaId, ExaminerId, AssignedBy, AssignedAt) VALUES
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Lý thuyết'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 2'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_lt'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    '2026-06-09 08:00:00'
+),
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Sa hình'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi Ô tô 1'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_sh'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    '2026-06-09 08:05:00'
+),
+(
+    (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca B-1292 - Đường trường'),
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292'),
+    (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Đường trường'),
+    (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1'),
+    (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_dt'),
+    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    '2026-06-09 08:10:00'
+);
+GO
+
+;WITH nums AS (
+    SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
+    UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15
+    UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20
+)
+INSERT INTO [User] (Username, Email, PasswordHash, [Role], [Status])
+SELECT
+    N'b1292_ts' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2),
+    N'b1292.ts' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2) + N'@test.vn',
+    N'login123',
+    N'Registrant',
+    1
+FROM nums
+OPTION (MAXRECURSION 0);
+GO
+
+;WITH nums AS (
+    SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
+    UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15
+    UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20
+)
+INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address, UserId)
+SELECT
+    N'Thí sinh B-1292 số ' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2),
+    DATEADD(YEAR, - (20 + n), CAST('2000-01-01' AS DATETIME)),
+    N'09' + RIGHT(N'00000000' + CAST(912920000 + n AS NVARCHAR(10)), 8),
+    CASE WHEN n % 2 = 0 THEN N'Nữ' ELSE N'Nam' END,
+    N'0791292' + RIGHT(N'00000' + CAST(n AS NVARCHAR(5)), 5),
+    N'Địa chỉ thí sinh ' + CAST(n AS NVARCHAR(10)) + N', Hà Nội',
+    (SELECT UserId FROM [User] WHERE Username = N'b1292_ts' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2))
+FROM nums
+OPTION (MAXRECURSION 0);
+GO
+
+;WITH nums AS (
+    SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
+    UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15
+    UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20
+)
+INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
+SELECT
+    N'Approved',
+    N'',
+    p.ProfileId,
+    (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B')
+FROM nums
+JOIN Profile p ON p.GovernmentIdNumber = N'0791292' + RIGHT(N'00000' + CAST(nums.n AS NVARCHAR(5)), 5);
+GO
+
+;WITH nums AS (
+    SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
+    UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15
+    UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20
+)
+INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address, TakeTheory, TakePractical, TakeRoadLayout, TakeOnRoad, ReasonForTaking, PhotoImageUrl, UserId, ExamRegistrationId)
+SELECT
+    RIGHT(N'0000' + CAST(n AS NVARCHAR(4)), 4),
+    p.FullName,
+    p.DateOfBirth,
+    p.PhoneNumber,
+    p.Sex,
+    p.GovernmentIdNumber,
+    p.Address,
+    1, NULL, 1, 1,
+    N'Thi lần đầu — khoá B-1292',
+    N'/docs/photos/b1292_' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2) + N'.jpg',
+    p.UserId,
+    er.ExamRegistrationId
+FROM nums
+JOIN Profile p ON p.GovernmentIdNumber = N'0791292' + RIGHT(N'00000' + CAST(nums.n AS NVARCHAR(5)), 5)
+JOIN ExamRegistration er ON er.ProfileId = p.ProfileId;
+GO
+
+INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId)
+SELECT
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292'),
+    c.CandidateId,
+    s.SessionId
+FROM Candidate c
+JOIN Profile p ON p.GovernmentIdNumber = c.GovernmentIdNumber
+CROSS JOIN [Session] s
+WHERE p.GovernmentIdNumber LIKE N'0791292%'
+  AND s.SessionName IN (N'Ca B-1292 - Lý thuyết', N'Ca B-1292 - Sa hình', N'Ca B-1292 - Đường trường');
+GO
+
+UPDATE er
+SET RegistrationStatus = N'Present',
+    Notes = N'AllocatedRoom:'
+        + CAST(ea.ExamAreaId AS NVARCHAR(10)) + N':'
+        + ea.AreaName
+FROM ExamRegistration er
+JOIN Candidate c ON c.ExamRegistrationId = er.ExamRegistrationId
+JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON s.SessionId = ec.SessionId
+JOIN Session_ExamArea sea ON sea.SessionId = s.SessionId
+JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId
+JOIN Profile p ON p.ProfileId = er.ProfileId
+WHERE s.ExamId = (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292')
+  AND p.GovernmentIdNumber LIKE N'0791292%';
+GO
+
+;WITH nums AS (
+    SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
+    UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15
+    UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20
+)
+INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, CandidateId, ExamId)
+SELECT
+    N'Completed',
+    N'BankTransfer',
+    N'TXN-B1292-' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2),
+    430000.00,
+    '2026-06-09 14:00:00',
+    c.CandidateId,
+    (SELECT ExamId FROM Exam WHERE ExamCode = N'B-1292')
+FROM nums
+JOIN Candidate c ON c.CandidateNumber = RIGHT(N'0000' + CAST(nums.n AS NVARCHAR(4)), 4)
+JOIN Profile p ON p.GovernmentIdNumber = c.GovernmentIdNumber
+WHERE p.GovernmentIdNumber LIKE N'0791292%';
+GO
+
+-- 2 thí sinh đã thi lý thuyết: B-0001 (đạt), B-0002 (trượt)
+INSERT INTO TheoryPaper (ExamCandidateId, ExamDeviceId, StartedAt, SubmittedAt)
+SELECT ec.ExamCandidateId,
+       (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'PC-LT2-01'),
+       '2026-06-10 07:35:00',
+       '2026-06-10 07:52:00'
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'0001'
+  AND s.SessionName = N'Ca B-1292 - Lý thuyết';
+GO
+
+INSERT INTO TheoryPaper (ExamCandidateId, ExamDeviceId, StartedAt, SubmittedAt)
+SELECT ec.ExamCandidateId,
+       (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'PC-LT2-02'),
+       '2026-06-10 07:40:00',
+       '2026-06-10 07:58:00'
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'0002'
+  AND s.SessionName = N'Ca B-1292 - Lý thuyết';
+GO
+
+INSERT INTO ExamResult (ExamCandidateId, IsPassed, ResultDate)
+SELECT ec.ExamCandidateId, 1, '2026-06-10 07:55:00'
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'0001'
+  AND s.SessionName = N'Ca B-1292 - Lý thuyết';
+GO
+
+INSERT INTO ExamScore (ExamResultId, ExamSectionId, Score)
+SELECT er.ExamResultId,
+       (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+       92.00
+FROM ExamResult er
+JOIN Exam_Candidate ec ON er.ExamCandidateId = ec.ExamCandidateId
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN Profile p ON p.GovernmentIdNumber = c.GovernmentIdNumber
+WHERE p.GovernmentIdNumber = N'079129200001';
+GO
+
+INSERT INTO ExamResult (ExamCandidateId, IsPassed, ResultDate)
+SELECT ec.ExamCandidateId, 0, '2026-06-10 08:00:00'
+FROM Exam_Candidate ec
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN [Session] s ON ec.SessionId = s.SessionId
+WHERE c.CandidateNumber = N'0002'
+  AND s.SessionName = N'Ca B-1292 - Lý thuyết';
+GO
+
+INSERT INTO ExamScore (ExamResultId, ExamSectionId, Score)
+SELECT er.ExamResultId,
+       (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
+       25.00
+FROM ExamResult er
+JOIN Exam_Candidate ec ON er.ExamCandidateId = ec.ExamCandidateId
+JOIN Candidate c ON ec.CandidateId = c.CandidateId
+JOIN Profile p ON p.GovernmentIdNumber = c.GovernmentIdNumber
+WHERE p.GovernmentIdNumber = N'079129200002';
+GO
+
+INSERT INTO Audit (UserId, Action, EntityName, EntityId, NewValue, CreatedAt)
+SELECT se.AssignedBy,
+       N'ASSIGN',
+       N'Session_ExaminerArea',
+       CAST(se.SessionId AS NVARCHAR(20)) + N':' + CAST(se.ExamAreaId AS NVARCHAR(20)) + N':' + CAST(se.ExaminerId AS NVARCHAR(20)),
+       ea.AreaName,
+       ISNULL(se.AssignedAt, GETDATE())
+FROM Session_Examiner se
+JOIN ExamArea ea ON ea.ExamAreaId = se.ExamAreaId
+JOIN [Session] s ON s.SessionId = se.SessionId
+WHERE s.SessionName LIKE N'Ca B-1292%'
+  AND se.ExamAreaId IS NOT NULL;
+GO
 
 -- ============================================
--- QUICK PATCH — thí sinh ca Lý thuyết B (chạy riêng, không reseed toàn bộ)
+-- QUICK PATCH (chạy riêng nếu DB đã seed, không muốn chạy lại toàn bộ DML)
+-- Bật ca B-1292 InProgress; tắt ca Lý thuyết B cũ
 -- ============================================
- UPDATE er SET RegistrationStatus = N'Present', Notes = N'AllocatedRoom:1:Phòng LT 1'
- FROM ExamRegistration er JOIN Candidate c ON c.ExamRegistrationId = er.ExamRegistrationId
- JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId JOIN [Session] s ON s.SessionId = ec.SessionId
- WHERE s.SessionName = N'Ca sáng - Lý thuyết B' AND c.CandidateNumber IN (N'046', N'123', N'456');
- GO
+UPDATE [Session]
+SET [Status] = N'Scheduled'
+WHERE SessionName = N'Ca sáng - Lý thuyết B';
+GO
+
+UPDATE [Session]
+SET [Status] = N'InProgress'
+WHERE SessionName LIKE N'Ca B-1292%';
+GO
+
+-- Migration: Exam_Candidate section workflow (chờ ký / đã thi)
+IF COL_LENGTH('Exam_Candidate', 'SectionStatus') IS NULL
+BEGIN
+    ALTER TABLE Exam_Candidate ADD SectionStatus NVARCHAR(50) NOT NULL CONSTRAINT DF_Exam_Candidate_SectionStatus DEFAULT N'Pending';
+END
+GO
+IF COL_LENGTH('Exam_Candidate', 'SignaturePrinted') IS NULL
+BEGIN
+    ALTER TABLE Exam_Candidate ADD SignaturePrinted BIT NOT NULL CONSTRAINT DF_Exam_Candidate_SignaturePrinted DEFAULT 0;
+END
+GO
+
+UPDATE ec
+SET SectionStatus = N'AwaitingSignature'
+FROM Exam_Candidate ec
+JOIN TheoryPaper tp ON tp.ExamCandidateId = ec.ExamCandidateId
+WHERE tp.SubmittedAt IS NOT NULL
+  AND ec.SectionStatus = N'Pending';
+GO
 
  -- ============================================
 -- DML: 600 QUESTIONS – DLEM_DB_2
