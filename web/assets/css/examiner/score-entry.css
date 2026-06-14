@@ -491,3 +491,39 @@
     padding: 16px;
     border-top: 1px solid #c3c6d6;
 }
+
+.score-entry-table--queue tbody tr {
+    cursor: pointer;
+}
+
+.score-entry-queue-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+}
+
+.score-entry-queue-link:hover {
+    color: #0052cc;
+}
+
+.score-entry-queue-row--active {
+    background: #eff6ff;
+}
+
+.score-entry-queue-row--called {
+    box-shadow: inset 3px 0 0 #006846;
+}
+
+.score-entry-selected-label {
+    margin: 0 0 12px;
+    padding: 0 4px;
+    font-size: 14px;
+    color: #434654;
+}
+
+.examiner-btn--sm {
+    min-height: 32px;
+    padding: 0 14px;
+    font-size: 14px;
+    line-height: 1;
+}

@@ -76,6 +76,13 @@ body.examiner-portal.has-side-nav-bar .examiner-main {
     flex-shrink: 0;
 }
 
+.examiner-main--dashboard > .examiner-flash-container,
+.examiner-main--scroll > .examiner-flash-container,
+.examiner-main--dashboard > .examiner-alert,
+.examiner-main--scroll > .examiner-alert {
+    flex-shrink: 0;
+}
+
 .examiner-main--scroll {
     overflow: auto;
 }
