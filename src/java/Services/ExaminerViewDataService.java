@@ -36,6 +36,9 @@ public interface ExaminerViewDataService {
 
     void attachScoreEntry(HttpServletRequest request, int sessionId, String sbdParam);
 
+    boolean isScoreQueueEligible(int sessionId, ExamRegistration reg,
+            ExamSectionType sectionType, String sectionName);
+
     void attachViolation(HttpServletRequest request, int sessionId, String sbdParam);
 
     void attachDevices(HttpServletRequest request, int sessionId, String searchQuery);

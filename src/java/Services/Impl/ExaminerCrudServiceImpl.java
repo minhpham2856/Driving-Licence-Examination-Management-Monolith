@@ -1,7 +1,9 @@
 package Services.Impl;
 
+import Constants.CandidateSectionStatus;
 import Constants.ExamSectionType;
 import Constants.ViolationReasonCodes;
+import Controllers.Examiner.ExaminerScoreEntryQueue;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import DAO.CandidateCallDAO;
 import DAO.ExamDeviceDAO;
@@ -15,10 +17,13 @@ import Models.User;
 import Services.ExaminerCrudService;
 import Services.ExaminerSessionContextService;
 import Services.ExaminerViewDataService;
+import Utils.AuditChangeDetails;
 import Utils.AuditLogHelper;
 import jakarta.servlet.http.HttpSession;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.List;
 
 public class ExaminerCrudServiceImpl implements ExaminerCrudService {
@@ -51,6 +56,19 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         } else {
             sexDb = "Nam";
         }
+        java.text.SimpleDateFormat dobFmt = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        List<AuditChangeDetails.FieldChange> changes = new ArrayList<>();
+        AuditChangeDetails.addIfChanged(changes, "Họ tên", reg.getFullName(), fullName.trim());
+        AuditChangeDetails.addIfChanged(changes, "Ngày sinh",
+                reg.getDateOfBirth() != null ? dobFmt.format(reg.getDateOfBirth()) : null,
+                dobFmt.format(dob));
+        AuditChangeDetails.addIfChanged(changes, "CCCD", reg.getGovIdNo(), govIdNo.trim());
+        AuditChangeDetails.addIfChanged(changes, "Email", reg.getEmail(), email != null ? email.trim() : null);
+        AuditChangeDetails.addIfChanged(changes, "SĐT", reg.getPhoneNo(), phoneNo != null ? phoneNo.trim() : null);
+        AuditChangeDetails.addIfChanged(changes, "Địa chỉ", reg.getAddress(), address != null ? address.trim() : null);
+        AuditChangeDetails.addIfChanged(changes, "Giới tính", reg.isGender() ? "Nữ" : "Nam", sexDb);
+        AuditChangeDetails.addIfChanged(changes, "Lý do thi", reg.getReasonForTaking(),
+                reasonForTaking != null ? reasonForTaking.trim() : null);
         boolean updated = registrationDAO.updateExaminerProfile(
                 reg.getId(), fullName.trim(), dob, govIdNo.trim(),
                 email != null ? email.trim() : null,
@@ -58,9 +76,9 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
                 address != null ? address.trim() : null,
                 sexDb,
                 reasonForTaking != null ? reasonForTaking.trim() : null);
-        if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE on Profile",
-                    "Giám khảo cập nhật thông tin SBD " + reg.getSbd(), reg.getId());
+        if (updated && session != null && !changes.isEmpty()) {
+            AuditLogHelper.persistFieldChanges(session, "UPDATE on Profile",
+                    "Giám khảo cập nhật thông tin SBD " + reg.getSbd(), changes, null, reg.getId());
         }
         return updated;
     }
@@ -142,6 +160,71 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     }
 
     @Override
+    public String autoCallScoreEntryIfNeeded(int sessionId, User user, HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        String active = ExaminerScoreEntryQueue.getActiveSbd(session, sessionId);
+        String called = ExaminerScoreEntryQueue.getCalledSbd(session, sessionId);
+        if (active != null && !active.isBlank()) {
+            return active;
+        }
+        if (called != null && !called.isBlank()) {
+            ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, called);
+            return called;
+        }
+        String first = ExaminerScoreEntryQueue.firstInQueue(session, sessionId);
+        if (first == null || first.isBlank()) {
+            return null;
+        }
+        if (callScoreEntryCandidate(sessionId, first, user, session)) {
+            return first;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean callScoreEntryCandidate(int sessionId, String sbd, User user, HttpSession session) {
+        if (sbd == null || sbd.isBlank()) {
+            return false;
+        }
+        ExamRegistration reg = findCandidate(sessionId, sbd.trim());
+        ExamSectionType sectionType = resolveSectionType(session);
+        String sectionName = resolveSectionName(session);
+        if (!viewDataService.isScoreQueueEligible(sessionId, reg, sectionType, sectionName)) {
+            return false;
+        }
+        ExaminerScoreEntryQueue.setCalledSbd(session, sessionId, reg.getSbd());
+        ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, reg.getSbd());
+        return insertScoreEntryCall(sessionId, reg, user, session);
+    }
+
+    @Override
+    public String deferScoreEntryAbsent(int sessionId, String sbd, User user, HttpSession session) {
+        if (sbd == null || sbd.isBlank()) {
+            return null;
+        }
+        ExamRegistration reg = findCandidate(sessionId, sbd.trim());
+        if (reg == null) {
+            return null;
+        }
+        String nextSbd = ExaminerScoreEntryQueue.moveToBottom(session, sessionId, reg.getSbd());
+        if (session != null) {
+            AuditLogHelper.persist(session, "UPDATE ScoreEntryQueue",
+                    "Giám khảo đẩy xuống cuối hàng đợi nhập điểm (chưa vắng) SBD " + reg.getSbd(),
+                    reg.getId());
+        }
+        if (nextSbd == null || nextSbd.isBlank()) {
+            return null;
+        }
+        if (callScoreEntryCandidate(sessionId, nextSbd, user, session)) {
+            return nextSbd;
+        }
+        ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, nextSbd);
+        return nextSbd;
+    }
+
+    @Override
     public boolean setDeviceMaintenance(int deviceId, HttpSession session) {
         if (deviceId <= 0) {
             return false;
@@ -205,6 +288,36 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         return inserted;
     }
 
+    private boolean insertScoreEntryCall(int sessionId, ExamRegistration reg, User user, HttpSession session) {
+        CandidateCall call = new CandidateCall();
+        call.setExamSessionId(sessionId);
+        call.setCandidateNo(reg.getCandidateNo());
+        call.setCalledTo(resolveScoreEntryCallDestination(session));
+        call.setCalledBy(user != null && user.getId() > 0 ? user.getId() : 0);
+        call.setResult("Calling");
+        boolean inserted = callDAO.insert(call);
+        if (inserted && session != null) {
+            AuditLogHelper.persist(session, "INSERT on CandidateCall",
+                    "Giám khảo gọi thí sinh nhập điểm SBD " + reg.getSbd(), reg.getId());
+        }
+        return inserted;
+    }
+
+    private static String resolveScoreEntryCallDestination(HttpSession session) {
+        if (session == null) {
+            return "Khu vực thi thực hành";
+        }
+        Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
+        if (slotObj instanceof ExaminerSlot slot && slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
+            return slot.getAreaName();
+        }
+        Object sectionName = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
+        if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
+            return String.valueOf(sectionName);
+        }
+        return "Khu vực thi thực hành";
+    }
+
     @Override
     public boolean updateTheoryScore(int sessionId, String sbd, int newScore, String reasonCode,
             String reasonDetail, User user, String password, HttpSession session) {
@@ -229,11 +342,13 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
                 reg.getId(), newScore, viewDataService.theoryPassThreshold());
         if (updated && session != null) {
             String passed = newScore >= viewDataService.theoryPassThreshold() ? "passed" : "failed";
-            AuditLogHelper.persist(session, "UPDATE ExamScore",
-                    "Giám khảo điều chỉnh điểm LT: "
-                            + (oldScore != null ? oldScore : "—") + " → " + newScore
-                            + " (" + passed.toUpperCase() + ") SBD " + reg.getSbd()
-                            + (auditReason.isBlank() ? "" : " — " + auditReason),
+            AuditLogHelper.persistFieldChanges(session, "UPDATE ExamScore",
+                    "Giám khảo điều chỉnh điểm LT SBD " + reg.getSbd(),
+                    List.of(new AuditChangeDetails.FieldChange(
+                            "Điểm lý thuyết",
+                            oldScore != null ? String.valueOf(oldScore) : "—",
+                            newScore + " (" + passed.toUpperCase() + ")")),
+                    auditReason.isBlank() ? null : auditReason,
                     reg.getId());
         }
         return updated;
@@ -283,8 +398,11 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         String auditText = buildViolationAuditText(reasonLabel, detail, null);
         boolean undone = registrationDAO.undoSuspension(reg.getId());
         if (undone && session != null) {
-            AuditLogHelper.persist(session, "UPDATE Candidate",
-                    "Hoàn tác đình chỉ SBD " + reg.getSbd() + " — " + auditText, reg.getId());
+            AuditLogHelper.persistFieldChanges(session, "UPDATE Candidate",
+                    "Hoàn tác đình chỉ SBD " + reg.getSbd(),
+                    List.of(new AuditChangeDetails.FieldChange(
+                            "Trạng thái", "Đình chỉ", "Hoạt động bình thường")),
+                    auditText, reg.getId());
         }
         return undone;
     }
@@ -293,6 +411,43 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     public boolean verifyPassword(User user, String password) {
         return user != null && password != null && !password.isBlank()
                 && AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash());
+    }
+
+    @Override
+    public boolean printSignatureForm(int sessionId, String sbd, HttpSession session) {
+        ExamRegistration reg = findCandidate(sessionId, sbd);
+        if (reg == null || !CandidateSectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
+            return false;
+        }
+        boolean updated = registrationDAO.markSignaturePrinted(reg.getId(), sessionId);
+        if (updated && session != null) {
+            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+                    "Giám khảo in biên bản ký tên SBD " + reg.getSbd(), reg.getId());
+        }
+        return updated;
+    }
+
+    @Override
+    public String completeCandidateSection(int sessionId, String sbd, HttpSession session) {
+        ExamRegistration reg = findCandidate(sessionId, sbd);
+        if (reg == null) {
+            return "notFound";
+        }
+        if (!CandidateSectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
+            return "notAwaiting";
+        }
+        if (!reg.isSignaturePrinted()) {
+            return "needSignaturePrint";
+        }
+        boolean completed = registrationDAO.completeSection(reg.getId(), sessionId);
+        if (!completed) {
+            return "completeFailed";
+        }
+        if (session != null) {
+            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+                    "Giám khảo hoàn tất phần thi SBD " + reg.getSbd(), reg.getId());
+        }
+        return null;
     }
 
     private static Date parseDate(String dobStr) {

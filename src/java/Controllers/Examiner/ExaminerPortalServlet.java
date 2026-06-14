@@ -6,6 +6,7 @@ import Services.ExaminerSessionContextService;
 import Services.ExaminerViewDataService;
 import Services.Impl.ExaminerCrudServiceImpl;
 import Services.Impl.ExaminerViewDataServiceImpl;
+import Constants.ExamSectionType;
 import Utils.ExaminerViolationUploadHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -60,6 +61,12 @@ public class ExaminerPortalServlet extends HttpServlet {
 
         if (sessionId != null && sessionId > 0) {
             String action = request.getParameter("action");
+            if ("/views/examiner/score-entry".equals(path) && action != null) {
+                User user = (User) session.getAttribute("user");
+                if (handleScoreEntryAction(request, response, session, sessionId, action, sbd, user)) {
+                    return;
+                }
+            }
             if ("/views/examiner/candidate-call".equals(path) && action != null) {
                 if (handleCallAction(request, response, session, sessionId, action, sbd)) {
                     return;
@@ -78,6 +85,23 @@ public class ExaminerPortalServlet extends HttpServlet {
             }
 
             loadPageData(request, sessionId, sbd, search, path);
+
+            if (isTheoryResultPath(path) && isTheorySection(request)) {
+                redirect(response, request, "/views/examiner/candidate-call?error=theoryNoResultEdit");
+                return;
+            }
+
+            if ("/views/examiner/score-entry".equals(path)) {
+                User user = (User) session.getAttribute("user");
+                if (sbd == null || sbd.isBlank()) {
+                    if (request.getAttribute("candidate") == null && action == null) {
+                        String called = crudService.autoCallScoreEntryIfNeeded(sessionId, user, session);
+                        if (called != null) {
+                            viewDataService.attachScoreEntry(request, sessionId, called);
+                        }
+                    }
+                }
+            }
 
             if (isViolationDetailPath(path)
                     && (sbd == null || sbd.isBlank() || request.getAttribute("candidate") == null)) {
@@ -146,6 +170,10 @@ public class ExaminerPortalServlet extends HttpServlet {
             return;
         }
         if ("/views/examiner/result-details-edit".equals(path)) {
+            if (isTheorySection(request)) {
+                redirect(response, request, "/views/examiner/candidate-call?error=theoryNoResultEdit");
+                return;
+            }
             handleUpdateScore(request, response, session, sessionId);
             return;
         }
@@ -187,7 +215,24 @@ public class ExaminerPortalServlet extends HttpServlet {
             viewDataService.attachPaperAnswers(request, sessionId, sbd, request.getContextPath());
             return;
         }
+        if ("/views/examiner/print-documents".equals(path)) {
+            viewDataService.attachToRequest(request, sessionId, sbd, search);
+            return;
+        }
         viewDataService.attachToRequest(request, sessionId, sbd, search);
+    }
+
+    private static boolean isTheoryResultPath(String path) {
+        return "/views/examiner/result-details".equals(path)
+                || "/views/examiner/result-details-edit".equals(path);
+    }
+
+    private static boolean isTheorySection(HttpServletRequest request) {
+        Object value = request.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
+        if (value instanceof ExamSectionType) {
+            return value == ExamSectionType.THEORY;
+        }
+        return Boolean.TRUE.equals(request.getAttribute(ExaminerSessionContextService.ATTR_SECTION_THEORY));
     }
 
     private boolean handleCallAction(HttpServletRequest request, HttpServletResponse response,
@@ -237,6 +282,39 @@ public class ExaminerPortalServlet extends HttpServlet {
                 redirect(response, request, "/views/examiner/candidate-call?absentDone=" + urlEncode(sbd));
                 return true;
             }
+            case "printSignature" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
+                    return true;
+                }
+                if (!crudService.printSignatureForm(sessionId, sbd, session)) {
+                    redirect(response, request,
+                            "/views/examiner/candidate-call?error=signaturePrintFailed&sbd=" + urlEncode(sbd));
+                    return true;
+                }
+                redirect(response, request,
+                        "/views/examiner/print-documents?sbd=" + urlEncode(sbd) + "&signatureMarked=1");
+                return true;
+            }
+            case "completeSection" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
+                    return true;
+                }
+                String completeError = crudService.completeCandidateSection(sessionId, sbd, session);
+                if ("needSignaturePrint".equals(completeError)) {
+                    redirect(response, request,
+                            "/views/examiner/candidate-call?error=needSignaturePrint&sbd=" + urlEncode(sbd));
+                    return true;
+                }
+                if (completeError != null) {
+                    redirect(response, request,
+                            "/views/examiner/candidate-call?error=completeFailed&sbd=" + urlEncode(sbd));
+                    return true;
+                }
+                redirect(response, request, "/views/examiner/candidate-call?completeDone=" + urlEncode(sbd));
+                return true;
+            }
             default -> {
                 return false;
             }
@@ -253,6 +331,55 @@ public class ExaminerPortalServlet extends HttpServlet {
             return;
         }
         redirect(response, request, "/views/examiner/candidate-call?calledBatch=" + count);
+    }
+
+    private boolean handleScoreEntryAction(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, int sessionId, String action, String sbd, User user) throws IOException {
+        switch (action) {
+            case "call" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    String called = crudService.autoCallScoreEntryIfNeeded(sessionId, user, session);
+                    if (called == null) {
+                        redirect(response, request, "/views/examiner/score-entry?error=noCandidate");
+                        return true;
+                    }
+                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(called) + "&scoreCalled=1");
+                    return true;
+                }
+                if (!crudService.callScoreEntryCandidate(sessionId, sbd, user, session)) {
+                    redirect(response, request,
+                            "/views/examiner/score-entry?error=callFailed&sbd=" + urlEncode(sbd));
+                    return true;
+                }
+                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&scoreCalled=1");
+                return true;
+            }
+            case "deferAbsent" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+                    return true;
+                }
+                String next = crudService.deferScoreEntryAbsent(sessionId, sbd, user, session);
+                if (next == null) {
+                    redirect(response, request, "/views/examiner/score-entry?deferred=" + urlEncode(sbd));
+                    return true;
+                }
+                redirect(response, request,
+                        "/views/examiner/score-entry?sbd=" + urlEncode(next) + "&deferred=" + urlEncode(sbd));
+                return true;
+            }
+            case "select" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+                    return true;
+                }
+                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd));
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
     private void handleDeviceStatusChange(HttpServletRequest request, HttpServletResponse response,
