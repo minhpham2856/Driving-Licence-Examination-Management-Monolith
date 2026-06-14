@@ -4,6 +4,10 @@
 <c:set var="headerTitle" value="Sửa kết quả" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/result-details" scope="request" />
 <c:set var="editUrl" value="${ctx}/views/examiner/result-details-edit" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
+<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
+<c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
+<c:set var="exportCandidatesXmlUrl" value="${ctx}/examiner/export/candidates/xml" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -33,18 +37,34 @@
                 <section class="examiner-toolbar examiner-toolbar--tools">
                     <!--tb.left-->
                     <div class="examiner-toolbar__group">
-                        <a href="#" class="examiner-btn examiner-btn--white">
+                        <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
                             <span class="material-symbols-outlined">print</span>
                             In thông tin chi tiết
+                        </button>
+                        <a href="${exportResultsUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất Excel
                         </a>
-                        <a href="#" class="examiner-btn examiner-btn--white">
+                        <a href="${exportResultsXmlUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất XML
+                        </a>
+                        <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
                             <span class="material-symbols-outlined">list</span>
                             In danh sách
+                        </button>
+                        <a href="${exportCandidatesUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất DS Excel
                         </a>
-                        <a href="#" class="examiner-btn examiner-btn--white">
+                        <a href="${exportCandidatesXmlUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất DS XML
+                        </a>
+                        <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
                             <span class="material-symbols-outlined">description</span>
                             In kết quả
-                        </a>
+                        </button>
                     </div>
 
                     <!--tb.right-->

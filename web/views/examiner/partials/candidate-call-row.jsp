@@ -15,6 +15,7 @@
     <td>
         <c:choose>
             <c:when test="${c.status == 'done'}"><span class="examiner-tag examiner-tag--done">${c.statusLabel}</span></c:when>
+            <c:when test="${c.status == 'awaiting'}"><span class="examiner-tag examiner-tag--awaiting">${c.statusLabel}</span></c:when>
             <c:when test="${c.status == 'testing'}"><span class="examiner-tag examiner-tag--testing">${c.statusLabel}</span></c:when>
             <c:when test="${c.status == 'absent'}"><span class="examiner-tag examiner-tag--fail">${c.statusLabel}</span></c:when>
             <c:when test="${c.status == 'suspended'}"><span class="examiner-tag examiner-tag--suspended">${c.statusLabel}</span></c:when>
@@ -60,12 +61,25 @@
             </c:choose>
             <a href="${detailViewUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Chi tiết</a>
             <a href="${detailEditUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Sửa TT</a>
+            <c:if test="${not examinerSectionTheory}">
+                <a href="${resultUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Sửa KQ</a>
+            </c:if>
             <c:choose>
-                <c:when test="${examinerSectionTheory}">
-                    <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Sửa KQ</span>
+                <c:when test="${c.awaitingSignature}">
+                    <a href="${pageUrl}?action=printSignature&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--orange examiner-btn--compact">In biên bản ký tên</a>
+                    <a href="${ctx}/examiner/export/minutes" class="examiner-btn examiner-btn--white examiner-btn--compact">Xuất biên bản</a>
                 </c:when>
                 <c:otherwise>
-                    <a href="${resultUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Sửa KQ</a>
+                    <span class="examiner-btn examiner-btn--orange examiner-btn--compact examiner-btn--disabled">In biên bản ký tên</span>
+                    <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Xuất biên bản</span>
+                </c:otherwise>
+            </c:choose>
+            <c:choose>
+                <c:when test="${c.completeEligible}">
+                    <a href="${pageUrl}?action=completeSection&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--success examiner-btn--compact">Hoàn tất</a>
+                </c:when>
+                <c:otherwise>
+                    <span class="examiner-btn examiner-btn--success examiner-btn--compact examiner-btn--disabled">Hoàn tất</span>
                 </c:otherwise>
             </c:choose>
         </div>

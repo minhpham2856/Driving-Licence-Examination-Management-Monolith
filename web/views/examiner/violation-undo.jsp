@@ -29,6 +29,8 @@
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <main class="examiner-main examiner-main--scroll">
+                <jsp:include page="/views/examiner/partials/examiner-messages.jsp" />
+
                 <section class="score-entry-toolbar">
                     <div class="score-entry-toolbar__left">
                         <a href="${backUrl}" class="examiner-btn examiner-btn--white">
@@ -37,8 +39,6 @@
                         </a>
                     </div>
                 </section>
-
-                <jsp:include page="/views/examiner/partials/examiner-messages.jsp" />
 
                 <div class="score-entry-grid">
                     <div class="score-entry-col score-entry-col--main">

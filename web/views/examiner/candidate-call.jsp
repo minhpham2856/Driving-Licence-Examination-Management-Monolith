@@ -33,6 +33,8 @@
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <main class="examiner-main examiner-main--dashboard">
+                <jsp:include page="/views/examiner/partials/examiner-messages.jsp" />
+
                 <section class="examiner-toolbar examiner-toolbar--tools">
                     <div class="examiner-toolbar__group">
                         <button type="submit" form="callSelectedForm" class="examiner-btn examiner-btn--primary">
@@ -55,8 +57,6 @@
                         </a>
                     </form>
                 </section>
-
-                <jsp:include page="/views/examiner/partials/examiner-messages.jsp" />
 
                 <form id="callSelectedForm" action="${pageUrl}" method="post">
                     <input type="hidden" name="action" value="callSelected">

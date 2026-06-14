@@ -5,6 +5,8 @@
 <c:set var="backUrl" value="${ctx}/views/examiner/result-details" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" />
 <c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
+<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
 <c:set var="currentScore" value="${candidate.theoryCorrectScore}" />
 <c:set var="maxScore" value="${empty theoryMaxScore ? 35 : theoryMaxScore}" />
 <c:set var="inputScore" value="${not empty formNewScore ? formNewScore : (not empty currentScore ? currentScore : '')}" />
@@ -51,9 +53,17 @@
                         </a>
                     </div>
                     <div class="examiner-toolbar__actions">
-                        <a href="#" class="examiner-btn examiner-btn--white">
+                        <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
                             <span class="material-symbols-outlined">print</span>
                             In thông tin chi tiết
+                        </button>
+                        <a href="${exportResultsUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất Excel
+                        </a>
+                        <a href="${exportResultsXmlUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất XML
                         </a>
                         <a href="${paperUrl}" class="examiner-btn examiner-btn--white">
                             <span class="material-symbols-outlined">visibility</span>

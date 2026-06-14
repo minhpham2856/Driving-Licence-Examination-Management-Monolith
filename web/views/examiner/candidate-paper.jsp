@@ -7,6 +7,8 @@
 </c:if>
 <c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
+<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -43,23 +45,34 @@
                         </a>
                     </div>
                     <div class="examiner-toolbar__actions">
-                        <a href="#" class="examiner-btn examiner-btn--white">
+                        <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
                             <span class="material-symbols-outlined">print</span>
                             In kết quả
+                        </button>
+                        <a href="${exportResultsUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất Excel
                         </a>
-                        <a href="#" class="examiner-btn examiner-btn--white">
-                            <span class="material-symbols-outlined">filter_alt</span>
-                            Lọc
+                        <a href="${exportResultsXmlUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất XML
                         </a>
-                        <div class="paper-filter-tabs">
-                            <span class="paper-filter-tab paper-filter-tab--correct">
+                        <div class="paper-filter-tabs" role="tablist" aria-label="Lọc câu hỏi">
+                            <button type="button" class="paper-filter-tab paper-filter-tab--all is-active" data-filter="all">
+                                Tất cả (${empty paperSummary.totalQuestions ? 0 : paperSummary.totalQuestions})
+                            </button>
+                            <button type="button" class="paper-filter-tab paper-filter-tab--correct" data-filter="correct">
                                 <span class="material-symbols-outlined">check</span>
                                 Câu đúng (${empty paperSummary.correctCount ? 0 : paperSummary.correctCount})
-                            </span>
-                            <span class="paper-filter-tab paper-filter-tab--wrong">
+                            </button>
+                            <button type="button" class="paper-filter-tab paper-filter-tab--wrong" data-filter="wrong">
                                 <span class="material-symbols-outlined">close</span>
                                 Câu sai (${empty paperSummary.wrongCount ? 0 : paperSummary.wrongCount})
-                            </span>
+                            </button>
+                            <button type="button" class="paper-filter-tab paper-filter-tab--skipped" data-filter="unanswered">
+                                <span class="material-symbols-outlined">remove</span>
+                                Bỏ (${empty paperSummary.unansweredCount ? 0 : paperSummary.unansweredCount})
+                            </button>
                         </div>
                         <a href="${pageUrl}" class="examiner-btn examiner-btn--white examiner-btn--icon">
                             <span class="material-symbols-outlined">refresh</span>
@@ -69,7 +82,7 @@
 
                 <!--paper table-->
                 <div class="paper-table-wrap">
-                    <table class="paper-table">
+                    <table class="paper-table" id="paperTable">
                         <thead>
                             <tr>
                                 <th class="paper-th paper-th--no">Câu<br/>hỏi</th>
@@ -85,12 +98,19 @@
                                 </c:when>
                                 <c:otherwise>
                             <c:forEach items="${paperAnswers}" var="q" varStatus="st">
-                                <tr class="paper-tr<c:if test="${st.index % 2 == 1}"> paper-tr--alt</c:if>">
+                                <tr class="paper-tr paper-tr--${q.answerStatus}<c:if test="${st.index % 2 == 1}"> paper-tr--alt</c:if>" data-answer-status="${q.answerStatus}">
                                     <td class="paper-td paper-td--no">${q.questionNo}</td>
                                     <td class="paper-td paper-td--content"><img src="${q.imageUrl}" alt="Q-${q.questionNo}" class="paper-img"/></td>
                                     <td class="paper-td paper-td--answer">${q.correctAnswer}</td>
                                     <td class="paper-td paper-td--student">
-                                        <span class="paper-ans paper-ans--${q.correct ? 'correct' : 'wrong'}">${q.studentAnswer}</span>
+                                        <c:choose>
+                                            <c:when test="${q.unanswered}">
+                                                <span class="paper-ans paper-ans--skipped">${q.studentAnswer}</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="paper-ans paper-ans--${q.correct ? 'correct' : 'wrong'}">${q.studentAnswer}</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -102,5 +122,22 @@
             </main>
         </div>
 
+        <script>
+            (function () {
+                var tabs = document.querySelectorAll('.paper-filter-tab[data-filter]');
+                var rows = document.querySelectorAll('#paperTable tbody tr[data-answer-status]');
+                tabs.forEach(function (tab) {
+                    tab.addEventListener('click', function () {
+                        var filter = tab.getAttribute('data-filter');
+                        tabs.forEach(function (item) { item.classList.remove('is-active'); });
+                        tab.classList.add('is-active');
+                        rows.forEach(function (row) {
+                            var status = row.getAttribute('data-answer-status');
+                            row.hidden = filter !== 'all' && status !== filter;
+                        });
+                    });
+                });
+            })();
+        </script>
     </body>
 </html>
