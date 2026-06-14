@@ -53,6 +53,36 @@
     color: #10b981;
 }
 
+.audit-badge--insert {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #6366f1;
+}
+
+.audit-badge--export {
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    color: #0284c7;
+}
+
+.audit-badge--assign {
+    background: rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.3);
+    color: #4f46e5;
+}
+
+.audit-badge--import {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: #0891b2;
+}
+
+.audit-badge--approve {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #16a34a;
+}
+
 .audit-badge--system {
     background: rgba(0, 61, 155, 0.15);
     border: 1px solid rgba(0, 61, 155, 0.3);
@@ -74,6 +104,10 @@
 /* Cũ column: gray text */
 .audit-td--old {
     color: #434654;
+}
+
+.audit-td--multiline {
+    white-space: pre-line;
 }
 
 /* Mới column: medium weight + color variants */

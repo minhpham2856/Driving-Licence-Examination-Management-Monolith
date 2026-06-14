@@ -41,6 +41,12 @@
     color: #ffffff;
 }
 
+.examiner-btn--orange {
+    background-color: #f97316;
+    border-color: #ea580c;
+    color: #ffffff;
+}
+
 .examiner-btn--icon {
     width: 38px;
     padding: 0;

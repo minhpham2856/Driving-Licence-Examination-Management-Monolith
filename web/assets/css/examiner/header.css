@@ -38,9 +38,54 @@
 
 .examiner-header__title {
     margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.examiner-header__crumb-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.examiner-header__crumb-primary {
     font-size: 20px;
     line-height: 28px;
     font-weight: 700;
     color: #003d9b;
     letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+.examiner-header__crumb-primary:hover,
+.examiner-header__crumb-primary:focus,
+.examiner-header__crumb-primary:active {
+    color: #003d9b;
+    text-decoration: none;
+}
+
+.examiner-header__crumb-child {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #171c1f;
+    text-decoration: none;
+}
+
+.examiner-header__crumb-child:hover,
+.examiner-header__crumb-child:focus,
+.examiner-header__crumb-child:active {
+    color: #171c1f;
+    text-decoration: none;
+}
+
+.examiner-header__crumb-sep {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #171c1f;
+    user-select: none;
 }
