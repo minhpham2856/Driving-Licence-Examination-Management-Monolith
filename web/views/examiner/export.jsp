@@ -47,6 +47,8 @@
 
                 <!--export list-->
                 <div class="export-card">
+                    <jsp:include page="/views/examiner/partials/signature-sbd-row.jsp" />
+
                     <div class="export-row">
                         <div class="export-row__left">
                             <div class="export-row__icon export-row__icon--blue">
@@ -153,7 +155,7 @@
 
                     <div class="export-row export-row--last">
                         <div class="export-row__left">
-                            <div class="export-row__icon export-row__icon--gray">
+                            <div class="export-row__icon export-row__icon--blue">
                                 <span class="material-symbols-outlined">list_alt</span>
                             </div>
                             <div class="export-row__info">

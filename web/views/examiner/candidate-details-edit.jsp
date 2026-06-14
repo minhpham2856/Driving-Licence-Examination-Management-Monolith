@@ -31,6 +31,13 @@
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <main class="examiner-main examiner-main--scroll">
+                <c:if test="${not empty profileError}">
+                    <div class="examiner-alert examiner-alert--error">${profileError}</div>
+                </c:if>
+                <c:if test="${param.saved eq '1'}">
+                    <div class="examiner-alert examiner-alert--success">Đã lưu thông tin thí sinh.</div>
+                </c:if>
+
                 <section class="examiner-toolbar">
                     <div class="exr-toolbar-left">
                         <a href="${backUrl}" class="exr-back">
@@ -44,23 +51,18 @@
                                 <span class="material-symbols-outlined">visibility</span>
                                 Xem đề thi
                             </a>
-                            <a href="${resultUrl}" class="examiner-btn examiner-btn--white">
-                                <span class="material-symbols-outlined">fact_check</span>
-                                Sửa kết quả
-                            </a>
+                            <c:if test="${not examinerSectionTheory}">
+                                <a href="${resultUrl}" class="examiner-btn examiner-btn--white">
+                                    <span class="material-symbols-outlined">fact_check</span>
+                                    Sửa kết quả
+                                </a>
+                            </c:if>
                         </c:if>
                         <a href="${pageUrl}" class="examiner-btn examiner-btn--white examiner-btn--icon">
                             <span class="material-symbols-outlined">refresh</span>
                         </a>
                     </div>
                 </section>
-
-                <c:if test="${not empty profileError}">
-                    <div class="examiner-alert examiner-alert--error">${profileError}</div>
-                </c:if>
-                <c:if test="${param.saved eq '1'}">
-                    <div class="examiner-alert examiner-alert--success">Đã lưu thông tin thí sinh.</div>
-                </c:if>
 
                 <c:choose>
                     <c:when test="${empty candidate}">

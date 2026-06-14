@@ -27,11 +27,46 @@
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <main class="examiner-main examiner-main--scroll">
+                <jsp:include page="/views/examiner/partials/examiner-messages.jsp" />
+
+                <c:if test="${not empty candidate}">
+                    <section class="export-card print-signature-card">
+                        <div class="export-row export-row--last">
+                            <div class="export-row__left">
+                                <div class="export-row__icon export-row__icon--orange">
+                                    <span class="material-symbols-outlined">draw</span>
+                                </div>
+                                <div class="export-row__info">
+                                    <p class="export-row__title">Biên bản ký tên — ${candidate.fullName} (${candidate.sbd})</p>
+                                    <p class="export-row__desc">Xác nhận thí sinh đã hoàn thành phần thi và ký tên.</p>
+                                </div>
+                            </div>
+                            <div class="export-row__actions">
+                                <a href="#" class="print-btn" onclick="window.print(); return false;">
+                                    <span class="material-symbols-outlined">print</span>
+                                    <span class="print-btn__text">In</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="print-signature-body">
+                            <p><strong>Họ và tên:</strong> ${candidate.fullName}</p>
+                            <p><strong>SBD:</strong> ${candidate.sbd}</p>
+                            <p><strong>Phần thi:</strong> ${examSectionName}</p>
+                            <p><strong>Kết quả:</strong> ${candidate.resultLabel}</p>
+                            <p class="print-signature-sign">Chữ ký thí sinh: ________________________________</p>
+                        </div>
+                    </section>
+                </c:if>
+
                 <p class="export-header__desc">
                     Lựa chọn biên bản và phiếu in phục vụ công tác tổ chức sát hạch tại ca thi hiện tại.
                 </p>
 
                 <div class="export-card">
+                    <jsp:include page="/views/examiner/partials/signature-sbd-row.jsp">
+                        <jsp:param name="btnClass" value="print-btn" />
+                    </jsp:include>
+
                     <div class="export-row">
                         <div class="export-row__left">
                             <div class="export-row__icon export-row__icon--blue">

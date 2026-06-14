@@ -33,6 +33,9 @@
                 <!--toolbar-->
                 <section class="examiner-toolbar examiner-toolbar--tools">
                     <div class="examiner-toolbar__group">
+                        <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+                            <span class="material-symbols-outlined">print</span>In nhật ký
+                        </button>
                         <a href="${ctx}/examiner/export/audit?q=${searchQuery}" class="examiner-btn examiner-btn--white">
                             <span class="material-symbols-outlined">download</span>Xuất Excel
                         </a>
@@ -89,11 +92,11 @@
                                         <td>${log.username}</td>
                                         <td><span class="audit-badge ${log.actionBadge}">${log.actionLabel}</span></td>
                                         <td>${log.entityName}</td>
-                                        <td class="examiner-table__mono">${log.entityId}</td>
+                                        <td class="examiner-table__mono">${log.sbd}</td>
                                         <td>${log.info}</td>
-                                        <td class="audit-td--old"><c:if test="${not empty log.oldValue}"><s>${log.oldValue}</s></c:if></td>
-                                        <td class="audit-td--new ${log.newValueClass}">${log.newValue}</td>
-                                        <td class="audit-td--reason">${log.reason}</td>
+                                        <td class="audit-td--old<c:if test='${log.multiline}'> audit-td--multiline</c:if>"><c:if test="${not empty log.oldValue}"><s>${log.oldValue}</s></c:if></td>
+                                        <td class="audit-td--new ${log.newValueClass}<c:if test='${log.multiline}'> audit-td--multiline</c:if>">${log.newValue}</td>
+                                        <td class="audit-td--reason"><c:if test="${log.reason ne '—'}">${log.reason}</c:if></td>
                                         <td class="examiner-table__mono-md">${log.time}</td>
                                         <td class="examiner-table__mono-md">${log.date}</td>
                                     </tr>

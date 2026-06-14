@@ -14,6 +14,10 @@
 
 <c:set var="confirmUrl" value="${ctx}/views/examiner/confirmation" />
 
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
+
+<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
+
 <c:set var="baseScore" value="100" />
 
 
@@ -57,6 +61,8 @@
 
             <main class="examiner-main examiner-main--scroll">
 
+                <jsp:include page="/views/examiner/partials/examiner-messages.jsp" />
+
                 <section class="score-entry-toolbar">
 
                     <div class="score-entry-toolbar__left">
@@ -79,7 +85,7 @@
 
                             <c:when test="${not empty candidate}">
 
-                                <a href="${callUrl}?action=markAbsent&amp;sbd=${candidate.sbd}" class="examiner-btn examiner-btn--danger">Vắng</a>
+                                <a href="${pageUrl}?action=deferAbsent&amp;sbd=${candidate.sbd}" class="examiner-btn examiner-btn--danger">Vắng</a>
 
                             </c:when>
 
@@ -100,6 +106,16 @@
                             In kết quả thi
                         </a>
 
+                        <a href="${exportResultsUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất Excel
+                        </a>
+
+                        <a href="${exportResultsXmlUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">download</span>
+                            Xuất XML
+                        </a>
+
                         <a href="${pageUrl}" class="examiner-btn examiner-btn--white examiner-btn--icon" title="Làm mới">
 
                             <span class="material-symbols-outlined">refresh</span>
@@ -109,8 +125,6 @@
                     </div>
 
                 </section>
-
-
 
                 <div class="score-entry-grid">
 
@@ -122,33 +136,19 @@
 
                                 <div class="score-entry-card__title">
 
-                                    <span class="material-symbols-outlined">person</span>
+                                    <span class="material-symbols-outlined">groups</span>
 
-                                    <h2>Thông tin thí sinh</h2>
+                                    <h2>Danh sách thí sinh</h2>
 
                                 </div>
 
-                                <c:choose>
-
-                                    <c:when test="${not empty candidate}">
-
-                                        <span class="score-entry-badge score-entry-badge--testing">${candidate.statusLabel}</span>
-
-                                    </c:when>
-
-                                    <c:otherwise>
-
-                                        <span class="score-entry-badge score-entry-badge--pending">Chưa chọn</span>
-
-                                    </c:otherwise>
-
-                                </c:choose>
+                                <span class="score-entry-badge score-entry-badge--pending">Tổng: ${scoreQueueTotal} thí sinh</span>
 
                             </div>
 
                             <div class="score-entry-table-wrap">
 
-                                <table class="score-entry-table">
+                                <table class="score-entry-table score-entry-table--queue">
 
                                     <thead>
 
@@ -158,9 +158,9 @@
 
                                             <th>HỌ VÀ TÊN</th>
 
-                                            <th>HẠNG</th>
+                                            <th>CĂN CƯỚC</th>
 
-                                            <th>NGÀY SINH</th>
+                                            <th>GỌI</th>
 
                                         </tr>
 
@@ -170,17 +170,11 @@
 
                                         <c:choose>
 
-                                            <c:when test="${not empty candidate}">
+                                            <c:when test="${empty scoreQueue}">
 
                                                 <tr>
 
-                                                    <td class="score-entry-table__sbd">${candidate.sbd}</td>
-
-                                                    <td>${candidate.fullName}</td>
-
-                                                    <td><span class="score-entry-licence">${candidate.licenceClass}</span></td>
-
-                                                    <td class="score-entry-table__mono">${candidate.dob}</td>
+                                                    <td colspan="4" class="score-entry-table__empty">Chưa có thí sinh trong hàng đợi nhập điểm.</td>
 
                                                 </tr>
 
@@ -188,11 +182,33 @@
 
                                             <c:otherwise>
 
-                                                <tr>
+                                                <c:forEach var="q" items="${scoreQueue}">
 
-                                                    <td colspan="4" class="score-entry-table__empty">Chưa có thí sinh trong ca thi.</td>
+                                                    <tr class="score-entry-queue-row${q.active ? ' score-entry-queue-row--active' : ''}${q.called ? ' score-entry-queue-row--called' : ''}">
 
-                                                </tr>
+                                                        <td class="score-entry-table__sbd">
+
+                                                            <a href="${pageUrl}?sbd=${q.sbd}" class="score-entry-queue-link">${q.sbd}</a>
+
+                                                        </td>
+
+                                                        <td>
+
+                                                            <a href="${pageUrl}?sbd=${q.sbd}" class="score-entry-queue-link">${q.fullName}</a>
+
+                                                        </td>
+
+                                                        <td class="score-entry-table__mono">${q.governmentId}</td>
+
+                                                        <td>
+
+                                                            <a href="${pageUrl}?action=call&amp;sbd=${q.sbd}" class="examiner-btn examiner-btn--primary examiner-btn--sm">Gọi</a>
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                </c:forEach>
 
                                             </c:otherwise>
 
@@ -209,6 +225,12 @@
 
 
                         <section class="score-entry-timer-card">
+
+                            <c:if test="${not empty candidate}">
+
+                                <p class="score-entry-selected-label">Đang nhập điểm: <strong>${candidate.sbd}</strong> — ${candidate.fullName}</p>
+
+                            </c:if>
 
                             <div class="score-entry-timer">
 

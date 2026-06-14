@@ -85,13 +85,11 @@
                                             <c:choose>
                                                 <c:when test="${device.status eq 'Maintenance'}">
                                                     <a href="${pageUrl}?action=operational&amp;deviceId=${device.id}"
-                                                       class="examiner-link-action"
-                                                       onclick="return confirm('Chuyển thiết bị ${device.name} sang sử dụng?');">Sử dụng</a>
+                                                       class="examiner-link-action">Sử dụng</a>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <a href="${pageUrl}?action=maintenance&amp;deviceId=${device.id}"
-                                                       class="examiner-link-action"
-                                                       onclick="return confirm('Chuyển thiết bị ${device.name} sang bảo trì?');">Bảo trì</a>
+                                                       class="examiner-link-action">Bảo trì</a>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
