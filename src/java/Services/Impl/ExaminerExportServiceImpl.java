@@ -1,5 +1,6 @@
 package Services.Impl;
 
+import Constants.AuditEntityLabels;
 import Constants.ExamSectionType;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import DAO.AuditLogDAO;
@@ -7,11 +8,15 @@ import DAO.ExaminerSessionDataDAO;
 import DAO.Impl.AuditLogDAOImpl;
 import DAO.Impl.ExaminerSessionDataDAOImpl;
 import Models.AuditLog;
+import Models.ExamRegistration;
 import Services.ExaminerExportContext;
 import Services.ExaminerExportPayload;
 import Services.ExaminerExportService;
 import Services.ExaminerViewDataService;
 import Services.XmlExportTable;
+import Utils.AuditLogViewHelper;
+import DAO.ExamRegistrationDAO;
+import DAO.Impl.ExamRegistrationDAOImpl;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
@@ -43,6 +48,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     private final ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
     private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
+    private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
 
     @Override
     public ExaminerExportPayload buildCandidatesExport(ExaminerExportContext ctx) {
@@ -214,26 +220,30 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     @Override
     public ExaminerExportPayload buildAuditExport(ExaminerExportContext ctx, String searchQuery) {
         List<AuditLog> logs = auditLogDAO.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
+        Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
         List<List<Object>> rows = new ArrayList<>();
         for (AuditLog log : logs) {
-            String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "";
-            rows.add(Arrays.asList(
-                    log.getChangerName(),
-                    log.getAction(),
-                    log.getTableName(),
-                    log.getRecordId(),
-                    log.getNewValue(),
-                    log.getOldValue(),
-                    log.getNewValue(),
-                    log.getReason(),
-                    time));
+            for (Map<String, Object> viewRow : AuditLogViewHelper.toViewRows(log, sbdByRecordId)) {
+                String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "";
+                Object reason = viewRow.get("reason");
+                rows.add(Arrays.asList(
+                        viewRow.get("username"),
+                        log.getAction(),
+                        viewRow.get("entityName"),
+                        viewRow.get("sbd"),
+                        viewRow.get("info"),
+                        viewRow.get("oldValue") != null ? viewRow.get("oldValue") : "",
+                        viewRow.get("newValue"),
+                        "—".equals(reason) ? "" : reason,
+                        time));
+            }
         }
 
         XmlExportTable table = new XmlExportTable(
                 "nhatKy",
                 "banGhi",
                 List.of("nguoiDung", "thaoTac", "doiTuong", "maBanGhi", "thongTin", "cu", "moi", "lyDo", "thoiGian"),
-                List.of("Người dùng", "Thao tác", "Đối tượng", "Mã bản ghi", "Thông tin", "Cũ", "Mới", "Lý do",
+                List.of("Người dùng", "Thao tác", "Đối tượng", "SBD", "Thông tin", "Cũ", "Mới", "Lý do",
                         "Thời gian"),
                 rows);
         Map<String, Object> metadata = Map.of();
@@ -401,5 +411,13 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         }
         String text = value.toString().trim();
         return text.isEmpty() ? "—" : text;
+    }
+
+    private Map<Integer, String> buildSbdLookup(int sessionId) {
+        Map<Integer, String> lookup = new LinkedHashMap<>();
+        for (ExamRegistration reg : registrationDAO.getCandidatesBySession(sessionId)) {
+            lookup.put(reg.getId(), reg.getSbd());
+        }
+        return lookup;
     }
 }

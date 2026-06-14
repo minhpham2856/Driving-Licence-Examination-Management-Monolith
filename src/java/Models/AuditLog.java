@@ -15,6 +15,7 @@ public class AuditLog {
     private String sessionId;
 
     private String reason;
+    private String details;
 
     // Additional helper field for display
     private String changerName;
@@ -119,11 +120,11 @@ public class AuditLog {
     }
 
     public String getDetails() {
-        return newValue;
+        return details;
     }
 
     public void setDetails(String details) {
-        this.newValue = details;
+        this.details = details;
     }
 
     // Helper method to get time in HH:mm format for compatibility

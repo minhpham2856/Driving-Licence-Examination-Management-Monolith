@@ -17,6 +17,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                    a.Action AS action,
                    a.OldValue AS oldValue,
                    a.NewValue AS newValue,
+                   a.Details AS details,
                    a.Reason AS reason,
                    a.UserId AS changedBy,
                    a.CreatedAt AS changedAt,
@@ -39,6 +40,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                         OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'
                         OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
                         OR a.OldValue LIKE N'%' + c.CandidateNumber + N'%'
+                        OR a.Details LIKE N'%' + c.CandidateNumber + N'%'
                       )
             )
             """;
@@ -46,8 +48,8 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     @Override
     public boolean insert(AuditLog log) {
         String sql = """
-                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, CreatedAt)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             String tbl = log.getTableName();
@@ -60,7 +62,11 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
             ps.setInt(1, userId);
             ps.setString(2, act);
-            ps.setString(3, log.getNewValue());
+            if (log.getReason() != null) {
+                ps.setString(3, log.getReason());
+            } else {
+                ps.setNull(3, Types.NVARCHAR);
+            }
             ps.setString(4, tbl);
             ps.setString(5, String.valueOf(recId));
             if (log.getOldValue() != null) {
@@ -73,7 +79,12 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             } else {
                 ps.setNull(7, Types.NVARCHAR);
             }
-            ps.setTimestamp(8, log.getChangedAt() != null ? log.getChangedAt() : new Timestamp(System.currentTimeMillis()));
+            if (log.getDetails() != null) {
+                ps.setString(8, log.getDetails());
+            } else {
+                ps.setNull(8, Types.NVARCHAR);
+            }
+            ps.setTimestamp(9, log.getChangedAt() != null ? log.getChangedAt() : new Timestamp(System.currentTimeMillis()));
 
             if (ps.executeUpdate() > 0) {
                 try (ResultSet gk = ps.getGeneratedKeys()) {
@@ -326,6 +337,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                     OR a.NewValue LIKE ?
                     OR a.OldValue LIKE ?
                     OR a.Reason LIKE ?
+                    OR a.Details LIKE ?
                     OR ISNULL(u.Username, p.FullName) LIKE ?
                  )
                 """;
@@ -336,14 +348,14 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         ps.setInt(1, sessionId);
         if (searchQuery != null && !searchQuery.isBlank()) {
             String pattern = "%" + searchQuery.trim() + "%";
-            for (int i = 2; i <= 7; i++) {
+            for (int i = 2; i <= 8; i++) {
                 ps.setString(i, pattern);
             }
         }
     }
 
     private static int paramIndexAfterSearch(String searchQuery) {
-        return (searchQuery != null && !searchQuery.isBlank()) ? 8 : 2;
+        return (searchQuery != null && !searchQuery.isBlank()) ? 9 : 2;
     }
 
     @Override
@@ -377,6 +389,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         log.setAction(rs.getString("action"));
         log.setOldValue(rs.getString("oldValue"));
         log.setNewValue(rs.getString("newValue"));
+        log.setDetails(rs.getString("details"));
         log.setReason(rs.getString("reason"));
         log.setChangedBy(rs.getInt("changedBy"));
         log.setChangedAt(rs.getTimestamp("changedAt"));
