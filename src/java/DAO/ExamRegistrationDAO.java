@@ -35,4 +35,10 @@ public interface ExamRegistrationDAO {
     boolean markSuspended(int candidateId);
 
     boolean undoSuspension(int candidateId);
+
+    void syncSectionStatusesForSession(int sessionId);
+
+    boolean markSignaturePrinted(int candidateId, int sessionId);
+
+    boolean completeSection(int candidateId, int sessionId);
 }

@@ -33,6 +33,8 @@ public final class Db2CandidateSql {
               ISNULL(c.Address, p.Address) AS address,
               c.ReasonForTaking AS reasonForTaking,
               CAST(s.StartTime AS DATE) AS examDate,
+              ec.SectionStatus AS sectionStatus,
+              CAST(ISNULL(ec.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
               NULL AS allocatedAreaId,
               NULL AS allocatedAreaName,
               theory.scoreVal AS theoryScore,

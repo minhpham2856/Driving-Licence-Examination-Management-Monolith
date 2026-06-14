@@ -1,5 +1,6 @@
 package DAO.Impl;
 
+import Constants.CandidateSectionStatus;
 import Constants.Db2Mappings;
 import DBConnection.DBContext;
 import DAO.Db2CandidateSql;
@@ -641,6 +642,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             getConnection().setAutoCommit(false);
             deleteAbsentExamResults(candidateId);
             clearLegacyAbsentNotes(candidateId);
+            resetSectionStatusAfterAbsentUndo(candidateId);
             int rows;
             try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
                 ps.setInt(1, candidateId);
@@ -748,6 +750,20 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         }
         try (PreparedStatement ps = getConnection().prepareStatement(delResult)) {
             ps.setInt(1, examCandidateId);
+            ps.executeUpdate();
+        }
+    }
+
+    private void resetSectionStatusAfterAbsentUndo(int candidateId) throws SQLException {
+        String sql = """
+                UPDATE ec
+                SET SectionStatus = ?, SignaturePrinted = 0
+                FROM Exam_Candidate ec
+                WHERE ec.CandidateId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, CandidateSectionStatus.PENDING);
+            ps.setInt(2, candidateId);
             ps.executeUpdate();
         }
     }
@@ -1086,6 +1102,13 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         er.setAddress(rs.getString("address"));
         er.setReasonForTaking(rs.getString("reasonForTaking"));
         er.setExamDate(rs.getDate("examDate"));
+        try {
+            er.setSectionStatus(rs.getString("sectionStatus"));
+            er.setSignaturePrinted(rs.getBoolean("signaturePrinted"));
+        } catch (SQLException ignored) {
+            er.setSectionStatus("Pending");
+            er.setSignaturePrinted(false);
+        }
 
         String notes = rs.getString("notes");
         er.setNotes(notes);
@@ -1148,6 +1171,222 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             er.setRoadTestPassed(rScoreVal >= 80 ? "passed" : "failed");
         }
         return er;
+    }
+
+    @Override
+    public void syncSectionStatusesForSession(int sessionId) {
+        if (sessionId <= 0) {
+            return;
+        }
+        try {
+            String testingSql = """
+                    UPDATE ec SET SectionStatus = ?
+                    FROM Exam_Candidate ec
+                    JOIN Candidate c ON c.CandidateId = ec.CandidateId AND c.IsAbsent = 0
+                    JOIN TheoryPaper tp ON tp.ExamCandidateId = ec.ExamCandidateId
+                    WHERE ec.SessionId = ?
+                      AND tp.StartedAt IS NOT NULL AND tp.SubmittedAt IS NULL
+                      AND ec.SectionStatus = ?
+                    """;
+            try (PreparedStatement ps = getConnection().prepareStatement(testingSql)) {
+                ps.setString(1, CandidateSectionStatus.TESTING);
+                ps.setInt(2, sessionId);
+                ps.setString(3, CandidateSectionStatus.PENDING);
+                ps.executeUpdate();
+            }
+
+            String theoryAwaitSql = """
+                    UPDATE ec SET SectionStatus = ?
+                    FROM Exam_Candidate ec
+                    JOIN Candidate c ON c.CandidateId = ec.CandidateId AND c.IsAbsent = 0
+                    JOIN TheoryPaper tp ON tp.ExamCandidateId = ec.ExamCandidateId
+                    WHERE ec.SessionId = ?
+                      AND tp.SubmittedAt IS NOT NULL
+                      AND ec.SectionStatus IN (?, ?)
+                    """;
+            try (PreparedStatement ps = getConnection().prepareStatement(theoryAwaitSql)) {
+                ps.setString(1, CandidateSectionStatus.AWAITING_SIGNATURE);
+                ps.setInt(2, sessionId);
+                ps.setString(3, CandidateSectionStatus.PENDING);
+                ps.setString(4, CandidateSectionStatus.TESTING);
+                ps.executeUpdate();
+            }
+
+            String scoreAwaitSql = """
+                    UPDATE ec SET SectionStatus = ?
+                    FROM Exam_Candidate ec
+                    JOIN Candidate c ON c.CandidateId = ec.CandidateId AND c.IsAbsent = 0
+                    JOIN ExamResult er ON er.ExamCandidateId = ec.ExamCandidateId
+                    WHERE ec.SessionId = ?
+                      AND ec.SectionStatus IN (?, ?)
+                    """;
+            try (PreparedStatement ps = getConnection().prepareStatement(scoreAwaitSql)) {
+                ps.setString(1, CandidateSectionStatus.AWAITING_SIGNATURE);
+                ps.setInt(2, sessionId);
+                ps.setString(3, CandidateSectionStatus.PENDING);
+                ps.setString(4, CandidateSectionStatus.TESTING);
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean markSignaturePrinted(int candidateId, int sessionId) {
+        String sql = """
+                UPDATE Exam_Candidate
+                SET SignaturePrinted = 1
+                WHERE CandidateId = ? AND SessionId = ?
+                  AND SectionStatus = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, sessionId);
+            ps.setString(3, CandidateSectionStatus.AWAITING_SIGNATURE);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean completeSection(int candidateId, int sessionId) {
+        try {
+            String checkSql = """
+                    SELECT ec.SectionStatus, ec.SignaturePrinted, ec.ExamId
+                    FROM Exam_Candidate ec
+                    WHERE ec.CandidateId = ? AND ec.SessionId = ?
+                    """;
+            String status = null;
+            boolean printed = false;
+            int examId = 0;
+            try (PreparedStatement ps = getConnection().prepareStatement(checkSql)) {
+                ps.setInt(1, candidateId);
+                ps.setInt(2, sessionId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        return false;
+                    }
+                    status = rs.getString("SectionStatus");
+                    printed = rs.getBoolean("SignaturePrinted");
+                    examId = rs.getInt("ExamId");
+                }
+            }
+            if (!CandidateSectionStatus.AWAITING_SIGNATURE.equals(status) || !printed) {
+                return false;
+            }
+
+            String doneSql = """
+                    UPDATE Exam_Candidate
+                    SET SectionStatus = ?
+                    WHERE CandidateId = ? AND SessionId = ?
+                    """;
+            try (PreparedStatement ps = getConnection().prepareStatement(doneSql)) {
+                ps.setString(1, CandidateSectionStatus.DONE);
+                ps.setInt(2, candidateId);
+                ps.setInt(3, sessionId);
+                if (ps.executeUpdate() <= 0) {
+                    return false;
+                }
+            }
+
+            if (isPassedForNextSection(candidateId, sessionId)) {
+                enrollNextSection(candidateId, sessionId, examId);
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean isPassedForNextSection(int candidateId, int sessionId) throws SQLException {
+        ExamRegistration reg = getById(candidateId);
+        if (reg == null || reg.getExamSessionId() != sessionId) {
+            reg = null;
+            List<ExamRegistration> list = getCandidatesBySession(sessionId);
+            for (ExamRegistration item : list) {
+                if (item.getId() == candidateId) {
+                    reg = item;
+                    break;
+                }
+            }
+        }
+        if (reg == null) {
+            return false;
+        }
+        String sectionName = resolveSectionNameForSession(sessionId);
+        if (sectionName == null) {
+            return "passed".equalsIgnoreCase(reg.getTheoryPassed());
+        }
+        String normalized = sectionName.toLowerCase();
+        if (normalized.contains("lý thuyết") || normalized.contains("ly thuyet") || normalized.contains("theory")) {
+            return "passed".equalsIgnoreCase(reg.getTheoryPassed());
+        }
+        if (normalized.contains("đường") || normalized.contains("duong") || normalized.contains("road")) {
+            return "passed".equalsIgnoreCase(reg.getRoadTestPassed());
+        }
+        return "passed".equalsIgnoreCase(reg.getPracticalPassed());
+    }
+
+    private String resolveSectionNameForSession(int sessionId) throws SQLException {
+        String sql = """
+                SELECT TOP 1 es.SectionName
+                FROM Session_ExamSection ses
+                JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
+                WHERE ses.SessionId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("SectionName");
+                }
+            }
+        }
+        return null;
+    }
+
+    private void enrollNextSection(int candidateId, int sessionId, int examId) throws SQLException {
+        String nextSessionSql = """
+                SELECT TOP 1 s2.SessionId
+                FROM [Session] s1
+                JOIN [Session] s2 ON s2.ExamId = s1.ExamId AND s2.StartTime > s1.StartTime
+                WHERE s1.SessionId = ?
+                ORDER BY s2.StartTime ASC
+                """;
+        int nextSessionId = 0;
+        try (PreparedStatement ps = getConnection().prepareStatement(nextSessionSql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    nextSessionId = rs.getInt("SessionId");
+                }
+            }
+        }
+        if (nextSessionId <= 0) {
+            return;
+        }
+        String insertSql = """
+                IF NOT EXISTS (
+                    SELECT 1 FROM Exam_Candidate
+                    WHERE CandidateId = ? AND SessionId = ? AND ExamId = ?
+                )
+                INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId, SectionStatus, SignaturePrinted)
+                VALUES (?, ?, ?, ?, 0)
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(insertSql)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, nextSessionId);
+            ps.setInt(3, examId);
+            ps.setInt(4, examId);
+            ps.setInt(5, candidateId);
+            ps.setInt(6, nextSessionId);
+            ps.setString(7, CandidateSectionStatus.PENDING);
+            ps.executeUpdate();
+        }
     }
 
     private static boolean isTheoryPassed(int score) {
