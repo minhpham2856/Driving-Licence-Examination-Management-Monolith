@@ -42,6 +42,8 @@ public class ExamRegistration {
     private String address;
     private String reasonForTaking;
     private java.sql.Date examDate;
+    private String sectionStatus = "Pending";
+    private boolean signaturePrinted;
 
 
     public ExamRegistration() {
@@ -421,5 +423,21 @@ public class ExamRegistration {
 
     public void setExamDate(java.sql.Date examDate) {
         this.examDate = examDate;
+    }
+
+    public String getSectionStatus() {
+        return sectionStatus;
+    }
+
+    public void setSectionStatus(String sectionStatus) {
+        this.sectionStatus = sectionStatus;
+    }
+
+    public boolean isSignaturePrinted() {
+        return signaturePrinted;
+    }
+
+    public void setSignaturePrinted(boolean signaturePrinted) {
+        this.signaturePrinted = signaturePrinted;
     }
 }
