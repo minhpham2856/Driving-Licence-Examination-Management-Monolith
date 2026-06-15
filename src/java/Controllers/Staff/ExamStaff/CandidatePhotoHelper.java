@@ -22,8 +22,23 @@ public final class CandidatePhotoHelper {
         return file.isFile() && file.length() > 0;
     }
 
+    /** Ảnh đã lưu URL trong DB (bước chụp tại bàn thủ tục). */
+    public static boolean hasPhotoRecord(ExamRegistration reg) {
+        if (reg == null) {
+            return false;
+        }
+        String photoUrl = reg.getPhotoUrl();
+        return photoUrl != null && !photoUrl.trim().isEmpty();
+    }
+
+    /** Có ảnh hợp lệ để in/xuất — bắt buộc file thật trên đĩa. */
     public static boolean hasCapturedPhoto(String webRoot, ExamRegistration reg) {
         return reg != null && isValidPhotoFile(webRoot, reg.getPhotoUrl());
+    }
+
+    /** Đã chụp ảnh thủ tục: URL trong DB hoặc file tồn tại (không xóa URL khi file tạm thiếu). */
+    public static boolean resolveCapturedPhoto(String webRoot, ExamRegistration reg) {
+        return hasPhotoRecord(reg) || hasCapturedPhoto(webRoot, reg);
     }
 
     public static void clearInvalidPhotoReference(ExamRegistration reg, String webRoot) {
@@ -41,14 +56,7 @@ public final class CandidatePhotoHelper {
             return;
         }
         for (ExamRegistration reg : qList) {
-            boolean valid = hasCapturedPhoto(webRoot, reg);
-            reg.setValidCapturedPhoto(valid);
-            if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
-                if (regDAO != null) {
-                    regDAO.updatePhoto(reg.getId(), null);
-                }
-                reg.setPhotoUrl("");
-            }
+            reg.setValidCapturedPhoto(resolveCapturedPhoto(webRoot, reg));
         }
     }
 }

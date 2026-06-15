@@ -6,7 +6,7 @@
 <div id="procedure-desk" class="procedure-desk-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0; scroll-margin-top: 1rem;">
     <header style="margin-bottom: 1.25rem;">
         <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 4px;">Bàn làm thủ tục</h2>
-        <p style="font-size: 0.82rem; color: #64748b; margin: 0;">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh &rarr; Thu lệ phí (phần con của màn gọi thủ tục).</p>
+        <p style="font-size: 0.82rem; color: #64748b; margin: 0;">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh xác minh danh tính &rarr; Thu lệ phí. Import CSV không cần ảnh; ảnh lưu DB để bộ phận khác in hồ sơ sau khi thi xong.</p>
     </header>
 
         <!-- Active Candidate Status Bar -->
@@ -22,7 +22,7 @@
                     <select name="sbd" data-auto-submit class="procedure-switch-form__select">
                         <option value="">-- Chọn --</option>
                         <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                            <c:if test="${not (c.validCapturedPhoto and c.paymentCompleted)}">
+                            <c:if test="${not c.procedureComplete}">
                                 <option value="${c.sbd}" ${profile.sbd eq c.sbd ? 'selected' : ''}>${c.sbd} - ${c.name}</option>
                             </c:if>
                         </c:forEach>
@@ -64,7 +64,7 @@
                     
                     <div class="procedure-step-item ${currentStep eq '3' ? 'procedure-step-item--active' : (currentStep > 3 ? 'procedure-step-item--done' : '')}">
                         <div class="step-number-badge">3</div>
-                        <span>Lệ phí & QR chuyển khoản</span>
+                        <span>Lệ phí &amp; QR chuyển khoản</span>
                     </div>
                 </div>
 
@@ -142,11 +142,11 @@
                             </form>
                         </c:if>
                         
-                        <!-- STEP 2: Live Camera Capture -->
+                        <!-- STEP 2: Chụp ảnh xác minh danh tính -->
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung từ camera thực tế</h3>
-                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — bắt buộc chụp tại đây trước khi thu phí và in hồ sơ kết quả.</p>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung xác minh danh tính</h3>
+                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — chụp tại bàn thủ tục khi đến làm hồ sơ. Ảnh lưu vào hệ thống để bộ phận khác in hồ sơ sau khi thi xong.</p>
                             </div>
 
                             <c:if test="${not empty requestScope.photoRequiredMsg}">
@@ -157,7 +157,6 @@
                             
                             <c:choose>
                                 <c:when test="${requestScope.hasValidPhoto}">
-                                    <!-- Photo captured preview -->
                                     <div class="camera-live-frame camera-live-frame--captured">
                                         <div class="camera-live-reticle"></div>
                                         <c:choose>
@@ -170,30 +169,25 @@
                                                 <div class="photo-avatar-placeholder">${fn:substring(cName, 0, 1)}</div>
                                             </c:otherwise>
                                         </c:choose>
-                                        
                                         <div style="position: absolute; bottom: 12px; background: rgba(16, 185, 129, 0.9); color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; z-index: 4;">
                                             ẢNH CHỤP ĐÃ LƯU VÀO HỒ SƠ
                                         </div>
                                     </div>
-                                    
                                     <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
-                                        <a href="procedure?sbd=${currentSbd}&step=2&amp;action=recapture#procedure-desk" class="btn-reset" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1;">Chụp lại ảnh</a>
-                                        <a href="procedure?sbd=${currentSbd}&step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Xác nhận & Chuyển sang Bước 3</a>
+                                        <a href="procedure?sbd=${currentSbd}&amp;step=2&amp;action=recapture#procedure-desk" class="btn-reset" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1;">Chụp lại ảnh</a>
+                                        <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Xác nhận &amp; Sang Bước 3 (Thu lệ phí)</a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
                                     <div id="cameraError" class="camera-error-box is-hidden"></div>
-
                                     <div id="cameraFrame" class="camera-live-frame camera-live-frame--active">
                                         <video id="cameraVideo" class="camera-live-video" autoplay playsinline muted></video>
                                         <canvas id="captureCanvas" class="capture-canvas-hidden"></canvas>
                                         <div class="camera-live-reticle"></div>
                                         <span id="cameraStatus" class="camera-status-badge">Đang khởi động camera...</span>
-                                        
                                         <span style="z-index: 3; font-weight: 700; font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; position: absolute; bottom: 64px; text-shadow: 0 1px 4px rgba(0,0,0,0.6);">
                                             Căn chỉnh mặt vào khung hình
                                         </span>
-                                        
                                         <button type="button" id="captureBtn" class="btn-filter" disabled
                                                 data-label-capture="Chụp ảnh chân dung"
                                                 data-label-saving="Đang lưu ảnh..."
@@ -205,7 +199,6 @@
                                             Chụp ảnh chân dung
                                         </button>
                                     </div>
-
                                     <p style="margin-top: 0.75rem; font-size: 0.75rem; color: #64748b;">
                                         Trình duyệt sẽ yêu cầu quyền truy cập camera. Nếu bị từ chối, hãy bật quyền camera trong cài đặt trình duyệt rồi tải lại trang.
                                     </p>
@@ -216,7 +209,7 @@
                         <!-- STEP 3: Lệ phí & Thanh toán QR -->
                         <c:if test="${currentStep eq '3'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 3: Lệ phí sát hạch & Thanh toán QR Code ngân hàng</h3>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 3: Lệ phí sát hạch &amp; Thanh toán QR Code ngân hàng</h3>
                             </div>
 
                             <c:if test="${not requestScope.hasValidPhoto}">
@@ -378,7 +371,7 @@
                                 <select id="emptySbdInput" name="sbd" data-auto-submit class="procedure-empty-sbd-select">
                                     <option value="">-- Click để chọn học viên đã được gọi --</option>
                                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                                        <c:if test="${not (c.validCapturedPhoto and c.paymentCompleted)}">
+                                        <c:if test="${not c.procedureComplete}">
                                             <option value="${c.sbd}">
                                                 ${c.sbd} - ${c.name} (Hạng ${c.clazz})
                                             </option>

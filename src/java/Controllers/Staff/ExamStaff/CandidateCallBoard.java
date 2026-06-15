@@ -149,7 +149,7 @@ public final class CandidateCallBoard {
     }
 
     private static boolean isProcedureDone(ExamRegistration c) {
-        return c.isPaymentCompleted() && c.isValidCapturedPhoto();
+        return c.isProcedureComplete();
     }
 
     private static String emptyToNull(String value) {

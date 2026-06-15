@@ -320,7 +320,7 @@
         <c:choose>
             <c:when test="${requestScope.isCallingActive}">
                 Mời thí sinh <strong style="color: #f8fafc;">${callingCandidate.sbd} &mdash; ${callingCandidate.name}</strong>
-                nhanh chóng đến <strong style="color: #60a5fa;">Bàn thủ tục chính</strong> với CCCD để đối chiếu hồ sơ và chụp ảnh chân dung.
+                nhanh chóng đến <strong style="color: #60a5fa;">Bàn thủ tục chính</strong> với CCCD để đối chiếu hồ sơ, chụp ảnh chân dung và đóng lệ phí thi.
             </c:when>
             <c:otherwise>
                 Thí sinh vui lòng chuẩn bị sẵn <strong style="color: #f8fafc;">thẻ CCCD</strong>, tập trung trật tự tại phòng chờ và theo dõi bảng gọi thi.

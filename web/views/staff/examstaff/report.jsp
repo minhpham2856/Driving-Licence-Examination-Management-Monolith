@@ -35,10 +35,6 @@
     for (Models.ExamRegistration reg : qList) {
         boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
         reg.setValidCapturedPhoto(valid);
-        if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
-            regDAO.updatePhoto(reg.getId(), null);
-            reg.setPhotoUrl("");
-        }
         if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {
             missingPhotoCount++;
             missingPhotoSbds.add(reg.getSbd() + " - " + reg.getName());
@@ -213,7 +209,7 @@
 
     // Fetch real infractions from database
     java.util.List<java.util.Map<String, Object>> infractions = new java.util.ArrayList<>();
-    try (java.sql.Connection conn = DBConnection.DBConfig.getConnection();
+    try (java.sql.Connection conn = new DBConnection.DBContext().getConnection();
          java.sql.PreparedStatement ps = conn.prepareStatement(
              "select top 3 sd.[Reason] as deductionReason, count(*) as countVal " +
              "from Score_Deduction sdd " +
@@ -332,7 +328,7 @@
                     ${missingPhotoCount} thí sinh chưa có ảnh chân dung chụp tại bàn thủ tục
                 </h4>
                 <p style="margin: 0; font-size: 0.8rem; color: #b45309;">
-                    Không thể in/xuất hồ sơ kết quả cho đến khi tất cả thí sinh (trừ vắng thi) đã chụp ảnh thật từ camera.
+                    Không thể in/xuất hồ sơ kết quả cho đến khi tất cả thí sinh (trừ vắng thi) đã chụp ảnh tại bàn thủ tục trước khi thi.
                 </p>
             </div>
         </c:if>

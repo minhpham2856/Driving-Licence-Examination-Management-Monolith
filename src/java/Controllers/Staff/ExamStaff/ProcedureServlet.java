@@ -90,7 +90,8 @@ public class ProcedureServlet extends HttpServlet {
 
         if ("3".equals(stepParam) && profile != null && !hasValidPhoto && !profile.isPaymentCompleted()) {
             stepParam = "2";
-            request.setAttribute("photoRequiredMsg", "Bắt buộc chụp ảnh chân dung trước khi thu lệ phí và in hồ sơ.");
+            request.setAttribute("photoRequiredMsg",
+                    "Bắt buộc chụp ảnh chân dung xác minh danh tính trước khi thu lệ phí.");
         }
 
         session.setAttribute("procedureStep", stepParam);
@@ -161,7 +162,8 @@ public class ProcedureServlet extends HttpServlet {
         String paymentSuccessParam = request.getParameter("paymentSuccess");
         if ("true".equals(paymentSuccessParam) && profile != null) {
             if (!profile.isValidCapturedPhoto()) {
-                request.setAttribute("photoRequiredMsg", "Không thể thu lệ phí: thí sinh chưa chụp ảnh chân dung tại bàn thủ tục.");
+                request.setAttribute("photoRequiredMsg",
+                        "Không thể thu lệ phí: thí sinh chưa chụp ảnh chân dung tại bàn thủ tục.");
                 request.setAttribute("step", "2");
                 session.setAttribute("procedureStep", "2");
                 request.setAttribute("hasValidPhoto", false);
@@ -257,6 +259,11 @@ public class ProcedureServlet extends HttpServlet {
             response.sendRedirect("candidatecall");
             return;
         }
+        if (profile.isPaymentCompleted()) {
+            advanceToNextCandidate(session, qList, webRoot, profile.getExamSessionId());
+            response.sendRedirect("candidatecall");
+            return;
+        }
         if (!profile.isValidCapturedPhoto()) {
             try {
                 request.setAttribute("photoRequiredMsg",
@@ -269,11 +276,6 @@ public class ProcedureServlet extends HttpServlet {
             } catch (ServletException e) {
                 throw new IOException(e);
             }
-            return;
-        }
-        if (profile.isPaymentCompleted()) {
-            advanceToNextCandidate(session, qList, webRoot, profile.getExamSessionId());
-            response.sendRedirect("candidatecall");
             return;
         }
         Payment payment = new Payment();
@@ -336,7 +338,6 @@ public class ProcedureServlet extends HttpServlet {
             response.getWriter().write("{\"success\":false,\"message\":\"Không tìm thấy thí sinh.\"}");
             return;
         }
-
         String base64Data = request.getParameter("photoBase64");
         String ext = null;
         if (base64Data != null && base64Data.startsWith("data:image/png;base64,")) {
@@ -506,7 +507,7 @@ public class ProcedureServlet extends HttpServlet {
 
         String nextSbd = null;
         for (ExamRegistration c : qList) {
-            if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
+            if (!c.isProcedureComplete()) {
                 nextSbd = c.getSbd();
                 break;
             }
