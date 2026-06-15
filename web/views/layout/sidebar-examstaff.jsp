@@ -164,7 +164,7 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="4:787">
-        <a href="#" class="side-nav-bar__logout" data-node-id="4:788">
+        <a href="${ctx}/logout" class="side-nav-bar__logout" data-node-id="4:788">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6.5 16H3.5C2.67 16 2 15.33 2 14.5V3.5C2 2.67 2.67 2 3.5 2H6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
