@@ -48,13 +48,13 @@
     if (sbdParam != null && !sbdParam.trim().isEmpty() && qList != null) {
         for (Models.ExamRegistration c : qList) {
             if (sbdParam.equals(c.getSbd())) {
-                boolean procedureDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
+                boolean procedureDone = c.isProcedureComplete();
                 if (!procedureDone) {
                     callingCandidate = c;
                 } else {
                     String nextSbd = null;
                     for (Models.ExamRegistration pending : qList) {
-                        if (!(pending.isPaymentCompleted() && pending.isValidCapturedPhoto())) {
+                        if (!pending.isProcedureComplete()) {
                             nextSbd = pending.getSbd();
                             break;
                         }
@@ -368,7 +368,7 @@
                             <!-- Calculate pending count (not completed procedures) dynamically -->
                             <c:set var="pendingCount" value="0" />
                             <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                                <c:set var="isCdone" value="${c.validCapturedPhoto and c.paymentCompleted}" />
+                                <c:set var="isCdone" value="${c.procedureComplete}" />
                                 <c:if test="${not isCdone}">
                                     <c:set var="pendingCount" value="${pendingCount + 1}" />
                                 </c:if>
@@ -383,7 +383,7 @@
                         <div style="display: flex; gap: 6px; align-items: center;">
                             <span style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; animation: pulse-green 2s infinite;">Tự refresh (10s)</span>
                             <!-- Manual refresh button -->
-                            <a href="candidatecall" class="btn-batch btn-batch--alt" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" title="Làm mới hàng đợi">
+                            <a href="candidatecall?action=reloadQueue" class="btn-batch btn-batch--alt" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" title="Làm mới hàng đợi (thứ tự mặc định từ DB)">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
@@ -420,7 +420,7 @@
                                 </thead>
                                 <tbody>
                                     <c:forEach var="candidate" items="${sessionScope.candidateQueue}" varStatus="status">
-                                        <c:set var="cDone" value="${candidate.validCapturedPhoto and candidate.paymentCompleted}" />
+                                        <c:set var="cDone" value="${candidate.procedureComplete}" />
                                         <c:if test="${not cDone}">
                                             <c:set var="isCurrentCalling" value="${candidate.sbd eq sessionScope.callingSbd}" />
                                             <!-- Highlight the active candidate being called -->

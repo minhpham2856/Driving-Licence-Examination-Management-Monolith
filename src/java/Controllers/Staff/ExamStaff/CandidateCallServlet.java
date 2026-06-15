@@ -18,10 +18,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.DriverManager;
+import java.util.Map;
 
 @WebServlet("/views/staff/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
@@ -64,18 +64,17 @@ public class CandidateCallServlet extends HttpServlet {
             session.setAttribute("shiftEnded", "true");
         }
         
-        List<ExamRegistration> candidateQueue = null;
-        String webRoot = request.getServletContext().getRealPath("/");
-        if (!isShiftEnded) {
-            candidateQueue = regDAO.getCandidatesBySession(examSessionId);
-            CandidatePhotoHelper.normalizeQueue(webRoot, candidateQueue, regDAO);
-            session.setAttribute("candidateQueue", candidateQueue);
-            session.setAttribute("lastLoadedSessionId", examSessionId);
-        }
-        
-        // 2. Handle operations
         String qAction = request.getParameter("action");
+        if (qAction == null) {
+            qAction = "";
+        }
         String qSbd = request.getParameter("sbd");
+
+        String webRoot = request.getServletContext().getRealPath("/");
+        List<ExamRegistration> candidateQueue = null;
+        if (!isShiftEnded) {
+            candidateQueue = loadCallQueue(session, examSessionId, webRoot, qAction);
+        }
         
         List<ExamRegistration> permanentAbsents = (List<ExamRegistration>) session.getAttribute("permanentAbsents");
         if (permanentAbsents == null) {
@@ -86,7 +85,7 @@ public class CandidateCallServlet extends HttpServlet {
         if ("startCall".equals(qAction)) {
             if (candidateQueue != null) {
                 for (ExamRegistration c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
+                    boolean isDone = c.isProcedureComplete();
                     if (!isDone) {
                         session.setAttribute("callingSbd", c.getSbd());
                         
@@ -126,26 +125,21 @@ public class CandidateCallServlet extends HttpServlet {
                     callDAO.insert(call);
                 }
                 
-                // Find next candidate who is not done
-                String nextSbd = null;
-                for (ExamRegistration c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
-                    if (!isDone && !c.getSbd().equals(qSbd)) {
-                        nextSbd = c.getSbd();
-                        
-                        // Register a calling log for next person
+                String nextSbd = resolveFirstPendingSbd(candidateQueue);
+                session.setAttribute("callingSbd", nextSbd);
+                if (nextSbd != null) {
+                    ExamRegistration next = findBySbd(candidateQueue, nextSbd);
+                    if (next != null) {
                         CandidateCall call = new CandidateCall();
-                        call.setExamSessionId(c.getExamSessionId());
-                        call.setCandidateNo(c.getCandidateNo());
+                        call.setExamSessionId(next.getExamSessionId());
+                        call.setCandidateNo(next.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
                         call.setCalledBy(3);
                         call.setResult("Calling");
                         callDAO.insert(call);
-                        break;
                     }
                 }
-                session.setAttribute("callingSbd", nextSbd);
-                
+
                 if ("autoAbsent".equals(qAction)) {
                     request.setAttribute("autoAbsentAlert", qSbd);
                 } else {
@@ -166,7 +160,7 @@ public class CandidateCallServlet extends HttpServlet {
                     ExamRegistration removed = candidateQueue.remove(foundIdx);
                     permanentAbsents.add(removed);
                     
-                    regDAO.updateScores(removed.getId(), 0, "failed", 0, "failed");
+                    regDAO.updateScores(removed.getId(), removed.getExamSessionId(), 0, "failed", 0, "failed");
                     regDAO.markAbsent(removed.getId());
                     
                     removed.setNotes("Absent");
@@ -176,16 +170,7 @@ public class CandidateCallServlet extends HttpServlet {
                     removed.setPracticalScore(0);
                 }
                 
-                // Find next candidate who is not done
-                String nextSbd = null;
-                for (ExamRegistration c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
-                    if (!isDone && !c.getSbd().equals(qSbd)) {
-                        nextSbd = c.getSbd();
-                        break;
-                    }
-                }
-                session.setAttribute("callingSbd", nextSbd);
+                session.setAttribute("callingSbd", resolveFirstPendingSbd(candidateQueue));
                 request.setAttribute("permanentAbsentAlert", qSbd);
             }
         } else if ("undoAbsent".equals(qAction)) {
@@ -223,14 +208,14 @@ public class CandidateCallServlet extends HttpServlet {
             if (candidateQueue != null) {
                 java.util.List<ExamRegistration> toRemove = new java.util.ArrayList<>();
                 for (ExamRegistration c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
+                    boolean isDone = c.isProcedureComplete();
                     if (!isDone) {
                         c.setNotes("Absent");
                         c.setTheoryPassed("failed");
                         c.setPracticalPassed("failed");
                         c.setTheoryScore(0);
                         c.setPracticalScore(0);
-                        regDAO.updateScores(c.getId(), 0, "failed", 0, "failed");
+                        regDAO.updateScores(c.getId(), c.getExamSessionId(), 0, "failed", 0, "failed");
                         regDAO.markAbsent(c.getId());
                         if (permanentAbsents != null) {
                             permanentAbsents.add(c);
@@ -253,6 +238,10 @@ public class CandidateCallServlet extends HttpServlet {
         }
 
         advanceCallingIfDone(session, candidateQueue);
+        if (candidateQueue != null) {
+            session.setAttribute("candidateQueue", candidateQueue);
+            session.setAttribute("lastLoadedSessionId", examSessionId);
+        }
         CandidateCallBoard.syncFromSession(getServletContext(), session, candidateQueue);
         request.setAttribute("nextCallingCandidate",
                 CandidateCallBoard.findBySbd(candidateQueue,
@@ -266,6 +255,71 @@ public class CandidateCallServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+
+    private List<ExamRegistration> loadCallQueue(HttpSession session, int examSessionId,
+            String webRoot, String qAction) {
+        List<ExamRegistration> fresh = regDAO.getCandidatesBySession(examSessionId);
+        CandidatePhotoHelper.normalizeQueue(webRoot, fresh, regDAO);
+
+        if ("reloadQueue".equals(qAction) || "startShift".equals(qAction)) {
+            session.setAttribute("candidateQueue", fresh);
+            session.setAttribute("lastLoadedSessionId", examSessionId);
+            return fresh;
+        }
+
+        List<ExamRegistration> existing = (List<ExamRegistration>) session.getAttribute("candidateQueue");
+        Integer lastLoaded = (Integer) session.getAttribute("lastLoadedSessionId");
+        List<ExamRegistration> merged;
+        if (existing == null || lastLoaded == null || lastLoaded != examSessionId) {
+            merged = fresh;
+        } else {
+            merged = mergeQueueOrder(existing, fresh);
+        }
+        session.setAttribute("candidateQueue", merged);
+        session.setAttribute("lastLoadedSessionId", examSessionId);
+        return merged;
+    }
+
+    private List<ExamRegistration> mergeQueueOrder(List<ExamRegistration> ordered,
+            List<ExamRegistration> fresh) {
+        Map<String, ExamRegistration> freshBySbd = new HashMap<>();
+        for (ExamRegistration c : fresh) {
+            freshBySbd.put(c.getSbd(), c);
+        }
+        List<ExamRegistration> merged = new ArrayList<>();
+        for (ExamRegistration c : ordered) {
+            ExamRegistration updated = freshBySbd.remove(c.getSbd());
+            if (updated != null) {
+                merged.add(updated);
+            }
+        }
+        merged.addAll(freshBySbd.values());
+        return merged;
+    }
+
+    private String resolveFirstPendingSbd(List<ExamRegistration> queue) {
+        if (queue == null) {
+            return null;
+        }
+        for (ExamRegistration c : queue) {
+            if (!c.isProcedureComplete()) {
+                return c.getSbd();
+            }
+        }
+        return null;
+    }
+
+    private ExamRegistration findBySbd(List<ExamRegistration> queue, String sbd) {
+        if (queue == null || sbd == null) {
+            return null;
+        }
+        for (ExamRegistration c : queue) {
+            if (sbd.equals(c.getSbd())) {
+                return c;
+            }
+        }
+        return null;
     }
 
     private void advanceCallingIfDone(HttpSession session, List<ExamRegistration> candidateQueue) {
@@ -283,18 +337,10 @@ public class CandidateCallServlet extends HttpServlet {
                 break;
             }
         }
-        if (current == null || !(current.isPaymentCompleted() && current.isValidCapturedPhoto())) {
+        if (current == null || !current.isProcedureComplete()) {
             return;
         }
-        String nextSbd = null;
-        for (ExamRegistration c : candidateQueue) {
-            if (c.isPaymentCompleted() && c.isValidCapturedPhoto()) {
-                continue;
-            }
-            nextSbd = c.getSbd();
-            break;
-        }
-        session.setAttribute("callingSbd", nextSbd);
+        session.setAttribute("callingSbd", resolveFirstPendingSbd(candidateQueue));
     }
 }
 
