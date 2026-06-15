@@ -153,9 +153,7 @@ public class ExamAutoAllocator {
         if (c.getNotes() != null && "Absent".equalsIgnoreCase(c.getNotes().trim())) {
             return false;
         }
-        boolean procedureDone = c.isPresent()
-                && c.getPhotoUrl() != null && !c.getPhotoUrl().isEmpty()
-                && c.isPaymentCompleted();
+        boolean procedureDone = c.isPresent() && c.isPaymentCompleted();
         return procedureDone && "none".equals(c.getTheoryPassed());
     }
 
