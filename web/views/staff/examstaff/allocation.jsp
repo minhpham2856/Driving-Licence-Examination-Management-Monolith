@@ -6,17 +6,17 @@
     // Retrieve the candidate queue from the session
     java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
     if (qList == null) {
-        Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
-        int sessId = (sessIdObj != null) ? sessIdObj : 2;
+        Integer examIdObj = (Integer) session.getAttribute("lastLoadedExamId");
+        int examId = (examIdObj != null) ? examIdObj : 1;
         DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessId);
+            qList = regDAO.getCandidatesByExamId(examId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
         }
         session.setAttribute("candidateQueue", qList);
-        session.setAttribute("lastLoadedSessionId", sessId);
+        session.setAttribute("lastLoadedExamId", examId);
     }
     if (qList != null) {
         Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
@@ -147,14 +147,14 @@
             </div>
             
             <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: flex-end; margin-top: 1rem; border-top: 1.5px solid #f1f5f9; padding-top: 1rem;">
-                <!-- Target Session Selection -->
-                <form action="allocation" method="GET" style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 250px;">
-                    <label for="sessionId" style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
+                <!-- Target Exam Selection (một kỳ thi = lý thuyết + sa hình + đường trường trên cùng một bảng) -->
+                <form action="allocation" method="GET" style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 280px;">
+                    <label for="sessionId" style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn kỳ thi (hạng / ngày):</label>
                     <div style="display: flex; gap: 8px;">
                         <select id="sessionId" name="sessionId" data-auto-submit class="es-session-selector__select es-session-selector__select--wide">
-                            <c:forEach var="sess" items="${requestScope.allSessions}">
-                                <option value="${sess.id}" ${sessionScope.selectedSessionId eq sess.id ? 'selected' : ''}>
-                                    Ca #${sess.id} - ${sess.sessionName} (${sess.examDate} | ${sess.status})
+                            <c:forEach var="exam" items="${requestScope.examOptions}">
+                                <option value="${exam.id}" ${requestScope.selectedExamId eq exam.examId ? 'selected' : ''}>
+                                    Kỳ thi hạng ${exam.licenseCode} — ${exam.examDate} (${exam.status})
                                 </option>
                             </c:forEach>
                         </select>
@@ -200,7 +200,7 @@
                     <c:set var="waitingCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
                         <%-- Phòng chờ: chưa hoàn tất thủ tục (ảnh + lệ phí), không bị đánh dấu vắng — đồng bộ với candidatecall.jsp --%>
-                        <c:set var="procedureDone" value="${c.validCapturedPhoto and c.paymentCompleted}" />
+                        <c:set var="procedureDone" value="${c.procedureComplete}" />
                         <c:if test="${not procedureDone and c.notes ne 'Absent'}">
                             <c:set var="waitingCount" value="${waitingCount + 1}" />
                             <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #ea580c;">
@@ -256,7 +256,7 @@
                             <c:set var="theoryCount" value="${theoryCount + 1}" />
                             <c:set var="hasPhoto" value="${c.validCapturedPhoto}" />
                             <c:set var="hasPaid" value="${c.paymentCompleted}" />
-                            <c:set var="procedureDone" value="${hasPhoto and hasPaid}" />
+                            <c:set var="procedureDone" value="${c.procedureComplete}" />
                             
                             <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #2563eb;">
                                 <div class="candidate-pipe-header">
@@ -266,7 +266,7 @@
                                 <h4 class="candidate-pipe-name">${c.name}</h4>
                                 
                                 <div class="badge-grid-status" style="margin-bottom: 4px;">
-                                    <span class="badge-pill-status ${hasPhoto ? 'badge-pill-status--success' : 'badge-pill-status--warning'}">CCCD & Ảnh</span>
+                                    <span class="badge-pill-status ${hasPhoto ? 'badge-pill-status--success' : 'badge-pill-status--warning'}">Ảnh hồ sơ</span>
                                     <span class="badge-pill-status ${hasPaid ? 'badge-pill-status--success' : 'badge-pill-status--warning'}">Lệ phí (200k)</span>
                                 </div>
                                 
@@ -302,7 +302,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <div class="candidate-pipe-details" style="color: #b45309; font-weight: 500; font-size: 0.68rem; margin-top: 4px; margin-bottom: 4px;">
-                                            &bull; Cần hoàn tất chụp ảnh hồ sơ
+                                            &bull; Cần hoàn tất chụp ảnh và thu lệ phí tại bàn thủ tục
                                         </div>
                                         <a href="allocation?action=quickComplete&id=${c.id}" class="btn-pipe-action btn-pipe-action--secondary" style="height: 24px; font-size: 0.65rem; margin-top: 2px;">
                                             Mô phỏng Xong hồ sơ
@@ -335,7 +335,7 @@
                                 <circle cx="12" cy="12" r="10"/>
                                 <path d="M12 6v6l4 2"/>
                             </svg>
-                            Sân thi thực hành
+                            Sa hình / Thực hành
                         </h3>
                         <div class="area-meta-box" style="margin-top: 8px;">
                             <span><strong>Khu vực:</strong> Sân Thực hành Số 1</span>
@@ -397,7 +397,7 @@
                         </h3>
                         <div class="area-meta-box" style="margin-top: 8px;">
                             <span><strong>Khu vực:</strong> Đường trường ngoài sân</span>
-                            <span><strong>Đối tượng:</strong> Thí sinh bằng B/C/D/E/F</span>
+                            <span><strong>Đối tượng:</strong> Hạng B/B1/B2/C/D/E/F (A1/A2 bỏ qua)</span>
                         </div>
                     </div>
                     <label for="toggle-row-step-4" class="btn-expand-row" style="margin-top: 1rem;">
@@ -469,8 +469,8 @@
                                       (c.notes ne 'Absent' and c.paymentCompleted and (
                                           (c.theoryPassed eq 'failed') or 
                                           (c.practicalPassed eq 'failed') or 
-                                          (c.practicalPassed eq 'passed' and not c.requiresRoadTest) or 
-                                          (c.requiresRoadTest and (c.roadTestPassed eq 'passed' or c.roadTestPassed eq 'failed'))
+                                          (c.theoryPassed eq 'passed' and c.practicalPassed eq 'passed' and not c.requiresRoadTest) or 
+                                          (c.requiresRoadTest and c.theoryPassed eq 'passed' and c.practicalPassed eq 'passed' and (c.roadTestPassed eq 'passed' or c.roadTestPassed eq 'failed'))
                                       ))}">
                             <c:set var="completedCount" value="${completedCount + 1}" />
                             <c:set var="isPass" value="${c.notes ne 'Absent' and ((c.practicalPassed eq 'passed' and not c.requiresRoadTest) or (c.requiresRoadTest and c.roadTestPassed eq 'passed'))}" />

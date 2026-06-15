@@ -40,11 +40,11 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-import java.sql.Date;
-
 import java.util.ArrayList;
 
 import java.util.HashMap;
+
+import java.util.LinkedHashMap;
 
 import java.util.List;
 
@@ -101,6 +101,20 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         request.setAttribute("allSessions", allSessions);
 
+        LinkedHashMap<Integer, ExamSession> examOptionMap = new LinkedHashMap<>();
+
+        for (ExamSession s : allSessions) {
+
+            if (s.getExamId() > 0 && !examOptionMap.containsKey(s.getExamId())) {
+
+                examOptionMap.put(s.getExamId(), s);
+
+            }
+
+        }
+
+        request.setAttribute("examOptions", new ArrayList<>(examOptionMap.values()));
+
 
 
         String sessIdParam = request.getParameter("sessionId");
@@ -129,9 +143,11 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         request.setAttribute("currentSession", currentSession);
 
+        int examId = (currentSession != null && currentSession.getExamId() > 0) ? currentSession.getExamId() : sessionId;
+
+        request.setAttribute("selectedExamId", examId);
 
 
-        Map<Integer, Date> sessionDates = buildSessionDateMap(allSessions);
 
         Map<Integer, User> examinerMap = buildExaminerMap();
 
@@ -149,29 +165,23 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         if (currentSession != null) {
 
-            List<ExamSession> daySessions = sessionDAO.getSessionsByExamDate(currentSession.getExamDate());
+            List<ExamSession> examSessions = sessionDAO.getSessionsByExamId(examId);
 
-            request.setAttribute("daySessions", daySessions);
+            request.setAttribute("examSessions", examSessions);
 
-
-
-            List<ExaminerSlot> dayAssignments = ExaminerAssignmentStore.getByExamDate(
-
-                    session, currentSession.getExamDate(), sessionDates);
-
-            request.setAttribute("dayAssignments", dayAssignments);
+            request.setAttribute("daySessions", examSessions);
 
 
 
-            List<ExaminerSlot> sessionAssignments = ExaminerAssignmentStore.getBySessionId(session, sessionId);
+            List<ExaminerSlot> examAssignments = ExaminerAssignmentStore.getByExamId(session, examId);
 
-            request.setAttribute("sessionAssignments", sessionAssignments);
+            request.setAttribute("examAssignments", examAssignments);
+
+            request.setAttribute("dayAssignments", examAssignments);
 
 
 
-            Set<Integer> busyIds = ExaminerAssignmentStore.getBusyExaminerIds(
-
-                    session, currentSession.getExamDate(), sessionDates);
+            Set<Integer> busyIds = ExaminerAssignmentStore.getBusyExaminerIdsByExamId(session, examId);
 
             List<User> allExaminers = assignmentDAO.getActiveExaminers();
 
@@ -201,33 +211,27 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
 
-            List<ExamArea> sessionAreas = areaDAO.getAreasBySessionId(sessionId);
-
-            request.setAttribute("sessionAreas", sessionAreas);
-
-
+            Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
 
             Map<Integer, List<ExamDevice>> devicesByArea = new HashMap<>();
 
-            for (ExamArea area : sessionAreas) {
+            for (ExamSession ds : examSessions) {
 
-                devicesByArea.put(area.getId(), deviceDAO.getDevicesByAreaId(area.getId()));
+                List<ExamArea> sessionAreas = areaDAO.getAreasBySessionId(ds.getId());
 
-            }
+                areasBySession.put(ds.getId(), sessionAreas);
 
-            request.setAttribute("devicesByArea", devicesByArea);
+                for (ExamArea area : sessionAreas) {
 
+                    devicesByArea.put(area.getId(), deviceDAO.getDevicesByAreaId(area.getId()));
 
-
-            Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
-
-            for (ExamSession ds : daySessions) {
-
-                areasBySession.put(ds.getId(), areaDAO.getAreasBySessionId(ds.getId()));
+                }
 
             }
 
             request.setAttribute("areasBySession", areasBySession);
+
+            request.setAttribute("devicesByArea", devicesByArea);
 
         }
 
@@ -356,22 +360,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("errorMsg", "Dữ liệu không hợp lệ.");
 
         }
-
-    }
-
-
-
-    private Map<Integer, Date> buildSessionDateMap(List<ExamSession> sessions) {
-
-        Map<Integer, Date> map = new HashMap<>();
-
-        for (ExamSession s : sessions) {
-
-            map.put(s.getId(), s.getExamDate());
-
-        }
-
-        return map;
 
     }
 
