@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -32,16 +33,16 @@
 
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Phân bổ giám khảo theo phòng thi</h1>
-                <p class="page-subtitle">Schema <strong>DLEM_DB_2</strong>: phòng từ <strong>Session_ExamArea</strong>, thiết bị <strong>ExamDevice</strong>, giám khảo <strong>Session_Examiner</strong> + phòng trong <strong>Audit</strong>.</p>
+                <h1 class="page-title">Phân bổ giám khảo theo kỳ thi</h1>
+                <p class="page-subtitle">Đồng bộ với <strong>Quy trình phân bổ</strong>: một kỳ thi gồm lý thuyết → sa hình → đường trường (hạng B). Phòng từ <strong>Session_ExamArea</strong>, giám khảo <strong>Session_Examiner</strong>.</p>
             </div>
             <div class="page-actions">
                 <form method="get" action="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation" class="examiner-session-form">
-                    <label for="sessionId" class="examiner-session-form__label">Ca thi:</label>
+                    <label for="sessionId" class="examiner-session-form__label">Kỳ thi (hạng / ngày):</label>
                     <select name="sessionId" id="sessionId" class="examiner-session-form__select">
-                        <c:forEach var="s" items="${allSessions}">
-                            <option value="${s.id}" ${s.id eq currentSession.id ? 'selected' : ''}>
-                                ${s.sessionName} — <fmt:formatDate value="${s.examDate}" pattern="dd/MM/yyyy"/>
+                        <c:forEach var="exam" items="${examOptions}">
+                            <option value="${exam.id}" ${selectedExamId eq exam.examId ? 'selected' : ''}>
+                                Kỳ thi hạng ${exam.licenseCode} — <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/> (${exam.status})
                             </option>
                         </c:forEach>
                     </select>
@@ -57,55 +58,49 @@
         </c:if>
 
         <c:if test="${not empty currentSession}">
-            <div class="examiner-panel-card examiner-panel-card--spaced" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                <div>
-                    <strong>Trạng thái ca:</strong>
-                    <c:choose>
-                        <c:when test="${currentSession.status eq 'InProgress'}">
-                            <span class="role-badge role-badge--admin" style="margin-left: 6px;">Đang diễn ra — giám khảo có thể đăng nhập</span>
-                        </c:when>
-                        <c:when test="${currentSession.status eq 'Completed'}">
-                            <span class="role-badge" style="margin-left: 6px;">Đã kết thúc</span>
-                        </c:when>
-                        <c:otherwise>
-                            <span class="role-badge role-badge--coi" style="margin-left: 6px;">Chưa bắt đầu — phân công xong, bấm Bắt đầu ca ở Tổng quan</span>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-                <c:if test="${currentSession.status ne 'InProgress' and currentSession.status ne 'Completed'}">
-                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi sau khi đã phân đủ giám khảo?');">
-                        <input type="hidden" name="action" value="startSession">
-                        <input type="hidden" name="sessionId" value="${currentSession.id}">
-                        <input type="hidden" name="redirect" value="examiner-allocation">
-                        <button type="submit" class="btn-filter" style="height: 36px; padding: 0 1rem; border-radius: 8px; font-weight: 700;">Bắt đầu ca thi</button>
-                    </form>
-                </c:if>
-                <c:if test="${currentSession.status eq 'InProgress'}">
-                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Kết thúc ca thi?');">
-                        <input type="hidden" name="action" value="endSession">
-                        <input type="hidden" name="sessionId" value="${currentSession.id}">
-                        <input type="hidden" name="redirect" value="examiner-allocation">
-                        <button type="submit" class="btn-export" style="height: 36px; padding: 0 1rem; border-radius: 8px; font-weight: 700; color: #b91c1c; border-color: #fecaca;">Kết thúc ca thi</button>
-                    </form>
-                </c:if>
-            </div>
             <div class="examiner-panel-card examiner-panel-card--spaced">
-                <h3>Ca thi trong ngày <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></h3>
-                <c:forEach var="ds" items="${daySessions}">
-                    <span class="session-pill">
-                        ${ds.sessionName}
-                        (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
-                        — <c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>
-                    </span>
+                <h3>Kỳ thi hạng ${currentSession.licenseCode} — <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></h3>
+                <p class="es-text-muted-sm" style="margin: 0 0 10px 0;">Các ca trong kỳ thi (phân công giám khảo theo từng ca/môn):</p>
+                <c:forEach var="ds" items="${examSessions}">
+                    <div class="session-pill" style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 8px 4px 0;">
+                        <span>
+                            <strong>${ds.sessionName}</strong>
+                            (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
+                            — <c:choose>
+                                <c:when test="${ds.examTypeName eq 'Theory' or fn:contains(ds.examTypeName, 'Lý thuyết')}">Lý thuyết</c:when>
+                                <c:when test="${ds.examTypeName eq 'Practical' or fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành')}">Sa hình / Thực hành</c:when>
+                                <c:when test="${ds.examTypeName eq 'OnRoad' or fn:contains(ds.examTypeName, 'Đường')}">Đường trường</c:when>
+                                <c:otherwise>${ds.examTypeName}</c:otherwise>
+                            </c:choose>
+                            — <em>${ds.status}</em>
+                        </span>
+                        <c:if test="${ds.status ne 'InProgress' and ds.status ne 'Completed'}">
+                            <form action="session-control" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Bắt đầu ca ${ds.sessionName}?');">
+                                <input type="hidden" name="action" value="startSession">
+                                <input type="hidden" name="sessionId" value="${ds.id}">
+                                <input type="hidden" name="redirect" value="examiner-allocation">
+                                <button type="submit" class="btn-filter" style="height: 28px; padding: 0 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700;">Bắt đầu ca</button>
+                            </form>
+                        </c:if>
+                        <c:if test="${ds.status eq 'InProgress'}">
+                            <form action="session-control" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Kết thúc ca ${ds.sessionName}?');">
+                                <input type="hidden" name="action" value="endSession">
+                                <input type="hidden" name="sessionId" value="${ds.id}">
+                                <input type="hidden" name="redirect" value="examiner-allocation">
+                                <button type="submit" class="btn-export" style="height: 28px; padding: 0 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: #b91c1c; border-color: #fecaca;">Kết thúc ca</button>
+                            </form>
+                        </c:if>
+                    </div>
                 </c:forEach>
             </div>
 
             <div class="examiner-grid">
                 <div class="examiner-panel-card">
                     <h3>Giám khảo khả dụng (${availableExaminers.size()})</h3>
+                    <p class="es-text-muted-sm">Chưa được phân công trong kỳ thi này.</p>
                     <c:choose>
                         <c:when test="${empty availableExaminers}">
-                            <p class="es-text-muted-sm">Không còn giám khảo trống trong ngày này.</p>
+                            <p class="es-text-muted-sm">Không còn giám khảo trống trong kỳ thi.</p>
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${availableExaminers}">
@@ -135,20 +130,25 @@
                     <input type="hidden" name="sessionId" value="${currentSession.id}">
                     <input type="hidden" name="action" value="assign">
                     <div>
-                        <label for="targetSessionId">Ca thi</label>
+                        <label for="targetSessionId">Ca / môn thi</label>
                         <select name="targetSessionId" id="targetSessionId" required>
-                            <c:forEach var="ds" items="${daySessions}">
-                                <option value="${ds.id}">${ds.sessionName} (<c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>)</option>
+                            <c:forEach var="ds" items="${examSessions}">
+                                <option value="${ds.id}">${ds.sessionName} (<c:choose>
+                                    <c:when test="${ds.examTypeName eq 'Theory' or fn:contains(ds.examTypeName, 'Lý thuyết')}">Lý thuyết</c:when>
+                                    <c:when test="${ds.examTypeName eq 'Practical' or fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành')}">Sa hình</c:when>
+                                    <c:when test="${ds.examTypeName eq 'OnRoad' or fn:contains(ds.examTypeName, 'Đường')}">Đường trường</c:when>
+                                    <c:otherwise>${ds.examTypeName}</c:otherwise>
+                                </c:choose>)</option>
                             </c:forEach>
                         </select>
                     </div>
                     <div>
                         <label for="areaId">Phòng thi (Session_ExamArea)</label>
                         <select name="areaId" id="areaId" required>
-                            <c:forEach var="ds" items="${daySessions}">
+                            <c:forEach var="ds" items="${examSessions}">
                                 <c:forEach var="ar" items="${areasBySession[ds.id]}">
                                     <option value="${ar.id}" data-session="${ds.id}" data-type="${ar.areaType}">
-                                        ${ar.areaName} (${ar.areaType})
+                                        ${ar.areaName} (${ar.areaType}) — ${ds.sessionName}
                                     </option>
                                 </c:forEach>
                             </c:forEach>
@@ -170,11 +170,12 @@
             </div>
 
             <div class="examiner-panel-card examiner-panel-card--section">
-                <h3>Phân công ca đang chọn: ${currentSession.sessionName}</h3>
+                <h3>Phân công toàn kỳ thi</h3>
                 <table class="examiner-data-table">
                     <thead>
                         <tr>
-                            <th>Phòng thi</th>
+                            <th>Ca / môn thi</th>
+                            <th>Phòng</th>
                             <th>Loại thi</th>
                             <th>Giám khảo</th>
                             <th></th>
@@ -182,12 +183,13 @@
                     </thead>
                     <tbody>
                         <c:choose>
-                            <c:when test="${empty sessionAssignments}">
-                                <tr><td colspan="4" class="es-text-muted-sm">Chưa có phân công cho ca này.</td></tr>
+                            <c:when test="${empty examAssignments}">
+                                <tr><td colspan="5" class="es-text-muted-sm">Chưa có phân công cho kỳ thi này.</td></tr>
                             </c:when>
                             <c:otherwise>
-                                <c:forEach var="a" items="${sessionAssignments}">
+                                <c:forEach var="a" items="${examAssignments}">
                                     <tr>
+                                        <td>${a.sessionName}</td>
                                         <td>
                                             <c:choose>
                                                 <c:when test="${not empty a.areaName}">${a.areaName}<div class="area-type-tag">${a.areaType}</div></c:when>
@@ -204,37 +206,6 @@
                                                    data-confirm-msg="Gỡ phân công giám khảo này?">Gỡ</a>
                                             </c:if>
                                         </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="examiner-panel-card">
-                <h3>Tổng hợp phân công cả ngày</h3>
-                <table class="examiner-data-table">
-                    <thead>
-                        <tr>
-                            <th>Ca thi</th>
-                            <th>Phòng</th>
-                            <th>Loại thi</th>
-                            <th>Giám khảo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${empty dayAssignments}">
-                                <tr><td colspan="4" class="es-text-muted-sm">Chưa có phân công trong ngày.</td></tr>
-                            </c:when>
-                            <c:otherwise>
-                                <c:forEach var="a" items="${dayAssignments}">
-                                    <tr>
-                                        <td>${a.sessionName}</td>
-                                        <td>${empty a.areaName ? '—' : a.areaName}</td>
-                                        <td>${a.examTypeName}</td>
-                                        <td>${a.examinerName}</td>
                                     </tr>
                                 </c:forEach>
                             </c:otherwise>
