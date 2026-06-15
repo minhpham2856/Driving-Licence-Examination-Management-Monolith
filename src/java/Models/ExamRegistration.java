@@ -262,11 +262,45 @@ public class ExamRegistration {
         this.roadTestScore = roadTestScore;
     }
 
-    /** Trả về true nếu hạng bằng yêu cầu thi đường trường (B1, B2, C, D, E, F) */
+    /** Đã hoàn thành thủ tục trước khi thi: đối chiếu hồ sơ + chụp ảnh + thu lệ phí. Import CSV không cần ảnh. */
+    public boolean isProcedureComplete() {
+        if (!isPaymentCompleted) {
+            return false;
+        }
+        boolean hasPhoto = validCapturedPhoto
+                || (photoUrl != null && !photoUrl.trim().isEmpty());
+        if (hasPhoto) {
+            return true;
+        }
+        // Đã xong kỳ thi => chắc chắn đã qua bàn thủ tục (ảnh URL có thể mất do file tạm thiếu trên đĩa)
+        return isExamFinished();
+    }
+
+    /** Đã xong toàn bộ kỳ thi (đủ phần thi theo hạng bằng). */
+    public boolean isExamFinished() {
+        if (notes != null && "Absent".equalsIgnoreCase(notes.trim())) {
+            return true;
+        }
+        if (!isPaymentCompleted) {
+            return false;
+        }
+        if ("failed".equals(theoryPassed) || "failed".equals(practicalPassed)) {
+            return true;
+        }
+        if ("passed".equals(theoryPassed) && "passed".equals(practicalPassed) && !isRequiresRoadTest()) {
+            return true;
+        }
+        return isRequiresRoadTest()
+                && "passed".equals(theoryPassed)
+                && "passed".equals(practicalPassed)
+                && ("passed".equals(roadTestPassed) || "failed".equals(roadTestPassed));
+    }
+
+    /** Trả về true nếu hạng bằng yêu cầu thi đường trường (B, B1, B2, C, D, E, F). A1/A2 không thi đường trường. */
     public boolean isRequiresRoadTest() {
         if (licenseCode == null) return false;
         String lc = licenseCode.toUpperCase().trim();
-        return lc.equals("B1") || lc.equals("B2") || lc.equals("C")
+        return lc.equals("B") || lc.equals("B1") || lc.equals("B2") || lc.equals("C")
             || lc.equals("D") || lc.equals("E") || lc.equals("F")
             || lc.equals("C1") || lc.equals("D1") || lc.equals("D2");
     }

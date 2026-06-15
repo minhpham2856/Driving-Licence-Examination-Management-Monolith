@@ -249,6 +249,21 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return busy;
     }
 
+    @Override
+    public List<ExaminerSlot> getByExamId(int examId) {
+        String sql = SLOT_SELECT + " WHERE s.ExamId = ? ORDER BY s.StartTime, ea.AreaName, se.SessionExaminerId";
+        return querySlots(sql, ps -> ps.setInt(1, examId));
+    }
+
+    @Override
+    public Set<Integer> getBusyExaminerIdsByExamId(int examId) {
+        Set<Integer> busy = new HashSet<>();
+        for (ExaminerSlot slot : getByExamId(examId)) {
+            busy.add(slot.getExaminerUserId());
+        }
+        return busy;
+    }
+
     private List<ExaminerSlot> querySlots(String sql, SqlBinder binder) {
         List<ExaminerSlot> list = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

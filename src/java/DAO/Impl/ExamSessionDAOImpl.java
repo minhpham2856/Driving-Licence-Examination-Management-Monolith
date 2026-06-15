@@ -11,6 +11,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
 
     private static final String SESSION_SELECT = """
             SELECT s.SessionId AS id,
+                   s.ExamId AS examId,
                    s.SessionName AS sessionName,
                    e.LicenceId AS licenseTypeId,
                    ISNULL(sect.examTypeId, 1) AS examTypeId,
@@ -40,7 +41,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                        MIN(es.ExamSectionId) AS examSectionId,
                        CASE
                            WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1
-                           WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2
+                           WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2
                            WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4
                            ELSE 1
                        END AS examTypeId,
@@ -118,6 +119,23 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
+    public List<ExamSession> getSessionsByExamId(int examId) {
+        List<ExamSession> list = new ArrayList<>();
+        String sql = SESSION_SELECT + " WHERE s.ExamId = ? ORDER BY CAST(s.StartTime AS TIME)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, examId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToExamSession(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
     public boolean updateStatus(int sessionId, String status) {
         String sql = "UPDATE [Session] SET [Status] = ? WHERE SessionId = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -133,6 +151,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     private ExamSession mapResultSetToExamSession(ResultSet rs) throws SQLException {
         ExamSession es = new ExamSession();
         es.setId(rs.getInt("id"));
+        es.setExamId(rs.getInt("examId"));
         es.setSessionName(rs.getString("sessionName"));
         es.setLicenseTypeId(rs.getInt("licenseTypeId"));
         es.setExamTypeId(rs.getInt("examTypeId"));

@@ -36,4 +36,12 @@ public final class ExaminerAssignmentStore {
             Map<Integer, Date> sessionDates) {
         return DAO.getBusyExaminerIds(examDate, sessionDates);
     }
+
+    public static List<ExaminerSlot> getByExamId(HttpSession session, int examId) {
+        return DAO.getByExamId(examId);
+    }
+
+    public static Set<Integer> getBusyExaminerIdsByExamId(HttpSession session, int examId) {
+        return DAO.getBusyExaminerIdsByExamId(examId);
+    }
 }

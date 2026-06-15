@@ -69,7 +69,7 @@ public final class Db2CandidateSql {
                 JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
                 JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%'
+                WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE N'%Sa hình%' OR sec.SectionName LIKE '%Practical%'
                 GROUP BY ec3.CandidateId
             ) practical ON practical.CandidateId = c.CandidateId
             LEFT JOIN (

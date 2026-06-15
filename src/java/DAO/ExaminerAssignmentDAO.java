@@ -16,4 +16,6 @@ public interface ExaminerAssignmentDAO {
     List<ExaminerSlot> getInProgressAssignmentsForExaminer(int examinerUserId);
     List<ExaminerSlot> getByExamDate(Date examDate, Map<Integer, Date> sessionDates);
     Set<Integer> getBusyExaminerIds(Date examDate, Map<Integer, Date> sessionDates);
+    List<ExaminerSlot> getByExamId(int examId);
+    Set<Integer> getBusyExaminerIdsByExamId(int examId);
 }

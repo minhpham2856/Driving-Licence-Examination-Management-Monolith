@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 
 public class ExamSession {
     private int id;
+    private int examId;
     private String sessionName;
     private int licenseTypeId;
     private int examTypeId;
@@ -47,6 +48,14 @@ public class ExamSession {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getExamId() {
+        return examId;
+    }
+
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public String getSessionName() {

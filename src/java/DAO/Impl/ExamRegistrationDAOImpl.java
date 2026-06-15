@@ -53,11 +53,42 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     @Override
     public List<ExamRegistration> getCandidatesBySession(int sessionId) {
+        Integer examId = resolveExamIdFromSession(sessionId);
+        if (examId != null) {
+            return getCandidatesByExamId(examId);
+        }
         List<ExamRegistration> list = new ArrayList<>();
         String sql = Db2CandidateSql.CANDIDATE_SELECT
                 + " WHERE ec.SessionId = ? ORDER BY candidateNo";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToExamRegistration(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public List<ExamRegistration> getCandidatesByExamId(int examId) {
+        ensureAllExamSessionsEnrollment(examId);
+        List<ExamRegistration> list = new ArrayList<>();
+        String sql = Db2CandidateSql.CANDIDATE_SELECT
+                + """
+                 WHERE ex.ExamId = ?
+                   AND ec.ExamCandidateId = (
+                       SELECT MIN(ec2.ExamCandidateId)
+                       FROM Exam_Candidate ec2
+                       WHERE ec2.CandidateId = c.CandidateId AND ec2.ExamId = ex.ExamId
+                   )
+                 ORDER BY candidateNo
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToExamRegistration(rs));
@@ -155,7 +186,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     @Override
     public boolean updateComputer(int id, String computerCode) {
         try {
-            Integer examCandidateId = getExamCandidateId(id);
+            Integer examCandidateId = getExamCandidateIdAny(id);
             if (examCandidateId == null) {
                 return false;
             }
@@ -217,15 +248,25 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     @Override
-    public boolean updateScores(int id, Integer theoryScore, String theoryPassed,
+    public boolean updateScores(int id, int sessionId, Integer theoryScore, String theoryPassed,
+            Integer practicalScore, String practicalPassed) {
+        Integer examId = resolveExamIdFromSession(sessionId);
+        if (examId == null) {
+            return false;
+        }
+        return updateScoresForExam(id, examId, theoryScore, theoryPassed, practicalScore, practicalPassed);
+    }
+
+    @Override
+    public boolean updateScoresForExam(int id, int examId, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed) {
         try {
             boolean ok = true;
             if (theoryScore != null) {
-                ok = upsertSectionScore(id, "Theory", theoryScore) && ok;
+                ok = upsertSectionScoreForExam(id, examId, "Theory", theoryScore) && ok;
             }
             if (practicalScore != null) {
-                ok = upsertSectionScore(id, "Practical", practicalScore) && ok;
+                ok = upsertSectionScoreForExam(id, examId, "Practical", practicalScore) && ok;
             }
             return ok;
         } catch (SQLException e) {
@@ -235,16 +276,35 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     @Override
-    public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
+    public boolean updateRoadScore(int id, int sessionId, Integer roadScore, String roadPassed) {
+        Integer examId = resolveExamIdFromSession(sessionId);
+        if (examId == null) {
+            return false;
+        }
+        return updateRoadScoreForExam(id, examId, roadScore, roadPassed);
+    }
+
+    @Override
+    public boolean updateRoadScoreForExam(int id, int examId, Integer roadScore, String roadPassed) {
         try {
             if (roadScore != null) {
-                return upsertSectionScore(id, "Road", roadScore);
+                return upsertSectionScoreForExam(id, examId, "Road", roadScore);
             }
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public Integer resolveSessionIdForSection(int examId, String sectionKeyword) {
+        try {
+            return findSessionIdForExamSection(examId, sectionKeyword);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -365,13 +425,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     candidateId = gk.getInt(1);
                 }
             }
-            String sqlEc = "INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId) VALUES (?, ?, ?)";
-            try (PreparedStatement ps = connection.prepareStatement(sqlEc)) {
-                ps.setInt(1, ctx.examId);
-                ps.setInt(2, candidateId);
-                ps.setInt(3, reg.getExamSessionId());
-                ps.executeUpdate();
-            }
+            enrollCandidateInAllExamSessions(candidateId, ctx.examId);
             if (reg.isPresent()) {
                 updatePresent(candidateId, true);
             }
@@ -469,7 +523,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private void deleteCandidateScores(int candidateId) throws SQLException {
-        Integer examCandidateId = getExamCandidateId(candidateId);
+        Integer examCandidateId = getExamCandidateIdAny(candidateId);
         if (examCandidateId == null) {
             return;
         }
@@ -504,8 +558,18 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         }
     }
 
-    private boolean upsertSectionScore(int candidateId, String sectionKeyword, int score) throws SQLException {
-        Integer examCandidateId = ensureExamCandidateId(candidateId);
+    private boolean upsertSectionScoreForExam(int candidateId, int examId, String sectionKeyword, int score)
+            throws SQLException {
+        Integer sessionId = findSessionIdForExamSection(examId, sectionKeyword);
+        if (sessionId == null) {
+            return false;
+        }
+        return upsertSectionScore(candidateId, sessionId, sectionKeyword, score);
+    }
+
+    private boolean upsertSectionScore(int candidateId, int sessionId, String sectionKeyword, int score)
+            throws SQLException {
+        Integer examCandidateId = ensureExamCandidateId(candidateId, sessionId);
         if (examCandidateId == null) {
             return false;
         }
@@ -544,39 +608,31 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return true;
     }
 
-    private Integer ensureExamCandidateId(int candidateId) throws SQLException {
-        Integer examCandidateId = getExamCandidateId(candidateId);
+    private Integer ensureExamCandidateId(int candidateId, int sessionId) throws SQLException {
+        Integer examCandidateId = getExamCandidateId(candidateId, sessionId);
         if (examCandidateId != null) {
             return examCandidateId;
         }
         int examId = -1;
-        int sessionId = -1;
         try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT TOP 1 ex.ExamId, ec.SessionId FROM Candidate c "
-                + "JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId "
-                + "JOIN Exam ex ON ex.LicenceId = er.LicenceId "
-                + "JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId "
-                + "WHERE c.CandidateId = ?")) {
-            ps.setInt(1, candidateId);
+                "SELECT TOP 1 s.ExamId FROM [Session] s WHERE s.SessionId = ?")) {
+            ps.setInt(1, sessionId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     examId = rs.getInt("ExamId");
-                    sessionId = rs.getInt("SessionId");
                 }
             }
         }
         if (examId <= 0) {
             try (PreparedStatement ps = connection.prepareStatement(
-                    "SELECT TOP 1 ex.ExamId, s.SessionId FROM Candidate c "
+                    "SELECT TOP 1 ex.ExamId FROM Candidate c "
                     + "JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId "
                     + "JOIN Exam ex ON ex.LicenceId = er.LicenceId "
-                    + "JOIN [Session] s ON s.ExamId = ex.ExamId "
-                    + "WHERE c.CandidateId = ? ORDER BY s.SessionId")) {
+                    + "WHERE c.CandidateId = ?")) {
                 ps.setInt(1, candidateId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         examId = rs.getInt("ExamId");
-                        sessionId = rs.getInt("SessionId");
                     }
                 }
             }
@@ -596,7 +652,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 }
             }
         }
-        return getExamCandidateId(candidateId);
+        return getExamCandidateId(candidateId, sessionId);
     }
 
     private int findOrCreateExamResult(int examCandidateId, boolean passed) throws SQLException {
@@ -631,31 +687,23 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private Integer findSectionIdForCandidate(int examCandidateId, String keyword) throws SQLException {
-        // B2: lý thuyết (exam 2) và thực hành/sa hình (exam 3) dùng cùng LicenceId — không chỉ ExamId hiện tại
+        String sectionFilter = switch (keyword) {
+            case "Theory" -> "(es.SectionName LIKE N'%Lý thuyết%' OR es.SectionName LIKE '%Theory%')";
+            case "Practical" ->
+                "(es.SectionName LIKE N'%Thực hành%' OR es.SectionName LIKE N'%Sa hình%' OR es.SectionName LIKE '%Practical%')";
+            case "Road" -> "(es.SectionName LIKE N'%Đường%' OR es.SectionName LIKE '%Road%')";
+            default -> "1 = 0";
+        };
         String sql = """
                 SELECT TOP 1 es.ExamSectionId
                 FROM Exam_Candidate ec
-                JOIN Exam curExam ON curExam.ExamId = ec.ExamId
-                JOIN Session_ExamSection ses ON ses.SessionId IN (
-                    SELECT s.SessionId
-                    FROM [Session] s
-                    INNER JOIN Exam e ON e.ExamId = s.ExamId
-                    WHERE e.LicenceId = curExam.LicenceId
-                )
+                JOIN Session_ExamSection ses ON ses.SessionId = ec.SessionId
                 JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
                 WHERE ec.ExamCandidateId = ?
-                  AND (es.SectionName LIKE ? OR es.SectionName LIKE ? OR es.SectionName LIKE ?)
-                ORDER BY
-                    CASE WHEN ses.SessionId = ec.SessionId THEN 0 ELSE 1 END,
-                    es.ExamSectionId
-                """;
-        String likeVi = "%" + (keyword.equals("Theory") ? "Lý thuyết"
-                : keyword.equals("Practical") ? "Thực hành" : "Đường") + "%";
+                  AND
+                """ + sectionFilter;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, examCandidateId);
-            ps.setString(2, "%" + keyword + "%");
-            ps.setString(3, likeVi);
-            ps.setString(4, "%Road%");
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("ExamSectionId");
@@ -665,10 +713,114 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
-    private Integer getExamCandidateId(int candidateId) throws SQLException {
+    private Integer getExamCandidateId(int candidateId, int sessionId) throws SQLException {
         String sql = """
                 SELECT ec.ExamCandidateId FROM Exam_Candidate ec
+                WHERE ec.CandidateId = ? AND ec.SessionId = ?
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamCandidateId");
+                }
+            }
+        }
+        return null;
+    }
+
+    private void enrollCandidateInAllExamSessions(int candidateId, int examId) throws SQLException {
+        String sql = """
+                INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId)
+                SELECT s.ExamId, ?, s.SessionId
+                FROM [Session] s
+                WHERE s.ExamId = ?
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Exam_Candidate ec
+                      WHERE ec.CandidateId = ? AND ec.SessionId = s.SessionId
+                  )
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, examId);
+            ps.setInt(3, candidateId);
+            ps.executeUpdate();
+        }
+    }
+
+    private void ensureAllExamSessionsEnrollment(int examId) {
+        String sql = """
+                INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId)
+                SELECT s.ExamId, ec.CandidateId, s.SessionId
+                FROM (
+                    SELECT DISTINCT CandidateId FROM Exam_Candidate WHERE ExamId = ?
+                ) ec
+                CROSS JOIN [Session] s
+                WHERE s.ExamId = ?
+                  AND NOT EXISTS (
+                      SELECT 1 FROM Exam_Candidate ec2
+                      WHERE ec2.CandidateId = ec.CandidateId AND ec2.SessionId = s.SessionId
+                  )
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, examId);
+            ps.setInt(2, examId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Integer resolveExamIdFromSession(int sessionId) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT ExamId FROM [Session] WHERE SessionId = ?")) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamId");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Integer findSessionIdForExamSection(int examId, String keyword) throws SQLException {
+        String sectionFilter = switch (keyword) {
+            case "Theory" -> "(es.SectionName LIKE N'%Lý thuyết%' OR es.SectionName LIKE '%Theory%')";
+            case "Practical" ->
+                "(es.SectionName LIKE N'%Thực hành%' OR es.SectionName LIKE N'%Sa hình%' OR es.SectionName LIKE '%Practical%')";
+            case "Road" -> "(es.SectionName LIKE N'%Đường%' OR es.SectionName LIKE '%Road%')";
+            default -> "1 = 0";
+        };
+        String sql = """
+                SELECT TOP 1 s.SessionId
+                FROM [Session] s
+                JOIN Session_ExamSection ses ON ses.SessionId = s.SessionId
+                JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
+                WHERE s.ExamId = ?
+                  AND
+                """ + sectionFilter + """
+                 ORDER BY s.StartTime
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, examId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("SessionId");
+                }
+            }
+        }
+        return null;
+    }
+
+    private Integer getExamCandidateIdAny(int candidateId) throws SQLException {
+        String sql = """
+                SELECT TOP 1 ec.ExamCandidateId FROM Exam_Candidate ec
                 WHERE ec.CandidateId = ?
+                ORDER BY ec.ExamCandidateId DESC
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
