@@ -37,7 +37,7 @@
             </div>
             
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <a href="${pageContext.request.contextPath}/views/staff/managingstaff/create-user.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
+                <a href="${pageContext.request.contextPath}/manager/create-user" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <circle cx="8" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
@@ -345,7 +345,7 @@
                             <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Xem học viên</span>
                         </a>
 
-                        <a href="${pageContext.request.contextPath}/views/staff/managingstaff/create-user.jsp" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
+                        <a href="${pageContext.request.contextPath}/manager/create-user" class="btn-export" style="text-decoration: none; padding: 1rem; border-radius: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; box-sizing: border-box; width: 100%;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #7c3aed;">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 <circle cx="8" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
