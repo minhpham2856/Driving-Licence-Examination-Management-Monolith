@@ -3,7 +3,9 @@ package Controllers.Staff.ExamStaff;
 import DAO.ExamRegistrationDAO;
 import DAO.Impl.ExamRegistrationDAOImpl;
 import DAO.PersonDAO;
+import DAO.WalkInCandidateDAO;
 import DAO.Impl.PersonDAOImpl;
+import DAO.Impl.WalkInCandidateDAOImpl;
 import Models.ExamRegistration;
 import Models.Person;
 import Models.ExamSession;
@@ -25,6 +27,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @WebServlet("/views/staff/examstaff/upload")
@@ -34,6 +37,7 @@ import java.util.List;
 public class UploadServlet extends HttpServlet {
 
     private final PersonDAO personDAO = new PersonDAOImpl();
+    private final WalkInCandidateDAO walkInCandidateDAO = new WalkInCandidateDAOImpl();
     private final ExamRegistrationDAO regDAO = new ExamRegistrationDAOImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
 
@@ -54,7 +58,7 @@ public class UploadServlet extends HttpServlet {
             
             // Write template data
             String csvData = "Số báo danh,Họ và tên,Ngày sinh,CCCD,Hạng GPLX,Số điện thoại,Email\r\n"
-                    + "SBD-000001,Nguyễn Văn A,15/06/2000,012345678901,B2,0987654321,nguyenvana@gmail.com\r\n";
+                    + "SBD-000001,Nguyễn Văn A,15/06/2000,012345678901,B,0987654321,nguyenvana@gmail.com\r\n";
             response.getOutputStream().write(csvData.getBytes(StandardCharsets.UTF_8));
             response.getOutputStream().flush();
             return;
@@ -122,7 +126,10 @@ public class UploadServlet extends HttpServlet {
                             p.setAddress("Hà Nội, Việt Nam");
                             p.setIsWalkIn("WalkIn".equals(reg.getRegistrationType()));
                             p.setApprovalStatus("Approved");
-                            personDAO.insert(p);
+                            if (!walkInCandidateDAO.insertWalkIn(p)) {
+                                skippedCount++;
+                                continue;
+                            }
                         } else {
                             p.setFullName(reg.getFullName());
                             p.setDateOfBirth(reg.getDateOfBirth());
@@ -164,10 +171,13 @@ public class UploadServlet extends HttpServlet {
                 }
 
                 session.removeAttribute("previewCandidates");
-                List<ExamRegistration> updatedQueue = regDAO.getCandidatesBySession(selectedSessionId);
+                ExamSession importSessionForQueue = sessionDAO.getById(selectedSessionId);
+                int importExamId = (importSessionForQueue != null && importSessionForQueue.getExamId() > 0)
+                        ? importSessionForQueue.getExamId() : selectedSessionId;
+                List<ExamRegistration> updatedQueue = regDAO.getCandidatesByExamId(importExamId);
                 CandidatePhotoHelper.normalizeQueue(request.getServletContext().getRealPath("/"), updatedQueue, regDAO);
                 session.setAttribute("candidateQueue", updatedQueue);
-                session.setAttribute("lastLoadedSessionId", selectedSessionId);
+                session.setAttribute("lastLoadedExamId", importExamId);
                 session.setAttribute("importedCount", importedCount);
 
                 String uploadedFile = (String) session.getAttribute("uploadedFileName");
@@ -186,7 +196,26 @@ public class UploadServlet extends HttpServlet {
             }
         }
 
-        request.setAttribute("activeSessions", sessionDAO.getActiveSessions());
+        List<ExamSession> activeSessions = sessionDAO.getActiveSessions();
+        request.setAttribute("activeSessions", activeSessions);
+
+        LinkedHashMap<Integer, ExamSession> examOptionMap = new LinkedHashMap<>();
+        for (ExamSession s : activeSessions) {
+            if (s.getExamId() > 0 && !examOptionMap.containsKey(s.getExamId())) {
+                examOptionMap.put(s.getExamId(), s);
+            }
+        }
+        request.setAttribute("examOptions", new ArrayList<>(examOptionMap.values()));
+
+        Integer importSessId = (Integer) session.getAttribute("selectedImportSessionId");
+        if (importSessId != null) {
+            ExamSession importSession = sessionDAO.getById(importSessId);
+            if (importSession != null) {
+                request.setAttribute("selectedImportExamId", importSession.getExamId());
+                request.setAttribute("importExamLicense", importSession.getLicenseCode());
+            }
+        }
+
         request.getRequestDispatcher("/views/staff/examstaff/upload.jsp").forward(request, response);
     }
 
@@ -204,6 +233,11 @@ public class UploadServlet extends HttpServlet {
             try { selectedSessionId = Integer.parseInt(sessionParam); } catch (Exception e) { /* ignore */ }
         }
         session.setAttribute("selectedImportSessionId", selectedSessionId);
+        ExamSession importSession = sessionDAO.getById(selectedSessionId);
+        String examLicense = (importSession != null && importSession.getLicenseCode() != null)
+                ? importSession.getLicenseCode().trim()
+                : "";
+        session.setAttribute("selectedImportExamLicense", examLicense);
 
         try {
             Part filePart = request.getPart("fileInput");
@@ -244,6 +278,10 @@ public class UploadServlet extends HttpServlet {
                 int b2Count = 145;
                 boolean hasInvalidRows = false;
 
+                if (examLicense.isEmpty()) {
+                    throw new Exception("Không xác định được hạng bằng của kỳ thi đã chọn. Vui lòng chọn lại kỳ thi.");
+                }
+
                 while ((line = reader.readLine()) != null) {
                     if (line.trim().isEmpty()) continue;
                     String[] parts = line.split(",");
@@ -251,63 +289,44 @@ public class UploadServlet extends HttpServlet {
                         throw new Exception("Structure mismatch. The imported file must contain exactly 7 columns (SBD, Họ tên, Ngày sinh, CCCD, Hạng GPLX, SĐT, Email).");
                     if (isHeader) { isHeader = false; continue; }
 
+                    String legacySbd   = parts[0].trim();
                     String fullName    = parts[1].trim();
                     String dobStr      = parts[2].trim();
                     String cccd        = parts[3].trim();
-                    String licenseCode = parts[4].trim();
+                    String csvLicense  = parts[4].trim();
                     String phone       = parts[5].trim();
                     String email       = parts[6].trim();
 
                     ExamRegistration reg = new ExamRegistration();
                     reg.setFullName(fullName);
                     reg.setGovIdNo(cccd);
-                    reg.setLicenseCode(licenseCode.isEmpty() ? "B2" : licenseCode);
+                    reg.setLicenseCode(csvLicense);
                     reg.setPhoneNo(phone);
                     reg.setEmail(email);
                     reg.setRegistrationType("WalkIn");
                     reg.setIsPaymentCompleted(false);
                     reg.setIsPresent(true);
 
-                    // Validate required fields (including Phone and Email per user request)
-                    if (fullName.isEmpty() || cccd.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+                    List<String> errors = collectImportErrors(
+                            legacySbd, fullName, dobStr, cccd, csvLicense, phone, email, examLicense);
+                    if (!errors.isEmpty()) {
                         reg.setInvalid(true);
                         hasInvalidRows = true;
-                        java.util.List<String> missing = new java.util.ArrayList<>();
-                        if (fullName.isEmpty()) missing.add("Họ tên");
-                        if (cccd.isEmpty())     missing.add("CCCD");
-                        if (phone.isEmpty())    missing.add("SĐT");
-                        if (email.isEmpty())    missing.add("Email");
-                        reg.setValidationMessage("Thiếu " + String.join(" & ", missing));
-                    }
-
-                    // Parse DOB
-                    try {
-                        Date sqlDob;
-                        if (dobStr.contains("/")) {
-                            String[] dp = dobStr.split("/");
-                            sqlDob = Date.valueOf(dp[2] + "-" + dp[1] + "-" + dp[0]);
-                        } else {
-                            sqlDob = Date.valueOf(dobStr);
-                        }
-                        reg.setDateOfBirth(sqlDob);
-                    } catch (Exception e) {
-                        reg.setDateOfBirth(Date.valueOf("2000-01-01"));
-                    }
-
-                    // Auto-generate SBD
-                    if ("A1".equalsIgnoreCase(licenseCode)) {
-                        reg.setCandidateNo(a1Count++);
+                        reg.setValidationMessage(String.join("; ", errors));
                     } else {
-                        reg.setCandidateNo(b2Count++);
-                    }
+                        reg.setDateOfBirth(parseDateOfBirth(dobStr));
+                        reg.setLicenseCode(examLicense);
+                        if ("A1".equalsIgnoreCase(examLicense)) {
+                            reg.setCandidateNo(a1Count++);
+                        } else {
+                            reg.setCandidateNo(b2Count++);
+                        }
 
-                    // Duplicate check (only if CCCD is valid)
-                    if (!cccd.isEmpty()) {
                         Person existingP = personDAO.getByGovIdNo(cccd);
-                        if (existingP != null) {
-                            if (regDAO.findCandidateIdByProfileAndSession(existingP.getId(), selectedSessionId) != null) {
-                                reg.setDuplicate(true);
-                            }
+                        if (existingP != null
+                                && regDAO.findCandidateIdByProfileAndSession(existingP.getId(), selectedSessionId) != null) {
+                            reg.setDuplicate(true);
+                            reg.setValidationMessage("CCCD đã đăng ký kỳ thi này");
                         }
                     }
 
@@ -316,6 +335,7 @@ public class UploadServlet extends HttpServlet {
 
                 session.setAttribute("previewCandidates", parsedList);
                 session.setAttribute("hasInvalidRows", hasInvalidRows);
+                session.setAttribute("selectedImportExamLicense", examLicense);
                 response.sendRedirect("upload?preview=true");
                 return;
             }
@@ -345,6 +365,71 @@ public class UploadServlet extends HttpServlet {
         sessionAuditLogs.add(0, audit);
 
         Utils.AuditLogHelper.persist(session, action, details, recordId);
+    }
+
+    private static List<String> collectImportErrors(String legacySbd, String fullName, String dobStr,
+            String cccd, String csvLicense, String phone, String email, String examLicense) {
+        List<String> errors = new ArrayList<>();
+        if (legacySbd.isEmpty()) {
+            errors.add("Thiếu SBD/ID đăng ký (cột 1)");
+        }
+        if (fullName.isEmpty()) {
+            errors.add("Thiếu Họ và tên");
+        }
+        if (dobStr.isEmpty()) {
+            errors.add("Thiếu Ngày sinh");
+        } else if (!isParseableDateOfBirth(dobStr)) {
+            errors.add("Ngày sinh không đúng định dạng (DD/MM/YYYY)");
+        }
+        if (cccd.isEmpty()) {
+            errors.add("Thiếu CCCD");
+        }
+        if (csvLicense.isEmpty()) {
+            errors.add("Thiếu Hạng GPLX");
+        } else if (!licenseMatchesExam(csvLicense, examLicense)) {
+            errors.add("Hạng GPLX \"" + csvLicense + "\" không khớp kỳ thi (hạng " + examLicense + ")");
+        }
+        if (phone.isEmpty()) {
+            errors.add("Thiếu Số điện thoại");
+        }
+        if (email.isEmpty()) {
+            errors.add("Thiếu Email");
+        }
+        return errors;
+    }
+
+    private static boolean isParseableDateOfBirth(String dobStr) {
+        try {
+            parseDateOfBirth(dobStr);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static Date parseDateOfBirth(String dobStr) {
+        if (dobStr.contains("/")) {
+            String[] dp = dobStr.split("/");
+            if (dp.length != 3) {
+                throw new IllegalArgumentException("Invalid date");
+            }
+            return Date.valueOf(dp[2] + "-" + dp[1] + "-" + dp[0]);
+        }
+        return Date.valueOf(dobStr);
+    }
+
+    /** So khớp hạng CSV với hạng kỳ thi (B/B1/B2 cùng nhóm ô tô). */
+    private static boolean licenseMatchesExam(String csvLicense, String examLicense) {
+        String csv = csvLicense.toUpperCase().trim();
+        String exam = examLicense.toUpperCase().trim();
+        if (csv.equals(exam)) {
+            return true;
+        }
+        return isCarLicenseFamily(csv) && isCarLicenseFamily(exam);
+    }
+
+    private static boolean isCarLicenseFamily(String license) {
+        return "B".equals(license) || "B1".equals(license) || "B2".equals(license);
     }
 
     private boolean isValidUTF8(byte[] bytes) {

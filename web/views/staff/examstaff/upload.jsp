@@ -87,16 +87,21 @@
                 <form id="uploadForm" action="upload" method="POST" enctype="multipart/form-data"
                       style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
                     
-                    <!-- Target session selector -->
+                    <!-- Target exam selector (đồng bộ với phân bổ / phân bổ giám khảo) -->
                     <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
-                        <label for="examSessionId" style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
+                        <label for="examSessionId" style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn kỳ thi (hạng / ngày):</label>
                         <select id="examSessionId" name="examSessionId" style="height: 42px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #1e293b; outline: none; width: 100%; background: #ffffff; cursor: pointer;">
-                            <c:forEach var="sess" items="${requestScope.activeSessions}">
-                                <option value="${sess.id}" ${sessionScope.selectedImportSessionId eq sess.id ? 'selected' : ''}>
-                                    Ca #${sess.id} - ${sess.sessionName} (${sess.examDate} | Hạng ${sess.licenseCode})
+                            <c:forEach var="exam" items="${requestScope.examOptions}">
+                                <option value="${exam.id}" ${requestScope.selectedImportExamId eq exam.examId ? 'selected' : ''}>
+                                    Kỳ thi hạng ${exam.licenseCode} — <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/> (${exam.status})
                                 </option>
                             </c:forEach>
                         </select>
+                        <c:if test="${not empty requestScope.importExamLicense}">
+                            <span style="font-size: 0.75rem; color: #1d4ed8; font-weight: 600;">
+                                Hạng bằng kỳ thi: <strong>${requestScope.importExamLicense}</strong> — CSV phải khớp hạng này (B/B1/B2 được coi cùng nhóm).
+                            </span>
+                        </c:if>
                     </div>
 
                     <div class="upload-dropzone-container">
@@ -138,13 +143,13 @@
                     </h2>
                 </div>
                 
-                <p style="font-size: 0.82rem; color: #475569; margin-bottom: 1rem; line-height: 1.5;">Hệ thống hỗ trợ tệp tin CSV mã hóa UTF-8 phân tách bằng dấu phẩy, có tối thiểu 5 cột thông tin bắt buộc:</p>
+                <p style="font-size: 0.82rem; color: #475569; margin-bottom: 1rem; line-height: 1.5;">Tệp CSV UTF-8, phân tách dấu phẩy, <strong>đủ 7 cột bắt buộc</strong>. Hạng GPLX (cột 5) phải khớp hạng kỳ thi đã chọn.</p>
                 
                 <div style="display: flex; flex-direction: column;">
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 1</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">SBD cũ / ID đăng ký:</strong> Mã số ban đầu của thí sinh (được phép trống để tự tạo mới).
+                            <strong style="color: #0f172a;">SBD cũ / ID đăng ký:</strong> Mã từ PC08 (Bắt buộc, không được trống).
                         </div>
                     </div>
                     <div class="rule-item">
@@ -156,7 +161,7 @@
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 3</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Ngày sinh:</strong> Định dạng ngày sinh của học viên (DD/MM/YYYY).
+                            <strong style="color: #0f172a;">Ngày sinh:</strong> DD/MM/YYYY (Bắt buộc, đúng định dạng).
                         </div>
                     </div>
                     <div class="rule-item">
@@ -168,19 +173,19 @@
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 5</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Hạng thi đăng ký sát hạch (A1, A2, B2, C,...).
+                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Phải khớp hạng kỳ thi (A1↔A1, B/B1/B2↔B,...).
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 6</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Số điện thoại:</strong> Số điện thoại thí sinh (Tùy chọn).
+                            <strong style="color: #0f172a;">Số điện thoại:</strong> Số điện thoại thí sinh (Bắt buộc).
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 7</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Email:</strong> Hòm thư điện tử / Gmail thí sinh (Tùy chọn).
+                            <strong style="color: #0f172a;">Email:</strong> Hòm thư điện tử thí sinh (Bắt buộc).
                         </div>
                     </div>
                 </div>
@@ -202,7 +207,10 @@
                                 </svg>
                                 Bảng xem trước (${fn:length(sessionScope.previewCandidates)} thí sinh)
                             </h2>
-                            <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">Kiểm tra lại thông tin trước khi xác nhận lưu vào CSDL.</p>
+                            <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
+                                Kỳ thi: hạng <strong>${sessionScope.selectedImportExamLicense}</strong>.
+                                Chỉ lưu dòng khớp hạng kỳ thi và đủ 7 trường.
+                            </p>
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <a href="upload" class="btn-reset" style="height: 38px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569;">Hủy bỏ</a>
@@ -227,7 +235,7 @@
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                                 <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span>⚠️ Phát hiện một số dòng bị thiếu dữ liệu bắt buộc (Họ tên hoặc CCCD). Hệ thống khóa nút lưu cho tới khi sửa file nguồn.</span>
+                            <span>⚠️ Có dòng không đủ 7 trường hoặc hạng GPLX không khớp kỳ thi. Sửa file CSV rồi tải lại — nút Lưu bị khóa.</span>
                         </div>
                     </c:if>
 
@@ -291,17 +299,17 @@
                                         <td style="text-align: center;">
                                             <c:choose>
                                                 <c:when test="${c.invalid}">
-                                                    <span class="action-badge action-badge--danger" style="font-weight: 700;">THIẾU: ${c.validationMessage}</span>
+                                                    <span class="action-badge action-badge--danger" style="font-weight: 700; text-align: left; display: inline-block; max-width: 150px; line-height: 1.3;">KHÔNG HỢP LỆ: ${c.validationMessage}</span>
                                                 </c:when>
                                                 <c:when test="${c.duplicate}">
-                                                    <span class="action-badge action-badge--warning" style="font-weight: 700; margin-right: 4px;">TRÙNG</span>
+                                                    <span class="action-badge action-badge--warning" style="font-weight: 700; margin-right: 4px;">TRÙNG KỲ THI</span>
                                                     <select name="dupAction_${c.govIdNo}" style="font-size: 0.72rem; border-radius: 6px; padding: 2px 6px; height: 26px; border: 1.5px solid #f59e0b; background: #fff; font-weight: 700; color: #b45309; outline: none; cursor: pointer;">
                                                         <option value="overwrite">Ghi đè</option>
                                                         <option value="skip">Bỏ qua</option>
                                                     </select>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>
+                                                    <span class="action-badge action-badge--success" style="font-weight: 700;">KHỚP KỲ THI</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
