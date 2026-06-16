@@ -77,7 +77,7 @@ public class LoginServlet extends HttpServlet {
                 examinerSessionContext.refresh(session, user.getId());
                 response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
             } else if ("Admin".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
             } else {
                 response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
             }
