@@ -93,7 +93,7 @@
         </a>
 
         <%-- SC-034: Tạo tài khoản mới cho học viên --%>
-        <a href="${ctx}/views/staff/managingstaff/create-user.jsp"
+        <a href="${ctx}/manager/create-user"
            class="side-nav-bar__link${activeSidebar eq 'tao-tai-khoan' ? ' is-active' : ''}"
            data-node-id="manager:40"
            <c:if test="${activeSidebar eq 'tao-tai-khoan'}">aria-current="page"</c:if>>
