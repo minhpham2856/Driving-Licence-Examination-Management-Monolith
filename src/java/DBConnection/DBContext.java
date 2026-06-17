@@ -18,7 +18,7 @@ public class DBContext {
             String url = ConfigManager.get("DB_URL",
                     "jdbc:sqlserver://localhost:1433;databaseName=DLEM_DB_2;trustServerCertificate=true;sendStringParametersAsUnicode=true");
             String user = ConfigManager.get("DB_USER", "sa");
-            String pass = ConfigManager.get("DB_PASSWORD", "123"); // Đảm bảo pass SQL Server của bạn là 123
+            String pass = ConfigManager.get("DB_PASSWORD", "123");
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, user, pass);
         } catch (ClassNotFoundException | SQLException ex) {
