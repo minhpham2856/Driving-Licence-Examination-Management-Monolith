@@ -83,7 +83,7 @@
         </a>
 
         <%-- SC-072: Quản lý Phòng thi --%>
-        <a href="${ctx}/views/admin/exam-room.jsp"
+        <a href="${ctx}/admin/exam-room"
            class="side-nav-bar__link${activeSidebar eq 'phong-thi' ? ' is-active' : ''}"
            data-node-id="admin:30"
            <c:if test="${activeSidebar eq 'phong-thi'}">aria-current="page"</c:if>>
@@ -98,7 +98,7 @@
         </a>
 
         <%-- SC-073: Quản lý Máy thi --%>
-        <a href="${ctx}/views/admin/exam-computer.jsp"
+        <a href="${ctx}/admin/exam-computer"
            class="side-nav-bar__link${activeSidebar eq 'may-thi' ? ' is-active' : ''}"
            data-node-id="admin:40"
            <c:if test="${activeSidebar eq 'may-thi'}">aria-current="page"</c:if>>
