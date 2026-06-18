@@ -312,7 +312,7 @@ INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
 (N'456',N'Phạm Văn Cường',   '1990-07-07', N'0944556677', N'Nam', N'079012345682', N'56 Hai Bà Trưng, Hà Nội',                         1, NULL, 1, 1, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'hai.do'),    (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012351')),
 -- A1: thi lần đầu (lý thuyết + thực hành)
 (N'789',N'Hoàng Thị Mai',    '1999-11-30', N'0955667788', N'Nữ',  N'079012345683', N'34 Nguyễn Trãi, Hà Nội',                          1, 1,    NULL, NULL, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'kim.ngo'),   (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012352')),
--- B: ca lý thuyết đang thi (InProgress) — thêm cho examiner test
+-- B: ca lý thuyết đang thi (InProgress) - thêm cho examiner test
 (N'B-0048', N'Nguyễn Thị Hoa', '1997-05-14', N'0911004801', N'Nữ', N'079012345684', N'18 Hoàng Hoa Thám, Hà Nội',                     1, NULL, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi048.jpg', (SELECT UserId FROM [User] WHERE Username = N'thi048'), (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012354')),
 (N'B-0049', N'Trần Văn Khoa',  '1996-09-03', N'0911004901', N'Nam', N'079012345685', N'72 Cầu Giấy, Hà Nội',                           1, NULL, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi049.jpg', (SELECT UserId FROM [User] WHERE Username = N'thi049'), (SELECT ExamRegistrationId FROM ExamRegistration er JOIN Profile p ON er.ProfileId = p.ProfileId WHERE p.GovernmentIdNumber = N'001203012355'));
 GO
@@ -331,7 +331,7 @@ INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId) VALUES
 GO
 
 -- ============================================
--- 16b. THỦ TỤC + PHÒNG THI (ca Lý thuyết B — InProgress)
+-- 16b. THỦ TỤC + PHÒNG THI (ca Lý thuyết B - InProgress)
 -- ============================================
 UPDATE er
 SET RegistrationStatus = N'Present',
@@ -387,7 +387,7 @@ WHERE p.TransactionReference = N'TXN-20260520-001'
 GO
 
 -- ============================================
--- 18. THEORY PAPER (ca Lý thuyết B — InProgress)
+-- 18. THEORY PAPER (ca Lý thuyết B - InProgress)
 -- ============================================
 INSERT INTO TheoryPaper (ExamCandidateId, ExamDeviceId, StartedAt, SubmittedAt)
 SELECT ec.ExamCandidateId,
@@ -539,7 +539,7 @@ GO
 -- GO
 
 -- ============================================
--- QUICK PATCH — thí sinh ca Lý thuyết B (chạy riêng, không reseed toàn bộ)
+-- QUICK PATCH - thí sinh ca Lý thuyết B (chạy riêng, không reseed toàn bộ)
 -- ============================================
 -- UPDATE er SET RegistrationStatus = N'Present', Notes = N'AllocatedRoom:1:Phòng LT 1'
 -- FROM ExamRegistration er JOIN Candidate c ON c.ExamRegistrationId = er.ExamRegistrationId
