@@ -2,7 +2,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<%-- Fragment nhúng vào candidatecall.jsp — xử lý tại ProcedureServlet --%>
+<%-- Fragment nhúng vào candidatecall.jsp - xử lý tại ProcedureServlet --%>
 <div id="procedure-desk" class="procedure-desk-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0; scroll-margin-top: 1rem;">
     <header style="margin-bottom: 1.25rem;">
         <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 4px;">Bàn làm thủ tục</h2>
@@ -146,7 +146,7 @@
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung từ camera thực tế</h3>
-                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — bắt buộc chụp tại đây trước khi thu phí và in hồ sơ kết quả.</p>
+                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh - bắt buộc chụp tại đây trước khi thu phí và in hồ sơ kết quả.</p>
                             </div>
 
                             <c:if test="${not empty requestScope.photoRequiredMsg}">

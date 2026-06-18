@@ -522,7 +522,7 @@
                             <div class="rules-banner__content">
                                 <span class="rules-banner__title">Quy chế phòng sát hạch</span>
                                 <p class="rules-banner__desc">
-                                    Thí sinh xuất trình <strong>CCCD/CMND bản gốc</strong> và <strong>Thẻ dự thi này</strong> (bản in hoặc trên app) khi vào cửa. Vui lòng tập trung trước giờ thi tối thiểu 30 phút để nghe phổ biến nội quy phòng thi.
+                                    Thí sinh xuất trình <strong>Số căn cước bản gốc</strong> và <strong>Thẻ dự thi này</strong> (bản in hoặc trên app) khi vào cửa. Vui lòng tập trung trước giờ thi tối thiểu 30 phút để nghe phổ biến nội quy phòng thi.
                                 </p>
                             </div>
                         </div>
@@ -701,13 +701,13 @@
                                             </tr>
                                             <tr>
                                                 <td class="font-medium">Tổng điểm trừ phạt sa hình</td>
-                                                <td>—</td>
+                                                <td>-</td>
                                                 <td class="font-semibold text-red">-5 điểm</td>
                                                 <td><span class="table-badge table-badge--danger">Bị trừ điểm</span></td>
                                             </tr>
                                             <tr>
                                                 <td class="font-medium">Số lỗi sa hình ghi nhận</td>
-                                                <td>—</td>
+                                                <td>-</td>
                                                 <td class="font-semibold text-green">1 lỗi</td>
                                                 <td><span class="table-badge table-badge--success">Hợp lệ</span></td>
                                             </tr>

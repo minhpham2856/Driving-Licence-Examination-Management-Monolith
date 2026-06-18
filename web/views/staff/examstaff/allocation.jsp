@@ -199,7 +199,7 @@
                 <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
                     <c:set var="waitingCount" value="0" />
                     <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <%-- Phòng chờ: chưa hoàn tất thủ tục (ảnh + lệ phí), không bị đánh dấu vắng — đồng bộ với candidatecall.jsp --%>
+                        <%-- Phòng chờ: chưa hoàn tất thủ tục (ảnh + lệ phí), không bị đánh dấu vắng - đồng bộ với candidatecall.jsp --%>
                         <c:set var="procedureDone" value="${c.validCapturedPhoto and c.paymentCompleted}" />
                         <c:if test="${not procedureDone and c.notes ne 'Absent'}">
                             <c:set var="waitingCount" value="${waitingCount + 1}" />
@@ -362,7 +362,7 @@
                                 <h4 class="candidate-pipe-name">${c.name}</h4>
                                 <div class="candidate-pipe-details">
                                     Lý thuyết: <strong style="color: #10b981;">${c.theoryScore} (ĐẠT)</strong>
-                                    <c:if test="${not empty c.allocatedAreaName}"> — ${c.allocatedAreaName}</c:if>
+                                    <c:if test="${not empty c.allocatedAreaName}"> - ${c.allocatedAreaName}</c:if>
                                     <div style="color: #64748b; font-size: 0.72rem; margin-top: 4px; font-style: italic;">
                                         Thiết bị thi thực hành do Giám thị phân công
                                     </div>

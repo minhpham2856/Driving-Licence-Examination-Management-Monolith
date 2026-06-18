@@ -255,7 +255,7 @@
                                                 </div>
                                                 <div class="user-info">
                                                     <span class="user-name">${room.name}</span>
-                                                    <span class="user-username">Tầng ${empty room.floor ? '—' : room.floor}</span>
+                                                    <span class="user-username">Tầng ${empty room.floor ? '-' : room.floor}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -276,7 +276,7 @@
                                             </c:choose>
                                         </td>
                                         <td style="text-align: center;">
-                                            <span style="font-size: 1rem; font-weight: 700; color: #0f172a;">${empty room.capacity ? '—' : room.capacity}</span>
+                                            <span style="font-size: 1rem; font-weight: 700; color: #0f172a;">${empty room.capacity ? '-' : room.capacity}</span>
                                             <span style="font-size: 0.75rem; color: #64748b; display: block;">người</span>
                                         </td>
                                         <td style="text-align: center;">
@@ -286,7 +286,7 @@
                                                     <span style="font-size: 0.75rem; color: #64748b; display: block;">máy thi</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span style="color: #94a3b8; font-size: 0.85rem;">—</span>
+                                                    <span style="color: #94a3b8; font-size: 0.85rem;">-</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>

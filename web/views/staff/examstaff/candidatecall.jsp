@@ -524,7 +524,7 @@
          data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"
          data-ctx-path="${pageContext.request.contextPath}"
          data-sbd="${not empty requestScope.profile ? requestScope.profile.sbd : ''}"
-         data-msg-live="LIVE — Camera sẵn sàng"
+         data-msg-live="LIVE - Camera sẵn sàng"
          data-msg-starting="Đang khởi động camera..."
          data-msg-unavailable="Camera không khả dụng"
          data-msg-no-api="Trình duyệt không hỗ trợ camera. Dùng Chrome/Edge/Firefox trên localhost hoặc HTTPS."
