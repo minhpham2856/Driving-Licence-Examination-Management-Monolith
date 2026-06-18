@@ -1,70 +1,55 @@
 package Models;
 
+import java.sql.Timestamp;
+
+/**
+ * Maps to table ExamArea.
+ * Columns: ExamAreaId, AreaName, AreaType, Capacity, Location + audit fields.
+ */
 public class ExamArea {
-    private int id;
+
+    private int examAreaId;
     private String areaName;
-    private String areaType; // 'Room', 'Ground', 'Road'
+    private String areaType;   // e.g. "LÃ½ thuyáº¿t", "Thá»±c hÃ nh", "Há»—n há»£p"
     private int capacity;
     private String location;
-    private boolean isActive;
+    private Timestamp createdAt;
+    private Integer createdByUserId;
+    private Timestamp updatedAt;
+    private Integer updatedByUserId;
 
     public ExamArea() {
     }
 
-    public ExamArea(int id, String areaName, String areaType, int capacity, String location, boolean isActive) {
-        this.id = id;
-        this.areaName = areaName;
-        this.areaType = areaType;
-        this.capacity = capacity;
-        this.location = location;
-        this.isActive = isActive;
+    /** Display-only code, e.g. KV-0007 */
+    public String getCode() {
+        return String.format("KV-%04d", examAreaId);
     }
 
-    public int getId() {
-        return id;
-    }
+    public int getExamAreaId() { return examAreaId; }
+    public void setExamAreaId(int examAreaId) { this.examAreaId = examAreaId; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getAreaName() { return areaName; }
+    public void setAreaName(String areaName) { this.areaName = areaName; }
 
-    public String getAreaName() {
-        return areaName;
-    }
+    public String getAreaType() { return areaType; }
+    public void setAreaType(String areaType) { this.areaType = areaType; }
 
-    public void setAreaName(String areaName) {
-        this.areaName = areaName;
-    }
+    public int getCapacity() { return capacity; }
+    public void setCapacity(int capacity) { this.capacity = capacity; }
 
-    public String getAreaType() {
-        return areaType;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setAreaType(String areaType) {
-        this.areaType = areaType;
-    }
+    public Timestamp getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
 
-    public int getCapacity() {
-        return capacity;
-    }
+    public Integer getCreatedByUserId() { return createdByUserId; }
+    public void setCreatedByUserId(Integer createdByUserId) { this.createdByUserId = createdByUserId; }
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
+    public Timestamp getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean isActive) {
-        this.isActive = isActive;
-    }
+    public Integer getUpdatedByUserId() { return updatedByUserId; }
+    public void setUpdatedByUserId(Integer updatedByUserId) { this.updatedByUserId = updatedByUserId; }
 }

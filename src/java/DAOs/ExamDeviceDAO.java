@@ -4,9 +4,11 @@ import Models.ExamDevice;
 import java.util.List;
 
 public interface ExamDeviceDAO {
-    List<ExamDevice> getAvailableDevices(String typeFilter);
-    /** Lọc theo từ khóa loại thiết bị: 'xận may' hoặc 'o to' */
-    List<ExamDevice> getAvailableDevicesByCategory(String category);
-    List<ExamDevice> getDevicesByAreaId(int areaId);
-    boolean updateStatus(int id, String status);
+    List<ExamDevice> search(String keyword, Integer roomId, String status);
+    ExamDevice findById(int examDeviceId);
+    int insert(ExamDevice device);
+    boolean update(ExamDevice device);
+    boolean delete(int examDeviceId);
+    int countAll();
+    int countByStatus(String status);   // 'active' | 'maintenance' | 'broken'
 }

@@ -13,6 +13,14 @@ public final class ExamConstants {
     private ExamConstants() {
     }
 
+    // ===================== Roles =====================
+
+    public static final String ROLE_ADMIN = "Admin";
+    public static final String ROLE_EXAMINER = "Examiner";
+    public static final String ROLE_EXAM_STAFF = "ExamStaff";
+    public static final String ROLE_MANAGING_STAFF = "ManagingStaff";
+    public static final String ROLE_REGISTRANT = "Registrant";
+
     // ===================== Db2Mappings =====================
 
     public static final Map<String, Integer> ROLE_NAME_TO_ID = Map.of(

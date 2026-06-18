@@ -4,10 +4,10 @@ import Models.ExamArea;
 import java.util.List;
 
 public interface ExamAreaDAO {
-    List<ExamArea> getActiveTheoryRooms();
-    List<ExamArea> getAllActiveAreas();
-    List<ExamArea> getAreasBySessionId(int sessionId);
-    boolean isAreaInSession(int sessionId, int areaId);
-    ExamArea getById(int id);
-    ExamArea getAreaByComputerCode(String computerCode);
+    List<ExamArea> search(String keyword, String areaType);
+    ExamArea findById(int examAreaId);
+    int insert(ExamArea area);
+    boolean update(ExamArea area);
+    boolean delete(int examAreaId);
+    int countAll();
 }

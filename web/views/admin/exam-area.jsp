@@ -1,7 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -10,18 +11,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Khu vực thi - Lái Vui</title>
 
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- External Layout Stylesheets -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<%-- Inject the admin sidebar template --%>
 <jsp:include page="/views/layout/sidebar-admin.jsp">
     <jsp:param name="activeSidebar" value="khu-vuc" />
 </jsp:include>
@@ -29,29 +27,36 @@
 <div class="dashboard-shell">
     <main class="main-content">
 
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
+            <a href="${ctx}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/admin/dashboard.jsp">Quản trị</a>
+            <a href="${ctx}/admin/dashboard">Quản trị</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Khu vực thi</span>
         </nav>
 
-        <!-- Page Header -->
+        <c:if test="${not empty sessionScope.flashMessage}">
+            <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+                        background: ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};
+                        border: 1px solid ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'};
+                        color: ${sessionScope.flashType eq 'success' ? '#047857' : '#b91c1c'};">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 12.5l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                ${sessionScope.flashMessage}
+            </div>
+            <c:remove var="flashMessage" scope="session" />
+            <c:remove var="flashType" scope="session" />
+        </c:if>
+
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Quản lý Khu vực thi</h1>
-                <p class="page-subtitle">Quản lý danh sách khu vực sát hạch, thông tin địa chỉ và cơ sở trực thuộc trung tâm.</p>
+                <p class="page-subtitle">Quản lý danh sách khu vực sát hạch, loại khu vực, sức chứa và địa điểm chi tiết.</p>
             </div>
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Xuất Excel
-                </button>
-                <button class="btn-filter" id="btn-add-area" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none;">
+                <button type="button" class="btn-filter" onclick="openAreaModal()" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -60,7 +65,6 @@
             </div>
         </header>
 
-        <!-- Filter & Search Panel -->
         <section class="filter-panel" aria-label="Bộ lọc tìm kiếm">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,30 +72,20 @@
                 </svg>
                 Bộ lọc tìm kiếm
             </h2>
-            <form action="" method="GET">
-                <div class="filter-grid" style="grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;">
+            <form action="${ctx}/admin/exam-area" method="GET">
+                <div class="filter-grid" style="grid-template-columns: 2.5fr 1.5fr 1.5fr;">
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Tìm khu vực</label>
                         <input type="text" id="searchKeyword" name="searchKeyword" class="input-field"
-                               placeholder="Nhập tên hoặc mã khu vực..." value="${param.searchKeyword}">
+                               placeholder="Nhập tên khu vực hoặc địa điểm..." value="${param.searchKeyword}">
                     </div>
                     <div class="input-group">
-                        <label for="filterProvince" class="input-label">Tỉnh / Thành phố</label>
-                        <select id="filterProvince" name="filterProvince" class="input-field">
-                            <option value="">Tất cả tỉnh thành</option>
-                            <option value="HCM" ${param.filterProvince eq 'HCM' ? 'selected' : ''}>Hồ Chí Minh</option>
-                            <option value="HN" ${param.filterProvince eq 'HN' ? 'selected' : ''}>Hà Nội</option>
-                            <option value="DN" ${param.filterProvince eq 'DN' ? 'selected' : ''}>Đà Nẵng</option>
-                            <option value="BD" ${param.filterProvince eq 'BD' ? 'selected' : ''}>Bình Dương</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="filterStatus" class="input-label">Trạng thái</label>
-                        <select id="filterStatus" name="filterStatus" class="input-field">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="active" ${param.filterStatus eq 'active' ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="maintenance" ${param.filterStatus eq 'maintenance' ? 'selected' : ''}>Đang bảo trì</option>
-                            <option value="inactive" ${param.filterStatus eq 'inactive' ? 'selected' : ''}>Tạm dừng</option>
+                        <label for="filterType" class="input-label">Loại khu vực</label>
+                        <select id="filterType" name="filterType" class="input-field">
+                            <option value="">Tất cả loại</option>
+                            <option value="Lý thuyết" ${param.filterType eq 'Lý thuyết' ? 'selected' : ''}>Lý thuyết</option>
+                            <option value="Thực hành" ${param.filterType eq 'Thực hành' ? 'selected' : ''}>Thực hành</option>
+                            <option value="Hỗn hợp" ${param.filterType eq 'Hỗn hợp' ? 'selected' : ''}>Hỗn hợp</option>
                         </select>
                     </div>
                     <div class="input-group filter-grid__btn-col">
@@ -102,14 +96,13 @@
                                 </svg>
                                 Lọc
                             </button>
-                            <a href="${pageContext.request.contextPath}/views/admin/exam-area.jsp" class="btn-reset">Đặt lại</a>
+                            <a href="${ctx}/admin/exam-area" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>
             </form>
         </section>
 
-        <!-- Exam Areas Data Table -->
         <section class="log-card" aria-label="Danh sách khu vực thi">
             <header class="log-card-header">
                 <h2 class="log-card-title">
@@ -124,14 +117,6 @@
                         </span>
                     </c:if>
                 </h2>
-                <div class="log-card-actions">
-                    <button class="btn-export">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        </svg>
-                        In danh sách
-                    </button>
-                </div>
             </header>
 
             <div class="table-responsive">
@@ -141,10 +126,10 @@
                             <th scope="col" class="col-id">STT</th>
                             <th scope="col" style="width: 120px;">Mã khu vực</th>
                             <th scope="col">Tên khu vực thi</th>
-                            <th scope="col">Địa chỉ</th>
-                            <th scope="col" style="width: 130px; text-align: center;">Số phòng thi</th>
-                            <th scope="col" style="width: 130px; text-align: center;">Trạng thái</th>
-                            <th scope="col" style="text-align: center; width: 200px;">Thao tác</th>
+                            <th scope="col" style="width: 140px; text-align: center;">Loại</th>
+                            <th scope="col" style="width: 120px; text-align: center;">Sức chứa</th>
+                            <th scope="col">Địa điểm</th>
+                            <th scope="col" style="text-align: center; width: 160px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -163,44 +148,34 @@
                                                     </svg>
                                                 </div>
                                                 <div class="user-info">
-                                                    <span class="user-name">${area.name}</span>
-                                                    <span class="user-username">${area.province}</span>
+                                                    <span class="user-name">${area.areaName}</span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="details-cell">${area.address}</td>
                                         <td style="text-align: center;">
-                                            <span style="font-size: 1.1rem; font-weight: 700; color: #0f172a;">${area.roomCount}</span>
-                                            <span style="font-size: 0.8rem; color: #64748b; display: block;">phòng thi</span>
+                                            <span class="role-badge role-badge--coi">${area.areaType}</span>
                                         </td>
                                         <td style="text-align: center;">
-                                            <c:choose>
-                                                <c:when test="${area.status eq 'active'}">
-                                                    <span class="action-badge action-badge--success">Hoạt động</span>
-                                                </c:when>
-                                                <c:when test="${area.status eq 'maintenance'}">
-                                                    <span class="action-badge action-badge--warning">Bảo trì</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="action-badge action-badge--danger">Tạm dừng</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <span style="font-size: 1.1rem; font-weight: 700; color: #0f172a;">${area.capacity}</span>
+                                            <span style="font-size: 0.8rem; color: #64748b; display: block;">người</span>
                                         </td>
+                                        <td class="details-cell">${area.location}</td>
                                         <td>
                                             <div style="display: flex; gap: 6px; justify-content: center;">
-                                                <a href="${pageContext.request.contextPath}/views/admin/exam-room.jsp?areaId=${area.id}"
+                                                <button type="button"
                                                    class="btn-export"
-                                                   style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(0,82,204,0.25); color: #0052cc; text-decoration: none;">
-                                                    Xem phòng
-                                                </a>
-                                                <button class="btn-export"
-                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706;"
-                                                        onclick="editArea('${area.id}')">
+                                                   style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706; cursor: pointer;"
+                                                   data-id="${area.examAreaId}"
+                                                   data-name="${fn:escapeXml(area.areaName)}"
+                                                   data-type="${fn:escapeXml(area.areaType)}"
+                                                   data-capacity="${area.capacity}"
+                                                   data-location="${fn:escapeXml(area.location)}"
+                                                   onclick="openAreaModalEdit(this)">
                                                     Sửa
                                                 </button>
                                                 <button class="btn-export"
                                                         style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239,68,68,0.25); color: #dc2626;"
-                                                        onclick="deleteArea('${area.id}', '${area.name}')">
+                                                        onclick="deleteArea('${area.examAreaId}', '${fn:escapeXml(area.areaName)}')">
                                                     Xóa
                                                 </button>
                                             </div>
@@ -228,7 +203,6 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
             <footer class="pagination-footer">
                 <div class="pagination-info">
                     Hiển thị
@@ -236,12 +210,7 @@
                         <c:when test="${not empty examAreas}">1 - ${fn:length(examAreas)}</c:when>
                         <c:otherwise>0</c:otherwise>
                     </c:choose>
-                    trong tổng số
-                    <c:choose>
-                        <c:when test="${not empty totalAreas}">${totalAreas}</c:when>
-                        <c:otherwise>0</c:otherwise>
-                    </c:choose>
-                    khu vực
+                    trong tổng số ${empty totalAreas ? 0 : totalAreas} khu vực
                 </div>
                 <div class="pagination-nav">
                     <button class="page-btn page-btn--wide disabled" disabled>Trước</button>
@@ -253,23 +222,132 @@
 
     </main>
 
-    <%-- Inject the footer template --%>
     <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>
 </div>
 
-<script>
-    function editArea(areaId) {
-        // TODO: bind to Edit modal or servlet route
-        console.log('Edit area:', areaId);
+<%-- Hidden form for delete (POST) --%>
+<form id="deleteForm" action="${ctx}/admin/exam-area" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="id" id="deleteId">
+</form>
+
+<%-- ===== In-page modal: Thêm / Sửa khu vực thi ===== --%>
+<style>
+    .modal-overlay {
+        display: none; position: fixed; inset: 0; z-index: 1000;
+        background: rgba(15, 23, 42, 0.45);
+        align-items: flex-start; justify-content: center;
+        padding: 4vh 1rem; overflow-y: auto;
     }
+    .modal-overlay.is-open { display: flex; }
+    .modal-card {
+        width: 100%; max-width: 600px; background: #fff; border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+        font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+        animation: modalIn .18s ease-out;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+    .modal-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0;
+    }
+    .modal-head h3 { margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+    .modal-close {
+        border: none; background: transparent; font-size: 1.5rem; line-height: 1;
+        color: #94a3b8; cursor: pointer; padding: 0 4px;
+    }
+    .modal-close:hover { color: #0f172a; }
+    .modal-body { padding: 1.5rem; }
+    .modal-foot {
+        display: flex; gap: 12px; justify-content: flex-end;
+        padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0;
+    }
+</style>
+
+<div id="areaModal" class="modal-overlay" onclick="if(event.target===this)closeAreaModal()">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="areaModalTitle">
+        <form action="${ctx}/admin/exam-area?action=save" method="POST">
+            <div class="modal-head">
+                <h3 id="areaModalTitle">Thêm khu vực thi</h3>
+                <button type="button" class="modal-close" onclick="closeAreaModal()" aria-label="Đóng">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="examAreaId" id="m_examAreaId" value="">
+
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="m_areaName" class="input-label">Tên khu vực thi <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="m_areaName" name="areaName" class="input-field"
+                           placeholder="VD: Khu vực sát hạch trung tâm Hà Nội" required>
+                </div>
+
+                <div class="filter-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                    <div class="input-group">
+                        <label for="m_areaType" class="input-label">Loại khu vực <span style="color:#dc2626;">*</span></label>
+                        <select id="m_areaType" name="areaType" class="input-field" required>
+                            <option value="">-- Chọn loại --</option>
+                            <option value="Lý thuyết">Lý thuyết</option>
+                            <option value="Thực hành">Thực hành</option>
+                            <option value="Hỗn hợp">Hỗn hợp</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="m_capacity" class="input-label">Sức chứa (người) <span style="color:#dc2626;">*</span></label>
+                        <input type="number" id="m_capacity" name="capacity" class="input-field" min="1"
+                               placeholder="VD: 50" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="m_location" class="input-label">Địa điểm <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="m_location" name="location" class="input-field"
+                           placeholder="VD: Số 1 Đường Lê Lợi, Quận 1, TP.HCM" required>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn-reset" onclick="closeAreaModal()" style="height: 44px; padding: 0 1.5rem; display: inline-flex; align-items: center;">Hủy bỏ</button>
+                <button type="submit" class="btn-filter" style="height: 44px; padding: 0 1.5rem;">Lưu khu vực</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
     function deleteArea(areaId, areaName) {
         if (confirm('Bạn có chắc chắn muốn xóa khu vực "' + areaName + '"?\nThao tác này không thể hoàn tác.')) {
-            // TODO: bind to Delete servlet route
-            console.log('Delete area:', areaId);
+            document.getElementById('deleteId').value = areaId;
+            document.getElementById('deleteForm').submit();
         }
     }
+
+    function openAreaModal() {
+        document.getElementById('areaModalTitle').textContent = 'Thêm khu vực thi';
+        document.getElementById('m_examAreaId').value = '';
+        document.getElementById('m_areaName').value = '';
+        document.getElementById('m_areaType').value = '';
+        document.getElementById('m_capacity').value = '';
+        document.getElementById('m_location').value = '';
+        document.getElementById('areaModal').classList.add('is-open');
+    }
+
+    function openAreaModalEdit(btn) {
+        document.getElementById('areaModalTitle').textContent = 'Chỉnh sửa khu vực thi';
+        document.getElementById('m_examAreaId').value = btn.dataset.id;
+        document.getElementById('m_areaName').value = btn.dataset.name;
+        document.getElementById('m_areaType').value = btn.dataset.type;
+        document.getElementById('m_capacity').value = btn.dataset.capacity;
+        document.getElementById('m_location').value = btn.dataset.location;
+        document.getElementById('areaModal').classList.add('is-open');
+    }
+
+    function closeAreaModal() {
+        document.getElementById('areaModal').classList.remove('is-open');
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAreaModal();
+    });
 </script>
 
 </body>
