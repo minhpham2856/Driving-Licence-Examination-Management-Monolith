@@ -1,7 +1,7 @@
-package DAO;
+package DAOs;
 
-import Models.ExaminerAnswerStats;
-import Models.ExaminerPaperState;
+import DTOs.ExaminerAnswerStats;
+import DTOs.ExaminerPaperState;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,10 @@ public interface ExaminerSessionDataDAO {
     List<Map<String, Object>> findDevicesBySessionId(int sessionId);
 
     List<Map<String, Object>> findScoreDeductions();
+
+    List<Map<String, Object>> findScoreDeductionsBySectionId(int examSectionId);
+
+    Integer findExamSectionIdForSession(int sessionId);
 
     Map<String, Object> findSessionExportMeta(int sessionId);
 

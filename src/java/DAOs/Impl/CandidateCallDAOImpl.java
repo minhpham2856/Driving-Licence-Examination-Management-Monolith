@@ -1,8 +1,8 @@
-package DAO.Impl;
+package DAOs.Impl;
 
 import DBConnection.DBContext;
-import DAO.CandidateCallDAO;
-import Models.CandidateCall;
+import DAOs.CandidateCallDAO;
+import DTOs.CandidateCall;
 import java.sql.*;
 
 public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO {

@@ -1,6 +1,6 @@
-package DAO;
+package DAOs;
 
-import Models.TheoryPaperAnswer;
+import DTOs.TheoryPaperAnswer;
 import java.util.List;
 
 public interface TheoryPaperDAO {

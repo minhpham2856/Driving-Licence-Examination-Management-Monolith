@@ -1,8 +1,8 @@
-package DAO.Impl;
+package DAOs.Impl;
 
-import Constants.Db2Mappings;
+import Utils.ExamConstants;
 import DBConnection.DBContext;
-import DAO.UserDAO;
+import DAOs.UserDAO;
 import Models.Profile;
 import Models.Role;
 import Models.User;
@@ -23,7 +23,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	u.Username,
                      	u.Email,
                      	u.PasswordHash,
-                     	u.[Role],
+                     	r.RoleName as [Role],
                      	u.[Status],
                      	p.ProfileId,
                      	p.FullName,
@@ -33,6 +33,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	p.GovernmentIdNumber,
                      	p.Address
                      from [User] u
+                     join [Role] r on r.RoleId = u.RoleId
                      left join Profile p on p.UserId = u.UserId
                      """;
 
@@ -129,17 +130,20 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
 
         String sql = """
-                     insert into [User] (Username, Email, PasswordHash, [Role], [Status])
+                     insert into [User] (Username, Email, PasswordHash, RoleId, [Status])
                      values (?, ?, ?, ?, ?)
                      """;
 
-        String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
+        int roleId = user.getRole() != null ? user.getRole().getId() : user.getRoleId();
+        if (roleId <= 0) {
+            roleId = ExamConstants.roleIdFromName("Registrant");
+        }
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
-            ps.setString(4, roleName);
+            ps.setInt(4, roleId);
             ps.setBoolean(5, user.isIsActive());
 
             if (ps.executeUpdate() == 0) {
@@ -194,7 +198,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setProfileId(profileId);
 
         String roleName = rs.getString("Role");
-        Role role = Db2Mappings.roleFromName(roleName);
+        Role role = ExamConstants.roleFromName(roleName);
         user.setRole(role);
         user.setRoleId(role.getId());
 
@@ -203,11 +207,11 @@ public class UserDAOImpl extends DBContext implements UserDAO {
             profile.setId(profileId);
             profile.setUserId(rs.getInt("UserId"));
             profile.setFullName(rs.getString("FullName"));
-            profile.setDateOfBirth(rs.getDate("DateOfBirth"));
+            profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
             profile.setPhoneNo(rs.getString("PhoneNumber"));
             profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
             profile.setAddress(rs.getString("Address"));
-            profile.setGender(Db2Mappings.genderFromSex(rs.getString("Sex")));
+            profile.setGender(ExamConstants.genderFromSex(rs.getString("Sex")));
             user.setProfile(profile);
         }
 

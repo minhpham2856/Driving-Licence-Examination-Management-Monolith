@@ -1,7 +1,7 @@
-package DAO;
+package DAOs;
 
 import Controllers.Staff.ExamStaff.ExaminerSlot;
-import Models.User;
+import DTOs.UserDTO;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface ExaminerAssignmentDAO {
 
-    List<User> getActiveExaminers();
+    List<UserDTO> getActiveExaminers();
     boolean assign(ExaminerSlot slot);
     boolean remove(String slotKey);
     List<ExaminerSlot> getBySessionId(int sessionId);

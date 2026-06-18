@@ -1,8 +1,8 @@
-package DAO.Impl;
+package DAOs.Impl;
 
 import DBConnection.DBContext;
-import DAO.ExamSessionDAO;
-import Models.ExamSession;
+import DAOs.ExamSessionDAO;
+import DTOs.SessionDTO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +52,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             """;
 
     @Override
-    public ExamSession getById(int id) {
+    public SessionDTO getById(int id) {
         String sql = SESSION_SELECT + " WHERE s.SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -68,8 +68,8 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
-    public List<ExamSession> getActiveSessions() {
-        List<ExamSession> list = new ArrayList<>();
+    public List<SessionDTO> getActiveSessions() {
+        List<SessionDTO> list = new ArrayList<>();
         String sql = SESSION_SELECT
                 + " WHERE s.[Status] IN ('Scheduled', 'Open', 'InProgress')"
                 + " ORDER BY CAST(s.StartTime AS DATE), CAST(s.StartTime AS TIME)";
@@ -85,8 +85,8 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
-    public List<ExamSession> getAllSessions() {
-        List<ExamSession> list = new ArrayList<>();
+    public List<SessionDTO> getAllSessions() {
+        List<SessionDTO> list = new ArrayList<>();
         String sql = SESSION_SELECT
                 + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC";
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
@@ -101,8 +101,8 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
-    public List<ExamSession> getSessionsByExamDate(Date examDate) {
-        List<ExamSession> list = new ArrayList<>();
+    public List<SessionDTO> getSessionsByExamDate(Date examDate) {
+        List<SessionDTO> list = new ArrayList<>();
         String sql = SESSION_SELECT + " WHERE CAST(s.StartTime AS DATE) = ? ORDER BY CAST(s.StartTime AS TIME)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setDate(1, examDate);
@@ -130,8 +130,8 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return false;
     }
 
-    private ExamSession mapResultSetToExamSession(ResultSet rs) throws SQLException {
-        ExamSession es = new ExamSession();
+    private SessionDTO mapResultSetToExamSession(ResultSet rs) throws SQLException {
+        SessionDTO es = new SessionDTO();
         es.setId(rs.getInt("id"));
         es.setSessionName(rs.getString("sessionName"));
         es.setLicenseTypeId(rs.getInt("licenseTypeId"));

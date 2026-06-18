@@ -1,7 +1,7 @@
-package DAO.Impl;
+package DAOs.Impl;
 
 import DBConnection.DBContext;
-import DAO.PaymentDAO;
+import DAOs.PaymentDAO;
 import Models.Payment;
 import java.sql.*;
 
@@ -14,7 +14,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 VALUES (?, ?, ?, ?, GETDATE(), ?, ?)
                 """;
         try {
-            int examId = resolveExamId(payment.getExamRegistrationId());
+            int examId = resolveExamId(payment.getCandidateId());
             if (examId <= 0) {
                 return false;
             }
@@ -26,8 +26,8 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 } else {
                     ps.setString(3, payment.getTransactionReference());
                 }
-                ps.setDouble(4, payment.getAmount());
-                ps.setInt(5, payment.getExamRegistrationId());
+                ps.setDouble(4, payment.getTotalAmount());
+                ps.setInt(5, payment.getCandidateId());
                 ps.setInt(6, examId);
                 int affected = ps.executeUpdate();
                 if (affected > 0) {
