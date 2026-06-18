@@ -1,24 +1,24 @@
 package Services.Impl;
 
-import Constants.AuditEntityLabels;
-import Constants.CandidateSectionStatus;
-import Constants.ExamSectionType;
-import Constants.ViolationReasonCodes;
+import Utils.ExamConstants;
+import Utils.ExamConstants.SectionType;
 import Controllers.Examiner.ExaminerScoreEntryQueue;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
-import DAO.AuditLogDAO;
-import DAO.ExamRegistrationDAO;
-import DAO.ExaminerSessionDataDAO;
-import DAO.TheoryPaperDAO;
-import DAO.Impl.AuditLogDAOImpl;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.Impl.ExaminerSessionDataDAOImpl;
-import DAO.Impl.TheoryPaperDAOImpl;
-import Models.AuditLog;
-import Models.ExamRegistration;
-import Models.ExaminerAnswerStats;
-import Models.ExaminerPaperState;
-import Models.TheoryPaperAnswer;
+import DAOs.AuditLogDAO;
+import DAOs.ExamCandidateVehicleDAO;
+import DAOs.CandidateDAO;
+import DAOs.ExaminerSessionDataDAO;
+import DAOs.TheoryPaperDAO;
+import DAOs.Impl.AuditLogDAOImpl;
+import DAOs.Impl.ExamCandidateVehicleDAOImpl;
+import DAOs.Impl.CandidateDAOImpl;
+import DAOs.Impl.ExaminerSessionDataDAOImpl;
+import DAOs.Impl.TheoryPaperDAOImpl;
+import DTOs.AuditDTO;
+import DTOs.CandidateDTO;
+import DTOs.ExaminerAnswerStats;
+import DTOs.ExaminerPaperState;
+import DTOs.TheoryPaperAnswer;
 import Services.ExaminerSessionContextService;
 import Services.ExaminerViewDataService;
 import Utils.AuditLogViewHelper;
@@ -42,10 +42,11 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     private static final int THEORY_PASS_CORRECT = 32;
     private static final int THEORY_MAX_QUESTIONS = 35;
 
-    private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
+    private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
     private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
+    private final ExamCandidateVehicleDAO vehicleDAO = new ExamCandidateVehicleDAOImpl();
 
     @Override
     public void attachToRequest(HttpServletRequest request, int sessionId, String sbdParam) {
@@ -54,8 +55,8 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     @Override
     public void attachToRequest(HttpServletRequest request, int sessionId, String sbdParam, String searchQuery) {
-        registrationDAO.syncSectionStatusesForSession(sessionId);
-        List<ExamRegistration> registrations = registrationDAO.getCandidatesBySession(sessionId);
+        candidateDAO.syncSectionStatusesForSession(sessionId);
+        List<CandidateDTO> registrations = candidateDAO.getCandidatesBySession(sessionId);
         Map<Integer, ExaminerPaperState> paperStates = sessionDataDAO.findPaperStatesBySessionId(sessionId);
         Map<Integer, ExaminerAnswerStats> answerStats = sessionDataDAO.findAnswerStatsBySessionId(sessionId);
         String examCode = sessionDataDAO.findExamCodeBySessionId(sessionId);
@@ -68,7 +69,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         request.setAttribute("sortBy", sortSpec.getColumn());
         request.setAttribute("sortDir", sortSpec.isAscending() ? "asc" : "desc");
 
-        ExamSectionType sectionType = resolveSectionType(request);
+        SectionType sectionType = resolveSectionType(request);
         String sectionName = resolveSectionName(request);
 
         List<Map<String, Object>> candidates = new ArrayList<>();
@@ -78,7 +79,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         int passed = 0;
         int failed = 0;
 
-        for (ExamRegistration reg : registrations) {
+        for (CandidateDTO reg : registrations) {
             if (search != null && !matchesCandidateSearch(reg, search)) {
                 continue;
             }
@@ -97,7 +98,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             }
             if (Boolean.TRUE.equals(row.get("passed"))) {
                 passed++;
-            } else if ("done".equals(status) && !"—".equals(row.get("resultLabel"))) {
+            } else if ("done".equals(status) && !"-".equals(row.get("resultLabel"))) {
                 failed++;
             }
         }
@@ -109,7 +110,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         Map<String, Object> selected = resolveCandidate(candidates, registrations, sessionId, sbdParam,
                 paperStates, answerStats, sectionType, sectionName);
         if (selected == null && sbdParam != null && !sbdParam.isBlank()) {
-            ExamRegistration reg = findRegistration(sessionId, sbdParam);
+            CandidateDTO reg = findRegistration(sessionId, sbdParam);
             if (reg != null) {
                 selected = toViewRow(reg, paperStates.get(reg.getId()), answerStats.get(reg.getId()),
                         sectionType, sectionName);
@@ -122,18 +123,18 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     @Override
     public List<Map<String, Object>> loadCandidateRows(int sessionId) {
-        return loadCandidateRows(sessionId, ExamSectionType.THEORY, null);
+        return loadCandidateRows(sessionId, SectionType.THEORY, null);
     }
 
     @Override
-    public List<Map<String, Object>> loadCandidateRows(int sessionId, ExamSectionType sectionType,
+    public List<Map<String, Object>> loadCandidateRows(int sessionId, SectionType sectionType,
             String sectionName) {
-        registrationDAO.syncSectionStatusesForSession(sessionId);
-        List<ExamRegistration> registrations = registrationDAO.getCandidatesBySession(sessionId);
+        candidateDAO.syncSectionStatusesForSession(sessionId);
+        List<CandidateDTO> registrations = candidateDAO.getCandidatesBySession(sessionId);
         Map<Integer, ExaminerPaperState> paperStates = sessionDataDAO.findPaperStatesBySessionId(sessionId);
         Map<Integer, ExaminerAnswerStats> answerStats = sessionDataDAO.findAnswerStatsBySessionId(sessionId);
         List<Map<String, Object>> candidates = new ArrayList<>();
-        for (ExamRegistration reg : registrations) {
+        for (CandidateDTO reg : registrations) {
             candidates.add(toViewRow(reg, paperStates.get(reg.getId()), answerStats.get(reg.getId()),
                     sectionType, sectionName));
         }
@@ -141,7 +142,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     @Override
-    public Map<String, Object> buildCandidateSummary(int sessionId, ExamSectionType sectionType,
+    public Map<String, Object> buildCandidateSummary(int sessionId, SectionType sectionType,
             String sectionName) {
         List<Map<String, Object>> candidates = loadCandidateRows(sessionId, sectionType, sectionName);
         String examCode = sessionDataDAO.findExamCodeBySessionId(sessionId);
@@ -161,7 +162,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             }
             if (Boolean.TRUE.equals(row.get("passed"))) {
                 passed++;
-            } else if ("done".equals(status) && !"—".equals(row.get("resultLabel"))) {
+            } else if ("done".equals(status) && !"-".equals(row.get("resultLabel"))) {
                 failed++;
             }
         }
@@ -186,11 +187,11 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         request.setAttribute("searchQuery", search != null ? search : "");
         request.setAttribute("searchActive", search != null);
 
-        List<AuditLog> logs = auditLogDAO.getLogsForSessionPaginated(sessionId, page, AUDIT_PAGE_SIZE, search);
+        List<AuditDTO> logs = auditLogDAO.getLogsForSessionPaginated(sessionId, page, AUDIT_PAGE_SIZE, search);
         int total = auditLogDAO.getLogsCountForSession(sessionId, search);
         Map<Integer, String> sbdByRecordId = buildSbdLookup(sessionId);
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (AuditLog log : logs) {
+        for (AuditDTO log : logs) {
             for (Map<String, Object> row : AuditLogViewHelper.toViewRows(log, sbdByRecordId)) {
                 Timestamp changedAt = log.getChangedAt();
                 if (changedAt != null) {
@@ -201,8 +202,8 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
                         row.put("date", DATE_FMT.format(changedAt));
                     }
                 } else {
-                    row.put("time", "—");
-                    row.put("date", "—");
+                    row.put("time", "-");
+                    row.put("date", "-");
                 }
                 rows.add(row);
             }
@@ -217,17 +218,17 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     @Override
     public void attachScoreEntry(HttpServletRequest request, int sessionId, String sbdParam) {
         HttpSession httpSession = request.getSession(false);
-        ExamSectionType sectionType = resolveSectionType(request);
+        SectionType sectionType = resolveSectionType(request);
         String sectionName = resolveSectionName(request);
 
-        List<ExamRegistration> registrations = registrationDAO.getCandidatesBySession(sessionId);
+        List<CandidateDTO> registrations = candidateDAO.getCandidatesBySession(sessionId);
         Map<Integer, ExaminerPaperState> paperStates = sessionDataDAO.findPaperStatesBySessionId(sessionId);
         Map<Integer, ExaminerAnswerStats> answerStats = sessionDataDAO.findAnswerStatsBySessionId(sessionId);
 
         List<String> eligibleSbds = new ArrayList<>();
         Map<String, Map<String, Object>> rowBySbd = new LinkedHashMap<>();
 
-        for (ExamRegistration reg : registrations) {
+        for (CandidateDTO reg : registrations) {
             if (!isScoreQueueEligibleInternal(sessionId, reg, sectionType, sectionName)) {
                 continue;
             }
@@ -266,28 +267,145 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
         request.setAttribute("scoreQueue", scoreQueue);
         request.setAttribute("scoreQueueTotal", scoreQueue.size());
-        request.setAttribute("scoreDeductions", sessionDataDAO.findScoreDeductions());
+
+        String licenceClass = resolveLicenceClass(registrations);
+        request.setAttribute("licenceClass", licenceClass);
+
+        List<Map<String, Object>> sessionDevices = buildSessionDevices(sessionId, licenceClass, true);
+        List<Integer> availableDeviceIds = new ArrayList<>();
+        for (Map<String, Object> device : sessionDevices) {
+            String status = device.get("status") != null ? String.valueOf(device.get("status")) : "";
+            if ("Available".equalsIgnoreCase(status) || "Operational".equalsIgnoreCase(status)) {
+                Object idObj = device.get("id");
+                if (idObj instanceof Number) {
+                    availableDeviceIds.add(((Number) idObj).intValue());
+                }
+            }
+        }
+
+        Map<String, Integer> sbdToCandidateId = new LinkedHashMap<>();
+        for (CandidateDTO reg : registrations) {
+            sbdToCandidateId.put(reg.getSbd(), reg.getId());
+        }
+        List<Integer> candidateIdsInOrder = new ArrayList<>();
+        for (String sbd : queueOrder) {
+            Integer candidateId = sbdToCandidateId.get(sbd);
+            if (candidateId != null) {
+                candidateIdsInOrder.add(candidateId);
+            }
+        }
+        if (!availableDeviceIds.isEmpty()) {
+            vehicleDAO.syncRoundRobinAssignments(sessionId, candidateIdsInOrder, availableDeviceIds);
+        }
+
+        Map<Integer, Map<String, Object>> assignments = vehicleDAO.findAssignmentDetailsBySession(sessionId);
+        for (Map<String, Object> row : scoreQueue) {
+            attachVehicleToQueueRow(row, sbdToCandidateId, assignments);
+        }
+        request.setAttribute("sessionVehicles", sessionDevices);
+
+        Integer examSectionId = sessionDataDAO.findExamSectionIdForSession(sessionId);
+        List<Map<String, Object>> scoreDeductions = examSectionId != null
+                ? sessionDataDAO.findScoreDeductionsBySectionId(examSectionId)
+                : sessionDataDAO.findScoreDeductions();
+        request.setAttribute("examSectionId", examSectionId);
+
+        CandidateDTO activeReg = null;
+        if (activeSbd != null) {
+            for (CandidateDTO reg : registrations) {
+                if (activeSbd.equals(reg.getSbd())) {
+                    activeReg = reg;
+                    break;
+                }
+            }
+        }
+
+        Map<Integer, Map<String, Object>> appliedById = new LinkedHashMap<>();
+        boolean scoreDisqualified = false;
+        double displayScore = 100;
+        if (activeReg != null && examSectionId != null) {
+            for (Map<String, Object> applied : candidateDAO.findAppliedScoreDeductions(
+                    activeReg.getId(), sessionId)) {
+                Object idObj = applied.get("id");
+                if (idObj instanceof Integer) {
+                    Integer id = (Integer) idObj;
+                    appliedById.put(id, applied);
+                    if (Boolean.TRUE.equals(applied.get("critical"))) {
+                        scoreDisqualified = true;
+                    }
+                }
+            }
+            Integer sectionScore = resolveScoreForSection(activeReg, sectionName);
+            if (sectionScore != null) {
+                displayScore = sectionScore;
+                scoreDisqualified = sectionScore <= 0;
+            } else if (scoreDisqualified) {
+                displayScore = 0;
+            } else {
+                for (Map<String, Object> applied : appliedById.values()) {
+                    if (Boolean.TRUE.equals(applied.get("critical"))) {
+                        continue;
+                    }
+                    int count = 0;
+                    Object countObj = applied.get("occurrenceCount");
+                    if (countObj instanceof Number) {
+                        count = ((Number) countObj).intValue();
+                    }
+                    double points = 0;
+                    Object pointsObj = applied.get("points");
+                    if (pointsObj instanceof Number) {
+                        points = ((Number) pointsObj).doubleValue();
+                    }
+                    displayScore -= points * count;
+                }
+                displayScore = Math.max(0, displayScore);
+            }
+        }
+
+        for (Map<String, Object> deduction : scoreDeductions) {
+            Object idObj = deduction.get("id");
+            if (idObj instanceof Integer) {
+                Integer id = (Integer) idObj;
+                if (appliedById.containsKey(id)) {
+                    Map<String, Object> applied = appliedById.get(id);
+                    deduction.put("occurrenceCount", applied.get("occurrenceCount"));
+                    deduction.put("recordedAt", applied.get("recordedAt"));
+                } else {
+                    deduction.put("occurrenceCount", 0);
+                    deduction.put("recordedAt", null);
+                }
+            } else {
+                deduction.put("occurrenceCount", 0);
+                deduction.put("recordedAt", null);
+            }
+        }
+        request.setAttribute("scoreDeductions", scoreDeductions);
+        request.setAttribute("scoreDisqualified", scoreDisqualified);
+        request.setAttribute("currentScore", displayScore);
 
         if (activeSbd != null && rowBySbd.containsKey(activeSbd)) {
             Map<String, Object> selected = new LinkedHashMap<>(rowBySbd.get(activeSbd));
             selected.put("status", "testing");
             selected.put("statusLabel", "Đang thi");
+            attachVehicleToQueueRow(selected, sbdToCandidateId, assignments);
             request.setAttribute("candidate", selected);
+            Object vehicleId = selected.get("vehicleId");
+            request.setAttribute("candidateVehicleId", vehicleId);
         }
     }
 
     @Override
-    public boolean isScoreQueueEligible(int sessionId, ExamRegistration reg,
-            ExamSectionType sectionType, String sectionName) {
+    public boolean isScoreQueueEligible(int sessionId, CandidateDTO reg,
+            SectionType sectionType, String sectionName) {
         return isScoreQueueEligibleInternal(sessionId, reg, sectionType, sectionName);
     }
 
-    private boolean isScoreQueueEligibleInternal(int sessionId, ExamRegistration reg,
-            ExamSectionType sectionType, String sectionName) {
+    private boolean isScoreQueueEligibleInternal(int sessionId, CandidateDTO reg,
+            SectionType sectionType, String sectionName) {
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return false;
         }
-        if (sectionType != ExamSectionType.SCORE_BASED) {
+        if (sectionType != SectionType.SCORE_BASED) {
             return false;
         }
         Integer sectionScore = resolveScoreForSection(reg, sectionName);
@@ -304,7 +422,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         return "passed".equalsIgnoreCase(reg.getTheoryPassed());
     }
 
-    private static Map<String, Object> toScoreQueueRow(ExamRegistration reg) {
+    private static Map<String, Object> toScoreQueueRow(CandidateDTO reg) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("sbd", reg.getSbd());
         row.put("fullName", nullToDash(reg.getFullName()));
@@ -318,7 +436,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     public void attachViolation(HttpServletRequest request, int sessionId, String sbdParam) {
         attachToRequest(request, sessionId, sbdParam, null);
         request.setAttribute("scoreDeductions", sessionDataDAO.findScoreDeductions());
-        request.setAttribute("violationReasons", ViolationReasonCodes.asOptionList());
+        request.setAttribute("violationReasons", ExamConstants.violationOptionList());
         if (sbdParam == null || sbdParam.isBlank()) {
             request.setAttribute("candidateViolations", List.of());
             return;
@@ -338,22 +456,24 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         request.setAttribute("searchQuery", search != null ? search : "");
         request.setAttribute("searchActive", search != null);
 
-        List<Map<String, Object>> all = sessionDataDAO.findDevicesBySessionId(sessionId);
-        List<Map<String, Object>> computers = new ArrayList<>();
-        for (Map<String, Object> device : all) {
-            if (isComputerDevice(device)) {
-                computers.add(device);
-            }
-        }
+        SectionType sectionType = resolveSectionType(request);
+        String licenceClass = resolveLicenceClass(candidateDAO.getCandidatesBySession(sessionId));
+        request.setAttribute("licenceClass", licenceClass);
+        boolean scoreBased = sectionType == SectionType.SCORE_BASED;
+        request.setAttribute("devicesAreVehicles", scoreBased);
+        request.setAttribute("devicesTitle", scoreBased ? "Xe thi" : "Máy thi");
+        request.setAttribute("devicesUnit", scoreBased ? "xe" : "máy");
+
+        List<Map<String, Object>> sessionDevices = buildSessionDevices(sessionId, licenceClass, scoreBased);
 
         if (search == null) {
-            request.setAttribute("devices", computers);
+            request.setAttribute("devices", sessionDevices);
             return;
         }
 
         List<Map<String, Object>> filtered = new ArrayList<>();
         String needle = search.toLowerCase();
-        for (Map<String, Object> device : computers) {
+        for (Map<String, Object> device : sessionDevices) {
             if (matchesDeviceSearch(device, needle)) {
                 filtered.add(device);
             }
@@ -361,16 +481,60 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         request.setAttribute("devices", filtered);
     }
 
-    private static boolean isComputerDevice(Map<String, Object> device) {
-        Object type = device.get("type");
-        if (type == null) {
-            return false;
+    private List<Map<String, Object>> buildSessionDevices(int sessionId, String licenceClass, boolean vehiclesOnly) {
+        List<Map<String, Object>> all = sessionDataDAO.findDevicesBySessionId(sessionId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> device : all) {
+            String type = device.get("type") != null ? String.valueOf(device.get("type")) : "";
+            boolean include = vehiclesOnly
+                    ? ExamConstants.isVehicle(type)
+                            && ExamConstants.matchesLicence(licenceClass, type)
+                    : ExamConstants.isComputer(type);
+            if (include) {
+                ExamConstants.enrichDeviceRow(device, licenceClass);
+                result.add(device);
+            }
         }
-        return "computer".equalsIgnoreCase(String.valueOf(type).trim());
+        return result;
+    }
+
+    private static String resolveLicenceClass(List<CandidateDTO> registrations) {
+        if (registrations == null || registrations.isEmpty()) {
+            return "B";
+        }
+        String licence = registrations.get(0).getLicenseCode();
+        return licence != null && !licence.isBlank() ? licence.trim() : "B";
+    }
+
+    private static void attachVehicleToQueueRow(Map<String, Object> row,
+            Map<String, Integer> sbdToCandidateId,
+            Map<Integer, Map<String, Object>> assignments) {
+        if (row == null || sbdToCandidateId == null || assignments == null) {
+            return;
+        }
+        Object sbdObj = row.get("sbd");
+        if (sbdObj == null) {
+            return;
+        }
+        Integer candidateId = sbdToCandidateId.get(String.valueOf(sbdObj));
+        if (candidateId == null) {
+            return;
+        }
+        Map<String, Object> vehicle = assignments.get(candidateId);
+        if (vehicle == null) {
+            row.put("vehicleName", "-");
+            row.put("vehicleIcon", ExamConstants.iconFor(null));
+            row.put("vehicleId", null);
+            return;
+        }
+        String type = vehicle.get("type") != null ? String.valueOf(vehicle.get("type")) : null;
+        row.put("vehicleName", vehicle.get("name") != null ? vehicle.get("name") : "-");
+        row.put("vehicleIcon", ExamConstants.iconFor(type));
+        row.put("vehicleId", vehicle.get("deviceId"));
     }
 
     @Override
-    public boolean isCallEligible(int sessionId, ExamRegistration reg, ExamSectionType sectionType,
+    public boolean isCallEligible(int sessionId, CandidateDTO reg, SectionType sectionType,
             String sectionName) {
         if (reg == null || reg.isAbsent() || reg.isSuspended()) {
             return false;
@@ -382,12 +546,12 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         return Boolean.TRUE.equals(row.get("callEligible"));
     }
 
-    private static ExamSectionType resolveSectionType(HttpServletRequest request) {
+    private static SectionType resolveSectionType(HttpServletRequest request) {
         Object value = request.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
-        if (value instanceof ExamSectionType) {
-            return (ExamSectionType) value;
+        if (value instanceof SectionType) {
+            return (SectionType) value;
         }
-        return ExamSectionType.THEORY;
+        return SectionType.THEORY;
     }
 
     private static String resolveSectionName(HttpServletRequest request) {
@@ -416,6 +580,10 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         int correctCount = 0;
         int wrongCount = 0;
         int unansweredCount = 0;
+        String filter = request.getParameter("filter");
+        if (filter == null || filter.isEmpty()) {
+            filter = "all";
+        }
         for (TheoryPaperAnswer answer : answers) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("questionNo", answer.getQuestionNo());
@@ -425,23 +593,49 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             boolean unanswered = isUnanswered(answer.getStudentAnswer());
             row.put("unanswered", unanswered);
             row.put("correct", !unanswered && answer.isCorrect());
+            String answerStatus;
             if (unanswered) {
-                row.put("answerStatus", "unanswered");
+                answerStatus = "unanswered";
                 unansweredCount++;
             } else if (answer.isCorrect()) {
-                row.put("answerStatus", "correct");
+                answerStatus = "correct";
                 correctCount++;
             } else {
-                row.put("answerStatus", "wrong");
+                answerStatus = "wrong";
                 wrongCount++;
             }
-            paperAnswers.add(row);
+            row.put("answerStatus", answerStatus);
+            if ("all".equals(filter) || filter.equals(answerStatus)) {
+                paperAnswers.add(row);
+            }
         }
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("correctCount", correctCount);
         summary.put("wrongCount", wrongCount);
         summary.put("unansweredCount", unansweredCount);
-        summary.put("totalQuestions", answers.size());
+        summary.put("totalCount", answers.size());
+        String sort = request.getParameter("sort");
+        String dir = request.getParameter("dir");
+        if (sort != null && !sort.isEmpty()) {
+            boolean asc = !"desc".equalsIgnoreCase(dir);
+            paperAnswers.sort((m1, m2) -> {
+                Object v1 = m1.get(sort);
+                Object v2 = m2.get(sort);
+                if (v1 == null && v2 == null) return 0;
+                if (v1 == null) return asc ? 1 : -1;
+                if (v2 == null) return asc ? -1 : 1;
+                int cmp;
+                if (v1 instanceof Comparable && v1.getClass().equals(v2.getClass())) {
+                    cmp = ((Comparable) v1).compareTo(v2);
+                } else {
+                    cmp = String.valueOf(v1).compareTo(String.valueOf(v2));
+                }
+                return asc ? cmp : -cmp;
+            });
+            request.setAttribute("sortBy", sort);
+            request.setAttribute("sortDir", asc ? "asc" : "desc");
+        }
+        
         request.setAttribute("paperAnswers", paperAnswers);
         request.setAttribute("paperSummary", summary);
     }
@@ -457,17 +651,17 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     @Override
-    public ExamRegistration findRegistration(int sessionId, String sbd) {
+    public CandidateDTO findRegistration(int sessionId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
             return null;
         }
-        ExamRegistration reg = registrationDAO.getBySessionAndSbd(sessionId, sbd.trim());
+        CandidateDTO reg = candidateDAO.getBySessionAndSbd(sessionId, sbd.trim());
         if (reg != null) {
             return reg;
         }
-        List<ExamRegistration> all = registrationDAO.getCandidatesBySession(sessionId);
+        List<CandidateDTO> all = candidateDAO.getCandidatesBySession(sessionId);
         String normalized = sbd.trim();
-        for (ExamRegistration candidate : all) {
+        for (CandidateDTO candidate : all) {
             if (normalized.equalsIgnoreCase(candidate.getSbd())) {
                 return candidate;
             }
@@ -475,7 +669,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         if (!normalized.contains("-") && !all.isEmpty()) {
             String license = all.get(0).getLicenseCode();
             if (license != null) {
-                return registrationDAO.getBySessionAndSbd(sessionId, license + "-" + normalized);
+                return candidateDAO.getBySessionAndSbd(sessionId, license + "-" + normalized);
             }
         }
         return null;
@@ -483,14 +677,14 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     private Map<Integer, String> buildSbdLookup(int sessionId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (ExamRegistration reg : registrationDAO.getCandidatesBySession(sessionId)) {
+        for (CandidateDTO reg : candidateDAO.getCandidatesBySession(sessionId)) {
             lookup.put(reg.getId(), reg.getSbd());
         }
         return lookup;
     }
 
     private static boolean isUnanswered(String studentAnswer) {
-        return studentAnswer == null || studentAnswer.isBlank() || "—".equals(studentAnswer.trim());
+        return studentAnswer == null || studentAnswer.isBlank() || "-".equals(studentAnswer.trim());
     }
 
     private static String resolveImageUrl(String contextPath, String imageUrl) {
@@ -506,7 +700,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     private Map<String, Object> buildSummary(String examCode, int total, int done, int testing,
             int pending, int passed, int failed) {
         Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("examCode", examCode != null ? examCode : "—");
+        summary.put("examCode", examCode != null ? examCode : "-");
         summary.put("total", total);
         summary.put("done", done);
         summary.put("testing", testing);
@@ -516,8 +710,8 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         return summary;
     }
 
-    private Map<String, Object> toViewRow(ExamRegistration reg, ExaminerPaperState paper, ExaminerAnswerStats stats,
-            ExamSectionType sectionType, String sectionName) {
+    private Map<String, Object> toViewRow(CandidateDTO reg, ExaminerPaperState paper, ExaminerAnswerStats stats,
+            SectionType sectionType, String sectionName) {
         Map<String, Object> row = new LinkedHashMap<>();
 
         boolean absent = reg.isAbsent();
@@ -525,12 +719,12 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         String status;
         String statusLabel;
         boolean passed = false;
-        String resultLabel = "—";
+        String resultLabel = "-";
 
-        if (sectionType == ExamSectionType.SCORE_BASED) {
+        if (sectionType == SectionType.SCORE_BASED) {
             Integer sectionScore = resolveScoreForSection(reg, sectionName);
             String passStatus = resolvePassStatusForSection(reg, sectionName);
-            row.put("examScore", sectionScore != null ? String.valueOf(sectionScore) : "—");
+            row.put("examScore", sectionScore != null ? String.valueOf(sectionScore) : "-");
 
             if (absent) {
                 status = "absent";
@@ -538,7 +732,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             } else {
                 applySectionStatus(reg, paper);
                 status = mapViewStatus(reg.getSectionStatus());
-                statusLabel = CandidateSectionStatus.labelOf(reg.getSectionStatus());
+                statusLabel = ExamConstants.candidateStatusLabel(reg.getSectionStatus());
             }
 
             if ("passed".equalsIgnoreCase(passStatus)) {
@@ -547,7 +741,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             } else if ("failed".equalsIgnoreCase(passStatus)) {
                 passed = false;
                 resultLabel = "TRƯỢT";
-            } else if (sectionScore != null && CandidateSectionStatus.isDone(reg.getSectionStatus())) {
+            } else if (sectionScore != null && ExamConstants.isCandidateDone(reg.getSectionStatus())) {
                 passed = sectionScore >= 80;
                 resultLabel = passed ? "ĐẠT" : "TRƯỢT";
             }
@@ -558,7 +752,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             } else {
                 applySectionStatus(reg, paper);
                 status = mapViewStatus(reg.getSectionStatus());
-                statusLabel = CandidateSectionStatus.labelOf(reg.getSectionStatus());
+                statusLabel = ExamConstants.candidateStatusLabel(reg.getSectionStatus());
             }
 
             Integer theoryCorrectScore = resolveTheoryCorrectScore(reg, stats);
@@ -578,9 +772,9 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
                 }
             }
 
-            String correctDisplay = theoryCorrectScore != null ? String.valueOf(theoryCorrectScore) : "—";
-            String wrongDisplay = stats != null ? String.valueOf(stats.getWrong()) : "—";
-            String unansweredDisplay = stats != null ? String.valueOf(stats.getUnanswered()) : "—";
+            String correctDisplay = theoryCorrectScore != null ? String.valueOf(theoryCorrectScore) : "-";
+            String wrongDisplay = stats != null ? String.valueOf(stats.getWrong()) : "-";
+            String unansweredDisplay = stats != null ? String.valueOf(stats.getUnanswered()) : "-";
             if (reg.getTheoryScore() != null && theoryCorrectScore != null) {
                 int wrong = Math.max(0, THEORY_MAX_QUESTIONS - theoryCorrectScore);
                 wrongDisplay = String.valueOf(wrong);
@@ -590,7 +784,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             row.put("wrong", wrongDisplay);
             row.put("unanswered", unansweredDisplay);
             row.put("theoryCorrectScore", theoryCorrectScore);
-            row.put("examScore", "—");
+            row.put("examScore", "-");
         }
 
         if (suspended) {
@@ -614,7 +808,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         row.put("reasonForTaking", nullToDash(reg.getReasonForTaking()));
         row.put("scoreTheory", formatScore(reg.getTheoryScore()));
         row.put("scorePractical", formatScore(reg.getPracticalScore()));
-        row.put("scoreRoadLayout", "—");
+        row.put("scoreRoadLayout", "-");
         row.put("scoreOnRoad", formatScore(reg.getRoadTestScore()));
         row.put("email", reg.getEmail() != null ? reg.getEmail() : "");
         row.put("phoneNo", reg.getPhoneNo() != null ? reg.getPhoneNo() : "");
@@ -623,25 +817,25 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         row.put("absent", absent);
         row.put("suspended", suspended);
         row.put("sectionStatus", reg.getSectionStatus());
-        row.put("awaitingSignature", CandidateSectionStatus.isAwaitingSignature(reg.getSectionStatus()));
+        row.put("awaitingSignature", ExamConstants.isCandidateAwaitingSignature(reg.getSectionStatus()));
         row.put("signaturePrinted", reg.isSignaturePrinted());
-        row.put("completeEligible", CandidateSectionStatus.isAwaitingSignature(reg.getSectionStatus())
+        row.put("completeEligible", ExamConstants.isCandidateAwaitingSignature(reg.getSectionStatus())
                 && !suspended && !absent);
         row.put("callEligible", "pending".equals(status) && !suspended);
         return row;
     }
 
-    private static void applySectionStatus(ExamRegistration reg, ExaminerPaperState paper) {
+    private static void applySectionStatus(CandidateDTO reg, ExaminerPaperState paper) {
         String sectionStatus = reg.getSectionStatus();
         if (sectionStatus == null || sectionStatus.isBlank()) {
-            reg.setSectionStatus(CandidateSectionStatus.PENDING);
-            sectionStatus = CandidateSectionStatus.PENDING;
+            reg.setSectionStatus(ExamConstants.CANDIDATE_PENDING);
+            sectionStatus = ExamConstants.CANDIDATE_PENDING;
         }
-        if (CandidateSectionStatus.PENDING.equals(sectionStatus) && paper != null) {
+        if (ExamConstants.CANDIDATE_PENDING.equals(sectionStatus) && paper != null) {
             if (paper.isSubmitted()) {
-                reg.setSectionStatus(CandidateSectionStatus.AWAITING_SIGNATURE);
+                reg.setSectionStatus(ExamConstants.CANDIDATE_AWAITING_SIGNATURE);
             } else if (paper.isStarted()) {
-                reg.setSectionStatus(CandidateSectionStatus.TESTING);
+                reg.setSectionStatus(ExamConstants.CANDIDATE_TESTING);
             }
         }
     }
@@ -651,14 +845,14 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             return "pending";
         }
         return switch (sectionStatus) {
-            case CandidateSectionStatus.TESTING -> "testing";
-            case CandidateSectionStatus.AWAITING_SIGNATURE -> "awaiting";
-            case CandidateSectionStatus.DONE -> "done";
+            case ExamConstants.CANDIDATE_TESTING -> "testing";
+            case ExamConstants.CANDIDATE_AWAITING_SIGNATURE -> "awaiting";
+            case ExamConstants.CANDIDATE_DONE -> "done";
             default -> "pending";
         };
     }
 
-    private static Integer resolveScoreForSection(ExamRegistration reg, String sectionName) {
+    private static Integer resolveScoreForSection(CandidateDTO reg, String sectionName) {
         if (sectionName == null) {
             return reg.getPracticalScore();
         }
@@ -669,7 +863,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         return reg.getPracticalScore();
     }
 
-    private static String resolvePassStatusForSection(ExamRegistration reg, String sectionName) {
+    private static String resolvePassStatusForSection(CandidateDTO reg, String sectionName) {
         if (sectionName == null) {
             return reg.getPracticalPassed();
         }
@@ -688,9 +882,9 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     private Map<String, Object> resolveCandidate(List<Map<String, Object>> candidates,
-            List<ExamRegistration> registrations, int sessionId, String sbdParam,
+            List<CandidateDTO> registrations, int sessionId, String sbdParam,
             Map<Integer, ExaminerPaperState> paperStates, Map<Integer, ExaminerAnswerStats> answerStats,
-            ExamSectionType sectionType, String sectionName) {
+            SectionType sectionType, String sectionName) {
         if (sbdParam == null || sbdParam.isBlank()) {
             return null;
         }
@@ -700,11 +894,11 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
                 return row;
             }
         }
-        ExamRegistration reg = registrationDAO.getBySessionAndSbd(sessionId, normalized);
+        CandidateDTO reg = candidateDAO.getBySessionAndSbd(sessionId, normalized);
         if (reg == null && !normalized.contains("-") && !registrations.isEmpty()) {
             String license = registrations.get(0).getLicenseCode();
             if (license != null) {
-                reg = registrationDAO.getBySessionAndSbd(sessionId, license + "-" + normalized);
+                reg = candidateDAO.getBySessionAndSbd(sessionId, license + "-" + normalized);
             }
         }
         if (reg == null) {
@@ -715,7 +909,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     private static String formatDate(Date date) {
         if (date == null) {
-            return "—";
+            return "-";
         }
         synchronized (DATE_FMT) {
             return DATE_FMT.format(date);
@@ -724,13 +918,13 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     private static String formatScore(Integer score) {
         if (score == null) {
-            return "—";
+            return "-";
         }
         return score + "/100";
     }
 
     private static String nullToDash(String value) {
-        return value == null || value.isBlank() ? "—" : value;
+        return value == null || value.isBlank() ? "-" : value;
     }
 
     private static String normalizeSearch(String searchQuery) {
@@ -741,7 +935,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private static boolean matchesCandidateSearch(ExamRegistration reg, String search) {
+    private static boolean matchesCandidateSearch(CandidateDTO reg, String search) {
         String q = search.toLowerCase();
         return containsIgnoreCase(reg.getFullName(), q)
                 || containsIgnoreCase(reg.getSbd(), q)
@@ -749,7 +943,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
                 || containsIgnoreCase(String.valueOf(reg.getCandidateNo()), q);
     }
 
-    private static Integer resolveTheoryCorrectScore(ExamRegistration reg, ExaminerAnswerStats stats) {
+    private static Integer resolveTheoryCorrectScore(CandidateDTO reg, ExaminerAnswerStats stats) {
         if (reg.getTheoryScore() != null && reg.getTheoryScore() <= THEORY_MAX_QUESTIONS) {
             return reg.getTheoryScore();
         }

@@ -1,12 +1,12 @@
 package Services.Impl;
 
-import Constants.Db2Mappings;
-import DAO.ProfileDAO;
-import DAO.UserDAO;
-import DAO.Impl.ProfileDAOImpl;
-import DAO.Impl.UserDAOImpl;
+import Utils.ExamConstants;
+import DAOs.ProfileDAO;
+import DAOs.UserDAO;
+import DAOs.Impl.ProfileDAOImpl;
+import DAOs.Impl.UserDAOImpl;
 import Models.Profile;
-import Models.RegisterResult;
+import DTOs.RegisterResult;
 import Models.User;
 import Services.AuthService;
 import Services.EmailService;
@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(email);
         user.setPasswordHash(password);
         user.setIsActive(true);
-        user.setRole(Db2Mappings.roleFromName("Registrant"));
+        user.setRole(ExamConstants.roleFromName("Registrant"));
 
         if (!userDAO.insert(user)) {
             if (userDAO.getByEmail(email) != null) {
@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
         profile.setUserId(user.getId());
         profile.setGovIdNo(govIdNo);
         profile.setFullName(fullName);
-        profile.setDateOfBirth(Date.valueOf(dateOfBirth));
+        profile.setDateOfBirth(new java.sql.Timestamp(Date.valueOf(dateOfBirth).getTime()));
         profile.setGender(gender);
         profile.setPhoneNo(phoneNo);
         profile.setAddress(address);

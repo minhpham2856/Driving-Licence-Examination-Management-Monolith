@@ -1,7 +1,7 @@
 package Services.Impl;
 
-import Constants.ExamSectionProfiles;
-import Constants.ExamSectionType;
+import Utils.ExamConstants;
+import Utils.ExamConstants.SectionType;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import Services.ExamSessionControlService;
 import Services.ExaminerSessionContextService;
@@ -31,12 +31,12 @@ public class ExaminerSessionContextServiceImpl implements ExaminerSessionContext
         }
 
         ExaminerSlot slot = slots.get(0);
-        ExamSectionType sectionType = ExamSectionProfiles.resolveType(slot.getExamTypeName());
+        SectionType sectionType = ExamConstants.resolveSectionType(slot.getExamTypeName());
         session.setAttribute(ATTR_SLOT, slot);
         session.setAttribute(ATTR_ACTIVE_SESSION_ID, slot.getExamSessionId());
         session.setAttribute(ATTR_EXAM_SECTION_NAME, resolveSectionName(slot));
         session.setAttribute(ATTR_SECTION_TYPE, sectionType);
-        session.setAttribute(ATTR_SECTION_THEORY, sectionType == ExamSectionType.THEORY);
+        session.setAttribute(ATTR_SECTION_THEORY, sectionType == SectionType.THEORY);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.TRUE);
         session.setAttribute(ATTR_MESSAGE, null);
     }
@@ -82,12 +82,12 @@ public class ExaminerSessionContextServiceImpl implements ExaminerSessionContext
 
     private static String resolveSectionName(ExaminerSlot slot) {
         if (slot == null) {
-            return "—";
+            return "-";
         }
         String name = slot.getExamTypeName();
         if (name != null && !name.isBlank()) {
             return name.trim();
         }
-        return "—";
+        return "-";
     }
 }
