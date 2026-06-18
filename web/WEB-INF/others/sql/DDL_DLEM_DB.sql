@@ -15,13 +15,20 @@ GO
 USE DLEM_DB_2;
 GO
 
+-- Role table
+CREATE TABLE [Role] (
+    RoleId INT PRIMARY KEY IDENTITY(1,1),
+    RoleName NVARCHAR(50) NOT NULL UNIQUE
+);
+GO
+
 -- Users table
 CREATE TABLE [User] (
     UserId INT PRIMARY KEY IDENTITY(1,1),
     Username NVARCHAR(100) NOT NULL,
     Email NVARCHAR(255) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(255) NOT NULL,
-    [Role] NVARCHAR(50) NOT NULL,
+    RoleId INT NOT NULL REFERENCES [Role](RoleId),
     [Status] BIT NOT NULL DEFAULT 1
 );
 GO
@@ -247,7 +254,7 @@ CREATE TABLE Candidate (
     PhotoImageUrl NVARCHAR(500),
     IsAbsent BIT NOT NULL DEFAULT 0,
     IsSuspended BIT NOT NULL DEFAULT 0,
-    UserId INT NOT NULL REFERENCES [User](UserId),
+    UserId INT NULL REFERENCES [User](UserId),
     ExamRegistrationId INT NOT NULL REFERENCES ExamRegistration(ExamRegistrationId)
 );
 GO
@@ -264,6 +271,7 @@ CREATE TABLE Exam_Candidate (
     SessionId INT NOT NULL REFERENCES Session(SessionId),
     SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
     SignaturePrinted BIT NOT NULL DEFAULT 0,
+    ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
     UNIQUE (ExamId, CandidateId, SessionId)
 );
 GO
@@ -316,16 +324,21 @@ CREATE TABLE ScoreDeduction (
     [Reason] NVARCHAR(500) NOT NULL,
     Points DECIMAL(5,2) NOT NULL,
     IsCritical BIT NOT NULL DEFAULT 0,
+    ExamSectionId INT NULL REFERENCES ExamSection(ExamSectionId),
+    SortOrder INT NOT NULL DEFAULT 0,
     CHECK (Points > 0)
 );
 GO
 
--- Score_Deduction junction table
+-- Score_Deduction junction table (số lần lỗi + thời điểm nhập gần nhất)
 CREATE TABLE Score_Deduction (
     ScoreDeductionDetailId INT PRIMARY KEY IDENTITY(1,1),
     ExamScoreId INT NOT NULL REFERENCES ExamScore(ExamScoreId),
     ScoreDeductionId INT NOT NULL REFERENCES ScoreDeduction(ScoreDeductionId),
-    UNIQUE (ExamScoreId, ScoreDeductionId)
+    OccurrenceCount INT NOT NULL DEFAULT 1,
+    RecordedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    UNIQUE (ExamScoreId, ScoreDeductionId),
+    CHECK (OccurrenceCount > 0)
 );
 GO
 
