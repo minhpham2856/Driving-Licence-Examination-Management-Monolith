@@ -41,7 +41,7 @@
                     <select name="sessionId" id="sessionId" class="examiner-session-form__select">
                         <c:forEach var="s" items="${allSessions}">
                             <option value="${s.id}" ${s.id eq currentSession.id ? 'selected' : ''}>
-                                ${s.sessionName} — <fmt:formatDate value="${s.examDate}" pattern="dd/MM/yyyy"/>
+                                ${s.sessionName} - <fmt:formatDate value="${s.examDate}" pattern="dd/MM/yyyy"/>
                             </option>
                         </c:forEach>
                     </select>
@@ -62,13 +62,13 @@
                     <strong>Trạng thái ca:</strong>
                     <c:choose>
                         <c:when test="${currentSession.status eq 'InProgress'}">
-                            <span class="role-badge role-badge--admin" style="margin-left: 6px;">Đang diễn ra — giám khảo có thể đăng nhập</span>
+                            <span class="role-badge role-badge--admin" style="margin-left: 6px;">Đang diễn ra - giám khảo có thể đăng nhập</span>
                         </c:when>
                         <c:when test="${currentSession.status eq 'Completed'}">
                             <span class="role-badge" style="margin-left: 6px;">Đã kết thúc</span>
                         </c:when>
                         <c:otherwise>
-                            <span class="role-badge role-badge--coi" style="margin-left: 6px;">Chưa bắt đầu — phân công xong, bấm Bắt đầu ca ở Tổng quan</span>
+                            <span class="role-badge role-badge--coi" style="margin-left: 6px;">Chưa bắt đầu - phân công xong, bấm Bắt đầu ca ở Tổng quan</span>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -95,7 +95,7 @@
                     <span class="session-pill">
                         ${ds.sessionName}
                         (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
-                        — <c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>
+                        - <c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>
                     </span>
                 </c:forEach>
             </div>
@@ -191,7 +191,7 @@
                                         <td>
                                             <c:choose>
                                                 <c:when test="${not empty a.areaName}">${a.areaName}<div class="area-type-tag">${a.areaType}</div></c:when>
-                                                <c:otherwise>—</c:otherwise>
+                                                <c:otherwise>-</c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td>${a.examTypeName}</td>
@@ -232,7 +232,7 @@
                                 <c:forEach var="a" items="${dayAssignments}">
                                     <tr>
                                         <td>${a.sessionName}</td>
-                                        <td>${empty a.areaName ? '—' : a.areaName}</td>
+                                        <td>${empty a.areaName ? '-' : a.areaName}</td>
                                         <td>${a.examTypeName}</td>
                                         <td>${a.examinerName}</td>
                                     </tr>

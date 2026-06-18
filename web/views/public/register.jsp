@@ -66,7 +66,7 @@
             <div>
                 <div class="register-form-panel__header">
                     <h2 class="register-form-panel__title">Tạo tài khoản mới</h2>
-                    <p class="register-form-panel__subtitle">Điền thông tin cá nhân — hệ thống sẽ tạo tên đăng nhập, mật khẩu và gửi qua email</p>
+                    <p class="register-form-panel__subtitle">Điền thông tin cá nhân - hệ thống sẽ tạo tên đăng nhập, mật khẩu và gửi qua email</p>
                 </div>
 
                 <c:if test="${not empty error}">

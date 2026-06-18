@@ -257,7 +257,7 @@
                                         <td>
                                             <div class="ip-cell">
                                                 <span>${comp.ipAddress}</span>
-                                                <span class="device-info">${empty comp.macAddress ? '—' : comp.macAddress}</span>
+                                                <span class="device-info">${empty comp.macAddress ? '-' : comp.macAddress}</span>
                                             </div>
                                         </td>
                                         <td>

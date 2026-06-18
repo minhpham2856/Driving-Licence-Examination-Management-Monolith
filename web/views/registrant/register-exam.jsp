@@ -253,7 +253,7 @@
                                             <div class="session-card ${selectedSessionCode eq session.id ? 'session-card--active' : ''}">
                                                 <div class="session-card__title-wrap">
                                                     <span class="session-card__title">${session.examName}</span>
-                                                    <span class="session-card__subtitle">Mã: ${session.examCode} — Hạng ${session.licenceClass}</span>
+                                                    <span class="session-card__subtitle">Mã: ${session.examCode} - Hạng ${session.licenceClass}</span>
                                                 </div>
                                                 <div class="session-card__info-item session-card__hide-sm">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -285,7 +285,7 @@
                                         <div class="session-card ${selectedSessionCode eq 'SH-2025-06-B2' ? 'session-card--active' : ''}">
                                             <div class="session-card__title-wrap">
                                                 <span class="session-card__title">Đợt thi tháng 06/2025</span>
-                                                <span class="session-card__subtitle">Mã: SH-2025-06-B2 — Hạng B2</span>
+                                                <span class="session-card__subtitle">Mã: SH-2025-06-B2 - Hạng B2</span>
                                             </div>
                                             <div class="session-card__info-item session-card__hide-sm">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -313,7 +313,7 @@
                                         <div class="session-card ${selectedSessionCode eq 'SH-2025-07-B2' ? 'session-card--active' : ''}">
                                             <div class="session-card__title-wrap">
                                                 <span class="session-card__title">Đợt thi tháng 07/2025</span>
-                                                <span class="session-card__subtitle">Mã: SH-2025-07-B2 — Hạng B2</span>
+                                                <span class="session-card__subtitle">Mã: SH-2025-07-B2 - Hạng B2</span>
                                             </div>
                                             <div class="session-card__info-item session-card__hide-sm">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

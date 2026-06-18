@@ -219,7 +219,7 @@
                                         <td>
                                             <div class="user-info" style="white-space: normal;">
                                                 <span class="user-name" style="font-size: 0.92rem; font-weight: 600; color: #0f172a; white-space: normal;">
-                                                    Hạng ${grade.code} — ${grade.name}
+                                                    Hạng ${grade.code} - ${grade.name}
                                                 </span>
                                                 <span class="user-username" style="font-family: var(--font-body); font-size: 0.78rem; color: #64748b; margin-top: 3px; line-height: 1.45;">
                                                     ${empty grade.description ? 'Phạm vi sát hạch quốc gia theo quy định của Bộ Giao thông Vận tải.' : grade.description}
