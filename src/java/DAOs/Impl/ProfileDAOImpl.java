@@ -1,8 +1,8 @@
-package DAO.Impl;
+package DAOs.Impl;
 
-import Constants.Db2Mappings;
+import Utils.ExamConstants;
 import DBConnection.DBContext;
-import DAO.ProfileDAO;
+import DAOs.ProfileDAO;
 import Models.Profile;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -95,9 +95,9 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, profile.getFullName());
-            ps.setDate(2, profile.getDateOfBirth());
+            ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
-            ps.setString(4, Db2Mappings.sexFromGender(profile.isGender()));
+            ps.setString(4, ExamConstants.sexFromGender(profile.isGender()));
             ps.setString(5, profile.getGovIdNo());
 
             if (profile.getAddress() == null) {
@@ -138,9 +138,9 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, profile.getFullName());
-            ps.setDate(2, profile.getDateOfBirth());
+            ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
-            ps.setString(4, Db2Mappings.sexFromGender(profile.isGender()));
+            ps.setString(4, ExamConstants.sexFromGender(profile.isGender()));
             ps.setString(5, profile.getGovIdNo());
 
             if (profile.getAddress() == null) {
@@ -165,11 +165,11 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         profile.setId(rs.getInt("ProfileId"));
         profile.setUserId(rs.getInt("UserId"));
         profile.setFullName(rs.getString("FullName"));
-        profile.setDateOfBirth(rs.getDate("DateOfBirth"));
+        profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
         profile.setPhoneNo(rs.getString("PhoneNumber"));
         profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
         profile.setAddress(rs.getString("Address"));
-        profile.setGender(Db2Mappings.genderFromSex(rs.getString("Sex")));
+        profile.setGender(ExamConstants.genderFromSex(rs.getString("Sex")));
         return profile;
     }
 }

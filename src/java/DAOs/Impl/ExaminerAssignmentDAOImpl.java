@@ -1,13 +1,12 @@
-package DAO.Impl;
+package DAOs.Impl;
 
-import Constants.Db2Mappings;
-import Constants.ExamTypes;
+import Utils.ExamConstants;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import DBConnection.DBContext;
-import DAO.ExaminerAssignmentDAO;
+import DAOs.ExaminerAssignmentDAO;
 import Models.Profile;
-import Models.Role;
 import Models.User;
+import DTOs.UserDTO;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,7 +26,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                    u.Username,
                    u.Email,
                    u.PasswordHash,
-                   u.[Role],
+                   r.RoleName AS [Role],
                    u.[Status],
                    p.ProfileId,
                    p.FullName,
@@ -37,8 +36,9 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                    p.GovernmentIdNumber,
                    p.Address
             FROM [User] u
+            JOIN [Role] r ON r.RoleId = u.RoleId
             LEFT JOIN Profile p ON p.UserId = u.UserId
-            WHERE u.[Role] = 'Examiner' AND u.[Status] = 1
+            WHERE r.RoleName = 'Examiner' AND u.[Status] = 1
             ORDER BY p.FullName, u.Username
             """;
 
@@ -82,8 +82,8 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             """;
 
     @Override
-    public List<User> getActiveExaminers() {
-        List<User> list = new ArrayList<>();
+    public List<UserDTO> getActiveExaminers() {
+        List<UserDTO> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -292,7 +292,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         String examTypeName = rs.getString("examTypeName");
         slot.setExamTypeName(examTypeName != null && !examTypeName.isBlank()
                 ? examTypeName
-                : ExamTypes.toVietnamese(examTypeFromId(examTypeId)));
+                : ExamConstants.examTypeToVietnamese(examTypeFromId(examTypeId)));
         return slot;
     }
 
@@ -306,9 +306,9 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     static String examTypeFromId(int examTypeId) {
         return switch (examTypeId) {
-            case 2 -> ExamTypes.PRACTICAL;
-            case 4 -> ExamTypes.ON_ROAD;
-            default -> ExamTypes.THEORY;
+            case 2 -> ExamConstants.EXAM_PRACTICAL;
+            case 4 -> ExamConstants.EXAM_ON_ROAD;
+            default -> ExamConstants.EXAM_THEORY;
         };
     }
 
@@ -331,32 +331,30 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         }
     }
 
-    private User mapExaminer(ResultSet rs) throws SQLException {
-        User user = new User();
+    private UserDTO mapExaminer(ResultSet rs) throws SQLException {
+        UserDTO user = new UserDTO();
         user.setId(rs.getInt("UserId"));
         user.setUsername(rs.getString("Username"));
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
         user.setIsActive(rs.getBoolean("Status"));
 
-        Integer profileId = (Integer) rs.getObject("ProfileId");
-        user.setProfileId(profileId);
-
         String roleName = rs.getString("Role");
-        Role role = Db2Mappings.roleFromName(roleName);
-        user.setRole(role);
-        user.setRoleId(role.getId());
+        user.setRole(ExamConstants.roleFromName(roleName));
+        user.setRoleId(ExamConstants.roleIdFromName(roleName));
 
+        Integer profileId = (Integer) rs.getObject("ProfileId");
         if (profileId != null) {
             Profile profile = new Profile();
             profile.setId(profileId);
             profile.setUserId(rs.getInt("UserId"));
             profile.setFullName(rs.getString("FullName"));
-            profile.setDateOfBirth(rs.getDate("DateOfBirth"));
-            profile.setPhoneNo(rs.getString("PhoneNumber"));
-            profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
+            Date dob = rs.getDate("DateOfBirth");
+            profile.setDateOfBirth(dob != null ? new java.sql.Timestamp(dob.getTime()) : null);
+            profile.setPhoneNumber(rs.getString("PhoneNumber"));
+            profile.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
             profile.setAddress(rs.getString("Address"));
-            profile.setGender(Db2Mappings.genderFromSex(rs.getString("Sex")));
+            profile.setSex(rs.getString("Sex"));
             user.setProfile(profile);
         }
 

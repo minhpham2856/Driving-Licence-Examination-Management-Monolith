@@ -1,6 +1,6 @@
-package DAO;
+package DAOs;
 
-import Models.CandidateCall;
+import DTOs.CandidateCall;
 
 public interface CandidateCallDAO {
     boolean insert(CandidateCall call);

@@ -1,12 +1,13 @@
 package DAOs;
 
-import DTOs.ExamRegistrationDTO;
+import DTOs.CandidateDTO;
 import java.util.List;
+import java.util.Map;
 
-public interface ExamRegistrationDAO {
-    ExamRegistrationDTO getById(int id);
-    ExamRegistrationDTO getBySessionAndSbd(int sessionId, String sbd);
-    List<ExamRegistrationDTO> getCandidatesBySession(int sessionId);
+public interface CandidateDAO {
+    CandidateDTO getById(int id);
+    CandidateDTO getBySessionAndSbd(int sessionId, String sbd);
+    List<CandidateDTO> getCandidatesBySession(int sessionId);
     boolean updatePresent(int id, boolean isPresent);
     boolean updatePayment(int id, boolean isPaymentCompleted);
     boolean updateComputer(int id, String computerCode);
@@ -23,8 +24,8 @@ public interface ExamRegistrationDAO {
     boolean updateExaminerProfile(int id, String fullName, java.sql.Date dob, String govIdNo,
             String email, String phoneNo, String address, String sex, String reasonForTaking);
     boolean updatePhoto(int id, String photoUrl);
-    boolean insert(ExamRegistrationDTO reg);
-    List<ExamRegistrationDTO> getAllCandidates();
+    boolean insert(CandidateDTO reg);
+    List<CandidateDTO> getAllCandidates();
     boolean markAbsent(int candidateId);
     boolean clearAbsentMarking(int candidateId);
     Integer findCandidateIdByProfileAndSession(int profileId, int sessionId);
@@ -38,7 +39,7 @@ public interface ExamRegistrationDAO {
     /** Recalculate practical score from deductions and mark section awaiting signature. */
     boolean finalizeScoreEntry(int candidateId, int sessionId, String sectionKeyword);
 
-    java.util.List<java.util.Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
+    List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
 
     boolean markSuspended(int candidateId);
 

@@ -1,13 +1,13 @@
-package DAO;
+package DAOs;
 
-import Models.ExamSession;
+import DTOs.SessionDTO;
 import java.sql.Date;
 import java.util.List;
 
 public interface ExamSessionDAO {
-    ExamSession getById(int id);
-    List<ExamSession> getActiveSessions();
-    List<ExamSession> getAllSessions();
-    List<ExamSession> getSessionsByExamDate(Date examDate);
+    SessionDTO getById(int id);
+    List<SessionDTO> getActiveSessions();
+    List<SessionDTO> getAllSessions();
+    List<SessionDTO> getSessionsByExamDate(Date examDate);
     boolean updateStatus(int sessionId, String status);
 }

@@ -1,8 +1,8 @@
-package DAO.Impl;
+package DAOs.Impl;
 
-import DAO.TheoryPaperDAO;
+import DAOs.TheoryPaperDAO;
 import DBConnection.DBContext;
-import Models.TheoryPaperAnswer;
+import DTOs.TheoryPaperAnswer;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +25,7 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
             WHERE ec.SessionId = ?
               AND (
                     c.CandidateNumber = ?
+                    OR TRY_CAST(c.CandidateNumber AS INT) = TRY_CAST(? AS INT)
                     OR c.CandidateNumber LIKE ?
                     OR TRY_CAST(SUBSTRING(c.CandidateNumber, CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT) = ?
                   )
@@ -42,11 +43,12 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(ANSWERS_SQL)) {
             ps.setInt(1, sessionId);
             ps.setString(2, normalized);
-            ps.setString(3, "%-" + normalized.replaceAll("^.*-", "") + "%");
+            ps.setString(3, normalized);
+            ps.setString(4, "%-" + normalized.replaceAll("^.*-", "") + "%");
             if (candidateNo != null) {
-                ps.setInt(4, candidateNo);
+                ps.setInt(5, candidateNo);
             } else {
-                ps.setNull(4, java.sql.Types.INTEGER);
+                ps.setNull(5, java.sql.Types.INTEGER);
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -70,7 +72,7 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         row.setImageUrl(rs.getString("ImageUrl"));
         row.setCorrectAnswer(nullToDash(rs.getString("CorrectAnswer")));
         String student = rs.getString("StudentAnswer");
-        row.setStudentAnswer(student == null || student.isBlank() ? "—" : student.trim());
+        row.setStudentAnswer(student == null || student.isBlank() ? "-" : student.trim());
         String correct = rs.getString("CorrectAnswer");
         row.setCorrect(correct != null && student != null
                 && correct.trim().equalsIgnoreCase(student.trim()));
@@ -89,6 +91,6 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
     }
 
     private static String nullToDash(String value) {
-        return value == null || value.isBlank() ? "—" : value.trim();
+        return value == null || value.isBlank() ? "-" : value.trim();
     }
 }

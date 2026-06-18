@@ -1,9 +1,9 @@
-package DAO.Impl;
+package DAOs.Impl;
 
-import DAO.ExaminerSessionDataDAO;
+import DAOs.ExaminerSessionDataDAO;
 import DBConnection.DBContext;
-import Models.ExaminerAnswerStats;
-import Models.ExaminerPaperState;
+import DTOs.ExaminerAnswerStats;
+import DTOs.ExaminerPaperState;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -168,6 +168,60 @@ public class ExaminerSessionDataDAOImpl extends DBContext implements ExaminerSes
             e.printStackTrace();
         }
         return deductions;
+    }
+
+    @Override
+    public List<Map<String, Object>> findScoreDeductionsBySectionId(int examSectionId) {
+        List<Map<String, Object>> deductions = new ArrayList<>();
+        if (examSectionId <= 0) {
+            return deductions;
+        }
+        String sql = """
+                SELECT ScoreDeductionId, [Reason], Points, IsCritical, SortOrder
+                FROM ScoreDeduction
+                WHERE ExamSectionId = ?
+                ORDER BY SortOrder, ScoreDeductionId
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examSectionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("id", rs.getInt("ScoreDeductionId"));
+                    row.put("reason", rs.getString("Reason"));
+                    row.put("points", rs.getBigDecimal("Points"));
+                    row.put("critical", rs.getBoolean("IsCritical"));
+                    row.put("sortOrder", rs.getInt("SortOrder"));
+                    deductions.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return deductions;
+    }
+
+    @Override
+    public Integer findExamSectionIdForSession(int sessionId) {
+        if (sessionId <= 0) {
+            return null;
+        }
+        String sql = """
+                SELECT TOP 1 ses.ExamSectionId
+                FROM Session_ExamSection ses
+                WHERE ses.SessionId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamSectionId");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

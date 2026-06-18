@@ -1,7 +1,7 @@
-package DAO.Impl;
+package DAOs.Impl;
 
 import DBConnection.DBContext;
-import DAO.ExamAreaDAO;
+import DAOs.ExamAreaDAO;
 import Models.ExamArea;
 import java.sql.*;
 import java.util.ArrayList;
