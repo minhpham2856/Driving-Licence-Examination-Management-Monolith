@@ -2,27 +2,21 @@ package Controllers.Staff.ExamStaff;
 
 
 
-import DAO.ExamAreaDAO;
-
-import DAO.ExamDeviceDAO;
-
-import DAO.ExamSessionDAO;
-
-import DAO.ExaminerAssignmentDAO;
-
-import DAO.Impl.ExamAreaDAOImpl;
-
-import DAO.Impl.ExamDeviceDAOImpl;
-
-import DAO.Impl.ExamSessionDAOImpl;
-
-import DAO.Impl.ExaminerAssignmentDAOImpl;
+import DAOs.ExamAreaDAO;
+import DAOs.ExamDeviceDAO;
+import DAOs.ExamSessionDAO;
+import DAOs.ExaminerAssignmentDAO;
+import DAOs.Impl.ExamAreaDAOImpl;
+import DAOs.Impl.ExamDeviceDAOImpl;
+import DAOs.Impl.ExamSessionDAOImpl;
+import DAOs.Impl.ExaminerAssignmentDAOImpl;
 
 import Models.ExamArea;
 
 import Models.ExamDevice;
 
-import Models.ExamSession;
+import DTOs.SessionDTO;
+import DTOs.UserDTO;
 
 import Models.User;
 
@@ -97,7 +91,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
 
-        List<ExamSession> allSessions = sessionDAO.getAllSessions();
+        List<SessionDTO> allSessions = sessionDAO.getAllSessions();
 
         request.setAttribute("allSessions", allSessions);
 
@@ -125,7 +119,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
 
-        ExamSession currentSession = sessionDAO.getById(sessionId);
+        SessionDTO currentSession = sessionDAO.getById(sessionId);
 
         request.setAttribute("currentSession", currentSession);
 
@@ -133,7 +127,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         Map<Integer, Date> sessionDates = buildSessionDateMap(allSessions);
 
-        Map<Integer, User> examinerMap = buildExaminerMap();
+        Map<Integer, UserDTO> examinerMap = buildExaminerMap();
 
 
 
@@ -149,7 +143,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         if (currentSession != null) {
 
-            List<ExamSession> daySessions = sessionDAO.getSessionsByExamDate(currentSession.getExamDate());
+            List<SessionDTO> daySessions = sessionDAO.getSessionsByExamDate(currentSession.getExamDate());
 
             request.setAttribute("daySessions", daySessions);
 
@@ -173,24 +167,15 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
                     session, currentSession.getExamDate(), sessionDates);
 
-            List<User> allExaminers = assignmentDAO.getActiveExaminers();
-
-            List<User> availableExaminers = new ArrayList<>();
-
-            List<User> busyExaminers = new ArrayList<>();
-
-            for (User ex : allExaminers) {
-
+            List<UserDTO> allExaminers = assignmentDAO.getActiveExaminers();
+            List<UserDTO> availableExaminers = new ArrayList<>();
+            List<UserDTO> busyExaminers = new ArrayList<>();
+            for (UserDTO ex : allExaminers) {
                 if (busyIds.contains(ex.getId())) {
-
                     busyExaminers.add(ex);
-
                 } else {
-
                     availableExaminers.add(ex);
-
                 }
-
             }
 
             request.setAttribute("allExaminers", allExaminers);
@@ -221,7 +206,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
             Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
 
-            for (ExamSession ds : daySessions) {
+            for (SessionDTO ds : daySessions) {
 
                 areasBySession.put(ds.getId(), areaDAO.getAreasBySessionId(ds.getId()));
 
@@ -240,8 +225,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
     private void handleAction(HttpServletRequest request, HttpSession session, String action,
-
-            Map<Integer, User> examinerMap) {
+            Map<Integer, UserDTO> examinerMap) {
 
         try {
 
@@ -255,11 +239,11 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
 
-                ExamSession targetSession = sessionDAO.getById(targetSessionId);
+                SessionDTO targetSession = sessionDAO.getById(targetSessionId);
 
                 ExamArea area = areaDAO.getById(areaId);
 
-                User examiner = examinerMap.get(examinerUserId);
+                UserDTO examiner = examinerMap.get(examinerUserId);
 
                 if (targetSession == null || area == null || examiner == null) {
 
@@ -361,11 +345,11 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
 
-    private Map<Integer, Date> buildSessionDateMap(List<ExamSession> sessions) {
+    private Map<Integer, Date> buildSessionDateMap(List<SessionDTO> sessions) {
 
         Map<Integer, Date> map = new HashMap<>();
 
-        for (ExamSession s : sessions) {
+        for (SessionDTO s : sessions) {
 
             map.put(s.getId(), s.getExamDate());
 
@@ -377,23 +361,17 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
 
 
-    private Map<Integer, User> buildExaminerMap() {
-
-        Map<Integer, User> map = new HashMap<>();
-
-        for (User u : assignmentDAO.getActiveExaminers()) {
-
+    private Map<Integer, UserDTO> buildExaminerMap() {
+        Map<Integer, UserDTO> map = new HashMap<>();
+        for (UserDTO u : assignmentDAO.getActiveExaminers()) {
             map.put(u.getId(), u);
-
         }
-
         return map;
-
     }
 
 
 
-    private String resolveExaminerName(User examiner) {
+    private String resolveExaminerName(UserDTO examiner) {
         if (examiner.getProfile() != null && examiner.getProfile().getFullName() != null
                 && !examiner.getProfile().getFullName().isBlank()) {
             return examiner.getProfile().getFullName();

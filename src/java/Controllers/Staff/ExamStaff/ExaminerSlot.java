@@ -2,7 +2,7 @@ package Controllers.Staff.ExamStaff;
 
 
 
-/** Phân công giám khảo — Session_Examiner + phòng qua Session_ExamArea (DLEM_DB_2). */
+/** Phân công giám khảo - Session_Examiner + phòng qua Session_ExamArea (DLEM_DB_2). */
 
 public class ExaminerSlot {
 

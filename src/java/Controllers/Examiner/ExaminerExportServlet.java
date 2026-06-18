@@ -1,6 +1,6 @@
 package Controllers.Examiner;
 
-import Constants.ExamSectionType;
+import Utils.ExamConstants.SectionType;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
 import Services.ExaminerExportContext;
 import Services.ExaminerSessionContextService;
@@ -31,10 +31,10 @@ abstract class ExaminerExportServlet extends HttpServlet {
         }
 
         ExaminerSlot slot = (ExaminerSlot) session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
-        ExamSectionType sectionType = ExamSectionType.THEORY;
+        SectionType sectionType = SectionType.THEORY;
         Object sectionTypeObj = session.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
-        if (sectionTypeObj instanceof ExamSectionType) {
-            sectionType = (ExamSectionType) sectionTypeObj;
+        if (sectionTypeObj instanceof SectionType) {
+            sectionType = (SectionType) sectionTypeObj;
         }
         String sectionName = (String) session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
         return new ExaminerExportContext(activeSessionId, slot, sectionType, sectionName);

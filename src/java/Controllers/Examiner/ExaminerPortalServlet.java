@@ -6,7 +6,7 @@ import Services.ExaminerSessionContextService;
 import Services.ExaminerViewDataService;
 import Services.Impl.ExaminerCrudServiceImpl;
 import Services.Impl.ExaminerViewDataServiceImpl;
-import Constants.ExamSectionType;
+import Utils.ExamConstants.SectionType;
 import Utils.ExaminerViolationUploadHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -64,6 +64,11 @@ public class ExaminerPortalServlet extends HttpServlet {
             if ("/views/examiner/score-entry".equals(path) && action != null) {
                 User user = (User) session.getAttribute("user");
                 if (handleScoreEntryAction(request, response, session, sessionId, action, sbd, user)) {
+                    return;
+                }
+            }
+            if ("/views/examiner/result-details-edit".equals(path) && "adjustDeduction".equals(action)) {
+                if (handleAdjustDeduction(request, response, session, sessionId, sbd, path)) {
                     return;
                 }
             }
@@ -140,6 +145,11 @@ public class ExaminerPortalServlet extends HttpServlet {
             }
             request.setAttribute("theoryMaxScore", viewDataService.theoryMaxQuestions());
             request.setAttribute("theoryPassScore", viewDataService.theoryPassThreshold());
+            Object candidateObj = request.getAttribute("candidate");
+            if (candidateObj != null) {
+                request.setAttribute("singleCandidateList",
+                        java.util.Collections.singletonList(candidateObj));
+            }
         }
 
         forward(request, response, jspForPath(path));
@@ -183,6 +193,22 @@ public class ExaminerPortalServlet extends HttpServlet {
         }
         if ("/views/examiner/violation-undo".equals(path)) {
             handleUndoSuspension(request, response, session, sessionId);
+            return;
+        }
+        if ("/views/examiner/score-entry".equals(path)
+                && "finalizeScore".equals(request.getParameter("action"))) {
+            String sbd = request.getParameter("sbd");
+            if (sbd == null || sbd.isBlank()) {
+                redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+                return;
+            }
+            if (!crudService.finalizeScoreEntry(sessionId, sbd, session)) {
+                redirect(response, request,
+                        "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=finalizeFailed");
+                return;
+            }
+            redirect(response, request,
+                    "/views/examiner/candidate-call?sbd=" + urlEncode(sbd) + "&finalized=1");
             return;
         }
 
@@ -229,8 +255,8 @@ public class ExaminerPortalServlet extends HttpServlet {
 
     private static boolean isTheorySection(HttpServletRequest request) {
         Object value = request.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
-        if (value instanceof ExamSectionType) {
-            return value == ExamSectionType.THEORY;
+        if (value instanceof SectionType) {
+            return value == SectionType.THEORY;
         }
         return Boolean.TRUE.equals(request.getAttribute(ExaminerSessionContextService.ATTR_SECTION_THEORY));
     }
@@ -376,10 +402,74 @@ public class ExaminerPortalServlet extends HttpServlet {
                 redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd));
                 return true;
             }
+            case "changeVehicle" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+                    return true;
+                }
+                int deviceId;
+                try {
+                    deviceId = Integer.parseInt(request.getParameter("deviceId"));
+                } catch (Exception e) {
+                    redirect(response, request,
+                            "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=invalidDevice");
+                    return true;
+                }
+                if (!crudService.changeCandidateVehicle(sessionId, sbd, deviceId, session)) {
+                    redirect(response, request,
+                            "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=changeVehicleFailed");
+                    return true;
+                }
+                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&vehicleChanged=1");
+                return true;
+            }
+            case "maintenance", "operational" -> {
+                return handleScoreEntryDeviceStatusChange(request, response, session, action, sbd);
+            }
+            case "adjustDeduction" -> {
+                return handleAdjustDeduction(request, response, session, sessionId, sbd, "/views/examiner/score-entry");
+            }
+            case "finalizeScore" -> {
+                if (sbd == null || sbd.isBlank()) {
+                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+                    return true;
+                }
+                if (!crudService.finalizeScoreEntry(sessionId, sbd, session)) {
+                    redirect(response, request,
+                            "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=finalizeFailed");
+                    return true;
+                }
+                redirect(response, request,
+                        "/views/examiner/candidate-call?sbd=" + urlEncode(sbd) + "&finalized=1");
+                return true;
+            }
             default -> {
                 return false;
             }
         }
+    }
+
+    private boolean handleAdjustDeduction(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, int sessionId, String sbd, String path) throws IOException {
+        if (sbd == null || sbd.isBlank()) {
+            redirect(response, request, path + "?error=noSbd");
+            return true;
+        }
+        int deductionId;
+        int delta;
+        try {
+            deductionId = Integer.parseInt(request.getParameter("deductionId"));
+            delta = Integer.parseInt(request.getParameter("delta"));
+        } catch (Exception e) {
+            redirect(response, request, path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
+            return true;
+        }
+        if (!crudService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, session)) {
+            redirect(response, request, path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
+            return true;
+        }
+        redirect(response, request, path + "?sbd=" + urlEncode(sbd));
+        return true;
     }
 
     private void handleDeviceStatusChange(HttpServletRequest request, HttpServletResponse response,
@@ -408,6 +498,38 @@ public class ExaminerPortalServlet extends HttpServlet {
             return;
         }
         redirect(response, request, redirectParam);
+    }
+
+    private boolean handleScoreEntryDeviceStatusChange(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, String action, String sbd) throws IOException {
+        int deviceId;
+        try {
+            deviceId = Integer.parseInt(request.getParameter("deviceId"));
+        } catch (Exception e) {
+            String base = "/views/examiner/score-entry?error=invalidDevice";
+            if (sbd != null && !sbd.isBlank()) {
+                base += "&sbd=" + urlEncode(sbd);
+            }
+            redirect(response, request, base);
+            return true;
+        }
+
+        boolean updated;
+        String suffix;
+        if ("operational".equals(action)) {
+            updated = crudService.setDeviceAvailable(deviceId, session);
+            suffix = updated ? "operationalDone=" + deviceId : "error=operationalFailed&deviceId=" + deviceId;
+        } else {
+            updated = crudService.setDeviceMaintenance(deviceId, session);
+            suffix = updated ? "maintenanceDone=" + deviceId : "error=maintenanceFailed&deviceId=" + deviceId;
+        }
+
+        String redirectPath = "/views/examiner/score-entry?" + suffix;
+        if (sbd != null && !sbd.isBlank()) {
+            redirectPath += "&sbd=" + urlEncode(sbd);
+        }
+        redirect(response, request, redirectPath);
+        return true;
     }
 
     private void handleUpdateProfile(HttpServletRequest request, HttpServletResponse response,
@@ -444,44 +566,27 @@ public class ExaminerPortalServlet extends HttpServlet {
         String password = request.getParameter("password");
         String reason = request.getParameter("reason");
         String reasonDetail = request.getParameter("reasonDetail");
-        String newScoreParam = request.getParameter("newScore");
-        int maxScore = viewDataService.theoryMaxQuestions();
 
         if (reason == null || reason.isBlank()) {
-            forwardScoreFormError(request, response, sessionId, sbd, newScoreParam, reason, reasonDetail,
-                    "Vui lòng chọn lý do điều chỉnh.", maxScore);
-            return;
-        }
-
-        int newScore;
-        try {
-            newScore = Integer.parseInt(newScoreParam.trim());
-        } catch (Exception e) {
-            forwardScoreFormError(request, response, sessionId, sbd, newScoreParam, reason, reasonDetail,
-                    "Điểm mới không hợp lệ.", maxScore);
-            return;
-        }
-
-        if (newScore < 0 || newScore > maxScore) {
-            forwardScoreFormError(request, response, sessionId, sbd, newScoreParam, reason, reasonDetail,
-                    "Điểm phải từ 0 đến " + maxScore + ".", maxScore);
+            forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail,
+                    "Vui lòng chọn lý do điều chỉnh.");
             return;
         }
 
         if (password == null || password.isBlank()) {
-            forwardScoreFormError(request, response, sessionId, sbd, newScoreParam, reason, reasonDetail,
-                    "Vui lòng nhập mật khẩu để xác nhận.", maxScore);
+            forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail,
+                    "Vui lòng nhập mật khẩu để xác nhận.");
             return;
         }
 
         if (!crudService.verifyPassword(user, password)) {
-            forwardScoreFormError(request, response, sessionId, sbd, newScoreParam, reason, reasonDetail,
-                    "Mật khẩu không chính xác.", maxScore);
+            forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail,
+                    "Mật khẩu không chính xác.");
             return;
         }
 
-        boolean updated = crudService.updateTheoryScore(
-                sessionId, sbd, newScore, reason, reasonDetail, user, password, session);
+        boolean updated = crudService.logPracticalScoreEditReason(
+                sessionId, sbd, reason, reasonDetail, user, password, session);
 
         if (updated) {
             redirect(response, request,
@@ -489,20 +594,23 @@ public class ExaminerPortalServlet extends HttpServlet {
             return;
         }
 
-        forwardScoreFormError(request, response, sessionId, sbd, newScoreParam, reason, reasonDetail,
-                "Không lưu được điểm. Kiểm tra thí sinh và ca thi lý thuyết.", maxScore);
+        forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail,
+                "Không lưu được lý do. Kiểm tra thí sinh và ca thi.");
     }
 
     private void forwardScoreFormError(HttpServletRequest request, HttpServletResponse response,
-            int sessionId, String sbd, String newScore, String reason, String reasonDetail,
-            String errorMessage, int maxScore) throws ServletException, IOException {
+            int sessionId, String sbd, String reason, String reasonDetail,
+            String errorMessage) throws ServletException, IOException {
         viewDataService.attachToRequest(request, sessionId, sbd, null);
         request.setAttribute("scoreError", errorMessage);
-        request.setAttribute("formNewScore", newScore);
         request.setAttribute("formReason", reason);
         request.setAttribute("formReasonDetail", reasonDetail);
-        request.setAttribute("theoryMaxScore", maxScore);
-        request.setAttribute("theoryPassScore", viewDataService.theoryPassThreshold());
+        
+        Object candidateObj = request.getAttribute("candidate");
+        if (candidateObj != null) {
+            request.setAttribute("singleCandidateList", java.util.Collections.singletonList(candidateObj));
+        }
+
         forward(request, response, "/views/examiner/result-details-edit.jsp");
     }
 
