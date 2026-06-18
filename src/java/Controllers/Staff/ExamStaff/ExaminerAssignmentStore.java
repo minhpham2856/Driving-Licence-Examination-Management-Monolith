@@ -1,7 +1,7 @@
 package Controllers.Staff.ExamStaff;
 
-import DAO.ExaminerAssignmentDAO;
-import DAO.Impl.ExaminerAssignmentDAOImpl;
+import DAOs.ExaminerAssignmentDAO;
+import DAOs.Impl.ExaminerAssignmentDAOImpl;
 import jakarta.servlet.http.HttpSession;
 import java.sql.Date;
 import java.util.List;

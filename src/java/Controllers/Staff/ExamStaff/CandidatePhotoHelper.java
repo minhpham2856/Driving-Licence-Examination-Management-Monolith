@@ -1,7 +1,7 @@
 package Controllers.Staff.ExamStaff;
 
-import DAO.ExamRegistrationDAO;
-import Models.ExamRegistration;
+import DAOs.ExamRegistrationDAO;
+import DTOs.ExamRegistrationDTO;
 import java.io.File;
 import java.util.List;
 
@@ -22,11 +22,11 @@ public final class CandidatePhotoHelper {
         return file.isFile() && file.length() > 0;
     }
 
-    public static boolean hasCapturedPhoto(String webRoot, ExamRegistration reg) {
+    public static boolean hasCapturedPhoto(String webRoot, ExamRegistrationDTO reg) {
         return reg != null && isValidPhotoFile(webRoot, reg.getPhotoUrl());
     }
 
-    public static void clearInvalidPhotoReference(ExamRegistration reg, String webRoot) {
+    public static void clearInvalidPhotoReference(ExamRegistrationDTO reg, String webRoot) {
         if (reg == null) {
             return;
         }
@@ -36,11 +36,11 @@ public final class CandidatePhotoHelper {
         }
     }
 
-    public static void normalizeQueue(String webRoot, List<ExamRegistration> qList, ExamRegistrationDAO regDAO) {
+    public static void normalizeQueue(String webRoot, List<ExamRegistrationDTO> qList, ExamRegistrationDAO regDAO) {
         if (qList == null || webRoot == null) {
             return;
         }
-        for (ExamRegistration reg : qList) {
+        for (ExamRegistrationDTO reg : qList) {
             boolean valid = hasCapturedPhoto(webRoot, reg);
             reg.setValidCapturedPhoto(valid);
             if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {

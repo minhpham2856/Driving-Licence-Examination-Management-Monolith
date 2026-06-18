@@ -1,11 +1,11 @@
 package Controllers.Staff.ExamStaff;
 
-import DAO.ExamAreaDAO;
-import DAO.ExamRegistrationDAO;
-import DAO.Impl.ExamAreaDAOImpl;
-import DAO.Impl.ExamRegistrationDAOImpl;
+import DAOs.ExamAreaDAO;
+import DAOs.ExamRegistrationDAO;
+import DAOs.Impl.ExamAreaDAOImpl;
+import DAOs.Impl.ExamRegistrationDAOImpl;
 import Models.ExamArea;
-import Models.ExamRegistration;
+import DTOs.ExamRegistrationDTO;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * Tự động phân bổ thí sinh vào phòng thi lý thuyết sau khi hoàn tất thủ tục.
- * Máy tính và thiết bị thi (ExamDevice) do Examiner quản lý — không xử lý tại đây.
+ * Máy tính và thiết bị thi (ExamDevice) do Examiner quản lý - không xử lý tại đây.
  */
 public class ExamAutoAllocator {
 
@@ -47,11 +47,11 @@ public class ExamAutoAllocator {
             return result;
         }
 
-        List<ExamRegistration> allCandidates = regDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> allCandidates = regDAO.getCandidatesBySession(sessionId);
         Map<Integer, Integer> roomOccupancy = buildRoomOccupancy(allCandidates, activeTheoryRooms);
 
-        List<ExamRegistration> readyCandidates = new ArrayList<>();
-        for (ExamRegistration c : allCandidates) {
+        List<ExamRegistrationDTO> readyCandidates = new ArrayList<>();
+        for (ExamRegistrationDTO c : allCandidates) {
             if (!isReadyForAllocation(c)) {
                 continue;
             }
@@ -79,7 +79,7 @@ public class ExamAutoAllocator {
         Collections.sort(readyCandidates, Comparator.comparing(
                 c -> c.getLicenseCode() != null ? c.getLicenseCode() : ""));
 
-        for (ExamRegistration c : readyCandidates) {
+        for (ExamRegistrationDTO c : readyCandidates) {
             ExamArea room = pickBestRoom(c, activeTheoryRooms, roomOccupancy, allCandidates, maxPerRoom);
             if (room == null) {
                 continue;
@@ -96,12 +96,12 @@ public class ExamAutoAllocator {
         return result;
     }
 
-    private Map<Integer, Integer> buildRoomOccupancy(List<ExamRegistration> allCandidates, List<ExamArea> rooms) {
+    private Map<Integer, Integer> buildRoomOccupancy(List<ExamRegistrationDTO> allCandidates, List<ExamArea> rooms) {
         Map<Integer, Integer> occupancy = new HashMap<>();
         for (ExamArea room : rooms) {
             occupancy.put(room.getId(), 0);
         }
-        for (ExamRegistration c : allCandidates) {
+        for (ExamRegistrationDTO c : allCandidates) {
             if (c.getAllocatedAreaId() != null && occupancy.containsKey(c.getAllocatedAreaId())) {
                 if (isReadyForAllocation(c) || isAlreadyAllocated(c)) {
                     occupancy.merge(c.getAllocatedAreaId(), 1, Integer::sum);
@@ -111,8 +111,8 @@ public class ExamAutoAllocator {
         return occupancy;
     }
 
-    private ExamArea pickBestRoom(ExamRegistration candidate, List<ExamArea> rooms,
-            Map<Integer, Integer> roomOccupancy, List<ExamRegistration> allCandidates, int maxPerRoom) {
+    private ExamArea pickBestRoom(ExamRegistrationDTO candidate, List<ExamArea> rooms,
+            Map<Integer, Integer> roomOccupancy, List<ExamRegistrationDTO> allCandidates, int maxPerRoom) {
 
         ExamArea bestRoom = null;
         int bestScore = Integer.MIN_VALUE;
@@ -134,12 +134,12 @@ public class ExamAutoAllocator {
         return bestRoom;
     }
 
-    private int countSameLicenseInRoom(List<ExamRegistration> allCandidates, int roomId, String licenseCode) {
+    private int countSameLicenseInRoom(List<ExamRegistrationDTO> allCandidates, int roomId, String licenseCode) {
         if (licenseCode == null) {
             return 0;
         }
         int count = 0;
-        for (ExamRegistration c : allCandidates) {
+        for (ExamRegistrationDTO c : allCandidates) {
             if (roomId == (c.getAllocatedAreaId() != null ? c.getAllocatedAreaId() : -1)
                     && licenseCode.equals(c.getLicenseCode())
                     && (isReadyForAllocation(c) || isAlreadyAllocated(c))) {
@@ -149,7 +149,7 @@ public class ExamAutoAllocator {
         return count;
     }
 
-    private boolean isReadyForAllocation(ExamRegistration c) {
+    private boolean isReadyForAllocation(ExamRegistrationDTO c) {
         if (c.isAbsent()) {
             return false;
         }
@@ -159,7 +159,7 @@ public class ExamAutoAllocator {
         return procedureDone && "none".equals(c.getTheoryPassed());
     }
 
-    private boolean isAlreadyAllocated(ExamRegistration c) {
+    private boolean isAlreadyAllocated(ExamRegistrationDTO c) {
         if (c.getAllocatedAreaId() != null) {
             return true;
         }

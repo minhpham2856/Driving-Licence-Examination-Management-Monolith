@@ -1,14 +1,14 @@
 package Controllers.Staff.ExamStaff;
 
-import DAO.ExamRegistrationDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.ExamAreaDAO;
-import DAO.Impl.ExamAreaDAOImpl;
-import Models.ExamRegistration;
+import DAOs.ExamRegistrationDAO;
+import DAOs.Impl.ExamRegistrationDAOImpl;
+import DAOs.ExamAreaDAO;
+import DAOs.Impl.ExamAreaDAOImpl;
+import DTOs.ExamRegistrationDTO;
 import Models.ExamArea;
-import Models.ExamSession;
-import DAO.ExamSessionDAO;
-import DAO.Impl.ExamSessionDAOImpl;
+import DTOs.SessionDTO;
+import DAOs.ExamSessionDAO;
+import DAOs.Impl.ExamSessionDAOImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -36,7 +36,7 @@ public class AllocationServlet extends HttpServlet {
         request.removeAttribute("alertMsg");
 
         // 0. Load all sessions for session dropdown
-        List<ExamSession> allSessions = sessionDAO.getAllSessions();
+        List<SessionDTO> allSessions = sessionDAO.getAllSessions();
         request.setAttribute("allSessions", allSessions);
 
         // 1. Retrieve or load selected sessionId
@@ -52,8 +52,8 @@ public class AllocationServlet extends HttpServlet {
         session.setAttribute("selectedSessionId", sessionId);
 
         // Retrieve the current session details
-        ExamSession currentSession = null;
-        for (ExamSession s : allSessions) {
+        SessionDTO currentSession = null;
+        for (SessionDTO s : allSessions) {
             if (s.getId() == sessionId) {
                 currentSession = s;
                 break;
@@ -62,7 +62,7 @@ public class AllocationServlet extends HttpServlet {
         request.setAttribute("currentSession", currentSession);
 
         // Load queue for this session if session changed or first time
-        List<ExamRegistration> qList = (List<ExamRegistration>) session.getAttribute("candidateQueue");
+        List<ExamRegistrationDTO> qList = (List<ExamRegistrationDTO>) session.getAttribute("candidateQueue");
         Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
         if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
             qList = regDAO.getCandidatesBySession(sessionId);
@@ -98,8 +98,8 @@ public class AllocationServlet extends HttpServlet {
                     int regId = Integer.parseInt(regIdStr);
                     
                     // Find matching profile in session
-                    ExamRegistration profile = null;
-                    for (ExamRegistration c : qList) {
+                    ExamRegistrationDTO profile = null;
+                    for (ExamRegistrationDTO c : qList) {
                         if (c.getId() == regId) {
                             profile = c;
                             break;
@@ -125,7 +125,7 @@ public class AllocationServlet extends HttpServlet {
                                     profile.setAllocatedAreaId(targetArea.getId());
                                     profile.setAllocatedAreaName(targetArea.getAreaName());
                                     profile.setNotes("AllocatedRoom:" + targetArea.getId() + ":" + targetArea.getAreaName());
-                                    addAuditLog(session, "UPDATE ExamRegistration",
+                                    addAuditLog(session, "UPDATE ExamRegistrationDTO",
                                             "Chuyển phòng thi → " + targetArea.getAreaName() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 }
@@ -189,7 +189,7 @@ public class AllocationServlet extends HttpServlet {
                             profile.setPhotoUrl(photoPath);
                             profile.setIsPaymentCompleted(true);
                             profile.setIsPresent(true);
-                            addAuditLog(session, "UPDATE ExamRegistration", "Hoàn thành nhanh thủ tục (FaceID + lệ phí) cho SBD " + profile.getSbd());
+                            addAuditLog(session, "UPDATE ExamRegistrationDTO", "Hoàn thành nhanh thủ tục (FaceID + lệ phí) cho SBD " + profile.getSbd());
                         }
                     }
                 }

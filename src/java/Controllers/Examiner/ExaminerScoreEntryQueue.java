@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Hàng đợi nhập điểm theo ca (session) — lưu thứ tự SBD trong HttpSession.
+ * Hàng đợi nhập điểm theo ca (session) - lưu thứ tự SBD trong HttpSession.
  */
 public final class ExaminerScoreEntryQueue {
 
@@ -33,7 +33,8 @@ public final class ExaminerScoreEntryQueue {
             return List.of();
         }
         Object value = session.getAttribute(queueKey(sessionId));
-        if (value instanceof List<?> list) {
+        if (value instanceof List) {
+            List<?> list = (List<?>) value;
             List<String> copy = new ArrayList<>();
             for (Object item : list) {
                 if (item != null) {
@@ -80,7 +81,11 @@ public final class ExaminerScoreEntryQueue {
     }
 
     public static void setActiveSbd(HttpSession session, int sessionId, String sbd) {
-        if (session == null || sbd == null || sbd.isBlank()) {
+        if (session == null) {
+            return;
+        }
+        if (sbd == null || sbd.isBlank()) {
+            session.removeAttribute(activeKey(sessionId));
             return;
         }
         session.setAttribute(activeKey(sessionId), sbd.trim());

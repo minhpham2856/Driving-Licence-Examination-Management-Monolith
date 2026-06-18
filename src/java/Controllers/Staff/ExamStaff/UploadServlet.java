@@ -1,16 +1,16 @@
 package Controllers.Staff.ExamStaff;
 
-import Constants.Db2Mappings;
-import DAO.ExamRegistrationDAO;
-import DAO.ExamSessionDAO;
-import DAO.ProfileDAO;
-import DAO.UserDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.Impl.ExamSessionDAOImpl;
-import DAO.Impl.ProfileDAOImpl;
-import DAO.Impl.UserDAOImpl;
-import Models.ExamRegistration;
-import Models.ExamSession;
+import Utils.ExamConstants;
+import DAOs.ExamRegistrationDAO;
+import DAOs.ExamSessionDAO;
+import DAOs.ProfileDAO;
+import DAOs.UserDAO;
+import DAOs.Impl.ExamRegistrationDAOImpl;
+import DAOs.Impl.ExamSessionDAOImpl;
+import DAOs.Impl.ProfileDAOImpl;
+import DAOs.Impl.UserDAOImpl;
+import DTOs.ExamRegistrationDTO;
+import DTOs.SessionDTO;
 import Models.Profile;
 import Models.User;
 import Utils.UsernameGenerator;
@@ -88,14 +88,14 @@ public class UploadServlet extends HttpServlet {
 
         // UC-01 Normal Flow Step 6: Confirm & save from preview
         if ("save".equals(action)) {
-            List<ExamRegistration> previewList = (List<ExamRegistration>) session.getAttribute("previewCandidates");
+            List<ExamRegistrationDTO> previewList = (List<ExamRegistrationDTO>) session.getAttribute("previewCandidates");
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
             if (selectedSessionId == null) selectedSessionId = 2;
 
             if (previewList != null && !previewList.isEmpty()) {
                 int importedCount = 0;
                 int skippedCount = 0;
-                for (ExamRegistration reg : previewList) {
+                for (ExamRegistrationDTO reg : previewList) {
                     try {
                         String dupAction = request.getParameter("dupAction_" + reg.getGovIdNo());
                         if (reg.isDuplicate() && "skip".equals(dupAction)) {
@@ -141,7 +141,7 @@ public class UploadServlet extends HttpServlet {
                 }
 
                 session.removeAttribute("previewCandidates");
-                List<ExamRegistration> updatedQueue = regDAO.getCandidatesBySession(selectedSessionId);
+                List<ExamRegistrationDTO> updatedQueue = regDAO.getCandidatesBySession(selectedSessionId);
                 CandidatePhotoHelper.normalizeQueue(request.getServletContext().getRealPath("/"), updatedQueue, regDAO);
                 session.setAttribute("candidateQueue", updatedQueue);
                 session.setAttribute("lastLoadedSessionId", selectedSessionId);
@@ -151,7 +151,7 @@ public class UploadServlet extends HttpServlet {
                 if (uploadedFile == null) {
                     uploadedFile = "danh_sach.csv";
                 }
-                ExamSession importSession = sessionDAO.getById(selectedSessionId);
+                SessionDTO importSession = sessionDAO.getById(selectedSessionId);
                 String sessionLabel = importSession != null ? importSession.getSessionName() : ("SessionId " + selectedSessionId);
                 String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
                         + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
@@ -212,7 +212,7 @@ public class UploadServlet extends HttpServlet {
                     fileContent = fileContent.substring(1);
                 }
                 
-                List<ExamRegistration> parsedList = new ArrayList<>();
+                List<ExamRegistrationDTO> parsedList = new ArrayList<>();
                 BufferedReader reader = new BufferedReader(new java.io.StringReader(fileContent));
 
                 String line;
@@ -235,7 +235,7 @@ public class UploadServlet extends HttpServlet {
                     String phone       = parts[5].trim();
                     String email       = parts[6].trim();
 
-                    ExamRegistration reg = new ExamRegistration();
+                    ExamRegistrationDTO reg = new ExamRegistrationDTO();
                     reg.setFullName(fullName);
                     reg.setGovIdNo(cccd);
                     reg.setLicenseCode(licenseCode.isEmpty() ? "B2" : licenseCode);
@@ -304,7 +304,7 @@ public class UploadServlet extends HttpServlet {
         response.sendRedirect("upload");
     }
 
-    private Profile ensureProfileForImport(ExamRegistration reg) {
+    private Profile ensureProfileForImport(ExamRegistrationDTO reg) {
         Profile profile = profileDAO.getByGovIdNo(reg.getGovIdNo());
 
         String finalPhone = (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty())
@@ -320,7 +320,7 @@ public class UploadServlet extends HttpServlet {
             user.setEmail(finalEmail);
             user.setPasswordHash(UsernameGenerator.randomPassword(10));
             user.setIsActive(true);
-            user.setRole(Db2Mappings.roleFromName("Registrant"));
+            user.setRole(ExamConstants.roleFromName("Registrant"));
 
             if (!userDAO.insert(user)) {
                 return null;
@@ -329,10 +329,10 @@ public class UploadServlet extends HttpServlet {
             profile = new Profile();
             profile.setUserId(user.getId());
             profile.setFullName(reg.getFullName());
-            profile.setGovIdNo(reg.getGovIdNo());
-            profile.setDateOfBirth(reg.getDateOfBirth());
-            profile.setGender(true);
-            profile.setPhoneNo(finalPhone);
+            profile.setGovernmentIdNumber(reg.getGovIdNo());
+            profile.setDateOfBirth(reg.getDateOfBirth() != null ? new java.sql.Timestamp(reg.getDateOfBirth().getTime()) : null);
+            profile.setSex("Nữ");
+            profile.setPhoneNumber(finalPhone);
             profile.setAddress("Hà Nội, Việt Nam");
 
             if (!profileDAO.insert(profile)) {
@@ -340,9 +340,9 @@ public class UploadServlet extends HttpServlet {
             }
         } else {
             profile.setFullName(reg.getFullName());
-            profile.setDateOfBirth(reg.getDateOfBirth());
+            profile.setDateOfBirth(reg.getDateOfBirth() != null ? new java.sql.Timestamp(reg.getDateOfBirth().getTime()) : null);
             if (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty()) {
-                profile.setPhoneNo(reg.getPhoneNo().trim());
+                profile.setPhoneNumber(reg.getPhoneNo().trim());
             }
             profileDAO.update(profile);
         }

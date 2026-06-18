@@ -1,6 +1,6 @@
 package Controllers.Staff.ExamStaff;
 
-import Models.ExamRegistration;
+import DTOs.ExamRegistrationDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
@@ -92,7 +92,7 @@ public final class CandidateCallBoard {
     }
 
     public static void sync(ServletContext ctx, int examSessionId, String callingSbd,
-            List<ExamRegistration> queue, boolean shiftEnded) {
+            List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         State state = getBoards(ctx).computeIfAbsent(examSessionId, id -> new State());
         state.setExamSessionId(examSessionId);
         state.setCallingSbd(emptyToNull(callingSbd));
@@ -103,7 +103,7 @@ public final class CandidateCallBoard {
     }
 
     public static void syncFromSession(ServletContext ctx, HttpSession session,
-            List<ExamRegistration> queue) {
+            List<ExamRegistrationDTO> queue) {
         if (ctx == null || session == null) {
             return;
         }
@@ -113,12 +113,12 @@ public final class CandidateCallBoard {
         sync(ctx, examSessionId, callingSbd, queue, shiftEnded);
     }
 
-    public static String resolveNextSbd(List<ExamRegistration> queue, String callingSbd) {
+    public static String resolveNextSbd(List<ExamRegistrationDTO> queue, String callingSbd) {
         if (queue == null || queue.isEmpty()) {
             return null;
         }
         boolean afterCalling = callingSbd == null || callingSbd.trim().isEmpty();
-        for (ExamRegistration c : queue) {
+        for (ExamRegistrationDTO c : queue) {
             if (isProcedureDone(c)) {
                 continue;
             }
@@ -136,11 +136,11 @@ public final class CandidateCallBoard {
         return null;
     }
 
-    public static ExamRegistration findBySbd(List<ExamRegistration> queue, String sbd) {
+    public static ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd) {
         if (queue == null || sbd == null || sbd.trim().isEmpty()) {
             return null;
         }
-        for (ExamRegistration c : queue) {
+        for (ExamRegistrationDTO c : queue) {
             if (sbd.equals(c.getSbd())) {
                 return c;
             }
@@ -148,7 +148,7 @@ public final class CandidateCallBoard {
         return null;
     }
 
-    private static boolean isProcedureDone(ExamRegistration c) {
+    private static boolean isProcedureDone(ExamRegistrationDTO c) {
         return c.isPaymentCompleted() && c.isValidCapturedPhoto();
     }
 
