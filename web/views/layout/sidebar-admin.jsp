@@ -41,7 +41,7 @@
 <aside class="side-nav-bar" role="navigation" aria-label="Quản trị hệ thống" data-node-id="admin:1">
     <div class="side-nav-bar__brand" data-node-id="admin:2">
         <div class="side-nav-bar__brand-inner" data-node-id="admin:3">
-            <a href="#" class="side-nav-bar__logo-link" aria-label="Quản trị hệ thống">
+            <a href="${ctx}/admin/dashboard" class="side-nav-bar__logo-link" aria-label="Quản trị hệ thống">
                 <img src="${logoUrl}" alt="Lái Vui" width="63" height="63" class="side-nav-bar__logo-img" data-node-id="admin:4">
             </a>
             <div class="side-nav-bar__brand-title-wrap" data-node-id="admin:5">
@@ -53,7 +53,7 @@
     <nav class="side-nav-bar__menu" data-node-id="admin:7">
 
         <%-- SC-070: Dashboard Admin --%>
-        <a href="${ctx}/views/admin/dashboard.jsp"
+        <a href="${ctx}/admin/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="admin:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -69,7 +69,7 @@
         </a>
 
         <%-- SC-071: Quản lý Khu vực thi --%>
-        <a href="${ctx}/views/admin/exam-area.jsp"
+        <a href="${ctx}/admin/exam-area"
            class="side-nav-bar__link${activeSidebar eq 'khu-vuc' ? ' is-active' : ''}"
            data-node-id="admin:20"
            <c:if test="${activeSidebar eq 'khu-vuc'}">aria-current="page"</c:if>>
@@ -83,7 +83,7 @@
         </a>
 
         <%-- SC-072: Quản lý Phòng thi --%>
-        <a href="${ctx}/views/admin/exam-room.jsp"
+        <a href="${ctx}/admin/exam-room"
            class="side-nav-bar__link${activeSidebar eq 'phong-thi' ? ' is-active' : ''}"
            data-node-id="admin:30"
            <c:if test="${activeSidebar eq 'phong-thi'}">aria-current="page"</c:if>>
@@ -98,7 +98,7 @@
         </a>
 
         <%-- SC-073: Quản lý Máy thi --%>
-        <a href="${ctx}/views/admin/exam-computer.jsp"
+        <a href="${ctx}/admin/exam-computer"
            class="side-nav-bar__link${activeSidebar eq 'may-thi' ? ' is-active' : ''}"
            data-node-id="admin:40"
            <c:if test="${activeSidebar eq 'may-thi'}">aria-current="page"</c:if>>
@@ -113,7 +113,7 @@
         </a>
 
         <%-- SC-074: Quản lý Hạng GPLX --%>
-        <a href="${ctx}/views/admin/licence-class.jsp"
+        <a href="${ctx}/admin/licence-class"
            class="side-nav-bar__link${activeSidebar eq 'hang-gplx' ? ' is-active' : ''}"
            data-node-id="admin:50"
            <c:if test="${activeSidebar eq 'hang-gplx'}">aria-current="page"</c:if>>
@@ -174,7 +174,16 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="admin:90">
-        <a href="#" class="side-nav-bar__logout" data-node-id="admin:91">
+        <a href="${ctx}/change-password" class="side-nav-bar__logout" data-node-id="admin:93" style="margin-bottom:6px;">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Đổi mật khẩu</span>
+        </a>
+        <a href="${ctx}/logout" class="side-nav-bar__logout" data-node-id="admin:91">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6.5 16H3.5C2.67 16 2 15.33 2 14.5V3.5C2 2.67 2.67 2 3.5 2H6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>

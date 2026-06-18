@@ -1,7 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -9,52 +11,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Quản trị - Lái Vui</title>
-    
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- External Layout Stylesheets (Matching layout standard) -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<%-- Inject the admin sidebar template --%>
 <jsp:include page="/views/layout/sidebar-admin.jsp">
     <jsp:param name="activeSidebar" value="dashboard" />
 </jsp:include>
 
 <div class="dashboard-shell">
     <main class="main-content">
-        
-        <!-- Breadcrumbs Navigation -->
+
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
+            <a href="${ctx}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Quản trị</span>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Dashboard</span>
         </nav>
-        
-        <!-- Page Header Section -->
+
+        <%-- Flash message banner --%>
+        <c:if test="${not empty sessionScope.flashMessage}">
+            <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+                        background: ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};
+                        border: 1px solid ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'};
+                        color: ${sessionScope.flashType eq 'success' ? '#047857' : '#b91c1c'};">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 12.5l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                ${sessionScope.flashMessage}
+            </div>
+            <c:remove var="flashMessage" scope="session" />
+            <c:remove var="flashType" scope="session" />
+        </c:if>
+
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Dashboard Quản trị</h1>
                 <p class="page-subtitle">Tổng quan trạng thái toàn hệ thống, cấu hình và quản trị các module chức năng chính.</p>
             </div>
-            
-            <!-- Quick Actions on Header -->
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Xuất báo cáo
-                </button>
-                <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #ffffff;">
+                <a href="${ctx}/views/admin/audit.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: #ffffff;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -64,9 +68,7 @@
             </div>
         </header>
 
-        <!-- Dynamic Metrics (KPI Stat Cards - Bounded to Backend Variables with Fallbacks) -->
         <section class="metrics-row" aria-label="Thống kê hệ thống">
-            <!-- Card 1: Total Centers -->
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -84,8 +86,7 @@
                     </span>
                 </div>
             </div>
-            
-            <!-- Card 2: Total Sessions -->
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -96,13 +97,10 @@
                 <div class="stat-info">
                     <span class="stat-number">${empty totalExamSessions ? 0 : totalExamSessions}</span>
                     <span class="stat-label">Kỳ thi đã mở</span>
-                    <span class="stat-trend stat-trend--up">
-                        Số lượng kỳ thi
-                    </span>
+                    <span class="stat-trend stat-trend--up">Số lượng kỳ thi</span>
                 </div>
             </div>
-            
-            <!-- Card 3: Total Users -->
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--amber">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,13 +110,10 @@
                 <div class="stat-info">
                     <span class="stat-number">${empty totalUsers ? 0 : totalUsers}</span>
                     <span class="stat-label">Tài khoản hệ thống</span>
-                    <span class="stat-trend stat-trend--up">
-                        Người dùng hệ thống
-                    </span>
+                    <span class="stat-trend stat-trend--up">Người dùng hệ thống</span>
                 </div>
             </div>
-            
-            <!-- Card 4: Rooms and Computers -->
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--red">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -130,26 +125,22 @@
                     <span class="stat-number" style="font-size: 1.5rem; line-height: 1.8rem;">
                         ${empty totalExamRooms ? 0 : totalExamRooms} / ${empty totalComputers ? 0 : totalComputers}
                     </span>
-                    <span class="stat-label">Phòng thi / Máy thi</span>
-                    <span class="stat-trend stat-trend--up">
-                        Thiết bị phần cứng
-                    </span>
+                    <span class="stat-label">Khu vực / Thiết bị</span>
+                    <span class="stat-trend stat-trend--up">Cơ sở hạ tầng</span>
                 </div>
             </div>
         </section>
 
-        <!-- Quick Administration Modules Navigation Grid -->
         <h2 class="section-title">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             Quản trị phân hệ chức năng
         </h2>
-        
+
         <section class="admin-grid" aria-label="Phân hệ quản trị">
-            
-            <!-- Card 1: Khu vực thi (SC-071) -->
-            <a href="${pageContext.request.contextPath}/views/admin/exam-area.jsp" class="admin-nav-card">
+
+            <a href="${ctx}/admin/exam-area" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -168,8 +159,7 @@
                 </div>
             </a>
 
-            <!-- Card 2: Phòng thi (SC-072) -->
-            <a href="${pageContext.request.contextPath}/views/admin/exam-room.jsp" class="admin-nav-card">
+            <a href="${ctx}/views/admin/exam-room.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -188,8 +178,7 @@
                 </div>
             </a>
 
-            <!-- Card 3: Máy thi (SC-073) -->
-            <a href="${pageContext.request.contextPath}/views/admin/exam-computer.jsp" class="admin-nav-card">
+            <a href="${ctx}/views/admin/exam-computer.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -208,8 +197,7 @@
                 </div>
             </a>
 
-            <!-- Card 4: Hạng GPLX (SC-074) -->
-            <a href="${pageContext.request.contextPath}/views/admin/licence-class.jsp" class="admin-nav-card">
+            <a href="${ctx}/admin/licence-class" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -220,7 +208,7 @@
                     </div>
                     <h3 class="admin-nav-card__title">Hạng GPLX</h3>
                 </div>
-                <p class="admin-nav-card__desc">Cấu hình các hạng bằng lái xe (A1, A2, B2, C...), số câu hỏi thi, thời gian và điểm chuẩn đậu.</p>
+                <p class="admin-nav-card__desc">Cấu hình các hạng bằng lái xe (A1, A2, B2, C...), độ tuổi tối thiểu, thời hạn và điều kiện nâng hạng.</p>
                 <div class="admin-nav-card__footer">
                     Quản lý hạng bằng
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -229,8 +217,7 @@
                 </div>
             </a>
 
-            <!-- Card 5: Lệ phí thi (SC-075) -->
-            <a href="${pageContext.request.contextPath}/views/admin/exam-fee.jsp" class="admin-nav-card">
+            <a href="${ctx}/views/admin/exam-fee.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -249,8 +236,7 @@
                 </div>
             </a>
 
-            <!-- Card 6: Tài khoản hệ thống (SC-076) -->
-            <a href="${pageContext.request.contextPath}/views/admin/accounts.jsp" class="admin-nav-card">
+            <a href="${ctx}/views/admin/accounts.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -269,8 +255,7 @@
                 </div>
             </a>
 
-            <!-- Card 7: Nhật ký hệ thống (SC-077) -->
-            <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="admin-nav-card">
+            <a href="${ctx}/views/admin/audit.jsp" class="admin-nav-card">
                 <div class="admin-nav-card__header">
                     <div class="admin-nav-card__icon">
                         <svg width="20" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -287,10 +272,9 @@
                     </svg>
                 </div>
             </a>
-            
+
         </section>
 
-        <!-- Main Audit Logs Table Section (SC-077) -->
         <section class="log-card" aria-label="Bảng danh sách hoạt động gần đây">
             <header class="log-card-header">
                 <h2 class="log-card-title">
@@ -300,14 +284,13 @@
                     </svg>
                     Hoạt động hệ thống gần đây
                 </h2>
-                
                 <div class="log-card-actions">
-                    <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="btn-export" style="text-decoration: none; line-height: 24px; font-weight: 500;">
+                    <a href="${ctx}/views/admin/audit.jsp" class="btn-export" style="text-decoration: none; line-height: 24px; font-weight: 500;">
                         Xem toàn bộ nhật ký
                     </a>
                 </div>
             </header>
-            
+
             <div class="table-responsive">
                 <table class="audit-table">
                     <thead>
@@ -372,7 +355,6 @@
 
     </main>
 
-    <%-- Inject the footer template --%>
     <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>

@@ -24,4 +24,14 @@ public class DBContext {
             Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    // === THÊM HÀM MAIN NÀY ĐỂ CHECK KẾT NỐI ===
+    public static void main(String[] args) {
+        DBContext db = new DBContext();
+        if (db.getConnection() != null) {
+            System.out.println("🎉 KẾT NỐI DATABASE THÀNH CÔNG RỒI BẠN ƠI! 🎉");
+        } else {
+            System.err.println("❌ KẾT NỐI THẤT BẠI! Vui lòng kiểm tra lại SQL Server.");
+        }
+    }
 }
