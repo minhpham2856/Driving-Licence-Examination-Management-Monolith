@@ -58,7 +58,7 @@
         <a href="${ctx}/views/examiner/candidate-details"
            class="side-nav-bar__link${activeSidebar eq 'sua-thong-tin' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">edit_document</span>
-            <span class="side-nav-bar__label">Sửa thông tin</span>
+            <span class="side-nav-bar__label">Thông tin thí sinh</span>
         </a>
 
         <c:choose>
@@ -121,7 +121,7 @@
     <div class="side-nav-bar__footer">
         <a href="${ctx}/logout" class="side-nav-bar__logout">
             <span class="side-nav-bar__icon material-symbols-outlined">logout</span>
-            <span class="side-nav-bar__logout-label">Logout</span>
+            <span class="side-nav-bar__logout-label">Đăng xuất</span>
         </a>
     </div>
 </aside>

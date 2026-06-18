@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="signatureRowLast" value="${param.lastRow eq 'true'}" />
 <c:set var="signatureBtnClass" value="${empty param.btnClass ? 'export-btn' : param.btnClass}" />
@@ -11,8 +13,7 @@
             <span class="material-symbols-outlined">draw</span>
         </div>
         <div class="export-row__info">
-            <p class="export-row__title">In biên bản ký tên</p>
-            <p class="export-row__desc">Nhập SBD thí sinh để in biên bản xác nhận hoàn thành phần thi.</p>
+            <p class="export-row__title">In biên bản kết quả thi</p>
         </div>
     </div>
     <form class="export-row__actions export-sbd-form" action="${ctx}/views/examiner/print-documents" method="get">
