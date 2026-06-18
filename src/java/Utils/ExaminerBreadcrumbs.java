@@ -107,7 +107,7 @@ public final class ExaminerBreadcrumbs {
         if (path.contains("/print-documents")) {
             items.add(primary(ctx, "In văn bản", "/views/examiner/print-documents"));
             if (sbd != null && !sbd.isBlank()) {
-                items.add(child(ctx, "biên bản ký tên", "/views/examiner/print-documents" + sbdQuery));
+                items.add(child(ctx, "biên bản kết quả thi", "/views/examiner/print-documents" + sbdQuery));
             }
             return items;
         }
