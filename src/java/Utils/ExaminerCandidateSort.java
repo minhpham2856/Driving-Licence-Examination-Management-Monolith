@@ -84,7 +84,7 @@ public final class ExaminerCandidateSort {
             return "";
         }
         String text = String.valueOf(value).trim();
-        return "—".equals(text) ? "" : text.toLowerCase();
+        return "-".equals(text) ? "" : text.toLowerCase();
     }
 
     private static int parseNumeric(Object value) {
@@ -92,7 +92,7 @@ public final class ExaminerCandidateSort {
             return -1;
         }
         String text = String.valueOf(value).trim();
-        if (text.isEmpty() || "—".equals(text)) {
+        if (text.isEmpty() || "-".equals(text)) {
             return -1;
         }
         try {
@@ -117,7 +117,7 @@ public final class ExaminerCandidateSort {
         if (Boolean.TRUE.equals(row.get("passed"))) {
             return 2;
         }
-        String label = row.get("resultLabel") != null ? String.valueOf(row.get("resultLabel")) : "—";
+        String label = row.get("resultLabel") != null ? String.valueOf(row.get("resultLabel")) : "-";
         if ("TRƯỢT".equalsIgnoreCase(label)) {
             return 1;
         }

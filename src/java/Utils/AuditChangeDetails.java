@@ -143,11 +143,11 @@ public final class AuditChangeDetails {
     }
 
     private static String displayValue(String value) {
-        return value == null || value.isBlank() ? "—" : value.trim();
+        return value == null || value.isBlank() ? "-" : value.trim();
     }
 
     private static String nullToDash(String value) {
-        return value == null || value.isBlank() ? "—" : value;
+        return value == null || value.isBlank() ? "-" : value;
     }
 
     private static String jsonString(String value) {
