@@ -1,4 +1,4 @@
-/* Examiner portal — reset, typography, shell */
+/* Examiner portal - reset, typography, shell */
 body.examiner-portal,
 body.examiner-portal *,
 body.examiner-portal *::before,
@@ -85,6 +85,15 @@ body.examiner-portal.has-side-nav-bar .examiner-main {
 
 .examiner-main--scroll {
     overflow: auto;
+}
+
+.examiner-main--score-entry {
+    overflow: hidden;
+}
+
+.examiner-main--score-entry > .examiner-flash-container,
+.examiner-main--score-entry > .examiner-alert {
+    flex-shrink: 0;
 }
 
 body.examiner-portal--inactive .examiner-main {

@@ -1,5 +1,5 @@
 /* ========================================================
-   Layout shell — public header / sidebar / footer
+   Layout shell - public header / sidebar / footer
    ======================================================== */
 
 /* Fix global body flex breaking vertical page stack */
@@ -71,7 +71,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 
 
 /* ========================================================
-   Site Footer — Figma node 1:2457
+   Site Footer - Figma node 1:2457
    ======================================================== */
 .site-footer {
     width: 100%;
@@ -219,7 +219,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 /* ========================================================
-   SideNavBar — Figma node 4:4
+   SideNavBar - Figma node 4:4
    ======================================================== */
 .side-nav-bar {
     width: 260px;

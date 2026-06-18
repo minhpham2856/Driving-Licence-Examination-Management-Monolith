@@ -1,13 +1,11 @@
 /* ========================================================
-   Examiner SideNavBar — Figma node 205:483 (exact spacing)
+   Examiner SideNavBar - Figma node 205:483 (exact spacing)
    Placed last so it wins over the base `.side-nav-bar a...`
    rules above (which use the `a` element selector + !important).
    ======================================================== */
 .side-nav-bar.side-nav-bar--examiner {
     gap: 4px;
     padding: 8px 0;
-    background-color: #f2f3ff;
-    border-right: none;
 }
 
 .side-nav-bar--examiner .side-nav-bar__brand {
@@ -63,7 +61,7 @@
     align-items: stretch;
 }
 
-/* Base link row — áp dụng cho cả <a> và <span> (tab disabled) */
+/* Base link row - áp dụng cho cả <a> và <span> (tab disabled) */
 .side-nav-bar--examiner .side-nav-bar__link {
     display: flex;
     align-items: center;

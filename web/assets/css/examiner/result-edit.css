@@ -1,5 +1,5 @@
 /* ========================================================
-   Result edit (Sửa kết quả) — Figma node 205:919
+   Result edit (Sửa kết quả) - Figma node 205:919
    ======================================================== */
 .exr-toolbar-left {
     display: flex;
@@ -369,3 +369,11 @@
     line-height: 16.5px;
     text-align: center;
 }
+
+/* --spacing utilities for result-edit forms-- */
+.exr-control + .exr-control { margin-top: 20px; }
+.exr-card--mt { margin-top: 24px; }
+.exr-card__body { padding: 0 24px 24px 24px; }
+.exr-confirm-btn--full { width: 100%; height: 50px; }
+.exr-confirm-note--mt { margin-top: 10px; }
+.exr-warning--mt { margin-top: 24px; }
