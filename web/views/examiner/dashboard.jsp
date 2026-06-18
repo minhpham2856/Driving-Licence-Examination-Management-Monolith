@@ -7,6 +7,7 @@
 <c:set var="headerTitle" value="Bảng điều khiển" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/dashboard" scope="request" />
 
+<!--page-->
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -17,7 +18,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <jsp:include page="/views/examiner/partials/examiner-styles.jsp">
+        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
             <jsp:param name="pageCss" value="dashboard.css" />
         </jsp:include>
     </head>
@@ -29,76 +30,39 @@
             <jsp:param name="activeSidebar" value="dashboard" />
         </jsp:include>
 
-        <!--main content-->
+        <!--shell-->
         <div class="examiner-shell">
 
             <!--header-->
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
+            <!--main content-->
             <main class="examiner-main examiner-main--dashboard">
 
                 <!--toolbar-->
-                <section class="examiner-toolbar examiner-toolbar--tools">
-
-                    <!--tb.actions-->
-                    <form action="${pageUrl}" method="get" class="examiner-toolbar__group examiner-toolbar__search-form">
-                        <c:if test="${not empty sortBy}"><input type="hidden" name="sort" value="${sortBy}"></c:if>
-                        <c:if test="${not empty sortDir}"><input type="hidden" name="dir" value="${sortDir}"></c:if>
-                            <div class="examiner-search examiner-search--wide">
-                                <input type="text" name="q" class="examiner-search__input"
-                                       placeholder="Tìm kiếm SBD, Tên, Căn cước..."
-                                       value="${searchQuery}">
-                        </div>
-                        <button type="submit" class="examiner-btn examiner-btn--primary">
-                            <span class="material-symbols-outlined">search</span>Tìm kiếm
-                        </button>
-                        <a href="${pageUrl}" class="examiner-btn examiner-btn--white examiner-btn--icon" title="Làm mới">
-                            <span class="material-symbols-outlined">refresh</span>
-                        </a>
-                    </form>
-                </section>
+                <jsp:include page="/views/examiner/components/toolbar.jsp">
+                    <jsp:param name="showSearch" value="true" />
+                    <jsp:param name="searchWide" value="true" />
+                    <jsp:param name="searchPlaceholder" value="Tìm kiếm SBD, Tên, Căn cước..." />
+                    <jsp:param name="showRefresh" value="true" />
+                </jsp:include>
 
 
                 <!--candidate list-->
-                <section class="examiner-card examiner-card--dashboard-table">
-                    <div class="examiner-table-wrap">
-                        <table class="examiner-table">
-                            <thead>
-                                <tr>
-                                    <jsp:include page="/views/examiner/partials/candidate-dashboard-head.jsp" />
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:choose>
-                                    <c:when test="${empty candidates}">
-                                        <tr>
-                                            <td colspan="${examinerSectionTheory ? 10 : 8}" class="examiner-table__empty">
-                                                <c:choose>
-                                                    <c:when test="${searchActive}">Không tìm thấy thí sinh phù hợp với ${searchQuery}.</c:when>
-                                                    <c:otherwise>Chưa có dữ liệu thí sinh.</c:otherwise>
-                                                </c:choose>
-                                            </td>
-                                        </tr>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <c:forEach items="${candidates}" var="c" varStatus="st">
-                                            <c:set var="candidateRow" value="${c}" scope="request" />
-                                            <c:set var="rowAlt" value="${st.index % 2 == 1}" scope="request" />
-                                            <jsp:include page="/views/examiner/partials/candidate-dashboard-row.jsp" />
-                                        </c:forEach>
-                                    </c:otherwise>
-                                </c:choose>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+                <jsp:include page="/views/examiner/components/candidate-list.jsp">
+                    <jsp:param name="title" value="Danh sách thí sinh" />
+                    <jsp:param name="showTheoryScores" value="${requestScope.examinerSectionTheory ? 'true' : 'false'}" />
+                    <jsp:param name="showExamScore" value="${requestScope.examinerSectionTheory ? 'false' : 'true'}" />
+                    <jsp:param name="showResult" value="true" />
+                    <jsp:param name="showStatus" value="true" />
+                </jsp:include>
 
                 <!--statistics-->
                 <section class="examiner-summary examiner-summary--dashboard">
                     <div class="examiner-summary__grid">
                         <div class="examiner-summary__course">
                             <p class="examiner-summary__label">Khoá thi</p>
-                            <p class="examiner-summary__value">${empty examSummary.examCode ? '—' : examSummary.examCode}</p>
+                            <p class="examiner-summary__value">${empty examSummary.examCode ? '' : examSummary.examCode}</p>
                         </div>
                         <div class="examiner-summary__stat examiner-summary__stat--total">
                             <p class="examiner-summary__label">Tổng số</p>
