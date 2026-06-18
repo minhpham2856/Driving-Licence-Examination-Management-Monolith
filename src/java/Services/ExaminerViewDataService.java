@@ -1,7 +1,7 @@
 package Services;
 
-import Constants.ExamSectionType;
-import Models.ExamRegistration;
+import Utils.ExamConstants.SectionType;
+import DTOs.CandidateDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -18,9 +18,9 @@ public interface ExaminerViewDataService {
 
     List<Map<String, Object>> loadCandidateRows(int sessionId);
 
-    List<Map<String, Object>> loadCandidateRows(int sessionId, ExamSectionType sectionType, String sectionName);
+    List<Map<String, Object>> loadCandidateRows(int sessionId, SectionType sectionType, String sectionName);
 
-    Map<String, Object> buildCandidateSummary(int sessionId, ExamSectionType sectionType, String sectionName);
+    Map<String, Object> buildCandidateSummary(int sessionId, SectionType sectionType, String sectionName);
 
     void attachAuditLogs(HttpServletRequest request, int sessionId, String pageParam);
 
@@ -32,16 +32,16 @@ public interface ExaminerViewDataService {
 
     int theoryMaxQuestions();
 
-    ExamRegistration findRegistration(int sessionId, String sbd);
+    CandidateDTO findRegistration(int sessionId, String sbd);
 
     void attachScoreEntry(HttpServletRequest request, int sessionId, String sbdParam);
 
-    boolean isScoreQueueEligible(int sessionId, ExamRegistration reg,
-            ExamSectionType sectionType, String sectionName);
+    boolean isScoreQueueEligible(int sessionId, CandidateDTO reg,
+            SectionType sectionType, String sectionName);
 
     void attachViolation(HttpServletRequest request, int sessionId, String sbdParam);
 
     void attachDevices(HttpServletRequest request, int sessionId, String searchQuery);
 
-    boolean isCallEligible(int sessionId, ExamRegistration reg, ExamSectionType sectionType, String sectionName);
+    boolean isCallEligible(int sessionId, CandidateDTO reg, SectionType sectionType, String sectionName);
 }

@@ -1,22 +1,20 @@
 package Services.Impl;
 
-import Constants.AuditEntityLabels;
-import Constants.ExamSectionType;
+import Utils.ExamConstants.SectionType;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
-import DAO.AuditLogDAO;
-import DAO.ExaminerSessionDataDAO;
-import DAO.Impl.AuditLogDAOImpl;
-import DAO.Impl.ExaminerSessionDataDAOImpl;
-import Models.AuditLog;
-import Models.ExamRegistration;
+import DAOs.AuditLogDAO;
+import DAOs.ExaminerSessionDataDAO;
+import DAOs.Impl.AuditLogDAOImpl;
+import DAOs.Impl.ExaminerSessionDataDAOImpl;
+import DTOs.AuditDTO;
+import DTOs.CandidateDTO;
+import DAOs.CandidateDAO;
+import DAOs.Impl.CandidateDAOImpl;
 import Services.ExaminerExportContext;
 import Services.ExaminerExportPayload;
 import Services.ExaminerExportService;
-import Services.ExaminerViewDataService;
 import Services.XmlExportTable;
 import Utils.AuditLogViewHelper;
-import DAO.ExamRegistrationDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
@@ -40,15 +38,15 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
             "dung", "sai", "khongTraLoi", "diemLyThuyet", "ketQuaLt",
             "diemThucHanh", "diemDuongTruong");
     private static final List<String> CANDIDATE_HEADERS = List.of(
-            "STT", "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "CCCD/CMND", "Email", "Số điện thoại",
+            "STT", "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
             "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi",
             "Đúng", "Sai", "Không TL", "Điểm lý thuyết", "Kết quả LT",
             "Điểm thực hành", "Điểm đường trường");
 
-    private final ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
+    private final Services.ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
     private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
-    private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
+    private final CandidateDAO candidateDAO = new CandidateDAOImpl();
 
     @Override
     public ExaminerExportPayload buildCandidatesExport(ExaminerExportContext ctx) {
@@ -96,7 +94,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         List<List<Object>> rows = new ArrayList<>();
         int index = 1;
 
-        if (ctx.sectionType() == ExamSectionType.SCORE_BASED) {
+        if (ctx.sectionType() == SectionType.SCORE_BASED) {
             fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
             headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
             for (Map<String, Object> c : candidates) {
@@ -146,7 +144,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
 
         List<String> fields;
         List<String> headers;
-        if (ctx.sectionType() == ExamSectionType.SCORE_BASED) {
+        if (ctx.sectionType() == SectionType.SCORE_BASED) {
             fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
             headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
         } else {
@@ -164,7 +162,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     @Override
     public ExaminerExportPayload buildViolationsExport(ExaminerExportContext ctx) {
         Map<String, Object> meta = sessionDataDAO.findSessionExportMeta(ctx.sessionId());
-        List<AuditLog> auditViolations = auditLogDAO.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
+        List<AuditDTO> auditViolations = auditLogDAO.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
         List<Map<String, Object>> scoreViolations = sessionDataDAO.findScoreViolationRows(ctx.sessionId());
 
         Map<String, Object> metadata = new LinkedHashMap<>();
@@ -174,8 +172,8 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
 
         List<List<Object>> auditRows = new ArrayList<>();
         int index = 1;
-        for (AuditLog log : auditViolations) {
-            String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "—";
+        for (AuditDTO log : auditViolations) {
+            String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "-";
             auditRows.add(Arrays.asList(
                     index++,
                     nullToDash(log.getChangerName()),
@@ -219,10 +217,10 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
 
     @Override
     public ExaminerExportPayload buildAuditExport(ExaminerExportContext ctx, String searchQuery) {
-        List<AuditLog> logs = auditLogDAO.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
+        List<AuditDTO> logs = auditLogDAO.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
         Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
         List<List<Object>> rows = new ArrayList<>();
-        for (AuditLog log : logs) {
+        for (AuditDTO log : logs) {
             for (Map<String, Object> viewRow : AuditLogViewHelper.toViewRows(log, sbdByRecordId)) {
                 String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "";
                 Object reason = viewRow.get("reason");
@@ -234,7 +232,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                         viewRow.get("info"),
                         viewRow.get("oldValue") != null ? viewRow.get("oldValue") : "",
                         viewRow.get("newValue"),
-                        "—".equals(reason) ? "" : reason,
+                        "-".equals(reason) ? "" : reason,
                         time));
             }
         }
@@ -254,7 +252,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     }
 
     private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, Map<String, Object> summary,
-            ExaminerSlot slot, ExamSectionType sectionType, String sectionName) {
+            ExaminerSlot slot, SectionType sectionType, String sectionName) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
         metadata.put("caThi", nullToDash(meta.get("sessionName")));
@@ -267,7 +265,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
             metadata.put("giamThi", nullToDash(slot.getExaminerName()));
         }
         metadata.put("phanThi",
-                sectionType == ExamSectionType.SCORE_BASED ? nullToDash(sectionName) : "Lý thuyết");
+                sectionType == SectionType.SCORE_BASED ? nullToDash(sectionName) : "Lý thuyết");
 
         Map<String, Object> thongKe = new LinkedHashMap<>();
         thongKe.put("tongThiSinh", summary.get("total"));
@@ -281,7 +279,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     }
 
     private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, Map<String, Object> summary,
-            ExaminerSlot slot, ExamSectionType sectionType, String sectionName) {
+            ExaminerSlot slot, SectionType sectionType, String sectionName) {
         List<List<Object>> preamble = new ArrayList<>();
         preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
         preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("sessionName"))));
@@ -294,7 +292,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
             preamble.add(Arrays.asList("Giám thị", nullToDash(slot.getExaminerName())));
         }
         preamble.add(Arrays.asList("Phần thi",
-                sectionType == ExamSectionType.SCORE_BASED ? nullToDash(sectionName) : "Lý thuyết"));
+                sectionType == SectionType.SCORE_BASED ? nullToDash(sectionName) : "Lý thuyết"));
         preamble.add(Arrays.asList());
         preamble.add(Arrays.asList("Tổng thí sinh", summary.get("total")));
         preamble.add(Arrays.asList("Đã thi", summary.get("done")));
@@ -307,11 +305,11 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     }
 
     private static List<List<Object>> buildMinutesRows(List<Map<String, Object>> candidates,
-            ExamSectionType sectionType) {
+            SectionType sectionType) {
         List<List<Object>> rows = new ArrayList<>();
         int index = 1;
         for (Map<String, Object> c : candidates) {
-            if (sectionType == ExamSectionType.SCORE_BASED) {
+            if (sectionType == SectionType.SCORE_BASED) {
                 rows.add(Arrays.asList(
                         index++,
                         c.get("sbd"),
@@ -336,7 +334,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         return rows;
     }
 
-    private List<List<Object>> buildViolationsExcelRows(Map<String, Object> meta, List<AuditLog> auditViolations,
+    private List<List<Object>> buildViolationsExcelRows(Map<String, Object> meta, List<AuditDTO> auditViolations,
             List<Map<String, Object>> scoreViolations) {
         List<List<Object>> rows = new ArrayList<>();
         rows.add(Arrays.asList("BIÊN BẢN VI PHẠM"));
@@ -347,8 +345,8 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         rows.add(Arrays.asList("I. Vi phạm quy chế thi (nhật ký)"));
         rows.add(Arrays.asList("STT", "Người ghi", "Nội dung", "Lý do", "Thời gian"));
         int index = 1;
-        for (AuditLog log : auditViolations) {
-            String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "—";
+        for (AuditDTO log : auditViolations) {
+            String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "-";
             rows.add(Arrays.asList(
                     index++,
                     nullToDash(log.getChangerName()),
@@ -357,7 +355,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                     time));
         }
         if (auditViolations.isEmpty()) {
-            rows.add(Arrays.asList("—", "—", "Không có vi phạm", "—", "—"));
+            rows.add(Arrays.asList("-", "-", "Không có vi phạm", "-", "-"));
         }
 
         rows.add(Arrays.asList());
@@ -377,7 +375,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                     row.get("currentScore")));
         }
         if (scoreViolations.isEmpty()) {
-            rows.add(Arrays.asList("—", "—", "Không có trừ điểm", "—", "—", "—", "—", "—"));
+            rows.add(Arrays.asList("-", "-", "Không có trừ điểm", "-", "-", "-", "-", "-"));
         }
         return rows;
     }
@@ -407,15 +405,15 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
 
     private static String nullToDash(Object value) {
         if (value == null) {
-            return "—";
+            return "-";
         }
         String text = value.toString().trim();
-        return text.isEmpty() ? "—" : text;
+        return text.isEmpty() ? "-" : text;
     }
 
     private Map<Integer, String> buildSbdLookup(int sessionId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (ExamRegistration reg : registrationDAO.getCandidatesBySession(sessionId)) {
+        for (CandidateDTO reg : candidateDAO.getCandidatesBySession(sessionId)) {
             lookup.put(reg.getId(), reg.getSbd());
         }
         return lookup;

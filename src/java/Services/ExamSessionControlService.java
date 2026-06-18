@@ -1,13 +1,13 @@
 package Services;
 
-import Constants.ExamSessionStatus;
+import Utils.ExamConstants;
 import Controllers.Staff.ExamStaff.CandidateCallBoard;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
-import DAO.ExamSessionDAO;
-import DAO.ExaminerAssignmentDAO;
-import DAO.Impl.ExamSessionDAOImpl;
-import DAO.Impl.ExaminerAssignmentDAOImpl;
-import Models.ExamSession;
+import DAOs.ExamSessionDAO;
+import DAOs.ExaminerAssignmentDAO;
+import DAOs.Impl.ExamSessionDAOImpl;
+import DAOs.Impl.ExaminerAssignmentDAOImpl;
+import DTOs.SessionDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 
@@ -21,12 +21,12 @@ public class ExamSessionControlService {
     private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
 
     public StartResult startSession(int sessionId, int staffUserId) {
-        ExamSession examSession = sessionDAO.getById(sessionId);
+        SessionDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
             return StartResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
         }
-        if (!ExamSessionStatus.canStart(examSession.getStatus())) {
-            if (ExamSessionStatus.isInProgress(examSession.getStatus())) {
+        if (!ExamConstants.canStartSession(examSession.getStatus())) {
+            if (ExamConstants.isSessionInProgress(examSession.getStatus())) {
                 return StartResult.fail("Ca thi \"" + examSession.getSessionName() + "\" đã được bắt đầu.");
             }
             return StartResult.fail("Ca thi \"" + examSession.getSessionName()
@@ -40,7 +40,7 @@ public class ExamSessionControlService {
                     + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu ca.");
         }
 
-        if (!sessionDAO.updateStatus(sessionId, ExamSessionStatus.IN_PROGRESS)) {
+        if (!sessionDAO.updateStatus(sessionId, ExamConstants.SESSION_IN_PROGRESS)) {
             return StartResult.fail("Không cập nhật được trạng thái ca thi trên cơ sở dữ liệu.");
         }
 
@@ -48,15 +48,15 @@ public class ExamSessionControlService {
     }
 
     public EndResult endSession(int sessionId) {
-        ExamSession examSession = sessionDAO.getById(sessionId);
+        SessionDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
             return EndResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
         }
-        if (!ExamSessionStatus.isInProgress(examSession.getStatus())) {
+        if (!ExamConstants.isSessionInProgress(examSession.getStatus())) {
             return EndResult.fail("Ca thi \"" + examSession.getSessionName()
                     + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
         }
-        if (!sessionDAO.updateStatus(sessionId, ExamSessionStatus.COMPLETED)) {
+        if (!sessionDAO.updateStatus(sessionId, ExamConstants.SESSION_COMPLETED)) {
             return EndResult.fail("Không cập nhật được trạng thái kết thúc ca thi.");
         }
         return EndResult.ok(examSession.getSessionName());

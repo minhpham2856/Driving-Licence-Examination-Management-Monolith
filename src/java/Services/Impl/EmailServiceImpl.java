@@ -1,7 +1,6 @@
 package Services.Impl;
 
 import Services.EmailService;
-import Utils.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -13,6 +12,10 @@ import java.util.logging.Logger;
 public class EmailServiceImpl implements EmailService {
 
     private static final Logger LOG = Logger.getLogger(EmailServiceImpl.class.getName());
+    private static final String MAIL_HOST = "smtp.gmail.com";
+    private static final String MAIL_PORT = "587";
+    private static final String MAIL_USERNAME = "trungtamlaivui@gmail.com";
+    private static final String MAIL_PASSWORD = "ctwi ngsk cbka qehm";
 
     private Properties props;
     private String senderUsername;
@@ -24,19 +27,18 @@ public class EmailServiceImpl implements EmailService {
 
     private void loadConfiguration() {
         props = new Properties();
-        String host = ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com");
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", ConfigManager.get("MAIL_SMTP_PORT", "587"));
+        props.put("mail.smtp.host", MAIL_HOST);
+        props.put("mail.smtp.port", MAIL_PORT);
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.ssl.trust", host);
+        props.put("mail.smtp.ssl.trust", MAIL_HOST);
         props.put("mail.smtp.connectiontimeout", "10000");
         props.put("mail.smtp.timeout", "10000");
         props.put("mail.smtp.writetimeout", "10000");
 
-        senderUsername = normalize(ConfigManager.get("MAIL_SENDER_USERNAME"));
-        senderPassword = normalizeAppPassword(ConfigManager.get("MAIL_SENDER_PASSWORD"));
+        senderUsername = normalize(MAIL_USERNAME);
+        senderPassword = normalizeAppPassword(MAIL_PASSWORD);
     }
 
     @Override

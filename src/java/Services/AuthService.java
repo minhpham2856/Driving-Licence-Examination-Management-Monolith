@@ -1,6 +1,6 @@
 package Services;
 
-import Models.RegisterResult;
+import DTOs.RegisterResult;
 import Models.User;
 
 public interface AuthService {

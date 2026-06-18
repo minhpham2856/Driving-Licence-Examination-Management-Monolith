@@ -1,11 +1,11 @@
 package Services;
 
-import Constants.ExamSectionType;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
+import Utils.ExamConstants.SectionType;
 
 public record ExaminerExportContext(
         int sessionId,
         ExaminerSlot slot,
-        ExamSectionType sectionType,
+        SectionType sectionType,
         String sectionName) {
 }

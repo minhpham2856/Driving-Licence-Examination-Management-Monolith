@@ -1,12 +1,12 @@
 package Services;
 
-import Models.ExamRegistration;
+import DTOs.CandidateDTO;
 import Models.User;
 import jakarta.servlet.http.HttpSession;
 
 public interface ExaminerCrudService {
 
-    ExamRegistration findCandidate(int sessionId, String sbd);
+    CandidateDTO findCandidate(int sessionId, String sbd);
 
     boolean updateCandidateProfile(int sessionId, String sbd, String fullName, String dobStr,
             String govIdNo, String email, String phoneNo, String address, String sex, String reasonForTaking,
@@ -28,11 +28,20 @@ public interface ExaminerCrudService {
 
     String deferScoreEntryAbsent(int sessionId, String sbd, User user, HttpSession session);
 
+    boolean adjustScoreDeduction(int sessionId, String sbd, int deductionId, int delta, HttpSession session);
+
+    boolean finalizeScoreEntry(int sessionId, String sbd, HttpSession session);
+
     boolean setDeviceMaintenance(int deviceId, HttpSession session);
 
     boolean setDeviceAvailable(int deviceId, HttpSession session);
 
+    boolean changeCandidateVehicle(int sessionId, String sbd, int deviceId, HttpSession session);
+
     boolean updateTheoryScore(int sessionId, String sbd, int newScore, String reasonCode,
+            String reasonDetail, User user, String password, HttpSession session);
+
+    boolean logPracticalScoreEditReason(int sessionId, String sbd, String reasonCode,
             String reasonDetail, User user, String password, HttpSession session);
 
     boolean recordViolation(int sessionId, String sbd, String reasonCode, String reasonDetail,
