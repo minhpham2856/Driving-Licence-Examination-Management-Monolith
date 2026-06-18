@@ -31,6 +31,7 @@ public class AdminStatsDAO extends DBContext {
     public int countExamAreas()  { return count("ExamArea"); }
     public int countExams()      { return count("Exam"); }
     public int countDevices()    { return count("ExamDevice"); }
+    public int countExamRooms()  { return count("ExamRoom"); }
 
     /**
      * Recent audit rows for the dashboard table. Mapped against the project's
@@ -55,7 +56,7 @@ public class AdminStatsDAO extends DBContext {
                 java.sql.Timestamp ts = rs.getTimestamp("ChangedAt");
                 r.timestamp = (ts == null) ? "" : fmt.format(ts);
                 r.username = rs.getString("Username");
-                if (r.username == null || r.username.isEmpty()) r.username = "thanh cong";
+                if (r.username == null || r.username.isEmpty()) r.username = "Há»‡ thá»‘ng";
                 list.add(r);
             }
         } catch (Exception e) {
@@ -78,8 +79,8 @@ public class AdminStatsDAO extends DBContext {
         public String getAction()    { return action; }
         public String getModule()    { return module; }
         public String getRecordId()  { return recordId; }
-        public String getIpAddress() { return "aa”"; }
-        public String getStatus()    { return "thanh cong"; }
+        public String getIpAddress() { return "â€”"; }
+        public String getStatus()    { return "ThÃ nh cÃ´ng"; }
         public String getStatusKey() { return "success"; }
     }
 }
