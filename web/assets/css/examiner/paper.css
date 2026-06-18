@@ -1,5 +1,5 @@
 /* ========================================================
-   Candidate Details Paper (Đề thi) — Figma node 205:1391
+   Candidate Details Paper (Đề thi) - Figma node 205:1391
    ======================================================== */
 
 /* Filter tabs in toolbar */
@@ -27,6 +27,7 @@
     cursor: pointer;
     white-space: nowrap;
     color: #434654;
+    text-decoration: none;
 }
 
 .paper-filter-tab.is-active {
@@ -34,8 +35,9 @@
 }
 
 .paper-filter-tab--all.is-active {
-    background: rgba(0, 61, 155, 0.08);
-    color: #003d9b;
+    background: rgba(67, 70, 84, 0.12);
+    border: 1px solid rgba(67, 70, 84, 0.2);
+    color: #434654;
 }
 
 .paper-filter-tab--correct {
@@ -65,7 +67,7 @@
     background: #fff;
     border: 1px solid #c3c6d6;
     border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     overflow: auto;
     flex: 1 0 0;
     min-height: 0;
@@ -93,15 +95,30 @@
     z-index: 1;
 }
 
-.paper-th--no      { width: 80px; }
-.paper-th--content { width: auto; }
-.paper-th--answer  { width: 100px; text-align: center; }
-.paper-th--student { width: 120px; text-align: center; }
+.paper-th--no {
+    width: 10%;
+    text-align: center;
+}
+
+.paper-th--content {
+    width: 60%;
+}
+
+.paper-th--answer {
+    width: 10%;
+    text-align: center;
+}
+
+.paper-th--student {
+    width: 10%;
+    text-align: center;
+}
 
 /* Rows */
 .paper-tr {
     border-top: 1px solid rgba(195, 198, 214, 0.5);
 }
+
 .paper-tr--alt {
     background: #f6fafe;
 }
@@ -116,10 +133,10 @@
 
 .paper-td--no {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
     color: #434654;
-    letter-spacing: 0.6px;
+    text-align: center;
 }
 
 .paper-td--content {
@@ -139,9 +156,8 @@
 .paper-img {
     display: block;
     max-width: 100%;
-    max-height: 180px;
+    /*max-height: 180px;*/
     object-fit: contain;
-    border-radius: 4px;
 }
 
 /* Answer badge */

@@ -3,7 +3,7 @@
     pointer-events: none;
 }
 /* ========================================================
-   Audit Log (Nhật Ký) — Figma node 205:1808
+   Audit Log (Nhật Ký) - Figma node 205:1808
    ======================================================== */
 
 /* Search modifier: wider input (240px) */
@@ -34,7 +34,7 @@
     background: #e4e9ed;
 }
 
-/* Action badge — pill shape */
+/* Action badge - pill shape */
 .audit-badge {
     display: inline-flex;
     align-items: center;

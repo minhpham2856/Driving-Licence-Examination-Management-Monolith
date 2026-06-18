@@ -159,3 +159,42 @@
     border-color: #d1d5db;
     color: #374151;
 }
+
+.device-grid--compact {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+.device-grid-card--compact {
+    min-height: 0;
+    padding: 12px 16px;
+    min-width: 120px;
+    flex: 0 1 auto;
+}
+
+.device-grid-card--compact .device-grid-card__icon {
+    font-size: 22px;
+}
+
+.device-grid-card--compact .device-grid-card__name {
+    font-size: 12px;
+}
+
+.device-grid-card--compact .device-grid-card__status {
+    font-size: 10px;
+    padding: 2px 8px;
+}
+
+.device-grid-card--compact .device-grid-card__actions {
+    margin-top: 4px;
+}
+
+.device-grid-card--compact .device-grid-card__actions .examiner-link-action {
+    font-size: 12px;
+}
+
+.examiner-table__empty--compact {
+    padding: 12px 16px;
+    font-size: 12px;
+}

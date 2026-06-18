@@ -46,7 +46,7 @@ p {
 }
 
 /* ========================================================
-   TopNavBar — Figma node 1:1221 (public header)
+   TopNavBar - Figma node 1:1221 (public header)
    ======================================================== */
 .top-nav-bar {
     width: 100%;
@@ -205,7 +205,7 @@ p {
 }
 
 /* ========================================================
-   SideNavBar — Figma node 4:4 (exam sidebar)
+   SideNavBar - Figma node 4:4 (exam sidebar)
    ======================================================== */
 .side-nav-bar {
     width: 260px;
@@ -409,7 +409,7 @@ p {
 }
 
 /* ========================================================
-   Operation/Audit Log Page — light admin theme dashboard
+   Operation/Audit Log Page - light admin theme dashboard
    ======================================================== */
 .breadcrumbs {
     display: flex;
@@ -2226,7 +2226,7 @@ p {
 }
 
 /* ========================================================
-   Admin Dashboard Layout Styles — SC-070 to SC-077
+   Admin Dashboard Layout Styles - SC-070 to SC-077
    ======================================================== */
 .admin-grid {
     display: grid;
@@ -2322,7 +2322,7 @@ p {
 }
 
 /* ========================================================
-   Registrant Personal Dashboard — Node SC-030 to SC-035
+   Registrant Personal Dashboard - Node SC-030 to SC-035
    ======================================================== */
 
 /* ---- Welcome Banner ---- */
@@ -5983,7 +5983,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   audit.jsp — ExamStaff specific styles
+   audit.jsp - ExamStaff specific styles
    ======================================================== */
 
 .staff-profile-card {
@@ -6025,7 +6025,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   dashboard.jsp — ExamStaff specific styles
+   dashboard.jsp - ExamStaff specific styles
    ======================================================== */
 
 .progress-indicator-bar {
@@ -6184,7 +6184,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   upload.jsp — ExamStaff specific styles
+   upload.jsp - ExamStaff specific styles
    ======================================================== */
 
 .upload-dropzone-container {
@@ -6262,7 +6262,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   allocation.jsp — ExamStaff Pipeline (Horizontal Layout)
+   allocation.jsp - ExamStaff Pipeline (Horizontal Layout)
    ======================================================== */
 .pipeline-container {
     display: flex;
@@ -6486,7 +6486,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   candidatecall.jsp — ExamStaff specific styles
+   candidatecall.jsp - ExamStaff specific styles
    ======================================================== */
 .batch-btn-container {
     display: flex;
@@ -6618,7 +6618,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   procedure.jsp — ExamStaff specific styles
+   procedure.jsp - ExamStaff specific styles
    ======================================================== */
 .procedure-steps-bar {
     display: flex;
