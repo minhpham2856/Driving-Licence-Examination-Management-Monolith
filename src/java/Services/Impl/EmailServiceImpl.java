@@ -1,6 +1,7 @@
 package Services.Impl;
 
 import Services.EmailService;
+import Utils.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -12,10 +13,10 @@ import java.util.logging.Logger;
 public class EmailServiceImpl implements EmailService {
 
     private static final Logger LOG = Logger.getLogger(EmailServiceImpl.class.getName());
-    private static final String MAIL_HOST = "smtp.gmail.com";
-    private static final String MAIL_PORT = "587";
-    private static final String MAIL_USERNAME = "trungtamlaivui@gmail.com";
-    private static final String MAIL_PASSWORD = "ctwi ngsk cbka qehm";
+    private static final String MAIL_HOST = ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com");
+    private static final String MAIL_PORT = ConfigManager.get("MAIL_SMTP_PORT", "587");
+    private static final String MAIL_USERNAME = ConfigManager.get("MAIL_SENDER_USERNAME");
+    private static final String MAIL_PASSWORD = ConfigManager.get("MAIL_SENDER_PASSWORD");
 
     private Properties props;
     private String senderUsername;

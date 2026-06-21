@@ -36,8 +36,8 @@ public class ExamSessionControlService {
         List<ExaminerSlot> assignments = assignmentDAO.getBySessionId(sessionId);
         long withArea = assignments.stream().filter(s -> s.getAreaId() > 0).count();
         if (withArea == 0) {
-            return StartResult.fail("Chưa phân công giám khảo vào khu vực thi. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu ca.");
+            return StartResult.fail("Chưa phân công sát hạch viên vào khu vực thi. "
+                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu ca.");
         }
 
         if (!sessionDAO.updateStatus(sessionId, ExamConstants.SESSION_IN_PROGRESS)) {
@@ -115,7 +115,7 @@ public class ExamSessionControlService {
         public static StartResult ok(String sessionName, int examinerCount) {
             return new StartResult(true,
                     "Đã bắt đầu ca thi \"" + sessionName + "\". "
-                            + examinerCount + " giám khảo có thể đăng nhập.",
+                            + examinerCount + " sát hạch viên có thể đăng nhập.",
                     sessionName, examinerCount);
         }
 
@@ -151,7 +151,7 @@ public class ExamSessionControlService {
 
         public static EndResult ok(String sessionName) {
             return new EndResult(true,
-                    "Đã kết thúc ca thi \"" + sessionName + "\". Giám khảo không thể đăng nhập ca này nữa.");
+                    "Đã kết thúc ca thi \"" + sessionName + "\". sát hạch viên không thể đăng nhập ca này nữa.");
         }
 
         public static EndResult fail(String message) {
