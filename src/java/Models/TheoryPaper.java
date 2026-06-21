@@ -3,6 +3,7 @@ package Models;
 import java.sql.Timestamp;
 
 public class TheoryPaper {
+
     private int theoryPaperId;
     private int examCandidateId;
     private int examDeviceId;

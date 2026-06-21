@@ -28,36 +28,91 @@ public class Licence {
         this.upgradeFromLicenceId = upgradeFromLicenceId;
     }
 
-    public int getLicenceId() { return licenceId; }
-    public void setLicenceId(int licenceId) { this.licenceId = licenceId; }
+    public int getLicenceId() {
+        return licenceId;
+    }
 
-    public String getLicenceClass() { return licenceClass; }
-    public void setLicenceClass(String licenceClass) { this.licenceClass = licenceClass; }
+    public void setLicenceId(int licenceId) {
+        this.licenceId = licenceId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getLicenceClass() {
+        return licenceClass;
+    }
 
-    public int getMinimumAge() { return minimumAge; }
-    public void setMinimumAge(int minimumAge) { this.minimumAge = minimumAge; }
+    public void setLicenceClass(String licenceClass) {
+        this.licenceClass = licenceClass;
+    }
 
-    public int getValidForYears() { return validForYears; }
-    public void setValidForYears(int validForYears) { this.validForYears = validForYears; }
+    public String getDescription() {
+        return description;
+    }
 
-    public Integer getUpgradeFromLicenceId() { return upgradeFromLicenceId; }
-    public void setUpgradeFromLicenceId(Integer upgradeFromLicenceId) { this.upgradeFromLicenceId = upgradeFromLicenceId; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public String getUpgradeFromClass() { return upgradeFromClass; }
-    public void setUpgradeFromClass(String upgradeFromClass) { this.upgradeFromClass = upgradeFromClass; }
+    public int getMinimumAge() {
+        return minimumAge;
+    }
 
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public void setMinimumAge(int minimumAge) {
+        this.minimumAge = minimumAge;
+    }
 
-    public Integer getCreatedByUserId() { return createdByUserId; }
-    public void setCreatedByUserId(Integer createdByUserId) { this.createdByUserId = createdByUserId; }
+    public int getValidForYears() {
+        return validForYears;
+    }
 
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public void setValidForYears(int validForYears) {
+        this.validForYears = validForYears;
+    }
 
-    public Integer getUpdatedByUserId() { return updatedByUserId; }
-    public void setUpdatedByUserId(Integer updatedByUserId) { this.updatedByUserId = updatedByUserId; }
+    public Integer getUpgradeFromLicenceId() {
+        return upgradeFromLicenceId;
+    }
+
+    public void setUpgradeFromLicenceId(Integer upgradeFromLicenceId) {
+        this.upgradeFromLicenceId = upgradeFromLicenceId;
+    }
+
+    public String getUpgradeFromClass() {
+        return upgradeFromClass;
+    }
+
+    public void setUpgradeFromClass(String upgradeFromClass) {
+        this.upgradeFromClass = upgradeFromClass;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Integer getCreatedByUserId() {
+        return createdByUserId;
+    }
+
+    public void setCreatedByUserId(Integer createdByUserId) {
+        this.createdByUserId = createdByUserId;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Integer getUpdatedByUserId() {
+        return updatedByUserId;
+    }
+
+    public void setUpdatedByUserId(Integer updatedByUserId) {
+        this.updatedByUserId = updatedByUserId;
+    }
 }

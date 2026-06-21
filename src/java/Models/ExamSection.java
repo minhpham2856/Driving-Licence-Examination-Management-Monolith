@@ -1,6 +1,7 @@
 package Models;
 
 public class ExamSection {
+
     private int examSectionId;
     private String sectionName;
 

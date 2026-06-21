@@ -1,6 +1,7 @@
 package Models;
 
 public class Fee {
+
     private int feeId;
     private String feeName;
     private String feeType;

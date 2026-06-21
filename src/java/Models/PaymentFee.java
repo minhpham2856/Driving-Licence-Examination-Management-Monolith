@@ -1,6 +1,7 @@
 package Models;
 
 public class PaymentFee {
+
     private int paymentFeeId;
     private int paymentId;
     private int feeId;

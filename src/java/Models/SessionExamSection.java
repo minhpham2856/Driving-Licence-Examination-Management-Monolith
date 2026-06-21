@@ -1,6 +1,7 @@
 package Models;
 
 public class SessionExamSection {
+
     private int sessionExamSectionId;
     private int sessionId;
     private int examSectionId;

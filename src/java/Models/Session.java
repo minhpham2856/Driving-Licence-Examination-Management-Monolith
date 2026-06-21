@@ -3,6 +3,7 @@ package Models;
 import java.sql.Timestamp;
 
 public class Session {
+
     private int id;
     private String sessionName;
     private Timestamp startTime;
