@@ -9,7 +9,7 @@ import DAOs.Impl.CandidateCallDAOImpl;
 import DAOs.Impl.ExamSessionDAOImpl;
 import DTOs.SessionDTO;
 import DTOs.ExamRegistrationDTO;
-import DTOs.CandidateCall;
+import DTOs.CandidateCallDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -91,7 +91,7 @@ public class CandidateCallServlet extends HttpServlet {
                         session.setAttribute("callingSbd", c.getSbd());
                         
                         // Insert call record in database
-                        CandidateCall call = new CandidateCall();
+                        CandidateCallDTO call = new CandidateCallDTO();
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
@@ -117,7 +117,7 @@ public class CandidateCallServlet extends HttpServlet {
                     candidateQueue.add(removed); // Move to the end of the queue
                     
                     // Insert Call Record as Absent in DB
-                    CandidateCall call = new CandidateCall();
+                    CandidateCallDTO call = new CandidateCallDTO();
                     call.setExamSessionId(removed.getExamSessionId());
                     call.setCandidateNo(removed.getCandidateNo());
                     call.setCalledTo("Bàn làm thủ tục số 2");
@@ -134,7 +134,7 @@ public class CandidateCallServlet extends HttpServlet {
                         nextSbd = c.getSbd();
                         
                         // Register a calling log for next person
-                        CandidateCall call = new CandidateCall();
+                        CandidateCallDTO call = new CandidateCallDTO();
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
