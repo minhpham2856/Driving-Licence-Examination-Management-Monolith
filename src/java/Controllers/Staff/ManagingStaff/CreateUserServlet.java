@@ -1,8 +1,8 @@
 package Controllers.Staff.ManagingStaff;
 
-import DAO.Impl.ProfileDAOImpl;
-import DAO.Impl.RegistrantApplicationDAOImpl;
-import Models.RegisterResult;
+import DAOs.Impl.ProfileDAOImpl;
+import DAOs.Impl.RegistrantApplicationDAOImpl;
+import DTOs.RegisterResultDTO;
 import Models.Profile;
 import Models.User;
 import Services.AuthService;
@@ -85,7 +85,7 @@ public class CreateUserServlet extends HttpServlet {
         }
 
         boolean female = "female".equals(gender);
-        RegisterResult result = authService.register(
+        RegisterResultDTO result = authService.register(
                 cccd, fullName, phone, dob, address, email, female);
 
         if (!result.isSuccess()) {

@@ -1,4 +1,4 @@
-package DAO;
+package DAOs;
 
 import DBConnection.DBContext;
 import java.sql.Connection;
@@ -12,10 +12,17 @@ import java.util.List;
  * Read-only helper for the Admin dashboard. Self-contained on purpose: it does
  * NOT depend on the shared UserDAO / AuditLogDAO so it can't clash with other
  * members' code. Every query is best-effort and returns 0 / empty on failure.
+ * Cung cấp các phương thức thống kê nhanh cho trang tổng quan admin như
+ * đếm người dùng, khu vực thi, kỳ thi, thiết bị và hoạt động gần đây.
  */
 public class AdminStatsDAO extends DBContext {
 
-    /** COUNT(*) of a table; tableName must be a trusted literal (never user input). */
+    /**
+     * Đếm số bản ghi của một bảng bất kỳ.
+     *
+     * @param tableName tên bảng (phải là literal tin cậy, tuyệt đối không phải dữ liệu người dùng)
+     * @return số lượng bản ghi, 0 nếu có lỗi
+     */
     public int count(String tableName) {
         String sql = "SELECT COUNT(*) FROM " + tableName;
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
@@ -27,17 +34,41 @@ public class AdminStatsDAO extends DBContext {
         return 0;
     }
 
+    /**
+     * Đếm tổng số người dùng trong hệ thống.
+     *
+     * @return số lượng người dùng
+     */
     public int countUsers()      { return count("[User]"); }
-    public int countExamAreas()  { return count("ExamArea"); }
-    public int countExams()      { return count("Exam"); }
-    public int countDevices()    { return count("ExamDevice"); }
-    public int countExamRooms()  { return count("ExamRoom"); }
 
     /**
-     * Recent audit rows for the dashboard table. Mapped against the project's
-     * Audit table (TableName, RecordId, Action, ChangedBy, ChangedAt) joined to
-     * [User]. If the real column names differ, this safely returns an empty list
-     * and the dashboard just shows the empty state.
+     * Đếm tổng số khu vực thi.
+     *
+     * @return số lượng khu vực thi
+     */
+    public int countExamAreas()  { return count("ExamArea"); }
+
+    /**
+     * Đếm tổng số kỳ thi.
+     *
+     * @return số lượng kỳ thi
+     */
+    public int countExams()      { return count("Exam"); }
+
+    /**
+     * Đếm tổng số thiết bị thi.
+     *
+     * @return số lượng thiết bị
+     */
+    public int countDevices()    { return count("ExamDevice"); }
+
+    /**
+     * Lấy danh sách hoạt động gần đây từ nhật ký Audit cho bảng dashboard.
+     * Truy vấn JOIN với bảng [User] để lấy tên người dùng.
+     * Nếu tên cột thực tế khác, phương thức an toàn trả về danh sách rỗng.
+     *
+     * @param limit số lượng bản ghi tối đa trả về
+     * @return danh sách RecentActivity chứa thông tin hoạt động gần đây
      */
     public List<RecentActivity> recentActivity(int limit) {
         List<RecentActivity> list = new ArrayList<>();
