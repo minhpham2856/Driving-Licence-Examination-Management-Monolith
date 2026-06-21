@@ -1,6 +1,7 @@
 package Models;
 
 public class ExamScore {
+
     private int examScoreId;
     private int examResultId;
     private int examSectionId;
