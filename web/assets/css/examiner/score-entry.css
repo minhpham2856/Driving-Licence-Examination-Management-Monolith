@@ -1,5 +1,5 @@
 /* ========================================================
-   Score Entry (Nhập điểm) — Figma node 256:206
+   Score Entry (Nhập điểm) - Figma node 256:206
    ======================================================== */
 
 .score-entry-toolbar {
@@ -13,6 +13,77 @@
     border-radius: 8px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
+}
+
+.score-entry-vehicle-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.examiner-main--score-entry .score-entry-grid {
+    flex: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.examiner-main--score-entry .score-entry-col {
+    min-height: 0;
+}
+
+.examiner-main--score-entry .score-entry-col--main > .score-entry-card:first-child {
+    flex: 0 1 320px;
+    min-height: 0;
+    max-height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.examiner-main--score-entry .score-entry-col--main > .score-entry-card:first-child .score-entry-table-wrap {
+    flex: 1;
+    min-height: 0;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.examiner-main--score-entry .score-entry-col--penalties {
+    min-height: 0;
+}
+
+.examiner-main--score-entry .score-entry-card--penalties {
+    flex: 1;
+    min-height: 0;
+    max-height: calc(100vh - 190px);
+    overflow: hidden;
+}
+
+.examiner-main--score-entry .score-entry-card--vehicles {
+    flex-shrink: 0;
+    max-height: 220px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.examiner-main--score-entry .score-entry-card--vehicles .device-grid {
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.score-entry-table__vehicle {
+    white-space: nowrap;
+    font-size: 11px;
+    color: #434654;
+}
+
+.score-entry-vehicle-icon {
+    font-size: 16px;
+    vertical-align: middle;
+    margin-right: 2px;
+    color: #003d9b;
 }
 
 .score-entry-toolbar__left,
@@ -171,6 +242,9 @@
 .score-entry-table thead {
     background: #f8fafc;
     border-bottom: 1px solid #c3c6d6;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .score-entry-table th {
@@ -251,6 +325,12 @@
     color: #131b2e;
 }
 
+.score-entry-timer__btn {
+    min-width: 200px;
+    height: 60px;
+    font-size: 14px;
+}
+
 .score-entry-score-card {
     display: flex;
     flex-direction: column;
@@ -321,6 +401,7 @@
 
 .score-entry-card--penalties {
     height: 100%;
+    max-height: calc(100vh - 190px);
     display: flex;
     flex-direction: column;
 }
@@ -339,6 +420,15 @@
 
 .score-entry-penalty-wrap {
     flex: 1;
+    min-height: 0;
+    max-height: calc(100vh - 290px);
+    overflow: auto;
+}
+
+.examiner-main--score-entry .score-entry-penalty-wrap {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
     overflow: auto;
 }
 
@@ -350,6 +440,9 @@
 .score-entry-penalty-table thead {
     background: #f8fafc;
     border-bottom: 1px solid #c3c6d6;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .score-entry-penalty-table th {
@@ -362,8 +455,68 @@
 }
 
 .score-entry-penalty-table th:nth-child(2),
-.score-entry-penalty-table th:nth-child(3) {
+.score-entry-penalty-table th:nth-child(3),
+.score-entry-penalty-table th:nth-child(4),
+.score-entry-penalty-table th:nth-child(5) {
     text-align: center;
+}
+
+.score-entry-penalty-count,
+.score-entry-penalty-time {
+    text-align: center;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.score-entry-penalty-actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.score-entry-penalty-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: 0 2px;
+    border-radius: 6px;
+    border: 1px solid #c3c6d6;
+    background: #fff;
+    color: #003d9b;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.score-entry-penalty-btn--minus {
+    color: #ef4444;
+}
+
+.score-entry-penalty-btn--plus {
+    color: #006846;
+}
+
+.score-entry-penalty-btn:hover {
+    background: #f2f3ff;
+}
+
+.score-entry-penalty-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    color: #434654;
+}
+
+.score-entry-finalize-form {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.score-entry-finalize-btn {
+    min-width: 220px;
 }
 
 .score-entry-penalty-table td {
@@ -506,12 +659,26 @@
     color: #0052cc;
 }
 
-.score-entry-queue-row--active {
-    background: #eff6ff;
+.score-entry-queue-row--active td {
+    background-color: #e0f2fe !important; /* Subtle highlight color */
+    color: #0369a1 !important;
 }
 
-.score-entry-queue-row--called {
-    box-shadow: inset 3px 0 0 #006846;
+.score-entry-queue-row--active td a {
+    color: #0369a1 !important;
+}
+
+.score-entry-queue-row--called td:first-child {
+    border-left: 3px solid #006846;
+}
+
+.score-entry-queue-row--done td {
+    opacity: 0.55 !important;
+    background-color: #fafafa !important;
+}
+
+.score-entry-queue-row--done td a {
+    color: #9ca3af !important;
 }
 
 .score-entry-selected-label {

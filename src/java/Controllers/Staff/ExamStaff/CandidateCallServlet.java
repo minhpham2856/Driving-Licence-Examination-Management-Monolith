@@ -1,15 +1,15 @@
 package Controllers.Staff.ExamStaff;
 
-import Constants.ExamSessionStatus;
-import DAO.ExamRegistrationDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.CandidateCallDAO;
-import DAO.ExamSessionDAO;
-import DAO.Impl.CandidateCallDAOImpl;
-import DAO.Impl.ExamSessionDAOImpl;
-import Models.ExamSession;
-import Models.ExamRegistration;
-import Models.CandidateCall;
+import Utils.ExamConstants;
+import DAOs.ExamRegistrationDAO;
+import DAOs.Impl.ExamRegistrationDAOImpl;
+import DAOs.CandidateCallDAO;
+import DAOs.ExamSessionDAO;
+import DAOs.Impl.CandidateCallDAOImpl;
+import DAOs.Impl.ExamSessionDAOImpl;
+import DTOs.SessionDTO;
+import DTOs.ExamRegistrationDTO;
+import DTOs.CandidateCallDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -58,13 +58,13 @@ public class CandidateCallServlet extends HttpServlet {
 
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
         boolean isShiftEnded = "true".equals(shiftEndedVal);
-        ExamSession examSession = sessionDAO.getById(examSessionId);
-        if (examSession != null && ExamSessionStatus.isEnded(examSession.getStatus())) {
+        SessionDTO SessionDTO = sessionDAO.getById(examSessionId);
+        if (SessionDTO != null && ExamConstants.isSessionEnded(SessionDTO.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
         
-        List<ExamRegistration> candidateQueue = null;
+        List<ExamRegistrationDTO> candidateQueue = null;
         String webRoot = request.getServletContext().getRealPath("/");
         if (!isShiftEnded) {
             candidateQueue = regDAO.getCandidatesBySession(examSessionId);
@@ -77,7 +77,7 @@ public class CandidateCallServlet extends HttpServlet {
         String qAction = request.getParameter("action");
         String qSbd = request.getParameter("sbd");
         
-        List<ExamRegistration> permanentAbsents = (List<ExamRegistration>) session.getAttribute("permanentAbsents");
+        List<ExamRegistrationDTO> permanentAbsents = (List<ExamRegistrationDTO>) session.getAttribute("permanentAbsents");
         if (permanentAbsents == null) {
             permanentAbsents = new java.util.ArrayList<>();
             session.setAttribute("permanentAbsents", permanentAbsents);
@@ -85,13 +85,13 @@ public class CandidateCallServlet extends HttpServlet {
         
         if ("startCall".equals(qAction)) {
             if (candidateQueue != null) {
-                for (ExamRegistration c : candidateQueue) {
+                for (ExamRegistrationDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
                         session.setAttribute("callingSbd", c.getSbd());
                         
                         // Insert call record in database
-                        CandidateCall call = new CandidateCall();
+                        CandidateCallDTO call = new CandidateCallDTO();
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
@@ -113,11 +113,11 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (foundIdx != -1) {
-                    ExamRegistration removed = candidateQueue.remove(foundIdx);
+                    ExamRegistrationDTO removed = candidateQueue.remove(foundIdx);
                     candidateQueue.add(removed); // Move to the end of the queue
                     
                     // Insert Call Record as Absent in DB
-                    CandidateCall call = new CandidateCall();
+                    CandidateCallDTO call = new CandidateCallDTO();
                     call.setExamSessionId(removed.getExamSessionId());
                     call.setCandidateNo(removed.getCandidateNo());
                     call.setCalledTo("Bàn làm thủ tục số 2");
@@ -128,13 +128,13 @@ public class CandidateCallServlet extends HttpServlet {
                 
                 // Find next candidate who is not done
                 String nextSbd = null;
-                for (ExamRegistration c : candidateQueue) {
+                for (ExamRegistrationDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone && !c.getSbd().equals(qSbd)) {
                         nextSbd = c.getSbd();
                         
                         // Register a calling log for next person
-                        CandidateCall call = new CandidateCall();
+                        CandidateCallDTO call = new CandidateCallDTO();
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
@@ -163,7 +163,7 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (foundIdx != -1) {
-                    ExamRegistration removed = candidateQueue.remove(foundIdx);
+                    ExamRegistrationDTO removed = candidateQueue.remove(foundIdx);
                     permanentAbsents.add(removed);
                     
                     regDAO.updateScores(removed.getId(), 0, "failed", 0, "failed");
@@ -178,7 +178,7 @@ public class CandidateCallServlet extends HttpServlet {
                 
                 // Find next candidate who is not done
                 String nextSbd = null;
-                for (ExamRegistration c : candidateQueue) {
+                for (ExamRegistrationDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone && !c.getSbd().equals(qSbd)) {
                         nextSbd = c.getSbd();
@@ -199,7 +199,7 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (foundIdx != -1) {
-                    ExamRegistration restored = permanentAbsents.remove(foundIdx);
+                    ExamRegistrationDTO restored = permanentAbsents.remove(foundIdx);
                     
                     // Reset fields
                     restored.setAbsent(false);
@@ -221,8 +221,8 @@ public class CandidateCallServlet extends HttpServlet {
             }
         } else if ("endShift".equals(qAction)) {
             if (candidateQueue != null) {
-                java.util.List<ExamRegistration> toRemove = new java.util.ArrayList<>();
-                for (ExamRegistration c : candidateQueue) {
+                java.util.List<ExamRegistrationDTO> toRemove = new java.util.ArrayList<>();
+                for (ExamRegistrationDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
                         c.setAbsent(true);
@@ -268,7 +268,7 @@ public class CandidateCallServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    private void advanceCallingIfDone(HttpSession session, List<ExamRegistration> candidateQueue) {
+    private void advanceCallingIfDone(HttpSession session, List<ExamRegistrationDTO> candidateQueue) {
         if (candidateQueue == null) {
             return;
         }
@@ -276,8 +276,8 @@ public class CandidateCallServlet extends HttpServlet {
         if (callingSbd == null || callingSbd.trim().isEmpty()) {
             return;
         }
-        ExamRegistration current = null;
-        for (ExamRegistration c : candidateQueue) {
+        ExamRegistrationDTO current = null;
+        for (ExamRegistrationDTO c : candidateQueue) {
             if (callingSbd.equals(c.getSbd())) {
                 current = c;
                 break;
@@ -287,7 +287,7 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
         String nextSbd = null;
-        for (ExamRegistration c : candidateQueue) {
+        for (ExamRegistrationDTO c : candidateQueue) {
             if (c.isPaymentCompleted() && c.isValidCapturedPhoto()) {
                 continue;
             }

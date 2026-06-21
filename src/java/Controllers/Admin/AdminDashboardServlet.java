@@ -1,8 +1,6 @@
 package Controllers.Admin;
 
-import DAO.AdminStatsDAO;
-import DAO.ExamRoomDAO;
-import DAO.Impl.ExamRoomDAOImpl;
+import DAOs.AdminStatsDAO;
 import Utils.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,7 +13,6 @@ import java.io.IOException;
 public class AdminDashboardServlet extends HttpServlet {
 
     private final AdminStatsDAO stats = new AdminStatsDAO();
-    private final ExamRoomDAO roomDAO = new ExamRoomDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -24,7 +21,6 @@ public class AdminDashboardServlet extends HttpServlet {
 
         int totalAreas = stats.countExamAreas();
         req.setAttribute("totalExamCenters", totalAreas);
-        req.setAttribute("totalExamRooms", roomDAO.countAll());
         req.setAttribute("totalUsers", stats.countUsers());
         req.setAttribute("totalExamSessions", stats.countExams());
         req.setAttribute("totalComputers", stats.countDevices());

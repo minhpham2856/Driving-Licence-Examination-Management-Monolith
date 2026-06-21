@@ -1,7 +1,7 @@
 package Controllers.Admin;
 
-import DAO.Impl.LicenceDAOImpl;
-import DAO.LicenceDAO;
+import DAOs.Impl.LicenceDAOImpl;
+import DAOs.LicenceDAO;
 import Models.Licence;
 import Models.User;
 import Utils.AuditLogHelper;

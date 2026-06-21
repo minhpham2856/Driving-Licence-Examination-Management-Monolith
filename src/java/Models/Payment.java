@@ -3,27 +3,28 @@ package Models;
 import java.sql.Timestamp;
 
 public class Payment {
+
     private int id;
-    private int examRegistrationId;
-    private double amount;
-    private String paymentStatus; // 'Pending', 'Completed', 'Failed', 'Refunded'
-    private String paymentMethod; // 'Cash', 'BankTransfer'
-    private Timestamp paymentDate;
+    private String paymentStatus;
+    private String paymentMethod;
     private String transactionReference;
-    private String notes;
+    private double totalAmount;
+    private Timestamp paidAt;
+    private int candidateId;
+    private int examId;
 
     public Payment() {
     }
 
-    public Payment(int id, int examRegistrationId, double amount, String paymentStatus, String paymentMethod, Timestamp paymentDate, String transactionReference, String notes) {
+    public Payment(int id, String paymentStatus, String paymentMethod, String transactionReference, double totalAmount, Timestamp paidAt, int candidateId, int examId) {
         this.id = id;
-        this.examRegistrationId = examRegistrationId;
-        this.amount = amount;
         this.paymentStatus = paymentStatus;
         this.paymentMethod = paymentMethod;
-        this.paymentDate = paymentDate;
         this.transactionReference = transactionReference;
-        this.notes = notes;
+        this.totalAmount = totalAmount;
+        this.paidAt = paidAt;
+        this.candidateId = candidateId;
+        this.examId = examId;
     }
 
     public int getId() {
@@ -32,22 +33,6 @@ public class Payment {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getExamRegistrationId() {
-        return examRegistrationId;
-    }
-
-    public void setExamRegistrationId(int examRegistrationId) {
-        this.examRegistrationId = examRegistrationId;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
     }
 
     public String getPaymentStatus() {
@@ -66,14 +51,6 @@ public class Payment {
         this.paymentMethod = paymentMethod;
     }
 
-    public Timestamp getPaymentDate() {
-        return paymentDate;
-    }
-
-    public void setPaymentDate(Timestamp paymentDate) {
-        this.paymentDate = paymentDate;
-    }
-
     public String getTransactionReference() {
         return transactionReference;
     }
@@ -82,11 +59,35 @@ public class Payment {
         this.transactionReference = transactionReference;
     }
 
-    public String getNotes() {
-        return notes;
+    public double getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public Timestamp getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Timestamp paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public int getCandidateId() {
+        return candidateId;
+    }
+
+    public void setCandidateId(int candidateId) {
+        this.candidateId = candidateId;
+    }
+
+    public int getExamId() {
+        return examId;
+    }
+
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 }

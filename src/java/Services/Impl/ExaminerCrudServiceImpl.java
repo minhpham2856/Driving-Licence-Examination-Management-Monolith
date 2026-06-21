@@ -1,18 +1,21 @@
 package Services.Impl;
 
-import Constants.CandidateSectionStatus;
-import Constants.ExamSectionType;
-import Constants.ViolationReasonCodes;
+import Utils.ExamConstants;
+import Utils.ExamConstants.SectionType;
 import Controllers.Examiner.ExaminerScoreEntryQueue;
 import Controllers.Staff.ExamStaff.ExaminerSlot;
-import DAO.CandidateCallDAO;
-import DAO.ExamDeviceDAO;
-import DAO.ExamRegistrationDAO;
-import DAO.Impl.CandidateCallDAOImpl;
-import DAO.Impl.ExamDeviceDAOImpl;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import Models.CandidateCall;
-import Models.ExamRegistration;
+import DAOs.CandidateCallDAO;
+import DAOs.ExamCandidateVehicleDAO;
+import DAOs.ExamDeviceDAO;
+import DAOs.CandidateDAO;
+import DAOs.ExaminerSessionDataDAO;
+import DAOs.Impl.CandidateCallDAOImpl;
+import DAOs.Impl.ExamCandidateVehicleDAOImpl;
+import DAOs.Impl.ExamDeviceDAOImpl;
+import DAOs.Impl.CandidateDAOImpl;
+import DAOs.Impl.ExaminerSessionDataDAOImpl;
+import DTOs.CandidateCall;
+import DTOs.CandidateDTO;
 import Models.User;
 import Services.ExaminerCrudService;
 import Services.ExaminerSessionContextService;
@@ -24,17 +27,18 @@ import jakarta.servlet.http.HttpSession;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.List;
 
 public class ExaminerCrudServiceImpl implements ExaminerCrudService {
 
-    private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
+    private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     private final CandidateCallDAO callDAO = new CandidateCallDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
+    private final ExamCandidateVehicleDAO vehicleDAO = new ExamCandidateVehicleDAOImpl();
+    private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
     private final ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
 
     @Override
-    public ExamRegistration findCandidate(int sessionId, String sbd) {
+    public CandidateDTO findCandidate(int sessionId, String sbd) {
         return viewDataService.findRegistration(sessionId, sbd);
     }
 
@@ -42,7 +46,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     public boolean updateCandidateProfile(int sessionId, String sbd, String fullName, String dobStr,
             String govIdNo, String email, String phoneNo, String address, String sex, String reasonForTaking,
             HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
@@ -69,7 +73,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         AuditChangeDetails.addIfChanged(changes, "Giới tính", reg.isGender() ? "Nữ" : "Nam", sexDb);
         AuditChangeDetails.addIfChanged(changes, "Lý do thi", reg.getReasonForTaking(),
                 reasonForTaking != null ? reasonForTaking.trim() : null);
-        boolean updated = registrationDAO.updateExaminerProfile(
+        boolean updated = candidateDAO.updateExaminerProfile(
                 reg.getId(), fullName.trim(), dob, govIdNo.trim(),
                 email != null ? email.trim() : null,
                 phoneNo != null ? phoneNo.trim() : null,
@@ -85,12 +89,12 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
 
     @Override
     public boolean markAbsent(int sessionId, String sbd, HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
-        registrationDAO.updateScores(reg.getId(), 0, "failed", 0, "failed");
-        boolean updated = registrationDAO.markAbsent(reg.getId());
+        candidateDAO.updateScores(reg.getId(), 0, "failed", 0, "failed");
+        boolean updated = candidateDAO.markAbsent(reg.getId());
         if (updated && session != null) {
             AuditLogHelper.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo xác nhận vắng thi SBD " + reg.getSbd(), reg.getId());
@@ -100,11 +104,11 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
 
     @Override
     public boolean undoAbsent(int sessionId, String sbd, HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
-        boolean updated = registrationDAO.clearAbsentMarking(reg.getId());
+        boolean updated = candidateDAO.clearAbsentMarking(reg.getId());
         if (updated && session != null) {
             AuditLogHelper.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo hoàn tác vắng thi SBD " + reg.getSbd(), reg.getId());
@@ -114,11 +118,11 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
 
     @Override
     public boolean callCandidate(int sessionId, String sbd, User user, HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
-        ExamSectionType sectionType = resolveSectionType(session);
+        SectionType sectionType = resolveSectionType(session);
         String sectionName = resolveSectionName(session);
         if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
             return false;
@@ -128,10 +132,10 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
 
     @Override
     public String callNextCandidate(int sessionId, User user, HttpSession session) {
-        ExamSectionType sectionType = resolveSectionType(session);
+        SectionType sectionType = resolveSectionType(session);
         String sectionName = resolveSectionName(session);
-        List<ExamRegistration> all = registrationDAO.getCandidatesBySession(sessionId);
-        for (ExamRegistration reg : all) {
+        List<CandidateDTO> all = candidateDAO.getCandidatesBySession(sessionId);
+        for (CandidateDTO reg : all) {
             if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
                 continue;
             }
@@ -188,8 +192,8 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         if (sbd == null || sbd.isBlank()) {
             return false;
         }
-        ExamRegistration reg = findCandidate(sessionId, sbd.trim());
-        ExamSectionType sectionType = resolveSectionType(session);
+        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        SectionType sectionType = resolveSectionType(session);
         String sectionName = resolveSectionName(session);
         if (!viewDataService.isScoreQueueEligible(sessionId, reg, sectionType, sectionName)) {
             return false;
@@ -204,7 +208,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         if (sbd == null || sbd.isBlank()) {
             return null;
         }
-        ExamRegistration reg = findCandidate(sessionId, sbd.trim());
+        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
         if (reg == null) {
             return null;
         }
@@ -250,15 +254,46 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         return updated;
     }
 
-    private static ExamSectionType resolveSectionType(HttpSession session) {
+    @Override
+    public boolean changeCandidateVehicle(int sessionId, String sbd, int deviceId, HttpSession session) {
+        if (sessionId <= 0 || sbd == null || sbd.isBlank() || deviceId <= 0) {
+            return false;
+        }
+        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        if (reg == null) {
+            return false;
+        }
+        if (!isDeviceInSession(sessionId, deviceId)) {
+            return false;
+        }
+        boolean updated = vehicleDAO.assignExamDevice(reg.getId(), sessionId, deviceId);
+        if (updated && session != null) {
+            AuditLogHelper.persist(session, "UPDATE Exam_Candidate",
+                    "Giám khảo đổi xe thi cho SBD " + reg.getSbd() + " sang thiết bị #" + deviceId,
+                    reg.getId());
+        }
+        return updated;
+    }
+
+    private boolean isDeviceInSession(int sessionId, int deviceId) {
+        for (java.util.Map<String, Object> device : sessionDataDAO.findDevicesBySessionId(sessionId)) {
+            Object idObj = device.get("id");
+            if (idObj instanceof Number && ((Number) idObj).intValue() == deviceId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static SectionType resolveSectionType(HttpSession session) {
         if (session == null) {
-            return ExamSectionType.THEORY;
+            return SectionType.THEORY;
         }
         Object value = session.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
-        if (value instanceof ExamSectionType) {
-            return (ExamSectionType) value;
+        if (value instanceof SectionType) {
+            return (SectionType) value;
         }
-        return ExamSectionType.THEORY;
+        return SectionType.THEORY;
     }
 
     private static String resolveSectionName(HttpSession session) {
@@ -273,7 +308,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         return name != null ? String.valueOf(name) : null;
     }
 
-    private boolean insertCall(int sessionId, ExamRegistration reg, User user, HttpSession session) {
+    private boolean insertCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
         CandidateCall call = new CandidateCall();
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
@@ -288,7 +323,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         return inserted;
     }
 
-    private boolean insertScoreEntryCall(int sessionId, ExamRegistration reg, User user, HttpSession session) {
+    private boolean insertScoreEntryCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
         CandidateCall call = new CandidateCall();
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
@@ -328,7 +363,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
                 || !AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash())) {
             return false;
         }
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
@@ -338,16 +373,16 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         }
         Integer oldScore = reg.getTheoryScore();
         String auditReason = buildReasonText(reasonCode, reasonDetail);
-        boolean updated = registrationDAO.updateTheoryCorrectCount(
+        boolean updated = candidateDAO.updateTheoryCorrectCount(
                 reg.getId(), newScore, viewDataService.theoryPassThreshold());
         if (updated && session != null) {
             String passed = newScore >= viewDataService.theoryPassThreshold() ? "passed" : "failed";
             AuditLogHelper.persistFieldChanges(session, "UPDATE ExamScore",
                     "Giám khảo điều chỉnh điểm LT SBD " + reg.getSbd(),
                     List.of(new AuditChangeDetails.FieldChange(
-                            "Điểm lý thuyết",
-                            oldScore != null ? String.valueOf(oldScore) : "—",
-                            newScore + " (" + passed.toUpperCase() + ")")),
+                             "Điểm lý thuyết",
+                             oldScore != null ? String.valueOf(oldScore) : "-",
+                             newScore + " (" + passed.toUpperCase() + ")")),
                     auditReason.isBlank() ? null : auditReason,
                     reg.getId());
         }
@@ -355,9 +390,33 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     }
 
     @Override
+    public boolean logPracticalScoreEditReason(int sessionId, String sbd, String reasonCode,
+            String reasonDetail, User user, String password, HttpSession session) {
+        if (reasonCode == null || reasonCode.isBlank()) {
+            return false;
+        }
+        if (user == null || password == null || password.isBlank()
+                || !AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash())) {
+            return false;
+        }
+        CandidateDTO reg = findCandidate(sessionId, sbd);
+        if (reg == null) {
+            return false;
+        }
+        String auditReason = buildReasonText(reasonCode, reasonDetail);
+        if (session != null) {
+            AuditLogHelper.persist(session, "UPDATE ExamScore",
+                    "Giám khảo xác nhận sửa kết quả thực hành SBD " + reg.getSbd()
+                    + (auditReason.isBlank() ? "" : " - Lý do: " + auditReason),
+                    reg.getId());
+        }
+        return true;
+    }
+
+    @Override
     public boolean recordViolation(int sessionId, String sbd, String reasonCode, String reasonDetail,
             String evidencePath, int[] deductionIds, HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || reg.isSuspended()) {
             return false;
         }
@@ -365,7 +424,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
             return false;
         }
 
-        String reasonLabel = ViolationReasonCodes.labelOf(reasonCode);
+        String reasonLabel = ExamConstants.violationLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, evidencePath);
         boolean hasDeductions = deductionIds != null && deductionIds.length > 0;
@@ -373,19 +432,19 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         AuditLogHelper.persistWarning(session,
                 "Đình chỉ vi phạm SBD " + reg.getSbd() + ": " + auditText, auditText, reg.getId());
 
-        ExamSectionType sectionType = resolveSectionType(session);
-        if (sectionType == ExamSectionType.SCORE_BASED && hasDeductions) {
+        SectionType sectionType = resolveSectionType(session);
+        if (sectionType == SectionType.SCORE_BASED && hasDeductions) {
             String sectionName = resolveSectionName(session);
-            registrationDAO.applyScoreDeductions(reg.getId(), deductionIds, sectionName);
+            candidateDAO.applyScoreDeductions(reg.getId(), deductionIds, sectionName);
         }
 
-        return registrationDAO.markSuspended(reg.getId());
+        return candidateDAO.markSuspended(reg.getId());
     }
 
     @Override
     public boolean undoSuspension(int sessionId, String sbd, String reasonCode, String reasonDetail,
             HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || !reg.isSuspended()) {
             return false;
         }
@@ -393,10 +452,10 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
             return false;
         }
 
-        String reasonLabel = ViolationReasonCodes.labelOf(reasonCode);
+        String reasonLabel = ExamConstants.violationLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, null);
-        boolean undone = registrationDAO.undoSuspension(reg.getId());
+        boolean undone = candidateDAO.undoSuspension(reg.getId());
         if (undone && session != null) {
             AuditLogHelper.persistFieldChanges(session, "UPDATE Candidate",
                     "Hoàn tác đình chỉ SBD " + reg.getSbd(),
@@ -408,6 +467,46 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     }
 
     @Override
+    public boolean adjustScoreDeduction(int sessionId, String sbd, int deductionId, int delta, HttpSession session) {
+        if (sbd == null || sbd.isBlank() || deductionId <= 0 || delta == 0) {
+            return false;
+        }
+        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        if (reg == null || reg.isSuspended() || reg.isAbsent()) {
+            return false;
+        }
+        boolean updated = candidateDAO.adjustScoreDeductionOccurrence(
+                reg.getId(), sessionId, deductionId, delta);
+        if (updated && session != null) {
+            String action = delta > 0 ? "cộng" : "trừ";
+            AuditLogHelper.persist(session, "UPDATE Score_Deduction",
+                    "Giám khảo " + action + " lỗi trừ điểm SBD " + reg.getSbd()
+                            + " (mã lỗi #" + deductionId + ", Δ=" + delta + ")",
+                    reg.getId());
+        }
+        return updated;
+    }
+
+    @Override
+    public boolean finalizeScoreEntry(int sessionId, String sbd, HttpSession session) {
+        if (sbd == null || sbd.isBlank()) {
+            return false;
+        }
+        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        if (reg == null || reg.isSuspended() || reg.isAbsent()) {
+            return false;
+        }
+        String sectionKeyword = resolveSectionName(session);
+        boolean updated = candidateDAO.finalizeScoreEntry(reg.getId(), sessionId, sectionKeyword);
+        if (updated && session != null) {
+            ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, null);
+            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+                    "Giám khảo hoàn tất nhập điểm SBD " + reg.getSbd(), reg.getId());
+        }
+        return updated;
+    }
+
+    @Override
     public boolean verifyPassword(User user, String password) {
         return user != null && password != null && !password.isBlank()
                 && AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash());
@@ -415,31 +514,31 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
 
     @Override
     public boolean printSignatureForm(int sessionId, String sbd, HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
-        if (reg == null || !CandidateSectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
+        CandidateDTO reg = findCandidate(sessionId, sbd);
+        if (reg == null || !ExamConstants.isCandidateAwaitingSignature(reg.getSectionStatus())) {
             return false;
         }
-        boolean updated = registrationDAO.markSignaturePrinted(reg.getId(), sessionId);
+        boolean updated = candidateDAO.markSignaturePrinted(reg.getId(), sessionId);
         if (updated && session != null) {
             AuditLogHelper.persist(session, "UPDATE ExamRegistration",
-                    "Giám khảo in biên bản ký tên SBD " + reg.getSbd(), reg.getId());
+                    "Giám khảo in biên bản kết quả thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
     }
 
     @Override
     public String completeCandidateSection(int sessionId, String sbd, HttpSession session) {
-        ExamRegistration reg = findCandidate(sessionId, sbd);
+        CandidateDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return "notFound";
         }
-        if (!CandidateSectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
+        if (!ExamConstants.isCandidateAwaitingSignature(reg.getSectionStatus())) {
             return "notAwaiting";
         }
         if (!reg.isSignaturePrinted()) {
             return "needSignaturePrint";
         }
-        boolean completed = registrationDAO.completeSection(reg.getId(), sessionId);
+        boolean completed = candidateDAO.completeSection(reg.getId(), sessionId);
         if (!completed) {
             return "completeFailed";
         }

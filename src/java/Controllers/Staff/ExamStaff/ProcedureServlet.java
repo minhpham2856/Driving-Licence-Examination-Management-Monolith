@@ -1,10 +1,10 @@
 package Controllers.Staff.ExamStaff;
 
-import DAO.ExamRegistrationDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.PaymentDAO;
-import DAO.Impl.PaymentDAOImpl;
-import Models.ExamRegistration;
+import DAOs.ExamRegistrationDAO;
+import DAOs.Impl.ExamRegistrationDAOImpl;
+import DAOs.PaymentDAO;
+import DAOs.Impl.PaymentDAOImpl;
+import DTOs.ExamRegistrationDTO;
 import Models.Payment;
 
 import jakarta.servlet.ServletException;
@@ -36,7 +36,7 @@ public class ProcedureServlet extends HttpServlet {
 
         // 1. Luôn tải hàng đợi từ DB (không dùng candidateQueue cũ trong session)
         int examSessionId = resolveSessionId(session, null, null);
-        List<ExamRegistration> qList = refreshQueueFromDb(session, webRoot, examSessionId);
+        List<ExamRegistrationDTO> qList = refreshQueueFromDb(session, webRoot, examSessionId);
 
         // 2. Resolve SBD và load profile trực tiếp từ DB
         String sbdParam = request.getParameter("sbd");
@@ -56,7 +56,7 @@ public class ProcedureServlet extends HttpServlet {
             session.setAttribute("lastSelectedSbd", null);
         }
 
-        ExamRegistration profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
+        ExamRegistrationDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         session.setAttribute("candidateQueue", qList);
 
         if (profile != null && !profile.isPresent()) {
@@ -170,12 +170,11 @@ public class ProcedureServlet extends HttpServlet {
                 return;
             }
             Payment payment = new Payment();
-            payment.setExamRegistrationId(profile.getId());
-            payment.setAmount(200000.00);
+            payment.setCandidateId(profile.getId());
+            payment.setTotalAmount(200000.00);
             payment.setPaymentStatus("Completed");
             payment.setPaymentMethod("Cash");
             payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1000000);
-            payment.setNotes("Thu lệ phí tại bàn thủ tục");
             boolean updatedPay = payDAO.insert(payment);
             if (!updatedPay) {
                 updatedPay = regDAO.updatePayment(profile.getId(), true);
@@ -201,7 +200,7 @@ public class ProcedureServlet extends HttpServlet {
 
                 String allocDetail = allocResult.allocatedCount > 0
                         ? " và tự động phân bổ vào phòng thi"
-                        : " (chưa phân được phòng — kiểm tra sức chứa phòng thi)";
+                        : " (chưa phân được phòng - kiểm tra sức chứa phòng thi)";
                 addAuditLog(session, "INSERT on Payment",
                         "Thu lệ phí thi 200,000 đ" + allocDetail + " cho SBD " + sbdParam, profile.getId());
                 if (allocResult.allocatedCount > 0) {
@@ -236,7 +235,7 @@ public class ProcedureServlet extends HttpServlet {
         if ("saveCapturedPhoto".equals(action)) {
             HttpSession session = request.getSession();
             String webRoot = request.getServletContext().getRealPath("/");
-            List<ExamRegistration> qList = loadQueue(session, webRoot);
+            List<ExamRegistrationDTO> qList = loadQueue(session, webRoot);
             String sbdParam = resolveSbd(request, session);
             handleSaveCapturedPhoto(request, response, session, sbdParam, qList, webRoot);
             return;
@@ -249,8 +248,8 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, ExamRegistration profile, String sbdParam,
-            List<ExamRegistration> qList, String webRoot) throws IOException {
+            HttpSession session, ExamRegistrationDTO profile, String sbdParam,
+            List<ExamRegistrationDTO> qList, String webRoot) throws IOException {
         int examSessionId = resolveSessionId(session, profile, qList);
         profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
         if (profile == null) {
@@ -277,12 +276,11 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
         Payment payment = new Payment();
-        payment.setExamRegistrationId(profile.getId());
-        payment.setAmount(200000.00);
+        payment.setCandidateId(profile.getId());
+        payment.setTotalAmount(200000.00);
         payment.setPaymentStatus("Completed");
         payment.setPaymentMethod("Cash");
         payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1000000);
-        payment.setNotes("Thu lệ phí tại bàn thủ tục");
         boolean updatedPay = payDAO.insert(payment);
         if (!updatedPay) {
             updatedPay = regDAO.updatePayment(profile.getId(), true);
@@ -314,7 +312,7 @@ public class ProcedureServlet extends HttpServlet {
         session.setAttribute("selectedSessionId", profile.getExamSessionId());
         String allocDetail = allocResult.allocatedCount > 0
                 ? " và tự động phân bổ vào phòng thi"
-                : " (chưa phân được phòng — kiểm tra sức chứa phòng thi)";
+                : " (chưa phân được phòng - kiểm tra sức chứa phòng thi)";
         addAuditLog(session, "INSERT on Payment",
                 "Thu lệ phí thi 200,000 đ" + allocDetail + " cho SBD " + sbdParam, profile.getId());
         if (allocResult.allocatedCount > 0) {
@@ -326,11 +324,11 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private void handleSaveCapturedPhoto(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, String sbdParam, List<ExamRegistration> qList, String webRoot) throws IOException {
+            HttpSession session, String sbdParam, List<ExamRegistrationDTO> qList, String webRoot) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
 
         int examSessionId = resolveSessionId(session, null, qList);
-        ExamRegistration profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
+        ExamRegistrationDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         if (profile == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("{\"success\":false,\"message\":\"Không tìm thấy thí sinh.\"}");
@@ -394,8 +392,8 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
 
-    private List<ExamRegistration> refreshQueueFromDb(HttpSession session, String webRoot, int examSessionId) {
-        List<ExamRegistration> qList;
+    private List<ExamRegistrationDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examSessionId) {
+        List<ExamRegistrationDTO> qList;
         try {
             qList = regDAO.getCandidatesBySession(examSessionId);
         } catch (Exception e) {
@@ -409,14 +407,14 @@ public class ProcedureServlet extends HttpServlet {
         return qList;
     }
 
-    private ExamRegistration loadProfileFromDb(String webRoot, int examSessionId, String sbdParam,
-            List<ExamRegistration> qList) {
+    private ExamRegistrationDTO loadProfileFromDb(String webRoot, int examSessionId, String sbdParam,
+            List<ExamRegistrationDTO> qList) {
         if (sbdParam == null || sbdParam.trim().isEmpty()) {
             return null;
         }
-        ExamRegistration profile = regDAO.getBySessionAndSbd(examSessionId, sbdParam);
+        ExamRegistrationDTO profile = regDAO.getBySessionAndSbd(examSessionId, sbdParam);
         if (profile == null && qList != null) {
-            for (ExamRegistration c : qList) {
+            for (ExamRegistrationDTO c : qList) {
                 if (sbdParam.equals(c.getSbd())) {
                     profile = regDAO.getById(c.getId());
                     break;
@@ -430,9 +428,9 @@ public class ProcedureServlet extends HttpServlet {
         return profile;
     }
 
-    private ExamRegistration reloadProfileAfterMutation(String webRoot, int examSessionId, int candidateId,
-            String sbdParam, List<ExamRegistration> qList) {
-        ExamRegistration fresh = regDAO.getById(candidateId);
+    private ExamRegistrationDTO reloadProfileAfterMutation(String webRoot, int examSessionId, int candidateId,
+            String sbdParam, List<ExamRegistrationDTO> qList) {
+        ExamRegistrationDTO fresh = regDAO.getById(candidateId);
         if (fresh == null) {
             return loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         }
@@ -441,7 +439,7 @@ public class ProcedureServlet extends HttpServlet {
         return fresh;
     }
 
-    private List<ExamRegistration> loadQueue(HttpSession session, String webRoot) {
+    private List<ExamRegistrationDTO> loadQueue(HttpSession session, String webRoot) {
         int examSessionId = resolveSessionId(session, null, null);
         return refreshQueueFromDb(session, webRoot, examSessionId);
     }
@@ -454,7 +452,7 @@ public class ProcedureServlet extends HttpServlet {
         return sbdParam;
     }
 
-    private void syncProfileInQueue(List<ExamRegistration> qList, ExamRegistration refreshed) {
+    private void syncProfileInQueue(List<ExamRegistrationDTO> qList, ExamRegistrationDTO refreshed) {
         for (int i = 0; i < qList.size(); i++) {
             if (qList.get(i).getId() == refreshed.getId()) {
                 qList.set(i, refreshed);
@@ -463,7 +461,7 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
 
-    private void clearAbsentMarking(ExamRegistration profile) {
+    private void clearAbsentMarking(ExamRegistrationDTO profile) {
         regDAO.clearAbsentMarking(profile.getId());
         profile.setAbsent(false);
         profile.setTheoryPassed("none");
@@ -478,7 +476,7 @@ public class ProcedureServlet extends HttpServlet {
         addAuditLog(session, action, details, 0);
     }
 
-    private int resolveSessionId(HttpSession session, ExamRegistration profile, List<ExamRegistration> qList) {
+    private int resolveSessionId(HttpSession session, ExamRegistrationDTO profile, List<ExamRegistrationDTO> qList) {
         if (profile != null && profile.getExamSessionId() > 0) {
             return profile.getExamSessionId();
         }
@@ -492,7 +490,7 @@ public class ProcedureServlet extends HttpServlet {
         return 2;
     }
 
-    private void advanceToNextCandidate(HttpSession session, List<ExamRegistration> qList,
+    private void advanceToNextCandidate(HttpSession session, List<ExamRegistrationDTO> qList,
             String webRoot, int examSessionId) {
         session.setAttribute("lastSelectedSbd", null);
         session.setAttribute("procedureStep", "1");
@@ -505,7 +503,7 @@ public class ProcedureServlet extends HttpServlet {
         session.setAttribute("selectedSessionId", examSessionId);
 
         String nextSbd = null;
-        for (ExamRegistration c : qList) {
+        for (ExamRegistrationDTO c : qList) {
             if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                 nextSbd = c.getSbd();
                 break;

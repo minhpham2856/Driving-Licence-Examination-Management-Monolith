@@ -42,5 +42,5 @@
     </div>
 </header>
 <c:if test="${not empty headerBreadcrumb}">
-<script>document.title = '<c:out value="${headerBreadcrumb}" /> — SÁT HẠCH';</script>
+<script>document.title = '<c:out value="${headerBreadcrumb}" /> - SÁT HẠCH';</script>
 </c:if>

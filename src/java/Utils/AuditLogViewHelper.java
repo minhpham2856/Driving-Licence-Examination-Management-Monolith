@@ -1,7 +1,7 @@
 package Utils;
 
-import Constants.AuditEntityLabels;
-import Models.AuditLog;
+import Utils.ExamConstants;
+import DTOs.AuditDTO;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,7 +18,7 @@ public final class AuditLogViewHelper {
     private AuditLogViewHelper() {
     }
 
-    public static List<Map<String, Object>> toViewRows(AuditLog log, Map<Integer, String> sbdByRecordId) {
+    public static List<Map<String, Object>> toViewRows(AuditDTO log, Map<Integer, String> sbdByRecordId) {
         List<AuditChangeDetails.FieldChange> changes = AuditChangeDetails.parseChanges(log.getDetails());
         if (changes.size() <= 1) {
             return List.of(toViewRow(log, sbdByRecordId));
@@ -30,7 +30,7 @@ public final class AuditLogViewHelper {
         return rows;
     }
 
-    public static Map<String, Object> toViewRow(AuditLog log, Map<Integer, String> sbdByRecordId) {
+    public static Map<String, Object> toViewRow(AuditDTO log, Map<Integer, String> sbdByRecordId) {
         Map<String, Object> row = new LinkedHashMap<>();
         String action = log.getAction() != null ? log.getAction() : "UPDATE";
         String sbd = resolveSbd(log, sbdByRecordId);
@@ -43,7 +43,7 @@ public final class AuditLogViewHelper {
         row.put("username", nullToDash(log.getChangerName()));
         row.put("actionLabel", mapActionLabel(action));
         row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", AuditEntityLabels.toVietnamese(log.getTableName()));
+        row.put("entityName", ExamConstants.auditLabel(log.getTableName()));
         row.put("sbd", sbd);
         row.put("newValueClass", mapNewValueClass(action));
         row.put("multiline", columns.multiline());
@@ -60,7 +60,7 @@ public final class AuditLogViewHelper {
             row.put("reason", nullToDash(reason));
             row.put("multiline", log.getOldValue().contains(";"));
         } else {
-            row.put("info", "—");
+            row.put("info", "-");
             row.put("oldValue", null);
             row.put("newValue", nullToDash(log.getNewValue()));
             row.put("reason", nullToDash(reason));
@@ -68,7 +68,7 @@ public final class AuditLogViewHelper {
         return row;
     }
 
-    private static Map<String, Object> toViewRowForFieldChange(AuditLog log, Map<Integer, String> sbdByRecordId,
+    private static Map<String, Object> toViewRowForFieldChange(AuditDTO log, Map<Integer, String> sbdByRecordId,
             AuditChangeDetails.FieldChange change) {
         Map<String, Object> row = new LinkedHashMap<>();
         String action = log.getAction() != null ? log.getAction() : "UPDATE";
@@ -78,7 +78,7 @@ public final class AuditLogViewHelper {
         row.put("username", nullToDash(log.getChangerName()));
         row.put("actionLabel", mapActionLabel(action));
         row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", AuditEntityLabels.toVietnamese(log.getTableName()));
+        row.put("entityName", ExamConstants.auditLabel(log.getTableName()));
         row.put("sbd", sbd);
         row.put("newValueClass", mapNewValueClass(action));
         row.put("multiline", false);
@@ -89,7 +89,7 @@ public final class AuditLogViewHelper {
         return row;
     }
 
-    public static String resolveSbd(AuditLog log, Map<Integer, String> sbdByRecordId) {
+    public static String resolveSbd(AuditDTO log, Map<Integer, String> sbdByRecordId) {
         for (String text : new String[] {log.getNewValue(), log.getOldValue(), log.getReason(), log.getDetails()}) {
             String extracted = extractSbdFromText(text);
             if (extracted != null) {
@@ -102,7 +102,7 @@ public final class AuditLogViewHelper {
                 return mapped;
             }
         }
-        return "—";
+        return "-";
     }
 
     private static String extractSbdFromText(String text) {
@@ -116,7 +116,7 @@ public final class AuditLogViewHelper {
         return null;
     }
 
-    private static String normalizeReason(AuditLog log) {
+    private static String normalizeReason(AuditDTO log) {
         String reason = log.getReason();
         if (reason == null || reason.isBlank()) {
             return null;
@@ -131,10 +131,10 @@ public final class AuditLogViewHelper {
         return reason;
     }
 
-    private static String buildChangeInfo(AuditLog log, String sbd) {
-        String entity = AuditEntityLabels.toVietnamese(log.getTableName());
+    private static String buildChangeInfo(AuditDTO log, String sbd) {
+        String entity = ExamConstants.auditLabel(log.getTableName());
         String action = log.getAction() != null ? log.getAction().toUpperCase() : "UPDATE";
-        String sbdSuffix = "—".equals(sbd) ? "" : " SBD " + sbd;
+        String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
             case "WARNING" -> "Cảnh báo" + sbdSuffix;
             case "INSERT" -> "Thêm " + entity.toLowerCase() + sbdSuffix;
@@ -179,6 +179,6 @@ public final class AuditLogViewHelper {
     }
 
     private static String nullToDash(String value) {
-        return value == null || value.isBlank() ? "—" : value;
+        return value == null || value.isBlank() ? "-" : value;
     }
 }

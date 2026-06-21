@@ -15,10 +15,10 @@
     Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to B2 session
 
-    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
+    DAOs.ExamSessionDAO sessDAO = new DAOs.Impl.ExamSessionDAOImpl();
     Models.ExamSession currentSession = null;
     try {
-        currentSession = sessDAO.getById(sessId);
+        currentSession = sessDAOs.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -27,9 +27,9 @@
     }
 
     if (qList == null && !isShiftEnded) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+        DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessId);
+            qList = regDAOs.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -39,7 +39,7 @@
     }
     if (qList != null) {
         Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+            application.getRealPath("/"), qList, new DAOs.Impl.ExamRegistrationDAOImpl());
     }
     
     // Find active candidate (bỏ qua thí sinh đã hoàn tất thủ tục)
@@ -524,7 +524,7 @@
          data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"
          data-ctx-path="${pageContext.request.contextPath}"
          data-sbd="${not empty requestScope.profile ? requestScope.profile.sbd : ''}"
-         data-msg-live="LIVE — Camera sẵn sàng"
+         data-msg-live="LIVE - Camera sẵn sàng"
          data-msg-starting="Đang khởi động camera..."
          data-msg-unavailable="Camera không khả dụng"
          data-msg-no-api="Trình duyệt không hỗ trợ camera. Dùng Chrome/Edge/Firefox trên localhost hoặc HTTPS."

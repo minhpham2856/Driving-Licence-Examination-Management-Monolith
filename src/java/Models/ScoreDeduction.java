@@ -1,6 +1,7 @@
 package Models;
 
 public class ScoreDeduction {
+
     private int id;
     private int practicalScoreId;
     private String deductionReason;
