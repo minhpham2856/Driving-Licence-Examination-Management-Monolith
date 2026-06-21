@@ -147,13 +147,11 @@ CREATE TABLE Session_ExamArea (
 );
 GO
 
--- Session_Examiner: phân công giám khảo theo ca (Session), kỳ thi (Exam), phần thi (ExamSection), phòng (ExamArea).
--- ExamId / ExamSectionId / ExamAreaId nullable để tương thích INSERT legacy (SessionId, ExaminerId) từ code hiện tại.
-CREATE TABLE Session_Examiner (
-    SessionExaminerId INT PRIMARY KEY IDENTITY(1,1),
+-- ExaminerSchedule: phân công sát hạch viên theo ca (Session), phần thi (ExamSection), phòng (ExamArea).
+CREATE TABLE ExaminerSchedule (
+    ExaminerScheduleId INT PRIMARY KEY IDENTITY(1,1),
     SessionId INT NOT NULL REFERENCES [Session](SessionId),
     ExaminerId INT NOT NULL REFERENCES [User](UserId),
-    ExamId INT NULL REFERENCES Exam(ExamId),
     ExamSectionId INT NULL REFERENCES ExamSection(ExamSectionId),
     ExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
     AssignedBy INT NULL REFERENCES [User](UserId),
@@ -185,7 +183,7 @@ CREATE TABLE Fee (
 );
 GO
 
--- Payment table (cần tạo sau Candidate)
+-- Payment table (cần tạo sau ExamEnrollment)
 CREATE TABLE Payment (
     PaymentId INT PRIMARY KEY IDENTITY(1,1),
     PaymentStatus NVARCHAR(50) NOT NULL,
@@ -193,8 +191,7 @@ CREATE TABLE Payment (
     TransactionReference NVARCHAR(255) UNIQUE,
     TotalAmount DECIMAL(18,2) NOT NULL,
     PaidAt DATETIME,
-    CandidateId INT NOT NULL, -- FK sẽ thêm sau khi tạo Candidate
-    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
     CHECK (TotalAmount >= 0)
 );
 GO
@@ -255,31 +252,26 @@ CREATE TABLE Candidate (
     IsAbsent BIT NOT NULL DEFAULT 0,
     IsSuspended BIT NOT NULL DEFAULT 0,
     UserId INT NULL REFERENCES [User](UserId),
-    ExamRegistrationId INT NOT NULL REFERENCES ExamRegistration(ExamRegistrationId)
+    TakeNo INT NOT NULL DEFAULT 1
 );
 GO
 
--- Thêm FK cho Payment.CandidateId sau khi có Candidate
-ALTER TABLE Payment ADD FOREIGN KEY (CandidateId) REFERENCES Candidate(CandidateId);
-GO
-
--- Exam_Candidate junction table
-CREATE TABLE Exam_Candidate (
-    ExamCandidateId INT PRIMARY KEY IDENTITY(1,1),
-    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+-- ExamEnrollment junction table
+CREATE TABLE ExamEnrollment (
+    ExamEnrollmentId INT PRIMARY KEY IDENTITY(1,1),
     CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
     SessionId INT NOT NULL REFERENCES Session(SessionId),
     SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
     SignaturePrinted BIT NOT NULL DEFAULT 0,
     ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
-    UNIQUE (ExamId, CandidateId, SessionId)
+    UNIQUE (CandidateId, SessionId)
 );
 GO
 
 -- TheoryPaper table
 CREATE TABLE TheoryPaper (
     TheoryPaperId INT PRIMARY KEY IDENTITY(1,1),
-    ExamCandidateId INT NOT NULL REFERENCES Exam_Candidate(ExamCandidateId),
+    ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
     ExamDeviceId INT NOT NULL REFERENCES ExamDevice(ExamDeviceId),
     StartedAt DATETIME,
     SubmittedAt DATETIME,
@@ -300,10 +292,10 @@ GO
 -- ExamResult table
 CREATE TABLE ExamResult (
     ExamResultId INT PRIMARY KEY IDENTITY(1,1),
-    ExamCandidateId INT NOT NULL REFERENCES Exam_Candidate(ExamCandidateId),
+    ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
     IsPassed BIT NOT NULL,
     ResultDate DATETIME NOT NULL DEFAULT GETDATE(),
-    UNIQUE (ExamCandidateId)
+    UNIQUE (ExamEnrollmentId)
 );
 GO
 
@@ -330,9 +322,9 @@ CREATE TABLE ScoreDeduction (
 );
 GO
 
--- Score_Deduction junction table (số lần lỗi + thời điểm nhập gần nhất)
-CREATE TABLE Score_Deduction (
-    ScoreDeductionDetailId INT PRIMARY KEY IDENTITY(1,1),
+-- DeductionRecord junction table (số lần lỗi + thời điểm nhập gần nhất)
+CREATE TABLE DeductionRecord (
+    DeductionRecordId INT PRIMARY KEY IDENTITY(1,1),
     ExamScoreId INT NOT NULL REFERENCES ExamScore(ExamScoreId),
     ScoreDeductionId INT NOT NULL REFERENCES ScoreDeduction(ScoreDeductionId),
     OccurrenceCount INT NOT NULL DEFAULT 1,
@@ -372,18 +364,15 @@ CREATE INDEX IX_Licence_ExamSection_LicenceId ON Licence_ExamSection(LicenceId);
 CREATE INDEX IX_Licence_ExamSection_ExamSectionId ON Licence_ExamSection(ExamSectionId);
 CREATE INDEX IX_ExamDevice_ExamAreaId ON ExamDevice(ExamAreaId);
 CREATE INDEX IX_Candidate_UserId ON Candidate(UserId);
-CREATE INDEX IX_Candidate_ExamRegistrationId ON Candidate(ExamRegistrationId);
 CREATE INDEX IX_Candidate_CandidateNumber ON Candidate(CandidateNumber);
-CREATE INDEX IX_Payment_CandidateId ON Payment(CandidateId);
-CREATE INDEX IX_Payment_ExamId ON Payment(ExamId);
-CREATE INDEX IX_TheoryPaper_ExamCandidateId ON TheoryPaper(ExamCandidateId);
+CREATE INDEX IX_Payment_ExamEnrollmentId ON Payment(ExamEnrollmentId);
+CREATE INDEX IX_TheoryPaper_ExamEnrollmentId ON TheoryPaper(ExamEnrollmentId);
 CREATE INDEX IX_CandidateAnswer_TheoryPaperId ON CandidateAnswer(TheoryPaperId);
-CREATE INDEX IX_ExamResult_ExamCandidateId ON ExamResult(ExamCandidateId);
+CREATE INDEX IX_ExamResult_ExamEnrollmentId ON ExamResult(ExamEnrollmentId);
 CREATE INDEX IX_Audit_CreatedAt ON Audit(CreatedAt);
 CREATE INDEX IX_Audit_Entity ON Audit(EntityName, EntityId);
-CREATE INDEX IX_Session_Examiner_SessionId ON Session_Examiner(SessionId);
-CREATE INDEX IX_Session_Examiner_ExaminerId ON Session_Examiner(ExaminerId);
-CREATE INDEX IX_Session_Examiner_ExamId ON Session_Examiner(ExamId);
-CREATE INDEX IX_Session_Examiner_ExamSectionId ON Session_Examiner(ExamSectionId);
-CREATE INDEX IX_Session_Examiner_ExamAreaId ON Session_Examiner(ExamAreaId);
+CREATE INDEX IX_ExaminerSchedule_SessionId ON ExaminerSchedule(SessionId);
+CREATE INDEX IX_ExaminerSchedule_ExaminerId ON ExaminerSchedule(ExaminerId);
+CREATE INDEX IX_ExaminerSchedule_ExamSectionId ON ExaminerSchedule(ExamSectionId);
+CREATE INDEX IX_ExaminerSchedule_ExamAreaId ON ExaminerSchedule(ExamAreaId);
 GO
