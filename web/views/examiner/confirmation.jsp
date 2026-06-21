@@ -27,7 +27,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="goi-thi-sinh" />
+            <jsp:param name="activeSidebar" value="candidate-call" />
         </jsp:include>
 
         <!--shell-->
@@ -43,7 +43,7 @@
                     <jsp:param name="wrapperClass" value="examiner-toolbar" />
                     <jsp:param name="leftClass" value="exr-toolbar-left" />
                     <jsp:param name="backClass" value="exr-back" />
-                    <jsp:param name="showBack" value="true" />
+                    <jsp:param name="btnBack" value="left" />
                 </jsp:include>
 
                 <!--confirmation-->

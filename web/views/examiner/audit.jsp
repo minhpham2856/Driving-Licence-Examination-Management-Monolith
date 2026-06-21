@@ -25,7 +25,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="nhat-ky" />
+            <jsp:param name="activeSidebar" value="audit" />
         </jsp:include>
 
         <!--shell-->
@@ -39,11 +39,11 @@
 
                 <!--toolbar-->
                 <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="showAuditPrintGroup" value="true" />
-                    <jsp:param name="showSearch" value="true" />
+                    <jsp:param name="btnPrintAudit" value="left" />
+                    <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchWide" value="true" />
                     <jsp:param name="searchPlaceholder" value="Tìm kiếm mô tả, địa chỉ IP..." />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--audit list-->

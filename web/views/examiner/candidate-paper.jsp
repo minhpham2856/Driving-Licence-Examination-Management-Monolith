@@ -31,7 +31,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="sua-thong-tin" />
+            <jsp:param name="activeSidebar" value="candidate-details" />
         </jsp:include>
 
         <!--shell-->
@@ -49,9 +49,9 @@
                     <jsp:param name="leftClass" value="exr-toolbar-left" />
                     <jsp:param name="rightClass" value="examiner-toolbar__actions" />
                     <jsp:param name="backClass" value="exr-back" />
-                    <jsp:param name="showBack" value="true" />
-                    <jsp:param name="showPaperFilterGroup" value="true" />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnBack" value="left" />
+                    <jsp:param name="btnPaperFilter" value="right" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--paper table-->

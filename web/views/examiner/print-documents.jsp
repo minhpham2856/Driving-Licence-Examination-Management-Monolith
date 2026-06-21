@@ -24,7 +24,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="in-van-ban" />
+            <jsp:param name="activeSidebar" value="print-documents" />
         </jsp:include>
 
         <!--shell-->

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
+<%@ page contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <div class="examiner-flash-container">
@@ -42,8 +42,14 @@
     <c:if test="${not empty param.completeDone}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tất phần thi SBD ${param.completeDone}.</p>
     </c:if>
+    <c:if test="${param.finalized eq '1'}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Hoàn tất nhập điểm thành công. Đang hiển thị thí sinh tiếp theo.</p>
+    </c:if>
     <c:if test="${param.signatureMarked eq '1' and not empty param.sbd}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã in biên bản kết quả thi SBD ${param.sbd}.</p>
+    </c:if>
+    <c:if test="${param.vehicleChanged eq '1' and not empty param.sbd}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã đổi xe thi cho SBD ${param.sbd}.</p>
     </c:if>
     <c:if test="${param.error eq 'saveFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không lưu được biên bản vi phạm.</p>
@@ -81,8 +87,14 @@
     <c:if test="${param.error eq 'noCandidate'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không còn thí sinh trong hàng đợi nhập điểm.</p>
     </c:if>
+    <c:if test="${param.error eq 'suspendFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không đình chỉ được thí sinh<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
+    </c:if>
     <c:if test="${param.error eq 'callFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không gọi được thí sinh<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
+    </c:if>
+    <c:if test="${param.error eq 'finalizeFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Hoàn tất nhập điểm thất bại<c:if test="${not empty param.sbd}"> (SBD ${param.sbd})</c:if>. Kiểm tra lại trạng thái thí sinh.</p>
     </c:if>
     <c:if test="${param.error eq 'needSignaturePrint'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Phải in biên bản kết quả thi ít nhất 1 lần trước khi hoàn tất<c:if test="${not empty param.sbd}"> (SBD ${param.sbd})</c:if>.</p>

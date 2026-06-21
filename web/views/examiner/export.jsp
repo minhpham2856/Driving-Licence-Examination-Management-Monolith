@@ -14,6 +14,7 @@
 <c:set var="exportMinutesXmlUrl" value="${ctx}/examiner/export/minutes/xml" />
 <c:set var="exportViolationsXmlUrl" value="${ctx}/examiner/export/violations/xml" />
 <c:set var="exportAuditXmlUrl" value="${ctx}/examiner/export/audit/xml" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -34,7 +35,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="xuat-file" />
+            <jsp:param name="activeSidebar" value="export" />
         </jsp:include>
 
         <!--shell-->
@@ -68,7 +69,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportDocxUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -93,7 +94,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportDocxUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -118,7 +119,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportDocxUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -143,7 +144,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportDocxUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -168,7 +169,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="#" class="export-btn">
+                            <a href="${exportDocxUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>

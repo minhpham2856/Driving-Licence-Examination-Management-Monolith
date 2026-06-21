@@ -47,7 +47,7 @@
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Quản lý Máy thi</h1>
-                <p class="page-subtitle">Quản lý danh sách thiết bị/máy thi theo từng phòng thi: loại thiết bị, tình trạng hoạt động và phòng trực thuộc.</p>
+                <p class="page-subtitle">Quản lý danh sách thiết bị/máy thi theo từng khu vực thi: loại thiết bị, tình trạng hoạt động và khu vực trực thuộc.</p>
             </div>
             <div class="page-actions" style="display: flex; gap: 10px;">
                 <button type="button" class="btn-filter" id="btn-add-computer" onclick="openDevModal()" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
@@ -123,20 +123,11 @@
                 Bộ lọc tìm kiếm
             </h2>
             <form action="${ctx}/admin/exam-computer" method="GET">
-                <div class="filter-grid" style="grid-template-columns: 2fr 1.5fr 1.25fr 1.75fr;">
+                <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.75fr;">
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Tìm máy thi</label>
                         <input type="text" id="searchKeyword" name="searchKeyword" class="input-field"
                                placeholder="Nhập tên máy/thiết bị..." value="${param.searchKeyword}">
-                    </div>
-                    <div class="input-group">
-                        <label for="filterRoom" class="input-label">Phòng thi</label>
-                        <select id="filterRoom" name="filterRoom" class="input-field">
-                            <option value="">Tất cả phòng thi</option>
-                            <c:forEach var="room" items="${rooms}">
-                                <option value="${room.id}" ${param.filterRoom eq room.id ? 'selected' : ''}>${room.name}</option>
-                            </c:forEach>
-                        </select>
                     </div>
                     <div class="input-group">
                         <label for="filterStatus" class="input-label">Tình trạng máy</label>
@@ -187,7 +178,7 @@
                             <th scope="col" style="width: 120px;">Mã máy</th>
                             <th scope="col">Tên thiết bị</th>
                             <th scope="col" style="width: 170px;">Loại thiết bị</th>
-                            <th scope="col">Phòng thi</th>
+                            <th scope="col">Khu vực thi</th>
                             <th scope="col" style="width: 140px; text-align: center;">Tình trạng máy</th>
                             <th scope="col" style="text-align: center; width: 220px;">Thao tác</th>
                         </tr>
@@ -213,8 +204,7 @@
                                         <td style="font-size: 0.88rem; color: #475569; font-weight: 500;">${empty dev.deviceType ? '—' : dev.deviceType}</td>
                                         <td>
                                             <div class="user-info">
-                                                <span class="user-name" style="font-size: 0.88rem;">${empty dev.roomName ? '—' : dev.roomName}</span>
-                                                <span class="user-username">${dev.roomCode}</span>
+                                                <span class="user-name" style="font-size: 0.88rem;">${empty dev.areaName ? '—' : dev.areaName}</span>
                                             </div>
                                         </td>
                                         <td style="text-align: center;">
@@ -229,15 +219,14 @@
                                                 <button type="button" class="btn-export"
                                                         style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(2,132,199,0.25); color: #0284c7; cursor:pointer;"
                                                         data-code="${dev.code}" data-name="${fn:escapeXml(dev.deviceName)}"
-                                                        data-type="${fn:escapeXml(dev.deviceType)}" data-room="${fn:escapeXml(dev.roomName)}"
-                                                        data-roomcode="${dev.roomCode}" data-area="${fn:escapeXml(dev.areaName)}" data-status="${dev.status}"
+                                                        data-type="${fn:escapeXml(dev.deviceType)}" data-areaName="${fn:escapeXml(dev.areaName)}" data-status="${dev.status}"
                                                         onclick="openDevDetail(this)">
                                                     Chi tiết
                                                 </button>
                                                 <button type="button" class="btn-export"
                                                         style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706; cursor:pointer;"
                                                         data-id="${dev.id}" data-name="${fn:escapeXml(dev.deviceName)}"
-                                                        data-type="${fn:escapeXml(dev.deviceType)}" data-status="${dev.status}" data-room="${dev.examRoomId}"
+                                                        data-type="${fn:escapeXml(dev.deviceType)}" data-status="${dev.status}" data-area="${dev.examAreaId}"
                                                         onclick="openDevModalEdit(this)">
                                                     Sửa
                                                 </button>
@@ -349,11 +338,11 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label for="m_room" class="input-label">Phòng thi <span style="color:#dc2626;">*</span></label>
-                    <select id="m_room" name="examRoomId" class="input-field" required>
-                        <option value="">-- Chọn phòng thi --</option>
-                        <c:forEach var="room" items="${rooms}">
-                            <option value="${room.id}">${room.name} (${room.areaName})</option>
+                    <label for="m_area" class="input-label">Khu vực thi <span style="color:#dc2626;">*</span></label>
+                    <select id="m_area" name="examAreaId" class="input-field" required>
+                        <option value="">-- Chọn khu vực thi --</option>
+                        <c:forEach var="area" items="${areas}">
+                            <option value="${area.id}">${area.name}</option>
                         </c:forEach>
                     </select>
                 </div>
@@ -377,8 +366,7 @@
             <div class="detail-row"><span>Mã máy</span><span id="dd_code"></span></div>
             <div class="detail-row"><span>Tên thiết bị</span><span id="dd_name"></span></div>
             <div class="detail-row"><span>Loại thiết bị</span><span id="dd_type"></span></div>
-            <div class="detail-row"><span>Phòng thi</span><span id="dd_room"></span></div>
-            <div class="detail-row"><span>Khu vực</span><span id="dd_area"></span></div>
+            <div class="detail-row"><span>Khu vực thi</span><span id="dd_room"></span></div>
             <div class="detail-row" style="border-bottom:none;"><span>Tình trạng</span><span id="dd_status"></span></div>
         </div>
         <div class="modal-foot">
@@ -390,7 +378,7 @@
 <script>
     function openDevModal() {
         document.getElementById('devModalTitle').textContent = 'Thêm máy thi';
-        ['m_id','m_name','m_type','m_status','m_room'].forEach(function(k){document.getElementById(k).value='';});
+        ['m_id','m_name','m_type','m_status','m_area'].forEach(function(k){document.getElementById(k).value='';});
         document.getElementById('devModal').classList.add('is-open');
     }
     function openDevModalEdit(b) {
@@ -399,7 +387,7 @@
         document.getElementById('m_name').value = b.dataset.name;
         document.getElementById('m_type').value = b.dataset.type;
         document.getElementById('m_status').value = b.dataset.status;
-        document.getElementById('m_room').value = b.dataset.room;
+        document.getElementById('m_area').value = b.dataset.area;
         document.getElementById('devModal').classList.add('is-open');
     }
     function closeDevModal() { document.getElementById('devModal').classList.remove('is-open'); }
@@ -408,8 +396,7 @@
         document.getElementById('dd_code').textContent = b.dataset.code;
         document.getElementById('dd_name').textContent = b.dataset.name;
         document.getElementById('dd_type').textContent = b.dataset.type && b.dataset.type !== '' ? b.dataset.type : '—';
-        document.getElementById('dd_room').textContent = (b.dataset.room && b.dataset.room !== '' ? b.dataset.room : '—') + ' (' + b.dataset.roomcode + ')';
-        document.getElementById('dd_area').textContent = b.dataset.area && b.dataset.area !== '' ? b.dataset.area : '—';
+        document.getElementById('dd_room').textContent = b.dataset.areaname && b.dataset.areaname !== '' ? b.dataset.areaname : '—';
         var st = b.dataset.status;
         var stLabel = (st === 'Operational' || st === 'Available') ? 'Đang hoạt động'
                     : (st === 'Maintenance' ? 'Đang bảo trì' : 'Hỏng / Khóa');

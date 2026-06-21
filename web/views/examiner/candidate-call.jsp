@@ -29,7 +29,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="goi-thi-sinh" />
+            <jsp:param name="activeSidebar" value="candidate-call" />
         </jsp:include>
 
         <!--shell-->
@@ -46,11 +46,11 @@
 
                 <!--toolbar-->
                 <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="showCandidateCallLeft" value="true" />
-                    <jsp:param name="showSearch" value="true" />
+                    <jsp:param name="btnCallSelected" value="left" />
+                    <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchWide" value="true" />
                     <jsp:param name="searchPlaceholder" value="Tìm kiếm SBD, tên, số căn cước..." />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--candidate list-->
