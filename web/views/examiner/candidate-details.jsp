@@ -24,7 +24,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="sua-thong-tin" />
+            <jsp:param name="activeSidebar" value="candidate-details" />
         </jsp:include>
 
         <!--shell-->
@@ -38,10 +38,12 @@
 
                 <!--toolbar-->
                 <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="showPrintGroup" value="true" />
-                    <jsp:param name="showSearch" value="true" />
+                    <jsp:param name="btnPrintInfo" value="left" />
+                    <jsp:param name="btnPrintList" value="left" />
+                    <jsp:param name="btnPrintResult" value="left" />
+                    <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchPlaceholder" value="Tìm kiếm SBD, tên, số căn cước..." />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--candidate list-->
