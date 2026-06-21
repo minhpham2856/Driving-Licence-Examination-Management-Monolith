@@ -3,6 +3,7 @@ package DTOs;
 import java.sql.Timestamp;
 
 public class AuditDTO {
+
     private long id;
     private String tableName;
     private Integer recordId;
