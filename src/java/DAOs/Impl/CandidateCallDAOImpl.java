@@ -2,13 +2,24 @@ package DAOs.Impl;
 
 import DBConnection.DBContext;
 import DAOs.CandidateCallDAO;
-import DTOs.CandidateCall;
+import DTOs.CandidateCallDTO;
 import java.sql.*;
 
+/**
+ * JDBC implementation of CandidateCallDAO for logging candidate call-out events
+ * into the Audit table with action = 'CALL'.
+ */
 public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO {
 
+    /**
+     * Inserts a call-out event as an Audit record with action 'CALL'.
+     * The entity ID is composed as "{sessionId}-{candidateNo}".
+     *
+     * @param call the call event data (calledBy, examSessionId, candidateNo, calledTo, result)
+     * @return true if insertion succeeded
+     */
     @Override
-    public boolean insert(CandidateCall call) {
+    public boolean insert(CandidateCallDTO call) {
         String sql = """
                 INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, NewValue, CreatedAt)
                 VALUES (?, 'CALL', ?, 'Candidate', ?, ?, GETDATE())

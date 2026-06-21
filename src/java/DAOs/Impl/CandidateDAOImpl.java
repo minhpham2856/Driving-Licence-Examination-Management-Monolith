@@ -5,6 +5,7 @@ import DBConnection.DBContext;
 import DAOs.Db2CandidateSql;
 import DAOs.CandidateDAO;
 import DTOs.CandidateDTO;
+import Models.Candidate;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,8 +13,93 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * JDBC implementation of CandidateDAO providing full CRUD and exam workflow
+ * operations for candidates. Handles candidate registration (with transaction),
+ * score entry with deduction management, profile updates across Candidate/Profile/User
+ * tables, status transitions (absent/suspended/done), and automatic enrollment
+ * into subsequent exam sessions.
+ *
+ * <p>Inner helper classes:
+ * <ul>
+ *   <li>{@link SessionContext} — holds ExamId, LicenceId, LicenseCode for a session</li>
+ *   <li>{@link PersonSnapshot} — holds Profile fields copied into Candidate on insert</li>
+ * </ul>
+ */
 public class CandidateDAOImpl extends DBContext implements CandidateDAO {
 
+    /**
+     * Finds a Candidate model by primary key (basic SELECT without joins).
+     *
+     * @param id the CandidateId
+     * @return the Candidate model, or null if not found
+     */
+    @Override
+    public Candidate findById(int id) {
+        String sql = "SELECT * FROM Candidate WHERE CandidateId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapToCandidateModel(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Finds a candidate by their candidate number within a specific session.
+     *
+     * @param sessionId       the SessionId
+     * @param candidateNumber the candidate's number string
+     * @return the Candidate model, or null if not found
+     */
+    @Override
+    public Candidate findByNumber(int sessionId, String candidateNumber) {
+        String sql = "SELECT c.* FROM Candidate c INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId WHERE ec.SessionId = ? AND c.CandidateNumber = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            ps.setString(2, candidateNumber);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapToCandidateModel(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /** Maps a ResultSet row to a basic Candidate model. */
+    private Candidate mapToCandidateModel(ResultSet rs) throws SQLException {
+        Candidate c = new Candidate();
+        c.setCandidateId(rs.getInt("CandidateId"));
+        c.setCandidateNumber(rs.getString("CandidateNumber"));
+        c.setFullName(rs.getString("FullName"));
+        c.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
+        c.setPhoneNumber(rs.getString("PhoneNumber"));
+        c.setSex(rs.getString("Sex"));
+        c.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
+        c.setAddress(rs.getString("Address"));
+        c.setTakeTheory(rs.getBoolean("TakeTheory"));
+        c.setTakePractical(rs.getBoolean("TakePractical"));
+        c.setTakeRoadLayout(rs.getBoolean("TakeRoadLayout"));
+        c.setTakeOnRoad(rs.getBoolean("TakeOnRoad"));
+        c.setReasonForTaking(rs.getString("ReasonForTaking"));
+        c.setPhotoImageUrl(rs.getString("PhotoImageUrl"));
+        c.setIsAbsent(rs.getBoolean("IsAbsent"));
+        c.setIsSuspended(rs.getBoolean("IsSuspended"));
+        c.setUserId(rs.getInt("UserId"));
+        c.setExamRegistrationId(rs.getInt("ExamRegistrationId"));
+        return c;
+    }
+
+    /**
+     * Retrieves a rich CandidateDTO by primary key using the CANDIDATE_SELECT join query.
+     *
+     * @param id the CandidateId
+     * @return the CandidateDTO, or null if not found
+     */
     @Override
     public CandidateDTO getById(int id) {
         String sql = Db2CandidateSql.CANDIDATE_SELECT + " WHERE c.CandidateId = ?";
@@ -30,6 +116,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /**
+     * Retrieves a candidate DTO by session ID and SBD (số báo danh) using
+     * multiple matching strategies (exact number, integer cast, hyphenated suffix).
+     *
+     * @param sessionId the SessionId
+     * @param sbd       the candidate number in various formats
+     * @return the CandidateDTO, or null if not found
+     */
     @Override
     public CandidateDTO getBySessionAndSbd(int sessionId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
@@ -63,6 +157,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /**
+     * Returns all candidates enrolled in a given session, ordered by candidate number.
+     *
+     * @param sessionId the SessionId
+     * @return list of CandidateDTO objects
+     */
     @Override
     public List<CandidateDTO> getCandidatesBySession(int sessionId) {
         List<CandidateDTO> list = new ArrayList<>();
@@ -81,6 +181,11 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return list;
     }
 
+    /**
+     * Returns all candidates across all sessions, ordered by exam date descending.
+     *
+     * @return list of all CandidateDTO objects
+     */
     @Override
     public List<CandidateDTO> getAllCandidates() {
         List<CandidateDTO> list = new ArrayList<>();
@@ -97,6 +202,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return list;
     }
 
+    /**
+     * Updates the registration status to CheckedIn or PreRegistered based on presence.
+     *
+     * @param id         the CandidateId
+     * @param isPresent  true for CheckedIn, false for PreRegistered
+     * @return true if updated
+     */
     @Override
     public boolean updatePresent(int id, boolean isPresent) {
         String sql = """
@@ -114,6 +226,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Records payment if not already present, skipping when isPaymentCompleted is false.
+     * Creates a Cash payment of 200,000 VND with auto-generated reference.
+     *
+     * @param id                  the CandidateId
+     * @param isPaymentCompleted  if false the method returns true without action
+     * @return true if payment already exists or was created
+     */
     @Override
     public boolean updatePayment(int id, boolean isPaymentCompleted) {
         if (!isPaymentCompleted) {
@@ -152,6 +272,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /** Resolves the ExamId from Exam_Candidate for a given candidate. */
     private int resolveExamIdForCandidate(int candidateId) throws SQLException {
         String sql = "SELECT TOP 1 ExamId FROM Exam_Candidate WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -165,6 +286,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return -1;
     }
 
+    /**
+     * Assigns a computer (ExamDevice) to a candidate for theory testing.
+     * Creates a TheoryPaper record if one does not exist, or updates the device ID.
+     *
+     * @param id           the CandidateId
+     * @param computerCode the device name/code to look up
+     * @return true if assignment succeeded
+     */
     @Override
     public boolean updateComputer(int id, String computerCode) {
         try {
@@ -218,6 +347,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /** Retrieves the ExamCandidateId for the candidate's first enrollment. */
     private Integer getExamCandidateId(int candidateId) throws SQLException {
         String sql = "SELECT ExamCandidateId FROM Exam_Candidate WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -231,6 +361,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /** Retrieves the ExamCandidateId for a candidate in a specific session. */
     private Integer getExamCandidateIdForSession(int candidateId, int sessionId) throws SQLException {
         String sql = "SELECT ExamCandidateId FROM Exam_Candidate WHERE CandidateId = ? AND SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -245,6 +376,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /** Ensures an ExamCandidateId exists; throws if not found. */
     private Integer ensureExamCandidateId(int candidateId) throws SQLException {
         Integer id = getExamCandidateId(candidateId);
         if (id == null) {
@@ -253,17 +385,33 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return id;
     }
 
+    /**
+     * Records room allocation info into the candidate's registration notes.
+     *
+     * @param id       the CandidateId
+     * @param areaId   the ExamAreaId
+     * @param areaName the area name
+     * @return true if updated
+     */
     @Override
     public boolean updateAllocatedRoom(int id, int areaId, String areaName) {
         return updateApplicationNotes(id, "AllocatedRoom:" + areaId + ":" + areaName);
     }
 
+    /**
+     * Records a device code into the candidate's registration notes.
+     *
+     * @param id         the CandidateId
+     * @param deviceCode the device identifier
+     * @return true if updated
+     */
     @Override
     public boolean updateDevice(int id, String deviceCode) {
         String notesVal = (deviceCode != null && !deviceCode.isEmpty()) ? "Device: " + deviceCode : null;
         return updateApplicationNotes(id, notesVal);
     }
 
+    /** Updates the Notes field on the registration linked to this candidate. */
     private boolean updateApplicationNotes(int id, String notes) {
         String sql = """
                 UPDATE ExamRegistration
@@ -284,6 +432,17 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Updates theory and/or practical scores for a candidate.
+     * Each score is upserted into the ExamScore table via the ExamResult chain.
+     *
+     * @param id              the CandidateId
+     * @param theoryScore     optional theory score value
+     * @param theoryPassed    optional pass indicator (passed/failed)
+     * @param practicalScore  optional practical score value
+     * @param practicalPassed optional pass indicator
+     * @return true if all provided scores were updated
+     */
     @Override
     public boolean updateScores(int id, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed) {
@@ -308,6 +467,15 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Updates the theory score by recording the number of correct answers.
+     * Pass/fail is determined by comparing correctCount against passThreshold.
+     *
+     * @param id            the CandidateId
+     * @param correctCount  number of correct answers
+     * @param passThreshold minimum required correct answers to pass
+     * @return true if updated
+     */
     @Override
     public boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold) {
         try {
@@ -329,6 +497,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /** Looks up the ExamSectionId for the theory section (Lý thuyết/Theory). */
     private Integer findTheorySectionIdByCandidate(int candidateId) throws SQLException {
         String sql = """
                 SELECT TOP 1 ExamSectionId FROM ExamSection
@@ -343,6 +512,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /**
+     * Updates the road test score (Đường trường) for a candidate.
+     *
+     * @param id         the CandidateId
+     * @param roadScore  the road test score
+     * @param roadPassed optional pass indicator
+     * @return true if updated
+     */
     @Override
     public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
         try {
@@ -356,6 +533,18 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Updates the candidate's basic profile fields across Candidate and Profile tables
+     * within a single transaction. Also updates the User email if provided.
+     *
+     * @param id       the CandidateId
+     * @param fullName the new full name
+     * @param dob      the new date of birth
+     * @param govIdNo  the new government ID number
+     * @param email    optional new email (User table)
+     * @param phoneNo  the new phone number
+     * @return true if all updates succeeded
+     */
     @Override
     public boolean updateProfile(int id, String fullName, Date dob, String govIdNo, String email, String phoneNo) {
         String sqlCand = """
@@ -414,6 +603,22 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Comprehensive profile update used by examiners, including address, sex, and
+     * reason-for-taking fields. Updates Candidate, Profile, and optionally User tables
+     * within a single transaction.
+     *
+     * @param id              the CandidateId
+     * @param fullName        the full name
+     * @param dob             the date of birth
+     * @param govIdNo         the government ID number
+     * @param email           optional email (User table)
+     * @param phoneNo         the phone number
+     * @param address         the address
+     * @param sex             the sex string (Nam/Nu)
+     * @param reasonForTaking the reason for taking the exam
+     * @return true if all updates succeeded
+     */
     @Override
     public boolean updateExaminerProfile(int id, String fullName, Date dob, String govIdNo,
             String email, String phoneNo, String address, String sex, String reasonForTaking) {
@@ -482,6 +687,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Updates the candidate's photo URL.
+     *
+     * @param id       the CandidateId
+     * @param photoUrl the new photo URL/image path
+     * @return true if updated
+     */
     @Override
     public boolean updatePhoto(int id, String photoUrl) {
         String sql = "UPDATE Candidate SET PhotoImageUrl = ? WHERE CandidateId = ?";
@@ -499,6 +711,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Inserts a new candidate within a transaction, creating or reusing an
+     * ExamRegistration, populating Candidate from Profile snapshot, and linking
+     * via Exam_Candidate.
+     *
+     * @param reg the CandidateDTO with registration data (id will be set on success)
+     * @return true if insertion succeeded
+     */
     @Override
     public boolean insert(CandidateDTO reg) {
         try {
@@ -573,6 +793,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /** Loads session context (examId, licenceId, licenseCode) for candidate registration. */
     private SessionContext loadSessionContext(int sessionId) throws SQLException {
         String sql = """
                 SELECT s.ExamId, e.LicenceId, l.LicenceClass
@@ -596,6 +817,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /** Finds an existing ExamRegistration for the profile+licence, or creates a new one. */
     private int findOrCreateApplication(CandidateDTO reg, int licenceId) throws SQLException {
         String check = "SELECT ExamRegistrationId FROM ExamRegistration WHERE ProfileId = ? AND LicenceId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(check)) {
@@ -634,6 +856,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return 0;
     }
 
+    /** Retrieves the UserId associated with a Profile. */
     private int findUserIdByProfile(int profileId) throws SQLException {
         String sql = "SELECT UserId FROM Profile WHERE ProfileId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -647,6 +870,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return 0;
     }
 
+    /** Loads a snapshot of profile fields for copying into the Candidate record. */
     private PersonSnapshot loadProfileSnapshot(int profileId) throws SQLException {
         String sql = "SELECT FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address FROM Profile WHERE ProfileId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -667,6 +891,17 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /**
+     * Applies score deductions for a candidate's practical/road section.
+     * Starts from a base score of 100, deducts points for each non-critical
+     * deduction, and sets score to 0 if any critical deduction is applied.
+     * Pass threshold is 80.
+     *
+     * @param candidateId    the CandidateId
+     * @param deductionIds   array of ScoreDeduction IDs to apply
+     * @param sectionKeyword the section keyword (defaults to "Practical")
+     * @return true if deductions were applied successfully
+     */
     @Override
     public boolean applyScoreDeductions(int candidateId, int[] deductionIds, String sectionKeyword) {
         if (deductionIds == null || deductionIds.length == 0) {
@@ -760,6 +995,17 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Adjusts the occurrence count of a score deduction (increment or decrement).
+     * When delta reduces to zero or below, the deduction record is removed.
+     * After adjustment, the final score is recalculated from all deductions.
+     *
+     * @param candidateId the CandidateId
+     * @param sessionId   the SessionId
+     * @param deductionId the ScoreDeduction ID
+     * @param delta       positive to increment, negative to decrement
+     * @return true if adjustment succeeded
+     */
     @Override
     public boolean adjustScoreDeductionOccurrence(int candidateId, int sessionId, int deductionId, int delta) {
         if (candidateId <= 0 || sessionId <= 0 || deductionId <= 0 || delta == 0) {
@@ -846,29 +1092,46 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Finalises the score entry for a candidate by recalculating deductions,
+     * updating the score, and setting SectionStatus to AwaitingSignature.
+     *
+     * @param candidateId    the CandidateId
+     * @param sessionId      the SessionId
+     * @param sectionKeyword the section keyword (defaults to "Practical")
+     * @return true if finalisation succeeded
+     */
     @Override
     public boolean finalizeScoreEntry(int candidateId, int sessionId, String sectionKeyword) {
         if (candidateId <= 0 || sessionId <= 0) {
+            System.out.println("[finalizeScoreEntry] FAIL: invalid candidateId=" + candidateId + " sessionId=" + sessionId);
             return false;
         }
         try {
             Integer examCandidateId = getExamCandidateIdForSession(candidateId, sessionId);
             if (examCandidateId == null) {
+                System.out.println("[finalizeScoreEntry] FAIL: examCandidateId is null for candidateId=" + candidateId + " sessionId=" + sessionId);
                 return false;
             }
             String keyword = sectionKeyword != null && !sectionKeyword.isBlank() ? sectionKeyword : "Practical";
+            System.out.println("[finalizeScoreEntry] candidateId=" + candidateId + " sessionId=" + sessionId + " examCandidateId=" + examCandidateId + " keyword=" + keyword);
             Integer sectionId = findSectionIdForSession(sessionId, keyword);
             if (sectionId == null) {
+                System.out.println("[finalizeScoreEntry] sectionId null via Session, trying via Candidate...");
                 sectionId = findSectionIdForCandidate(examCandidateId, keyword);
             }
             if (sectionId == null) {
+                System.out.println("[finalizeScoreEntry] FAIL: sectionId is null for keyword=" + keyword);
                 return false;
             }
+            System.out.println("[finalizeScoreEntry] sectionId=" + sectionId);
             upsertExamScore(examCandidateId, sectionId, 100, true);
             int examScoreId = findExamScoreId(examCandidateId, sectionId);
             if (examScoreId <= 0) {
+                System.out.println("[finalizeScoreEntry] FAIL: examScoreId <= 0 after upsert");
                 return false;
             }
+            System.out.println("[finalizeScoreEntry] examScoreId=" + examScoreId + " — now recalculating deductions...");
             recalculateScoreFromDeductions(examCandidateId, sectionId, examScoreId);
             String upd = """
                     UPDATE Exam_Candidate
@@ -879,14 +1142,24 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
                 ps.setString(1, ExamConstants.CANDIDATE_AWAITING_SIGNATURE);
                 ps.setInt(2, candidateId);
                 ps.setInt(3, sessionId);
-                return ps.executeUpdate() > 0;
+                int rows = ps.executeUpdate();
+                System.out.println("[finalizeScoreEntry] SUCCESS: status set to AwaitingSignature, rows=" + rows);
+                return rows > 0;
             }
         } catch (SQLException e) {
+            System.out.println("[finalizeScoreEntry] SQLException: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
     }
 
+    /**
+     * Retrieves all currently applied score deductions for a candidate in a session.
+     *
+     * @param candidateId the CandidateId
+     * @param sessionId   the SessionId
+     * @return list of maps with deduction id, reason, points, critical flag, occurrence count, recordedAt
+     */
     @Override
     public List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId) {
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -937,6 +1210,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return rows;
     }
 
+    /** Recalculates the final score from all applied deductions and updates ExamScore + ExamResult. */
     private void recalculateScoreFromDeductions(int examCandidateId, int sectionId, int examScoreId)
             throws SQLException {
         double finalScore = 100;
@@ -981,6 +1255,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         }
     }
 
+    /**
+     * Marks a candidate as absent (IsAbsent = 1).
+     *
+     * @param candidateId the CandidateId
+     * @return true if updated
+     */
     @Override
     public boolean markAbsent(int candidateId) {
         String sql = "UPDATE Candidate SET IsAbsent = 1 WHERE CandidateId = ?";
@@ -993,6 +1273,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Clears the absent marking (IsAbsent = 0).
+     *
+     * @param candidateId the CandidateId
+     * @return true if updated
+     */
     @Override
     public boolean clearAbsentMarking(int candidateId) {
         String sql = "UPDATE Candidate SET IsAbsent = 0 WHERE CandidateId = ?";
@@ -1005,6 +1291,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Finds a CandidateId by profile and session enrollment.
+     *
+     * @param profileId the ProfileId
+     * @param sessionId the SessionId
+     * @return the CandidateId, or null if not found
+     */
     @Override
     public Integer findCandidateIdByProfileAndSession(int profileId, int sessionId) {
         String sql = """
@@ -1028,6 +1321,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /**
+     * Marks a candidate as suspended (IsSuspended = 1).
+     *
+     * @param candidateId the CandidateId
+     * @return true if updated
+     */
     @Override
     public boolean markSuspended(int candidateId) {
         String sql = "UPDATE Candidate SET IsSuspended = 1 WHERE CandidateId = ?";
@@ -1040,6 +1339,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Removes the suspension mark (IsSuspended = 0).
+     *
+     * @param candidateId the CandidateId
+     * @return true if updated
+     */
     @Override
     public boolean undoSuspension(int candidateId) {
         String sql = "UPDATE Candidate SET IsSuspended = 0 WHERE CandidateId = ?";
@@ -1052,6 +1357,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Synchronises section statuses for all candidates in a session, transitioning
+     * from Pending to Done when a score record exists.
+     *
+     * @param sessionId the SessionId
+     */
     @Override
     public void syncSectionStatusesForSession(int sessionId) {
         // This is imported from ExamRegistrationDAOImpl
@@ -1087,6 +1398,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         }
     }
 
+    /** Reads the current SectionStatus from Exam_Candidate. */
     private String getSectionStatus(int candidateId, int sessionId) throws SQLException {
         String sql = "SELECT SectionStatus FROM Exam_Candidate WHERE CandidateId = ? AND SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -1111,6 +1423,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         }
     }
 
+    /**
+     * Marks a candidate's signature as printed for a session.
+     *
+     * @param candidateId the CandidateId
+     * @param sessionId   the SessionId
+     * @return true if updated
+     */
     @Override
     public boolean markSignaturePrinted(int candidateId, int sessionId) {
         String sql = "UPDATE Exam_Candidate SET SignaturePrinted = 1 WHERE CandidateId = ? AND SessionId = ?";
@@ -1124,6 +1443,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    /**
+     * Marks a section as Done after signature is printed. If the candidate
+     * passed, automatically enrolls them into the next session (e.g. theory -> practical).
+     *
+     * @param candidateId the CandidateId
+     * @param sessionId   the SessionId
+     * @return true if completed
+     */
     @Override
     public boolean completeSection(int candidateId, int sessionId) {
         try {
@@ -1155,6 +1482,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         }
     }
 
+    /** Checks if the candidate passed their current section to enrol in the next one. */
     private boolean isPassedForNextSection(int candidateId, int sessionId) throws SQLException {
         CandidateDTO reg = getById(candidateId);
         if (reg == null || reg.getExamSessionId() != sessionId) {
@@ -1184,6 +1512,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return "passed".equalsIgnoreCase(reg.getPracticalPassed());
     }
 
+    /** Resolves the section name (e.g. "Lý thuyết", "Sa hình") for a session. */
     private String resolveSectionNameForSession(int sessionId) throws SQLException {
         String sql = """
                 SELECT TOP 1 es.SectionName
@@ -1202,6 +1531,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /** Enrolls the candidate into the next chronological session of the same exam. */
     private void enrollNextSection(int candidateId, int sessionId, int examId) throws SQLException {
         String nextSessionSql = """
                 SELECT TOP 1 s2.SessionId
@@ -1242,11 +1572,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         }
     }
 
+    /** Upserts a section score with default pass threshold of 80. */
     private boolean upsertSectionScore(int candidateId, String sectionKeyword, int scoreVal)
             throws SQLException {
         return upsertSectionScore(candidateId, sectionKeyword, scoreVal, scoreVal >= 80);
     }
 
+    /** Upserts a section score with an explicit pass flag. */
     private boolean upsertSectionScore(int candidateId, String sectionKeyword, int scoreVal, boolean passed)
             throws SQLException {
         Integer examCandidateId = ensureExamCandidateId(candidateId);
@@ -1260,6 +1592,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return upsertExamScore(examCandidateId, sectionId, scoreVal, passed);
     }
 
+    /** Finds the ExamSectionId matching a keyword for a candidate's session, with Vietnamese name fallback. */
     private Integer findSectionIdForCandidate(int examCandidateId, String sectionKeyword) throws SQLException {
         String sql = """
                 SELECT TOP 1 ses.ExamSectionId
@@ -1292,6 +1625,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /** Finds the ExamSectionId for a session matching the given keyword. */
     private Integer findSectionIdForSession(int sessionId, String sectionKeyword) throws SQLException {
         String sql = """
                 SELECT TOP 1 ses.ExamSectionId
@@ -1312,6 +1646,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    /** Translates English section keywords to Vietnamese for LIKE matching. */
     private String translateKeyword(String key) {
         if ("Theory".equalsIgnoreCase(key)) return "Lý thuyết";
         if ("Practical".equalsIgnoreCase(key)) return "Sa hình";
@@ -1319,6 +1654,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return key;
     }
 
+    /** Determines the section keyword (Theory/Practical/Road) from the session's section name. */
     private String resolveSectionKeywordForSession(int sessionId) throws SQLException {
         String sql = """
                 SELECT TOP 1 es.SectionName
@@ -1340,6 +1676,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return "Practical";
     }
 
+    /** Inserts or updates an ExamScore record for a candidate+section combination. */
     private boolean upsertExamScore(int examCandidateId, int sectionId, double score, boolean passed)
             throws SQLException {
         int resultId = findOrCreateExamResult(examCandidateId, passed);
@@ -1371,6 +1708,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         }
     }
 
+    /** Finds an existing ExamResult for a candidate, or creates one with the given pass status. */
     private int findOrCreateExamResult(int examCandidateId, boolean passed) throws SQLException {
         String check = "SELECT ExamResultId FROM ExamResult WHERE ExamCandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(check)) {
@@ -1395,6 +1733,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return 0;
     }
 
+    /** Finds the ExamScoreId for a candidate+section via the ExamResult chain. */
     private int findExamScoreId(int examCandidateId, int sectionId) throws SQLException {
         String sql = """
                 SELECT es.ExamScoreId
@@ -1414,6 +1753,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return 0;
     }
 
+    /** Determines if a theory score is passing (>=32 for <=35 questions, >=80 for larger tests). */
     private static boolean isTheoryPassed(int score) {
         if (score <= 35) {
             return score >= 32;
@@ -1421,6 +1761,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return score >= 80;
     }
 
+    /** Maps a ResultSet row (from CANDIDATE_SELECT) into a rich CandidateDTO with all computed fields. */
     private CandidateDTO mapResultSetToCandidateDTO(ResultSet rs) throws SQLException {
         CandidateDTO er = new CandidateDTO();
         er.setId(rs.getInt("id"));
@@ -1515,12 +1856,14 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return er;
     }
 
+    /** Holds session context fields needed during candidate registration. */
     private static final class SessionContext {
         int examId;
         int licenceId;
         String licenseCode;
     }
 
+    /** Holds a copy of Profile fields used to populate a new Candidate record. */
     private static final class PersonSnapshot {
         String fullName;
         Timestamp dob;

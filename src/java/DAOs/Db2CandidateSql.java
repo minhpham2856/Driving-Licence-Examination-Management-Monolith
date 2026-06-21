@@ -1,5 +1,12 @@
 package DAOs;
 
+/**
+ * Lớp chứa các hằng số SQL dùng chung cho truy vấn thông tin thí sinh
+ * từ cơ sở dữ liệu DB2/DLEM. Cung cấp truy vấn SELECT chuẩn hóa kết hợp
+ * nhiều bảng (Candidate, Exam_Candidate, ExamRegistration, Session, v.v.)
+ * để lấy toàn bộ thông tin thí sinh cho mục đích hiển thị và xử lý.
+ * Lớp không thể khởi tạo (utility class).
+ */
 public final class Db2CandidateSql {
 
     private Db2CandidateSql() {
@@ -76,7 +83,7 @@ public final class Db2CandidateSql {
                 JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
                 JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%'
+                WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%' OR sec.SectionName LIKE N'%Sa hình%'
                 GROUP BY ec3.CandidateId
             ) practical ON practical.CandidateId = c.CandidateId
             LEFT JOIN (
