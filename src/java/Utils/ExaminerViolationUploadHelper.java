@@ -1,56 +1,84 @@
 package Utils;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
+ // Utility class that handles file uploads for violation evidence in the examiner portal.
 public final class ExaminerViolationUploadHelper {
 
-    private static final long MAX_BYTES = 5L * 1024 * 1024;
-    private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/jpg", "image/png", "image/webp");
+    // Relative subdirectory under the web root where violation uploads are stored
+    private static final String UPLOAD_SUBDIR = "uploads/violations";
 
+    // Private constructor prevents instantiation — all methods are static
     private ExaminerViolationUploadHelper() {
     }
 
-    public static String saveEvidence(HttpServletRequest request, int sessionId, String sbd)
-            throws IOException, ServletException {
-        Part part = request.getPart("evidenceFile");
-        if (part == null || part.getSize() <= 0) {
+         // Processes a file upload part from a multipart request and saves it to disk.
+    public static String saveUpload(HttpServletRequest request, Part filePart, int sessionId) {
+        // Guard: skip if no file was attached or the file is empty
+        if (filePart == null || filePart.getSize() <= 0) {
             return null;
         }
-        if (part.getSize() > MAX_BYTES) {
-            throw new IOException("File minh chứng vượt quá 5MB.");
+        try {
+            // Resolve the absolute path to the web application's root directory
+            String webRoot = request.getServletContext().getRealPath("/");
+            // Create a date prefix (yyyyMMdd) to group uploads by day
+            String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            // Build the full directory path: <webRoot>/uploads/violations/<sessionId>
+            String dirPath = webRoot + File.separator + UPLOAD_SUBDIR + File.separator + sessionId;
+            // Create the target directory if it does not already exist
+            File dir = new File(dirPath);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            // Build a unique filename: <datePrefix>_<millis>_<originalFilename>
+            String fileName = datePrefix + "_" + System.currentTimeMillis() + "_" + getSubmittedFileName(filePart);
+            // Resolve the full file path as a Path object for NIO copy
+            Path target = new File(dir, fileName).toPath();
+            // Copy the uploaded input stream to the target file, replacing if exists
+            try (InputStream in = filePart.getInputStream()) {
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+            // Return the relative path (from web root) for storage in the database
+            return UPLOAD_SUBDIR + "/" + sessionId + "/" + fileName;
+        } catch (Exception e) {
+            // Log the error and return null to indicate upload failure
+            e.printStackTrace();
+            return null;
         }
+    }
 
-        String contentType = part.getContentType();
-        if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
-            throw new IOException("Chỉ chấp nhận ảnh JPG, PNG hoặc WEBP.");
+         // Extracts the original filename from a multipart {@link Part}'s {@code Content-Disposition} header.
+    private static String getSubmittedFileName(Part part) {
+        // Read the Content-Disposition header value
+        String cd = part.getHeader("Content-Disposition");
+        // Return fallback if header is missing
+        if (cd == null) {
+            return "unknown";
         }
-
-        String ext = switch (contentType.toLowerCase()) {
-            case "image/png" -> ".png";
-            case "image/webp" -> ".webp";
-            default -> ".jpg";
-        };
-
-        String safeSbd = sbd != null ? sbd.replaceAll("[^a-zA-Z0-9\\-_]", "") : "unknown";
-        String fileName = "violation_" + sessionId + "_" + safeSbd + "_"
-                + UUID.randomUUID().toString().substring(0, 8) + ext;
-
-        Path uploadDir = Path.of(request.getServletContext().getRealPath("/assets/uploads/violations"));
-        Files.createDirectories(uploadDir);
-        Path target = uploadDir.resolve(fileName);
-        try (var in = part.getInputStream()) {
-            Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+        // Split the header into semicolon-delimited tokens to find the filename token
+        for (String token : cd.split(";")) {
+            String t = token.trim();
+            // Check if this token contains the filename parameter
+            if (t.startsWith("filename")) {
+                // Extract the value after '=' and strip surrounding quotes
+                String val = t.substring(t.indexOf('=') + 1).trim().replace("\"", "");
+                // Strip any directory path separators (forward or back slash) from the filename
+                int idx = Math.max(val.lastIndexOf('/'), val.lastIndexOf('\\'));
+                // Return just the filename portion (after the last separator)
+                return idx >= 0 ? val.substring(idx + 1) : val;
+            }
         }
-        return "assets/uploads/violations/" + fileName;
+        // Return fallback if no filename token was found in the header
+        return "unknown";
     }
 }
