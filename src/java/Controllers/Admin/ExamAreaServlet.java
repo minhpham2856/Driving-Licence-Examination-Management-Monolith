@@ -1,7 +1,7 @@
 package Controllers.Admin;
 
-import DAO.ExamAreaDAO;
-import DAO.Impl.ExamAreaDAOImpl;
+import DAOs.ExamAreaDAO;
+import DAOs.Impl.ExamAreaDAOImpl;
 import Models.ExamArea;
 import Models.User;
 import Utils.AuditLogHelper;

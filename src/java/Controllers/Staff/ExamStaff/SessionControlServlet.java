@@ -31,8 +31,8 @@ public class SessionControlServlet extends HttpServlet {
             if (result.isSuccess()) {
                 controlService.applyRuntimeStart(getServletContext(), session, sessionId);
                 AuditLogHelper.persist(session, "UPDATE Session",
-                        "Bắt đầu ca thi SessionId=" + sessionId + " — " + result.getSessionName()
-                                + " (" + result.getExaminerCount() + " giám khảo)",
+                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + result.getSessionName()
+                                + " (" + result.getExaminerCount() + " sát hạch viên)",
                         sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {

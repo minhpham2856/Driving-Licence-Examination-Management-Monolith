@@ -4,10 +4,10 @@
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 
 <%
-    DAO.ExamSessionDAO sessionDAO = new DAO.Impl.ExamSessionDAOImpl();
+    DAOs.ExamSessionDAO sessionDAO = new DAOs.Impl.ExamSessionDAOImpl();
     java.util.List<Models.ExamSession> allSessions = null;
     try {
-        allSessions = sessionDAO.getAllSessions();
+        allSessions = sessionDAOs.getAllSessions();
     } catch (Exception e) {
         e.printStackTrace();
         allSessions = new java.util.ArrayList<>();
@@ -40,9 +40,9 @@
     java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
     Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
     if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+        DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessionId);
+            qList = regDAOs.getCandidatesBySession(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -52,7 +52,7 @@
     }
     if (qList != null) {
         Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+            application.getRealPath("/"), qList, new DAOs.Impl.ExamRegistrationDAOImpl());
     }
 
     java.util.List<Controllers.Staff.ExamStaff.ExaminerSlot> assignedExaminers =
@@ -174,17 +174,17 @@
                 <div>
                     <h2 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">Điều khiển ca thi</h2>
                     <p style="font-size: 0.82rem; color: #64748b; margin: 0;">
-                        Giám khảo chỉ đăng nhập được sau khi ca ở trạng thái <strong>Đang diễn ra</strong>
+                        sát hạch viên chỉ đăng nhập được sau khi ca ở trạng thái <strong>Đang diễn ra</strong>
                         và đã được phân vào khu vực thi
-                        (<a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}" style="color: #0052cc; font-weight: 700;">Phân bổ giám khảo</a>).
-                        Hiện có <strong>${assignedExaminerCount}</strong> giám khảo đã phân phòng.
+                        (<a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}" style="color: #0052cc; font-weight: 700;">Phân bổ sát hạch viên</a>).
+                        Hiện có <strong>${assignedExaminerCount}</strong> sát hạch viên đã phân phòng.
                     </p>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                     <c:choose>
                         <c:when test="${currentSession.status eq 'InProgress'}">
                             <span class="role-badge role-badge--admin" style="background: #dcfce7; color: #166534; border: 1px solid #86efac;">Đang diễn ra</span>
-                            <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Kết thúc ca thi? Giám khảo sẽ không đăng nhập được nữa.');">
+                            <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Kết thúc ca thi? sát hạch viên sẽ không đăng nhập được nữa.');">
                                 <input type="hidden" name="action" value="endSession">
                                 <input type="hidden" name="sessionId" value="${sessionScope.selectedSessionId}">
                                 <input type="hidden" name="redirect" value="dashboard">
@@ -200,7 +200,7 @@
                             <span class="role-badge role-badge--coi" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">Chưa bắt đầu</span>
                             <c:choose>
                                 <c:when test="${assignedExaminerCount gt 0}">
-                                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi? Giám khảo đã phân công có thể đăng nhập.');">
+                                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi? sát hạch viên đã phân công có thể đăng nhập.');">
                                         <input type="hidden" name="action" value="startSession">
                                         <input type="hidden" name="sessionId" value="${sessionScope.selectedSessionId}">
                                         <input type="hidden" name="redirect" value="dashboard">
@@ -211,7 +211,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}" class="btn-filter" style="height: 40px; padding: 0 1.25rem; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; opacity: 0.85;">
-                                        Phân giám khảo trước
+                                        Phân sát hạch viên trước
                                     </a>
                                 </c:otherwise>
                             </c:choose>

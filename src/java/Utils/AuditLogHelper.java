@@ -1,9 +1,9 @@
 package Utils;
 
-import Constants.AuditEntityLabels;
-import DAO.AuditLogDAO;
-import DAO.Impl.AuditLogDAOImpl;
-import Models.AuditLog;
+import Utils.ExamConstants;
+import DAOs.AuditLogDAO;
+import DAOs.Impl.AuditLogDAOImpl;
+import Models.Audit;
 import Models.User;
 import jakarta.servlet.http.HttpSession;
 
@@ -51,16 +51,16 @@ public final class AuditLogHelper {
             User user = (User) session.getAttribute("user");
             int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
 
-            AuditLog log = new AuditLog();
-            log.setTableName(AuditEntityLabels.toVietnamese(resolveEntityName(action, contextDetails)));
-            log.setRecordId(recordId > 0 ? recordId : 0);
+            Audit log = new Audit();
+            log.setEntityName(ExamConstants.auditLabel(resolveEntityName(action, contextDetails)));
+            log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction(normalizeAction(action));
             log.setOldValue(oldValue);
             log.setNewValue(newValue);
             log.setReason(reason);
             log.setDetails(detailsJson);
-            log.setChangedBy(userId);
-            log.setChangedAt(new Timestamp(System.currentTimeMillis()));
+            log.setUserId(userId);
+            log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             DAO.insert(log);
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,16 +72,16 @@ public final class AuditLogHelper {
             User user = (User) session.getAttribute("user");
             int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
 
-            AuditLog log = new AuditLog();
-            log.setTableName(AuditEntityLabels.toVietnamese("Candidate"));
-            log.setRecordId(recordId > 0 ? recordId : 0);
+            Audit log = new Audit();
+            log.setEntityName(ExamConstants.auditLabel("Candidate"));
+            log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction("WARNING");
             log.setNewValue(details);
             log.setReason(reason);
             log.setDetails(AuditChangeDetails.toJson(List.of(
                     new AuditChangeDetails.FieldChange("Trạng thái", "Hoạt động bình thường", "Đình chỉ"))));
-            log.setChangedBy(userId);
-            log.setChangedAt(new Timestamp(System.currentTimeMillis()));
+            log.setUserId(userId);
+            log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             DAO.insert(log);
         } catch (Exception e) {
             e.printStackTrace();

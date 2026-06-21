@@ -1,6 +1,6 @@
 package Controllers.Auth.Public;
 
-import Models.RegisterResult;
+import DTOs.RegisterResult;
 import Services.AuthService;
 import Services.Impl.AuthServiceImpl;
 import jakarta.servlet.ServletException;
@@ -74,7 +74,7 @@ public class RegisterServlet extends HttpServlet {
                     "Đăng ký thành công! Kiểm tra email để lấy tên đăng nhập và mật khẩu.");
         } else {
             session.setAttribute("successMessage",
-                    "Đăng ký thành công! Không gửi được email — vui lòng lưu thông tin đăng nhập bên dưới.");
+                    "Đăng ký thành công! Không gửi được email - vui lòng lưu thông tin đăng nhập bên dưới.");
             session.setAttribute("registrationUsername", result.getUsername());
             session.setAttribute("registrationPassword", result.getPassword());
         }

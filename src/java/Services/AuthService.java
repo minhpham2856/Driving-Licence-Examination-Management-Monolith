@@ -1,6 +1,6 @@
 package Services;
 
-import Models.RegisterResult;
+import DTOs.RegisterResultDTO;
 import Models.User;
 
 public interface AuthService {
@@ -8,7 +8,7 @@ public interface AuthService {
     /**
      * Registers new registrant.
      */
-    RegisterResult register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
+    RegisterResultDTO register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
             String address, String email, boolean gender);
 
     /**

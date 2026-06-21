@@ -1,5 +1,5 @@
 /*
- * Manifest only — examiner JSPs load component files via
+ * Manifest only - examiner JSPs load component files via
  * /views/examiner/partials/examiner-styles.jsp (explicit <link> tags).
  *
  * Shared:  base, sidebar, header, toolbar, buttons, card, table, icons

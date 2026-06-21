@@ -2,12 +2,12 @@ package Controllers.Public;
 
 import Controllers.Staff.ExamStaff.CandidateCallBoard;
 import Controllers.Staff.ExamStaff.CandidatePhotoHelper;
-import DAO.ExamRegistrationDAO;
-import DAO.ExamSessionDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.Impl.ExamSessionDAOImpl;
-import Models.ExamRegistration;
-import Models.ExamSession;
+import DAOs.ExamRegistrationDAO;
+import DAOs.ExamSessionDAO;
+import DAOs.Impl.ExamRegistrationDAOImpl;
+import DAOs.Impl.ExamSessionDAOImpl;
+import DTOs.ExamRegistrationDTO;
+import DTOs.SessionDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,7 +31,7 @@ public class PublicCallServlet extends HttpServlet {
         int sessionId = CandidateCallBoard.resolveActiveSessionId(
                 getServletContext(), request.getSession(false), request.getParameter("sessionId"));
 
-        List<ExamRegistration> qList;
+        List<ExamRegistrationDTO> qList;
         try {
             qList = regDAO.getCandidatesBySession(sessionId);
         } catch (Exception e) {
@@ -49,10 +49,10 @@ public class PublicCallServlet extends HttpServlet {
             nextSbd = CandidateCallBoard.resolveNextSbd(qList, callingSbd);
         }
 
-        ExamRegistration callingCandidate = CandidateCallBoard.findBySbd(qList, callingSbd);
-        ExamRegistration nextCandidate = CandidateCallBoard.findBySbd(qList, nextSbd);
+        ExamRegistrationDTO callingCandidate = CandidateCallBoard.findBySbd(qList, callingSbd);
+        ExamRegistrationDTO nextCandidate = CandidateCallBoard.findBySbd(qList, nextSbd);
 
-        ExamSession currentSession = null;
+        SessionDTO currentSession = null;
         try {
             currentSession = sessionDAO.getById(sessionId);
         } catch (Exception e) {

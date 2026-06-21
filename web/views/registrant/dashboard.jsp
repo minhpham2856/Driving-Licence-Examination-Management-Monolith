@@ -266,7 +266,7 @@
                         <div class="upcoming-exam-card">
                             <div class="upcoming-exam-card__header">
                                 <div>
-                                    <p class="upcoming-exam-card__label">Hạng B2 — Lý thuyết</p>
+                                    <p class="upcoming-exam-card__label">Hạng B2 - Lý thuyết</p>
                                     <p class="upcoming-exam-card__name">${empty upcomingExamName ? 'Đợt thi tháng 06/2025' : upcomingExamName}</p>
                                 </div>
                                 <div class="upcoming-exam-card__countdown" id="countdown-block">
@@ -290,7 +290,7 @@
                                         <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
                                         <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                                     </svg>
-                                    ${empty upcomingExamTime ? '08:00 — 10:00' : upcomingExamTime}
+                                    ${empty upcomingExamTime ? '08:00 - 10:00' : upcomingExamTime}
                                 </div>
                                 <div class="upcoming-exam-detail-row">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -410,7 +410,7 @@
                             </div>
                             <div class="timeline-item__content">
                                 <p class="timeline-item__title">Đăng ký đợt thi thành công</p>
-                                <p class="timeline-item__desc">Đã đăng ký tham gia Đợt thi tháng 06/2025 — Hạng B2</p>
+                                <p class="timeline-item__desc">Đã đăng ký tham gia Đợt thi tháng 06/2025 - Hạng B2</p>
                                 <span class="timeline-item__time">Hôm nay, 09:45</span>
                             </div>
                         </div>
@@ -423,7 +423,7 @@
                             </div>
                             <div class="timeline-item__content">
                                 <p class="timeline-item__title">Thanh toán lệ phí thành công</p>
-                                <p class="timeline-item__desc">Lệ phí thi Hạng B2 — 600.000 VNĐ đã được xử lý</p>
+                                <p class="timeline-item__desc">Lệ phí thi Hạng B2 - 600.000 VNĐ đã được xử lý</p>
                                 <span class="timeline-item__time">Hôm qua, 14:22</span>
                             </div>
                         </div>
@@ -436,7 +436,7 @@
                             </div>
                             <div class="timeline-item__content">
                                 <p class="timeline-item__title">Kết quả thi được cập nhật</p>
-                                <p class="timeline-item__desc">Đợt thi tháng 04/2025 — Hạng A2: Đạt 42/50 câu</p>
+                                <p class="timeline-item__desc">Đợt thi tháng 04/2025 - Hạng A2: Đạt 42/50 câu</p>
                                 <span class="timeline-item__time">22/04/2025, 08:00</span>
                             </div>
                         </div>

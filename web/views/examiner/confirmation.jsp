@@ -1,11 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Xác nhận vắng thi" />
 <c:set var="sbd" value="${not empty param.sbd ? param.sbd : candidate.sbd}" />
 <c:set var="name" value="${not empty param.name ? param.name : candidate.fullName}" />
 <c:set var="backUrl" value="${ctx}/views/examiner/candidate-call" />
 
+<!--page-->
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -16,7 +19,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <jsp:include page="/views/examiner/partials/examiner-styles.jsp">
+        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
             <jsp:param name="pageCss" value="result-edit.css,confirmation.css" />
         </jsp:include>
     </head>
@@ -24,23 +27,24 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="goi-thi-sinh" />
+            <jsp:param name="activeSidebar" value="candidate-call" />
         </jsp:include>
 
+        <!--shell-->
         <div class="examiner-shell">
+
             <!--header-->
             <jsp:include page="/views/layout/header-examiner.jsp" />
 
+            <!--main content-->
             <main class="examiner-main examiner-main--scroll examiner-main--confirmation">
                 <!--toolbar-->
-                <section class="examiner-toolbar">
-                    <div class="exr-toolbar-left">
-                        <a href="${backUrl}" class="exr-back">
-                            <span class="material-symbols-outlined">arrow_back</span>
-                            QUAY LẠI
-                        </a>
-                    </div>
-                </section>
+                <jsp:include page="/views/examiner/components/toolbar.jsp">
+                    <jsp:param name="wrapperClass" value="examiner-toolbar" />
+                    <jsp:param name="leftClass" value="exr-toolbar-left" />
+                    <jsp:param name="backClass" value="exr-back" />
+                    <jsp:param name="btnBack" value="left" />
+                </jsp:include>
 
                 <!--confirmation-->
                 <section class="exr-grid">
@@ -56,7 +60,7 @@
                                     <p class="exr-field__value">
                                         <c:choose>
                                             <c:when test="${not empty name}">${name}</c:when>
-                                            <c:otherwise><span class="exr-field__value--sm">—</span></c:otherwise>
+                                            <c:otherwise><span class="exr-field__value--sm">-</span></c:otherwise>
                                         </c:choose>
                                     </p>
                                 </div>
@@ -67,7 +71,7 @@
                                             <span class="exr-chip">${sbd}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <p class="exr-field__value exr-field__value--sm">—</p>
+                                            <p class="exr-field__value exr-field__value--sm">-</p>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>

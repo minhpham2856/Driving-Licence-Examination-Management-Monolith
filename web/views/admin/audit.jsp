@@ -38,7 +38,7 @@
         l2.put("actionKey", "warning");
         l2.put("action", "Khóa tài khoản");
         l2.put("module", "Tài khoản");
-        l2.put("details", "Khóa tài khoản giám khảo Lê Thị Hằng (@examiner.lehang) do nghi vấn quy chế.");
+        l2.put("details", "Khóa tài khoản sát hạch viên Lê Thị Hằng (@examiner.lehang) do nghi vấn quy chế.");
         l2.put("ip", "192.168.1.2");
         l2.put("ipAddress", "192.168.1.2");
         l2.put("device", "Windows 11 / Chrome 124");
@@ -72,7 +72,7 @@
         l4.put("fullName", "Lê Thị Hằng");
         l4.put("avatarClass", "user-avatar--purple");
         l4.put("roleKey", "cham");
-        l4.put("role", "Giám khảo");
+        l4.put("role", "sát hạch viên");
         l4.put("actionKey", "danger");
         l4.put("action", "Sửa đổi điểm");
         l4.put("module", "Sát hạch");
@@ -131,7 +131,7 @@
 
 <%-- Inject the admin sidebar template --%>
 <jsp:include page="/views/layout/sidebar-admin.jsp">
-    <jsp:param name="activeSidebar" value="nhat-ky" />
+    <jsp:param name="activeSidebar" value="audit" />
 </jsp:include>
 
 <div class="dashboard-shell">
@@ -245,7 +245,7 @@
                             <option value="">Tất cả vai trò</option>
                             <option value="admin" ${param.filterRole eq 'admin' ? 'selected' : ''}>Quản trị viên</option>
                             <option value="coi" ${param.filterRole eq 'coi' ? 'selected' : ''}>Cán bộ coi thi</option>
-                            <option value="cham" ${param.filterRole eq 'cham' ? 'selected' : ''}>Giám khảo chấm thi</option>
+                            <option value="cham" ${param.filterRole eq 'cham' ? 'selected' : ''}>sát hạch viên chấm thi</option>
                         </select>
                     </div>
                     
@@ -347,7 +347,7 @@
                                                         </div>
                                                     </c:when>
                                                     <c:when test="${log.roleKey eq 'cham'}">
-                                                        <div class="user-avatar user-avatar--purple" title="Giám khảo chấm thi">
+                                                        <div class="user-avatar user-avatar--purple" title="sát hạch viên chấm thi">
                                                             ${fn:substring(log.fullName, 0, 1)}
                                                         </div>
                                                     </c:when>

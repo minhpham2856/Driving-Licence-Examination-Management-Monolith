@@ -123,7 +123,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="font-size: 1.5rem; line-height: 1.8rem;">
-                        ${empty totalExamRooms ? 0 : totalExamRooms} / ${empty totalComputers ? 0 : totalComputers}
+                        ${empty totalExamCenters ? 0 : totalExamCenters} / ${empty totalComputers ? 0 : totalComputers}
                     </span>
                     <span class="stat-label">Khu vực / Thiết bị</span>
                     <span class="stat-trend stat-trend--up">Cơ sở hạ tầng</span>

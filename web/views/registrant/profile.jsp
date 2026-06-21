@@ -180,7 +180,7 @@
                             
                             <%-- Số CCCD --%>
                             <div class="p-input-group">
-                                <label class="p-input-label" for="idCard">Số CCCD / CMND</label>
+                                <label class="p-input-label" for="idCard">Số Số căn cước</label>
                                 <div class="p-input-wrapper">
                                     <span class="p-input-icon">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

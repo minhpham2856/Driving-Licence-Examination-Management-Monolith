@@ -8,10 +8,10 @@
     Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to ca thi B2 sáng (ID = 2)
     
-    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
+    DAOs.ExamSessionDAO sessDAO = new DAOs.Impl.ExamSessionDAOImpl();
     Models.ExamSession currentSession = null;
     try {
-        currentSession = sessDAO.getById(sessId);
+        currentSession = sessDAOs.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -19,10 +19,10 @@
         request.setAttribute("currentSession", currentSession);
     }
 
-    DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+    DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
     java.util.List<Models.ExamRegistration> qList = null;
     try {
-        qList = regDAO.getCandidatesBySession(sessId);
+        qList = regDAOs.getCandidatesBySession(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -36,7 +36,7 @@
         boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
         reg.setValidCapturedPhoto(valid);
         if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
-            regDAO.updatePhoto(reg.getId(), null);
+            regDAOs.updatePhoto(reg.getId(), null);
             reg.setPhotoUrl("");
         }
         if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {
@@ -58,7 +58,7 @@
     int failedCount = 0;
     int absentCount = 0;
     
-    // Counts per class — đăng ký vs. đã thi xong
+    // Counts per class - đăng ký vs. đã thi xong
     int a1Count = 0;    // Tổng đăng ký hạng A1
     int a1Completed = 0; // Đã thi xong (có kết quả cuối)
     int a1Passed = 0;
@@ -148,11 +148,11 @@
         }
 
         if (!hasFinalResult) {
-            // Chưa thi xong — bỏ qua không tính vào kết quả
+            // Chưa thi xong - bỏ qua không tính vào kết quả
             continue;
         }
 
-        // Đã có kết quả cuối — đếm vào examCompletedCount
+        // Đã có kết quả cuối - đếm vào examCompletedCount
         examCompletedCount++;
         if (isA1) a1Completed++;
         if (isB2) b2Completed++;
@@ -304,7 +304,7 @@
                 <a href="report.jsp?exportExcel=true"
                    class="btn-filter"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
-                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất Excel'}">
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh - không thể xuất hồ sơ' : 'Xuất Excel'}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M14 2v6h6M8 13h8M8 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -315,7 +315,7 @@
                 <a href="report.jsp?exportPdf=true"
                    class="btn-export"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; pointer-events: none; opacity: 0.65;' : 'background-color: #ffffff; color: #ef4444; border-color: rgba(239, 68, 68, 0.2);'}"
-                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất PDF'}">
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh - không thể xuất hồ sơ' : 'Xuất PDF'}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
                         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

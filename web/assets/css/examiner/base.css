@@ -1,4 +1,4 @@
-/* Examiner portal — reset, typography, shell */
+/* Examiner portal - reset, typography, shell */
 body.examiner-portal,
 body.examiner-portal *,
 body.examiner-portal *::before,
@@ -87,6 +87,15 @@ body.examiner-portal.has-side-nav-bar .examiner-main {
     overflow: auto;
 }
 
+.examiner-main--score-entry {
+    overflow: hidden;
+}
+
+.examiner-main--score-entry > .examiner-flash-container,
+.examiner-main--score-entry > .examiner-alert {
+    flex-shrink: 0;
+}
+
 body.examiner-portal--inactive .examiner-main {
     pointer-events: none;
     user-select: none;
@@ -114,4 +123,11 @@ body.examiner-portal--inactive .examiner-main {
     margin: 4px 0 0;
     font-size: 14px;
     color: #434654;
+}
+
+#callSelectedForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }

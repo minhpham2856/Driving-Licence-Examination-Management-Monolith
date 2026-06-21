@@ -1,22 +1,30 @@
 package Models;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
-/**
- * Maps to the Profile table (linked to User via UserId).
- */
 public class Profile {
 
     private int id;
-    private int userId;
-    private String govIdNo;
     private String fullName;
-    private Date dateOfBirth;
-    private boolean gender;
-    private String phoneNo;
+    private Timestamp dateOfBirth;
+    private String phoneNumber;
+    private String sex;
+    private String governmentIdNumber;
     private String address;
+    private int userId;
 
     public Profile() {
+    }
+
+    public Profile(int id, String fullName, Timestamp dateOfBirth, String phoneNumber, String sex, String governmentIdNumber, String address, int userId) {
+        this.id = id;
+        this.fullName = fullName;
+        this.dateOfBirth = dateOfBirth;
+        this.phoneNumber = phoneNumber;
+        this.sex = sex;
+        this.governmentIdNumber = governmentIdNumber;
+        this.address = address;
+        this.userId = userId;
     }
 
     public int getId() {
@@ -27,22 +35,6 @@ public class Profile {
         this.id = id;
     }
 
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getGovIdNo() {
-        return govIdNo;
-    }
-
-    public void setGovIdNo(String govIdNo) {
-        this.govIdNo = govIdNo;
-    }
-
     public String getFullName() {
         return fullName;
     }
@@ -51,28 +43,36 @@ public class Profile {
         this.fullName = fullName;
     }
 
-    public Date getDateOfBirth() {
+    public Timestamp getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(Timestamp dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public boolean isGender() {
-        return gender;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setGender(boolean gender) {
-        this.gender = gender;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public String getPhoneNo() {
-        return phoneNo;
+    public String getSex() {
+        return sex;
     }
 
-    public void setPhoneNo(String phoneNo) {
-        this.phoneNo = phoneNo;
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public String getGovernmentIdNumber() {
+        return governmentIdNumber;
+    }
+
+    public void setGovernmentIdNumber(String governmentIdNumber) {
+        this.governmentIdNumber = governmentIdNumber;
     }
 
     public String getAddress() {
@@ -81,5 +81,42 @@ public class Profile {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    // Backwards compatibility helpers
+    public String getGovIdNo() {
+        return governmentIdNumber;
+    }
+
+    public void setGovIdNo(String govIdNo) {
+        this.governmentIdNumber = govIdNo;
+    }
+
+    public String getPhoneNo() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNo(String phoneNo) {
+        this.phoneNumber = phoneNo;
+    }
+
+    public boolean isGender() {
+        if (sex == null) {
+            return false;
+        }
+        String s = sex.trim();
+        return !(s.equalsIgnoreCase("Nam") || s.equalsIgnoreCase("Male") || s.equals("M"));
+    }
+
+    public void setGender(boolean gender) {
+        this.sex = gender ? "Nữ" : "Nam";
     }
 }

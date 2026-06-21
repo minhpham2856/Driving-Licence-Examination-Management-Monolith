@@ -27,14 +27,14 @@ public class ExaminerPortalFilter extends HttpFilter {
 
         if (user == null) {
             HttpSession loginSession = request.getSession(true);
-            loginSession.setAttribute("errorMessage", "Bạn cần đăng nhập để truy cập khu vực giám khảo.");
+            loginSession.setAttribute("errorMessage", "Bạn cần đăng nhập để truy cập.");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
         String roleName = user.getRole() != null ? user.getRole().getRoleName() : "";
         if (!"Examiner".equalsIgnoreCase(roleName)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập khu vực giám khảo.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập.");
             return;
         }
 
