@@ -1,6 +1,7 @@
 package Models;
 
 public class Question {
+
     private int questionId;
     private int questionNumber;
     private String imageUrl;

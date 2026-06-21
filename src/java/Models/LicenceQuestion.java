@@ -1,6 +1,7 @@
 package Models;
 
 public class LicenceQuestion {
+
     private int licenceQuestionId;
     private int licenceId;
     private int questionId;

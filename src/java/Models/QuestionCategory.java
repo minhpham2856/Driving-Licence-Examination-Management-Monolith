@@ -1,6 +1,7 @@
 package Models;
 
 public class QuestionCategory {
+
     private int questionCategoryId;
     private String categoryName;
     private String description;

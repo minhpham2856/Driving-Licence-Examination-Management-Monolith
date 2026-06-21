@@ -3,6 +3,7 @@ package Models;
 import java.sql.Timestamp;
 
 public class ScoreDeductionDetail {
+
     private int scoreDeductionDetailId;
     private int examScoreId;
     private int scoreDeductionId;
