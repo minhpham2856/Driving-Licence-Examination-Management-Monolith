@@ -3,6 +3,7 @@ package Models;
 import java.sql.Timestamp;
 
 public class Candidate {
+
     private int candidateId;
     private String candidateNumber;
     private String fullName;

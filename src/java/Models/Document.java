@@ -1,6 +1,7 @@
 package Models;
 
 public class Document {
+
     private int documentId;
     private String documentType;
     private String documentUrl;

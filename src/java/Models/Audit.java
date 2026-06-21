@@ -3,6 +3,7 @@ package Models;
 import java.sql.Timestamp;
 
 public class Audit {
+
     private long auditId;
     private Integer userId;
     private String action;

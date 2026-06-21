@@ -1,6 +1,7 @@
 package Models;
 
 public class ExamCandidate {
+
     private int examCandidateId;
     private int examId;
     private int candidateId;

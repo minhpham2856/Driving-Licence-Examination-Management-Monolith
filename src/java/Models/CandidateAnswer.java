@@ -1,6 +1,7 @@
 package Models;
 
 public class CandidateAnswer {
+
     private int candidateAnswerId;
     private int theoryPaperId;
     private int questionId;
