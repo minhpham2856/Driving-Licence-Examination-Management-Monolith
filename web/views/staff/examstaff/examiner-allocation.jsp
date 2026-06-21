@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân bổ Giám khảo - Ban Sát Hạch</title>
+    <title>Phân bổ sát hạch viên - Ban Sát Hạch</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,13 +27,13 @@
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current">Ban Sát Hạch</span>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Phân bổ giám khảo</span>
+            <span class="breadcrumbs__current" aria-current="page">Phân bổ sát hạch viên</span>
         </nav>
 
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Phân bổ giám khảo theo phòng thi</h1>
-                <p class="page-subtitle">Schema <strong>DLEM_DB_2</strong>: phòng từ <strong>Session_ExamArea</strong>, thiết bị <strong>ExamDevice</strong>, giám khảo <strong>Session_Examiner</strong> + phòng trong <strong>Audit</strong>.</p>
+                <h1 class="page-title">Phân bổ sát hạch viên theo phòng thi</h1>
+                <p class="page-subtitle">Schema <strong>DLEM_DB_2</strong>: phòng từ <strong>Session_ExamArea</strong>, thiết bị <strong>ExamDevice</strong>, sát hạch viên <strong>Session_Examiner</strong> + phòng trong <strong>Audit</strong>.</p>
             </div>
             <div class="page-actions">
                 <form method="get" action="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation" class="examiner-session-form">
@@ -62,7 +62,7 @@
                     <strong>Trạng thái ca:</strong>
                     <c:choose>
                         <c:when test="${currentSession.status eq 'InProgress'}">
-                            <span class="role-badge role-badge--admin" style="margin-left: 6px;">Đang diễn ra - giám khảo có thể đăng nhập</span>
+                            <span class="role-badge role-badge--admin" style="margin-left: 6px;">Đang diễn ra - sát hạch viên có thể đăng nhập</span>
                         </c:when>
                         <c:when test="${currentSession.status eq 'Completed'}">
                             <span class="role-badge" style="margin-left: 6px;">Đã kết thúc</span>
@@ -73,7 +73,7 @@
                     </c:choose>
                 </div>
                 <c:if test="${currentSession.status ne 'InProgress' and currentSession.status ne 'Completed'}">
-                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi sau khi đã phân đủ giám khảo?');">
+                    <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi sau khi đã phân đủ sát hạch viên?');">
                         <input type="hidden" name="action" value="startSession">
                         <input type="hidden" name="sessionId" value="${currentSession.id}">
                         <input type="hidden" name="redirect" value="examiner-allocation">
@@ -102,10 +102,10 @@
 
             <div class="examiner-grid">
                 <div class="examiner-panel-card">
-                    <h3>Giám khảo khả dụng (${availableExaminers.size()})</h3>
+                    <h3>sát hạch viên khả dụng (${availableExaminers.size()})</h3>
                     <c:choose>
                         <c:when test="${empty availableExaminers}">
-                            <p class="es-text-muted-sm">Không còn giám khảo trống trong ngày này.</p>
+                            <p class="es-text-muted-sm">Không còn sát hạch viên trống trong ngày này.</p>
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${availableExaminers}">
@@ -115,10 +115,10 @@
                     </c:choose>
                 </div>
                 <div class="examiner-panel-card">
-                    <h3>Giám khảo đã phân công (${busyExaminers.size()})</h3>
+                    <h3>sát hạch viên đã phân công (${busyExaminers.size()})</h3>
                     <c:choose>
                         <c:when test="${empty busyExaminers}">
-                            <p class="es-text-muted-sm">Chưa phân công giám khảo nào.</p>
+                            <p class="es-text-muted-sm">Chưa phân công sát hạch viên nào.</p>
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${busyExaminers}">
@@ -155,7 +155,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="examinerUserId">Giám khảo</label>
+                        <label for="examinerUserId">sát hạch viên</label>
                         <select name="examinerUserId" id="examinerUserId" required>
                             <c:forEach var="ex" items="${allExaminers}">
                                 <option value="${ex.id}">${ex.profile.fullName}</option>
@@ -176,7 +176,7 @@
                         <tr>
                             <th>Phòng thi</th>
                             <th>Loại thi</th>
-                            <th>Giám khảo</th>
+                            <th>sát hạch viên</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -201,7 +201,7 @@
                                                 <a class="btn-examiner-remove"
                                                    href="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation?sessionId=${currentSession.id}&action=remove&slotKey=${a.slotKey}"
                                                    data-confirm-remove="true"
-                                                   data-confirm-msg="Gỡ phân công giám khảo này?">Gỡ</a>
+                                                   data-confirm-msg="Gỡ phân công sát hạch viên này?">Gỡ</a>
                                             </c:if>
                                         </td>
                                     </tr>
@@ -220,7 +220,7 @@
                             <th>Ca thi</th>
                             <th>Phòng</th>
                             <th>Loại thi</th>
-                            <th>Giám khảo</th>
+                            <th>sát hạch viên</th>
                         </tr>
                     </thead>
                     <tbody>

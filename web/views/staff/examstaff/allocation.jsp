@@ -8,9 +8,9 @@
     if (qList == null) {
         Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
         int sessId = (sessIdObj != null) ? sessIdObj : 2;
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+        DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessId);
+            qList = regDAOs.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -20,14 +20,14 @@
     }
     if (qList != null) {
         Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+            application.getRealPath("/"), qList, new DAOs.Impl.ExamRegistrationDAOImpl());
     }
 
     // Fallback self-healing checks to load active rooms dynamically if accessed directly
     if (request.getAttribute("activeTheoryRooms") == null) {
-        DAO.ExamAreaDAO areaDAO = new DAO.Impl.ExamAreaDAOImpl();
+        DAOs.ExamAreaDAO areaDAO = new DAOs.Impl.ExamAreaDAOImpl();
         try {
-            request.setAttribute("activeTheoryRooms", areaDAO.getActiveTheoryRooms());
+            request.setAttribute("activeTheoryRooms", areaDAOs.getActiveTheoryRooms());
         } catch (Exception e) { e.printStackTrace(); }
     }
 %>
