@@ -5,6 +5,7 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Hoàn tác đình chỉ" />
 <c:set var="backUrl" value="${ctx}/views/examiner/violations" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -25,7 +26,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="vi-pham" />
+            <jsp:param name="activeSidebar" value="violations" />
         </jsp:include>
 
         <!--shell-->
@@ -45,8 +46,8 @@
                     <jsp:param name="wrapperClass" value="score-entry-toolbar" />
                     <jsp:param name="leftClass" value="score-entry-toolbar__left" />
                     <jsp:param name="rightClass" value="score-entry-toolbar__right" />
-                    <jsp:param name="showBack" value="true" />
-                    <jsp:param name="showViolationPrintGroup" value="true" />
+                    <jsp:param name="btnBack" value="left" />
+                    <jsp:param name="btnPrintViolation" value="right" />
                 </jsp:include>
 
                 <!--undo form-->

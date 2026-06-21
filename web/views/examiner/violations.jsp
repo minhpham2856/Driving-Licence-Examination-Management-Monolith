@@ -26,7 +26,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="vi-pham" />
+            <jsp:param name="activeSidebar" value="violations" />
         </jsp:include>
 
         <!--shell-->
@@ -43,9 +43,9 @@
 
                 <!--toolbar-->
                 <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="showSearch" value="true" />
+                    <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchPlaceholder" value="Tìm kiếm SBD, tên..." />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--violation list-->
