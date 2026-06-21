@@ -324,7 +324,7 @@ public final class ExamConstants {
         if (type != SectionType.THEORY || menuKey == null) {
             return false;
         }
-        return "nhap-diem".equals(menuKey) || "sua-ket-qua".equals(menuKey);
+        return "score-entry".equals(menuKey) || "result-details".equals(menuKey);
     }
 
     // ===================== AuditEntityLabels =====================
@@ -339,8 +339,8 @@ public final class ExamConstants {
             Map.entry("EXAMSCORE", "Điểm thi"),
             Map.entry("EXAMDEVICE", "Thiết bị thi"),
             Map.entry("SESSION", "Ca thi"),
-            Map.entry("SESSION_EXAMINER", "Phân công giám khảo"),
-            Map.entry("SESSION_EXAMINERAREA", "Phân công phòng giám khảo"),
+            Map.entry("SESSION_EXAMINER", "Phân công sát hạch viên"),
+            Map.entry("SESSION_EXAMINERAREA", "Phân công phòng sát hạch viên"),
             Map.entry("CANDIDATECALL", "Gọi thí sinh"),
             Map.entry("KẾT QUẢ THI", "Kết quả thi"),
             Map.entry("PHÒNG THI", "Phòng thi"),
@@ -364,7 +364,7 @@ public final class ExamConstants {
     private static final List<ViolationReason> VIOLATION_REASONS = List.of(
             new ViolationReason("quy-che", "Vi phạm quy chế phòng thi"),
             new ViolationReason("gian-lan", "Gian lận / sao chép"),
-            new ViolationReason("thiet-bi", "Sử dụng thiết bị cấm"),
+            new ViolationReason("devices", "Sử dụng thiết bị cấm"),
             new ViolationReason("ra-vao", "Ra vào phòng thi trái quy định"),
             new ViolationReason("khac", "Lý do khác"));
 
