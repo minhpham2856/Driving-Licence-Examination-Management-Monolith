@@ -659,12 +659,26 @@
     color: #0052cc;
 }
 
-.score-entry-queue-row--active {
-    background: #eff6ff;
+.score-entry-queue-row--active td {
+    background-color: #e0f2fe !important; /* Subtle highlight color */
+    color: #0369a1 !important;
 }
 
-.score-entry-queue-row--called {
-    box-shadow: inset 3px 0 0 #006846;
+.score-entry-queue-row--active td a {
+    color: #0369a1 !important;
+}
+
+.score-entry-queue-row--called td:first-child {
+    border-left: 3px solid #006846;
+}
+
+.score-entry-queue-row--done td {
+    opacity: 0.55 !important;
+    background-color: #fafafa !important;
+}
+
+.score-entry-queue-row--done td a {
+    color: #9ca3af !important;
 }
 
 .score-entry-selected-label {

@@ -124,3 +124,10 @@ body.examiner-portal--inactive .examiner-main {
     font-size: 14px;
     color: #434654;
 }
+
+#callSelectedForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
