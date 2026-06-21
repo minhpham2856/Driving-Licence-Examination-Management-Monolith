@@ -10,6 +10,7 @@
 <c:set var="pageUrl" value="${ctx}/views/examiner/violation-confirm?sbd=${sbdParam}" />
 <c:set var="exportExcelUrl" value="${ctx}/examiner/export/violations" />
 <c:set var="exportXmlUrl" value="${ctx}/examiner/export/violations/xml" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -30,7 +31,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="vi-pham" />
+            <jsp:param name="activeSidebar" value="violations" />
         </jsp:include>
 
         <!--shell-->
@@ -50,8 +51,8 @@
                     <jsp:param name="wrapperClass" value="score-entry-toolbar" />
                     <jsp:param name="leftClass" value="score-entry-toolbar__left" />
                     <jsp:param name="rightClass" value="score-entry-toolbar__right" />
-                    <jsp:param name="showBack" value="true" />
-                    <jsp:param name="showViolationPrintGroup" value="true" />
+                    <jsp:param name="btnBack" value="left" />
+                    <jsp:param name="btnPrintViolation" value="right" />
                 </jsp:include>
 
                 <!--violation form-->
@@ -90,6 +91,7 @@
                               enctype="multipart/form-data"
                               class="score-entry-card score-entry-card--penalties">
                             <input type="hidden" name="sbd" value="${sbdParam}">
+                            <input type="hidden" name="returnTo" value="${param.returnTo}">
                             <div class="score-entry-card__head"><h2>Ghi nhận vi phạm</h2></div>
 
                             <!--violation reason-->

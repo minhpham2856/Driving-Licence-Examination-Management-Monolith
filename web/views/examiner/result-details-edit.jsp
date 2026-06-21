@@ -10,7 +10,7 @@
 <c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" scope="request" />
 <c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" scope="request" />
-<c:set var="currentScore" value="${candidate.theoryCorrectScore}" />
+<c:set var="currentScore" value="${requestScope.currentScore}" />
 <c:set var="maxScore" value="${empty theoryMaxScore ? 35 : theoryMaxScore}" />
 <c:set var="inputScore" value="${not empty formNewScore ? formNewScore : (not empty currentScore ? currentScore : '')}" />
 <c:set var="selectedReason" value="${formReason}" />
@@ -34,7 +34,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="sua-ket-qua" />
+            <jsp:param name="activeSidebar" value="result-details" />
         </jsp:include>
 
         <!--shell-->
@@ -55,9 +55,12 @@
                     <jsp:param name="leftClass" value="exr-toolbar-left" />
                     <jsp:param name="rightClass" value="examiner-toolbar__actions" />
                     <jsp:param name="backClass" value="exr-back" />
-                    <jsp:param name="showBack" value="true" />
-                    <jsp:param name="showResultEditPrintGroup" value="true" />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnBack" value="left" />
+                    <jsp:param name="btnPrintInfo" value="left" />
+                    <jsp:param name="btnExportExcel" value="left" />
+                    <jsp:param name="btnExportXml" value="left" />
+                    <jsp:param name="btnViewPaper" value="left" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--edit form-->

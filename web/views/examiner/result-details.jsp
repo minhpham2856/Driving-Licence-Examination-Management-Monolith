@@ -10,6 +10,7 @@
 <c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
 <c:set var="exportCandidatesXmlUrl" value="${ctx}/examiner/export/candidates/xml" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -28,7 +29,7 @@
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
-            <jsp:param name="activeSidebar" value="sua-ket-qua" />
+            <jsp:param name="activeSidebar" value="result-details" />
         </jsp:include>
 
         <!--shell-->
@@ -42,10 +43,17 @@
 
                 <!--toolbar-->
                 <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="showResultDetailsPrintGroup" value="true" />
-                    <jsp:param name="showSearch" value="true" />
+                    <jsp:param name="btnPrintInfo" value="left" />
+                    <jsp:param name="btnExportExcel" value="left" />
+                    <jsp:param name="btnExportXml" value="left" />
+                    <jsp:param name="btnPrintList" value="left" />
+                    <jsp:param name="btnExportDocx" value="left" />
+                    <jsp:param name="btnExportCandidatesExcel" value="left" />
+                    <jsp:param name="btnExportCandidatesXml" value="left" />
+                    <jsp:param name="btnPrintResult" value="left" />
+                    <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchPlaceholder" value="Tìm kiếm SBD, Tên..." />
-                    <jsp:param name="showRefresh" value="true" />
+                    <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
                 <!--result list-->

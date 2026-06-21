@@ -30,7 +30,7 @@
             <c:set var="activeSidebar" value="tai-khoan" />
         </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'audit')}">
-            <c:set var="activeSidebar" value="nhat-ky" />
+            <c:set var="activeSidebar" value="audit" />
         </c:when>
         <c:otherwise>
             <c:set var="activeSidebar" value="dashboard" />
@@ -159,9 +159,9 @@
 
         <%-- SC-077: Xem Audit toàn hệ thống --%>
         <a href="${ctx}/views/admin/audit.jsp"
-           class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
+           class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}"
            data-node-id="admin:80"
-           <c:if test="${activeSidebar eq 'nhat-ky'}">aria-current="page"</c:if>>
+           <c:if test="${activeSidebar eq 'audit'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--sm" aria-hidden="true">
                 <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 1L2 3.5V9.5C2 13.64 4.69 17.44 8 18.5C11.31 17.44 14 13.64 14 9.5V3.5L8 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
