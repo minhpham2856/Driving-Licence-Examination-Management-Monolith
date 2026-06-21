@@ -2,7 +2,7 @@ package DAOs.Impl;
 
 import DAOs.TheoryPaperDAO;
 import DBConnection.DBContext;
-import DTOs.TheoryPaperAnswer;
+import DTOs.TheoryPaperAnswerDTO;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +10,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JDBC implementation of TheoryPaperDAO for retrieving candidate theory paper
+ * answers and matching them against correct answers for scoring.
+ */
 public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
 
     private static final String ANSWERS_SQL = """
@@ -32,9 +36,18 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
             ORDER BY q.QuestionNumber
             """;
 
+    /**
+     * Retrieves all answers (question number, student answer, correct answer)
+     * for a candidate identified by SBD (số báo danh) within a given session.
+     * Supports multiple SBD formats (raw number, hyphenated code).
+     *
+     * @param sessionId the SessionId
+     * @param sbd       the candidate number (e.g. "B-001" or "1")
+     * @return list of TheoryPaperAnswerDTO with correctness evaluation
+     */
     @Override
-    public List<TheoryPaperAnswer> getAnswersBySessionAndSbd(int sessionId, String sbd) {
-        List<TheoryPaperAnswer> answers = new ArrayList<>();
+    public List<TheoryPaperAnswerDTO> getAnswersBySessionAndSbd(int sessionId, String sbd) {
+        List<TheoryPaperAnswerDTO> answers = new ArrayList<>();
         if (sbd == null || sbd.isBlank()) {
             return answers;
         }
@@ -61,13 +74,21 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         return answers;
     }
 
+    /**
+     * Counts the number of answered questions for a candidate in a session.
+     *
+     * @param sessionId the SessionId
+     * @param sbd       the candidate number
+     * @return the total question count
+     */
     @Override
     public int countQuestionsBySessionAndSbd(int sessionId, String sbd) {
         return getAnswersBySessionAndSbd(sessionId, sbd).size();
     }
 
-    private TheoryPaperAnswer mapRow(ResultSet rs) throws SQLException {
-        TheoryPaperAnswer row = new TheoryPaperAnswer();
+    /** Maps a ResultSet row to a TheoryPaperAnswerDTO, normalising blank answers to "-". */
+    private TheoryPaperAnswerDTO mapRow(ResultSet rs) throws SQLException {
+        TheoryPaperAnswerDTO row = new TheoryPaperAnswerDTO();
         row.setQuestionNo(rs.getInt("QuestionNumber"));
         row.setImageUrl(rs.getString("ImageUrl"));
         row.setCorrectAnswer(nullToDash(rs.getString("CorrectAnswer")));
@@ -79,6 +100,7 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         return row;
     }
 
+    /** Extracts the numeric portion from an SBD string (e.g. "B-001" -> 1). */
     private static Integer parseCandidateNo(String sbd) {
         try {
             if (sbd.contains("-")) {
@@ -90,6 +112,7 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         }
     }
 
+    /** Converts null or blank strings to "-" for display safety. */
     private static String nullToDash(String value) {
         return value == null || value.isBlank() ? "-" : value.trim();
     }

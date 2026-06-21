@@ -3,11 +3,37 @@ package DAOs.Impl;
 import DBConnection.DBContext;
 import DAOs.ExamSessionDAO;
 import DTOs.SessionDTO;
+import Models.Session;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// JDBC implementation of ExamSessionDAO for managing exam sessions.
 public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
+
+    // Retrieves a basic Session model by primary key (no joins, no DTO mapping).
+    @Override
+    public Session findById(int id) {
+        String sql = "SELECT * FROM [Session] WHERE SessionId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Session s = new Session();
+                    s.setId(rs.getInt("SessionId"));
+                    s.setSessionName(rs.getString("SessionName"));
+                    s.setStartTime(rs.getTimestamp("StartTime"));
+                    s.setEndTime(rs.getTimestamp("EndTime"));
+                    s.setStatus(rs.getString("Status"));
+                    s.setExamId(rs.getInt("ExamId"));
+                    return s;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     private static final String SESSION_SELECT = """
             SELECT s.SessionId AS id,
@@ -51,6 +77,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             ) sect ON sect.SessionId = s.SessionId
             """;
 
+    // Retrieves a rich SessionDTO by primary key with all joined fields.
     @Override
     public SessionDTO getById(int id) {
         String sql = SESSION_SELECT + " WHERE s.SessionId = ?";
@@ -67,6 +94,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return null;
     }
 
+    // Returns sessions with status Scheduled, Open, or InProgress,
     @Override
     public List<SessionDTO> getActiveSessions() {
         List<SessionDTO> list = new ArrayList<>();
@@ -84,6 +112,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return list;
     }
 
+    // Returns all sessions ordered by start time descending.
     @Override
     public List<SessionDTO> getAllSessions() {
         List<SessionDTO> list = new ArrayList<>();
@@ -100,6 +129,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return list;
     }
 
+    // Returns sessions scheduled on a specific date.
     @Override
     public List<SessionDTO> getSessionsByExamDate(Date examDate) {
         List<SessionDTO> list = new ArrayList<>();
@@ -117,6 +147,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return list;
     }
 
+    // Updates the status of a session.
     @Override
     public boolean updateStatus(int sessionId, String status) {
         String sql = "UPDATE [Session] SET [Status] = ? WHERE SessionId = ?";

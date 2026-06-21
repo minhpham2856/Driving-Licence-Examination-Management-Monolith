@@ -1,4 +1,4 @@
-package DAO.Impl;
+package DAOs.Impl;
 
 import DBConnection.DBContext;
 import java.sql.PreparedStatement;
@@ -7,10 +7,26 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * DAO for registrant self-service application creation.
+ * Handles initial pending registration insertion and auto-creates
+ * Licence records on-the-fly for unsupported licence classes.
+ * Note: This class does not implement a formal DAO interface.
+ */
 public class RegistrantApplicationDAOImpl extends DBContext {
 
     private static final Logger LOG = Logger.getLogger(RegistrantApplicationDAOImpl.class.getName());
 
+    /**
+     * Creates a pending exam registration for a registrant.
+     * Maps license class codes (A2->A, B2->B) to database values and
+     * sets Vietnamese notes based on user type (student vs independent).
+     *
+     * @param profileId    the ProfileId of the applicant
+     * @param licenseClass the requested licence class (e.g. "A1", "B2")
+     * @param userType     "student" for chính khoá, otherwise tự do
+     * @return true if the pending registration was created
+     */
     public boolean insertPending(int profileId, String licenseClass, String userType) {
         String databaseLicenseClass = switch (licenseClass) {
             case "A2" -> "A";

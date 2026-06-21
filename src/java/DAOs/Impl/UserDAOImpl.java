@@ -14,6 +14,10 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * JDBC implementation of UserDAO using DBContext connection management.
+ * Maps result sets to User model objects including nested Profile and Role.
+ */
 public class UserDAOImpl extends DBContext implements UserDAO {
 
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
@@ -37,6 +41,12 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      left join Profile p on p.UserId = u.UserId
                      """;
 
+    /**
+     * Retrieves a user by primary key, including nested Profile and Role.
+     *
+     * @param id the UserId
+     * @return the User model, or null if not found
+     */
     @Override
     public User getById(int id) {
         String sql = USER_SELECT + " where u.UserId = ?";
@@ -56,6 +66,12 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
+    /**
+     * Finds a user by their login username.
+     *
+     * @param username the exact username
+     * @return the User model, or null if not found
+     */
     @Override
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where u.Username = ?";
@@ -75,6 +91,12 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
+    /**
+     * Looks up a user by any of: Username, Email, PhoneNumber, or GovernmentIdNumber.
+     *
+     * @param identifier the search value to match against multiple columns
+     * @return the User model, or null if not found
+     */
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
@@ -102,6 +124,12 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
+    /**
+     * Finds a user by their email address.
+     *
+     * @param email the exact email
+     * @return the User model, or null if not found
+     */
     @Override
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where u.Email = ?";
@@ -121,6 +149,13 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
+    /**
+     * Inserts a new User record with RETURN_GENERATED_KEYS to populate the user ID.
+     * Defaults the role to Registrant if none is set.
+     *
+     * @param user the User to insert (id will be populated on success)
+     * @return true if the insert succeeded and a key was generated
+     */
     @Override
     public boolean insert(User user) {
         Connection conn = getConnection();
@@ -165,6 +200,13 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
+    /**
+     * Updates the password hash for the given user.
+     *
+     * @param userId       the target UserId
+     * @param passwordHash the new BCrypt-style hash
+     * @return true if at least one row was updated
+     */
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
@@ -185,6 +227,10 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
+    /**
+     * Maps the current row of a ResultSet (from USER_SELECT) to a User model,
+     * including the nested Profile and Role objects.
+     */
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
 
