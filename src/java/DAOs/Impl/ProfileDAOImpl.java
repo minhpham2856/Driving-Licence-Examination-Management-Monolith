@@ -13,6 +13,10 @@ import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * JDBC implementation of ProfileDAO using DBContext for connections.
+ * Maps ResultSet rows to Profile models with gender conversion via ExamConstants.
+ */
 public class ProfileDAOImpl extends DBContext implements ProfileDAO {
 
     private static final Logger LOG = Logger.getLogger(ProfileDAOImpl.class.getName());
@@ -23,6 +27,12 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
                      from Profile
                      """;
 
+    /**
+     * Retrieves a profile by its primary key.
+     *
+     * @param id the ProfileId
+     * @return the Profile model, or null if not found
+     */
     @Override
     public Profile getById(int id) {
         String sql = PROFILE_SELECT + " where ProfileId = ?";
@@ -42,6 +52,12 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return null;
     }
 
+    /**
+     * Finds a profile by GovernmentIdNumber (CMND/CCCD).
+     *
+     * @param govIdNo the government ID to search for
+     * @return the matching Profile, or null
+     */
     @Override
     public Profile getByGovIdNo(String govIdNo) {
         String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
@@ -61,6 +77,12 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return null;
     }
 
+    /**
+     * Finds a profile by phone number.
+     *
+     * @param phoneNo the phone number to search for
+     * @return the matching Profile, or null
+     */
     @Override
     public Profile getByPhoneNo(String phoneNo) {
         String sql = PROFILE_SELECT + " where PhoneNumber = ?";
@@ -80,6 +102,12 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return null;
     }
 
+    /**
+     * Inserts a new Profile with RETURN_GENERATED_KEYS and populates the profile ID.
+     *
+     * @param profile the Profile to insert (id will be set on success)
+     * @return true if insertion succeeded
+     */
     @Override
     public boolean insert(Profile profile) {
         Connection conn = getConnection();
@@ -127,6 +155,12 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return false;
     }
 
+    /**
+     * Updates all mutable fields of an existing Profile.
+     *
+     * @param profile the Profile containing updated values
+     * @return true if at least one row was updated
+     */
     @Override
     public boolean update(Profile profile) {
         String sql = """
@@ -160,6 +194,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return false;
     }
 
+    /** Maps a ResultSet row into a Profile model with gender conversion. */
     private Profile mapResultSet(ResultSet rs) throws SQLException {
         Profile profile = new Profile();
         profile.setId(rs.getInt("ProfileId"));

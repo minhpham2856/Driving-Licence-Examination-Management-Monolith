@@ -11,17 +11,29 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JDBC implementation of ExamDeviceDAO for managing exam computer devices.
+ * Joins with ExamArea to include the area name in results.
+ */
 public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
 
     // Device -> Room -> Area, so we can show room + area names.
     private static final String BASE_SELECT =
-            "SELECT d.ExamDeviceId, d.DeviceName, d.DeviceType, d.[Status], d.ExamRoomId, d.ExamAreaId, " +
-            "       d.CreatedAt, d.CreatedByUserId, d.UpdatedAt, d.UpdatedByUserId, " +
-            "       r.RoomName, a.AreaName " +
+            "SELECT d.ExamDeviceId, d.DeviceName, d.DeviceType, d.[Status], d.ExamAreaId, " +
+            "       a.AreaName " +
             "FROM ExamDevice d " +
-            "LEFT JOIN ExamRoom r ON d.ExamRoomId = r.ExamRoomId " +
             "LEFT JOIN ExamArea a ON d.ExamAreaId = a.ExamAreaId ";
 
+    /**
+     * Searches devices by keyword (device name), optional status filter.
+     * Note: roomId parameter is accepted for interface compatibility but not used
+     * (filtering by area is done via getDevicesByAreaId instead).
+     *
+     * @param keyword optional text to match against DeviceName
+     * @param roomId  unused (legacy parameter)
+     * @param status  optional exact match on Status
+     * @return list of matching ExamDevice objects
+     */
     @Override
     public List<ExamDevice> search(String keyword, Integer roomId, String status) {
         StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE 1=1 ");
@@ -29,10 +41,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         if (keyword != null && !keyword.isBlank()) {
             sql.append(" AND d.DeviceName LIKE ? ");
             params.add("%" + keyword.trim() + "%");
-        }
-        if (roomId != null && roomId > 0) {
-            sql.append(" AND d.ExamRoomId = ? ");
-            params.add(roomId);
         }
         if (status != null && !status.isBlank()) {
             sql.append(" AND d.[Status] = ? ");
@@ -52,6 +60,12 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return list;
     }
 
+    /**
+     * Retrieves a device by its primary key, including the area name.
+     *
+     * @param examDeviceId the ExamDeviceId
+     * @return the ExamDevice, or null if not found
+     */
     @Override
     public ExamDevice findById(int examDeviceId) {
         String sql = BASE_SELECT + " WHERE d.ExamDeviceId = ?";
@@ -67,22 +81,20 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
     }
 
     /**
-     * ExamAreaId is auto-filled from the chosen room's area via a subquery,
-     * so the original NOT NULL ExamAreaId stays consistent with ExamRoomId.
+     * Inserts a new ExamDevice and returns the generated key.
+     *
+     * @param d the ExamDevice to insert
+     * @return the new ExamDeviceId, or 0 on failure
      */
     @Override
     public int insert(ExamDevice d) {
-        String sql = "INSERT INTO ExamDevice (DeviceName, DeviceType, [Status], ExamRoomId, ExamAreaId, " +
-                     "CreatedByUserId, UpdatedByUserId) " +
-                     "VALUES (?,?,?,?, (SELECT ExamAreaId FROM ExamRoom WHERE ExamRoomId = ?), ?, ?)";
+        String sql = "INSERT INTO ExamDevice (DeviceName, DeviceType, [Status], ExamAreaId) " +
+                     "VALUES (?,?,?,?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, d.getDeviceName());
             ps.setString(2, d.getDeviceType());
             ps.setString(3, d.getStatus());
-            ps.setInt(4, d.getExamRoomId());
-            ps.setInt(5, d.getExamRoomId());
-            setNullableInt(ps, 6, d.getCreatedByUserId());
-            setNullableInt(ps, 7, d.getUpdatedByUserId());
+            ps.setInt(4, d.getExamAreaId());
             if (ps.executeUpdate() == 0) return 0;
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) return keys.getInt(1);
@@ -93,19 +105,22 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return 0;
     }
 
+    /**
+     * Updates all mutable fields of a device.
+     *
+     * @param d the ExamDevice with updated values
+     * @return true if at least one row was updated
+     */
     @Override
     public boolean update(ExamDevice d) {
-        String sql = "UPDATE ExamDevice SET DeviceName=?, DeviceType=?, [Status]=?, ExamRoomId=?, " +
-                     "ExamAreaId=(SELECT ExamAreaId FROM ExamRoom WHERE ExamRoomId=?), " +
-                     "UpdatedAt=GETDATE(), UpdatedByUserId=? WHERE ExamDeviceId=?";
+        String sql = "UPDATE ExamDevice SET DeviceName=?, DeviceType=?, [Status]=?, ExamAreaId=? " +
+                     "WHERE ExamDeviceId=?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, d.getDeviceName());
             ps.setString(2, d.getDeviceType());
             ps.setString(3, d.getStatus());
-            ps.setInt(4, d.getExamRoomId());
-            ps.setInt(5, d.getExamRoomId());
-            setNullableInt(ps, 6, d.getUpdatedByUserId());
-            ps.setInt(7, d.getExamDeviceId());
+            ps.setInt(4, d.getExamAreaId());
+            ps.setInt(5, d.getExamDeviceId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -113,6 +128,12 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return false;
     }
 
+    /**
+     * Deletes a device by its primary key.
+     *
+     * @param examDeviceId the ExamDeviceId to delete
+     * @return true if deletion succeeded
+     */
     @Override
     public boolean delete(int examDeviceId) {
         String sql = "DELETE FROM ExamDevice WHERE ExamDeviceId = ?";
@@ -125,12 +146,65 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return false;
     }
 
+    /**
+     * Returns the total number of devices.
+     *
+     * @return the count
+     */
     @Override
     public int countAll() { return countWhere(null, null); }
 
+    /**
+     * Returns the number of devices with the given status.
+     *
+     * @param status the status value to count
+     * @return the count
+     */
     @Override
     public int countByStatus(String status) { return countWhere("[Status]", status); }
 
+    /**
+     * Updates only the status of a device.
+     *
+     * @param examDeviceId the target device ID
+     * @param status       the new status value
+     * @return true if at least one row was updated
+     */
+    @Override
+    public boolean updateStatus(int examDeviceId, String status) {
+        String sql = "UPDATE ExamDevice SET [Status] = ? WHERE ExamDeviceId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, examDeviceId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Returns all devices assigned to a specific exam area.
+     *
+     * @param examAreaId the parent ExamAreaId
+     * @return list of devices in that area
+     */
+    @Override
+    public List<ExamDevice> getDevicesByAreaId(int examAreaId) {
+        List<ExamDevice> list = new ArrayList<>();
+        String sql = BASE_SELECT + " WHERE d.ExamAreaId = ? ORDER BY d.DeviceName";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examAreaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(map(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /** Counts rows in ExamDevice, optionally filtered by a column value. */
     private int countWhere(String col, String val) {
         String sql = "SELECT COUNT(*) FROM ExamDevice" + (col != null ? " WHERE " + col + " = ?" : "");
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -144,23 +218,14 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return 0;
     }
 
-    private void setNullableInt(PreparedStatement ps, int idx, Integer val) throws SQLException {
-        if (val == null) ps.setNull(idx, java.sql.Types.INTEGER); else ps.setInt(idx, val);
-    }
-
+    /** Maps a ResultSet row to an ExamDevice model, including the area name. */
     private ExamDevice map(ResultSet rs) throws SQLException {
         ExamDevice d = new ExamDevice();
         d.setExamDeviceId(rs.getInt("ExamDeviceId"));
         d.setDeviceName(rs.getString("DeviceName"));
         d.setDeviceType(rs.getString("DeviceType"));
         d.setStatus(rs.getString("Status"));
-        int roomId = rs.getInt("ExamRoomId"); d.setExamRoomId(rs.wasNull() ? 0 : roomId);
         d.setExamAreaId(rs.getInt("ExamAreaId"));
-        d.setCreatedAt(rs.getTimestamp("CreatedAt"));
-        d.setUpdatedAt(rs.getTimestamp("UpdatedAt"));
-        int cby = rs.getInt("CreatedByUserId"); d.setCreatedByUserId(rs.wasNull() ? null : cby);
-        int uby = rs.getInt("UpdatedByUserId"); d.setUpdatedByUserId(rs.wasNull() ? null : uby);
-        d.setRoomName(rs.getString("RoomName"));
         d.setAreaName(rs.getString("AreaName"));
         return d;
     }
