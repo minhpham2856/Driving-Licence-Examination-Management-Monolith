@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.sql.Date;
 
 public class CandidateDTO {
+
     private int id;
     private int examSessionId;
     private int personId;
