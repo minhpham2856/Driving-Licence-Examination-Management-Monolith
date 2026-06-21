@@ -1,10 +1,8 @@
 package Controllers.Admin;
 
-import DAO.ExamDeviceManageDAO;
-import DAO.ExamRoomDAO;
-import DAO.Impl.ExamDeviceManageDAOImpl;
-import DAO.Impl.ExamRoomDAOImpl;
-import Models.ExamDeviceView;
+import DAOs.ExamDeviceManageDAO;
+import DAOs.Impl.ExamDeviceManageDAOImpl;
+import DTOs.ExamDeviceViewDTO;
 import Models.User;
 import Utils.AuditLogHelper;
 import Utils.Sanitize;
@@ -17,11 +15,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Admin "Máy thi" management. Uses ExamDeviceManageDAO (NOT the team's
- * DAO.ExamDeviceDAO, which serves a different feature). A device belongs to a
- * Room; the room's area auto-fills ExamDevice.ExamAreaId.
+ * Admin "MÃ¡y thi" management. Uses ExamDeviceManageDAO (NOT the team's
+ * DAO.ExamDeviceDAO, which serves a different feature). A device belongs to an
+ * ExamArea.
  *
- * GET  /admin/exam-computer                -> list (filters: searchKeyword, filterRoom, filterStatus)
+ * GET  /admin/exam-computer                -> list (filters: searchKeyword, filterStatus)
  * POST /admin/exam-computer?action=save    -> insert or update
  * POST /admin/exam-computer?action=delete  -> delete
  */
@@ -29,7 +27,6 @@ import java.io.IOException;
 public class ExamDeviceServlet extends HttpServlet {
 
     private final ExamDeviceManageDAO dao = new ExamDeviceManageDAOImpl();
-    private final ExamRoomDAO roomDAO = new ExamRoomDAOImpl();
     private static final String LIST_VIEW = "/views/admin/exam-computer.jsp";
 
     @Override
@@ -38,13 +35,10 @@ public class ExamDeviceServlet extends HttpServlet {
         if (!SessionUtil.requireAdmin(req, resp)) return;
 
         String keyword = Sanitize.text(req.getParameter("searchKeyword"));
-        Integer roomId = Sanitize.toIntegerOrNull(req.getParameter("filterRoom"));
         String status = Sanitize.text(req.getParameter("filterStatus"));
 
-        req.setAttribute("examDevices", dao.search(keyword, roomId, status));
-        req.setAttribute("rooms", roomDAO.search(null, null, null, null));
+        req.setAttribute("examDevices", dao.search(keyword, status));
         req.setAttribute("totalDevices", dao.countAll());
-        // "Đang hoạt động" = Operational + Available (theo vocab hiện có trong DB của nhóm)
         req.setAttribute("activeDevices", dao.countByStatus("Operational") + dao.countByStatus("Available"));
         req.setAttribute("maintenanceDevices", dao.countByStatus("Maintenance"));
         req.setAttribute("brokenDevices", dao.countByStatus("Broken"));
@@ -61,14 +55,14 @@ public class ExamDeviceServlet extends HttpServlet {
 
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            ExamDeviceView dev = dao.findById(id);
+            ExamDeviceViewDTO dev = dao.findById(id);
             boolean ok = id > 0 && dao.delete(id);
             if (ok) {
                 AuditLogHelper.persist(req.getSession(), "DELETE",
-                        "Xóa máy thi: " + (dev != null ? dev.getDeviceName() : id), id);
-                SessionUtil.flash(req, "success", "Đã xóa máy thi.");
+                        "XÃ³a mÃ¡y thi: " + (dev != null ? dev.getDeviceName() : id), id);
+                SessionUtil.flash(req, "success", "ÄÃ£ xÃ³a mÃ¡y thi.");
             } else {
-                SessionUtil.flash(req, "danger", "Xóa máy thi thất bại.");
+                SessionUtil.flash(req, "danger", "XÃ³a mÃ¡y thi tháº¥t báº¡i.");
             }
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
@@ -78,14 +72,14 @@ public class ExamDeviceServlet extends HttpServlet {
         String name = Sanitize.text(req.getParameter("deviceName"));
         String type = Sanitize.text(req.getParameter("deviceType"));
         String status = Sanitize.text(req.getParameter("status"));
-        int roomId = Sanitize.toInt(req.getParameter("examRoomId"), 0);
+        int areaId = Sanitize.toInt(req.getParameter("examAreaId"), 0);
         boolean isEdit = id > 0;
 
         String error = null;
-        if (name.isEmpty()) error = "Vui lòng nhập tên máy thi.";
-        else if (type.isEmpty()) error = "Vui lòng nhập loại thiết bị.";
-        else if (status.isEmpty()) error = "Vui lòng chọn tình trạng máy.";
-        else if (roomId <= 0) error = "Vui lòng chọn phòng thi.";
+        if (name.isEmpty()) error = "Vui lÃ²ng nháº­p tÃªn mÃ¡y thi.";
+        else if (type.isEmpty()) error = "Vui lÃ²ng nháº­p loáº¡i thiáº¿t bá»‹.";
+        else if (status.isEmpty()) error = "Vui lÃ²ng chá»�n tÃ¬nh tráº¡ng mÃ¡y.";
+        else if (areaId <= 0) error = "Vui lÃ²ng chá»�n khu vá»±c thi.";
 
         if (error != null) {
             SessionUtil.flash(req, "danger", error);
@@ -93,24 +87,24 @@ public class ExamDeviceServlet extends HttpServlet {
             return;
         }
 
-        ExamDeviceView dev = new ExamDeviceView();
+        ExamDeviceViewDTO dev = new ExamDeviceViewDTO();
         dev.setExamDeviceId(id);
         dev.setDeviceName(name);
         dev.setDeviceType(type);
         dev.setStatus(status);
-        dev.setExamRoomId(roomId);
+        dev.setExamAreaId(areaId);
 
         if (isEdit) {
             boolean ok = dao.update(dev, adminId);
-            AuditLogHelper.persist(req.getSession(), "UPDATE", "Cập nhật máy thi: " + name, id);
+            AuditLogHelper.persist(req.getSession(), "UPDATE", "Cáº­p nháº­t mÃ¡y thi: " + name, id);
             SessionUtil.flash(req, ok ? "success" : "danger",
-                    ok ? "Đã cập nhật máy \"" + name + "\"." : "Cập nhật máy thi thất bại.");
+                    ok ? "ÄÃ£ cáº­p nháº­t mÃ¡y \"" + name + "\"." : "Cáº­p nháº­t mÃ¡y thi tháº¥t báº¡i.");
         } else {
             int newId = dao.insert(dev, adminId);
             boolean ok = newId > 0;
-            AuditLogHelper.persist(req.getSession(), "INSERT", "Tạo máy thi: " + name, newId);
+            AuditLogHelper.persist(req.getSession(), "INSERT", "Táº¡o mÃ¡y thi: " + name, newId);
             SessionUtil.flash(req, ok ? "success" : "danger",
-                    ok ? "Đã thêm máy \"" + name + "\"." : "Thêm máy thi thất bại.");
+                    ok ? "ÄÃ£ thÃªm mÃ¡y \"" + name + "\"." : "ThÃªm mÃ¡y thi tháº¥t báº¡i.");
         }
         resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
     }
