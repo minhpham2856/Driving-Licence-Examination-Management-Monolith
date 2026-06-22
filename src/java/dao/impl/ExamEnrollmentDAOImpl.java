@@ -88,6 +88,37 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
+    public List<ExamEnrollment> searchBySession(int sessionId, String keyword) {
+        List<ExamEnrollment> list = new ArrayList<>();
+        if (keyword == null || keyword.isBlank() || sessionId <= 0) {
+            return list;
+        }
+        String like = "%" + keyword.trim() + "%";
+        String sql = "SELECT " + ENROLLMENT_COLUMNS
+                + " FROM ExamEnrollment ee"
+                + " JOIN Candidate c ON c.CandidateId = ee.CandidateId"
+                + " WHERE ee.SessionId = ?"
+                + " AND (LOWER(c.CandidateNumber) LIKE LOWER(?)"
+                + " OR LOWER(c.FullName) LIKE LOWER(?)"
+                + " OR LOWER(c.GovernmentIdNumber) LIKE LOWER(?))"
+                + " ORDER BY ee.CandidateId";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            ps.setString(2, like);
+            ps.setString(3, like);
+            ps.setString(4, like);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapEnrollment(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
     public ExamEnrollment getBySessionAndCandidate(int sessionId, int candidateId) {
         String sql = "SELECT " + ENROLLMENT_COLUMNS
                 + " FROM ExamEnrollment WHERE SessionId = ? AND CandidateId = ?";
