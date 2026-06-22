@@ -23,7 +23,7 @@
 
     // Load dynamic audit logs for the current logged-in user from DB SQL Server AuditLog
     Models.User user = (Models.User) session.getAttribute("user");
-    int uId = (user != null) ? user.getId() : 3; // Default staff Trần Thị Thủ Tục (ID = 3)
+    int uId = (user != null) ? user.getUserId() : 3; // Default staff Trần Thị Thủ Tục (ID = 3)
     
     DAOs.AuditLogDAO logDAO = new DAOs.Impl.AuditLogDAOImpl();
     java.util.List<Models.AuditLog> personalLogs = null;

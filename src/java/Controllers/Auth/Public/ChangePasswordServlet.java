@@ -1,7 +1,7 @@
 package Controllers.Auth.Public;
 
-import DAO.UserDAO;
-import DAO.Impl.UserDAOImpl;
+import DAOs.Impl.UserDAOImpl;
+import DAOs.UserDAO;
 import Models.User;
 import Utils.AuditLogHelper;
 import Utils.SessionUtil;
@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-
 
 @WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
 public class ChangePasswordServlet extends HttpServlet {
@@ -62,7 +61,9 @@ public class ChangePasswordServlet extends HttpServlet {
             type = "success";
             message = "Đổi mật khẩu thành công.";
             HttpSession s = req.getSession(false);
-            if (s != null) AuditLogHelper.persist(s, "UPDATE", "Đổi mật khẩu tài khoản", fresh.getId());
+            if (s != null) {
+                AuditLogHelper.persist(s, "UPDATE", "Đổi mật khẩu tài khoản", fresh.getId());
+            }
         } else {
             message = "Có lỗi xảy ra, vui lòng thử lại.";
         }

@@ -1,12 +1,10 @@
 package DAOs;
 
-/**
- * Lớp chứa các hằng số SQL dùng chung cho truy vấn thông tin thí sinh
- * từ cơ sở dữ liệu DB2/DLEM. Cung cấp truy vấn SELECT chuẩn hóa kết hợp
- * nhiều bảng (Candidate, Exam_Candidate, ExamRegistration, Session, v.v.)
- * để lấy toàn bộ thông tin thí sinh cho mục đích hiển thị và xử lý.
- * Lớp không thể khởi tạo (utility class).
- */
+// Lớp chứa các hằng số SQL dùng chung cho truy vấn thông tin thí sinh
+// từ cơ sở dữ liệu DB2/DLEM. Cung cấp truy vấn SELECT chuẩn hóa kết hợp
+// nhiều bảng (Candidate, Exam_Candidate, ExamRegistration, Session, v.v.)
+// để lấy toàn bộ thông tin thí sinh cho mục đích hiển thị và xử lý.
+// Lớp không thể khởi tạo (utility class).
 public final class Db2CandidateSql {
 
     private Db2CandidateSql() {
@@ -48,7 +46,7 @@ public final class Db2CandidateSql {
               practical.scoreVal AS practicalScore,
               road.scoreVal AS roadTestScore
             FROM Candidate c
-            INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+            INNER JOIN ExamEnrollment ec ON ec.CandidateId = c.CandidateId
             INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
             INNER JOIN [Session] s ON s.SessionId = ec.SessionId
             INNER JOIN Exam ex ON ex.ExamId = ec.ExamId
@@ -61,17 +59,17 @@ public final class Db2CandidateSql {
                 WHERE p1.PaymentStatus IN ('Completed', 'Paid')
                 GROUP BY p1.CandidateId
             ) pay ON pay.CandidateId = c.CandidateId
-            LEFT JOIN (
+                LEFT JOIN (
                 SELECT ec2.CandidateId, ed.DeviceName,
                        ROW_NUMBER() OVER (PARTITION BY ec2.CandidateId ORDER BY tp.TheoryPaperId DESC) AS rn
-                FROM Exam_Candidate ec2
-                JOIN TheoryPaper tp ON tp.ExamCandidateId = ec2.ExamCandidateId
+                FROM ExamEnrollment ec2
+                JOIN TheoryPaper tp ON tp.ExamEnrollmentId = ec2.ExamEnrollmentId
                 JOIN ExamDevice ed ON ed.ExamDeviceId = tp.ExamDeviceId
             ) dev ON dev.CandidateId = c.CandidateId AND dev.rn = 1
             LEFT JOIN (
                 SELECT ec3.CandidateId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                FROM Exam_Candidate ec3
-                JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
+                FROM ExamEnrollment ec3
+                JOIN ExamResult er2 ON er2.ExamEnrollmentId = ec3.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
                 WHERE sec.SectionName LIKE N'%Lý thuyết%' OR sec.SectionName LIKE '%Theory%'
@@ -79,8 +77,8 @@ public final class Db2CandidateSql {
             ) theory ON theory.CandidateId = c.CandidateId
             LEFT JOIN (
                 SELECT ec3.CandidateId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                FROM Exam_Candidate ec3
-                JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
+                FROM ExamEnrollment ec3
+                JOIN ExamResult er2 ON er2.ExamEnrollmentId = ec3.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
                 WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%' OR sec.SectionName LIKE N'%Sa hình%'
@@ -88,8 +86,8 @@ public final class Db2CandidateSql {
             ) practical ON practical.CandidateId = c.CandidateId
             LEFT JOIN (
                 SELECT ec3.CandidateId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                FROM Exam_Candidate ec3
-                JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
+                FROM ExamEnrollment ec3
+                JOIN ExamResult er2 ON er2.ExamEnrollmentId = ec3.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
                 WHERE sec.SectionName LIKE N'%Đường%' OR sec.SectionName LIKE '%Road%'

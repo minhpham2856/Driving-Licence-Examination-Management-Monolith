@@ -38,7 +38,7 @@ public class ExaminerPortalFilter extends HttpFilter {
             return;
         }
 
-        contextService.refresh(session, user.getId());
+        contextService.refresh(session, user.getUserId());
         contextService.copyToRequest(session, request);
 
         if (!contextService.hasActiveSession(session) && isExaminerActionPath(request)) {

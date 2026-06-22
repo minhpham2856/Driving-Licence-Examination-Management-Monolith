@@ -268,7 +268,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         }
         boolean updated = vehicleDAO.assignExamDevice(reg.getId(), sessionId, deviceId);
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE Exam_Candidate",
+            AuditLogHelper.persist(session, "UPDATE ExamEnrollment",
                     "Giám khảo đổi xe thi cho SBD " + reg.getSbd() + " sang thiết bị #" + deviceId,
                     reg.getId());
         }
@@ -313,7 +313,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
         call.setCalledTo("Phòng thi lý thuyết");
-        call.setCalledBy(user != null && user.getId() > 0 ? user.getId() : 0);
+        call.setCalledBy(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         call.setResult("Calling");
         boolean inserted = callDAO.insert(call);
         if (inserted && session != null) {
@@ -328,7 +328,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
         call.setCalledTo(resolveScoreEntryCallDestination(session));
-        call.setCalledBy(user != null && user.getId() > 0 ? user.getId() : 0);
+        call.setCalledBy(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         call.setResult("Calling");
         boolean inserted = callDAO.insert(call);
         if (inserted && session != null) {

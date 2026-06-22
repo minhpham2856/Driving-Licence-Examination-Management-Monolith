@@ -136,20 +136,20 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("busyExaminers", busyExaminers);
 
             // Load all exam areas linked to the selected session
-            List<ExamArea> sessionAreas = areaDAO.getAreasBySessionId(sessionId);
+            List<ExamArea> sessionAreas = areaDAO.getBySessionId(sessionId);
             request.setAttribute("sessionAreas", sessionAreas);
 
             // Build a map of area ID to its devices for the device panel
             Map<Integer, List<ExamDevice>> devicesByArea = new HashMap<>();
             for (ExamArea area : sessionAreas) {
-                devicesByArea.put(area.getId(), deviceDAO.getDevicesByAreaId(area.getId()));
+                devicesByArea.put(area.getId(), deviceDAO.getByAreaId(area.getId()));
             }
             request.setAttribute("devicesByArea", devicesByArea);
 
             // Build a map of session ID to its areas for the day-view assignment grid
             Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
             for (SessionDTO ds : daySessions) {
-                areasBySession.put(ds.getId(), areaDAO.getAreasBySessionId(ds.getId()));
+                areasBySession.put(ds.getId(), areaDAO.getBySessionId(ds.getId()));
             }
             request.setAttribute("areasBySession", areasBySession);
         }
@@ -242,7 +242,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
     private Map<Integer, Date> buildSessionDateMap(List<SessionDTO> sessions) {
         Map<Integer, Date> map = new HashMap<>();
         for (SessionDTO s : sessions) {
-            map.put(s.getId(), s.getExamDate());
+            map.put(s.getSessionId(), s.getExamDate());
         }
         return map;
     }
@@ -272,7 +272,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
         // Read the user object stored at login time
         User user = (User) session.getAttribute("user");
         // Return the user ID if valid, otherwise default to system user ID 3
-        return (user != null && user.getId() > 0) ? user.getId() : 3;
+        return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
     }
 
     // Writes an audit log entry for the allocation action.

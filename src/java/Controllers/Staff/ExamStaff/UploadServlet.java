@@ -113,20 +113,20 @@ public class UploadServlet extends HttpServlet {
                             continue;
                         }
 
-                        Integer existingId = regDAO.findCandidateIdByProfileAndSession(profile.getId(), selectedSessionId);
+                        Integer existingId = regDAO.findCandidateIdByProfileAndSession(profile.getProfileId(), selectedSessionId);
                         boolean regExists = existingId != null;
 
                         if (regExists) {
                             int regId = existingId;
                             reg.setId(regId);
-                            reg.setPersonId(profile.getId());
+                            reg.setPersonId(profile.getProfileId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
                             regDAO.updatePresent(regId, true);
                             regDAO.updatePhoto(regId, null);
                             importedCount++;
                         } else {
-                            reg.setPersonId(profile.getId());
+                            reg.setPersonId(profile.getProfileId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
                             if (regDAO.insert(reg)) {
@@ -178,7 +178,7 @@ public class UploadServlet extends HttpServlet {
         String sessionParam = request.getParameter("examSessionId");
         int selectedSessionId = 2;
         if (sessionParam != null && !sessionParam.isEmpty()) {
-            try { selectedSessionId = Integer.parseInt(sessionParam); } catch (Exception e) { /* ignore */ }
+            try { selectedSessionId = Integer.parseInt(sessionParam); } catch (Exception e) { // ignore }
         }
         session.setAttribute("selectedImportSessionId", selectedSessionId);
 
@@ -319,7 +319,7 @@ public class UploadServlet extends HttpServlet {
             user.setUsername(generateUniqueUsername(reg.getFullName()));
             user.setEmail(finalEmail);
             user.setPasswordHash(UsernameGenerator.randomPassword(10));
-            user.setIsActive(true);
+            user.setStatus(true);
             user.setRole(ExamConstants.roleFromName("Registrant"));
 
             if (!userDAO.insert(user)) {
@@ -327,7 +327,7 @@ public class UploadServlet extends HttpServlet {
             }
 
             profile = new Profile();
-            profile.setUserId(user.getId());
+            profile.setUserId(user.getUserId());
             profile.setFullName(reg.getFullName());
             profile.setGovernmentIdNumber(reg.getGovIdNo());
             profile.setDateOfBirth(reg.getDateOfBirth() != null ? new java.sql.Timestamp(reg.getDateOfBirth().getTime()) : null);

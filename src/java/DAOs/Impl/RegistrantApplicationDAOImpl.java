@@ -4,29 +4,15 @@ import DBConnection.DBContext;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-/**
- * DAO for registrant self-service application creation.
- * Handles initial pending registration insertion and auto-creates
- * Licence records on-the-fly for unsupported licence classes.
- * Note: This class does not implement a formal DAO interface.
- */
-public class RegistrantApplicationDAOImpl extends DBContext {
+public class RegistrantApplicationDAOImpl {
 
-    private static final Logger LOG = Logger.getLogger(RegistrantApplicationDAOImpl.class.getName());
+    private final DBContext ctx;
 
-    /**
-     * Creates a pending exam registration for a registrant.
-     * Maps license class codes (A2->A, B2->B) to database values and
-     * sets Vietnamese notes based on user type (student vs independent).
-     *
-     * @param profileId    the ProfileId of the applicant
-     * @param licenseClass the requested licence class (e.g. "A1", "B2")
-     * @param userType     "student" for chính khoá, otherwise tự do
-     * @return true if the pending registration was created
-     */
+    public RegistrantApplicationDAOImpl() {
+        this.ctx = new DBContext();
+    }
+
     public boolean insertPending(int profileId, String licenseClass, String userType) {
         String databaseLicenseClass = switch (licenseClass) {
             case "A2" -> "A";
@@ -47,22 +33,25 @@ public class RegistrantApplicationDAOImpl extends DBContext {
             if (licenseId <= 0) {
                 return false;
             }
-            try (PreparedStatement insert = getConnection().prepareStatement(insertSql)) {
+
+            try (PreparedStatement insert = ctx.getConnection().prepareStatement(insertSql)) {
                 insert.setString(1, notes);
                 insert.setInt(2, profileId);
                 insert.setInt(3, licenseId);
                 return insert.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to create pending registration for profile " + profileId, e);
+            e.printStackTrace();
             return false;
         }
     }
 
     private int findOrCreateLicense(String licenseClass) throws SQLException {
         String selectSql = "select LicenceId from Licence where LicenceClass = ?";
-        try (PreparedStatement select = getConnection().prepareStatement(selectSql)) {
+
+        try (PreparedStatement select = ctx.getConnection().prepareStatement(selectSql)) {
             select.setString(1, licenseClass);
+
             try (ResultSet rs = select.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("LicenceId");
@@ -72,7 +61,6 @@ public class RegistrantApplicationDAOImpl extends DBContext {
 
         LicenseDefaults defaults = defaultsFor(licenseClass);
         if (defaults == null) {
-            LOG.log(Level.WARNING, "Unsupported licence class: {0}", licenseClass);
             return 0;
         }
 
@@ -81,7 +69,8 @@ public class RegistrantApplicationDAOImpl extends DBContext {
                     insert into Licence (LicenceClass, Description, MinimumAge, ValidForYears, UpgradeFromLicenceId)
                     values (?, ?, ?, ?, null)
                 """;
-        try (PreparedStatement insert = getConnection().prepareStatement(insertSql)) {
+
+        try (PreparedStatement insert = ctx.getConnection().prepareStatement(insertSql)) {
             insert.setString(1, licenseClass);
             insert.setString(2, licenseClass);
             insert.setString(3, defaults.description());
@@ -90,8 +79,9 @@ public class RegistrantApplicationDAOImpl extends DBContext {
             insert.executeUpdate();
         }
 
-        try (PreparedStatement select = getConnection().prepareStatement(selectSql)) {
+        try (PreparedStatement select = ctx.getConnection().prepareStatement(selectSql)) {
             select.setString(1, licenseClass);
+
             try (ResultSet rs = select.executeQuery()) {
                 return rs.next() ? rs.getInt("LicenceId") : 0;
             }

@@ -49,7 +49,7 @@ public final class AuditLogHelper {
             String oldValue, String newValue, String reason, String detailsJson, int recordId) {
         try {
             User user = (User) session.getAttribute("user");
-            int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
+            int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
 
             Audit log = new Audit();
             log.setEntityName(ExamConstants.auditLabel(resolveEntityName(action, contextDetails)));
@@ -70,7 +70,7 @@ public final class AuditLogHelper {
     public static void persistWarning(HttpSession session, String details, String reason, int recordId) {
         try {
             User user = (User) session.getAttribute("user");
-            int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
+            int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
 
             Audit log = new Audit();
             log.setEntityName(ExamConstants.auditLabel("Candidate"));

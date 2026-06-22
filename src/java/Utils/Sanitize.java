@@ -1,8 +1,6 @@
 package Utils;
 
-/**
- * Minimal helpers for reading & trimming request parameters.
- */
+// Minimal helpers for reading & trimming request parameters.
 public final class Sanitize {
 
     private Sanitize() {

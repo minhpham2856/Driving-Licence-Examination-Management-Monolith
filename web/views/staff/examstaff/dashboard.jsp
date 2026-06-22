@@ -29,7 +29,7 @@
     // Retrieve current session details for display
     Models.ExamSession currentSession = null;
     for (Models.ExamSession s : allSessions) {
-        if (s.getId() == sessionId) {
+        if (s.getSessionId() == sessionId) {
             currentSession = s;
             break;
         }

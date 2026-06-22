@@ -13,106 +13,80 @@ import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * JDBC implementation of ProfileDAO using DBContext for connections.
- * Maps ResultSet rows to Profile models with gender conversion via ExamConstants.
- */
-public class ProfileDAOImpl extends DBContext implements ProfileDAO {
+public class ProfileDAOImpl implements ProfileDAO {
 
-    private static final Logger LOG = Logger.getLogger(ProfileDAOImpl.class.getName());
-
+    private final DBContext ctx;
     private static final String PROFILE_SELECT = """
                      select ProfileId, FullName, DateOfBirth, PhoneNumber, Sex,
                             GovernmentIdNumber, Address, UserId
                      from Profile
                      """;
 
-    /**
-     * Retrieves a profile by its primary key.
-     *
-     * @param id the ProfileId
-     * @return the Profile model, or null if not found
-     */
+    public ProfileDAOImpl() {
+        this.ctx = new DBContext();
+    }
+
     @Override
     public Profile getById(int id) {
         String sql = PROFILE_SELECT + " where ProfileId = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSet(rs);
+                    return mapToProfile(rs);
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to load profile {0}: {1}", new Object[] { id, e.getMessage() });
+            e.printStackTrace();
         }
 
         return null;
     }
 
-    /**
-     * Finds a profile by GovernmentIdNumber (CMND/CCCD).
-     *
-     * @param govIdNo the government ID to search for
-     * @return the matching Profile, or null
-     */
     @Override
     public Profile getByGovIdNo(String govIdNo) {
         String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, govIdNo);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSet(rs);
+                    return mapToProfile(rs);
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to find profile by gov id: {0}", e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
     }
 
-    /**
-     * Finds a profile by phone number.
-     *
-     * @param phoneNo the phone number to search for
-     * @return the matching Profile, or null
-     */
     @Override
     public Profile getByPhoneNo(String phoneNo) {
         String sql = PROFILE_SELECT + " where PhoneNumber = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, phoneNo);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSet(rs);
+                    return mapToProfile(rs);
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to find profile by phone: {0}", e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
     }
 
-    /**
-     * Inserts a new Profile with RETURN_GENERATED_KEYS and populates the profile ID.
-     *
-     * @param profile the Profile to insert (id will be set on success)
-     * @return true if insertion succeeded
-     */
     @Override
     public boolean insert(Profile profile) {
-        Connection conn = getConnection();
+        Connection conn = ctx.getConnection();
         if (conn == null) {
-            LOG.severe("Cannot insert profile: database connection is unavailable.");
             return false;
         }
 
@@ -142,25 +116,18 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
 
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    profile.setId(generatedKeys.getInt(1));
+                    profile.setProfileId(generatedKeys.getInt(1));
                 }
             }
 
-            return profile.getId() > 0;
+            return profile.getProfileId() > 0;
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to insert profile for user {0}: {1}",
-                    new Object[] { profile.getUserId(), e.getMessage() });
+            e.printStackTrace();
         }
 
         return false;
     }
 
-    /**
-     * Updates all mutable fields of an existing Profile.
-     *
-     * @param profile the Profile containing updated values
-     * @return true if at least one row was updated
-     */
     @Override
     public boolean update(Profile profile) {
         String sql = """
@@ -170,7 +137,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
                      where ProfileId = ?
                      """;
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
@@ -183,21 +150,20 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
                 ps.setString(6, profile.getAddress());
             }
 
-            ps.setInt(7, profile.getId());
+            ps.setInt(7, profile.getProfileId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to update profile {0}: {1}",
-                    new Object[] { profile.getId(), e.getMessage() });
+            e.printStackTrace();
         }
 
         return false;
     }
 
-    /** Maps a ResultSet row into a Profile model with gender conversion. */
-    private Profile mapResultSet(ResultSet rs) throws SQLException {
+    // Maps ResultSet row into Profile
+    private Profile mapToProfile(ResultSet rs) throws SQLException {
         Profile profile = new Profile();
-        profile.setId(rs.getInt("ProfileId"));
+        profile.setProfileId(rs.getInt("ProfileId"));
         profile.setUserId(rs.getInt("UserId"));
         profile.setFullName(rs.getString("FullName"));
         profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));

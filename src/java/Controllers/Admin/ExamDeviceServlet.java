@@ -14,15 +14,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Admin "MÃ¡y thi" management. Uses ExamDeviceManageDAO (NOT the team's
- * DAO.ExamDeviceDAO, which serves a different feature). A device belongs to an
- * ExamArea.
- *
- * GET  /admin/exam-computer                -> list (filters: searchKeyword, filterStatus)
- * POST /admin/exam-computer?action=save    -> insert or update
- * POST /admin/exam-computer?action=delete  -> delete
- */
+// Admin "MÃ¡y thi" management. Uses ExamDeviceManageDAO (NOT the team's
+// DAO.ExamDeviceDAO, which serves a different feature). A device belongs to an
+// ExamArea.
+// 
+// GET  /admin/exam-computer                -> list (filters: searchKeyword, filterStatus)
+// POST /admin/exam-computer?action=save    -> insert or update
+// POST /admin/exam-computer?action=delete  -> delete
 @WebServlet(name = "ExamDeviceServlet", urlPatterns = {"/admin/exam-computer"})
 public class ExamDeviceServlet extends HttpServlet {
 
@@ -55,7 +53,7 @@ public class ExamDeviceServlet extends HttpServlet {
 
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            ExamDeviceViewDTO dev = dao.findById(id);
+            ExamDeviceViewDTO dev = dao.getById(id);
             boolean ok = id > 0 && dao.delete(id);
             if (ok) {
                 AuditLogHelper.persist(req.getSession(), "DELETE",

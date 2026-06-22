@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
         user.setUsername(username);
         user.setEmail(email);
         user.setPasswordHash(password);
-        user.setIsActive(true);
+        user.setStatus(true);
         user.setRole(ExamConstants.roleFromName("Registrant"));
 
         if (!userDAO.insert(user)) {
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
 
         // create new profile
         Profile profile = new Profile();
-        profile.setUserId(user.getId());
+        profile.setUserId(user.getUserId());
         profile.setGovIdNo(govIdNo);
         profile.setFullName(fullName);
         profile.setDateOfBirth(new java.sql.Timestamp(Date.valueOf(dateOfBirth).getTime()));
@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // connect user to profile
-        user.setProfileId(profile.getId());
+        
         user.setProfile(profile);
 
         String subject = "[Lái Vui] Thông tin tài khoản";
@@ -99,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = userDAO.getByIdentifier(trimmedId);
-        if (user == null || !user.isIsActive()) {
+        if (user == null || !user.isStatus()) {
             return null;
         }
 
@@ -119,12 +119,12 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             user = userDAO.getByIdentifier(trimmed);
         }
-        if (user == null || !user.isIsActive()) {
+        if (user == null || !user.isStatus()) {
             return "Hãy kiểm tra hòm thư của bạn nếu email bạn nhập là đúng";
         }
 
         String tempPassword = String.valueOf((int) ((Math.random() * 900000) + 100000));
-        if (!userDAO.updatePassword(user.getId(), tempPassword)) {
+        if (!userDAO.updatePassword(user.getUserId(), tempPassword)) {
             return "Lỗi hệ thống. Vui lòng thử lại.";
         }
 

@@ -30,11 +30,11 @@ public class LicenceServlet extends HttpServlet {
 
         if ("new".equals(action)) {
             req.setAttribute("mode", "create");
-            req.setAttribute("licences", dao.findAll());
+            req.setAttribute("licences", dao.getAll());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else if ("edit".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            Licence licence = dao.findById(id);
+            Licence licence = dao.getById(id);
             if (licence == null) {
                 SessionUtil.flash(req, "danger", "Không tìm thấy hạng GPLX cần sửa.");
                 resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
@@ -42,7 +42,7 @@ public class LicenceServlet extends HttpServlet {
             }
             req.setAttribute("mode", "edit");
             req.setAttribute("licence", licence);
-            req.setAttribute("licences", dao.findAll());
+            req.setAttribute("licences", dao.getAll());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else {
             String keyword = Sanitize.text(req.getParameter("searchKeyword"));
@@ -77,7 +77,7 @@ public class LicenceServlet extends HttpServlet {
             Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);
             req.setAttribute("mode", isEdit ? "edit" : "create");
             req.setAttribute("licence", l);
-            req.setAttribute("licences", dao.findAll());
+            req.setAttribute("licences", dao.getAll());
             req.setAttribute("error", error);
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
             return;
@@ -85,14 +85,11 @@ public class LicenceServlet extends HttpServlet {
 
         Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);
         if (isEdit) {
-            l.setUpdatedByUserId(admin.getId());
             boolean ok = dao.update(l);
             AuditLogHelper.persist(req.getSession(), "UPDATE", "Cập Nhật Hạng GPLX: " + licenceClass, id);
             SessionUtil.flash(req, ok ? "success" : "danger",
                     ok ? "Đã cập nhật hạng \"" + licenceClass + "\"." : "Cập nhật hạng GPLX thất bại.");
         } else {
-            l.setCreatedByUserId(admin.getId());
-            l.setUpdatedByUserId(admin.getId());
             int newId = dao.insert(l);
             boolean ok = newId > 0;
             AuditLogHelper.persist(req.getSession(), "INSERT", "Tạo hạng GPLX: " + licenceClass, newId);

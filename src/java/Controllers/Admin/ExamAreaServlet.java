@@ -14,14 +14,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Handles list / create / edit / delete for Exam Areas.
- *   GET  /admin/exam-area                 -> list
- *   GET  /admin/exam-area?action=new      -> empty form
- *   GET  /admin/exam-area?action=edit&id= -> edit form
- *   POST /admin/exam-area?action=save     -> insert or update
- *   POST /admin/exam-area?action=delete   -> delete
- */
+// Handles list / create / edit / delete for Exam Areas.
+//   GET  /admin/exam-area                 -> list
+//   GET  /admin/exam-area?action=new      -> empty form
+//   GET  /admin/exam-area?action=edit&id= -> edit form
+//   POST /admin/exam-area?action=save     -> insert or update
+//   POST /admin/exam-area?action=delete   -> delete
 @WebServlet(name = "ExamAreaServlet", urlPatterns = {"/admin/exam-area"})
 public class ExamAreaServlet extends HttpServlet {
 
@@ -40,7 +38,7 @@ public class ExamAreaServlet extends HttpServlet {
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else if ("edit".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            ExamArea area = dao.findById(id);
+            ExamArea area = dao.getById(id);
             if (area == null) {
                 SessionUtil.flash(req, "danger", "Không tìm thấy khu vực thi cần sửa.");
                 resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
@@ -98,14 +96,11 @@ public class ExamAreaServlet extends HttpServlet {
 
         ExamArea area = build(id, name, type, location, capacity);
         if (isEdit) {
-            area.setUpdatedByUserId(admin.getId());
             boolean ok = dao.update(area);
             AuditLogHelper.persist(req.getSession(), "UPDATE", "cap nhat khu vuc thi: " + name, id);
             SessionUtil.flash(req, ok ? "success" : "danger",
                     ok ? "da cap nhat khu vuc \"" + name + "\"." : "cap nhat khu vuc that bai");
         } else {
-            area.setCreatedByUserId(admin.getId());
-            area.setUpdatedByUserId(admin.getId());
             int newId = dao.insert(area);
             boolean ok = newId > 0;
             AuditLogHelper.persist(req.getSession(), "INSERT", "tao khu vuc thi: " + name, newId);
@@ -118,7 +113,7 @@ public class ExamAreaServlet extends HttpServlet {
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp, User admin)
             throws IOException {
         int id = Sanitize.toInt(req.getParameter("id"), 0);
-        ExamArea area = dao.findById(id);
+        ExamArea area = dao.getById(id);
         boolean ok = id > 0 && dao.delete(id);
         if (ok) {
             AuditLogHelper.persist(req.getSession(), "DELETE",

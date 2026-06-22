@@ -74,7 +74,7 @@ public class LoginServlet extends HttpServlet {
             } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/admin/examstaff/dashboard.jsp");
             } else if ("Examiner".equalsIgnoreCase(roleName)) {
-                examinerSessionContext.refresh(session, user.getId());
+                examinerSessionContext.refresh(session, user.getUserId());
                 response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
             } else if ("Admin".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");

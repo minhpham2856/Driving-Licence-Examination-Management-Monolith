@@ -8,9 +8,7 @@ public final class UsernameGenerator {
     private UsernameGenerator() {
     }
 
-    /**
-     * e.g. "Nguyễn Văn Bình" -> "binhnv738274" (given name + other initials + 6 digits)
-     */
+    // e.g. "Nguyễn Văn Bình" -> "binhnv738274" (given name + other initials + 6 digits)
     public static String generateFromFullName(String fullName) {
         String[] parts = fullName.trim().split("\\s+");
         if (parts.length == 0 || parts[0].isEmpty()) {

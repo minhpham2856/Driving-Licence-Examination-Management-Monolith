@@ -7,9 +7,9 @@ import java.util.logging.Logger;
 
 public class DBContext {
 
-    private static final String DB_URL = ConfigManager.get("DB_URL", "jdbc:sqlserver://localhost:1433;databaseName=DLEM_DB_2;trustServerCertificate=true;sendStringParametersAsUnicode=true");
-    private static final String DB_USER = ConfigManager.get("DB_USER", "sa");
-    private static final String DB_PASSWORD = ConfigManager.get("DB_PASSWORD", "123");
+    private static final String DB_URL = ConfigManager.get("DB_URL");
+    private static final String DB_USER = ConfigManager.get("DB_USER");
+    private static final String DB_PASSWORD = ConfigManager.get("DB_PASSWORD");
 
     private Connection connection;
 

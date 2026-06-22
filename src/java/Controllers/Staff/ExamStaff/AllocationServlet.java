@@ -54,7 +54,7 @@ public class AllocationServlet extends HttpServlet {
         // Retrieve the current session details
         SessionDTO currentSession = null;
         for (SessionDTO s : allSessions) {
-            if (s.getId() == sessionId) {
+            if (s.getSessionId() == sessionId) {
                 currentSession = s;
                 break;
             }
@@ -144,7 +144,7 @@ public class AllocationServlet extends HttpServlet {
                                             "Nhập điểm LÝ THUYẾT: " + score + " → " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 } else {
-                                    request.setAttribute("errorMsg", "Không lưu được điểm lý thuyết cho SBD " + profile.getSbd() + ". Kiểm tra Exam_Candidate và Session_ExamSection.");
+                                    request.setAttribute("errorMsg", "Không lưu được điểm lý thuyết cho SBD " + profile.getSbd() + ". Kiểm tra ExamEnrollment và Session_ExamSection.");
                                 }
                             }
                         } else if ("submitPracticalScore".equals(action)) {
@@ -160,7 +160,7 @@ public class AllocationServlet extends HttpServlet {
                                             "Nhập điểm THỰC HÀNH: " + score + " → " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 } else {
-                                    request.setAttribute("errorMsg", "Không lưu được điểm thực hành/sa hình cho SBD " + profile.getSbd() + ". Kiểm tra Exam_Candidate và Session_ExamSection.");
+                                    request.setAttribute("errorMsg", "Không lưu được điểm thực hành/sa hình cho SBD " + profile.getSbd() + ". Kiểm tra ExamEnrollment và Session_ExamSection.");
                                 }
                             }
                         } else if ("submitRoadScore".equals(action)) {

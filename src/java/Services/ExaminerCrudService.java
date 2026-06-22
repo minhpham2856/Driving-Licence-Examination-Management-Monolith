@@ -54,6 +54,6 @@ public interface ExaminerCrudService {
 
     boolean printSignatureForm(int sessionId, String sbd, HttpSession session);
 
-    /** null = success; otherwise error code (e.g. needSignaturePrint). */
+    // null = success; otherwise error code (e.g. needSignaturePrint).
     String completeCandidateSection(int sessionId, String sbd, HttpSession session);
 }

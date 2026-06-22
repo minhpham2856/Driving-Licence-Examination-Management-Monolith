@@ -3,36 +3,37 @@ package DAOs.Impl;
 import DBConnection.DBContext;
 import DAOs.CandidateCallDAO;
 import DTOs.CandidateCallDTO;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-/**
- * JDBC implementation of CandidateCallDAO for logging candidate call-out events
- * into the Audit table with action = 'CALL'.
- */
-public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO {
+public class CandidateCallDAOImpl implements CandidateCallDAO {
 
-    /**
-     * Inserts a call-out event as an Audit record with action 'CALL'.
-     * The entity ID is composed as "{sessionId}-{candidateNo}".
-     *
-     * @param call the call event data (calledBy, examSessionId, candidateNo, calledTo, result)
-     * @return true if insertion succeeded
-     */
+    private final DBContext ctx;
+
+    public CandidateCallDAOImpl() {
+        this.ctx = new DBContext();
+    }
+
     @Override
     public boolean insert(CandidateCallDTO call) {
         String sql = """
-                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, NewValue, CreatedAt)
-                VALUES (?, 'CALL', ?, 'Candidate', ?, ?, GETDATE())
+                insert into Audit (UserId, Action, Reason, EntityName, EntityId, NewValue, CreatedAt)
+                values (?, 'CALL', ?, 'Candidate', ?, ?, GETDATE())
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             int userId = call.getCalledBy() != 0 ? call.getCalledBy() : 3;
             String entityId = call.getExamSessionId() + "-" + call.getCandidateNo();
             String detail = "calledTo=" + call.getCalledTo()
                     + ";result=" + (call.getResult() != null ? call.getResult() : "");
+
             ps.setInt(1, userId);
             ps.setString(2, detail);
             ps.setString(3, entityId);
             ps.setString(4, detail);
+
             if (ps.executeUpdate() > 0) {
                 try (ResultSet gk = ps.getGeneratedKeys()) {
                     if (gk.next()) {
@@ -44,6 +45,7 @@ public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return false;
     }
 }

@@ -361,7 +361,7 @@ public class ExaminerServiceImpl implements ExaminerService {
         boolean updated = vehicleDAO.assignExamDevice(reg.getId(), sessionId, deviceId);
         // Log the assignment
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE Exam_Candidate",
+            AuditLogHelper.persist(session, "UPDATE ExamEnrollment",
                     "sát hạch viên đổi xe thi cho SBD " + reg.getSbd() + " sang thiết bị #" + deviceId,
                     reg.getId());
         }
@@ -415,7 +415,7 @@ public class ExaminerServiceImpl implements ExaminerService {
         call.setCandidateNo(reg.getCandidateNo());
         // Default call destination for standard calls
         call.setCalledTo("Phòng thi lý thuyết");
-        call.setCalledBy(user != null && user.getId() > 0 ? user.getId() : 0);
+        call.setCalledBy(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         call.setResult("Calling");
         // Insert record
         boolean inserted = callDAO.insert(call);
@@ -434,7 +434,7 @@ public class ExaminerServiceImpl implements ExaminerService {
         call.setCandidateNo(reg.getCandidateNo());
         // Resolve dynamic destination for score-entry calls
         call.setCalledTo(resolveScoreEntryCallDestination(session));
-        call.setCalledBy(user != null && user.getId() > 0 ? user.getId() : 0);
+        call.setCalledBy(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         call.setResult("Calling");
         // Insert record
         boolean inserted = callDAO.insert(call);

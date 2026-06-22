@@ -14,10 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Tự động phân bổ thí sinh vào phòng thi lý thuyết sau khi hoàn tất thủ tục.
- * Máy tính và thiết bị thi (ExamDevice) do Examiner quản lý - không xử lý tại đây.
- */
+// Tự động phân bổ thí sinh vào phòng thi lý thuyết sau khi hoàn tất thủ tục.
+// Máy tính và thiết bị thi (ExamDevice) do Examiner quản lý - không xử lý tại đây.
 public class ExamAutoAllocator {
 
     private static final int DEFAULT_MAX_PER_ROOM = 30;

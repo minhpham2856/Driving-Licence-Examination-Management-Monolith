@@ -11,17 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-/**
- * JDBC implementation of UserDAO using DBContext connection management.
- * Maps result sets to User model objects including nested Profile and Role.
- */
-public class UserDAOImpl extends DBContext implements UserDAO {
+public class UserDAOImpl implements UserDAO {
 
-    private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
-
+    private final DBContext ctx;
     private static final String USER_SELECT = """
                      select u.UserId,
                      	u.Username,
@@ -41,22 +34,20 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      left join Profile p on p.UserId = u.UserId
                      """;
 
-    /**
-     * Retrieves a user by primary key, including nested Profile and Role.
-     *
-     * @param id the UserId
-     * @return the User model, or null if not found
-     */
+    public UserDAOImpl() {
+        this.ctx = new DBContext();
+    }
+
     @Override
     public User getById(int id) {
         String sql = USER_SELECT + " where u.UserId = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToUser(rs);
+                    return mapToUser(rs);
                 }
             }
         } catch (SQLException e) {
@@ -66,22 +57,16 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Finds a user by their login username.
-     *
-     * @param username the exact username
-     * @return the User model, or null if not found
-     */
     @Override
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where u.Username = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToUser(rs);
+                    return mapToUser(rs);
                 }
             }
         } catch (SQLException e) {
@@ -91,12 +76,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Looks up a user by any of: Username, Email, PhoneNumber, or GovernmentIdNumber.
-     *
-     * @param identifier the search value to match against multiple columns
-     * @return the User model, or null if not found
-     */
+    // Looks up a user by any of: Username, Email, PhoneNumber, or GovernmentIdNumber.
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
@@ -106,7 +86,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                     or p.GovernmentIdNumber = ?
                 """;
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
             ps.setString(3, identifier);
@@ -114,7 +94,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToUser(rs);
+                    return mapToUser(rs);
                 }
             }
         } catch (SQLException e) {
@@ -124,22 +104,16 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Finds a user by their email address.
-     *
-     * @param email the exact email
-     * @return the User model, or null if not found
-     */
     @Override
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where u.Email = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, email);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToUser(rs);
+                    return mapToUser(rs);
                 }
             }
         } catch (SQLException e) {
@@ -149,18 +123,10 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Inserts a new User record with RETURN_GENERATED_KEYS to populate the user ID.
-     * Defaults the role to Registrant if none is set.
-     *
-     * @param user the User to insert (id will be populated on success)
-     * @return true if the insert succeeded and a key was generated
-     */
     @Override
     public boolean insert(User user) {
-        Connection conn = getConnection();
+        Connection conn = ctx.getConnection();
         if (conn == null) {
-            LOG.severe("Cannot insert user: database connection is unavailable.");
             return false;
         }
 
@@ -169,7 +135,8 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      values (?, ?, ?, ?, ?)
                      """;
 
-        int roleId = user.getRole() != null ? user.getRole().getId() : user.getRoleId();
+        // Defaults role to registrant if none provided
+        int roleId = user.getRole() != null ? user.getRole().getRoleId() : user.getRoleId();
         if (roleId <= 0) {
             roleId = ExamConstants.roleIdFromName("Registrant");
         }
@@ -179,7 +146,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
             ps.setInt(4, roleId);
-            ps.setBoolean(5, user.isIsActive());
+            ps.setBoolean(5, user.isStatus());
 
             if (ps.executeUpdate() == 0) {
                 return false;
@@ -187,26 +154,19 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    user.setId(generatedKeys.getInt(1));
+                    user.setUserId(generatedKeys.getInt(1));
                 }
             }
 
-            return user.getId() > 0;
+            return user.getUserId() > 0;
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to insert user {0}: {1}",
-                    new Object[] { user.getEmail(), e.getMessage() });
+            e.printStackTrace();
         }
 
         return false;
     }
 
-    /**
-     * Updates the password hash for the given user.
-     *
-     * @param userId       the target UserId
-     * @param passwordHash the new BCrypt-style hash
-     * @return true if at least one row was updated
-     */
+    // Updates the password hash
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
@@ -215,7 +175,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      where UserId = ?
                      """;
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
             ps.setString(1, passwordHash);
             ps.setInt(2, userId);
 
@@ -227,30 +187,26 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
-    /**
-     * Maps the current row of a ResultSet (from USER_SELECT) to a User model,
-     * including the nested Profile and Role objects.
-     */
-    private User mapResultSetToUser(ResultSet rs) throws SQLException {
+    // Maps ResultSet to model
+    private User mapToUser(ResultSet rs) throws SQLException {
         User user = new User();
 
-        user.setId(rs.getInt("UserId"));
+        user.setUserId(rs.getInt("UserId"));
         user.setUsername(rs.getString("Username"));
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
-        user.setIsActive(rs.getBoolean("Status"));
+        user.setStatus(rs.getBoolean("Status"));
 
         Integer profileId = (Integer) rs.getObject("ProfileId");
-        user.setProfileId(profileId);
 
         String roleName = rs.getString("Role");
         Role role = ExamConstants.roleFromName(roleName);
         user.setRole(role);
-        user.setRoleId(role.getId());
+        user.setRoleId(role.getRoleId());
 
         if (profileId != null) {
             Profile profile = new Profile();
-            profile.setId(profileId);
+            profile.setProfileId(profileId);
             profile.setUserId(rs.getInt("UserId"));
             profile.setFullName(rs.getString("FullName"));
             profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));

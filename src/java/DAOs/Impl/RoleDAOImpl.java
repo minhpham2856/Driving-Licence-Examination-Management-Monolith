@@ -1,43 +1,62 @@
 package DAOs.Impl;
 
-import Utils.ExamConstants;
+import DBConnection.DBContext;
 import DAOs.RoleDAO;
 import Models.Role;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-/**
- * In-memory implementation of RoleDAO backed by ExamConstants.ROLE_NAME_TO_ID.
- * No database calls are made; roles are resolved from the constant map.
- */
 public class RoleDAOImpl implements RoleDAO {
 
-    /**
-     * Looks up a role by its integer ID from the constant map.
-     *
-     * @param id the role ID
-     * @return the Role model, or null if not found
-     */
+    private final DBContext ctx;
+
+    public RoleDAOImpl() {
+        this.ctx = new DBContext();
+    }
+
     @Override
     public Role getById(int id) {
-        for (var entry : ExamConstants.ROLE_NAME_TO_ID.entrySet()) {
-            if (entry.getValue() == id) {
-                return new Role(id, entry.getKey());
+        String sql = "select RoleId, RoleName from [Role] where RoleId = ?";
+
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapToRole(rs);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         return null;
     }
 
-    /**
-     * Looks up a role by its display name via ExamConstants.
-     *
-     * @param roleName the role name (e.g. "Admin", "Examiner")
-     * @return the Role model, or null if the name is unknown
-     */
     @Override
     public Role getByName(String roleName) {
-        int id = ExamConstants.roleIdFromName(roleName);
-        if (id == 0) {
-            return null;
+        String sql = "select RoleId, RoleName from [Role] where RoleName = ?";
+
+        try (PreparedStatement ps = ctx.getConnection().prepareStatement(sql)) {
+            ps.setString(1, roleName);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapToRole(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return new Role(id, roleName);
+
+        return null;
+    }
+
+    private Role mapToRole(ResultSet rs) throws SQLException {
+        Role role = new Role();
+        role.setRoleId(rs.getInt("RoleId"));
+        role.setRoleName(rs.getString("RoleName"));
+        return role;
     }
 }

@@ -97,7 +97,7 @@ public class CreateUserServlet extends HttpServlet {
         HttpSession session = request.getSession();
         Profile profile = profileDAO.getByGovIdNo(cccd);
         boolean applicationCreated = profile != null
-                && applicationDAO.insertPending(profile.getId(), licenseClass, userType);
+                && applicationDAO.insertPending(profile.getProfileId(), licenseClass, userType);
 
         if (result.isEmailSent()) {
             String message = "Tạo tài khoản thành công. Thông tin đăng nhập đã được gửi đến " + email + ".";

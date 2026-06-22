@@ -213,7 +213,7 @@
 
     // Fetch real infractions from database
     java.util.List<java.util.Map<String, Object>> infractions = new java.util.ArrayList<>();
-    try (java.sql.Connection conn = DBConnection.DBConfig.getConnection();
+    try (java.sql.Connection conn = DBConnection.DBConfig.ctx.getConnection();
          java.sql.PreparedStatement ps = conn.prepareStatement(
              "select top 3 sd.[Reason] as deductionReason, count(*) as countVal " +
              "from Score_Deduction sdd " +
