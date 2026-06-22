@@ -2,31 +2,31 @@ package Models;
 
 import java.sql.Timestamp;
 
-public class ScoreDeductionDetail {
+public class DeductionRecord {
 
-    private int scoreDeductionDetailId;
+    private int deductionRecordId;
     private int examScoreId;
     private int scoreDeductionId;
     private int occurrenceCount;
     private Timestamp recordedAt;
 
-    public ScoreDeductionDetail() {
+    public DeductionRecord() {
     }
 
-    public ScoreDeductionDetail(int scoreDeductionDetailId, int examScoreId, int scoreDeductionId, int occurrenceCount, Timestamp recordedAt) {
-        this.scoreDeductionDetailId = scoreDeductionDetailId;
+    public DeductionRecord(int deductionRecordId, int examScoreId, int scoreDeductionId, int occurrenceCount, Timestamp recordedAt) {
+        this.deductionRecordId = deductionRecordId;
         this.examScoreId = examScoreId;
         this.scoreDeductionId = scoreDeductionId;
         this.occurrenceCount = occurrenceCount;
         this.recordedAt = recordedAt;
     }
 
-    public int getScoreDeductionDetailId() {
-        return scoreDeductionDetailId;
+    public int getDeductionRecordId() {
+        return deductionRecordId;
     }
 
-    public void setScoreDeductionDetailId(int scoreDeductionDetailId) {
-        this.scoreDeductionDetailId = scoreDeductionDetailId;
+    public void setDeductionRecordId(int deductionRecordId) {
+        this.deductionRecordId = deductionRecordId;
     }
 
     public int getExamScoreId() {

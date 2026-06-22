@@ -1,21 +1,19 @@
 package Models;
 
-public class ExamCandidate {
+public class ExamEnrollment {
 
-    private int examCandidateId;
-    private int examId;
+    private int examEnrollmentId;
     private int candidateId;
     private int sessionId;
     private String sectionStatus;
     private boolean signaturePrinted;
     private Integer examDeviceId;
 
-    public ExamCandidate() {
+    public ExamEnrollment() {
     }
 
-    public ExamCandidate(int examCandidateId, int examId, int candidateId, int sessionId, String sectionStatus, boolean signaturePrinted, Integer examDeviceId) {
-        this.examCandidateId = examCandidateId;
-        this.examId = examId;
+    public ExamEnrollment(int examEnrollmentId, int candidateId, int sessionId, String sectionStatus, boolean signaturePrinted, Integer examDeviceId) {
+        this.examEnrollmentId = examEnrollmentId;
         this.candidateId = candidateId;
         this.sessionId = sessionId;
         this.sectionStatus = sectionStatus;
@@ -23,20 +21,12 @@ public class ExamCandidate {
         this.examDeviceId = examDeviceId;
     }
 
-    public int getExamCandidateId() {
-        return examCandidateId;
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
     }
 
-    public void setExamCandidateId(int examCandidateId) {
-        this.examCandidateId = examCandidateId;
-    }
-
-    public int getExamId() {
-        return examId;
-    }
-
-    public void setExamId(int examId) {
-        this.examId = examId;
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 
     public int getCandidateId() {

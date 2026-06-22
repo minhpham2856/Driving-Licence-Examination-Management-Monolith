@@ -4,35 +4,33 @@ import java.sql.Timestamp;
 
 public class Payment {
 
-    private int id;
+    private int paymentId;
     private String paymentStatus;
     private String paymentMethod;
     private String transactionReference;
     private double totalAmount;
     private Timestamp paidAt;
-    private int candidateId;
-    private int examId;
+    private int examEnrollmentId;
 
     public Payment() {
     }
 
-    public Payment(int id, String paymentStatus, String paymentMethod, String transactionReference, double totalAmount, Timestamp paidAt, int candidateId, int examId) {
-        this.id = id;
+    public Payment(int paymentId, String paymentStatus, String paymentMethod, String transactionReference, double totalAmount, Timestamp paidAt, int examEnrollmentId) {
+        this.paymentId = paymentId;
         this.paymentStatus = paymentStatus;
         this.paymentMethod = paymentMethod;
         this.transactionReference = transactionReference;
         this.totalAmount = totalAmount;
         this.paidAt = paidAt;
-        this.candidateId = candidateId;
-        this.examId = examId;
+        this.examEnrollmentId = examEnrollmentId;
     }
 
-    public int getId() {
-        return id;
+    public int getPaymentId() {
+        return paymentId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setPaymentId(int paymentId) {
+        this.paymentId = paymentId;
     }
 
     public String getPaymentStatus() {
@@ -75,19 +73,11 @@ public class Payment {
         this.paidAt = paidAt;
     }
 
-    public int getCandidateId() {
-        return candidateId;
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
     }
 
-    public void setCandidateId(int candidateId) {
-        this.candidateId = candidateId;
-    }
-
-    public int getExamId() {
-        return examId;
-    }
-
-    public void setExamId(int examId) {
-        this.examId = examId;
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 }

@@ -16,17 +16,17 @@ public class Candidate {
     private Boolean takePractical;
     private Boolean takeRoadLayout;
     private Boolean takeOnRoad;
+    private int takeNo;
     private String reasonForTaking;
     private String photoImageUrl;
     private boolean isAbsent;
     private boolean isSuspended;
     private int userId;
-    private int examRegistrationId;
 
     public Candidate() {
     }
 
-    public Candidate(int candidateId, String candidateNumber, String fullName, Timestamp dateOfBirth, String phoneNumber, String sex, String governmentIdNumber, String address, Boolean takeTheory, Boolean takePractical, Boolean takeRoadLayout, Boolean takeOnRoad, String reasonForTaking, String photoImageUrl, boolean isAbsent, boolean isSuspended, int userId, int examRegistrationId) {
+    public Candidate(int candidateId, String candidateNumber, String fullName, Timestamp dateOfBirth, String phoneNumber, String sex, String governmentIdNumber, String address, Boolean takeTheory, Boolean takePractical, Boolean takeRoadLayout, Boolean takeOnRoad, int takeNo, String reasonForTaking, String photoImageUrl, boolean isAbsent, boolean isSuspended, int userId) {
         this.candidateId = candidateId;
         this.candidateNumber = candidateNumber;
         this.fullName = fullName;
@@ -39,12 +39,12 @@ public class Candidate {
         this.takePractical = takePractical;
         this.takeRoadLayout = takeRoadLayout;
         this.takeOnRoad = takeOnRoad;
+        this.takeNo = takeNo;
         this.reasonForTaking = reasonForTaking;
         this.photoImageUrl = photoImageUrl;
         this.isAbsent = isAbsent;
         this.isSuspended = isSuspended;
         this.userId = userId;
-        this.examRegistrationId = examRegistrationId;
     }
 
     public int getCandidateId() {
@@ -143,6 +143,14 @@ public class Candidate {
         this.takeOnRoad = takeOnRoad;
     }
 
+    public int getTakeNo() {
+        return takeNo;
+    }
+
+    public void setTakeNo(int takeNo) {
+        this.takeNo = takeNo;
+    }
+
     public String getReasonForTaking() {
         return reasonForTaking;
     }
@@ -191,11 +199,4 @@ public class Candidate {
         this.userId = userId;
     }
 
-    public int getExamRegistrationId() {
-        return examRegistrationId;
-    }
-
-    public void setExamRegistrationId(int examRegistrationId) {
-        this.examRegistrationId = examRegistrationId;
-    }
 }

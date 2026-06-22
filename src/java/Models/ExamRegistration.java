@@ -1,7 +1,7 @@
 package Models;
 
 public class ExamRegistration {
-    private int id;
+    private int examRegistrationId;
     private String registrationStatus;
     private String notes;
     private int profileId;
@@ -10,20 +10,20 @@ public class ExamRegistration {
     public ExamRegistration() {
     }
 
-    public ExamRegistration(int id, String registrationStatus, String notes, int profileId, int licenceId) {
-        this.id = id;
+    public ExamRegistration(int examRegistrationId, String registrationStatus, String notes, int profileId, int licenceId) {
+        this.examRegistrationId = examRegistrationId;
         this.registrationStatus = registrationStatus;
         this.notes = notes;
         this.profileId = profileId;
         this.licenceId = licenceId;
     }
 
-    public int getId() {
-        return id;
+    public int getExamRegistrationId() {
+        return examRegistrationId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setExamRegistrationId(int examRegistrationId) {
+        this.examRegistrationId = examRegistrationId;
     }
 
     public String getRegistrationStatus() {

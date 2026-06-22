@@ -1,10 +1,6 @@
 package Models;
 
-import java.sql.Timestamp;
-
-/**
- * Maps to table ExamArea. Columns: ExamAreaId, AreaName, AreaType, Capacity, Location + audit fields.
- */
+// Maps to table ExamArea. Columns: ExamAreaId, AreaName, AreaType, Capacity, Location.
 public class ExamArea {
 
     private int examAreaId;
@@ -12,17 +8,11 @@ public class ExamArea {
     private String areaType;
     private int capacity;
     private String location;
-    private Timestamp createdAt;
-    private Integer createdByUserId;
-    private Timestamp updatedAt;
-    private Integer updatedByUserId;
 
     public ExamArea() {
     }
 
-    /**
-     * Display-only code, e.g. KV-0007
-     */
+    // Display-only code, e.g. KV-0007
     public String getCode() {
         return String.format("KV-%04d", examAreaId);
     }
@@ -73,37 +63,5 @@ public class ExamArea {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Integer getCreatedByUserId() {
-        return createdByUserId;
-    }
-
-    public void setCreatedByUserId(Integer createdByUserId) {
-        this.createdByUserId = createdByUserId;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Integer getUpdatedByUserId() {
-        return updatedByUserId;
-    }
-
-    public void setUpdatedByUserId(Integer updatedByUserId) {
-        this.updatedByUserId = updatedByUserId;
     }
 }

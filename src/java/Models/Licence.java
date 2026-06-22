@@ -1,7 +1,5 @@
 package Models;
 
-import java.sql.Timestamp;
-
 public class Licence {
 
     private int licenceId;
@@ -10,11 +8,6 @@ public class Licence {
     private int minimumAge;
     private int validForYears;
     private Integer upgradeFromLicenceId;
-    private String upgradeFromClass;
-    private Timestamp createdAt;
-    private Integer createdByUserId;
-    private Timestamp updatedAt;
-    private Integer updatedByUserId;
 
     public Licence() {
     }
@@ -74,45 +67,5 @@ public class Licence {
 
     public void setUpgradeFromLicenceId(Integer upgradeFromLicenceId) {
         this.upgradeFromLicenceId = upgradeFromLicenceId;
-    }
-
-    public String getUpgradeFromClass() {
-        return upgradeFromClass;
-    }
-
-    public void setUpgradeFromClass(String upgradeFromClass) {
-        this.upgradeFromClass = upgradeFromClass;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Integer getCreatedByUserId() {
-        return createdByUserId;
-    }
-
-    public void setCreatedByUserId(Integer createdByUserId) {
-        this.createdByUserId = createdByUserId;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Integer getUpdatedByUserId() {
-        return updatedByUserId;
-    }
-
-    public void setUpdatedByUserId(Integer updatedByUserId) {
-        this.updatedByUserId = updatedByUserId;
     }
 }

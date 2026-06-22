@@ -2,35 +2,34 @@ package Models;
 
 public class User {
 
-    private int id;
+    private int userId;
     private String username;
     private String email;
     private String passwordHash;
     private int roleId;
     private Role role;
-    private boolean isActive;
-    private Integer profileId;
+    private boolean status;
     private Profile profile;
 
     public User() {
     }
 
-    public User(int id, String username, String email, String passwordHash, Role role, int roleId, boolean isActive) {
-        this.id = id;
+    public User(int userId, String username, String email, String passwordHash, Role role, int roleId, boolean status) {
+        this.userId = userId;
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
         this.roleId = roleId;
-        this.isActive = isActive;
+        this.status = status;
     }
 
-    public int getId() {
-        return id;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getUsername() {
@@ -73,24 +72,12 @@ public class User {
         this.roleId = roleId;
     }
 
-    public boolean isIsActive() {
-        return isActive;
+    public boolean isStatus() {
+        return status;
     }
 
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public Integer getProfileId() {
-        return profileId;
-    }
-
-    public void setProfileId(Integer profileId) {
-        this.profileId = profileId;
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 
     public Profile getProfile() {

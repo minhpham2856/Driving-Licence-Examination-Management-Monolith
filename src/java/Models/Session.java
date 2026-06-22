@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 
 public class Session {
 
-    private int id;
+    private int sessionId;
     private String sessionName;
     private Timestamp startTime;
     private Timestamp endTime;
@@ -14,8 +14,8 @@ public class Session {
     public Session() {
     }
 
-    public Session(int id, String sessionName, Timestamp startTime, Timestamp endTime, String status, int examId) {
-        this.id = id;
+    public Session(int sessionId, String sessionName, Timestamp startTime, Timestamp endTime, String status, int examId) {
+        this.sessionId = sessionId;
         this.sessionName = sessionName;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -23,12 +23,12 @@ public class Session {
         this.examId = examId;
     }
 
-    public int getId() {
-        return id;
+    public int getSessionId() {
+        return sessionId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setSessionId(int sessionId) {
+        this.sessionId = sessionId;
     }
 
     public String getSessionName() {

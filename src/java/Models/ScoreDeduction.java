@@ -1,61 +1,70 @@
 package Models;
 
 public class ScoreDeduction {
-
-    private int id;
-    private int practicalScoreId;
-    private String deductionReason;
-    private int deductionPoints;
-    private String note;
+    private int scoreDeductionId;
+    private String reason;
+    private double points;
+    private boolean isCritical;
+    private Integer examSectionId;
+    private int sortOrder;
 
     public ScoreDeduction() {
     }
 
-    public ScoreDeduction(int id, int practicalScoreId, String deductionReason, int deductionPoints, String note) {
-        this.id = id;
-        this.practicalScoreId = practicalScoreId;
-        this.deductionReason = deductionReason;
-        this.deductionPoints = deductionPoints;
-        this.note = note;
+    public ScoreDeduction(int scoreDeductionId, String reason, double points, boolean isCritical, Integer examSectionId, int sortOrder) {
+        this.scoreDeductionId = scoreDeductionId;
+        this.reason = reason;
+        this.points = points;
+        this.isCritical = isCritical;
+        this.examSectionId = examSectionId;
+        this.sortOrder = sortOrder;
     }
 
-    public int getId() {
-        return id;
+    public int getScoreDeductionId() {
+        return scoreDeductionId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setScoreDeductionId(int scoreDeductionId) {
+        this.scoreDeductionId = scoreDeductionId;
     }
 
-    public int getPracticalScoreId() {
-        return practicalScoreId;
+    public String getReason() {
+        return reason;
     }
 
-    public void setPracticalScoreId(int practicalScoreId) {
-        this.practicalScoreId = practicalScoreId;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
-    public String getDeductionReason() {
-        return deductionReason;
+    public double getPoints() {
+        return points;
     }
 
-    public void setDeductionReason(String deductionReason) {
-        this.deductionReason = deductionReason;
+    public void setPoints(double points) {
+        this.points = points;
     }
 
-    public int getDeductionPoints() {
-        return deductionPoints;
+    public boolean isIsCritical() {
+        return isCritical;
     }
 
-    public void setDeductionPoints(int deductionPoints) {
-        this.deductionPoints = deductionPoints;
+    public void setIsCritical(boolean isCritical) {
+        this.isCritical = isCritical;
     }
 
-    public String getNote() {
-        return note;
+    public Integer getExamSectionId() {
+        return examSectionId;
     }
 
-    public void setNote(String note) {
-        this.note = note;
+    public void setExamSectionId(Integer examSectionId) {
+        this.examSectionId = examSectionId;
+    }
+
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

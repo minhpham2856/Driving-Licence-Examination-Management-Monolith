@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 
 public class Profile {
 
-    private int id;
+    private int profileId;
     private String fullName;
     private Timestamp dateOfBirth;
     private String phoneNumber;
@@ -16,8 +16,8 @@ public class Profile {
     public Profile() {
     }
 
-    public Profile(int id, String fullName, Timestamp dateOfBirth, String phoneNumber, String sex, String governmentIdNumber, String address, int userId) {
-        this.id = id;
+    public Profile(int profileId, String fullName, Timestamp dateOfBirth, String phoneNumber, String sex, String governmentIdNumber, String address, int userId) {
+        this.profileId = profileId;
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
         this.phoneNumber = phoneNumber;
@@ -27,12 +27,12 @@ public class Profile {
         this.userId = userId;
     }
 
-    public int getId() {
-        return id;
+    public int getProfileId() {
+        return profileId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setProfileId(int profileId) {
+        this.profileId = profileId;
     }
 
     public String getFullName() {
