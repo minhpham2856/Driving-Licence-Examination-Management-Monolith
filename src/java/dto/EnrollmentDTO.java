@@ -11,10 +11,8 @@ public class EnrollmentDTO {
 
     private Integer theoryScore;
     private Integer practicalScore;
-    private Integer roadTestScore;
     private String theoryPassed;
     private String practicalPassed;
-    private String roadTestPassed;
     private int allocatedAreaId;
     private String allocatedAreaName;
     private String notes;
@@ -169,14 +167,6 @@ public class EnrollmentDTO {
         this.practicalScore = practicalScore;
     }
 
-    public Integer getRoadTestScore() {
-        return roadTestScore;
-    }
-
-    public void setRoadTestScore(Integer roadTestScore) {
-        this.roadTestScore = roadTestScore;
-    }
-
     public boolean isPresent() {
         return present || (candidate != null && !candidate.isAbsent());
     }
@@ -202,14 +192,6 @@ public class EnrollmentDTO {
 
     public void setPracticalPassed(String practicalPassed) {
         this.practicalPassed = practicalPassed;
-    }
-
-    public String getRoadTestPassed() {
-        return roadTestPassed;
-    }
-
-    public void setRoadTestPassed(String roadTestPassed) {
-        this.roadTestPassed = roadTestPassed;
     }
 
     public void setPhotoUrl(String s) {

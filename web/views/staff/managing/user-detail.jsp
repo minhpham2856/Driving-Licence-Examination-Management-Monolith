@@ -205,7 +205,7 @@
                                         <th scope="col" style="width: 140px;">Ngày đăng ký</th>
                                         <th scope="col" style="width: 150px;">Kỳ thi / Khóa thi</th>
                                         <th scope="col" style="width: 100px; text-align: center;">Hạng GPLX</th>
-                                        <th scope="col" style="text-align: center;">Điểm thi (LT | SH | ĐT)</th>
+                                        <th scope="col" style="text-align: center;">Điểm thi (LT | SH)</th>
                                         <th scope="col" style="width: 120px; text-align: center;">Kết quả chung</th>
                                     </tr>
                                 </thead>
@@ -220,7 +220,7 @@
                                                         <span class="role-badge role-badge--coi">Hạng ${hist.licenseClass}</span>
                                                     </td>
                                                     <td style="text-align: center; font-weight: 600;">
-                                                        ${hist.theoryScore} | ${hist.practiceScore} | ${hist.roadScore}
+                                                        ${hist.theoryScore} | ${hist.practiceScore}
                                                     </td>
                                                     <td style="text-align: center;">
                                                         <span class="action-badge action-badge--${hist.statusKey}">${hist.status}</span>

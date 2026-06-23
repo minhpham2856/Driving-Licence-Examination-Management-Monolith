@@ -98,7 +98,7 @@
                 <div class="stat-info">
                     <span class="stat-number">${empty practicalFees ? 0 : practicalFees}</span>
                     <span class="stat-label">Phí Thực Hành / Xe Chip</span>
-                    <span class="stat-trend stat-trend--up">Sa hình & Đường trường</span>
+                    <span class="stat-trend stat-trend--up">Thực hành trong hình</span>
                 </div>
             </div>
             <div class="stat-card">

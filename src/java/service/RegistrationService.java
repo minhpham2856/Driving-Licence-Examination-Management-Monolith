@@ -16,6 +16,8 @@ public interface RegistrationService {
 
     List<EnrollmentDTO> getCandidatesBySession(int sessionId);
 
+    List<EnrollmentDTO> searchCandidatesBySession(int sessionId, String keyword);
+
     ServiceResult<Void> updateProfile(int candidateId, String fullName, Date dateOfBirth,
             String governmentIdNumber, String phoneNumber);
 
@@ -57,6 +59,4 @@ public interface RegistrationService {
     boolean insertUser(User user);
 
     User getUserByUsername(String username);
-
-    ServiceResult<Void> updateRoadScore(int candidateId, int score, String passed);
 }

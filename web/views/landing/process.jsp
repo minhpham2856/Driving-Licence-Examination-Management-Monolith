@@ -46,7 +46,7 @@
                         <div class="step-content">
                             <span class="step-number">BƯỚC 02</span>
                             <h3 class="step-title">Học lý thuyết & Thực hành</h3>
-                            <p class="step-desc">Lớp học lý thuyết sinh động kết hợp cùng giờ thực hành lái xe trên cabin mô phỏng và đường trường thực tế.</p>
+                            <p class="step-desc">Lớp học lý thuyết sinh động kết hợp cùng giờ thực hành lái xe trên cabin mô phỏng.</p>
                         </div>
                     </div>
                     
@@ -70,7 +70,7 @@
                         <div class="step-content">
                             <span class="step-number">BƯỚC 04</span>
                             <h3 class="step-title">Thi sát hạch</h3>
-                            <p class="step-desc">Chinh phục 3 phần thi quan trọng: Lý thuyết trên máy tính, Thực hành và Đường trường.</p>
+                            <p class="step-desc">Chinh phục 2 phần thi quan trọng: Lý thuyết trên máy tính và Thực hành trong hình.</p>
                         </div>
                     </div>
                     

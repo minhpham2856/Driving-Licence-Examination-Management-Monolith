@@ -64,42 +64,36 @@ public class ExamViewServiceImpl implements ExamViewService {
     private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
     private final RegistrationService enrollmentistrationService = new RegistrationServiceImpl();
 
-    // Filters a list of candidate rows by a search query
-    @Override
-    public List<CandidateRowDTO> filterCandidateRows(List<CandidateRowDTO> rows, String searchQuery) {
-        // If query is null or blank, return original list unchanged
-        if (searchQuery == null || searchQuery.isBlank()) {
-            return rows;
-        }
-
-        String query = searchQuery.trim().toLowerCase();
-
-        // Iterate through each row and keep only those that match
-        List<CandidateRowDTO> filtered = new ArrayList<>();
-        for (CandidateRowDTO row : rows) {
-            if (contains(row, query)) {
-                filtered.add(row);
-            }
-        }
-        return filtered;
-    }
-
     // Overloaded method to load candidates for a session, defaulting to theory section
     @Override
     public List<CandidateRowDTO> loadCandidateRows(int sessionId) {
-        return loadCandidateRows(sessionId, true, null);
+        return loadCandidateRows(sessionId, true, null, null);
     }
 
-    // Load all candidates in a session
+    // Overloaded method to load all candidate rows for a session (no search)
     @Override
     public List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName) {
-        // Retrieve all candidate enrollments for the session
-        List<EnrollmentDTO> enrollments = enrollmentistrationService.getCandidatesBySession(sessionId);
+        return loadCandidateRows(sessionId, isTheory, sectionName, null);
+    }
+
+    // Loads candidate rows for a session, optionally filtered by a search keyword.
+    // When a keyword is present, only matching enrollments are loaded from the
+    // database; otherwise all enrollments for the session are loaded.
+    @Override
+    public List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName,
+            String searchQuery) {
+        // Retrieve candidate enrollments for the session, filtered at the DB when searching
+        List<EnrollmentDTO> enrollments;
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            enrollments = enrollmentistrationService.searchCandidatesBySession(sessionId, searchQuery);
+        } else {
+            enrollments = enrollmentistrationService.getCandidatesBySession(sessionId);
+        }
 
         // Load theory statistics per enrollment (correct/wrong/unanswered counts)
         Map<Integer, int[]> theoryStats = examinerDataDAO.loadTheoryStatsBySession(sessionId);
 
-        // Load section-specific scores (practical/on-road) if sectionName provided
+        // Load section-specific scores if sectionName provided
         Map<Integer, Double> sectionScores = examinerDataDAO.loadSectionScoresBySession(sessionId, sectionName);
 
         // Load pass/fail flags for each enrollment
@@ -355,7 +349,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         if (enrollment == null) {
             return null;
         }
-        return buildCandidateRow(enrollment, isTheory,
+        return buildCandidateRow(enrollment,
                 examinerDataDAO.loadTheoryStatsBySession(sessionId),
                 examinerDataDAO.loadSectionScoresBySession(sessionId, sectionName),
                 examinerDataDAO.loadPassFlagsBySession(sessionId),
@@ -629,12 +623,11 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setCorrect(stats[0]);
         row.setWrong(stats[1]);
         row.setUnanswered(stats[2]);
-        // Section score (practical/on-road) if available
+        // Section score if available
         Double examScore = sectionScores.get(enrollmentId);
         row.setExamScore(examScore != null ? examScore.intValue() : null);
         row.setScoreTheory(stats[0] > 0 ? stats[0] : null);
         row.setScorePractical(null);
-        row.setScoreOnRoad(null);
         // Pass flag and result label
         Boolean passed = passFlags.get(enrollmentId);
         if (passed == null) {
@@ -655,14 +648,6 @@ public class ExamViewServiceImpl implements ExamViewService {
     private static CandidateStatus sectionStatusOf(EnrollmentDTO enrollment) {
         CandidateStatus status = CandidateStatus.fromValue(enrollment.getSectionStatus());
         return status != null ? status : CandidateStatus.NOT_STARTED;
-    }
-
-    // Checks if a candidate row matches the search query (Candidate number, name, govId).
-    private static boolean contains(CandidateRowDTO row, String query) {
-        return String.valueOf(row.getCandidateNumber()).contains(query)
-                || text(row.getFullName()).contains(query)
-                || text(row.getGovernmentId()).contains(query);
-
     }
 
     // Formats a Date to dd/MM/yyyy

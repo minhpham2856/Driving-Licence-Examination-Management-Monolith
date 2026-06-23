@@ -17,7 +17,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
 
     private static final String BASE_SELECT =
             "SELECT CandidateId, CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, "
-            + "GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeRoad, TakeNo, "
+            + "GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeNo, "
             + "ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended FROM Candidate";
 
     @Override
@@ -46,9 +46,9 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
     @Override
     public int insert(Candidate candidate) {
         String sql = "INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, "
-                + "GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeRoad, TakeNo, "
+                + "GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeNo, "
                 + "ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, candidate.getCandidateNumber());
             ps.setString(2, candidate.getFullName());
@@ -67,16 +67,11 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
             } else {
                 ps.setNull(9, Types.BIT);
             }
-            if (candidate.getTakeRoad() != null) {
-                ps.setBoolean(10, candidate.getTakeRoad());
-            } else {
-                ps.setNull(10, Types.BIT);
-            }
-            ps.setInt(11, candidate.getTakeNo());
-            ps.setString(12, candidate.getReasonForTaking());
-            ps.setString(13, candidate.getPhotoImageUrl());
-            ps.setBoolean(14, candidate.isAbsent());
-            ps.setBoolean(15, candidate.isSuspended());
+            ps.setInt(10, candidate.getTakeNo());
+            ps.setString(11, candidate.getReasonForTaking());
+            ps.setString(12, candidate.getPhotoImageUrl());
+            ps.setBoolean(13, candidate.isAbsent());
+            ps.setBoolean(14, candidate.isSuspended());
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) {
@@ -93,7 +88,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
     @Override
     public boolean update(Candidate candidate) {
         String sql = "UPDATE Candidate SET CandidateNumber=?, FullName=?, DateOfBirth=?, PhoneNumber=?, Sex=?, "
-                + "GovernmentIdNumber=?, Address=?, TakeTheory=?, TakeLayout=?, TakeRoad=?, TakeNo=?, "
+                + "GovernmentIdNumber=?, Address=?, TakeTheory=?, TakeLayout=?, TakeNo=?, "
                 + "ReasonForTaking=?, PhotoImageUrl=?, IsAbsent=?, IsSuspended=? WHERE CandidateId=?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, candidate.getCandidateNumber());
@@ -113,17 +108,12 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
             } else {
                 ps.setNull(9, Types.BIT);
             }
-            if (candidate.getTakeRoad() != null) {
-                ps.setBoolean(10, candidate.getTakeRoad());
-            } else {
-                ps.setNull(10, Types.BIT);
-            }
-            ps.setInt(11, candidate.getTakeNo());
-            ps.setString(12, candidate.getReasonForTaking());
-            ps.setString(13, candidate.getPhotoImageUrl());
-            ps.setBoolean(14, candidate.isAbsent());
-            ps.setBoolean(15, candidate.isSuspended());
-            ps.setInt(16, candidate.getCandidateId());
+            ps.setInt(10, candidate.getTakeNo());
+            ps.setString(11, candidate.getReasonForTaking());
+            ps.setString(12, candidate.getPhotoImageUrl());
+            ps.setBoolean(13, candidate.isAbsent());
+            ps.setBoolean(14, candidate.isSuspended());
+            ps.setInt(15, candidate.getCandidateId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -214,7 +204,6 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         candidate.setAddress(rs.getString("Address"));
         candidate.setTakeTheory((Boolean) rs.getObject("TakeTheory"));
         candidate.setTakeLayout((Boolean) rs.getObject("TakeLayout"));
-        candidate.setTakeRoad((Boolean) rs.getObject("TakeRoad"));
         candidate.setTakeNo(rs.getInt("TakeNo"));
         candidate.setReasonForTaking(rs.getString("ReasonForTaking"));
         candidate.setPhotoImageUrl(rs.getString("PhotoImageUrl"));

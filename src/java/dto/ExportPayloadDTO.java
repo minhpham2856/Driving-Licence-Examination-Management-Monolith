@@ -2,8 +2,8 @@ package dto;
 
 import java.util.List;
 import java.util.Map;
-// Immutable record holding all data required for an examiner export operation.
 
+// Immutable record holding all data required for an examiner export operation.
 public record ExportPayloadDTO(
         // Name displayed on the Excel worksheet tab (e.g. "Danh sach thi sinh")
         String excelSheetName,

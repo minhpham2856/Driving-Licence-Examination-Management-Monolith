@@ -693,11 +693,7 @@ public class CallServiceImpl implements CallService {
         if (current == Lane.LY_THUYET) {
             if (Boolean.TRUE.equals(candidate.getTakeLayout())) {
                 ExamQueue.offer(Lane.THUC_HANH_TRONG_HINH, sbd);
-            } else if (Boolean.TRUE.equals(candidate.getTakeRoad())) {
-                ExamQueue.offer(Lane.THUC_HANH_TREN_DUONG, sbd);
             }
-        } else if (current == Lane.THUC_HANH_TRONG_HINH && Boolean.TRUE.equals(candidate.getTakeRoad())) {
-            ExamQueue.offer(Lane.THUC_HANH_TREN_DUONG, sbd);
         }
     }
 

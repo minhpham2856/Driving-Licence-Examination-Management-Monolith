@@ -3,8 +3,7 @@ package enums;
 public enum ExamAreaType {
     PROCEDURE_ROOM("Phòng thủ tục"),
     EXAM_ROOM("Phòng thi"),
-    PRACTICE_YARD("Sân thi"),
-    ROAD_COURSE("Đường thi");
+    PRACTICE_YARD("Sân thi");
 
     private final String value;
 

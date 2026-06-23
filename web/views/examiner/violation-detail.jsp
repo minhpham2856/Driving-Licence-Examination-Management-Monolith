@@ -5,14 +5,7 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Chi tiết vi phạm / đình chỉ" />
 <c:set var="backUrl" value="${ctx}/views/examiner/violations" />
-<c:choose>
-    <c:when test="${not empty candidate}">
-        <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=violations&amp;sbd=${candidate.sbd}" scope="request" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=violations" scope="request" />
-    </c:otherwise>
-</c:choose>
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=violations" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>

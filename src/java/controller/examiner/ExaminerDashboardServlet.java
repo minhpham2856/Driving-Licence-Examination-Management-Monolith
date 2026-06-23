@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.ExamViewService;
 import service.impl.ExamViewServiceImpl;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import static util.FormatUtil.text;
 
@@ -30,19 +29,17 @@ public class ExaminerDashboardServlet extends HttpServlet {
         SectionType section = (SectionType) request.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION);
         boolean isTheory = section == THEORY;
         String sectionName = section.getValue();
-        
+
         // Read optional search and candidate selection parameters
         Integer candidateNumber = getCandidateNumber(request);
         String search = request.getParameter("q");
 
-        // Load all candidates for the current session
+        // Load candidate rows for the current session, filtered at the database when searching
         List<CandidateRowDTO> candidates
-                = examViewService.loadCandidateRows(sessionId, isTheory, sectionName);
+                = examViewService.loadCandidateRows(sessionId, isTheory, sectionName, text(search));
 
-        // Apply search filter when a keyword is provided
+        // Flag that a search is active so the view can show the query and a clear button
         if (text(search) != null) {
-            candidates = filterCandidates(candidates, search.trim());
-
             request.setAttribute("searchActive", true);
             request.setAttribute("searchQuery", search.trim());
         }
@@ -71,8 +68,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
 
     // Parse the candidate number from the request
     private Integer getCandidateNumber(HttpServletRequest request) {
-
-        String value = request.getParameter("sbd");
+        String value = request.getParameter("candidateNumber");
 
         if (text(value) == null) {
             return null;
@@ -83,32 +79,5 @@ public class ExaminerDashboardServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-
-    // Filter candidates by SBD, full name or government ID
-    private List<CandidateRowDTO> filterCandidates(List<CandidateRowDTO> candidates, String keyword) {
-
-        String query = keyword.toLowerCase();
-        List<CandidateRowDTO> filtered = new ArrayList<>();
-
-        for (CandidateRowDTO row : candidates) {
-
-            String sbd = String.valueOf(row.getCandidateNumber()).toLowerCase();
-            String name = row.getFullName() == null
-                    ? ""
-                    : row.getFullName().toLowerCase();
-            String governmentId = row.getGovernmentId() == null
-                    ? ""
-                    : row.getGovernmentId().toLowerCase();
-
-            // Match against SBD, candidate name or government ID
-            if (sbd.contains(query)
-                    || name.contains(query)
-                    || governmentId.contains(query)) {
-                filtered.add(row);
-            }
-        }
-
-        return filtered;
     }
 }

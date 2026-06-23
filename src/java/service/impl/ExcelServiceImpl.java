@@ -1,26 +1,30 @@
 package service.impl;
 
-import dto.*;
 import dto.CandidateRowDTO;
-import dto.ExamStatsDTO;
-import model.*;
-import model.ExaminerSchedule;
-import dao.SessionDAO;
-import dao.impl.SessionDAOImpl;
-import dao.ExamDAO;
-import dao.impl.ExamDAOImpl;
-import dao.DeductionRecordViewDAO;
-import dao.impl.DeductionRecordViewDAOImpl;
-import model.Audit;
 import dto.EnrollmentDTO;
-import service.RegistrationService;
-import service.DocumentService;
-import service.XmlService;
+import dto.ExamStatsDTO;
+import dto.ExportContextDTO;
+import dto.ExportPayloadDTO;
+import dto.XmlExportDocument;
 import dto.XmlExportTable;
-import service.AuditService;
 import enums.DocumentFormat;
+import model.Audit;
+import model.Exam;
+import model.ExaminerSchedule;
+import model.Session;
+import dao.DeductionRecordViewDAO;
+import dao.ExamDAO;
+import dao.SessionDAO;
+import dao.impl.DeductionRecordViewDAOImpl;
+import dao.impl.ExamDAOImpl;
+import dao.impl.SessionDAOImpl;
+import service.AuditService;
+import service.DocumentService;
+import service.ExamViewService;
+import service.RegistrationService;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,13 +33,23 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import service.ExamViewService;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class DocumentServiceImpl implements DocumentService {
+public class ExcelServiceImpl implements DocumentService {
 
-    private final AuditService AuditService = new AuditServiceImpl();
-    private final XmlService xmlService = new XmlServiceImpl();
-    private final DocxServiceImpl docxService = new DocxServiceImpl();
+    private final AuditService auditService = new AuditServiceImpl();
+    private final SessionDAO sessionDAO = new SessionDAOImpl();
+    private final ExamDAO examDAO = new ExamDAOImpl();
+    private final DeductionRecordViewDAO deductionRecordViewDAO = new DeductionRecordViewDAOImpl();
+    private final ExamViewService viewDataService = new ExamViewServiceImpl();
+    private final RegistrationService registrationService = new RegistrationServiceImpl();
+
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
     private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("HH:mm");
     private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -44,23 +58,18 @@ public class DocumentServiceImpl implements DocumentService {
             "stt", "sbd", "hoVaTen", "ngaySinh", "gioiTinh", "cccd", "email", "soDienThoai",
             "diaChi", "hangGplx", "lyDoThi", "ngayThi", "vangThi", "tinhTrangThi",
             "dung", "sai", "khongTraLoi", "diemLyThuyet", "ketQuaLt",
-            "diemThucHanh", "diemDuongTruong");
+            "diemThucHanh");
     private static final List<String> CANDIDATE_HEADERS = List.of(
             "STT", "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
             "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi",
             "Đúng", "Sai", "Không TL", "Điểm lý thuyết", "Kết quả LT",
-            "Điểm thực hành", "Điểm đường trường");
-    private final ExamViewService viewDataService = new ExamViewServiceImpl();
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
-    private final ExamDAO examDAO = new ExamDAOImpl();
-    private final DeductionRecordViewDAO deductionRecordViewDAO = new DeductionRecordViewDAOImpl();
+            "Điểm thực hành");
 
     private Map<String, Object> getSessionExportMeta(int sessionId) {
         Map<String, Object> meta = new LinkedHashMap<>();
         Session s = sessionDAO.getById(sessionId);
         if (s != null) {
-            meta.put("shiftLabel", ( s.isMorningSession()));
-            /* meta.put("examDate", s.getExamDate().toString()); */
+            meta.put("shiftLabel", (s.isMorningSession()));
             meta.put("startTime", s.getStartTime() != null ? s.getStartTime().toString() : "");
             meta.put("endTime", s.getEndTime() != null ? s.getEndTime().toString() : "");
             Exam e = examDAO.getById(s.getExamId());
@@ -68,7 +77,6 @@ public class DocumentServiceImpl implements DocumentService {
         }
         return meta;
     }
-    private final RegistrationService registrationService = new RegistrationServiceImpl();
 
     public ExportPayloadDTO buildCandidatesExport(ExportContextDTO ctx) {
         List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
@@ -96,8 +104,7 @@ public class DocumentServiceImpl implements DocumentService {
                     c.getUnanswered(),
                     c.getScoreTheory(),
                     c.getResultLabel(),
-                    c.getScorePractical(),
-                    c.getScoreOnRoad()));
+                    c.getScorePractical()));
         }
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
@@ -178,8 +185,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     public ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx, String sbdFilterRaw) {
         Map<String, Object> meta = getSessionExportMeta(ctx.sessionId());
-        List<Audit> auditViolations = AuditService.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
-        Map<Long, String> changerNames = AuditService.loadChangerNames(auditViolations);
+        List<Audit> auditViolations = auditService.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
+        Map<Long, String> changerNames = auditService.loadChangerNames(auditViolations);
         List<Map<String, Object>> scoreViolations = deductionRecordViewDAO.getViolationRowsForSession(ctx.sessionId());
         Integer sbdFilter = parseSbdFilter(sbdFilterRaw);
         if (sbdFilter != null) {
@@ -194,7 +201,7 @@ public class DocumentServiceImpl implements DocumentService {
             Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
             List<Audit> filteredAudits = new ArrayList<>();
             for (Audit log : auditViolations) {
-                if (sbdText.equals(AuditService.extractSbdForDisplay(log, sbdByRecordId))) {
+                if (sbdText.equals(auditService.extractSbdForDisplay(log, sbdByRecordId))) {
                     filteredAudits.add(log);
                 }
             }
@@ -248,13 +255,13 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     public ExportPayloadDTO buildAuditExport(ExportContextDTO ctx, String searchQuery) {
-        List<Audit> logs = AuditService.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
-        Map<Long, String> changerNames = AuditService.loadChangerNames(logs);
+        List<Audit> logs = auditService.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
+        Map<Long, String> changerNames = auditService.loadChangerNames(logs);
         Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
         List<List<Object>> rows = new ArrayList<>();
         for (Audit log : logs) {
             String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
-            for (Map<String, Object> viewRow : AuditService.toViewRows(log, changerName, sbdByRecordId)) {
+            for (Map<String, Object> viewRow : auditService.toViewRows(log, changerName, sbdByRecordId)) {
                 String time = log.getCreatedAt() != null ? AUDIT_DATE_FMT.format(log.getCreatedAt()) : "";
                 Object reason = viewRow.get("reason");
                 rows.add(Arrays.asList(
@@ -476,44 +483,6 @@ public class DocumentServiceImpl implements DocumentService {
         return null;
     }
 
-    @Override
-    public void export(ExportContextDTO ctx, String documentType, DocumentFormat format,
-            String searchQuery, OutputStream out) throws IOException {
-        ExportPayloadDTO payload = buildPayload(ctx, documentType, searchQuery);
-        switch (format) {
-            case EXCEL -> {
-                if (payload.excelPreambleRows() != null) {
-                    xmlService.exportToExcel(payload.excelSheetName(), payload.excelPreambleRows(),
-                            payload.primaryHeaders(), payload.primaryRows(), out);
-                } else {
-                    xmlService.exportToExcel(payload.excelSheetName(), payload.primaryHeaders(),
-                            payload.primaryRows(), out);
-                }
-            }
-            case XML ->
-                xmlService.exportToXml(payload.toXmlDocument(), out);
-            case DOCX ->
-                docxService.renderTableExport(payload, out);
-            default ->
-                throw new IOException("Định dạng xuất không được hỗ trợ.");
-        }
-    }
-
-    @Override
-    public void print(ExportContextDTO ctx, String documentType, int sbd, OutputStream out) throws IOException {
-        String normalized = documentType == null ? "" : documentType.trim().toUpperCase();
-        switch (normalized) {
-            case "BB1", "SIGNATURE", "SIGNATURE_FORM" ->
-                docxService.renderBb1Theory(ctx, sbd, out);
-            case "BB2", "LAYOUT", "SCORE_SHEET" ->
-                docxService.renderBb2Layout(ctx, sbd, out);
-            case "BB3", "ROAD" ->
-                docxService.renderBb3Road(ctx, sbd, out);
-            default ->
-                throw new IOException("Loại văn bản in không được hỗ trợ: " + documentType);
-        }
-    }
-
     private ExportPayloadDTO buildPayload(ExportContextDTO ctx, String documentType, String searchQuery) {
         String normalized = documentType == null ? "" : documentType.trim().toLowerCase();
         return switch (normalized) {
@@ -530,5 +499,214 @@ public class DocumentServiceImpl implements DocumentService {
             default ->
                 throw new IllegalArgumentException("Loại tài liệu xuất không được hỗ trợ: " + documentType);
         };
+    }
+
+    // === Rendering (from XmlServiceImpl) ===
+    private void exportToExcel(String sheetName, List<String> headers, List<List<Object>> rows, OutputStream out)
+            throws IOException {
+        exportToExcel(sheetName, null, headers, rows, out);
+    }
+
+    private void exportToExcel(String sheetName, List<List<Object>> preambleRows, List<String> headers,
+            List<List<Object>> rows, OutputStream out) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet((sheetName == null || sheetName.isBlank()) ? "newSheet" : sheetName);
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            CellStyle dateStyle = workbook.createCellStyle();
+            dateStyle.setDataFormat(workbook.getCreationHelper().createDataFormat().getFormat("dd/MM/yyyy"));
+            int rowIndex = 0;
+            if (preambleRows != null) {
+                for (List<Object> preambleRow : preambleRows) {
+                    Row row = sheet.createRow(rowIndex++);
+                    if (preambleRow == null) {
+                        continue;
+                    }
+                    for (int col = 0; col < preambleRow.size(); col++) {
+                        writeCell(row.createCell(col), preambleRow.get(col), dateStyle);
+                    }
+                }
+            }
+            int headerColCount = 0;
+            if (headers != null && !headers.isEmpty()) {
+                Row headerRow = sheet.createRow(rowIndex++);
+                headerColCount = headers.size();
+                for (int col = 0; col < headers.size(); col++) {
+                    Cell headerCell = headerRow.createCell(col);
+                    headerCell.setCellValue(headers.get(col));
+                    headerCell.setCellStyle(headerStyle);
+                }
+            }
+            if (rows != null) {
+                for (List<Object> rowData : rows) {
+                    Row row = sheet.createRow(rowIndex++);
+                    for (int col = 0; col < rowData.size(); col++) {
+                        writeCell(row.createCell(col), rowData.get(col), dateStyle);
+                    }
+                    headerColCount = Math.max(headerColCount, rowData.size());
+                }
+            }
+            for (int col = 0; col < headerColCount; col++) {
+                sheet.autoSizeColumn(col);
+            }
+            workbook.write(out);
+        }
+    }
+
+    private void writeCell(Cell cell, Object value, CellStyle dateStyle) {
+        if (value == null) {
+            cell.setBlank();
+        } else if (value instanceof Number) {
+            cell.setCellValue(((Number) value).doubleValue());
+        } else if (value instanceof Boolean) {
+            cell.setCellValue((Boolean) value);
+        } else if (value instanceof Date) {
+            cell.setCellValue((Date) value);
+            cell.setCellStyle(dateStyle);
+        } else {
+            cell.setCellValue(value.toString());
+        }
+    }
+
+    private void exportToXml(XmlExportDocument document, OutputStream out) throws IOException {
+        if (document == null || document.rootElement() == null || document.rootElement().isBlank()) {
+            throw new IllegalArgumentException("XML root element is required.");
+        }
+        StringBuilder sb = new StringBuilder(4096);
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        appendOpenTag(sb, document.rootElement());
+        sb.append('\n');
+        if (document.metadata() != null && !document.metadata().isEmpty()) {
+            appendMetadata(sb, document.metadata(), "  ");
+        }
+        if (document.tables() != null) {
+            for (XmlExportTable table : document.tables()) {
+                appendTable(sb, table, "  ");
+            }
+        }
+        appendCloseTag(sb, document.rootElement());
+        sb.append('\n');
+        out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void appendMetadata(StringBuilder sb, Map<String, Object> metadata, String indent) {
+        for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+            appendValueElement(sb, entry.getKey(), entry.getValue(), indent);
+        }
+    }
+
+    private void appendValueElement(StringBuilder sb, String elementName, Object value, String indent) {
+        if (value instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> nestedMap = (Map<String, Object>) value;
+            appendOpenTag(sb, indent, elementName);
+            sb.append('\n');
+            appendMetadata(sb, nestedMap, indent + "  ");
+            appendCloseTag(sb, indent, elementName);
+            sb.append('\n');
+            return;
+        }
+        sb.append(indent).append('<').append(elementName).append('>');
+        sb.append(escapeXml(formatXmlValue(value)));
+        appendCloseTag(sb, elementName);
+        sb.append('\n');
+    }
+
+    private void appendTable(StringBuilder sb, XmlExportTable table, String indent) {
+        if (table == null || table.listElement() == null || table.listElement().isBlank()) {
+            return;
+        }
+        appendOpenTag(sb, indent, table.listElement());
+        sb.append('\n');
+        String itemIndent = indent + "  ";
+        String fieldIndent = itemIndent + "  ";
+        List<String> fields = table.fieldElements();
+        List<List<Object>> rows = table.rows();
+        if (rows != null) {
+            for (List<Object> row : rows) {
+                appendOpenTag(sb, itemIndent, table.itemElement());
+                sb.append('\n');
+                if (fields != null && row != null) {
+                    int count = Math.min(fields.size(), row.size());
+                    for (int i = 0; i < count; i++) {
+                        appendValueElement(sb, fields.get(i), row.get(i), fieldIndent);
+                    }
+                }
+                appendCloseTag(sb, itemIndent, table.itemElement());
+                sb.append('\n');
+            }
+        }
+        appendCloseTag(sb, indent, table.listElement());
+        sb.append('\n');
+    }
+
+    private static String formatXmlValue(Object value) {
+        if (value == null) {
+            return "";
+        }
+        if (value instanceof Date) {
+            Date date = (Date) value;
+            return new SimpleDateFormat("dd/MM/yyyy").format(date);
+        }
+        return value.toString();
+    }
+
+    private static String escapeXml(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+
+    private static void appendOpenTag(StringBuilder sb, String tag) {
+        sb.append('<').append(tag).append('>');
+    }
+
+    private static void appendOpenTag(StringBuilder sb, String indent, String tag) {
+        sb.append(indent).append('<').append(tag).append('>');
+    }
+
+    private static void appendCloseTag(StringBuilder sb, String tag) {
+        sb.append("</").append(tag).append('>');
+    }
+
+    private static void appendCloseTag(StringBuilder sb, String indent, String tag) {
+        sb.append(indent).append("</").append(tag).append('>');
+    }
+
+    // === DocumentService ===
+    @Override
+    public void export(ExportContextDTO ctx, String documentType, DocumentFormat format,
+            String searchQuery, OutputStream out) throws IOException {
+        ExportPayloadDTO payload = buildPayload(ctx, documentType, searchQuery);
+        switch (format) {
+            case EXCEL -> {
+                if (payload.excelPreambleRows() != null) {
+                    exportToExcel(payload.excelSheetName(), payload.excelPreambleRows(),
+                            payload.primaryHeaders(), payload.primaryRows(), out);
+                } else {
+                    exportToExcel(payload.excelSheetName(), payload.primaryHeaders(),
+                            payload.primaryRows(), out);
+                }
+            }
+            case XML ->
+                exportToXml(payload.toXmlDocument(), out);
+            case DOCX ->
+                throw new IOException("ExcelService không hỗ trợ xuất DOCX.");
+            default ->
+                throw new IOException("Định dạng xuất không được hỗ trợ.");
+        }
+    }
+
+    @Override
+    public void print(ExportContextDTO ctx, String documentType, int sbd, OutputStream out) throws IOException {
+        throw new UnsupportedOperationException("ExcelService không hỗ trợ in tài liệu.");
     }
 }
