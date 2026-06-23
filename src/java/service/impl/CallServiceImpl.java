@@ -595,6 +595,36 @@ public class CallServiceImpl implements CallService {
         return ServiceResult.ok(null);
     }
 
+    @Override
+    public ServiceResult<Void> recordProcedureCall(int sessionId, int sbd, String result, String callDestination,
+            Integer actionUserId) {
+        if (sbd <= 0) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
+        }
+        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        if (reg == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+        }
+        Audit audit = new Audit();
+        audit.setUserId(actionUserId != null ? actionUserId : 0);
+        audit.setAction("CALL");
+        audit.setEntityName("Candidate");
+        audit.setEntityId(sessionId + "-" + sbd);
+        String detail = "calledTo=" + (callDestination != null ? callDestination : "")
+                + ";result=" + (result != null ? result : "");
+        audit.setReason(detail);
+        audit.setNewValue(detail);
+        int insertedId = auditDAO.insert(audit);
+        if (insertedId <= 0) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi.");
+        }
+        if (actionUserId != null) {
+            auditService.logAction(actionUserId, AuditAction.CREATE, AuditEntity.CANDIDATE_CALL,
+                    "Gọi thủ tục SBD " + sbd + ": " + result, reg.getId());
+        }
+        return ServiceResult.ok(null);
+    }
+
     private boolean isDeviceInSession(int sessionId, int deviceId) {
         List<Integer> areaIds = sessionDAO.getExamAreaIds(sessionId);
         for (ExamDevice device : deviceDAO.getAllByAreaIds(areaIds)) {

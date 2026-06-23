@@ -70,4 +70,8 @@ public interface CallService {
 
     ServiceResult<Void> completeCandidateSection(int sessionId, int sbd, Integer actionUserId,
             Boolean sectionPassedHint);
+
+    // Records a procedure-desk call event (replaces branch CandidateCallDAO.insert).
+    ServiceResult<Void> recordProcedureCall(int sessionId, int sbd, String result, String callDestination,
+            Integer actionUserId);
 }

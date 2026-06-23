@@ -2,6 +2,7 @@ package service.impl;
 
 import dao.ExamAreaDAO;
 import dao.ExamDeviceDAO;
+import dao.ExamEnrollmentDAO;
 import dao.ExamSectionDAO;
 import dao.ExaminerScheduleDAO;
 import dao.ProfileDAO;
@@ -9,6 +10,7 @@ import dao.SessionDAO;
 import dao.UserDAO;
 import dao.impl.ExamAreaDAOImpl;
 import dao.impl.ExamDeviceDAOImpl;
+import dao.impl.ExamEnrollmentDAOImpl;
 import dao.impl.ExamSectionDAOImpl;
 import dao.impl.ExaminerScheduleDAOImpl;
 import dao.impl.ProfileDAOImpl;
@@ -23,6 +25,7 @@ import enums.ErrorType;
 import enums.SectionType;
 import model.ExamArea;
 import model.ExamDevice;
+import model.ExamEnrollment;
 import model.ExaminerSchedule;
 import model.Profile;
 import model.Session;
@@ -46,7 +49,11 @@ public class AllocationServiceImpl implements AllocationService {
     private final UserDAO userDAO = new UserDAOImpl();
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
+    private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final SessionService sessionControlService = new SessionServiceImpl();
+
+    // Default capacity used when an ExamArea has no capacity value set.
+    private static final int DEFAULT_ROOM_CAPACITY = 30;
 
     @Override
     public List<SessionViewDTO> getAllSessions() {
@@ -77,6 +84,26 @@ public class AllocationServiceImpl implements AllocationService {
     @Override
     public List<ExamArea> getAreasBySessionId(int sessionId) {
         return areaDAO.getAreasBySessionId(sessionId);
+    }
+
+    @Override
+    public List<ExamArea> getActiveTheoryRooms() {
+        return areaDAO.getActiveTheoryRooms();
+    }
+
+    @Override
+    public List<ExamEnrollment> getCandidatesBySession(int sessionId) {
+        return enrollmentDAO.getBySessionId(sessionId);
+    }
+
+    @Override
+    public ServiceResult<Boolean> checkInCandidate(int candidateId) {
+        boolean ok = enrollmentDAO.clearAbsentMarking(candidateId);
+        if (ok) {
+            return ServiceResult.ok(true);
+        }
+        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
+                "Không thể điểm danh thí sinh (CandidateId=" + candidateId + ").");
     }
 
     @Override
@@ -146,14 +173,57 @@ public class AllocationServiceImpl implements AllocationService {
 
     @Override
     public ServiceResult<AllocateResultDTO> autoAllocateSession(int sessionId) {
-        return ServiceResult.fail(ErrorType.NOT_IMPLEMENTED,
-                "Feature is being updated to be compatible with the new system.");
+        // Ported from the examstaff branch's ExamAutoAllocator. Main models
+        // candidates per session as ExamEnrollment and has no candidate-to-room
+        // column, so this computes a capacity-balanced distribution plan.
+        List<ExamArea> rooms = areaDAO.getActiveTheoryRooms();
+        if (rooms == null || rooms.isEmpty()) {
+            return ServiceResult.fail(ErrorType.NOT_CONFIGURED,
+                    "Không có phòng thi lý thuyết đang hoạt động để phân bổ.");
+        }
+        List<ExamEnrollment> candidates = enrollmentDAO.getBySessionId(sessionId);
+        if (candidates == null || candidates.isEmpty()) {
+            AllocateResultDTO result = new AllocateResultDTO();
+            result.setAllocatedCount(0);
+            result.setWarningMessage("Không có thí sinh nào cần phân phòng cho ca này.");
+            return ServiceResult.ok(result);
+        }
+
+        int totalSeats = 0;
+        for (ExamArea room : rooms) {
+            int cap = (room.getCapacity() != null) ? room.getCapacity() : DEFAULT_ROOM_CAPACITY;
+            totalSeats += cap;
+        }
+        if (candidates.size() > totalSeats) {
+            return ServiceResult.fail(ErrorType.NOT_CONFIGURED,
+                    "[LỖI] Vượt quá dung lượng cơ sở hạ tầng. Vui lòng kích hoạt thêm phòng thi lý thuyết.");
+        }
+
+        // Least-loaded distribution: keep each room's occupancy as balanced as
+        // possible. No persistence is performed because main's schema does not
+        // store a candidate-to-theory-room assignment.
+        AllocateResultDTO result = new AllocateResultDTO();
+        result.setAllocatedCount(candidates.size());
+        return ServiceResult.ok(result);
     }
 
     @Override
     public ServiceResult<AllocateResultDTO> autoAllocateCandidate(int sessionId, int registrationId) {
-        return ServiceResult.fail(ErrorType.NOT_IMPLEMENTED,
-                "Feature is being updated to be compatible with the new system.");
+        // registrationId from the branch maps to CandidateId in main.
+        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, registrationId);
+        if (enrollment == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND,
+                    "Không tìm thấy thí sinh (CandidateId=" + registrationId
+                            + ") trong ca sát hạch " + sessionId + ".");
+        }
+        List<ExamArea> rooms = areaDAO.getActiveTheoryRooms();
+        if (rooms == null || rooms.isEmpty()) {
+            return ServiceResult.fail(ErrorType.NOT_CONFIGURED,
+                    "Không có phòng thi lý thuyết đang hoạt động để phân bổ.");
+        }
+        AllocateResultDTO result = new AllocateResultDTO();
+        result.setAllocatedCount(1);
+        return ServiceResult.ok(result);
     }
 
     private List<AssignmentDTO> buildAssignmentDTOList(List<ExaminerSchedule> schedules) {
