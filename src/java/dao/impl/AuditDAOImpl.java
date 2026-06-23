@@ -144,6 +144,32 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         });
     }
 
+    @Override
+    public List<Audit> getLogsByUser(int userId, String dateFilter) {
+        StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE UserId = ?");
+        Timestamp start = null;
+        Timestamp end = null;
+        if (dateFilter != null && !dateFilter.trim().isEmpty()) {
+            try {
+                java.sql.Date day = java.sql.Date.valueOf(dateFilter.trim());
+                start = new Timestamp(day.getTime());
+                end = new Timestamp(day.getTime() + (24L * 60 * 60 * 1000) - 1);
+                sql.append(" AND CreatedAt >= ? AND CreatedAt <= ?");
+            } catch (IllegalArgumentException ex) {
+                // Invalid date format; fall back to no date filter.
+            }
+        }
+        sql.append(" ORDER BY CreatedAt DESC");
+        return queryList(sql.toString(), ps -> {
+            int idx = 1;
+            ps.setInt(idx++, userId);
+            if (start != null) {
+                ps.setTimestamp(idx++, start);
+                ps.setTimestamp(idx, end);
+            }
+        });
+    }
+
     private List<Audit> queryList(String sql, StatementBinder binder) {
         List<Audit> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

@@ -277,6 +277,12 @@ public class AllocationServiceImpl implements AllocationService {
                     }
                 }
             }
+            // Populate the session label so the day-summary view can show which
+            // session an assignment belongs to without re-querying.
+            SessionViewDTO labelView = sessionControlService.getSessionById(session.getSessionId());
+            if (labelView != null && labelView.getSessionLabel() != null) {
+                slot.setsessionLabel(labelView.getSessionLabel());
+            }
         }
         User examiner = users.get(schedule.getExaminerId());
         if (examiner != null) {

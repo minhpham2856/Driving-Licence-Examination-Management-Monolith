@@ -18,6 +18,8 @@ import dao.impl.TheoryPaperDAOImpl;
 import dto.EnrollmentDTO;
 import dto.CandidateRowDTO;
 import dto.ExamStatsDTO;
+import dto.ExamReportDTO;
+import dto.InfractionDTO;
 import model.Audit;
 import model.CandidateAnswer;
 import model.Exam;
@@ -43,6 +45,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import dao.ExaminerViewDAO;
+import dao.DeductionRecordDAO;
+import dao.impl.DeductionRecordDAOImpl;
 import static util.FormatUtil.text;
 
 // Service implementation to load examminer realted data
@@ -63,6 +67,7 @@ public class ExamViewServiceImpl implements ExamViewService {
     private final ExamAreaDAO examAreaDAO = new ExamAreaDAOImpl();
     private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
     private final RegistrationService enrollmentistrationService = new RegistrationServiceImpl();
+    private final DeductionRecordDAO deductionRecordDAO = new DeductionRecordDAOImpl();
 
     // Overloaded method to load candidates for a session, defaulting to theory section
     @Override
@@ -160,6 +165,102 @@ public class ExamViewServiceImpl implements ExamViewService {
         summary.setFailed(failed);
         summary.setExamCode(exam != null ? exam.getExamCode() : "-");
         return summary;
+    }
+
+    // Builds the end-of-day report for a session: result tallies, per-licence
+    // breakdown, candidate list, and top deduction reasons.
+    @Override
+    public ExamReportDTO buildExamReport(int sessionId) {
+        List<CandidateRowDTO> rows = loadCandidateRows(sessionId);
+        ExamReportDTO report = new ExamReportDTO();
+        int total = 0;
+        int done = 0;
+        int testing = 0;
+        int pending = 0;
+        int passed = 0;
+        int failed = 0;
+        int a1Count = 0;
+        int a1Passed = 0;
+        int a1Failed = 0;
+        int b2Count = 0;
+        int b2Passed = 0;
+        int b2Failed = 0;
+        for (CandidateRowDTO row : rows) {
+            total++;
+            if (row.getSectionStatus() != null) {
+                switch (row.getSectionStatus()) {
+                    case COMPLETED ->
+                        done++;
+                    case IN_PROGRESS, AWAITING_SIGNATURE ->
+                        testing++;
+                    case NOT_STARTED ->
+                        pending++;
+                }
+            }
+            boolean isA1 = "A1".equalsIgnoreCase(row.getLicenceClass())
+                    || "A2".equalsIgnoreCase(row.getLicenceClass());
+            boolean isB2 = "B2".equalsIgnoreCase(row.getLicenceClass());
+            if (isA1) {
+                a1Count++;
+            }
+            if (isB2) {
+                b2Count++;
+            }
+            if (row.isPassed()) {
+                passed++;
+                if (isA1) {
+                    a1Passed++;
+                }
+                if (isB2) {
+                    b2Passed++;
+                }
+            } else if (row.getResultLabel() != null && !"-".equals(row.getResultLabel())) {
+                failed++;
+                if (isA1) {
+                    a1Failed++;
+                }
+                if (isB2) {
+                    b2Failed++;
+                }
+            }
+        }
+        double passRate = done > 0 ? ((double) passed / done) * 100.0 : 0.0;
+        report.setTotalCandidates(total);
+        report.setCompletedCount(done);
+        report.setTestingCount(testing);
+        report.setPendingCount(pending);
+        report.setPassedCount(passed);
+        report.setFailedCount(failed);
+        report.setPassRate(passRate);
+        report.setA1Count(a1Count);
+        report.setA1Passed(a1Passed);
+        report.setA1Failed(a1Failed);
+        report.setB2Count(b2Count);
+        report.setB2Passed(b2Passed);
+        report.setB2Failed(b2Failed);
+        report.setCandidateRows(rows);
+        report.setTopInfractions(buildInfractionList(3));
+        return report;
+    }
+
+    // Builds the top deduction reasons list with percentage of total occurrences.
+    private List<InfractionDTO> buildInfractionList(int limit) {
+        List<Map<String, Object>> raw = deductionRecordDAO.getTopReasons(limit);
+        List<InfractionDTO> list = new ArrayList<>();
+        int totalOccurrences = 0;
+        for (Map<String, Object> row : raw) {
+            totalOccurrences += (Integer) row.get("count");
+        }
+        for (Map<String, Object> row : raw) {
+            InfractionDTO item = new InfractionDTO();
+            item.setReason((String) row.get("reason"));
+            int count = (Integer) row.get("count");
+            item.setCount(count);
+            double pct = totalOccurrences > 0 ? ((double) count / totalOccurrences) * 100.0 : 0.0;
+            item.setPercentage(pct);
+            list.add(item);
+        }
+        return list;
     }
 
     // Overloaded method to get audit logs data without search query.

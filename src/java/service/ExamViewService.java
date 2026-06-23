@@ -3,6 +3,7 @@ package service;
 import dto.ExamStatsDTO;
 import dto.EnrollmentDTO;
 import dto.CandidateRowDTO;
+import dto.ExamReportDTO;
 import enums.SectionType;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,10 @@ public interface ExamViewService {
             String searchQuery);
 
     ExamStatsDTO buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
+
+    // Builds the end-of-day exam report for a session (result + licence breakdown
+    // + top deduction reasons). Used by the examstaff report screen.
+    ExamReportDTO buildExamReport(int sessionId);
 
     Map<String, Object> getAuditLogsData(int sessionId, String pageParam);
 

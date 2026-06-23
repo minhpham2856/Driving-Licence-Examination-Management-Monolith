@@ -278,6 +278,14 @@ public class AuditServiceImpl implements AuditService {
     private static final SimpleDateFormat ADMIN_TS_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     @Override
+    public List<Audit> getLogsByUser(int userId, String dateFilter) {
+        if (userId <= 0) {
+            return new ArrayList<>();
+        }
+        return DAO.getLogsByUser(userId, dateFilter);
+    }
+
+    @Override
     public List<Map<String, Object>> searchLogs(String keyword, int limit) {
         List<Audit> audits = DAO.searchAll(keyword, limit);
         List<Integer> userIds = new ArrayList<>();
