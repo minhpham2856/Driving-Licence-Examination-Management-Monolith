@@ -5,7 +5,7 @@ import java.sql.Date;
 import java.util.List;
 
 
-Xửpublic interface ExamSessionDAO {
+public interface ExamSessionDAO {
     ExamSession getById(int id);
     List<ExamSession> getActiveSessions();
     List<ExamSession> getAllSessions();

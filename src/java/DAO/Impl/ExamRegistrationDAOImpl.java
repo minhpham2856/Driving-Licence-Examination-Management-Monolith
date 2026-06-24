@@ -632,7 +632,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     private boolean upsertSectionScoreForExam(int candidateId, int examId, String sectionKeyword, int score)
             throws SQLException {
-        Integer sessionId = findSessionIdForExamSection(examId, sectionKeyword);
+        Integer sessionId = resolveSessionIdForCandidateSection(candidateId, examId, sectionKeyword);
         if (sessionId == null) {
             return false;
         }
@@ -759,13 +759,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private Integer findSectionIdForCandidate(int examCandidateId, String keyword) throws SQLException {
-        String sectionFilter = switch (keyword) {
-            case "Theory" -> "(es.SectionName LIKE N'%Lý thuyết%' OR es.SectionName LIKE '%Theory%')";
-            case "Practical" ->
-                "(es.SectionName LIKE N'%Thực hành%' OR es.SectionName LIKE N'%Sa hình%' OR es.SectionName LIKE '%Practical%')";
-            case "Road" -> "(es.SectionName LIKE N'%Đường%' OR es.SectionName LIKE '%Road%')";
-            default -> "1 = 0";
-        };
+        String sectionFilter = sectionNameFilter(keyword);
         String sql = """
                 SELECT TOP 1 es.ExamSectionId
                 FROM Exam_Candidate ec
@@ -782,7 +776,64 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 }
             }
         }
+        return findSectionIdByLicenceForExamCandidate(examCandidateId, sectionFilter);
+    }
+
+    /** A1/A: thực hành cùng kỳ thi nhưng không có ca Session riêng — lấy section từ Licence_ExamSection. */
+    private Integer findSectionIdByLicenceForExamCandidate(int examCandidateId, String sectionFilter)
+            throws SQLException {
+        String sql = """
+                SELECT TOP 1 es.ExamSectionId
+                FROM Exam_Candidate ec
+                JOIN Exam ex ON ex.ExamId = ec.ExamId
+                JOIN Licence_ExamSection les ON les.LicenceId = ex.LicenceId
+                JOIN ExamSection es ON es.ExamSectionId = les.ExamSectionId
+                WHERE ec.ExamCandidateId = ?
+                  AND
+                """ + sectionFilter;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, examCandidateId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamSectionId");
+                }
+            }
+        }
         return null;
+    }
+
+    private Integer resolveSessionIdForCandidateSection(int candidateId, int examId, String keyword)
+            throws SQLException {
+        Integer sessionId = findSessionIdForExamSection(examId, keyword);
+        if (sessionId != null) {
+            return sessionId;
+        }
+        String enrolled = """
+                SELECT TOP 1 ec.SessionId
+                FROM Exam_Candidate ec
+                WHERE ec.CandidateId = ? AND ec.ExamId = ?
+                ORDER BY ec.ExamCandidateId
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(enrolled)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, examId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("SessionId");
+                }
+            }
+        }
+        return findSessionIdForExamSection(examId, "Theory");
+    }
+
+    private static String sectionNameFilter(String keyword) {
+        return switch (keyword) {
+            case "Theory" -> "(es.SectionName LIKE N'%Lý thuyết%' OR es.SectionName LIKE '%Theory%')";
+            case "Practical" ->
+                "(es.SectionName LIKE N'%Thực hành%' OR es.SectionName LIKE N'%Sa hình%' OR es.SectionName LIKE '%Practical%')";
+            case "Road" -> "(es.SectionName LIKE N'%Đường%' OR es.SectionName LIKE '%Road%')";
+            default -> "1 = 0";
+        };
     }
 
     private Integer getExamCandidateId(int candidateId, int sessionId) throws SQLException {
@@ -860,13 +911,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private Integer findSessionIdForExamSection(int examId, String keyword) throws SQLException {
-        String sectionFilter = switch (keyword) {
-            case "Theory" -> "(es.SectionName LIKE N'%Lý thuyết%' OR es.SectionName LIKE '%Theory%')";
-            case "Practical" ->
-                "(es.SectionName LIKE N'%Thực hành%' OR es.SectionName LIKE N'%Sa hình%' OR es.SectionName LIKE '%Practical%')";
-            case "Road" -> "(es.SectionName LIKE N'%Đường%' OR es.SectionName LIKE '%Road%')";
-            default -> "1 = 0";
-        };
+        String sectionFilter = sectionNameFilter(keyword);
         String sql = """
                 SELECT TOP 1 s.SessionId
                 FROM [Session] s
