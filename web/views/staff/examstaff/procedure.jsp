@@ -2,36 +2,21 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<%-- Fragment nhúng vào candidatecall.jsp — xử lý tại ProcedureServlet --%>
-<div id="procedure-desk" class="procedure-desk-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0; scroll-margin-top: 1rem;">
-    <header style="margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 4px;">Bàn làm thủ tục</h2>
-        <p style="font-size: 0.82rem; color: #64748b; margin: 0;">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh xác minh danh tính &rarr; Thu lệ phí. Import CSV không cần ảnh; ảnh lưu DB để bộ phận khác in hồ sơ sau khi thi xong.</p>
+<div id="procedure-desk" class="procedure-desk-section">
+    <header class="procedure-desk-header">
+        <h2 class="procedure-desk-title">Bàn làm thủ tục</h2>
+        <p class="procedure-desk-subtitle">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh xác minh danh tính &rarr; Thu lệ phí. Import CSV không cần ảnh; ảnh lưu DB để bộ phận khác in hồ sơ sau khi thi xong.</p>
     </header>
 
-        <!-- Active Candidate Status Bar -->
         <c:if test="${not empty requestScope.profile}">
-            <div style="background-color: rgba(0, 82, 204, 0.05); border: 1px solid rgba(0, 82, 204, 0.15); border-radius: 12px; padding: 10px 16px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="background-color: #0052cc; color: #ffffff; font-family: monospace; font-weight: 800; font-size: 0.78rem; padding: 2px 8px; border-radius: 6px;">SBD: ${profile.sbd}</span>
-                    <span style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">Đang lập hồ sơ cho: <strong style="color: #0f172a;">${profile.name}</strong> (Hạng ${profile.clazz})</span>
+            <div class="procedure-active-bar">
+                <div class="procedure-active-bar__meta">
+                    <span class="procedure-active-bar__sbd">SBD: ${profile.sbd}</span>
+                    <span class="procedure-active-bar__label">Đang lập hồ sơ cho: <strong style="color: #0f172a;">${profile.name}</strong> (Hạng ${profile.clazz})</span>
                 </div>
-                
-                <form action="procedure" method="GET" style="display: flex; align-items: center; gap: 6px; margin: 0;">
-                    <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Chuyển học viên:</span>
-                    <select name="sbd" data-auto-submit class="procedure-switch-form__select">
-                        <option value="">-- Chọn --</option>
-                        <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                            <c:if test="${not c.procedureComplete}">
-                                <option value="${c.sbd}" ${profile.sbd eq c.sbd ? 'selected' : ''}>${c.sbd} - ${c.name}</option>
-                            </c:if>
-                        </c:forEach>
-                    </select>
-                </form>
             </div>
         </c:if>
 
-        <!-- Check if SBD is loaded -->
         <c:choose>
             <c:when test="${not empty requestScope.profile}">
                 
@@ -46,21 +31,20 @@
                     <c:set var="currentStep" value="1" />
                 </c:if>
 
-                <!-- Step progress indicator -->
                 <div class="procedure-steps-bar">
                     <div class="procedure-step-item ${currentStep eq '1' ? 'procedure-step-item--active' : (currentStep > 1 ? 'procedure-step-item--done' : '')}">
                         <div class="step-number-badge">1</div>
                         <span>Xác minh & Sửa lỗi</span>
                     </div>
                     
-                    <div style="flex: 1; height: 1px; background-color: #e2e8f0; margin: 0 1rem;"></div>
+                    <div class="procedure-step-divider"></div>
                     
                     <div class="procedure-step-item ${currentStep eq '2' ? 'procedure-step-item--active' : (currentStep > 2 ? 'procedure-step-item--done' : '')}">
                         <div class="step-number-badge">2</div>
                         <span>Chụp ảnh chân dung</span>
                     </div>
                     
-                    <div style="flex: 1; height: 1px; background-color: #e2e8f0; margin: 0 1rem;"></div>
+                    <div class="procedure-step-divider"></div>
                     
                     <div class="procedure-step-item ${currentStep eq '3' ? 'procedure-step-item--active' : (currentStep > 3 ? 'procedure-step-item--done' : '')}">
                         <div class="step-number-badge">3</div>
@@ -68,19 +52,15 @@
                     </div>
                 </div>
 
-                <!-- Step Content Area -->
                 <div class="report-grid" style="grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
                     
-                    <!-- Left Column: Step Content Panels -->
                     <div class="report-pane">
                         
-                        <!-- STEP 1: Verify & Edit Info -->
                         <c:if test="${currentStep eq '1'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 1: Tra cứu, đối chiếu và sửa đổi hồ sơ học viên</h3>
                             </div>
                             
-                            <!-- Profile Updated Alert -->
                             <c:if test="${requestScope.profileUpdatedAlert eq 'true'}">
                                 <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 1rem; font-size: 0.8rem; color: #b45309; display: flex; gap: 8px; align-items: center;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #f59e0b; flex-shrink: 0;">
@@ -142,7 +122,6 @@
                             </form>
                         </c:if>
                         
-                        <!-- STEP 2: Chụp ảnh xác minh danh tính -->
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung xác minh danh tính</h3>
@@ -162,7 +141,7 @@
                                         <c:choose>
                                             <c:when test="${not empty profile.photoUrl}">
                                                 <img class="camera-captured-img"
-                                                     src="${pageContext.request.contextPath}/${profile.photoUrl}?t=${profile.id}"
+                                                     src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                                                      alt="Ảnh chân dung ${cName}">
                                             </c:when>
                                             <c:otherwise>
@@ -206,7 +185,6 @@
                             </c:choose>
                         </c:if>
                         
-                        <!-- STEP 3: Lệ phí & Thanh toán QR -->
                         <c:if test="${currentStep eq '3'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 3: Lệ phí sát hạch &amp; Thanh toán QR Code ngân hàng</h3>
@@ -232,30 +210,45 @@
 
                             <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; align-items: start;">
                                 <div>
+                                    <p style="margin: 0 0 0.75rem; font-size: 0.78rem; color: #64748b;">
+                                        Bảng giá theo quy định — Hạng <strong style="color: #0f172a;">${cClass}</strong>
+                                        <c:if test="${profile.requiresRoadTest and not empty requestScope.feeLines}">
+                                            (có thi đường trường)
+                                        </c:if>
+                                    </p>
                                     <table class="report-table" style="font-size: 0.85rem; width: 100%;">
                                         <thead>
                                             <tr>
                                                 <th scope="col">Khoản lệ phí thi</th>
-                                                <th scope="col" style="text-align: right; width: 100px;">Thành tiền</th>
+                                                <th scope="col" style="text-align: right; width: 120px;">Thành tiền (đ)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>Lệ phí sát hạch lý thuyết</td>
-                                                <td style="text-align: right; font-weight: 600;">80,000 đ</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Lệ phí sát hạch mô phỏng</td>
-                                                <td style="text-align: right; font-weight: 600;">100,000 đ</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Lệ phí cấp phôi bằng nhựa PET</td>
-                                                <td style="text-align: right; font-weight: 600;">20,000 đ</td>
-                                            </tr>
-                                            <tr style="border-top: 2px solid #cbd5e1; background-color: #f8fafc;">
-                                                <td style="font-weight: 800; color: #0f172a;">TỔNG CỘNG LỆ PHÍ:</td>
-                                                <td style="text-align: right; font-weight: 800; color: #0052cc; font-size: 0.95rem;">200,000 đ</td>
-                                            </tr>
+                                            <c:choose>
+                                                <c:when test="${not empty requestScope.feeLines}">
+                                                    <c:forEach var="feeLine" items="${requestScope.feeLines}">
+                                                        <tr>
+                                                            <td>${feeLine.feeName}</td>
+                                                            <td style="text-align: right; font-weight: 600;">
+                                                                <fmt:formatNumber value="${feeLine.amount}" pattern="#,##0"/>
+                                                            </td>
+                                                        </tr>
+                                                    </c:forEach>
+                                                    <tr style="border-top: 2px solid #cbd5e1; background-color: #f8fafc;">
+                                                        <td style="font-weight: 800; color: #0f172a;">TỔNG CỘNG LỆ PHÍ:</td>
+                                                        <td style="text-align: right; font-weight: 800; color: #0052cc; font-size: 0.95rem;">
+                                                            <fmt:formatNumber value="${requestScope.feeTotal}" pattern="#,##0"/> đ
+                                                        </td>
+                                                    </tr>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <tr>
+                                                        <td colspan="2" style="text-align: center; color: #94a3b8; padding: 1rem;">
+                                                            Không tìm thấy bảng giá áp dụng cho hạng này. Kiểm tra bảng <code>Fee</code> trong cơ sở dữ liệu.
+                                                        </td>
+                                                    </tr>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </tbody>
                                     </table>
 
@@ -266,7 +259,7 @@
                                                     Chuyển học viên tiếp theo &rarr;
                                                 </a>
                                             </c:when>
-                                            <c:when test="${requestScope.hasValidPhoto}">
+                                            <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines}">
                                                 <form action="procedure" method="POST" style="flex: 1; margin: 0;">
                                                     <input type="hidden" name="action" value="confirmPayment">
                                                     <input type="hidden" name="sbd" value="${currentSbd}">
@@ -295,6 +288,11 @@
                                         </div>
                                     </div>
                                     <span style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase;">VIETQR Chuyển Khoản</span>
+                                    <c:if test="${not empty requestScope.feeTotal and requestScope.feeTotal > 0}">
+                                        <span style="font-size: 0.95rem; font-weight: 800; color: #0052cc;">
+                                            <fmt:formatNumber value="${requestScope.feeTotal}" pattern="#,##0"/> đ
+                                        </span>
+                                    </c:if>
                                     <span style="font-size: 0.65rem; color: #64748b; text-align: center;">Tự động xác nhận khi nhận tiền</span>
                                 </div>
                             </div>
@@ -302,7 +300,6 @@
                         
                     </div>
                     
-                    <!-- Right Column: Brief profile summary card -->
                     <div class="report-pane" style="height: fit-content;">
                         <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
                             <h3 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0;">Sơ đồ tóm tắt học viên</h3>
@@ -311,7 +308,7 @@
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 1rem 0;">
                             <c:choose>
                                 <c:when test="${requestScope.hasValidPhoto}">
-                                    <img src="${pageContext.request.contextPath}/${profile.photoUrl}?t=${profile.id}"
+                                    <img src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                                          alt="Ảnh ${cName}"
                                          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
                                 </c:when>
@@ -345,7 +342,6 @@
                 </div>
             </c:when>
             <c:otherwise>
-                <!-- Empty desk state -->
                 <div class="report-pane" style="text-align: center; padding: 4rem 1rem; color: #64748b;">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1rem; display: block; opacity: 0.35; color: #64748b;">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -355,7 +351,6 @@
                     Chưa có học viên nào được chọn làm thủ tục. 
                     <p style="font-size: 0.82rem; color: #94a3b8; max-width: 420px; margin: 0.5rem auto 1.5rem;">Chọn thí sinh từ danh sách bên dưới, hoặc bấm <strong>Tiến hành lập hồ sơ</strong> / <strong>Hồ sơ</strong> ở hàng đợi phía trên.</p>
 
-                    <!-- Beautiful interactive dropdown inside the empty state to select candidate -->
                     <div style="max-width: 520px; margin: 1.5rem auto 0; padding: 1.5rem; background: rgba(255, 255, 255, 0.9); border: 1.5px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); backdrop-filter: blur(8px);">
                         <form action="procedure" method="GET" style="display: flex; flex-direction: column; gap: 12px; text-align: left; margin: 0;">
                             <label for="emptySbdInput" style="font-size: 0.85rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px;">

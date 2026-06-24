@@ -6,12 +6,15 @@ import java.util.List;
 public interface ExamRegistrationDAO {
     ExamRegistration getById(int id);
     ExamRegistration getBySessionAndSbd(int sessionId, String sbd);
+    ExamRegistration getBySbd(String sbd);
     List<ExamRegistration> getCandidatesBySession(int sessionId);
     List<ExamRegistration> getCandidatesByExamId(int examId);
     boolean updatePresent(int id, boolean isPresent);
     boolean updatePayment(int id, boolean isPaymentCompleted);
+    boolean updatePayment(int id, boolean isPaymentCompleted, double totalAmount);
     boolean updateComputer(int id, String computerCode);
     boolean updateAllocatedRoom(int id, int areaId, String areaName);
+    boolean clearAllocatedRoom(int candidateId);
     boolean updateDevice(int id, String deviceCode);
     boolean updateScores(int id, int sessionId, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed);

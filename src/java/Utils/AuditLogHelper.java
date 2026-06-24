@@ -8,7 +8,7 @@ import DAO.Impl.AuditLogDAOImpl;
 
 import Models.AuditLog;
 
-import Models.User;
+import Utils.SessionUserHelper;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -42,9 +42,7 @@ public final class AuditLogHelper {
 
         try {
 
-            User user = (User) session.getAttribute("user");
-
-            int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
+            int userId = SessionUserHelper.resolveUserId(session);
 
 
 

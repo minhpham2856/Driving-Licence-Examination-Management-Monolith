@@ -4,7 +4,13 @@ import Constants.Db2Mappings;
 import DBConnection.DBContext;
 import DAO.Db2CandidateSql;
 import DAO.ExamRegistrationDAO;
+import DAO.FeeDAO;
+import DAO.Impl.FeeDAOImpl;
+import DAO.Impl.PaymentDAOImpl;
+import DAO.PaymentDAO;
 import Models.ExamRegistration;
+import Models.Fee;
+import Models.Payment;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +52,42 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public ExamRegistration getBySbd(String sbd) {
+        if (sbd == null || !sbd.contains("-")) {
+            return null;
+        }
+        String[] parts = sbd.trim().split("-", 2);
+        if (parts.length < 2) {
+            return null;
+        }
+        String licenseCode = parts[0].trim();
+        int candidateNo;
+        try {
+            candidateNo = Integer.parseInt(parts[1].trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        String sql = Db2CandidateSql.CANDIDATE_SELECT
+                + """
+                 WHERE l.LicenceClass = ?
+                   AND TRY_CAST(SUBSTRING(c.CandidateNumber, CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT) = ?
+                 ORDER BY ec.ExamCandidateId DESC
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, licenseCode);
+            ps.setInt(2, candidateNo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToExamRegistration(rs);
+                }
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
@@ -137,6 +179,23 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (!isPaymentCompleted) {
             return true;
         }
+        ExamRegistration reg = getById(id);
+        FeeDAO feeDAO = new FeeDAOImpl();
+        double amount = 0;
+        if (reg != null) {
+            amount = feeDAO.sumProcedureFees(reg.getLicenseCode(), reg.isRequiresRoadTest());
+        }
+        if (amount <= 0) {
+            amount = feeDAO.sumProcedureFees("B", true);
+        }
+        return updatePayment(id, isPaymentCompleted, amount);
+    }
+
+    @Override
+    public boolean updatePayment(int id, boolean isPaymentCompleted, double totalAmount) {
+        if (!isPaymentCompleted) {
+            return true;
+        }
         try {
             String check = """
                     SELECT TOP 1 PaymentId FROM Payment
@@ -150,20 +209,20 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     }
                 }
             }
-            int examId = resolveExamIdForCandidate(id);
-            if (examId <= 0) {
-                return false;
-            }
-            String ins = """
-                    INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, CandidateId, ExamId)
-                    VALUES ('Completed', 'Cash', ?, 200000, GETDATE(), ?, ?)
-                    """;
-            try (PreparedStatement ps = connection.prepareStatement(ins)) {
-                ps.setString(1, "REF-" + System.currentTimeMillis() % 1000000);
-                ps.setInt(2, id);
-                ps.setInt(3, examId);
-                return ps.executeUpdate() > 0;
-            }
+            ExamRegistration reg = getById(id);
+            FeeDAO feeDAO = new FeeDAOImpl();
+            List<Fee> fees = reg != null
+                    ? feeDAO.getProcedureFees(reg.getLicenseCode(), reg.isRequiresRoadTest())
+                    : List.of();
+            Payment payment = new Payment();
+            payment.setExamRegistrationId(id);
+            payment.setAmount(totalAmount);
+            payment.setPaymentStatus("Completed");
+            payment.setPaymentMethod("Cash");
+            payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1000000);
+            payment.setNotes("Thu phí, lệ phí tại bàn thủ tục (bảng Fee)");
+            PaymentDAO payDAO = new PaymentDAOImpl();
+            return payDAO.insertWithFees(payment, fees);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -239,6 +298,19 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     @Override
     public boolean updateAllocatedRoom(int id, int areaId, String areaName) {
         return updateApplicationNotes(id, "AllocatedRoom:" + areaId + ":" + areaName);
+    }
+
+    @Override
+    public boolean clearAllocatedRoom(int candidateId) {
+        ExamRegistration reg = getById(candidateId);
+        if (reg == null) {
+            return false;
+        }
+        String notes = reg.getNotes();
+        if (notes != null && notes.startsWith("AllocatedRoom:")) {
+            return updateApplicationNotes(candidateId, null);
+        }
+        return true;
     }
 
     @Override
@@ -1013,6 +1085,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             er.setRoadTestScore(rScoreVal);
             er.setRoadTestPassed(rScoreVal >= 80 ? "passed" : "failed");
         }
+        er.setProcedureCompletedAt(rs.getTimestamp("procedureCompletedAt"));
         return er;
     }
 

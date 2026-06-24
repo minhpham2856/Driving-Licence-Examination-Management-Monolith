@@ -16,6 +16,7 @@ public final class Db2CandidateSql {
               TRY_CAST(SUBSTRING(c.CandidateNumber, CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT) AS candidateNo,
               CASE WHEN er.RegistrationStatus = 'WalkIn' THEN 'WalkIn' ELSE 'PreRegistered' END AS registrationType,
               CAST(CASE WHEN pay.PaymentId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS isPaymentCompleted,
+              payDone.procedureCompletedAt AS procedureCompletedAt,
               CAST(CASE WHEN er.RegistrationStatus IN ('CheckedIn','Present','Completed') THEN 1 ELSE 0 END AS BIT) AS isPresent,
               CAST(NULL AS DATETIME) AS presentMarkedAt,
               er.Notes AS notes,
@@ -47,6 +48,12 @@ public final class Db2CandidateSql {
                 WHERE p1.PaymentStatus IN ('Completed', 'Paid')
                 GROUP BY p1.CandidateId
             ) pay ON pay.CandidateId = c.CandidateId
+            LEFT JOIN (
+                SELECT p2.CandidateId, MAX(p2.PaidAt) AS procedureCompletedAt
+                FROM Payment p2
+                WHERE p2.PaymentStatus IN ('Completed', 'Paid')
+                GROUP BY p2.CandidateId
+            ) payDone ON payDone.CandidateId = c.CandidateId
             LEFT JOIN (
                 SELECT ec2.CandidateId, ed.DeviceName,
                        ROW_NUMBER() OVER (PARTITION BY ec2.CandidateId ORDER BY tp.TheoryPaperId DESC) AS rn

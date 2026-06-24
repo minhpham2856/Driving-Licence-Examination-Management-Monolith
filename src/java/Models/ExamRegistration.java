@@ -37,6 +37,7 @@ public class ExamRegistration {
     private String allocatedAreaName;
     private boolean isCalled;
     private boolean validCapturedPhoto;
+    private Timestamp procedureCompletedAt;
 
 
     public ExamRegistration() {
@@ -262,6 +263,25 @@ public class ExamRegistration {
         this.roadTestScore = roadTestScore;
     }
 
+    /** Vắng thi / đình chỉ vĩnh viễn trong ca. */
+    public boolean isAbsent() {
+        return notes != null && "Absent".equalsIgnoreCase(notes.trim());
+    }
+
+    /** Đạt kết quả cuối cùng (đủ phần thi theo hạng). */
+    public boolean isFinalPass() {
+        if (isAbsent()) {
+            return false;
+        }
+        if (isRequiresRoadTest()) {
+            return "passed".equalsIgnoreCase(theoryPassed)
+                    && "passed".equalsIgnoreCase(practicalPassed)
+                    && "passed".equalsIgnoreCase(roadTestPassed);
+        }
+        return "passed".equalsIgnoreCase(theoryPassed)
+                && "passed".equalsIgnoreCase(practicalPassed);
+    }
+
     /** Đã hoàn thành thủ tục trước khi thi: đối chiếu hồ sơ + chụp ảnh + thu lệ phí. Import CSV không cần ảnh. */
     public boolean isProcedureComplete() {
         if (!isPaymentCompleted) {
@@ -278,7 +298,7 @@ public class ExamRegistration {
 
     /** Đã xong toàn bộ kỳ thi (đủ phần thi theo hạng bằng). */
     public boolean isExamFinished() {
-        if (notes != null && "Absent".equalsIgnoreCase(notes.trim())) {
+        if (isAbsent()) {
             return true;
         }
         if (!isPaymentCompleted) {
@@ -358,6 +378,10 @@ public class ExamRegistration {
     private boolean isDuplicate;
     private boolean isInvalid;
     private String validationMessage;
+    /** Mã SBD/ID gốc từ cột 1 CSV (chỉ dùng khi xem trước import). */
+    private String importRefSbd;
+    /** Hạng GPLX đọc từ CSV (cột 5), trước khi chuẩn hóa theo kỳ thi. */
+    private String csvLicenseCode;
     private String allocatedShift = "Kíp 1"; // Default kíp thi
 
     public boolean isDuplicate() {
@@ -382,6 +406,22 @@ public class ExamRegistration {
 
     public void setValidationMessage(String validationMessage) {
         this.validationMessage = validationMessage;
+    }
+
+    public String getImportRefSbd() {
+        return importRefSbd;
+    }
+
+    public void setImportRefSbd(String importRefSbd) {
+        this.importRefSbd = importRefSbd;
+    }
+
+    public String getCsvLicenseCode() {
+        return csvLicenseCode;
+    }
+
+    public void setCsvLicenseCode(String csvLicenseCode) {
+        this.csvLicenseCode = csvLicenseCode;
     }
 
     public String getAllocatedShift() {
@@ -410,5 +450,13 @@ public class ExamRegistration {
 
     public void setValidCapturedPhoto(boolean validCapturedPhoto) {
         this.validCapturedPhoto = validCapturedPhoto;
+    }
+
+    public Timestamp getProcedureCompletedAt() {
+        return procedureCompletedAt;
+    }
+
+    public void setProcedureCompletedAt(Timestamp procedureCompletedAt) {
+        this.procedureCompletedAt = procedureCompletedAt;
     }
 }
