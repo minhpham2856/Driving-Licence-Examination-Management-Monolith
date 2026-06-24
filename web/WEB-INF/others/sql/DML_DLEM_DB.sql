@@ -281,20 +281,35 @@ GO
 -- 17. PAYMENTS
 -- ============================================
 INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, CandidateId, ExamId) VALUES
-(N'Completed', N'BankTransfer', N'TXN-20260520-001', 430000.00, '2026-05-20 10:15:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'045'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Completed', N'BankTransfer', N'TXN-20260520-002', 430000.00, '2026-05-20 11:00:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'046'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Completed', N'Cash',         NULL,                430000.00, '2026-05-21 08:30:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Pending',   N'Cash',         NULL,                430000.00, NULL,                  (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
-(N'Completed', N'BankTransfer', N'TXN-20260522-001', 130000.00, '2026-05-22 14:20:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'));
+(N'Completed', N'BankTransfer', N'TXN-20260520-001', 615000.00, '2026-05-20 10:15:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'045'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Completed', N'BankTransfer', N'TXN-20260520-002', 615000.00, '2026-05-20 11:00:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'046'),    (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Completed', N'Cash',         NULL,                615000.00, '2026-05-21 08:30:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123'), (SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Pending',   N'Cash',         NULL,                615000.00, NULL,                  (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-B-20260601')),
+(N'Completed', N'BankTransfer', N'TXN-20260522-001', 285000.00, '2026-05-22 14:20:00', (SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'124'),(SELECT ExamId FROM Exam WHERE ExamCode = N'EX-A1-20260601'));
 GO
 
 INSERT INTO Payment_Fee (PaymentId, FeeId)
 SELECT p.PaymentId, f.FeeId
 FROM Payment p
 CROSS JOIN Fee f
-WHERE p.TransactionReference = N'TXN-20260520-001'
-  AND f.FeeName IN (N'Lệ phí thi lý thuyết', N'Phí hồ sơ', N'Lệ phí thi sa hình', N'Lệ phí thi đường trường');
+WHERE p.PaymentStatus = N'Completed'
+  AND p.TransactionReference IN (N'TXN-20260520-001', N'TXN-20260520-002', N'TXN-20260522-001')
+  AND (
+        (p.TransactionReference IN (N'TXN-20260520-001', N'TXN-20260520-002')
+         AND f.FeeName IN (N'Lệ phí thi lý thuyết', N'Lệ phí thi sa hình', N'Lệ phí thi đường trường', N'Phí hồ sơ', N'Phí cấp GPLX'))
+     OR (p.TransactionReference = N'TXN-20260522-001'
+         AND f.FeeName IN (N'Lệ phí thi lý thuyết', N'Phí hồ sơ', N'Phí cấp GPLX'))
+  );
 GO
+
+INSERT INTO Payment_Fee (PaymentId, FeeId)
+SELECT p.PaymentId, f.FeeId
+FROM Payment p
+CROSS JOIN Fee f
+WHERE p.PaymentStatus = N'Completed'
+  AND p.TransactionReference IS NULL
+  AND p.PaidAt IS NOT NULL
+  AND f.FeeName IN (N'Lệ phí thi lý thuyết', N'Lệ phí thi sa hình', N'Lệ phí thi đường trường', N'Phí hồ sơ', N'Phí cấp GPLX');
 
 -- ============================================
 -- 18. THEORY PAPER (answers seeded in 600_DML_DLEM_DB.sql after questions load)
