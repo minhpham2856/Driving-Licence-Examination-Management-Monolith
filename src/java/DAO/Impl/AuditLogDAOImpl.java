@@ -200,39 +200,49 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     @Override
     public StaffProcedureKpi getStaffProcedureKpi(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
-        String sql = """
-                SELECT COUNT(*) AS completedCount,
-                       ISNULL(SUM(x.TotalAmount), 0) AS totalFees
+        StringBuilder sql = new StringBuilder();
+        sql.append("""
+                SELECT COUNT(DISTINCT x.CandidateId) AS completedCount,
+                       ISNULL(SUM(x.feeAmount), 0) AS totalFees
                 FROM (
-                    SELECT DISTINCT p.PaymentId, p.TotalAmount
-                    FROM Payment p
-                    INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
-                    WHERE p.PaymentStatus IN ('Completed', 'Paid')
-                      AND c.PhotoImageUrl IS NOT NULL
-                      AND LEN(LTRIM(RTRIM(c.PhotoImageUrl))) > 0
-                      AND EXISTS (
-                          SELECT 1
-                          FROM Audit a
-                          WHERE a.UserId = ?
-                            AND a.EntityName = 'Payment'
-                            AND a.Action = 'INSERT'
-                            AND (
-                                TRY_CAST(a.EntityId AS INT) = c.CandidateId
-                                OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'
-                                OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
-                            )
-                """;
+                    SELECT DISTINCT
+                           p.PaymentId,
+                           p.CandidateId,
+                """);
+        sql.append(Utils.ProcedureFeeTotals.SQL_PAID_AMOUNT);
+        sql.append("""
+                       AS feeAmount
+                    FROM Audit a
+                    INNER JOIN Candidate c ON TRY_CAST(a.EntityId AS INT) = c.CandidateId
+                    INNER JOIN Payment p ON p.CandidateId = c.CandidateId
+                        AND p.PaymentId = (
+                            SELECT TOP 1 p2.PaymentId
+                            FROM Payment p2
+                            WHERE p2.CandidateId = c.CandidateId
+                              AND p2.PaymentStatus IN ('Completed', 'Paid')
+                            ORDER BY p2.PaidAt DESC, p2.PaymentId DESC
+                        )
+                """);
+        sql.append(Utils.ProcedureFeeTotals.SQL_FEE_LINES_JOIN);
+        sql.append("""
+                    WHERE a.UserId = ?
+                      AND a.EntityName = N'Payment'
+                      AND a.Action = N'INSERT'
+                      AND TRY_CAST(a.EntityId AS INT) > 0
+                      AND
+                """);
+        sql.append(Utils.ProcedureFeeTotals.SQL_PAYMENT_ACTIVE);
         if (hasDate) {
-            sql += "                            AND CAST(a.CreatedAt AS DATE) = ?\n";
+            sql.append("\n                      AND CAST(a.CreatedAt AS DATE) = ?");
         }
-        sql += """
-                      )
+        sql.append("""
                 ) x
-                """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
+                """);
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int param = 1;
+            ps.setInt(param++, userId);
             if (hasDate) {
-                ps.setString(2, filterDate);
+                ps.setString(param, filterDate);
             }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

@@ -2,51 +2,9 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-
-<%
-    // Ensure selectedSessionId is loaded
-    Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
-    int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default B2 session
-
-    // Ensure candidate queue is initialized
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
-    if (qList == null) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        try {
-            qList = regDAO.getCandidatesBySession(sessId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new java.util.ArrayList<>();
-        }
-        session.setAttribute("candidateQueue", qList);
-    }
-
-    // Load dynamic audit logs for the current logged-in user from DB SQL Server AuditLog
-    Models.User user = (Models.User) session.getAttribute("user");
-    int uId = (user != null) ? user.getId() : 3; // Default staff Trần Thị Thủ Tục (ID = 3)
-    
-    DAO.AuditLogDAO logDAO = new DAO.Impl.AuditLogDAOImpl();
-    java.util.List<Models.AuditLog> personalLogs = null;
-    String filterDate = request.getParameter("filterDate");
-    try {
-        if (filterDate != null && !filterDate.trim().isEmpty()) {
-            personalLogs = logDAO.getLogsByUserAndDate(uId, filterDate);
-        } else {
-            // Retrieve all logs from the beginning if no date filter is specified
-            personalLogs = logDAO.getLogsByUserAndDate(uId, null);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    if (personalLogs == null) {
-        personalLogs = new java.util.ArrayList<>();
-    }
-    request.setAttribute("personalLogs", personalLogs);
-
-    Models.StaffProcedureKpi procedureKpi = logDAO.getStaffProcedureKpi(uId, filterDate);
-    request.setAttribute("myCompletedProcedures", procedureKpi.getCompletedCount());
-    request.setAttribute("myTotalFees", procedureKpi.getTotalFees());
-%>
+<c:if test="${requestScope.personalLogs == null}">
+    <c:redirect url="/views/staff/examstaff/audit"/>
+</c:if>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -55,29 +13,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhật Ký Cá Nhân - Ban Sát Hạch</title>
     
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
-<body class="has-side-nav-bar">
+<body class="has-side-nav-bar" data-audit-base="${pageContext.request.contextPath}/views/staff/examstaff/audit" data-audit-export-base="${pageContext.request.contextPath}/views/staff/examstaff/audit-export">
 
 <jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="nhat-ky" />
 </jsp:include>
 
-<!-- Get current date dynamically using JSP useBean -->
 <jsp:useBean id="now" class="java.util.Date" />
 <fmt:formatDate var="todayFormatted" value="${now}" pattern="dd/MM/yyyy" />
 
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
@@ -86,7 +40,6 @@
             <span class="breadcrumbs__current" aria-current="page">Nhật ký cá nhân</span>
         </nav>
         
-        <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Nhật ký hoạt động cá nhân</h1>
@@ -94,10 +47,16 @@
             </div>
         </header>
 
-        <!-- Personal Staff Profile Header -->
+        <c:if test="${param.exportError eq '1'}">
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                <p style="margin: 0; font-size: 0.85rem; color: #991b1b; font-weight: 600;">
+                    Không xuất được file Excel. Hãy Clean and Build lại project (để copy thư viện POI vào WEB-INF/lib) rồi thử lại.
+                </p>
+            </div>
+        </c:if>
+
         <div class="staff-profile-card">
             <div class="profile-info-group">
-                <!-- Visual initials avatar dynamically parsed from the staff name -->
                 <div class="profile-avatar-circle">
                     ${fn:substring(sessionScope.user.person.fullName, 0, 2)}
                 </div>
@@ -109,7 +68,7 @@
             
             <div style="text-align: right; font-size: 0.82rem; opacity: 0.9;">
                 <span style="display: block; font-weight: 700; text-transform: uppercase;">Phạm vi nhật ký</span>
-                <span style="font-size: 1.0rem; font-weight: 800;">
+                <span id="auditScopeText" style="font-size: 1.0rem; font-weight: 800;">
                     <c:choose>
                         <c:when test="${not empty param.filterDate}">
                             Ngày: ${param.filterDate}
@@ -122,7 +81,6 @@
             </div>
         </div>
 
-        <!-- Glassmorphic Date Filter Form -->
         <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; margin-top: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #0052cc;">
@@ -134,18 +92,17 @@
                 <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">Bộ lọc thời gian nhật ký:</span>
             </div>
             
-            <form action="audit.jsp" method="GET" style="display: flex; align-items: center; gap: 10px; margin: 0;">
-                <input type="date" name="filterDate" value="${param.filterDate}" style="height: 38px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #334155; outline: none; background-color: #ffffff; cursor: pointer;">
+            <form id="auditFilterForm" action="${pageContext.request.contextPath}/views/staff/examstaff/audit" method="GET" style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                <input type="date" id="dateFilter" name="filterDate" value="${param.filterDate}" style="height: 38px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #334155; outline: none; background-color: #ffffff; cursor: pointer;">
                 <button type="submit" class="btn-filter" style="height: 38px; padding: 0 1.25rem; font-size: 0.82rem; border-radius: 8px; font-weight: 700; background: linear-gradient(135deg, #0052cc, #003d9b); border: none; color: #ffffff; cursor: pointer; transition: all 0.2s;">
                     Lọc kết quả
                 </button>
                 <c:if test="${not empty param.filterDate}">
-                    <a href="audit.jsp" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
+                    <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
                 </c:if>
             </form>
         </div>
 
-        <!-- KPI Metrics Row (from Audit table) -->
         <section class="metrics-row" aria-label="Số liệu hoạt động cá nhân">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
@@ -176,7 +133,7 @@
                 <div class="stat-info">
                     <span class="stat-number" style="color: #7e22ce;">${requestScope.myCompletedProcedures}</span>
                     <span class="stat-label">Học viên đã làm thủ tục</span>
-                    <span class="stat-trend stat-trend--up">Đã chụp ảnh và thanh toán (Payment + ảnh hồ sơ)</span>
+                    <span class="stat-trend stat-trend--up">Theo log thu phí (INSERT Payment) do bạn ghi nhận</span>
                 </div>
             </div>
             
@@ -191,12 +148,11 @@
                         <fmt:formatNumber value="${myTotalFees}" type="number" /> đ
                     </span>
                     <span class="stat-label">Lệ phí đã xác nhận thu</span>
-                    <span class="stat-trend stat-trend--up">Tổng từ bảng Payment (TotalAmount)</span>
+                    <span class="stat-trend stat-trend--up">Tổng từ Payment_Fee (hoặc TotalAmount) của các lần thu bạn ghi log</span>
                 </div>
             </div>
         </section>
 
-        <!-- Audit Table Card -->
         <section class="log-card" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
             <header class="log-card-header" style="justify-content: space-between; display: flex;">
                 <h2 class="log-card-title" style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -215,7 +171,12 @@
                 </h2>
                 
                 <div class="log-card-actions">
-                    <button class="btn-export" style="height: 36px; padding: 0 12px; font-size: 0.8rem; border-radius: 6px;">In nhật ký cá nhân</button>
+                    <a id="auditExportLink"
+                       href="${pageContext.request.contextPath}/views/staff/examstaff/audit-export<c:if test='${not empty param.filterDate}'>?filterDate=${param.filterDate}</c:if>"
+                       class="btn-export"
+                       style="height: 36px; padding: 0 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">
+                        Xuất Excel
+                    </a>
                 </div>
             </header>
             
@@ -255,7 +216,14 @@
                         <c:if test="${empty requestScope.personalLogs}">
                             <tr>
                                 <td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">
-                                    Không có hoạt động thao tác nào của bạn được ghi nhận trên cơ sở dữ liệu trong hôm nay.
+                                    <c:choose>
+                                        <c:when test="${not empty param.filterDate}">
+                                            Không có hoạt động thao tác nào được ghi nhận trong ngày ${param.filterDate}.
+                                        </c:when>
+                                        <c:otherwise>
+                                            Không có hoạt động thao tác nào được ghi nhận trong lịch sử của bạn.
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                             </tr>
                         </c:if>
