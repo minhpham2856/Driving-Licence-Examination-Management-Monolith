@@ -15,11 +15,14 @@ import jakarta.servlet.http.HttpSession;
 import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
-import shared.enums.RoleType;
-
 import java.io.IOException;
 
-@WebServlet("/change-password")
+@WebServlet(urlPatterns = {
+    "/examstaff/change-password",
+    "/examiner/change-password",
+    "/managingstaff/change-password",
+    "/admin/change-password"
+})
 public class ChangePasswordServlet extends HttpServlet {
 
     private final AuditService auditService = new AuditServiceImpl();
@@ -28,24 +31,24 @@ public class ChangePasswordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        UserDTO sessionUser = requireUser(request, response);
-        if (sessionUser == null) {
-            return;
-        }
-        bindPage(request, sessionUser);
+
+        // back link points to role profile path bound by filter
+        bindBackUrl(request);
         request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        UserDTO sessionUser = requireUser(request, response);
-        if (sessionUser == null) {
-            return;
-        }
+
+        UserDTO sessionUser = sessionUser(request);
+
+        // read password fields from form
         String current = request.getParameter("currentPassword");
         String newPwd = request.getParameter("newPassword");
         String confirm = request.getParameter("confirmPassword");
+
+        // validate and update via auth service
         ServiceResult<Void> result = authService.changePassword(
                 sessionUser.getUserId(), current, newPwd, confirm);
         if (result.isSuccess()) {
@@ -56,30 +59,22 @@ public class ChangePasswordServlet extends HttpServlet {
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
         }
         request.setAttribute(Attributes.Request.MESSAGE, result.getMessage());
-        bindPage(request, sessionUser);
+
+        bindBackUrl(request);
         request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
 
-    private void bindPage(HttpServletRequest request, UserDTO sessionUser) {
-        request.setAttribute(Attributes.Request.BACK_URL, "/profile");
-        request.setAttribute(Attributes.Request.ACCOUNT_SHELL, resolveAccountShell(sessionUser));
-    }
-
-    private static String resolveAccountShell(UserDTO user) {
-        if (user == null || user.getRole() == null) {
-            return "public";
+    // change-password page uses profile path as back URL (filter already set accountProfilePath)
+    private static void bindBackUrl(HttpServletRequest request) {
+        Object profilePath = request.getAttribute(Attributes.Request.ACCOUNT_PROFILE_PATH);
+        if (profilePath != null) {
+            request.setAttribute(Attributes.Request.BACK_URL, profilePath);
         }
-        RoleType role = RoleType.fromValue(user.getRole().getRoleName());
-        return role == RoleType.EXAM_STAFF ? "examstaff" : "public";
     }
 
-    private UserDTO requireUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    // session user set by login; filter guarantees non-null here
+    private static UserDTO sessionUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        Object raw = session == null ? null : session.getAttribute(Attributes.Session.USER);
-        if (!(raw instanceof UserDTO)) {
-            response.sendRedirect(request.getContextPath() + "/staff/login");
-            return null;
-        }
-        return (UserDTO) raw;
+        return (UserDTO) session.getAttribute(Attributes.Session.USER);
     }
 }
