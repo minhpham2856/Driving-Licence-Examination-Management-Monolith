@@ -173,6 +173,8 @@ public class SessionServiceImpl implements SessionService {
     @Override
     public List<SessionViewDTO> getActiveSessions() {
         return buildSessionViewDTOList(sessionDAO.findActive());
+    }
+    
     @Override
     public int getAssignedExaminerCount(int sessionId) {
         List<ExaminerSchedule> assignments = assignmentDAO.getBySessionId(sessionId);
@@ -186,7 +188,6 @@ public class SessionServiceImpl implements SessionService {
             }
         }
         return examinerIds.size();
-    }
     }
 
     @Override

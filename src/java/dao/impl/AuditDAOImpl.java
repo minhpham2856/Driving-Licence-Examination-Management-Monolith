@@ -1,4 +1,5 @@
 package dao.impl;
+
 import dao.AuditDAO;
 import dbconnection.DBContext;
 import model.Audit;
@@ -9,10 +10,13 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
 public class AuditDAOImpl extends DBContext implements AuditDAO {
-    private static final String BASE_SELECT =
-            "SELECT AuditId, UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt "
+
+    private static final String BASE_SELECT
+            = "SELECT AuditId, UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt "
             + "FROM Audit";
+
     @Override
     public int insert(Audit audit) {
         if (audit == null) {
@@ -48,12 +52,14 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         }
         return 0;
     }
+
     @Override
     public List<Audit> getRecentLogs(int limit) {
         int safeLimit = limit > 0 ? limit : 50;
         String sql = BASE_SELECT + " ORDER BY CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> ps.setInt(1, safeLimit));
     }
+
     @Override
     public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
         int safePage = Math.max(page, 1);
@@ -79,6 +85,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
             ps.setInt(idx, safeSize);
         });
     }
+
     @Override
     public int getLogsCountForSession(int sessionId, String searchQuery) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Audit WHERE EntityId LIKE ?");
@@ -105,6 +112,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         }
         return 0;
     }
+
     @Override
     public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
         int safeLimit = limit > 0 ? limit : 20;
@@ -184,6 +192,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         }
         return list;
     }
+
     private static Audit map(ResultSet rs) throws SQLException {
         Audit audit = new Audit();
         audit.setAuditId(rs.getLong("AuditId"));
@@ -201,8 +210,10 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         audit.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return audit;
     }
+
     @FunctionalInterface
     private interface StatementBinder {
+
         void bind(PreparedStatement ps) throws SQLException;
     }
 }

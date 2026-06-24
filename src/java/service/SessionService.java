@@ -23,7 +23,8 @@ public interface SessionService {
     List<SessionViewDTO> getAllSessions();
 
     List<SessionViewDTO> getActiveSessions();
-    // Count of distinct examiners assigned to a session (for the session-control panel).
+
+    // Count of distinct examiners assigned to a session
     int getAssignedExaminerCount(int sessionId);
 
     Session getById(int sessionId);
