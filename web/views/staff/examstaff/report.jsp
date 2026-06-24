@@ -2,242 +2,9 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-
-<%
-    // Ensure selectedSessionId is loaded
-    Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
-    int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to ca thi B2 sáng (ID = 2)
-    
-    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
-    Models.ExamSession currentSession = null;
-    try {
-        currentSession = sessDAO.getById(sessId);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    if (currentSession != null) {
-        request.setAttribute("currentSession", currentSession);
-    }
-
-    DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-    java.util.List<Models.ExamRegistration> qList = null;
-    try {
-        qList = regDAO.getCandidatesBySession(sessId);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    if (qList == null) {
-        qList = new java.util.ArrayList<>();
-    }
-    String webRoot = application.getRealPath("/");
-    java.util.List<String> missingPhotoSbds = new java.util.ArrayList<>();
-    int missingPhotoCount = 0;
-    for (Models.ExamRegistration reg : qList) {
-        boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
-        reg.setValidCapturedPhoto(valid);
-        if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {
-            missingPhotoCount++;
-            missingPhotoSbds.add(reg.getSbd() + " - " + reg.getName());
-        }
-    }
-    request.setAttribute("missingPhotoCount", missingPhotoCount);
-    request.setAttribute("missingPhotoSbds", missingPhotoSbds);
-    if (("true".equals(request.getParameter("exportExcel")) || "true".equals(request.getParameter("exportPdf")))
-            && missingPhotoCount > 0) {
-        request.setAttribute("exportBlocked", true);
-    }
-    request.setAttribute("candidateList", qList);
-
-    // Calculate statistics dynamically
-    int totalCandidates = qList.size();
-    int passedCount = 0;
-    int failedCount = 0;
-    int absentCount = 0;
-    
-    // Counts per class — đăng ký vs. đã thi xong
-    int a1Count = 0;    // Tổng đăng ký hạng A1
-    int a1Completed = 0; // Đã thi xong (có kết quả cuối)
-    int a1Passed = 0;
-    int a1Failed = 0;
-    int b2Count = 0;    // Tổng đăng ký hạng B2
-    int b2Completed = 0; // Đã thi xong (có kết quả cuối)
-    int b2Passed = 0;
-    int b2Failed = 0;
-    
-    // Counts per exam section
-    int theoryCount = 0;
-    int theoryPassed = 0;
-    int theoryFailed = 0;
-    
-    int practicalCount = 0;
-    int practicalPassed = 0;
-    int practicalFailed = 0;
-
-    int roadCount = 0;
-    int roadPassed = 0;
-    int roadFailed = 0;
-
-    // examCompletedCount = số thí sinh đã có kết quả thi cuối cùng
-    int examCompletedCount = 0;
-
-    for (Models.ExamRegistration reg : qList) {
-        String licCode = reg.getLicenseCode();
-        boolean isA1 = "A1".equalsIgnoreCase(licCode) || "A2".equalsIgnoreCase(licCode);
-        boolean isB2 = "B2".equalsIgnoreCase(licCode);
-        boolean requiresRoad = reg.isRequiresRoadTest();
-        
-        if (isA1) a1Count++;
-        if (isB2) b2Count++;
-        
-        // Vắng thi vĩnh viễn
-        boolean isAbsent = "Absent".equalsIgnoreCase(reg.getNotes());
-        if (isAbsent) {
-            absentCount++;
-            failedCount++;
-            examCompletedCount++;
-            if (isA1) { a1Completed++; a1Failed++; }
-            if (isB2) { b2Completed++; b2Failed++; }
-            continue;
-        }
-        
-        // Tính thống kê phần thi Lý thuyết (chỉ những người đã thi)
-        String tPass = reg.getTheoryPassed();
-        if ("passed".equalsIgnoreCase(tPass)) {
-            theoryCount++;
-            theoryPassed++;
-        } else if ("failed".equalsIgnoreCase(tPass)) {
-            theoryCount++;
-            theoryFailed++;
-        }
-        
-        // Tính thống kê phần thi Thực hành (chỉ những người đã thi)
-        String pPass = reg.getPracticalPassed();
-        if ("passed".equalsIgnoreCase(pPass)) {
-            practicalCount++;
-            practicalPassed++;
-        } else if ("failed".equalsIgnoreCase(pPass)) {
-            practicalCount++;
-            practicalFailed++;
-        }
-
-        // Tính thống kê phần thi Đường trường (chỉ những người đã thi)
-        String rPass = reg.getRoadTestPassed();
-        if ("passed".equalsIgnoreCase(rPass)) {
-            roadCount++;
-            roadPassed++;
-        } else if ("failed".equalsIgnoreCase(rPass)) {
-            roadCount++;
-            roadFailed++;
-        }
-
-        // Xác định thí sinh đã có kết quả cuối cùng chưa
-        boolean hasFinalResult;
-        if (requiresRoad) {
-            // Hạng ô tô: phải trượt thực hành HOẶC đã có kết quả đường trường
-            hasFinalResult = "failed".equalsIgnoreCase(pPass)
-                          || "passed".equalsIgnoreCase(rPass)
-                          || "failed".equalsIgnoreCase(rPass);
-        } else {
-            // Hạng xe máy: có kết quả thực hành là xong
-            hasFinalResult = "passed".equalsIgnoreCase(pPass)
-                          || "failed".equalsIgnoreCase(pPass);
-        }
-
-        if (!hasFinalResult) {
-            // Chưa thi xong — bỏ qua không tính vào kết quả
-            continue;
-        }
-
-        // Đã có kết quả cuối — đếm vào examCompletedCount
-        examCompletedCount++;
-        if (isA1) a1Completed++;
-        if (isB2) b2Completed++;
-
-        // Đánh giá kết quả cuối cùng
-        boolean finalPass;
-        if (requiresRoad) {
-            finalPass = "passed".equalsIgnoreCase(tPass)
-                     && "passed".equalsIgnoreCase(pPass)
-                     && "passed".equalsIgnoreCase(rPass);
-        } else {
-            finalPass = "passed".equalsIgnoreCase(tPass)
-                     && "passed".equalsIgnoreCase(pPass);
-        }
-        
-        if (finalPass) {
-            passedCount++;
-            if (isA1) a1Passed++;
-            if (isB2) b2Passed++;
-        } else {
-            failedCount++;
-            if (isA1) a1Failed++;
-            if (isB2) b2Failed++;
-        }
-    }
-    
-    // Tỷ lệ đạt = số đạt / số đã thi xong (không phải tổng đăng ký)
-    double passRate = examCompletedCount > 0 ? ((double) passedCount / examCompletedCount) * 100.0 : 0.0;
-    
-    request.setAttribute("totalCandidates", totalCandidates);
-    request.setAttribute("examCompletedCount", examCompletedCount);
-    request.setAttribute("passedCount", passedCount);
-    request.setAttribute("failedCount", failedCount);
-    request.setAttribute("absentCount", absentCount);
-    request.setAttribute("passRate", passRate);
-    
-    request.setAttribute("a1Count", a1Count);
-    request.setAttribute("a1Completed", a1Completed);
-    request.setAttribute("a1Passed", a1Passed);
-    request.setAttribute("a1Failed", a1Failed);
-    
-    request.setAttribute("b2Count", b2Count);
-    request.setAttribute("b2Completed", b2Completed);
-    request.setAttribute("b2Passed", b2Passed);
-    request.setAttribute("b2Failed", b2Failed);
-    
-    request.setAttribute("theoryCount", theoryCount);
-    request.setAttribute("theoryPassed", theoryPassed);
-    request.setAttribute("theoryFailed", theoryFailed);
-    
-    request.setAttribute("practicalCount", practicalCount);
-    request.setAttribute("practicalPassed", practicalPassed);
-    request.setAttribute("practicalFailed", practicalFailed);
-
-    request.setAttribute("roadCount", roadCount);
-    request.setAttribute("roadPassed", roadPassed);
-    request.setAttribute("roadFailed", roadFailed);
-
-    // Fetch real infractions from database
-    java.util.List<java.util.Map<String, Object>> infractions = new java.util.ArrayList<>();
-    try (java.sql.Connection conn = new DBConnection.DBContext().getConnection();
-         java.sql.PreparedStatement ps = conn.prepareStatement(
-             "select top 3 sd.[Reason] as deductionReason, count(*) as countVal " +
-             "from Score_Deduction sdd " +
-             "join ScoreDeduction sd on sd.ScoreDeductionId = sdd.ScoreDeductionId " +
-             "group by sd.[Reason] " +
-             "order by countVal desc")) {
-        try (java.sql.ResultSet rs = ps.executeQuery()) {
-            int totalInfractions = 0;
-            while (rs.next()) {
-                java.util.Map<String, Object> map = new java.util.HashMap<>();
-                map.put("reason", rs.getString("deductionReason"));
-                int cnt = rs.getInt("countVal");
-                map.put("count", cnt);
-                totalInfractions += cnt;
-                infractions.add(map);
-            }
-            // calculate percentage
-            for (java.util.Map<String, Object> map : infractions) {
-                int cnt = (int) map.get("count");
-                double pct = totalInfractions > 0 ? ((double) cnt / totalInfractions) * 100.0 : 0.0;
-                map.put("percentage", pct);
-            }
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    request.setAttribute("infractions", infractions);
-%>
+<c:if test="${empty requestScope.candidateList}">
+    <c:redirect url="/views/staff/examstaff/report"/>
+</c:if>
 
 <c:set var="rateNum" value="${passRate}" />
 <fmt:formatNumber var="rateStr" value="${passRate}" maxFractionDigits="1"/>%
@@ -253,12 +20,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Báo cáo cuối ngày - Ban Sát Hạch</title>
     
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
@@ -271,7 +36,6 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
@@ -280,24 +44,23 @@
             <span class="breadcrumbs__current" aria-current="page">Báo cáo cuối ngày</span>
         </nav>
         
-        <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Báo cáo tổng hợp: <c:out value="${currentSession.sessionName}"/></h1>
+                <h1 class="page-title">
+                    Báo cáo tổng hợp ngày thi<c:if test="${not empty currentSession.examDate}"> <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></c:if><c:if test="${not empty currentSession.licenseCode}"><span style="font-size: 0.85em; font-weight: 700; color: #475569;"> — Hạng ${currentSession.licenseCode}</span></c:if>
+                </h1>
                 <p class="page-subtitle">Tổng hợp số liệu kết quả thi sát hạch trong ngày thi hôm nay, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
             </div>
             
-            <!-- Quick Actions on Header -->
             <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày ca thi:</span>
+                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày thi:</span>
                     <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
                         <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
                     </span>
                 </div>
                 
-                <!-- Premium Export Excel Button -->
-                <a href="report.jsp?exportExcel=true"
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportExcel=true"
                    class="btn-filter"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
                    title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất Excel'}">
@@ -305,31 +68,42 @@
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M14 2v6h6M8 13h8M8 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    Xuất file Excel báo cáo ca thi
+                    Xuất Excel
                 </a>
                 
-                <a href="report.jsp?exportPdf=true"
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportPdf=true"
+                   target="_blank"
                    class="btn-export"
-                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; pointer-events: none; opacity: 0.65;' : 'background-color: #ffffff; color: #ef4444; border-color: rgba(239, 68, 68, 0.2);'}"
-                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất PDF'}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
-                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid; ${missingPhotoCount > 0 ? 'background-color: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; pointer-events: none; opacity: 0.65;' : 'background-color: #ffffff; color: #0052cc; border-color: #0052cc; box-shadow: 0 2px 8px rgba(0, 82, 204, 0.08);'}"
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Mở bản in để lưu PDF'}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M6 9V2h12v7" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" stroke-width="2"/>
                     </svg>
                     Xuất PDF
                 </a>
             </div>
         </header>
 
-        <!-- Dynamic param notifications -->
         <c:if test="${missingPhotoCount > 0}">
-            <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 6px; font-size: 0.9rem; font-weight: 700; color: #92400e;">
-                    ${missingPhotoCount} thí sinh chưa có ảnh chân dung chụp tại bàn thủ tục
+            <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 8px; font-size: 0.9rem; font-weight: 700; color: #92400e;">
+                    ${missingPhotoCount} thí sinh chưa hoàn thành thủ tục / chưa có ảnh chân dung
                 </h4>
-                <p style="margin: 0; font-size: 0.8rem; color: #b45309;">
-                    Không thể in/xuất hồ sơ kết quả cho đến khi tất cả thí sinh (trừ vắng thi) đã chụp ảnh tại bàn thủ tục trước khi thi.
+                <p style="margin: 0 0 10px; font-size: 0.8rem; color: #b45309;">
+                    Không thể xuất Excel/PDF cho đến khi các thí sinh dưới đây làm xong bàn thủ tục (chụp ảnh + thu phí).
                 </p>
+                <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #78350f; line-height: 1.6;">
+                    <c:forEach var="c" items="${missingPhotoCandidates}">
+                        <li>
+                            <strong>${c.sbd}</strong> — ${c.name}
+                            <span style="color: #a16207;">(Hạng ${c.clazz}<c:if test="${c.paymentCompleted}"> · đã thu phí, thiếu ảnh</c:if><c:if test="${not c.paymentCompleted}"> · chưa xong thủ tục</c:if>)</span>
+                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1#procedure-desk"
+                               style="margin-left: 6px; font-weight: 700; color: #0052cc; text-decoration: none;">→ Làm thủ tục</a>
+                        </li>
+                    </c:forEach>
+                </ul>
             </div>
         </c:if>
 
@@ -344,34 +118,26 @@
             </div>
         </c:if>
 
-        <c:if test="${param.exportExcel eq 'true' and empty requestScope.exportBlocked}">
-            <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 12px; padding: 1rem; display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;" class="animated slideInUp">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981; flex-shrink: 0;">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                    <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div>
-                    <h4 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #065f46;">Đã xuất báo cáo thành công!</h4>
-                    <p style="margin: 4px 0 0; font-size: 0.8rem; color: #047857;">Tệp tin Excel chứa danh sách kết quả ca thi **danh_sach_ket_qua_24_05.xlsx** đã được tải xuống máy chủ lưu trữ.</p>
+        <section class="metrics-row" aria-label="Chỉ số báo cáo ngày thi">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--amber" style="background-color: rgba(126, 34, 206, 0.06); color: #7e22ce;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" style="color: #7e22ce;">${procedureCompleteCount}</span>
+                    <span class="stat-label">Đã xong thủ tục tại bàn</span>
+                    <span class="stat-trend stat-trend--up">
+                        <c:choose>
+                            <c:when test="${procedurePendingCount > 0}">Còn ${procedurePendingCount} chưa làm thủ tục</c:when>
+                            <c:otherwise>Tất cả thí sinh (trừ vắng) đã xong</c:otherwise>
+                        </c:choose>
+                    </span>
                 </div>
             </div>
-        </c:if>
-
-        <c:if test="${param.exportPdf eq 'true' and empty requestScope.exportBlocked}">
-            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;" class="animated slideInUp">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444; flex-shrink: 0;">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                    <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <div>
-                    <h4 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #991b1b;">Xuất báo cáo PDF thành công!</h4>
-                    <p style="margin: 4px 0 0; font-size: 0.8rem; color: #b91c1c;">Tệp tin PDF **bao_cao_tong_hop_24_05.pdf** đã được tạo lập thành công và sẵn sàng để lưu trữ biên bản thi.</p>
-                </div>
-            </div>
-        </c:if>
-
-        <!-- KPI Summary Cards -->
-        <section class="metrics-row" aria-label="Chỉ số báo cáo ca thi">
+            
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -381,7 +147,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${rateStr}</span>
-                    <span class="stat-label">Tỷ lệ đạt ca thi</span>
+                    <span class="stat-label">Tỷ lệ đạt</span>
                     <span class="stat-trend stat-trend--up">${passEx} đạt / ${completedEx} đã thi xong</span>
                 </div>
             </div>
@@ -426,10 +192,8 @@
             </div>
         </section>
 
-        <!-- Main Report Double-Pane Grid Section -->
         <div class="report-grid">
             
-            <!-- LEFT PANE: Tabular statistics for License Classes & Exam Parts -->
             <div class="report-pane">
                 <header class="report-pane__header">
                     <h2 class="report-pane__title">
@@ -441,7 +205,6 @@
                     </h2>
                 </header>
                 
-                <!-- Bảng 1: Kết quả theo Hạng Bằng -->
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 0; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">1. Thống kê theo hạng bằng sát hạch</h3>
                 <table class="report-table">
                     <thead>
@@ -455,40 +218,35 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td style="font-weight: 700; color: #0f172a;"><span class="role-badge role-badge--coi">Hạng A1</span></td>
-                            <td style="text-align: center; font-weight: 600;">${a1Count}</td>
-                            <td style="text-align: center; font-weight: 600;">${a1Completed}</td>
-                            <td style="text-align: center; color: #059669; font-weight: 700;">${a1Passed}</td>
-                            <td style="text-align: center; color: #dc2626; font-weight: 700;">${a1Failed}</td>
-                            <td style="text-align: right; font-weight: 700; color: #0052cc;">
-                                <c:choose>
-                                    <c:when test="${a1Completed > 0}">
-                                        <fmt:formatNumber value="${a1Passed * 100.0 / a1Completed}" maxFractionDigits="1"/>%
-                                    </c:when>
-                                    <c:otherwise>0%</c:otherwise>
-                                </c:choose>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 700; color: #0f172a;"><span class="role-badge role-badge--admin">Hạng B2</span></td>
-                            <td style="text-align: center; font-weight: 600;">${b2Count}</td>
-                            <td style="text-align: center; font-weight: 600;">${b2Completed}</td>
-                            <td style="text-align: center; color: #059669; font-weight: 700;">${b2Passed}</td>
-                            <td style="text-align: center; color: #dc2626; font-weight: 700;">${b2Failed}</td>
-                            <td style="text-align: right; font-weight: 700; color: #0052cc;">
-                                <c:choose>
-                                    <c:when test="${b2Completed > 0}">
-                                        <fmt:formatNumber value="${b2Passed * 100.0 / b2Completed}" maxFractionDigits="1"/>%
-                                    </c:when>
-                                    <c:otherwise>0%</c:otherwise>
-                                </c:choose>
-                            </td>
-                        </tr>
+                        <c:forEach var="lic" items="${licenseStats}">
+                            <tr>
+                                <td style="font-weight: 700; color: #0f172a;">
+                                    <span class="role-badge role-badge--coi">Hạng ${lic.code}</span>
+                                </td>
+                                <td style="text-align: center; font-weight: 600;">${lic.registered}</td>
+                                <td style="text-align: center; font-weight: 600;">${lic.completed}</td>
+                                <td style="text-align: center; color: #059669; font-weight: 700;">${lic.passed}</td>
+                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${lic.failed}</td>
+                                <td style="text-align: right; font-weight: 700; color: #0052cc;">
+                                    <c:choose>
+                                        <c:when test="${lic.completed > 0}">
+                                            <fmt:formatNumber value="${lic.passed * 100.0 / lic.completed}" maxFractionDigits="1"/>%
+                                        </c:when>
+                                        <c:otherwise>0%</c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty licenseStats}">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+                                    Chưa có thí sinh đăng ký trong kỳ thi này.
+                                </td>
+                            </tr>
+                        </c:if>
                     </tbody>
                 </table>
                 
-                <!-- Bảng 2: Tỷ lệ loại/trượt theo từng phần thi -->
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">2. Thống kê tỷ lệ loại theo từng phần thi</h3>
                 <table class="report-table" style="margin-bottom: 0;">
                     <thead>
@@ -544,10 +302,8 @@
                 </table>
             </div>
             
-            <!-- RIGHT PANE: Analytical Charts & Common Infractions -->
             <div class="report-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
                 
-                <!-- Simulated Donut Chart using conic-gradient -->
                 <div style="margin-bottom: 2rem;">
                     <header class="report-pane__header" style="margin-bottom: 1rem;">
                         <h2 class="report-pane__title">
@@ -565,7 +321,6 @@
                         </div>
                     </div>
                     
-                    <!-- Chart Legends -->
                     <div class="chart-legend">
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #10b981;"></div>
@@ -578,7 +333,6 @@
                     </div>
                 </div>
                 
-                <!-- Common Infractions List with Progress Bars -->
                 <div>
                     <header class="report-pane__header" style="margin-bottom: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
                         <h2 class="report-pane__title" style="color: #ef4444;">
@@ -604,7 +358,7 @@
                         </c:forEach>
                         <c:if test="${empty infractions}">
                             <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 1.5rem 0;">
-                                Chưa ghi nhận lỗi vi phạm thực hành nào trong ca thi này.
+                                Chưa ghi nhận lỗi vi phạm thực hành nào trong ngày thi này.
                             </div>
                         </c:if>
                     </div>
