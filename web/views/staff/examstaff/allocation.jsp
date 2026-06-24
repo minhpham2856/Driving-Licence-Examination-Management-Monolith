@@ -2,35 +2,6 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<%
-    // Retrieve the candidate queue from the session
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
-    if (qList == null) {
-        Integer examIdObj = (Integer) session.getAttribute("lastLoadedExamId");
-        int examId = (examIdObj != null) ? examIdObj : 1;
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        try {
-            qList = regDAO.getCandidatesByExamId(examId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new java.util.ArrayList<>();
-        }
-        session.setAttribute("candidateQueue", qList);
-        session.setAttribute("lastLoadedExamId", examId);
-    }
-    if (qList != null) {
-        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
-    }
-
-    // Fallback self-healing checks to load active rooms dynamically if accessed directly
-    if (request.getAttribute("activeTheoryRooms") == null) {
-        DAO.ExamAreaDAO areaDAO = new DAO.Impl.ExamAreaDAOImpl();
-        try {
-            request.setAttribute("activeTheoryRooms", areaDAO.getActiveTheoryRooms());
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -39,12 +10,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quy Trình Phân Bổ Thí Sinh - Ban Sát Hạch</title>
     
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
@@ -57,7 +26,6 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
@@ -66,15 +34,13 @@
             <span class="breadcrumbs__current" aria-current="page">Quy trình phân bổ</span>
         </nav>
         
-        <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Trình tự điều phối thí sinh</h1>
-                <p class="page-subtitle">Quản lý và di chuyển thí sinh theo trình tự nghiệp vụ ngang full-width rộng rãi, hỗ trợ Checked Hack thu gọn/mở rộng.</p>
+                <p class="page-subtitle">Quản lý và di chuyển thí sinh theo trình tự nghiệp vụ — hiển thị dạng bảng theo từng giai đoạn ca thi.</p>
             </div>
             
             <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
-                <!-- Real-time Candidate Search Box -->
                 <div class="es-search-box">
                     <input type="text" id="candidateSearch" class="es-search-box__input" placeholder="Tìm thí sinh (SBD, Họ tên, CCCD...)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="es-search-box__icon">
@@ -94,7 +60,6 @@
             </div>
         </header>
 
-        <!-- Exception / Warning Alert Notification Bars -->
         <c:if test="${not empty requestScope.errorMsg}">
             <div style="background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 12px; padding: 0.88rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;" class="animated shake">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444; flex-shrink: 0;">
@@ -130,7 +95,6 @@
             </div>
         </c:if>
 
-        <!-- Allocation Control Dashboard -->
         <div class="report-pane" style="margin-top: 1.25rem; border-radius: 16px; padding: 1.5rem; border: 1px solid #cbd5e1; background: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h2 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -147,7 +111,6 @@
             </div>
             
             <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: flex-end; margin-top: 1rem; border-top: 1.5px solid #f1f5f9; padding-top: 1rem;">
-                <!-- Target Exam Selection (một kỳ thi = lý thuyết + sa hình + đường trường trên cùng một bảng) -->
                 <form action="allocation" method="GET" style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 280px;">
                     <label for="sessionId" style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn kỳ thi (hạng / ngày):</label>
                     <div style="display: flex; gap: 8px;">
@@ -168,346 +131,412 @@
             </div>
         </div>
 
-        <!-- Pipeline Grid Layout (Stretched horizontally) -->
         <div class="pipeline-container" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem;">
-            
-            <!-- STEP 1: WAITING LOBBY -->
-            <div class="pipeline-column">
-                <input type="checkbox" id="toggle-row-step-1" class="row-toggle-checkbox" style="display: none !important;">
-                <div class="pipeline-header" style="width: 240px; border-right: 1px solid #e2e8f0; padding-right: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;">
-                    <div>
-                        <span class="pipeline-step-badge pipeline-step-badge--1">Bước 1</span>
-                        <h3 class="pipeline-title" style="font-size: 1rem; font-weight: 800; color: #ea580c; margin: 0; display: flex; align-items: center; gap: 6px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color: #ea580c;">
-                                <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                            </svg>
-                            Phòng chờ chính
-                        </h3>
-                        <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Phòng Chờ Số 01</span>
-                            <span><strong>Sức chứa:</strong> 100 người | <strong>Loại:</strong> Room</span>
-                        </div>
-                    </div>
-                    <label for="toggle-row-step-1" class="btn-expand-row" style="margin-top: 1rem;">
-                        <svg class="expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition: transform 0.3s ease;">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </label>
-                </div>
-                
-                <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
-                    <c:set var="waitingCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <%-- Phòng chờ: chưa hoàn tất thủ tục (ảnh + lệ phí), không bị đánh dấu vắng — đồng bộ với candidatecall.jsp --%>
-                        <c:set var="procedureDone" value="${c.procedureComplete}" />
-                        <c:if test="${not procedureDone and c.notes ne 'Absent'}">
-                            <c:set var="waitingCount" value="${waitingCount + 1}" />
-                            <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #ea580c;">
-                                <div class="candidate-pipe-header">
-                                    <span class="candidate-sbd-tag" style="color: #ea580c;">${c.sbd}</span>
-                                    <span class="role-badge role-badge--coi" style="font-size: 0.6rem; padding: 1px 4px;">Hạng ${c.clazz}</span>
-                                </div>
-                                <h4 class="candidate-pipe-name">${c.name}</h4>
-                                <div class="candidate-pipe-details">
-                                    Đang đợi ở phòng chờ chính...
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${waitingCount eq 0}">
-                        <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
-                            Không có thí sinh nào trong phòng chờ chính.
-                        </div>
+
+            <div class="allocation-pipeline-row">
+            <div class="allocation-pipeline-cell">
+
+                <c:set var="waitingCount" value="0" />
+                <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                    <c:if test="${not c.procedureComplete and not c.absent}">
+                        <c:set var="waitingCount" value="${waitingCount + 1}" />
                     </c:if>
+                </c:forEach>
+
+                <div class="allocation-stage-panel allocation-stage-panel--waiting">
+                    <div class="allocation-stage-panel__head">
+                        <div class="allocation-stage-panel__title-wrap">
+                            <h4 class="allocation-stage-panel__title">Phòng chờ chính</h4>
+                            <p class="allocation-stage-panel__meta">Phòng Chờ Số 01 · Sức chứa 100 người</p>
+                        </div>
+                        <span class="allocation-stage-panel__count">${waitingCount} thí sinh</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="report-table allocation-stage-table allocation-table--fill">
+                            <thead>
+                                <tr>
+                                    <th scope="col">STT</th>
+                                    <th scope="col">SBD</th>
+                                    <th scope="col">Họ tên</th>
+                                    <th scope="col">Hạng</th>
+                                    <th scope="col">Trạng thái</th>
+                                </tr>
+                            </thead>
+                                <tbody>
+                                    <c:set var="waitingIdx" value="0" />
+                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                                        <c:if test="${not c.procedureComplete and not c.absent}">
+                                            <c:set var="waitingIdx" value="${waitingIdx + 1}" />
+                                            <tr class="allocation-stage-row">
+                                                <td>${waitingIdx}</td>
+                                                <td><strong>${c.sbd}</strong></td>
+                                                <td>${c.name}</td>
+                                                <td>${c.clazz}</td>
+                                                <td><span class="allocation-stage-status allocation-stage-status--waiting">Chờ làm thủ tục / thu lệ phí</span></td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${waitingCount eq 0}">
+                                        <tr>
+                                            <td colspan="5" class="allocation-stage-table__empty">Không có thí sinh nào trong phòng chờ chính.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                    </div>
                 </div>
             </div>
             
-            <!-- STEP 2: THEORY EXAM -->
-            <div class="pipeline-column">
-                <input type="checkbox" id="toggle-row-step-2" class="row-toggle-checkbox" style="display: none !important;">
-                <div class="pipeline-header" style="width: 240px; border-right: 1px solid #e2e8f0; padding-right: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;">
-                    <div>
-                        <span class="pipeline-step-badge pipeline-step-badge--2">Bước 2</span>
-                        <h3 class="pipeline-title" style="font-size: 1rem; font-weight: 800; color: #2563eb; margin: 0; display: flex; align-items: center; gap: 6px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color: #2563eb;">
-                                <rect x="2" y="3" width="20" height="14" rx="2"/>
-                                <path d="M8 21h8M12 17v4"/>
-                            </svg>
-                            Phòng thi lý thuyết
-                        </h3>
-                        <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Phòng thi lý thuyết</span>
-                            <span><strong>Thiết bị (máy tính):</strong> Do Giám thị quản lý</span>
-                        </div>
-                    </div>
-                    <label for="toggle-row-step-2" class="btn-expand-row" style="margin-top: 1rem;">
-                        <svg class="expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition: transform 0.3s ease;">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </label>
-                </div>
-                
-                <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
-                    <c:set var="theoryCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.paymentCompleted and c.theoryPassed eq 'none' and c.notes ne 'Absent'}">
-                            <c:set var="theoryCount" value="${theoryCount + 1}" />
-                            <c:set var="hasPhoto" value="${c.validCapturedPhoto}" />
-                            <c:set var="hasPaid" value="${c.paymentCompleted}" />
-                            <c:set var="procedureDone" value="${c.procedureComplete}" />
-                            
-                            <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #2563eb;">
-                                <div class="candidate-pipe-header">
-                                    <span class="candidate-sbd-tag" style="color: #2563eb;">${c.sbd}</span>
-                                    <span class="role-badge role-badge--coi" style="font-size: 0.6rem; padding: 1px 4px;">Hạng ${c.clazz}</span>
-                                </div>
-                                <h4 class="candidate-pipe-name">${c.name}</h4>
-                                
-                                <div class="badge-grid-status" style="margin-bottom: 4px;">
-                                    <span class="badge-pill-status ${hasPhoto ? 'badge-pill-status--success' : 'badge-pill-status--warning'}">Ảnh hồ sơ</span>
-                                    <span class="badge-pill-status ${hasPaid ? 'badge-pill-status--success' : 'badge-pill-status--warning'}">Lệ phí (200k)</span>
-                                </div>
-                                
-                                <div class="candidate-pipe-details" style="color: #1e3a8a; font-weight: 700; margin-bottom: 4px; display: flex; flex-direction: column; gap: 4px;">
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Phòng thi:</span>
-                                        <span style="color: #0f172a; font-weight: 800; font-size: 0.75rem;">${empty c.allocatedAreaName ? 'Chưa gán' : c.allocatedAreaName}</span>
-                                    </div>
-                                    <div style="font-size: 0.68rem; color: #64748b; font-style: italic;">
-                                        Máy tính thi do Giám thị phân công
-                                    </div>
-                                </div>
-                                
-                                <!-- Điều chỉnh phòng thi thủ công -->
-                                <div style="display: flex; flex-direction: column; gap: 2px; margin-top: 4px;">
-                                    <form action="allocation" method="GET" style="display: flex; align-items: center; gap: 4px;">
-                                        <input type="hidden" name="action" value="allocateRoom">
-                                        <input type="hidden" name="id" value="${c.id}">
-                                        <span style="font-size: 0.62rem; font-weight: 600; color: #64748b; width: 55px;">Đổi phòng:</span>
-                                        <select name="areaId" data-auto-submit class="allocation-area-select">
-                                            <c:forEach var="room" items="${requestScope.activeTheoryRooms}">
-                                                <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${room.areaName}</option>
-                                            </c:forEach>
-                                        </select>
-                                    </form>
-                                </div>
-                                
-                                <c:choose>
-                                    <c:when test="${procedureDone}">
-                                        <a href="allocation?action=submitTheoryScore&id=${c.id}&score=90" class="btn-pipe-action" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; margin-top: 6px;">
-                                            Chấm điểm Lý thuyết (Auto)
-                                        </a>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <div class="candidate-pipe-details" style="color: #b45309; font-weight: 500; font-size: 0.68rem; margin-top: 4px; margin-bottom: 4px;">
-                                            &bull; Cần hoàn tất chụp ảnh và thu lệ phí tại bàn thủ tục
-                                        </div>
-                                        <a href="allocation?action=quickComplete&id=${c.id}" class="btn-pipe-action btn-pipe-action--secondary" style="height: 24px; font-size: 0.65rem; margin-top: 2px;">
-                                            Mô phỏng Xong hồ sơ
-                                        </a>
-                                        <span class="btn-pipe-action btn-pipe-action--disabled" style="height: 24px; font-size: 0.65rem; margin-top: 2px; text-align: center;">
-                                            Chưa đủ điều kiện thi
-                                        </span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${theoryCount eq 0}">
-                        <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
-                            Chưa có thí sinh nào đủ hồ sơ chờ thi Lý thuyết.
-                        </div>
+            <div class="allocation-pipeline-cell">
+
+                <c:set var="theoryCount" value="0" />
+                <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                    <c:if test="${c.procedureComplete and c.theoryPassed eq 'none' and not c.absent}">
+                        <c:set var="theoryCount" value="${theoryCount + 1}" />
                     </c:if>
+                </c:forEach>
+
+                <div class="allocation-stage-panel allocation-stage-panel--theory">
+                    <div class="allocation-stage-panel__head">
+                        <div class="allocation-stage-panel__title-wrap">
+                            <h4 class="allocation-stage-panel__title">Phòng thi lý thuyết</h4>
+                            <p class="allocation-stage-panel__meta">Phòng thi lý thuyết · Máy tính do Giám thị quản lý</p>
+                        </div>
+                        <span class="allocation-stage-panel__count">${theoryCount} thí sinh</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="report-table allocation-stage-table allocation-table--fill">
+                            <thead>
+                                <tr>
+                                    <th scope="col">STT</th>
+                                    <th scope="col">SBD</th>
+                                    <th scope="col">Họ tên</th>
+                                    <th scope="col">Hạng</th>
+                                    <th scope="col">Hồ sơ</th>
+                                    <th scope="col">Phòng thi</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                                <tbody>
+                                    <c:set var="theoryIdx" value="0" />
+                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                                        <c:if test="${c.procedureComplete and c.theoryPassed eq 'none' and not c.absent}">
+                                            <c:set var="theoryIdx" value="${theoryIdx + 1}" />
+                                            <tr class="allocation-stage-row">
+                                                <td>${theoryIdx}</td>
+                                                <td><strong>${c.sbd}</strong></td>
+                                                <td>${c.name}</td>
+                                                <td>${c.clazz}</td>
+                                                <td>
+                                                    <span class="badge-pill-status badge-pill-status--success">Ảnh</span>
+                                                    <span class="badge-pill-status badge-pill-status--success">Lệ phí</span>
+                                                </td>
+                                                <td>
+                                                    <form action="allocation" method="GET" class="allocation-inline-form">
+                                                        <input type="hidden" name="action" value="allocateRoom">
+                                                        <input type="hidden" name="id" value="${c.id}">
+                                                        <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table">
+                                                            <c:forEach var="room" items="${requestScope.activeTheoryRooms}">
+                                                                <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${room.areaName}</option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    <a href="allocation?action=submitTheoryScore&amp;id=${c.id}&amp;score=90" class="allocation-table-action allocation-table-action--theory">Chấm LT (Auto)</a>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${theoryCount eq 0}">
+                                        <tr>
+                                            <td colspan="7" class="allocation-stage-table__empty">Chưa có thí sinh nào hoàn tất hồ sơ và thu lệ phí, chờ thi Lý thuyết.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="allocation-pipeline-row">
+            <div class="allocation-pipeline-cell">
+
+                <c:set var="practicalCount" value="0" />
+                <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                    <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none' and not c.absent}">
+                        <c:set var="practicalCount" value="${practicalCount + 1}" />
+                    </c:if>
+                </c:forEach>
+
+                <div class="allocation-stage-panel allocation-stage-panel--practical">
+                    <div class="allocation-stage-panel__head">
+                        <div class="allocation-stage-panel__title-wrap">
+                            <h4 class="allocation-stage-panel__title">Sa hình / Thực hành</h4>
+                            <p class="allocation-stage-panel__meta">Sân Thực hành Số 1 · Thiết bị do Giám thị quản lý</p>
+                        </div>
+                        <span class="allocation-stage-panel__count">${practicalCount} thí sinh</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="report-table allocation-stage-table allocation-table--fill">
+                            <thead>
+                                <tr>
+                                    <th scope="col">STT</th>
+                                    <th scope="col">SBD</th>
+                                    <th scope="col">Họ tên</th>
+                                    <th scope="col">Hạng</th>
+                                    <th scope="col">Lý thuyết</th>
+                                    <th scope="col">Phòng / khu vực</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                                <tbody>
+                                    <c:set var="practicalIdx" value="0" />
+                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                                        <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none' and not c.absent}">
+                                            <c:set var="practicalIdx" value="${practicalIdx + 1}" />
+                                            <tr class="allocation-stage-row">
+                                                <td>${practicalIdx}</td>
+                                                <td><strong>${c.sbd}</strong></td>
+                                                <td>${c.name}</td>
+                                                <td>${c.clazz}</td>
+                                                <td><span class="allocation-score allocation-score--pass">${c.theoryScore}</span></td>
+                                                <td>${empty c.allocatedAreaName ? '—' : c.allocatedAreaName}</td>
+                                                <td>
+                                                    <a href="allocation?action=submitPracticalScore&amp;id=${c.id}&amp;score=90" class="allocation-table-action allocation-table-action--practical">Chấm TH (Auto)</a>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${practicalCount eq 0}">
+                                        <tr>
+                                            <td colspan="7" class="allocation-stage-table__empty">Chưa có thí sinh nào thi đạt lý thuyết chờ thi Thực hành.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                    </div>
                 </div>
             </div>
             
-            <!-- STEP 3: PRACTICAL EXAM -->
-            <div class="pipeline-column">
-                <input type="checkbox" id="toggle-row-step-3" class="row-toggle-checkbox" style="display: none !important;">
-                <div class="pipeline-header" style="width: 240px; border-right: 1px solid #e2e8f0; padding-right: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;">
-                    <div>
-                        <span class="pipeline-step-badge pipeline-step-badge--3">Bước 3</span>
-                        <h3 class="pipeline-title" style="font-size: 1rem; font-weight: 800; color: #10b981; margin: 0; display: flex; align-items: center; gap: 6px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color: #10b981;">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
-                            Sa hình / Thực hành
-                        </h3>
-                        <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Sân Thực hành Số 1</span>
-                            <span><strong>Thiết bị:</strong> Do Giám thị (Examiner) quản lý</span>
-                        </div>
-                    </div>
-                    <label for="toggle-row-step-3" class="btn-expand-row" style="margin-top: 1rem;">
-                        <svg class="expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition: transform 0.3s ease;">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </label>
-                </div>
-                
-                <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
-                    <c:set var="practicalCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.theoryPassed eq 'passed' and c.practicalPassed eq 'none' and c.notes ne 'Absent'}">
-                            <c:set var="practicalCount" value="${practicalCount + 1}" />
-                            <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #10b981;">
-                                <div class="candidate-pipe-header">
-                                    <span class="candidate-sbd-tag" style="color: #10b981;">${c.sbd}</span>
-                                    <span class="role-badge role-badge--coi" style="font-size: 0.6rem; padding: 1px 4px;">Hạng ${c.clazz}</span>
-                                </div>
-                                <h4 class="candidate-pipe-name">${c.name}</h4>
-                                <div class="candidate-pipe-details">
-                                    Lý thuyết: <strong style="color: #10b981;">${c.theoryScore} (ĐẠT)</strong>
-                                    <c:if test="${not empty c.allocatedAreaName}"> — ${c.allocatedAreaName}</c:if>
-                                    <div style="color: #64748b; font-size: 0.72rem; margin-top: 4px; font-style: italic;">
-                                        Thiết bị thi thực hành do Giám thị phân công
-                                    </div>
-                                </div>
-                                <a href="allocation?action=submitPracticalScore&id=${c.id}&score=90" class="btn-pipe-action" style="background: linear-gradient(135deg, #10b981, #059669); border: none; margin-top: 6px;">
-                                    Chấm điểm Thực hành (Auto)
-                                </a>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${practicalCount eq 0}">
-                        <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
-                            Chưa có thí sinh nào thi đạt lý thuyết chờ thi Thực hành.
-                        </div>
+            <div class="allocation-pipeline-cell">
+
+                <c:set var="roadCount" value="0" />
+                <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                    <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed' and c.roadTestPassed eq 'none' and not c.absent}">
+                        <c:set var="roadCount" value="${roadCount + 1}" />
                     </c:if>
+                </c:forEach>
+
+                <div class="allocation-stage-panel allocation-stage-panel--road">
+                    <div class="allocation-stage-panel__head">
+                        <div class="allocation-stage-panel__title-wrap">
+                            <h4 class="allocation-stage-panel__title">Thi đường trường</h4>
+                            <p class="allocation-stage-panel__meta">Đường trường ngoài sân · Hạng B/B1/B2/C/D/E/F</p>
+                        </div>
+                        <span class="allocation-stage-panel__count">${roadCount} thí sinh</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="report-table allocation-stage-table allocation-table--fill">
+                            <thead>
+                                <tr>
+                                    <th scope="col">STT</th>
+                                    <th scope="col">SBD</th>
+                                    <th scope="col">Họ tên</th>
+                                    <th scope="col">Hạng</th>
+                                    <th scope="col">Lý thuyết</th>
+                                    <th scope="col">Thực hành</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                                <tbody>
+                                    <c:set var="roadIdx" value="0" />
+                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                                        <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed' and c.roadTestPassed eq 'none' and not c.absent}">
+                                            <c:set var="roadIdx" value="${roadIdx + 1}" />
+                                            <tr class="allocation-stage-row">
+                                                <td>${roadIdx}</td>
+                                                <td><strong>${c.sbd}</strong></td>
+                                                <td>${c.name}</td>
+                                                <td>${c.clazz}</td>
+                                                <td><span class="allocation-score allocation-score--pass">${c.theoryScore}</span></td>
+                                                <td><span class="allocation-score allocation-score--pass">${c.practicalScore}</span></td>
+                                                <td>
+                                                    <a href="allocation?action=submitRoadScore&amp;id=${c.id}&amp;score=90" class="allocation-table-action allocation-table-action--road">Chấm ĐT (Auto)</a>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${roadCount eq 0}">
+                                        <tr>
+                                            <td colspan="7" class="allocation-stage-table__empty">Chưa có thí sinh nào đạt Thực hành chờ thi Đường trường.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                    </div>
                 </div>
             </div>
-            
-            <!-- STEP 4: ROAD TEST (THI ĐƯỜNG TRƯỜNG) -->
-            <div class="pipeline-column">
-                <input type="checkbox" id="toggle-row-step-4" class="row-toggle-checkbox" style="display: none !important;">
-                <div class="pipeline-header" style="width: 240px; border-right: 1px solid #e2e8f0; padding-right: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;">
-                    <div>
-                        <span class="pipeline-step-badge pipeline-step-badge--5" style="background-color: rgba(124, 58, 237, 0.1); color: #7c3aed;">Bước 4</span>
-                        <h3 class="pipeline-title" style="font-size: 1rem; font-weight: 800; color: #7c3aed; margin: 0; display: flex; align-items: center; gap: 6px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color: #7c3aed;">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
-                            Thi đường trường
-                        </h3>
-                        <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Đường trường ngoài sân</span>
-                            <span><strong>Đối tượng:</strong> Hạng B/B1/B2/C/D/E/F (A1/A2 bỏ qua)</span>
-                        </div>
-                    </div>
-                    <label for="toggle-row-step-4" class="btn-expand-row" style="margin-top: 1rem;">
-                        <svg class="expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition: transform 0.3s ease;">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </label>
-                </div>
-                
-                <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
-                    <c:set var="roadCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed' and c.roadTestPassed eq 'none' and c.notes ne 'Absent'}">
-                            <c:set var="roadCount" value="${roadCount + 1}" />
-                            <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; border-left: 3px solid #7c3aed;">
-                                <div class="candidate-pipe-header">
-                                    <span class="candidate-sbd-tag" style="color: #7c3aed;">${c.sbd}</span>
-                                    <span class="role-badge role-badge--coi" style="font-size: 0.6rem; padding: 1px 4px;">Hạng ${c.clazz}</span>
-                                </div>
-                                <h4 class="candidate-pipe-name">${c.name}</h4>
-                                <div class="candidate-pipe-details" style="font-size: 0.72rem; color: #4b5563; line-height: 1.5; margin-bottom: 4px;">
-                                    &bull; Lý thuyết: <strong style="color: #2563eb;">${c.theoryScore} (ĐẠT)</strong><br>
-                                    &bull; Thực hành: <strong style="color: #10b981;">${c.practicalScore} (ĐẠT)</strong>
-                                </div>
-                                <a href="allocation?action=submitRoadScore&id=${c.id}&score=90" class="btn-pipe-action" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; margin-top: 6px;">
-                                    Chấm điểm Đường trường (Auto)
-                                </a>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${roadCount eq 0}">
-                        <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
-                            Chưa có thí sinh nào đạt Thực hành chờ thi Đường trường.
-                        </div>
-                    </c:if>
-                </div>
             </div>
             
-            <!-- STEP 5: COMPLETED SESSION (TỔNG HỢP KẾT QUẢ) -->
-            <div class="pipeline-column">
-                <input type="checkbox" id="toggle-row-step-5" class="row-toggle-checkbox" style="display: none !important;">
-                <div class="pipeline-header" style="width: 240px; border-right: 1px solid #e2e8f0; padding-right: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0;">
-                    <div>
-                        <span class="pipeline-step-badge pipeline-step-badge--4" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981;">Bước 5</span>
-                        <h3 class="pipeline-title" style="font-size: 1rem; font-weight: 800; color: #10b981; margin: 0; display: flex; align-items: center; gap: 6px;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color: #10b981;">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                <path d="M22 4L12 14.01l-3-3"/>
-                            </svg>
-                            Tổng hợp kết quả
-                        </h3>
-                        <div class="area-meta-box" style="margin-top: 8px;">
-                            <span><strong>Khu vực:</strong> Hoàn thành ca sát hạch</span>
-                            <span><strong>Đối tượng:</strong> Thí sinh đã hoàn thành thi</span>
-                        </div>
-                    </div>
-                    <label for="toggle-row-step-5" class="btn-expand-row" style="margin-top: 1rem;">
-                        <svg class="expand-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="transition: transform 0.3s ease;">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </label>
-                </div>
+            <div class="allocation-pipeline-row allocation-pipeline-row--full">
                 
-                <div class="pipeline-card-list" style="flex-grow: 1; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 1rem; padding: 0.5rem 0; min-height: 120px; align-items: center;">
-                    <c:set var="completedCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${(c.notes eq 'Absent') or 
-                                      (c.notes ne 'Absent' and c.paymentCompleted and (
-                                          (c.theoryPassed eq 'failed') or 
-                                          (c.practicalPassed eq 'failed') or 
-                                          (c.theoryPassed eq 'passed' and c.practicalPassed eq 'passed' and not c.requiresRoadTest) or 
-                                          (c.requiresRoadTest and c.theoryPassed eq 'passed' and c.practicalPassed eq 'passed' and (c.roadTestPassed eq 'passed' or c.roadTestPassed eq 'failed'))
-                                      ))}">
-                            <c:set var="completedCount" value="${completedCount + 1}" />
-                            <c:set var="isPass" value="${c.notes ne 'Absent' and ((c.practicalPassed eq 'passed' and not c.requiresRoadTest) or (c.requiresRoadTest and c.roadTestPassed eq 'passed'))}" />
-                            
-                            <div class="candidate-pipe-card" style="width: 220px; flex-shrink: 0; background: ${isPass ? '#f0fdf4' : '#fef2f2'}; border-color: ${isPass ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; border-left: 3px solid ${isPass ? '#10b981' : '#ef4444'};">
-                                <div class="candidate-pipe-header">
-                                    <span class="candidate-sbd-tag" style="color: ${isPass ? '#059669' : '#ef4444'};">${c.sbd}</span>
-                                    <span style="font-size: 0.6rem; background-color: ${isPass ? '#d1fae5' : '#fee2e2'}; color: ${isPass ? '#065f46' : '#991b1b'}; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
-                                        ${isPass ? 'ĐẠT' : 'TRƯỢT'}
-                                    </span>
-                                </div>
-                                <h4 class="candidate-pipe-name">${c.name}</h4>
-                                <div class="candidate-pipe-details" style="font-size: 0.7rem; color: #374151; line-height: 1.5;">
-                                    <c:choose>
-                                        <c:when test="${c.notes eq 'Absent'}">
-                                            <span style="color: #ef4444; font-weight: 700;">VẮNG THI (Hủy hồ sơ)</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            &bull; Lý thuyết: <strong style="color: ${c.theoryPassed eq 'passed' ? '#10b981' : '#ef4444'};">${c.theoryScore} (${c.theoryPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
-                                            <c:if test="${c.theoryPassed eq 'passed'}">
-                                                &bull; Thực hành: <strong style="color: ${c.practicalPassed eq 'passed' ? '#10b981' : '#ef4444'};">${c.practicalScore} (${c.practicalPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
-                                                <c:if test="${c.requiresRoadTest and c.practicalPassed eq 'passed'}">
-                                                    &bull; Đường trường: <strong style="color: ${c.roadTestPassed eq 'passed' ? '#7c3aed' : '#ef4444'};">${c.roadTestScore} (${c.roadTestPassed eq 'passed' ? 'ĐẠT' : 'TRƯỢT'})</strong><br>
-                                                </c:if>
-                                            </c:if>
-                                            &bull; Kết luận: <strong style="color: ${isPass ? '#16a34a' : '#dc2626'};">${isPass ? 'CẤP GPLX' : 'TRƯỢT SÁT HẠCH'}</strong>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                    
-                    <c:if test="${completedCount eq 0}">
-                        <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 2rem; width: 100%;">
+                <c:set var="passCount" value="0" />
+                <c:set var="failCount" value="0" />
+                <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                    <c:if test="${c.examFinished}">
+                        <c:choose>
+                            <c:when test="${c.finalPass}">
+                                <c:set var="passCount" value="${passCount + 1}" />
+                            </c:when>
+                            <c:otherwise>
+                                <c:set var="failCount" value="${failCount + 1}" />
+                            </c:otherwise>
+                        </c:choose>
+                    </c:if>
+                </c:forEach>
+
+                <div class="allocation-results-wrap">
+                    <c:if test="${passCount eq 0 and failCount eq 0}">
+                        <div class="allocation-results-empty">
                             Chưa có thí sinh nào hoàn thành ca sát hạch.
                         </div>
+                    </c:if>
+
+                    <c:if test="${passCount gt 0 or failCount gt 0}">
+                    <div class="allocation-results-panel allocation-results-panel--pass">
+                        <div class="allocation-results-panel__head">
+                            <div class="allocation-stage-panel__title-wrap">
+                                <h4 class="allocation-results-panel__title">Tổng hợp kết quả — Đỗ</h4>
+                                <p class="allocation-stage-panel__meta">Hoàn thành ca sát hạch · Cấp GPLX</p>
+                            </div>
+                            <span class="allocation-results-panel__count">${passCount} thí sinh</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="report-table allocation-results-table allocation-table--fill">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">STT</th>
+                                        <th scope="col">SBD</th>
+                                        <th scope="col">Họ tên</th>
+                                        <th scope="col">Hạng</th>
+                                        <th scope="col">Lý thuyết</th>
+                                        <th scope="col">Thực hành</th>
+                                        <th scope="col">Đường trường</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:set var="passIdx" value="0" />
+                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                                        <c:if test="${c.examFinished and c.finalPass}">
+                                            <c:set var="passIdx" value="${passIdx + 1}" />
+                                            <tr class="allocation-result-row">
+                                                <td>${passIdx}</td>
+                                                <td><strong>${c.sbd}</strong></td>
+                                                <td>${c.name}</td>
+                                                <td>${c.clazz}</td>
+                                                <td><span class="allocation-score allocation-score--pass">${c.theoryScore}</span></td>
+                                                <td><span class="allocation-score allocation-score--pass">${c.practicalScore}</span></td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${c.requiresRoadTest}">
+                                                            <span class="allocation-score allocation-score--pass">${c.roadTestScore}</span>
+                                                        </c:when>
+                                                        <c:otherwise>—</c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${passCount eq 0}">
+                                        <tr>
+                                            <td colspan="7" class="allocation-results-table__empty">Chưa có thí sinh đỗ.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="allocation-results-panel allocation-results-panel--fail">
+                        <div class="allocation-results-panel__head">
+                            <div class="allocation-stage-panel__title-wrap">
+                                <h4 class="allocation-results-panel__title">Tổng hợp kết quả — Trượt</h4>
+                                <p class="allocation-stage-panel__meta">Hoàn thành ca sát hạch · Trượt hoặc vắng thi</p>
+                            </div>
+                            <span class="allocation-results-panel__count">${failCount} thí sinh</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="report-table allocation-results-table allocation-table--fill">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">STT</th>
+                                        <th scope="col">SBD</th>
+                                        <th scope="col">Họ tên</th>
+                                        <th scope="col">Hạng</th>
+                                        <th scope="col">Lý thuyết</th>
+                                        <th scope="col">Thực hành</th>
+                                        <th scope="col">Đường trường</th>
+                                        <th scope="col">Lý do</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:set var="failIdx" value="0" />
+                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                                        <c:if test="${c.examFinished and not c.finalPass}">
+                                            <c:set var="failIdx" value="${failIdx + 1}" />
+                                            <tr class="allocation-result-row">
+                                                <td>${failIdx}</td>
+                                                <td><strong>${c.sbd}</strong></td>
+                                                <td>${c.name}</td>
+                                                <td>${c.clazz}</td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${c.absent}">—</c:when>
+                                                        <c:otherwise>
+                                                            <span class="allocation-score allocation-score--${c.theoryPassed eq 'passed' ? 'pass' : 'fail'}">${c.theoryScore}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${c.absent or c.theoryPassed ne 'passed'}">—</c:when>
+                                                        <c:otherwise>
+                                                            <span class="allocation-score allocation-score--${c.practicalPassed eq 'passed' ? 'pass' : 'fail'}">${c.practicalScore}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${c.absent or not c.requiresRoadTest or c.practicalPassed ne 'passed'}">—</c:when>
+                                                        <c:otherwise>
+                                                            <span class="allocation-score allocation-score--${c.roadTestPassed eq 'passed' ? 'pass' : 'fail'}">${c.roadTestScore}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${c.absent}">
+                                                            <span class="allocation-result-reason allocation-result-reason--absent">Vắng thi</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="allocation-result-reason allocation-result-reason--fail">Trượt sát hạch</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${failCount eq 0}">
+                                        <tr>
+                                            <td colspan="8" class="allocation-results-table__empty">Chưa có thí sinh trượt hoặc vắng.</td>
+                                        </tr>
+                                    </c:if>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     </c:if>
                 </div>
             </div>

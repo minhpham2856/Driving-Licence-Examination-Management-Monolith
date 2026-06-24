@@ -1,7 +1,8 @@
-// allocation.js
-// Handles client-side interactive actions for the candidates allocation sequential pipeline
+// allocation.js — pipeline tables: search, collapse/expand, auto-submit selects
 
-document.addEventListener("DOMContentLoaded", function() {
+var ALLOCATION_COLLAPSE_ROW_LIMIT = 5;
+
+document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("candidateSearch");
     if (searchInput) {
         searchInput.addEventListener("input", filterCandidates);
@@ -11,98 +12,139 @@ document.addEventListener("DOMContentLoaded", function() {
         sel.addEventListener("change", function () { this.form.submit(); });
     });
 
+    initAllocationTableCollapse();
+
     const btnExtendAll = document.getElementById("btnExtendAll");
     if (btnExtendAll) {
         btnExtendAll.addEventListener("click", function () {
             toggleExtendAll();
         });
-        if (localStorage.getItem("pipeline_extended") === "true") {
+        if (localStorage.getItem("allocation_tables_extended") === "true") {
             toggleExtendAll(true);
         }
     }
 });
 
-/**
- * Toggles grid/wrap layout for all steps' lists simultaneously
- * @param {boolean} [forceState] optional boolean state to enforce
- */
-function toggleExtendAll(forceState) {
+function countDataRows(table) {
+    if (!table) return 0;
+    return table.querySelectorAll("tbody tr.allocation-stage-row, tbody tr.allocation-result-row").length;
+}
+
+function setCollapseState(collapseEl, btn, expanded) {
+    if (!collapseEl) return;
+    collapseEl.classList.toggle("is-expanded", expanded);
+    collapseEl.classList.toggle("is-collapsed", !expanded);
+    if (btn) {
+        btn.textContent = expanded ? "Thu gọn" : "Mở rộng";
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+    }
+}
+
+function initAllocationTableCollapse() {
+    document.querySelectorAll(".allocation-stage-panel, .allocation-results-panel").forEach(function (panel) {
+        const tableWrap = panel.querySelector(".table-responsive");
+        const head = panel.querySelector(".allocation-stage-panel__head, .allocation-results-panel__head");
+        if (!tableWrap || !head) return;
+
+        const collapseEl = document.createElement("div");
+        collapseEl.className = "allocation-table-collapse";
+        tableWrap.parentNode.insertBefore(collapseEl, tableWrap);
+        collapseEl.appendChild(tableWrap);
+
+        const table = tableWrap.querySelector("table");
+        const rowCount = countDataRows(table);
+        if (rowCount <= ALLOCATION_COLLAPSE_ROW_LIMIT) {
+            collapseEl.classList.add("is-expanded");
+            return;
+        }
+
+        collapseEl.classList.add("is-collapsed");
+
+        let actions = head.querySelector(".allocation-panel-head-actions");
+        if (!actions) {
+            actions = document.createElement("div");
+            actions.className = "allocation-panel-head-actions";
+            const countEl = head.querySelector(".allocation-stage-panel__count, .allocation-results-panel__count");
+            if (countEl) {
+                actions.appendChild(countEl);
+            }
+            head.appendChild(actions);
+        }
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "allocation-table-toggle";
+        btn.textContent = "Mở rộng";
+        btn.setAttribute("aria-expanded", "false");
+        btn.addEventListener("click", function () {
+            const expanded = !collapseEl.classList.contains("is-expanded");
+            setCollapseState(collapseEl, btn, expanded);
+            syncExtendAllButton();
+        });
+        actions.appendChild(btn);
+    });
+
+    syncExtendAllButton();
+}
+
+function syncExtendAllButton() {
     const btn = document.getElementById("btnExtendAll");
     if (!btn) return;
-    
-    const lists = document.querySelectorAll(".pipeline-card-list");
-    let isExtended;
-    if (typeof forceState === "boolean") {
-        isExtended = forceState;
-        btn.classList.toggle("expanded", isExtended);
-    } else {
-        isExtended = btn.classList.toggle("expanded");
+    const collapses = document.querySelectorAll(".allocation-table-collapse.is-collapsed, .allocation-table-collapse.is-expanded");
+    const expandable = Array.from(collapses).filter(function (el) {
+        return countDataRows(el.querySelector("table")) > ALLOCATION_COLLAPSE_ROW_LIMIT;
+    });
+    if (expandable.length === 0) {
+        btn.style.display = "none";
+        return;
     }
-    
-    // Persist layout state
-    localStorage.setItem("pipeline_extended", isExtended ? "true" : "false");
-    
-    lists.forEach(function (list) {
-        list.classList.toggle("expanded-grid", isExtended);
+    btn.style.display = "inline-flex";
+    const allExpanded = expandable.every(function (el) {
+        return el.classList.contains("is-expanded");
     });
-
-    document.querySelectorAll(".row-toggle-checkbox").forEach(function (cb) {
-        cb.checked = isExtended;
-    });
-
-    document.querySelectorAll(".btn-expand-row .expand-icon").forEach(function (icon) {
-        icon.style.transform = isExtended ? "rotate(180deg)" : "none";
-    });
-
+    btn.classList.toggle("expanded", allExpanded);
     const extendText = btn.querySelector(".extend-text");
     const collapseText = btn.querySelector(".collapse-text");
     const mainIcon = btn.querySelector(".extend-all-icon");
-    if (extendText) extendText.style.display = isExtended ? "none" : "inline";
-    if (collapseText) collapseText.style.display = isExtended ? "inline" : "none";
-    if (mainIcon) mainIcon.style.transform = isExtended ? "rotate(180deg)" : "none";
+    if (extendText) extendText.style.display = allExpanded ? "none" : "inline";
+    if (collapseText) collapseText.style.display = allExpanded ? "inline" : "none";
+    if (mainIcon) mainIcon.style.transform = allExpanded ? "rotate(180deg)" : "none";
 }
 
-/**
- * Toggles grid/wrap layout for a single row's candidate list
- * @param {HTMLButtonElement} btn 
- */
-function toggleRowExpand(btn) {
-    const col = btn.closest(".pipeline-column");
-    if (!col) return;
-    const list = col.querySelector(".pipeline-card-list");
-    if (!list) return;
-    
-    const isExpanded = list.classList.toggle("expanded-grid");
-    
-    // Update button text and icon
-    const span = btn.querySelector("span");
-    const icon = btn.querySelector(".expand-icon");
-    if (isExpanded) {
-        if (span) span.textContent = "Thu gọn";
-        if (icon) icon.style.transform = "rotate(180deg)";
+function toggleExtendAll(forceState) {
+    const collapses = document.querySelectorAll(".allocation-table-collapse");
+    let expandable = Array.from(collapses).filter(function (el) {
+        return countDataRows(el.querySelector("table")) > ALLOCATION_COLLAPSE_ROW_LIMIT;
+    });
+    if (expandable.length === 0) return;
+
+    let isExpanded;
+    if (typeof forceState === "boolean") {
+        isExpanded = forceState;
     } else {
-        if (span) span.textContent = "Mở rộng";
-        if (icon) icon.style.transform = "none";
+        const btn = document.getElementById("btnExtendAll");
+        isExpanded = !(btn && btn.classList.contains("expanded"));
     }
+
+    expandable.forEach(function (collapseEl) {
+        const panel = collapseEl.closest(".allocation-stage-panel, .allocation-results-panel");
+        const btn = panel ? panel.querySelector(".allocation-table-toggle") : null;
+        setCollapseState(collapseEl, btn, isExpanded);
+    });
+
+    localStorage.setItem("allocation_tables_extended", isExpanded ? "true" : "false");
+    syncExtendAllButton();
 }
 
-/**
- * Performs local client-side real-time filtering of candidates
- */
 function filterCandidates() {
     const queryInput = document.getElementById("candidateSearch");
     if (!queryInput) return;
     const query = queryInput.value.trim().toLowerCase();
-    const cards = document.querySelectorAll(".candidate-pipe-card");
-    
-    cards.forEach(card => {
-        const textContent = card.textContent.toLowerCase();
-        if (textContent.includes(query)) {
-            card.style.display = ""; // Show
-            card.style.opacity = "1";
-            card.style.transform = "scale(1)";
-        } else {
-            card.style.display = "none"; // Hide
-        }
+    const rows = document.querySelectorAll(".allocation-stage-row, .allocation-result-row");
+
+    rows.forEach(function (row) {
+        const textContent = row.textContent.toLowerCase();
+        const show = query === "" || textContent.includes(query);
+        row.style.display = show ? "table-row" : "none";
     });
 }

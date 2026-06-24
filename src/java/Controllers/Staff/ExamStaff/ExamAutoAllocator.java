@@ -150,11 +150,10 @@ public class ExamAutoAllocator {
     }
 
     private boolean isReadyForAllocation(ExamRegistration c) {
-        if (c.getNotes() != null && "Absent".equalsIgnoreCase(c.getNotes().trim())) {
+        if (c.isAbsent()) {
             return false;
         }
-        boolean procedureDone = c.isPresent() && c.isPaymentCompleted();
-        return procedureDone && "none".equals(c.getTheoryPassed());
+        return c.isProcedureComplete() && "none".equals(c.getTheoryPassed());
     }
 
     private boolean isAlreadyAllocated(ExamRegistration c) {

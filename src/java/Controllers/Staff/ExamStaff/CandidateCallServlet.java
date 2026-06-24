@@ -20,8 +20,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import Utils.SessionUserHelper;
 
 @WebServlet("/views/staff/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
@@ -35,6 +37,7 @@ public class CandidateCallServlet extends HttpServlet {
             throws ServletException, IOException {
         
         HttpSession session = request.getSession();
+        int staffId = SessionUserHelper.resolveUserId(session);
 
         if ("desk".equals(request.getParameter("view"))) {
             String deskSbd = request.getParameter("sbd");
@@ -44,16 +47,28 @@ public class CandidateCallServlet extends HttpServlet {
             if (deskSbd != null && !deskSbd.trim().isEmpty()) {
                 response.sendRedirect("procedure?sbd=" + deskSbd);
             } else {
-                response.sendRedirect("procedure");
+                response.sendRedirect("candidatecall");
             }
             return;
         }
-        
-        // 1. Luôn tải hàng đợi từ DB (đồng bộ với bàn thủ tục)
+
+        String qAction = request.getParameter("action");
+        if (qAction == null) {
+            qAction = "";
+        }
+        String qSbd = request.getParameter("sbd");
+        String returnView = request.getParameter("returnView");
+
         int examSessionId = 2;
         Integer selectedSessionId = (Integer) session.getAttribute("selectedSessionId");
         if (selectedSessionId != null) {
             examSessionId = selectedSessionId;
+        }
+        String webRoot = request.getServletContext().getRealPath("/");
+
+        if ("suspended".equals(request.getParameter("view")) && qAction.isEmpty()) {
+            forwardSuspendedView(request, response, session, examSessionId, webRoot);
+            return;
         }
 
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
@@ -63,14 +78,7 @@ public class CandidateCallServlet extends HttpServlet {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
-        
-        String qAction = request.getParameter("action");
-        if (qAction == null) {
-            qAction = "";
-        }
-        String qSbd = request.getParameter("sbd");
 
-        String webRoot = request.getServletContext().getRealPath("/");
         List<ExamRegistration> candidateQueue = null;
         if (!isShiftEnded) {
             candidateQueue = loadCallQueue(session, examSessionId, webRoot, qAction);
@@ -94,7 +102,7 @@ public class CandidateCallServlet extends HttpServlet {
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
-                        call.setCalledBy(3); // Default staff
+                        call.setCalledBy(staffId);
                         call.setResult("Calling");
                         callDAO.insert(call);
                         break;
@@ -120,7 +128,7 @@ public class CandidateCallServlet extends HttpServlet {
                     call.setExamSessionId(removed.getExamSessionId());
                     call.setCandidateNo(removed.getCandidateNo());
                     call.setCalledTo("Bàn làm thủ tục số 2");
-                    call.setCalledBy(3);
+                    call.setCalledBy(staffId);
                     call.setResult("Absent");
                     callDAO.insert(call);
                 }
@@ -134,7 +142,7 @@ public class CandidateCallServlet extends HttpServlet {
                         call.setExamSessionId(next.getExamSessionId());
                         call.setCandidateNo(next.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
-                        call.setCalledBy(3);
+                        call.setCalledBy(staffId);
                         call.setResult("Calling");
                         callDAO.insert(call);
                     }
@@ -171,38 +179,67 @@ public class CandidateCallServlet extends HttpServlet {
                 }
                 
                 session.setAttribute("callingSbd", resolveFirstPendingSbd(candidateQueue));
-                request.setAttribute("permanentAbsentAlert", qSbd);
             }
+            if (candidateQueue != null) {
+                session.setAttribute("candidateQueue", candidateQueue);
+                session.setAttribute("lastLoadedSessionId", examSessionId);
+            }
+            CandidateCallBoard.syncFromSession(getServletContext(), session, candidateQueue);
+            response.sendRedirect("candidatecall?view=suspended&alert=suspended&sbd=" + qSbd);
+            return;
         } else if ("undoAbsent".equals(qAction)) {
             // UC-03 Undo / Exception Safety action
-            if (qSbd != null && permanentAbsents != null) {
-                int foundIdx = -1;
-                for (int i = 0; i < permanentAbsents.size(); i++) {
-                    if (qSbd.equals(permanentAbsents.get(i).getSbd())) {
-                        foundIdx = i;
-                        break;
+            boolean undone = false;
+            if (qSbd != null) {
+                ExamRegistration restored = null;
+                if (permanentAbsents != null) {
+                    int foundIdx = -1;
+                    for (int i = 0; i < permanentAbsents.size(); i++) {
+                        if (qSbd.equals(permanentAbsents.get(i).getSbd())) {
+                            foundIdx = i;
+                            break;
+                        }
+                    }
+                    if (foundIdx != -1) {
+                        restored = permanentAbsents.remove(foundIdx);
                     }
                 }
-                if (foundIdx != -1) {
-                    ExamRegistration restored = permanentAbsents.remove(foundIdx);
-                    
-                    // Reset fields
+                if (restored == null) {
+                    for (ExamRegistration c : loadSuspendedList(session, examSessionId, webRoot)) {
+                        if (qSbd.equals(c.getSbd())) {
+                            restored = c;
+                            break;
+                        }
+                    }
+                }
+                if (restored != null) {
                     restored.setNotes("");
                     restored.setTheoryPassed("none");
                     restored.setPracticalPassed("none");
                     restored.setTheoryScore(null);
                     restored.setPracticalScore(null);
-                    
+
                     regDAO.clearAbsentMarking(restored.getId());
-                    
-                    // Put back to queue
+
                     if (candidateQueue != null) {
-                        candidateQueue.add(0, restored); // Put at the beginning so they can be called next!
+                        candidateQueue.add(0, restored);
                     }
-                    
-                    session.setAttribute("callingSbd", restored.getSbd()); // Set as active call immediately
-                    request.setAttribute("undoAlert", qSbd);
+
+                    session.setAttribute("callingSbd", restored.getSbd());
+                    undone = true;
                 }
+            }
+            if (undone) {
+                if (candidateQueue != null) {
+                    session.setAttribute("candidateQueue", candidateQueue);
+                    session.setAttribute("lastLoadedSessionId", examSessionId);
+                }
+                CandidateCallBoard.syncFromSession(getServletContext(), session, candidateQueue);
+                if ("suspended".equals(returnView)) {
+                    response.sendRedirect("candidatecall?view=suspended&alert=undo&sbd=" + qSbd);
+                    return;
+                }
+                request.setAttribute("undoAlert", qSbd);
             }
         } else if ("endShift".equals(qAction)) {
             if (candidateQueue != null) {
@@ -247,6 +284,20 @@ public class CandidateCallServlet extends HttpServlet {
                 CandidateCallBoard.findBySbd(candidateQueue,
                         CandidateCallBoard.resolveNextSbd(candidateQueue,
                                 (String) session.getAttribute("callingSbd"))));
+        request.setAttribute("suspendedCount", loadSuspendedList(session, examSessionId, webRoot).size());
+        if (examSession != null) {
+            request.setAttribute("currentSession", examSession);
+        }
+        if (candidateQueue != null) {
+            ExamRegistration callingCandidate = ExamStaffViewHelper.resolveCallingCandidate(session, candidateQueue);
+            if (callingCandidate != null) {
+                request.setAttribute("callingCandidate", callingCandidate);
+            }
+            request.setAttribute("procedureDoneCandidates",
+                    ExamStaffViewHelper.listProcedureDoneNewestFirst(candidateQueue));
+        } else {
+            request.setAttribute("procedureDoneCandidates", List.of());
+        }
 
         request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
     }
@@ -341,6 +392,53 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
         session.setAttribute("callingSbd", resolveFirstPendingSbd(candidateQueue));
+    }
+
+    private void forwardSuspendedView(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, int examSessionId, String webRoot)
+            throws ServletException, IOException {
+        List<ExamRegistration> suspendedList = loadSuspendedList(session, examSessionId, webRoot);
+        request.setAttribute("suspendedList", suspendedList);
+        request.setAttribute("suspendedCount", suspendedList.size());
+
+        ExamSession examSession = sessionDAO.getById(examSessionId);
+        if (examSession != null) {
+            request.setAttribute("currentSession", examSession);
+        }
+
+        String alert = request.getParameter("alert");
+        String alertSbd = request.getParameter("sbd");
+        if (alert != null && alertSbd != null && !alertSbd.trim().isEmpty()) {
+            if ("suspended".equals(alert)) {
+                request.setAttribute("permanentAbsentAlert", alertSbd);
+            } else if ("undo".equals(alert)) {
+                request.setAttribute("undoAlert", alertSbd);
+            }
+        }
+
+        request.getRequestDispatcher("/views/staff/examstaff/candidate-suspended.jsp").forward(request, response);
+    }
+
+    private List<ExamRegistration> loadSuspendedList(HttpSession session, int examSessionId, String webRoot) {
+        List<ExamRegistration> sessionList = (List<ExamRegistration>) session.getAttribute("permanentAbsents");
+        if (sessionList == null) {
+            sessionList = new ArrayList<>();
+            session.setAttribute("permanentAbsents", sessionList);
+        }
+
+        List<ExamRegistration> fromDb = regDAO.getCandidatesBySession(examSessionId);
+        CandidatePhotoHelper.normalizeQueue(webRoot, fromDb, regDAO);
+
+        Map<String, ExamRegistration> merged = new LinkedHashMap<>();
+        for (ExamRegistration c : fromDb) {
+            if (c.getNotes() != null && "Absent".equalsIgnoreCase(c.getNotes().trim())) {
+                merged.put(c.getSbd(), c);
+            }
+        }
+        for (ExamRegistration c : sessionList) {
+            merged.putIfAbsent(c.getSbd(), c);
+        }
+        return new ArrayList<>(merged.values());
     }
 }
 

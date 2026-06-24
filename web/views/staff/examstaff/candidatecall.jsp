@@ -3,82 +3,6 @@
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 
-<%
-    // Retrieve the candidate queue from the session dynamically
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
-    
-    // Check if shift is ended
-    String shiftEndedVal = (String) session.getAttribute("shiftEnded");
-    boolean isShiftEnded = "true".equals(shiftEndedVal);
-
-    // Retrieve active session ID from session
-    Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
-    int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to B2 session
-
-    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
-    Models.ExamSession currentSession = null;
-    try {
-        currentSession = sessDAO.getById(sessId);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    if (currentSession != null) {
-        request.setAttribute("currentSession", currentSession);
-    }
-
-    if (qList == null && !isShiftEnded) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        try {
-            qList = regDAO.getCandidatesBySession(sessId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new java.util.ArrayList<>();
-        }
-        session.setAttribute("candidateQueue", qList);
-        session.setAttribute("callingSbd", null);
-    }
-    if (qList != null) {
-        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
-    }
-    
-    // Find active candidate (bỏ qua thí sinh đã hoàn tất thủ tục)
-    String sbdParam = (String) session.getAttribute("callingSbd");
-    Models.ExamRegistration callingCandidate = null;
-    if (sbdParam != null && !sbdParam.trim().isEmpty() && qList != null) {
-        for (Models.ExamRegistration c : qList) {
-            if (sbdParam.equals(c.getSbd())) {
-                boolean procedureDone = c.isProcedureComplete();
-                if (!procedureDone) {
-                    callingCandidate = c;
-                } else {
-                    String nextSbd = null;
-                    for (Models.ExamRegistration pending : qList) {
-                        if (!pending.isProcedureComplete()) {
-                            nextSbd = pending.getSbd();
-                            break;
-                        }
-                    }
-                    session.setAttribute("callingSbd", nextSbd);
-                    sbdParam = nextSbd;
-                    if (nextSbd != null) {
-                        for (Models.ExamRegistration pending : qList) {
-                            if (nextSbd.equals(pending.getSbd())) {
-                                callingCandidate = pending;
-                                break;
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-        }
-    }
-    if (callingCandidate != null) {
-        request.setAttribute("callingCandidate", callingCandidate);
-    }
-%>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -86,14 +10,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gọi Làm Thủ Tục - Ban Sát Hạch</title>
     
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- External Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/examstaff.css">
 </head>
 <body class="has-side-nav-bar">
 
@@ -104,7 +27,6 @@
 <div class="dashboard-shell">
     <main class="main-content">
         
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
@@ -122,33 +44,42 @@
             </c:choose>
         </nav>
         
-        <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Gọi thí sinh vào làm thủ tục</h1>
-                <p class="page-subtitle">Điều hành loa gọi hàng đợi và làm thủ tục 3 bước trên cùng một màn hình.</p>
+                <p class="page-subtitle">Điều hành hàng đợi gọi thủ tục; phát loa qua màn hình TV riêng.</p>
             </div>
-            
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ca thi:</span>
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+
+            <div class="call-page-actions">
+                <div class="call-session-chip">
+                    <span class="call-session-chip__label">Ca thi:</span>
+                    <span class="call-session-chip__value">
                         <c:out value="${currentSession.sessionName}" /> (<c:out value="${currentSession.licenseCode}" />)
                     </span>
                 </div>
-                <a href="procedure#procedure-desk" class="btn-export" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    Bàn làm thủ tục
-                </a>
-                <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId != null ? sessionScope.selectedSessionId : 2}"
-                   target="_blank" rel="noopener"
-                   class="btn-filter" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #0f172a; border-color: #0f172a; color: #ffffff;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                    Mở màn hình TV
-                </a>
+                <c:if test="${sessionScope.shiftEnded ne 'true'}">
+                    <a href="candidatecall?action=endShift" class="call-toolbar-btn call-toolbar-btn--danger"
+                       onclick="return confirm('Kết thúc ca thi? Tất cả thí sinh chưa làm thủ tục sẽ bị đình chỉ.');">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M9 9h6v6H9z" fill="currentColor"/>
+                        </svg>
+                        Đóng ca
+                    </a>
+                </c:if>
             </div>
         </header>
 
-        <!-- Dynamic Alerts for Absent Operations -->
+        <nav class="call-subnav" aria-label="Điều hướng gọi thủ tục">
+            <a href="candidatecall" class="call-subnav__link is-active">Gọi thủ tục</a>
+            <a href="candidatecall?view=suspended" class="call-subnav__link">
+                Đình chỉ thi
+                <c:if test="${requestScope.suspendedCount > 0}">
+                    <span class="call-toolbar-badge">${requestScope.suspendedCount}</span>
+                </c:if>
+            </a>
+        </nav>
+
         <c:if test="${not empty requestScope.absentAlert}">
             <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 12px; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444; flex-shrink: 0;">
@@ -195,16 +126,19 @@
                 </span>
             </div>
         </c:if>
+
+        <c:if test="${not empty param.procedureReset}">
+            <div style="background-color: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 10px 12px; margin-bottom: 1.25rem; font-size: 0.82rem; font-weight: 600; color: #1e40af;">
+                Đã xóa hồ sơ thủ tục của <strong>${param.procedureReset}</strong>. Thí sinh có thể làm lại thủ tục từ bước 1.
+            </div>
+        </c:if>
         
-        <!-- Main grid for calling console -->
         <div class="report-grid" style="grid-template-columns: 1.32fr 1.68fr; gap: 1.5rem; display: grid;">
             
-            <!-- Left Pane: Call Queue Console Controller -->
             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                 
                 <c:choose>
                     <c:when test="${sessionScope.shiftEnded eq 'true'}">
-                        <!-- SHIFT ENDED PANE -->
                         <div class="waiting-list-pane" style="text-align: center; padding: 3rem 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
                             <div style="background-color: #fee2e2; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -221,7 +155,6 @@
                     </c:when>
                     
                     <c:otherwise>
-                        <!-- SHIFT IS ACTIVE -->
                         <div class="waiting-list-pane">
                             <h3 class="called-status-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
@@ -233,7 +166,6 @@
                             
                             <c:choose>
                                 <c:when test="${empty sessionScope.callingSbd}">
-                                    <!-- IDLE STATE: WAITING FOR START COMMAND -->
                                     <div style="text-align: center; padding: 2rem 1rem; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; margin-bottom: 1.25rem;">
                                         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #94a3b8; margin: 0 auto 0.5rem; display: block;">
                                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="currentColor"/>
@@ -244,13 +176,11 @@
                                     
                                     <c:choose>
                                         <c:when test="${empty sessionScope.candidateQueue}">
-                                            <!-- QUEUE EMPTY -->
                                             <button class="btn-batch" style="background-color: #e2e8f0; border-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; font-size: 0.9rem;" disabled>
                                                 Hàng đợi trống - Không thể gọi
                                             </button>
                                         </c:when>
                                         <c:otherwise>
-                                            <!-- QUEUE HAS CANDIDATES -->
                                             <a href="candidatecall?action=startCall" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.92rem; height: 46px;">
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="currentColor"/>
@@ -259,41 +189,9 @@
                                             </a>
                                         </c:otherwise>
                                     </c:choose>
-                                    
-                                    <a href="candidatecall?action=endShift" class="btn-batch btn-batch--alt" style="margin-top: 0.75rem; border-color: rgba(239, 68, 68, 0.2); color: #ef4444; background: rgba(239, 68, 68, 0.01); font-size: 0.85rem; height: 38px;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M9 9h6v6H9z" fill="currentColor"/>
-                                        </svg>
-                                        Kết thúc ca trực
-                                    </a>
                                 </c:when>
                                 
                                 <c:otherwise>
-                                    <!-- ACTIVELY CALLING A CANDIDATE -->
-                                    <!-- Audio TTS wave sound broadcaster -->
-                                    <div class="soundwave-container" style="margin-bottom: 0px;">
-                                        <span style="color: #94a3b8; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Audio TTS Broadcaster</span>
-                                        
-                                        <span style="color: #ffffff; font-size: 0.95rem; font-weight: 700; line-height: 1.4; max-width: 280px; display: block;">
-                                            "Mời thí sinh có số báo danh ${callingCandidate.sbd}, ${callingCandidate.name} nhanh chóng di chuyển vào bàn làm thủ tục!"
-                                        </span>
-                                        
-                                        <!-- Sound Wave Visual Effects -->
-                                        <div class="soundwave-animation">
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                            <div class="soundwave-bar"></div>
-                                        </div>
-                                    </div>
-                                    
                                     <div class="active-calling-card">
                                         <span style="font-size: 0.72rem; font-weight: 800; color: #0052cc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Học viên đang gọi lên bàn:</span>
                                         <div style="font-family: monospace; font-size: 2.25rem; font-weight: 900; color: #0f172a; letter-spacing: 0.02em; line-height: 1.1;">
@@ -307,6 +205,13 @@
                                             <span style="font-size: 0.75rem; color: #64748b; font-family: monospace;">CCCD: ${callingCandidate.cccd}</span>
                                         </div>
 
+                                        <p style="margin: 0.75rem 0 0; font-size: 0.78rem; color: #64748b; line-height: 1.45;">
+                                            Loa gọi tên phát trên
+                                            <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId != null ? sessionScope.selectedSessionId : 2}"
+                                               target="_blank" rel="noopener"
+                                               style="font-weight: 700; color: #0052cc; text-decoration: none;">màn hình TV</a>.
+                                        </p>
+
                                         <c:if test="${not empty requestScope.nextCallingCandidate}">
                                             <div style="margin-top: 1rem; padding: 10px 12px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; text-align: left; width: 100%;">
                                                 <span style="font-size: 0.68rem; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">Chuẩn bị tiếp theo (hiển thị TV)</span>
@@ -315,11 +220,10 @@
                                             </div>
                                         </c:if>
                                         
-                                        <!-- Time Limit Countdown Bar -->
                                         <div style="margin-top: 1.25rem; text-align: left; width: 100%;">
                                             <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 4px;">
                                                 <span>GIỚI HẠN THỦ TỤC TRÌNH DIỆN</span>
-                                                <span id="countdownText" style="font-family: monospace; color: #10b981; font-weight: 800;">180 Giây</span>
+                                                <span id="countdownText" style="font-family: monospace; color: #10b981; font-weight: 800;"><span id="countdownValue">3:00</span></span>
                                             </div>
                                             <div style="background-color: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.05); height: 6px; border-radius: 99px; overflow: hidden; width: 100%;">
                                                 <div id="countdownBar" class="countdown-bar" style="width: 100%; height: 100%; background: #10b981;"></div>
@@ -335,12 +239,12 @@
                                             </a>
                                             
                                             <div style="display: flex; gap: 8px; width: 100%;">
-                                                <a href="candidatecall?action=absent&sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(245, 158, 11, 0.3); color: #d97706; background: rgba(245, 158, 11, 0.01); font-size: 0.8rem;" title="Đẩy xuống cuối hàng đợi">
-                                                    Vắng tạm thời
+                                                <a href="candidatecall?action=absent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(245, 158, 11, 0.3); color: #d97706; background: rgba(245, 158, 11, 0.01); font-size: 0.8rem;" title="Đẩy xuống cuối hàng đợi">
+                                                    Vắng
                                                 </a>
-                                                
-                                                <a href="candidatecall?action=endShift" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; font-size: 0.8rem; border-color: #cbd5e1; color: #64748b;" title="Đóng ca thi hiện tại">
-                                                    Đóng ca
+                                                <a href="candidatecall?action=permanentAbsent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626; background: rgba(239, 68, 68, 0.04); font-size: 0.8rem;" title="Đình chỉ thi — ghi TRƯỢT"
+                                                   onclick="return confirm('Đình chỉ thí sinh ${callingCandidate.sbd}? Kết quả ghi TRƯỢT và không gọi lại trong ca.');">
+                                                    Đình chỉ
                                                 </a>
                                             </div>
                                         </div>
@@ -353,7 +257,6 @@
                 
             </div>
             
-            <!-- Right Pane: List of Called Queue Candidates -->
             <div class="waiting-list-pane">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -365,7 +268,6 @@
                             Hàng đợi thí sinh đang chờ sát hạch
                         </h3>
                         <c:if test="${sessionScope.shiftEnded ne 'true'}">
-                            <!-- Calculate pending count (not completed procedures) dynamically -->
                             <c:set var="pendingCount" value="0" />
                             <c:forEach var="c" items="${sessionScope.candidateQueue}">
                                 <c:set var="isCdone" value="${c.procedureComplete}" />
@@ -382,7 +284,6 @@
                     <c:if test="${sessionScope.shiftEnded ne 'true'}">
                         <div style="display: flex; gap: 6px; align-items: center;">
                             <span style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; animation: pulse-green 2s infinite;">Tự refresh (10s)</span>
-                            <!-- Manual refresh button -->
                             <a href="candidatecall?action=reloadQueue" class="btn-batch btn-batch--alt" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" title="Làm mới hàng đợi (thứ tự mặc định từ DB)">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -394,7 +295,6 @@
                 
                 <c:choose>
                     <c:when test="${sessionScope.shiftEnded eq 'true' or pendingCount eq 0}">
-                        <!-- Empty Queue State -->
                         <div style="text-align: center; padding: 5rem 1rem; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.4;">
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -406,7 +306,6 @@
                     </c:when>
                     
                     <c:otherwise>
-                        <!-- Render Queue List -->
                         <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
                             <table class="audit-table" style="font-size: 0.85rem; width: 100%;">
                                 <thead>
@@ -415,7 +314,7 @@
                                         <th scope="col">Họ tên</th>
                                         <th scope="col" style="width: 60px; text-align: center;">Hạng</th>
                                         <th scope="col" style="width: 110px; text-align: center;">CCCD</th>
-                                        <th scope="col" style="width: 140px; text-align: right;">Hành động</th>
+                                        <th scope="col" style="width: 200px; text-align: right;">Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -423,21 +322,22 @@
                                         <c:set var="cDone" value="${candidate.procedureComplete}" />
                                         <c:if test="${not cDone}">
                                             <c:set var="isCurrentCalling" value="${candidate.sbd eq sessionScope.callingSbd}" />
-                                            <!-- Highlight the active candidate being called -->
                                             <tr style="${isCurrentCalling ? 'background-color: rgba(0, 82, 204, 0.04); border-left: 3px solid #0052cc;' : ''}">
                                                 <td style="font-weight: 800; color: #0052cc; font-family: monospace; padding-left: ${isCurrentCalling ? '8px' : '0px'};">
                                                     ${candidate.sbd}
                                                     <c:if test="${isCurrentCalling}">
-                                                        <span style="background: #10b981; width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-left: 4px;" title="Đang phát loa"></span>
+                                                        <span style="background: #10b981; width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-left: 4px;" title="Đang gọi"></span>
                                                     </c:if>
                                                 </td>
                                                 <td style="font-weight: 700; color: #0f172a;">${candidate.name}</td>
                                                 <td style="text-align: center;"><span class="role-badge role-badge--coi" style="font-size: 0.65rem; padding: 1px 4px;">${candidate.clazz}</span></td>
                                                 <td style="text-align: center; font-family: monospace; color: #475569;">${candidate.cccd}</td>
                                                 <td style="text-align: right;">
-                                                    <div style="display: inline-flex; gap: 4px;">
+                                                    <div style="display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
                                                         <a href="procedure?sbd=${candidate.sbd}#procedure-desk" class="btn-filter" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">Hồ sơ</a>
-                                                        <a href="candidatecall?action=absent&sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #d97706; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);" title="Đẩy xuống cuối hàng chờ">Vắng tạm</a>
+                                                        <a href="candidatecall?action=absent&amp;sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #d97706; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);" title="Đẩy xuống cuối hàng chờ">Vắng</a>
+                                                        <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #dc2626; border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.04);" title="Đình chỉ thi"
+                                                           onclick="return confirm('Đình chỉ ${candidate.sbd}?');">Đình chỉ</a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -448,63 +348,73 @@
                         </div>
                     </c:otherwise>
                 </c:choose>
+
+                <c:set var="doneCount" value="${fn:length(procedureDoneCandidates)}" />
+                <c:if test="${doneCount > 0}">
+                    <div class="procedure-done-panel">
+                        <div class="procedure-done-panel__header">
+                            <h4 class="procedure-done-panel__title">Đã xong thủ tục (${doneCount})</h4>
+                            <p class="procedure-done-panel__hint">Sửa hồ sơ, in phiếu xác nhận, đình chỉ hoặc xóa để làm lại thủ tục.</p>
+                        </div>
+                        <div class="procedure-done-panel__toolbar">
+                            <input id="doneProcedureSearchInput"
+                                   type="search"
+                                   class="procedure-done-search"
+                                   placeholder="Tìm theo SBD hoặc tên thí sinh..."
+                                   autocomplete="off">
+                        </div>
+                        <div class="table-responsive procedure-done-scroll">
+                            <table class="report-table procedure-done-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" style="width: 110px;">SBD</th>
+                                        <th scope="col">Họ và tên</th>
+                                        <th scope="col" style="width: 72px; text-align: center;">Hạng</th>
+                                        <th scope="col" style="width: 280px; text-align: right;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:forEach var="candidate" items="${procedureDoneCandidates}">
+                                            <tr class="procedure-done-row"
+                                                data-sbd="${fn:toLowerCase(candidate.sbd)}"
+                                                data-name="${fn:toLowerCase(candidate.name)}">
+                                                <td class="procedure-done-sbd">${candidate.sbd}</td>
+                                                <td class="procedure-done-name">${candidate.name}</td>
+                                                <td style="text-align: center;">
+                                                    <span class="role-badge role-badge--coi" style="font-size: 0.68rem; padding: 2px 6px;">${candidate.clazz}</span>
+                                                </td>
+                                                <td>
+                                                    <div class="procedure-done-actions">
+                                                        <a href="procedure?sbd=${candidate.sbd}&amp;step=1#procedure-desk"
+                                                           class="procedure-done-btn procedure-done-btn--edit"
+                                                           title="Sửa hồ sơ thủ tục">Sửa</a>
+                                                        <a href="candidate-dossier?sbd=${candidate.sbd}&amp;print=true"
+                                                           target="_blank"
+                                                           class="procedure-done-btn procedure-done-btn--print"
+                                                           title="In phiếu hồ sơ">In</a>
+                                                        <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}"
+                                                           class="procedure-done-btn procedure-done-btn--suspend"
+                                                           title="Đình chỉ thi"
+                                                           onclick="return confirm('Đình chỉ ${candidate.sbd}?');">Đình chỉ</a>
+                                                        <a href="procedure?sbd=${candidate.sbd}&amp;action=resetProcedure"
+                                                           class="procedure-done-btn procedure-done-btn--delete"
+                                                           title="Xóa hồ sơ thủ tục, làm lại từ đầu"
+                                                           onclick="return confirm('Xóa hồ sơ thủ tục của ${candidate.sbd}? Ảnh và thanh toán sẽ bị hủy để làm lại.');">Xóa</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </c:if>
             </div>
             
         </div>
 
         <c:if test="${requestScope.deskMode}">
             <jsp:include page="/views/staff/examstaff/procedure.jsp"/>
-        </c:if>
-
-        <!-- Permanent Absents List & Undo Option (Exception Safety) (UC-03) -->
-        <c:if test="${not empty sessionScope.permanentAbsents}">
-            <div class="report-pane" style="margin-top: 1.5rem; border-radius: 16px; padding: 1.5rem; border: 1px solid #cbd5e1; background: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
-                <div style="border-bottom: 1.5px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="font-size: 0.95rem; font-weight: 800; color: #dc2626; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
-                        </svg>
-                        Danh sách vắng - Có thể Hoàn tác
-                    </h3>
-                    <span class="role-badge role-badge--admin" style="font-size: 0.72rem; background-color: #fee2e2; color: #b91c1c; font-weight: 800; padding: 2px 8px;">
-                        Đã vắng: ${fn:length(sessionScope.permanentAbsents)} Người
-                    </span>
-                </div>
-                
-                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                    <table class="audit-table" style="font-size: 0.85rem; width: 100%;">
-                        <thead>
-                            <tr>
-                                <th scope="col" style="width: 100px;">SBD</th>
-                                <th scope="col">Họ tên</th>
-                                <th scope="col" style="width: 80px; text-align: center;">Hạng</th>
-                                <th scope="col" style="width: 150px; text-align: center;">CCCD</th>
-                                <th scope="col" style="width: 150px; text-align: center;">Trạng thái khóa</th>
-                                <th scope="col" style="width: 120px; text-align: right;">Khôi phục</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach var="c" items="${sessionScope.permanentAbsents}">
-                                <tr>
-                                    <td style="font-weight: 800; color: #dc2626; font-family: monospace;">${c.sbd}</td>
-                                    <td style="font-weight: 700; color: #0f172a;">${c.name}</td>
-                                    <td style="text-align: center;"><span class="role-badge role-badge--admin" style="font-size: 0.65rem; padding: 1px 4px; background-color: #fee2e2; color: #991b1b;">${c.clazz}</span></td>
-                                    <td style="text-align: center; font-family: monospace; color: #475569;">${c.cccd}</td>
-                                    <td style="text-align: center;">
-                                        <span class="action-badge action-badge--danger" style="font-weight: 700;">Vắng mặt (Trượt)</span>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <a href="candidatecall?action=undoAbsent&sbd=${c.sbd}" class="btn-filter" style="height: 26px; padding: 0 10px; font-size: 0.72rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.02);" title="Khôi phục về hàng đợi ban đầu">
-                                            Hoàn tác
-                                        </a>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </c:if>
 
     </main>

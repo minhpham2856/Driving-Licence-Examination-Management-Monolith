@@ -74,14 +74,8 @@ public class AllocationServlet extends HttpServlet {
         int examId = (currentSession != null && currentSession.getExamId() > 0) ? currentSession.getExamId() : sessionId;
         request.setAttribute("selectedExamId", examId);
 
-        // Một kỳ thi gồm nhiều ca (lý thuyết → sa hình → đường trường): tải toàn bộ thí sinh theo ExamId
-        List<ExamRegistration> qList = (List<ExamRegistration>) session.getAttribute("candidateQueue");
-        Integer lastLoadedExamId = (Integer) session.getAttribute("lastLoadedExamId");
-        if (qList == null || lastLoadedExamId == null || lastLoadedExamId != examId) {
-            qList = regDAO.getCandidatesByExamId(examId);
-            session.setAttribute("candidateQueue", qList);
-            session.setAttribute("lastLoadedExamId", examId);
-        }
+        // Một kỳ thi gồm nhiều ca (lý thuyết → sa hình → đường trường): luôn tải từ DB để đồng bộ sau reset thủ tục
+        List<ExamRegistration> qList = regDAO.getCandidatesByExamId(examId);
 
         // 3. Handle pipeline action triggers
         String action = request.getParameter("action");
@@ -195,10 +189,15 @@ public class AllocationServlet extends HttpServlet {
                                 }
                             }
                         } else if ("quickComplete".equals(action)) {
-                            // Simulates complete desk registrations (photo + payment)
                             String safeSbd = profile.getSbd().replaceAll("[^A-Za-z0-9\\-]", "_");
-                            String photoPath = "assets/imgs/candidates/" + safeSbd + "_captured.png";
-                            ensurePlaceholderPhoto(request.getServletContext().getRealPath("/"), photoPath);
+                            String fileName = safeSbd + "_captured.png";
+                            String photoPath = CandidatePhotoHelper.toWebPhotoPath(fileName);
+                            byte[] placeholder = createPlaceholderPng();
+                            try {
+                                CandidatePhotoHelper.writePhotoFile(request.getServletContext(), fileName, placeholder);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                             regDAO.updatePhoto(regId, photoPath);
                             regDAO.updatePayment(regId, true);
                             regDAO.updatePresent(regId, true);
@@ -228,19 +227,8 @@ public class AllocationServlet extends HttpServlet {
         request.getRequestDispatcher("/views/staff/examstaff/allocation.jsp").forward(request, response);
     }
 
-    private void ensurePlaceholderPhoto(String webRoot, String photoPath) {
-        if (webRoot == null || photoPath == null || photoPath.isEmpty()) {
-            return;
-        }
-        java.io.File file = new java.io.File(webRoot, photoPath.replace("/", java.io.File.separator));
-        if (file.isFile() && file.length() > 0) {
-            return;
-        }
-        java.io.File dir = file.getParentFile();
-        if (dir != null && !dir.exists()) {
-            dir.mkdirs();
-        }
-        byte[] png = new byte[] {
+    private static byte[] createPlaceholderPng() {
+        return new byte[] {
             (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
             0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
             0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
@@ -250,11 +238,6 @@ public class AllocationServlet extends HttpServlet {
             0x00, 0x01, 0x0D, 0x0A, 0x2D, (byte) 0xB4, 0x00, 0x00,
             0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, (byte) 0xAE, 0x42, 0x60, (byte) 0x82
         };
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
-            fos.write(png);
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {

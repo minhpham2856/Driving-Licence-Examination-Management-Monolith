@@ -1,6 +1,6 @@
 package Controllers.Staff.ExamStaff;
 
-import Models.User;
+import Utils.SessionUserHelper;
 import Services.ExamSessionControlService;
 import Utils.AuditLogHelper;
 import jakarta.servlet.ServletException;
@@ -72,8 +72,7 @@ public class SessionControlServlet extends HttpServlet {
     }
 
     private int resolveStaffId(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        return (user != null && user.getId() > 0) ? user.getId() : 3;
+        return SessionUserHelper.resolveUserId(session);
     }
 
     private String buildRedirect(HttpServletRequest request, int sessionId) {
@@ -82,6 +81,6 @@ public class SessionControlServlet extends HttpServlet {
         if ("examiner-allocation".equals(from)) {
             return ctx + "/views/staff/examstaff/examiner-allocation?sessionId=" + sessionId;
         }
-        return ctx + "/views/staff/examstaff/dashboard.jsp?sessionId=" + sessionId;
+        return ctx + "/views/staff/examstaff/dashboard?sessionId=" + sessionId;
     }
 }

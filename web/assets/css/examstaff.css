@@ -1077,16 +1077,57 @@
     margin-top: 1rem;
 }
 
-.countdown-text {
-    font-family: monospace;
-    color: #10b981;
+.call-countdown {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.15em;
+    font-family: 'Be Vietnam Pro', 'Inter', system-ui, -apple-system, sans-serif;
     font-weight: 800;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    letter-spacing: 0;
+    font-synthesis: none;
+}
+
+.call-countdown__value,
+.call-countdown__unit {
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+}
+
+.call-countdown__value {
+    display: inline-block;
+    min-width: 2.75em;
+    text-align: right;
+    font-variant-numeric: normal;
+    font-feature-settings: normal;
+}
+
+.call-countdown__unit {
+    font-weight: 700;
+}
+
+.call-countdown--ok {
+    color: #10b981;
+}
+
+.call-countdown--warn {
+    color: #f59e0b;
+}
+
+.call-countdown--danger {
+    color: #ef4444;
 }
 
 .countdown-bar {
     width: 100%;
     height: 100%;
     background: #10b981;
+    animation: none !important;
+    transition: width 0.35s linear, background-color 0.25s ease;
 }
 
 .candidatecall-session-badge {
@@ -1370,4 +1411,321 @@
     border-top-color: #0052cc;
     border-radius: 50%;
     animation: esSpin 0.8s linear infinite;
+}
+
+/* Call page header toolbar */
+.call-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    max-width: min(100%, 720px);
+}
+
+.call-page-actions > * {
+    flex-shrink: 0;
+}
+
+.call-session-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.call-session-chip__label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.call-session-chip__value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.call-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    width: auto;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    box-shadow: none;
+}
+
+.call-toolbar-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.call-toolbar-btn--dark {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #ffffff;
+}
+
+.call-toolbar-btn--dark:hover {
+    background: #1e293b;
+    border-color: #1e293b;
+    color: #ffffff;
+}
+
+.call-toolbar-btn--warn {
+    border-color: rgba(239, 68, 68, 0.25);
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.04);
+}
+
+.call-toolbar-btn--warn:hover {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #b91c1c;
+}
+
+.call-toolbar-btn--danger {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.02);
+}
+
+.call-toolbar-btn--danger:hover {
+    background: rgba(239, 68, 68, 0.06);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #dc2626;
+}
+
+.call-toolbar-badge {
+    font-size: 0.72rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.call-subnav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.call-subnav__link {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #64748b;
+    text-decoration: none;
+    background: transparent;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.call-subnav__link.is-active {
+    color: #0052cc;
+    background: rgba(0, 82, 204, 0.06);
+    border: 1px solid rgba(0, 82, 204, 0.15);
+}
+
+.call-subnav__link.is-active--warn {
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Bảng thí sinh đã xong thủ tục (gọi thi / bàn thủ tục) */
+.procedure-done-panel {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.procedure-done-panel__header {
+    margin-bottom: 0.75rem;
+}
+
+.procedure-done-panel__title {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.procedure-done-panel__hint {
+    margin: 4px 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.procedure-done-panel__toolbar {
+    margin-bottom: 0.75rem;
+}
+
+.procedure-done-search {
+    width: 100%;
+    max-width: 320px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e293b;
+    outline: none;
+    background: #ffffff;
+}
+
+.procedure-done-scroll {
+    max-height: 280px;
+    overflow: auto;
+}
+
+.procedure-done-table {
+    font-size: 0.82rem;
+}
+
+.procedure-done-sbd {
+    font-family: ui-monospace, monospace;
+    font-weight: 800;
+    color: #0052cc;
+}
+
+.procedure-done-name {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.procedure-done-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.procedure-done-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.procedure-done-btn--edit {
+    color: #0052cc;
+    background: rgba(0, 82, 204, 0.06);
+    border-color: rgba(0, 82, 204, 0.2);
+}
+
+.procedure-done-btn--print {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.procedure-done-btn--delete {
+    color: #b91c1c;
+    background: rgba(239, 68, 68, 0.06);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.procedure-done-btn--suspend {
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+.procedure-desk-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e2e8f0;
+    scroll-margin-top: 1rem;
+}
+
+.procedure-desk-header {
+    margin-bottom: 1.25rem;
+}
+
+.procedure-desk-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px;
+}
+
+.procedure-desk-subtitle {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.procedure-active-bar {
+    background-color: rgba(0, 82, 204, 0.05);
+    border: 1px solid rgba(0, 82, 204, 0.15);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.procedure-active-bar__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.procedure-active-bar__sbd {
+    background-color: #0052cc;
+    color: #ffffff;
+    font-family: monospace;
+    font-weight: 800;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.procedure-active-bar__label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.procedure-step-divider {
+    flex: 1;
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 0 1rem;
 }
