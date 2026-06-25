@@ -8,7 +8,7 @@ import auth.service.AuthService;
 import auth.service.ProfileService;
 import auth.service.impl.AuthServiceImpl;
 import auth.service.impl.ProfileServiceImpl;
-import static auth.util.FormatUtil.formatString;
+import static shared.util.FormatUtil.formatString;
 import shared.enums.RoleType;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -87,13 +87,13 @@ public class LoginServlet extends HttpServlet {
         // redirect by role
         switch (role) {
             case MANAGING_STAFF:
-                response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard");
+                response.sendRedirect(request.getContextPath() + "/managingstaff/dashboard");
                 break;
             case EXAM_STAFF:
                 response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/dashboard");
                 break;
             case EXAMINER:
-                response.sendRedirect(request.getContextPath() + "/views/examiner/exam");
+                response.sendRedirect(request.getContextPath() + "/examiner/exam");
                 break;
             case ADMIN:
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");
