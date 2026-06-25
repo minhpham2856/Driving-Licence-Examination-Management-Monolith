@@ -1,36 +1,20 @@
-package dao.impl;
+package DAO.Impl;
 
+import DBConnection.DBContext;
+import DAO.UserDAO;
+import Models.Person;
+import Models.Role;
+import Models.User;
+import java.sql.*;
 
-
-import dbconnection.DBContext;
-
-import dao.UserDAO;
-
-import model.user.Profile;
-import model.user.Role;
-import model.user.User;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-/**
- * JDBC implementation of UserDAO using DBContext connection management. Maps
- * result sets to User model objects including nested Profile and Role.
- */
 public class UserDAOImpl extends DBContext implements UserDAO {
-
-    private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
 
     private static final String USER_SELECT = """
                      select u.UserId,
                      	u.Username,
                      	u.Email,
                      	u.PasswordHash,
-                     	r.RoleName,
+                     	u.[Role],
                      	u.[Status],
                      	p.ProfileId,
                      	p.FullName,
@@ -40,21 +24,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	p.GovernmentIdNumber,
                      	p.Address
                      from [User] u
-                     join [Role] r on r.RoleId = u.RoleId
                      left join Profile p on p.UserId = u.UserId
                      """;
 
-    /**
-     * Retrieves a user by primary key, including nested Profile and Role.
-     *
-     * @param id the UserId
-     * @return the User model, or null if not found
-     */
     @Override
     public User getById(int id) {
         String sql = USER_SELECT + " where u.UserId = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -69,17 +46,11 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Finds a user by their login username.
-     *
-     * @param username the exact username
-     * @return the User model, or null if not found
-     */
     @Override
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where u.Username = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, username);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -94,27 +65,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Looks up a user by any of: Username, Email, PhoneNumber, or
-     * GovernmentIdNumber.
-     *
-     * @param identifier the search value to match against multiple columns
-     * @return the User model, or null if not found
-     */
     @Override
     public User getByIdentifier(String identifier) {
-        String sql = USER_SELECT + """
-                 where u.Username = ?
-                    or u.Email = ?
-                    or p.PhoneNumber = ?
-                    or p.GovernmentIdNumber = ?
-                """;
+        String sql = USER_SELECT + " where u.Username = ? or u.Email = ? or p.PhoneNumber = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
             ps.setString(3, identifier);
-            ps.setString(4, identifier);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -128,17 +86,11 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Finds a user by their email address.
-     *
-     * @param email the exact email
-     * @return the User model, or null if not found
-     */
     @Override
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where u.Email = ?";
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -153,64 +105,41 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Inserts a new User record with RETURN_GENERATED_KEYS to populate the user
-     * ID. Defaults the role to Registrant if none is set.
-     *
-     * @param user the User to insert (id will be populated on success)
-     * @return true if the insert succeeded and a key was generated
-     */
     @Override
     public boolean insert(User user) {
-        Connection conn = getConnection();
-        if (conn == null) {
-            LOG.severe("Cannot insert user: database connection is unavailable.");
-            return false;
-        }
-
         String sql = """
-                     insert into [User] (Username, Email, PasswordHash, RoleId, [Status])
+                     insert into [User] (Username, Email, PasswordHash, [Role], [Status])
                      values (?, ?, ?, ?, ?)
                      """;
 
-        int roleId = user.getRoleId();
-        if (roleId <= 0) {
-            roleId = enums.UserRole.roleIdFromName("Registrant");
-        }
+        String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
 
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"UserId"})) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
-            ps.setInt(4, roleId);
-            ps.setBoolean(5, user.isActive());
+            ps.setString(4, roleName);
+            ps.setBoolean(5, user.isIsActive());
 
-            if (ps.executeUpdate() == 0) {
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
                 return false;
             }
 
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    user.setUserId(generatedKeys.getInt(1));
+                    user.setId(generatedKeys.getInt(1));
                 }
             }
 
-            return user.getUserId() > 0;
+            return true;
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to insert user {0}: {1}",
-                    new Object[]{user.getEmail(), e.getMessage()});
+            e.printStackTrace();
         }
 
         return false;
     }
 
-    /**
-     * Updates the password hash for the given user.
-     *
-     * @param userId the target UserId
-     * @param passwordHash the new BCrypt-style hash
-     * @return true if at least one row was updated
-     */
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
@@ -219,7 +148,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      where UserId = ?
                      """;
 
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, passwordHash);
             ps.setInt(2, userId);
 
@@ -231,39 +160,40 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
-    /**
-     * Maps the current row of a ResultSet (from USER_SELECT) to a User model,
-     * including the nested Profile and Role objects.
-     */
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
 
-        user.setUserId(rs.getInt("UserId"));
+        user.setId(rs.getInt("UserId"));
         user.setUsername(rs.getString("Username"));
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
-        user.setActive(rs.getBoolean("Status"));
+        user.setIsActive(rs.getBoolean("Status"));
 
-        String roleName = rs.getString("Role");
-        Role role = enums.UserRole.roleFromName(roleName);
-        user.setRoleId(role.getId());
-        user.setRoleId(role.getId());
+        Integer profileId = (Integer) rs.getObject("ProfileId");
+        user.setPersonId(profileId);
 
-        if (false) {
-            Profile profile = new Profile();
-            
-            profile.setUserId(rs.getInt("UserId"));
-            profile.setFullName(rs.getString("FullName"));
-            profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
-            profile.setPhoneNo(rs.getString("PhoneNumber"));
-            profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
-            profile.setAddress(rs.getString("Address"));
-            profile.setGender(enums.Gender.genderFromSex(rs.getString("Sex")));
-            
+        Role role = new Role();
+        role.setRoleName(rs.getString("Role"));
+        user.setRole(role);
+
+        if (profileId != null) {
+            Person person = new Person();
+            person.setId(profileId);
+            person.setUserId(rs.getInt("UserId"));
+            person.setFullName(rs.getString("FullName"));
+            person.setDateOfBirth(rs.getDate("DateOfBirth"));
+            person.setPhoneNo(rs.getString("PhoneNumber"));
+            person.setGovIdNo(rs.getString("GovernmentIdNumber"));
+            person.setAddress(rs.getString("Address"));
+            person.setEmail(user.getEmail());
+            person.setGender(mapSexToGender(rs.getString("Sex")));
+            user.setPerson(person);
         }
 
         return user;
     }
+
+    private boolean mapSexToGender(String sex) {
+        return sex != null && "Nữ".equalsIgnoreCase(sex.trim());
+    }
 }
-
-
