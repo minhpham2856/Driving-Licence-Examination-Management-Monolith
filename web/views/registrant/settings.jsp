@@ -34,7 +34,7 @@
 
         <%-- Breadcrumbs --%>
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/registrant/dashboard.jsp">Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/registrant/dashboard">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Cài đặt tài khoản</span>
         </nav>
@@ -43,11 +43,19 @@
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Cài đặt tài khoản</h1>
-                <p class="page-subtitle">Thiết lập mật khẩu và các tùy chọn bảo mật, thông báo cho tài khoản của bạn.</p>
+                <p class="page-subtitle">Đổi mật khẩu và chọn nhận thông báo kết quả thi / đổi mật khẩu qua Gmail.</p>
             </div>
         </header>
 
-        <%-- Notification Banner (Mock Alert for success/info) --%>
+        <%-- Notification Banner --%>
+        <c:if test="${not empty error}">
+            <section class="p-alert-banner" aria-label="Thông báo lỗi">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Cập nhật thất bại</span>
+                    <span>${error}</span>
+                </div>
+            </section>
+        </c:if>
         <c:if test="${not empty param.success}">
             <section class="p-alert-banner" aria-label="Thông báo hệ thống">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,7 +106,8 @@
                             </div>
                         </div>
 
-                        <form action="#" method="post" id="settings-password-form">
+                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-password-form">
+                            <input type="hidden" name="formId" value="password">
                             
                             <div class="p-form-grid p-form-grid--full">
                                 
@@ -184,17 +193,18 @@
                             <div class="rules-banner__content">
                                 <span class="rules-banner__title" style="color: #b91c1c;">Hành động này không thể hoàn tác</span>
                                 <p class="rules-banner__desc" style="color: #dc2626;">
-                                    Sau khi vô hiệu hóa tài khoản, toàn bộ dữ liệu đăng ký dự thi, thông tin cá nhân, hồ sơ bệnh án và lịch sử điểm số sát hạch của bạn sẽ bị đóng băng. Bạn sẽ không thể truy cập lại hệ thống Lái Vui.
+                                    Tài khoản sẽ bị vô hiệu hóa và bạn không thể đăng nhập lại. Hồ sơ cá nhân, tài liệu (CCCD, giấy khám sức khỏe), đăng ký dự thi và lịch sử điểm vẫn được lưu trên hệ thống theo quy định Ban quản lý. Muốn khôi phục quyền truy cập, vui lòng liên hệ Ban quản lý.
                                 </p>
                             </div>
                         </div>
 
-                        <form action="#" method="post" id="settings-deactivate-form" onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản này không? Mọi lịch thi và hồ sơ hiện tại sẽ bị hủy bỏ hoàn toàn!');">
+                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-deactivate-form" onsubmit="return confirm('Bạn có chắc muốn vô hiệu hóa tài khoản? Sau khi vô hiệu hóa bạn sẽ không đăng nhập được. Dữ liệu hồ sơ vẫn được lưu trên hệ thống.');">
+                            <input type="hidden" name="formId" value="deactivate">
                             
                             <%-- Confirmation Checkbox --%>
                             <label class="danger-zone-checkbox-container">
                                 <input type="checkbox" id="confirmDeactivate" name="confirmDeactivate" onchange="document.getElementById('btn-submit-deactivate').disabled = !this.checked;">
-                                <span>Tôi xác nhận đã hiểu rõ các hệ lụy và đồng ý vô hiệu hóa tài khoản này vĩnh viễn.</span>
+                                <span>Tôi xác nhận đã hiểu rõ hệ quả và đồng ý vô hiệu hóa tài khoản này.</span>
                             </label>
 
                             <%-- Submit Button --%>
@@ -212,105 +222,122 @@
             </div>
 
 
-            <%-- RIGHT COLUMN: Preferences & Security Status --%>
+            <%-- RIGHT COLUMN: Preferences & account summary --%>
             <div class="dashboard-sidebar-column">
 
-                <%-- System Notifications Preferences Card --%>
-                <section class="p-form-card" aria-label="Tùy chọn hệ thống">
+                <%-- Gmail notification preferences --%>
+                <section class="p-form-card" aria-label="Thông báo qua Gmail">
                     <div class="p-form-header">
                         <h2 class="p-form-title">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            Cài đặt nhận thông báo
+                            Thông báo qua Gmail
                         </h2>
                     </div>
 
                     <div class="p-form-body">
-                        <form action="#" method="post" id="settings-prefs-form">
-                            
-                            <%-- SMS Notify --%>
+                        <p class="settings-gmail-intro">
+                            Hệ thống chỉ gửi thông báo qua <strong>Gmail</strong> tới địa chỉ đã đăng ký trên tài khoản.
+                        </p>
+                        <p class="settings-gmail-email">
+                            <span class="settings-gmail-email__label">Email nhận thông báo</span>
+                            <span class="settings-gmail-email__value">${not empty userEmail ? userEmail : '—'}</span>
+                        </p>
+                        <c:if test="${not emailServiceConfigured}">
+                            <p class="settings-gmail-warning">
+                                Dịch vụ Gmail chưa được cấu hình trên máy chủ — thông báo có thể không gửi được.
+                            </p>
+                        </c:if>
+
+                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-prefs-form">
+                            <input type="hidden" name="formId" value="prefs">
+
                             <div class="toggle-switch-container">
                                 <div class="toggle-switch-label-wrap">
-                                    <span class="toggle-switch-title">Thông báo lịch thi qua SMS</span>
-                                    <span class="toggle-switch-desc">Nhận tin nhắn nhắc lịch phòng thi và số báo danh trực tiếp về SĐT đã đăng ký.</span>
+                                    <span class="toggle-switch-title">Kết quả thi qua Gmail</span>
+                                    <span class="toggle-switch-desc">Nhận bảng điểm lý thuyết, sa hình và đường trường sau khi hoàn thành phần thi.</span>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" name="smsNotify" checked>
+                                    <input type="checkbox" name="emailResultsNotify"<c:if test="${notifyExamResults}"> checked="checked"</c:if>>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
 
-                            <%-- Email Notify --%>
                             <div class="toggle-switch-container">
                                 <div class="toggle-switch-label-wrap">
-                                    <span class="toggle-switch-title">Kết quả thi qua Email</span>
-                                    <span class="toggle-switch-desc">Nhận bảng điểm chi tiết phần thi lý thuyết và sa hình ngay sau khi hoàn thành.</span>
+                                    <span class="toggle-switch-title">Thông báo đổi mật khẩu qua Gmail</span>
+                                    <span class="toggle-switch-desc">Gửi email xác nhận khi bạn đổi mật khẩu thành công trong phần cài đặt.</span>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" name="emailNotify" checked>
+                                    <input type="checkbox" name="passwordChangeNotify"<c:if test="${notifyPasswordChange}"> checked="checked"</c:if>>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
 
-                            <%-- 2FA Security --%>
-                            <div class="toggle-switch-container">
-                                <div class="toggle-switch-label-wrap">
-                                    <span class="toggle-switch-title">Bảo mật hai lớp (2FA)</span>
-                                    <span class="toggle-switch-desc">Yêu cầu mã xác thực gửi qua email khi đăng nhập trên thiết bị lạ.</span>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" name="twoFactorAuth">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-
-                            <%-- Save Prefs Button --%>
                             <div style="margin-top: 20px;">
                                 <button type="submit" class="p-btn-edit" style="width: 100%; justify-content: center; height: 42px; border-color: #0052cc; color: #0052cc; font-size: 13px;">
-                                    Lưu cấu hình hệ thống
+                                    Lưu tùy chọn Gmail
                                 </button>
                             </div>
-
                         </form>
                     </div>
                 </section>
 
-                <%-- Security Summary Card --%>
-                <section class="p-form-card" aria-label="Trạng thái bảo mật">
+                <%-- Account summary (replaces hardcoded security status) --%>
+                <section class="p-form-card" aria-label="Tóm tắt tài khoản">
                     <div class="p-form-header">
                         <h2 class="p-form-title">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
                             </svg>
-                            Trạng thái bảo mật
+                            Tóm tắt tài khoản
                         </h2>
                     </div>
 
                     <div class="p-form-body">
                         <div class="security-audit-list">
-                            
                             <div class="security-audit-item">
-                                <span class="security-audit-lbl">Trạng thái xác thực</span>
-                                <span class="security-audit-val" style="color: #16a34a;">Đã liên kết CCCD</span>
+                                <span class="security-audit-lbl">Họ tên</span>
+                                <span class="security-audit-val">${accountDisplayName}</span>
                             </div>
-
                             <div class="security-audit-item">
-                                <span class="security-audit-lbl">Đăng nhập lần cuối</span>
-                                <span class="security-audit-val">Hôm nay, 13:58</span>
+                                <span class="security-audit-lbl">Tên đăng nhập</span>
+                                <span class="security-audit-val" style="font-family: monospace; font-size: 12px;">${accountUsername}</span>
                             </div>
-
                             <div class="security-audit-item">
-                                <span class="security-audit-lbl">Thiết bị hiện tại</span>
-                                <span class="security-audit-val">Chrome (Windows)</span>
+                                <span class="security-audit-lbl">Trạng thái hồ sơ</span>
+                                <span class="security-audit-val settings-account-status settings-account-status--${profileRegistrationStatusClass}">${profileRegistrationStatusLabel}</span>
                             </div>
-
                             <div class="security-audit-item">
-                                <span class="security-audit-lbl">Địa chỉ IP hiện tại</span>
-                                <span class="security-audit-val">192.168.1.15</span>
+                                <span class="security-audit-lbl">Ảnh CCCD</span>
+                                <span class="security-audit-val settings-account-status
+                                    <c:choose>
+                                        <c:when test="${cccdImagesComplete}"> settings-account-status--success</c:when>
+                                        <c:when test="${hasProfile}"> settings-account-status--warning</c:when>
+                                        <c:otherwise> settings-account-status--gray</c:otherwise>
+                                    </c:choose>">${cccdStatusLabel}</span>
                             </div>
-
+                            <div class="security-audit-item">
+                                <span class="security-audit-lbl">Đăng ký thi đang active</span>
+                                <span class="security-audit-val">
+                                    <c:choose>
+                                        <c:when test="${activeExamRegistrationCount > 0}">
+                                            ${activeExamRegistrationCount} hạng
+                                            <c:if test="${not empty activeLicenceClassesLabel}"> (${activeLicenceClassesLabel})</c:if>
+                                        </c:when>
+                                        <c:otherwise>Chưa có</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
                         </div>
+
+                        <nav class="settings-account-links" aria-label="Liên kết nhanh">
+                            <a href="${pageContext.request.contextPath}/registrant/profile" class="settings-account-links__item">Hồ sơ cá nhân</a>
+                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="settings-account-links__item">Tài liệu</a>
+                            <a href="${pageContext.request.contextPath}/registrant/my-exams" class="settings-account-links__item">Lịch thi &amp; kết quả</a>
+                        </nav>
                     </div>
                 </section>
 

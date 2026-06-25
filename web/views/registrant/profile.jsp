@@ -11,18 +11,15 @@
     <title>Hồ Sơ Cá Nhân - Lái Vui</title>
     <meta name="description" content="Quản lý hồ sơ cá nhân và tài liệu đính kèm thi sát hạch lái xe tại Lái Vui.">
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<%-- Inject registrant sidebar --%>
 <jsp:include page="/views/layout/sidebar-registrant.jsp">
     <jsp:param name="activeSidebar" value="profile" />
 </jsp:include>
@@ -30,14 +27,12 @@
 <div class="dashboard-shell">
     <main class="main-content" id="main-content">
 
-        <%-- Breadcrumbs --%>
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/registrant/dashboard.jsp">Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/registrant/dashboard">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Hồ sơ cá nhân</span>
         </nav>
 
-        <%-- Page Header --%>
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Hồ sơ cá nhân</h1>
@@ -45,7 +40,7 @@
             </div>
         </header>
 
-        <%-- Notification Banner (If Medical Certificate is rejected) --%>
+        <c:if test="${showHealthAlert}">
         <section class="p-alert-banner" aria-label="Thông báo hồ sơ">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
@@ -54,15 +49,33 @@
             <div class="p-alert-banner__content">
                 <span class="p-alert-banner__title">Yêu cầu bổ sung hồ sơ</span>
                 <span>
-                    Giấy khám sức khỏe của bạn bị từ chối do <strong>thiếu dấu giáp lai ảnh chân dung</strong>. Vui lòng tải lại ảnh chụp Giấy khám sức khỏe mới hợp lệ tại mục <a href="${pageContext.request.contextPath}/views/registrant/upload-documents.jsp" class="profile-checklist-link">Tải lên hồ sơ</a>.
+                    Giấy khám sức khỏe của bạn cần được bổ sung hoặc tải lại. Vui lòng cập nhật tại mục
+                    <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Tải lên hồ sơ</a>.
                 </span>
             </div>
         </section>
+        </c:if>
 
-        <%-- Profile Page Grid --%>
+        <c:if test="${not empty param.success}">
+            <section class="p-alert-banner" aria-label="Thông báo thành công">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Cập nhật thành công</span>
+                    <span>Thông tin hồ sơ cá nhân đã được lưu.</span>
+                </div>
+            </section>
+        </c:if>
+
+        <c:if test="${not empty error and empty openEditModal}">
+            <section class="p-alert-banner" aria-label="Thông báo lỗi">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Không thể cập nhật</span>
+                    <span>${error}</span>
+                </div>
+            </section>
+        </c:if>
+
         <div class="profile-layout-grid">
-            
-            <%-- Left side: Personal Details Form --%>
+
             <section class="p-form-card" aria-label="Thông tin chi tiết">
                 <div class="p-form-header">
                     <h2 class="p-form-title">
@@ -72,280 +85,369 @@
                         </svg>
                         Chi tiết hồ sơ đăng ký
                     </h2>
-                    <button class="p-btn-edit" id="btn-edit-profile" type="button">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 20h8M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                        Chỉnh sửa
-                    </button>
+                    <c:choose>
+                        <c:when test="${profileIncomplete}">
+                            <button class="p-btn-edit" id="btn-edit-profile" type="button">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 20h8M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                Bổ sung hồ sơ
+                            </button>
+                        </c:when>
+                        <c:otherwise>
+                            <button class="p-btn-edit" id="btn-edit-profile" type="button">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 20h8M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                Chỉnh sửa
+                            </button>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
-                <div class="p-form-body">
-                    <form action="#" method="post" id="profile-form">
-                        
-                        <%-- Section 1: Thông tin cá nhân --%>
-                        <h3 class="p-form-section-title">I. Thông tin cá nhân</h3>
-                        <div class="p-form-grid">
-                            
-                            <%-- Họ và tên --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="fullName">Họ và tên thí sinh</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"></circle>
-                                            <path d="M4 20C4 16.686 7.582 14 12 14C16.418 14 20 16.686 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="text" class="p-input-field" id="fullName" name="fullName" disabled value="${empty registrantName ? 'Nguyễn Văn A' : registrantName}">
-                                </div>
-                            </div>
+                <div class="p-form-body" id="profile-view-panel">
 
-                            <%-- Ngày sinh --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="dob">Ngày sinh</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
-                                            <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="date" class="p-input-field" id="dob" name="dob" disabled value="${empty birthday ? '1995-10-15' : birthday}">
-                                </div>
-                            </div>
-
-                            <%-- Giới tính --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="gender">Giới tính</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <circle cx="12" cy="10" r="8" stroke="currentColor" stroke-width="1.8"></circle>
-                                            <path d="M12 10v6M10 13h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </span>
-                                    <select class="p-input-field p-input-field--select" id="gender" name="gender" disabled>
-                                        <option value="Nam" ${empty gender or gender eq 'Nam' ? 'selected' : ''}>Nam</option>
-                                        <option value="Nữ" ${gender eq 'Nữ' ? 'selected' : ''}>Nữ</option>
-                                        <option value="Khác" ${gender eq 'Khác' ? 'selected' : ''}>Khác</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <%-- Số điện thoại --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="phone">Số điện thoại</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="tel" class="p-input-field" id="phone" name="phone" disabled value="${empty phone ? '0912345678' : phone}">
-                                </div>
-                            </div>
-
-                            <%-- Địa chỉ Email --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="email">Địa chỉ Email</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
-                                            <path d="m21 8-9 6-9-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="email" class="p-input-field" id="email" name="email" disabled value="${empty email ? 'nguyenvana@gmail.com' : email}">
-                                </div>
-                            </div>
-
-                            <%-- Địa chỉ thường trú --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="address">Địa chỉ thường trú</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path>
-                                            <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.8"></circle>
-                                        </svg>
-                                    </span>
-                                    <input type="text" class="p-input-field" id="address" name="address" disabled value="${empty address ? 'Số 12, Ngõ 45, Đường Láng, Quận Đống Đa, Hà Nội' : address}">
-                                </div>
+                    <h3 class="p-form-section-title">I. Thông tin cá nhân</h3>
+                    <div class="p-form-grid">
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-fullName">Họ và tên thí sinh</label>
+                            <div class="p-input-wrapper">
+                                <input type="text" class="p-input-field p-input-field--no-icon" id="view-fullName" value="${registrantName}" disabled>
                             </div>
                         </div>
-
-                        <%-- Section 2: Chứng minh nhân dân / CCCD --%>
-                        <h3 class="p-form-section-title">II. Căn cước công dân</h3>
-                        <div class="p-form-grid">
-                            
-                            <%-- Số CCCD --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="idCard">Số CCCD / CMND</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
-                                            <circle cx="8" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"></circle>
-                                            <path d="M14 10h4M14 14h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="text" class="p-input-field" id="idCard" name="idCard" disabled value="${empty idCardNumber ? '037095001234' : idCardNumber}">
-                                </div>
-                            </div>
-
-                            <%-- Ngày cấp --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="issueDate">Ngày cấp</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
-                                            <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="date" class="p-input-field" id="issueDate" name="issueDate" disabled value="${empty idIssueDate ? '2020-05-20' : idIssueDate}">
-                                </div>
-                            </div>
-
-                            <%-- Nơi cấp --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="issuePlace">Nơi cấp</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" stroke="currentColor" stroke-width="1.8"></path>
-                                            <path d="M3.6 9h16.8M3.6 15h16.8M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" stroke="currentColor" stroke-width="1.8"></path>
-                                        </svg>
-                                    </span>
-                                    <input type="text" class="p-input-field" id="issuePlace" name="issuePlace" disabled value="${empty idIssuePlace ? 'Cục Cảnh sát QLHC về TTXH' : idIssuePlace}">
-                                </div>
-                            </div>
-
-                            <%-- Hạng GPLX đăng ký --%>
-                            <div class="p-input-group">
-                                <label class="p-input-label" for="licenceRegistered">Hạng GPLX đăng ký sát hạch</label>
-                                <div class="p-input-wrapper">
-                                    <span class="p-input-icon">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="1" y="4" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
-                                            <circle cx="6" cy="10" r="2" stroke="currentColor" stroke-width="1.8"></circle>
-                                            <path d="M10 7.5H16M10 10H14M10 12.5H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </span>
-                                    <select class="p-input-field p-input-field--select" id="licenceRegistered" name="licenceRegistered" disabled>
-                                        <option value="A1" ${licenceClass eq 'A1' ? 'selected' : ''}>Hạng A1 (Mô tô 2 bánh dưới 175cc)</option>
-                                        <option value="A2" ${licenceClass eq 'A2' ? 'selected' : ''}>Hạng A2 (Mô tô 2 bánh trên 175cc)</option>
-                                        <option value="B1" ${licenceClass eq 'B1' ? 'selected' : ''}>Hạng B1 (Ô tô số tự động)</option>
-                                        <option value="B2" ${empty licenceClass or licenceClass eq 'B2' ? 'selected' : ''}>Hạng B2 (Ô tô chở người đến 9 chỗ, tải dưới 3.5t)</option>
-                                        <option value="C" ${licenceClass eq 'C' ? 'selected' : ''}>Hạng C (Xe tải trên 3.5t)</option>
-                                    </select>
-                                </div>
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-dob">Ngày sinh</label>
+                            <div class="p-input-wrapper">
+                                <input type="date" class="p-input-field p-input-field--no-icon" id="view-dob" value="${birthday}" disabled>
                             </div>
                         </div>
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-gender">Giới tính</label>
+                            <div class="p-input-wrapper">
+                                <select class="p-input-field p-input-field--select p-input-field--no-icon" id="view-gender" disabled>
+                                    <option value="Nam" ${gender eq 'Nam' ? 'selected' : ''}>Nam</option>
+                                    <option value="Nữ" ${gender eq 'Nữ' ? 'selected' : ''}>Nữ</option>
+                                    <option value="Khác" ${gender eq 'Khác' ? 'selected' : ''}>Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-phone">Số điện thoại</label>
+                            <div class="p-input-wrapper">
+                                <input type="tel" class="p-input-field p-input-field--no-icon" id="view-phone" value="${phone}" disabled>
+                            </div>
+                        </div>
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-email">Địa chỉ Email</label>
+                            <div class="p-input-wrapper">
+                                <input type="email" class="p-input-field p-input-field--no-icon" id="view-email" value="${email}" disabled>
+                            </div>
+                        </div>
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-address">Địa chỉ thường trú</label>
+                            <div class="p-input-wrapper">
+                                <input type="text" class="p-input-field p-input-field--no-icon" id="view-address" value="${address}" disabled>
+                            </div>
+                        </div>
+                    </div>
 
-                    </form>
+                    <h3 class="p-form-section-title">II. Căn cước công dân</h3>
+                    <div class="p-form-grid p-form-grid--single-row">
+                        <div class="p-input-group">
+                            <label class="p-input-label" for="view-idCard">Số CCCD / CMND</label>
+                            <div class="p-input-wrapper">
+                                <input type="text" class="p-input-field p-input-field--no-icon" id="view-idCard"
+                                       value="${not empty idCardNumber ? idCardNumber : '—'}" disabled
+                                       inputmode="numeric" autocomplete="off">
+                            </div>
+                            <c:if test="${not idCardEditable}">
+                                <span class="profile-edit-hint">Số định danh đã khóa sau khi hồ sơ được duyệt.</span>
+                            </c:if>
+                            <c:if test="${idCardEditable}">
+                                <span class="profile-edit-hint">Nhập đúng số in trên thẻ — Ban quản lý sẽ đối chiếu với ảnh CCCD.</span>
+                            </c:if>
+                        </div>
+                    </div>
+
+                    <div class="profile-cccd-note" aria-label="Thông tin trên thẻ CCCD">
+                        <p class="profile-cccd-note__title">Ngày cấp &amp; nơi cấp trên thẻ</p>
+                        <p class="profile-cccd-note__text">
+                            Không cần nhập tay. Thông tin chi tiết trên CCCD được lưu qua
+                            <strong>ảnh mặt trước và mặt sau</strong> tại mục tải hồ sơ — Ban quản lý đối chiếu khi duyệt.
+                        </p>
+                        <ul class="profile-cccd-note__list">
+                            <li>
+                                <span class="profile-cccd-note__dot profile-cccd-note__dot--${cccdFrontUploaded ? 'done' : 'pending'}"></span>
+                                Mặt trước CCCD
+                                <c:choose>
+                                    <c:when test="${cccdFrontUploaded}"> — đã tải lên</c:when>
+                                    <c:otherwise> — chưa tải</c:otherwise>
+                                </c:choose>
+                            </li>
+                            <li>
+                                <span class="profile-cccd-note__dot profile-cccd-note__dot--${cccdBackUploaded ? 'done' : 'pending'}"></span>
+                                Mặt sau CCCD
+                                <c:choose>
+                                    <c:when test="${cccdBackUploaded}"> — đã tải lên</c:when>
+                                    <c:otherwise> — chưa tải</c:otherwise>
+                                </c:choose>
+                            </li>
+                        </ul>
+                        <c:if test="${not cccdImagesComplete}">
+                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Tải ảnh CCCD</a>
+                        </c:if>
+                    </div>
+
+                    <h3 class="p-form-section-title">III. Đăng ký sát hạch</h3>
+                    <div class="profile-exam-block">
+                        <p class="profile-exam-summary__hint">
+                            Một thí sinh có thể đăng ký nhiều hạng GPLX. Hạng được xác định khi chọn đợt thi,
+                            không lấy từ thông tin trên thẻ CCCD. Giữa các hạng khác nhau chỉ được thi vào ngày khác nhau.
+                        </p>
+
+                        <c:choose>
+                            <c:when test="${hasActiveExamRegistrations}">
+                                <ul class="profile-exam-list" aria-label="Danh sách đăng ký sát hạch">
+                                    <c:forEach var="exam" items="${activeExamRegistrations}">
+                                        <li class="profile-exam-list__item">
+                                            <div class="profile-exam-list__head">
+                                                <span class="profile-exam-list__licence">
+                                                    <c:choose>
+                                                        <c:when test="${not empty exam.licenceClassDescription}">
+                                                            ${exam.licenceClassDescription}
+                                                        </c:when>
+                                                        <c:otherwise>Hạng ${exam.licenceClass}</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <span class="status-badge status-badge--${exam.statusClass}">${exam.statusLabel}</span>
+                                            </div>
+                                            <p class="profile-exam-list__session">${exam.examName}</p>
+                                            <p class="profile-exam-list__meta">
+                                                Ngày thi:
+                                                <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/>
+                                                <c:choose>
+                                                    <c:when test="${exam.sessionTimePublished}">
+                                                        · Giờ ca:
+                                                        <fmt:formatDate value="${exam.sessionStart}" pattern="HH:mm"/>
+                                                        <c:if test="${not empty exam.sessionEnd}">
+                                                            –<fmt:formatDate value="${exam.sessionEnd}" pattern="HH:mm"/>
+                                                        </c:if>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        · Chờ Ban sát hạch mở ca
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <c:if test="${not empty exam.location}">
+                                                    · ${exam.location}
+                                                </c:if>
+                                            </p>
+                                        </li>
+                                    </c:forEach>
+                                </ul>
+                            </c:when>
+                            <c:otherwise>
+                                <p class="profile-exam-empty">Chưa có đăng ký sát hạch.</p>
+                            </c:otherwise>
+                        </c:choose>
+
+                        <a href="${pageContext.request.contextPath}/registrant/register-exam" class="profile-checklist-link">
+                            <c:choose>
+                                <c:when test="${hasActiveExamRegistrations}">Đăng ký thêm / xem đợt thi</c:when>
+                                <c:otherwise>Đăng ký sát hạch</c:otherwise>
+                            </c:choose>
+                        </a>
+                    </div>
                 </div>
             </section>
 
-            <%-- Right side: Summary widgets --%>
             <div class="dashboard-sidebar-column">
-                
-                <%-- Widget 1: Profile Photo Card --%>
                 <div class="profile-photo-card">
                     <div class="profile-photo-wrapper">
-                        <img src="${pageContext.request.contextPath}/assets/imgs/LOGO.png" alt="Ảnh chân dung" class="profile-photo-img" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop'">
-                        <div class="profile-photo-badge" aria-label="Đổi ảnh chân dung">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
-                                <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"></circle>
-                            </svg>
-                        </div>
+                        <img src="${pageContext.request.contextPath}/assets/imgs/LOGO.png" alt="Ảnh chân dung" class="profile-photo-img">
                     </div>
-                    <div>
-                        <h2 class="profile-photo-name">${empty registrantName ? 'Nguyễn Văn A' : registrantName}</h2>
-                        <div class="profile-photo-role">Thí sinh B2</div>
+                    <div class="profile-photo-meta">
+                        <h2 class="profile-photo-name">${not empty registrantName ? registrantName : '—'}</h2>
+
+                        <div class="profile-photo-tags" aria-label="Vai trò thí sinh">
+                            <span class="profile-photo-tag profile-photo-tag--role">Thí sinh</span>
+                            <c:if test="${not empty activeLicenceClassesLabel}">
+                                <span class="profile-photo-tag profile-photo-tag--licence">Hạng ${activeLicenceClassesLabel}</span>
+                            </c:if>
+                            <c:if test="${empty activeLicenceClassesLabel and not empty licenceClass}">
+                                <span class="profile-photo-tag profile-photo-tag--licence">Hạng ${licenceClass}</span>
+                            </c:if>
+                        </div>
                     </div>
                 </div>
 
-                <%-- Widget 2: Completeness Progress Card --%>
-                <div class="profile-completion-card">
+                <div class="profile-completion-card profile-completion-card--${profileIncomplete ? 'incomplete' : (not empty documentSummary ? documentSummary.overallStatusClass : 'complete')}">
                     <div class="profile-completion-card__header">
                         <h2 class="profile-completion-card__title">Trạng thái hồ sơ</h2>
-                        <span class="profile-completion-card__badge">Chờ duyệt</span>
+                        <c:if test="${not empty documentSummary}">
+                            <span class="profile-completion-card__badge profile-completion-card__badge--${documentSummary.overallStatusClass}">
+                                ${documentSummary.overallStatusLabel}
+                            </span>
+                        </c:if>
                     </div>
+                    <c:if test="${not empty documentSummary and documentSummary.requiredTotal > 0}">
+                        <div class="profile-completion-card__progress-wrap">
+                            <div class="profile-completion-card__progress-text">
+                                <span>Giấy tờ bắt buộc</span>
+                                <span class="profile-completion-card__percentage">${documentSummary.requiredUploaded}/${documentSummary.requiredTotal}</span>
+                            </div>
+                            <div class="profile-completion-card__bar-bg">
+                                <div class="profile-completion-card__bar-fill" style="width: ${documentSummary.requiredProgressPercent}%;"></div>
+                            </div>
+                        </div>
+                    </c:if>
                     <p class="profile-completion-card__status-msg">
-                        Tài liệu định danh của bạn đã được xác minh thành công. Hãy bổ sung <strong>Giấy khám sức khỏe hợp lệ</strong> để đủ điều kiện xét duyệt đợt thi.
+                        <c:choose>
+                            <c:when test="${profileIncomplete}">Hồ sơ còn thiếu thông tin. Bấm &ldquo;Bổ sung hồ sơ&rdquo; để điền các mục còn trống.</c:when>
+                            <c:when test="${not empty documentSummary}">${documentSummary.overallMessage}</c:when>
+                            <c:when test="${not empty registrantName}">Thông tin hồ sơ đã được tải từ hệ thống.</c:when>
+                            <c:otherwise>Chưa có dữ liệu hồ sơ. Vui lòng bổ sung thông tin cá nhân.</c:otherwise>
+                        </c:choose>
                     </p>
                 </div>
 
-                <%-- Widget 3: Upload Documents Status Checklist --%>
-                <div class="profile-checklist-card">
-                    <h3 class="profile-checklist-title">Danh sách tài liệu đính kèm</h3>
-                    <div class="profile-checklist-list">
-                        
-                        <%-- Item 1: Ảnh 3x4 --%>
-                        <div class="profile-checklist-item">
-                            <div class="profile-checklist-label-wrap">
-                                <div class="profile-checklist-dot profile-checklist-dot--checked" aria-hidden="true">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </div>
-                                <span>Ảnh chân dung 3x4</span>
-                            </div>
-                            <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
-                        </div>
-
-                        <%-- Item 2: Mặt trước CCCD --%>
-                        <div class="profile-checklist-item">
-                            <div class="profile-checklist-label-wrap">
-                                <div class="profile-checklist-dot profile-checklist-dot--checked" aria-hidden="true">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </div>
-                                <span>Ảnh mặt trước CCCD</span>
-                            </div>
-                            <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
-                        </div>
-
-                        <%-- Item 3: Mặt sau CCCD --%>
-                        <div class="profile-checklist-item">
-                            <div class="profile-checklist-label-wrap">
-                                <div class="profile-checklist-dot profile-checklist-dot--checked" aria-hidden="true">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </div>
-                                <span>Ảnh mặt sau CCCD</span>
-                            </div>
-                            <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
-                        </div>
-
-                        <%-- Item 4: Giấy khám sức khỏe --%>
-                        <div class="profile-checklist-item">
-                            <div class="profile-checklist-label-wrap">
-                                <div class="profile-checklist-dot profile-checklist-dot--pending" aria-hidden="true">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                </div>
-                                <span>Giấy khám sức khỏe</span>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/views/registrant/upload-documents.jsp" class="profile-checklist-link">Bổ sung ngay</a>
-                        </div>
-                    </div>
+                <div class="profile-checklist-card profile-checklist-card--${not empty documentSummary ? documentSummary.overallStatusClass : 'complete'}">
+                    <h2 class="profile-checklist-title">Tài liệu đính kèm</h2>
+                    <p class="profile-checklist-desc">
+                        <c:if test="${not empty profileRegistrationStatusLabel}">
+                            <span class="status-badge status-badge--mini status-badge--${profileRegistrationStatusClass eq 'success' ? 'approved' : (profileRegistrationStatusClass eq 'danger' ? 'rejected' : (profileRegistrationStatusClass eq 'pending' ? 'pending' : 'info'))}" style="margin-bottom:0.5rem;display:inline-block;">
+                                Hồ sơ: ${profileRegistrationStatusLabel}
+                            </span>
+                            <br>
+                        </c:if>
+                        <c:choose>
+                            <c:when test="${not empty documentSummary}">
+                                ${documentSummary.requiredUploaded}/${documentSummary.requiredTotal} giấy tờ bắt buộc
+                                <c:if test="${documentSummary.otherCount > 0}"> · ${documentSummary.otherCount} hồ sơ khác</c:if>
+                                · ${documentSummary.overallStatusLabel}
+                            </c:when>
+                            <c:otherwise>
+                                Quản lý và tải lên giấy tờ, ảnh chân dung và các tài liệu bổ sung cho hồ sơ thi.
+                            </c:otherwise>
+                        </c:choose>
+                    </p>
+                    <c:if test="${not empty documentSummary and not empty documentSummary.checklistItems}">
+                        <ul class="profile-checklist-list" aria-label="Danh sách giấy tờ bắt buộc">
+                            <c:forEach var="item" items="${documentSummary.checklistItems}">
+                                <li class="profile-checklist-item">
+                                    <span class="profile-checklist-label-wrap">
+                                        <span class="profile-checklist-dot profile-checklist-dot--${item.uploaded ? 'checked' : 'pending'}" aria-hidden="true">
+                                            <c:if test="${item.uploaded}">✓</c:if>
+                                        </span>
+                                        ${item.label}
+                                    </span>
+                                    <span class="status-badge status-badge--mini status-badge--${item.statusClass eq 'success' ? 'approved' : (item.statusClass eq 'danger' ? 'rejected' : (item.statusClass eq 'warning' ? 'pending' : 'gray'))}">${item.statusLabel}</span>
+                                </li>
+                            </c:forEach>
+                        </ul>
+                    </c:if>
+                    <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-action">
+                        <c:choose>
+                            <c:when test="${not empty documentSummary and documentSummary.requiredUploaded lt documentSummary.requiredTotal}">Tải lên giấy tờ còn thiếu</c:when>
+                            <c:when test="${not empty documentSummary and documentSummary.awaitingSubmitCount gt 0}">Gửi duyệt hồ sơ</c:when>
+                            <c:otherwise>Tải lên / quản lý hồ sơ</c:otherwise>
+                        </c:choose>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
                 </div>
-
             </div>
-
         </div>
 
     </main>
 
-    <%-- Footer --%>
     <jsp:include page="/views/layout/footer.jsp" />
 </div>
+
+<%-- Modal chỉnh sửa hồ sơ --%>
+<div id="profile-edit-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title" hidden>
+    <div class="score-modal-content profile-edit-modal">
+        <div class="modal-header">
+            <h3 id="profile-edit-modal-title">
+                <c:choose>
+                    <c:when test="${profileIncomplete}">Bổ sung hồ sơ cá nhân</c:when>
+                    <c:otherwise>Chỉnh sửa hồ sơ cá nhân</c:otherwise>
+                </c:choose>
+            </h3>
+            <button type="button" class="btn-close-modal" id="btn-close-profile-modal" aria-label="Đóng">&times;</button>
+        </div>
+        <form method="post" action="${pageContext.request.contextPath}/registrant/profile" id="profile-edit-form">
+            <div class="modal-body">
+                <p id="profile-edit-modal-error" class="profile-edit-modal__error" hidden></p>
+
+                <div class="p-form-grid">
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-fullName">Họ và tên thí sinh <span class="profile-edit-required">*</span></label>
+                        <input type="text" class="p-input-field p-input-field--no-icon" id="edit-fullName" name="fullName"
+                               value="${not empty param.fullName ? param.fullName : registrantName}"
+                               placeholder="Nhập họ và tên" required>
+                    </div>
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-dob">Ngày sinh</label>
+                        <input type="date" class="p-input-field p-input-field--no-icon" id="edit-dob" name="dob"
+                               value="${not empty param.dob ? param.dob : birthday}">
+                    </div>
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-gender">Giới tính</label>
+                        <c:set var="editGender" value="${not empty param.gender ? param.gender : gender}" />
+                        <select class="p-input-field p-input-field--select p-input-field--no-icon" id="edit-gender" name="gender">
+                            <option value="Nam" ${editGender eq 'Nam' ? 'selected' : ''}>Nam</option>
+                            <option value="Nữ" ${editGender eq 'Nữ' ? 'selected' : ''}>Nữ</option>
+                            <option value="Khác" ${editGender eq 'Khác' ? 'selected' : ''}>Khác</option>
+                        </select>
+                    </div>
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-phone">Số điện thoại</label>
+                        <input type="tel" class="p-input-field p-input-field--no-icon" id="edit-phone" name="phone"
+                               value="${not empty param.phone ? param.phone : phone}"
+                               placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-email">Địa chỉ Email</label>
+                        <input type="email" class="p-input-field p-input-field--no-icon" id="edit-email" value="${email}" readonly>
+                        <span class="profile-edit-hint">Email tài khoản không đổi qua form này.</span>
+                    </div>
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-address">Địa chỉ thường trú</label>
+                        <input type="text" class="p-input-field p-input-field--no-icon" id="edit-address" name="address"
+                               value="${not empty param.address ? param.address : address}"
+                               placeholder="Nhập địa chỉ thường trú">
+                    </div>
+                    <div class="p-input-group">
+                        <label class="p-input-label" for="edit-idCard">Số CCCD / CMND</label>
+                        <input type="text" class="p-input-field p-input-field--no-icon" id="edit-idCard" name="idCard"
+                               value="${not empty param.idCard ? param.idCard : idCardNumber}"
+                               placeholder="Nhập 12 số CCCD hoặc 9 số CMND"
+                               inputmode="numeric" maxlength="12" autocomplete="off"
+                               ${not idCardEditable ? 'readonly' : ''}>
+                        <c:choose>
+                            <c:when test="${not idCardEditable}">
+                                <span class="profile-edit-hint">Không thể đổi số CCCD sau khi hồ sơ đã được duyệt.</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="profile-edit-hint">Phải khớp số in trên thẻ. Ngày cấp / nơi cấp xem trên ảnh CCCD đã tải.</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="welcome-banner__btn welcome-banner__btn--outline" id="btn-cancel-profile-modal">Hủy</button>
+                <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<input type="hidden" id="profile-edit-open-flag" value="${openEditModal ? '1' : ''}"
+       data-error-message="${fn:escapeXml(error)}"
+       data-id-card-editable="${idCardEditable ? '1' : '0'}">
+
+<script src="${pageContext.request.contextPath}/assets/js/registrant/profile-edit-modal.js" charset="UTF-8"></script>
 
 </body>
 </html>

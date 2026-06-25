@@ -3,38 +3,9 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<c:set var="selectedClassCode" value="${param.licenceSelect}" />
-<c:if test="${empty selectedClassCode}">
-    <c:set var="selectedClassCode" value="B2" />
-</c:if>
-
-<c:set var="selectedSessionCode" value="${param.sessionSelect}" />
-<c:if test="${empty selectedSessionCode}">
-    <c:set var="selectedSessionCode" value="SH-2025-06-B2" />
-</c:if>
-
-<c:choose>
-    <c:when test="${selectedClassCode eq 'A1'}">
-        <c:set var="feeSathachName" value="LS phí thi sát hạch A1" />
-        <c:set var="feeSathachValue" value="65,000đ" />
-        <c:set var="feeTotal" value="250,000đ" />
-    </c:when>
-    <c:when test="${selectedClassCode eq 'A2'}">
-        <c:set var="feeSathachName" value="LS phí thi sát hạch A2" />
-        <c:set var="feeSathachValue" value="165,000đ" />
-        <c:set var="feeTotal" value="350,000đ" />
-    </c:when>
-    <c:when test="${selectedClassCode eq 'B1'}">
-        <c:set var="feeSathachName" value="LS phí thi sát hạch B1" />
-        <c:set var="feeSathachValue" value="615,000đ" />
-        <c:set var="feeTotal" value="800,000đ" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="feeSathachName" value="LS phí thi sát hạch B2" />
-        <c:set var="feeSathachValue" value="1,015,000đ" />
-        <c:set var="feeTotal" value="1,200,000đ" />
-    </c:otherwise>
-</c:choose>
+<c:set var="selectedClassCode" value="${not empty param.licenceSelect ? param.licenceSelect : selectedLicenceCode}" />
+<c:set var="selectedSessionCode" value="${not empty param.sessionSelect ? param.sessionSelect : selectedSessionCode}" />
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -65,7 +36,7 @@
 
         <%-- Breadcrumbs --%>
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/registrant/dashboard.jsp">Trang chủ</a>
+            <a href="${pageContext.request.contextPath}/registrant/dashboard">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Đăng ký thi</span>
         </nav>
@@ -87,30 +58,64 @@
             <div class="step-line"></div>
             <div class="step-item">
                 <div class="step-number">2</div>
-                <span>Xác nhận thông tin</span>
-            </div>
-            <div class="step-line"></div>
-            <div class="step-item">
-                <div class="step-number">3</div>
-                <span>Lệ phí & Thanh toán</span>
+                <span>Xác nhận đăng ký</span>
             </div>
         </section>
 
-        <%-- Selection Form wrapping entire grid and sidebar to post values to servlet --%>
-        <form action="${pageContext.request.contextPath}/registrant/register-exam" method="post" id="registrationForm">
-            
-            <%-- Hidden selection parameters to be submitted cleanly by the form POST --%>
-            <input type="hidden" name="licenceSelect" value="${selectedClassCode}">
-            <input type="hidden" name="sessionSelect" value="${selectedSessionCode}">
+        <c:if test="${not empty error}">
+        <section class="p-alert-banner" aria-label="Thông báo lỗi" style="margin-bottom:1.25rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+                <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div class="p-alert-banner__content">
+                <span class="p-alert-banner__title">Không thể đăng ký</span>
+                <span><c:out value="${error}"/></span>
+            </div>
+        </section>
+        </c:if>
 
-            <%-- Selection Layout Grid --%>
-            <div class="profile-layout-grid">
-                
+        <c:if test="${not empty documentGateMessage}">
+        <section class="p-alert-banner" aria-label="Yêu cầu duyệt hồ sơ" style="margin-bottom:1.25rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+                <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div class="p-alert-banner__content">
+                <span class="p-alert-banner__title">Chưa đủ điều kiện đăng ký thi</span>
+                <span>
+                    <c:out value="${documentGateMessage}"/>
+                    <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link"> Quản lý tài liệu →</a>
+                </span>
+            </div>
+        </section>
+        </c:if>
+
+        <c:if test="${showProfileApprovedNotice}">
+        <section class="p-alert-banner register-exam-notice register-exam-notice--approved" aria-label="Hồ sơ đã duyệt" style="margin-bottom:1.25rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="p-alert-banner__content">
+                <span class="p-alert-banner__title">Hồ sơ tài liệu đã được duyệt</span>
+                <span>
+                    Bạn đã nộp đủ giấy tờ bắt buộc và được ban quản lý phê duyệt
+                    (<c:out value="${profileRegistrationStatusLabel}"/>).
+                    Vui lòng chọn hạng GPLX và đợt thi, sau đó xác nhận đăng ký bên dưới.
+                </span>
+            </div>
+        </section>
+        </c:if>
+
+        <%-- Chọn hạng / ca: GET (không lồng form POST). Xác nhận: form POST riêng bên phải. --%>
+        <div class="profile-layout-grid">
+
                 <%-- Left Column: Licence Selector + Available Sessions --%>
                 <div class="dashboard-sidebar-column dashboard-sidebar-column--wide">
-                    
+
                     <%-- Section 1: Select Licence --%>
-                    <section class="p-form-card" aria-label="Chọn hạng GPLX">
+                    <section class="p-form-card" id="register-exam-licence" aria-label="Chọn hạng GPLX">
                         <div class="p-form-header">
                             <h2 class="p-form-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -122,13 +127,18 @@
                         </div>
                         <div class="p-form-body p-form-body--compact">
                             <div class="licence-selector-grid">
-                                
+
                                 <c:if test="${not empty licenceClassesList}">
-                                    <%-- Dynamic licence list loop from database --%>
                                     <c:forEach var="licence" items="${licenceClassesList}">
-                                        <a href="?licenceSelect=${licence.code}&sessionSelect=${selectedSessionCode}" class="licence-card-link">
-                                            <div class="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}">
-                                                <div class="licence-card__icon">
+                                        <c:url var="licencePickUrl" value="/registrant/register-exam">
+                                            <c:param name="licenceSelect" value="${licence.code}"/>
+                                            <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if>
+                                            <c:if test="${locationFilter ne 'all'}"><c:param name="location" value="${locationFilter}"/></c:if>
+                                            <c:if test="${not empty fromDate}"><c:param name="fromDate" value="${fromDate}"/></c:if>
+                                            <c:if test="${not empty toDate}"><c:param name="toDate" value="${toDate}"/></c:if>
+                                        </c:url>
+                                        <a href="${licencePickUrl}#register-exam-session" class="licence-card-link">
+                                            <div class="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}">                                                <div class="licence-card__icon">
                                                     <c:choose>
                                                         <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'moto')}">
                                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -136,6 +146,12 @@
                                                                 <circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
                                                                 <path d="M8.5 10.5 12 6h4l2.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                                                                 <path d="M12 6v11" stroke="currentColor" stroke-width="2"></path>
+                                                            </svg>
+                                                        </c:when>
+                                                        <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'bus')}">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <rect x="3" y="5" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2"></rect>
+                                                                <path d="M3 12h18M7 18v2M17 18v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                                                             </svg>
                                                         </c:when>
                                                         <c:otherwise>
@@ -151,7 +167,7 @@
                                                 <span class="licence-card__code">Hạng ${licence.code}</span>
                                                 <span class="licence-card__name">${licence.name}</span>
                                                 <span class="licence-card__fee">
-                                                    <fmt:formatNumber value="${empty licence.examFee ? 1200000 : licence.examFee}" type="number"/> đ
+                                                    <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
                                                 </span>
                                             </div>
                                         </a>
@@ -159,73 +175,7 @@
                                 </c:if>
                                 
                                 <c:if test="${empty licenceClassesList}">
-                                    <%-- Fallback high-fidelity selections for standalone preview --%>
-                                    <%-- Hạng A1 --%>
-                                    <a href="?licenceSelect=A1&sessionSelect=${selectedSessionCode}" class="licence-card-link">
-                                        <div class="licence-card ${selectedClassCode eq 'A1' ? 'licence-card--active' : ''}">
-                                            <div class="licence-card__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <circle cx="6" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
-                                                    <circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
-                                                    <path d="M8.5 10.5 12 6h4l2.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                                    <path d="M12 6v11" stroke="currentColor" stroke-width="2"></path>
-                                                </svg>
-                                            </div>
-                                            <span class="licence-card__code">Hạng A1</span>
-                                            <span class="licence-card__name">Mô tô 2 bánh dưới 175cc</span>
-                                            <span class="licence-card__fee">250.000 đ</span>
-                                        </div>
-                                    </a>
-
-                                    <%-- Hạng A2 --%>
-                                    <a href="?licenceSelect=A2&sessionSelect=${selectedSessionCode}" class="licence-card-link">
-                                        <div class="licence-card ${selectedClassCode eq 'A2' ? 'licence-card--active' : ''}">
-                                            <div class="licence-card__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <circle cx="6" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
-                                                    <circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
-                                                    <path d="M8.5 10.5 12 6h4l2.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                                    <path d="M6 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                                                </svg>
-                                            </div>
-                                            <span class="licence-card__code">Hạng A2</span>
-                                            <span class="licence-card__name">Mô tô 2 bánh trên 175cc</span>
-                                            <span class="licence-card__fee">350.000 đ</span>
-                                        </div>
-                                    </a>
-
-                                    <%-- Hạng B1 --%>
-                                    <a href="?licenceSelect=B1&sessionSelect=${selectedSessionCode}" class="licence-card-link">
-                                        <div class="licence-card ${selectedClassCode eq 'B1' ? 'licence-card--active' : ''}">
-                                            <div class="licence-card__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect>
-                                                    <circle cx="7" cy="12" r="2" stroke="currentColor" stroke-width="2"></circle>
-                                                    <circle cx="17" cy="12" r="2" stroke="currentColor" stroke-width="2"></circle>
-                                                </svg>
-                                            </div>
-                                            <span class="licence-card__code">Hạng B1</span>
-                                            <span class="licence-card__name">Ô tô số tự động gia đình</span>
-                                            <span class="licence-card__fee">800.000 đ</span>
-                                        </div>
-                                    </a>
-
-                                    <%-- Hạng B2 --%>
-                                    <a href="?licenceSelect=B2&sessionSelect=${selectedSessionCode}" class="licence-card-link">
-                                        <div class="licence-card ${selectedClassCode eq 'B2' ? 'licence-card--active' : ''}">
-                                            <div class="licence-card__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect>
-                                                    <circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="2"></circle>
-                                                    <circle cx="18" cy="12" r="2.5" stroke="currentColor" stroke-width="2"></circle>
-                                                    <path d="M10 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                                                </svg>
-                                            </div>
-                                            <span class="licence-card__code">Hạng B2</span>
-                                            <span class="licence-card__name">Ô tô số sàn kinh doanh</span>
-                                            <span class="licence-card__fee">1.200.000 đ</span>
-                                        </div>
-                                    </a>
+                                    <p style="color:#64748b;margin:0;">Không có hạng GPLX khả dụng trong hệ thống.</p>
                                 </c:if>
 
                             </div>
@@ -233,8 +183,7 @@
                     </section>
 
                     <%-- Section 2: Select Exam Session --%>
-                    <section class="p-form-card" aria-label="Chọn đợt thi">
-                        <div class="p-form-header">
+                    <section class="p-form-card" id="register-exam-session" aria-label="Chọn đợt thi">                        <div class="p-form-header">
                             <h2 class="p-form-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
@@ -243,15 +192,23 @@
                                 2. Lịch thi khả dụng
                             </h2>
                         </div>
+                        <jsp:include page="/views/registrant/partials/session-list-filter-form.jsp"/>
                         <div class="p-form-body p-form-body--compact">
                             <div class="session-selector-list">
                                 
                                 <c:if test="${not empty examSessionsList}">
                                     <%-- Dynamic sessions loop from database --%>
                                     <c:forEach var="session" items="${examSessionsList}">
-                                        <a href="?licenceSelect=${selectedClassCode}&sessionSelect=${session.id}" class="licence-card-link">
-                                            <div class="session-card ${selectedSessionCode eq session.id ? 'session-card--active' : ''}">
-                                                <div class="session-card__title-wrap">
+                                        <c:url var="sessionPickUrl" value="/registrant/register-exam">
+                                            <c:param name="licenceSelect" value="${selectedClassCode}"/>
+                                            <c:param name="sessionSelect" value="${session.id}"/>
+                                            <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if>
+                                            <c:if test="${locationFilter ne 'all'}"><c:param name="location" value="${locationFilter}"/></c:if>
+                                            <c:if test="${not empty fromDate}"><c:param name="fromDate" value="${fromDate}"/></c:if>
+                                            <c:if test="${not empty toDate}"><c:param name="toDate" value="${toDate}"/></c:if>
+                                        </c:url>
+                                        <a href="${sessionPickUrl}#register-exam-summary" class="licence-card-link">
+                                            <div class="session-card ${sessionChosen and selectedSessionCode eq session.id ? 'session-card--active' : ''}">                                                <div class="session-card__title-wrap">
                                                     <span class="session-card__title">${session.examName}</span>
                                                     <span class="session-card__subtitle">Mã: ${session.examCode} — Hạng ${session.licenceClass}</span>
                                                 </div>
@@ -279,62 +236,14 @@
                                 </c:if>
                                 
                                 <c:if test="${empty examSessionsList}">
-                                    <%-- Fallback standard rows for standalone preview --%>
-                                    <%-- Session 1 --%>
-                                    <a href="?licenceSelect=${selectedClassCode}&sessionSelect=SH-2025-06-B2" class="licence-card-link">
-                                        <div class="session-card ${selectedSessionCode eq 'SH-2025-06-B2' ? 'session-card--active' : ''}">
-                                            <div class="session-card__title-wrap">
-                                                <span class="session-card__title">Đợt thi tháng 06/2025</span>
-                                                <span class="session-card__subtitle">Mã: SH-2025-06-B2 — Hạng B2</span>
-                                            </div>
-                                            <div class="session-card__info-item session-card__hide-sm">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
-                                                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                                                </svg>
-                                                <span>15/06/2025</span>
-                                            </div>
-                                            <div class="session-card__info-item session-card__hide-md">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
-                                                    <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"></circle>
-                                                </svg>
-                                                <span>Sân sát hạch HN</span>
-                                            </div>
-                                            <div class="session-card__info-item">
-                                                <span class="r-stat-card__badge r-stat-card__badge--success">Còn 12 chỗ</span>
-                                            </div>
-                                            <div class="session-card__radio-indicator"></div>
-                                        </div>
-                                    </a>
-
-                                    <%-- Session 2 --%>
-                                    <a href="?licenceSelect=${selectedClassCode}&sessionSelect=SH-2025-07-B2" class="licence-card-link">
-                                        <div class="session-card ${selectedSessionCode eq 'SH-2025-07-B2' ? 'session-card--active' : ''}">
-                                            <div class="session-card__title-wrap">
-                                                <span class="session-card__title">Đợt thi tháng 07/2025</span>
-                                                <span class="session-card__subtitle">Mã: SH-2025-07-B2 — Hạng B2</span>
-                                            </div>
-                                            <div class="session-card__info-item session-card__hide-sm">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
-                                                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                                                </svg>
-                                                <span>13/07/2025</span>
-                                            </div>
-                                            <div class="session-card__info-item session-card__hide-md">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
-                                                    <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"></circle>
-                                                </svg>
-                                                <span>Sân sát hạch HN</span>
-                                            </div>
-                                            <div class="session-card__info-item">
-                                                <span class="r-stat-card__badge r-stat-card__badge--info">Còn 56 chỗ</span>
-                                            </div>
-                                            <div class="session-card__radio-indicator"></div>
-                                        </div>
-                                    </a>
+                                    <p style="color:#64748b;margin:0;">
+                                        <c:choose>
+                                            <c:when test="${searchActive}">Không có đợt thi phù hợp với bộ lọc.</c:when>
+                                            <c:otherwise>
+                                                Không có đợt thi mở cho hạng ${not empty selectedClassCode ? selectedClassCode : 'đã chọn'}.
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </p>
                                 </c:if>
 
                             </div>
@@ -343,85 +252,104 @@
 
                 </div>
 
-                <%-- Right Column: Fee Breakdown & Payment Summary Card --%>
-                <div class="dashboard-sidebar-column">
-                    
+                <%-- Right Column: Registration Summary + POST xác nhận --%>
+                <div class="dashboard-sidebar-column" id="register-exam-summary">
+
+                    <form action="${ctx}/registrant/register-exam" method="post" id="registrationForm" class="register-exam-confirm-form">
+                        <input type="hidden" name="licenceSelect" value="${selectedClassCode}">
+                        <input type="hidden" name="sessionSelect" value="${selectedSessionCode}">
+                        <input type="hidden" name="confirmRegistration" value="1">
+                        <c:if test="${not empty searchQuery}"><input type="hidden" name="q" value="${searchQuery}"></c:if>
+                        <c:if test="${locationFilter ne 'all'}"><input type="hidden" name="location" value="${locationFilter}"></c:if>
+                        <c:if test="${not empty fromDate}"><input type="hidden" name="fromDate" value="${fromDate}"></c:if>
+                        <c:if test="${not empty toDate}"><input type="hidden" name="toDate" value="${toDate}"></c:if>
+
                     <div class="payment-summary-card">
-                        <h3 class="payment-summary-title">Tóm tắt chi phí</h3>
+                        <h3 class="payment-summary-title">Tóm tắt đăng ký</h3>
                         
                         <div class="payment-summary-list">
                             <div class="payment-summary-item">
-                                <span>${feeSathachName}</span>
-                                <span>${feeSathachValue}</span>
+                                <span>Hạng đăng ký</span>
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${not empty selectedLicence}">Hạng ${selectedLicence.code}</c:when>
+                                        <c:otherwise>—</c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
                             <div class="payment-summary-item">
-                                <span>Phí cấp bằng PET</span>
-                                <span>135,000đ</span>
+                                <span>Đợt thi</span>
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${sessionChosen and not empty selectedSession}">${selectedSession.examName}</c:when>
+                                        <c:otherwise>Chưa chọn — bấm một ca thi bên trái</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+                            <c:if test="${sessionChosen and not empty selectedSession}">
+                            <div class="payment-summary-item">
+                                <span>Ngày thi</span>
+                                <span><fmt:formatDate value="${selectedSession.examDate}" pattern="dd/MM/yyyy"/></span>
                             </div>
                             <div class="payment-summary-item">
-                                <span>Phí quản lý hồ sơ</span>
-                                <span>50,000đ</span>
+                                <span>Địa điểm</span>
+                                <span>${selectedSession.location}</span>
                             </div>
-                            
+                            </c:if>
+                            <div class="payment-summary-item">
+                                <span>Số báo danh (SBD)</span>
+                                <span class="register-exam-sbd-pending">${sbdPendingDisplay}</span>
+                            </div>
+                            <c:if test="${not empty selectedLicence}">
                             <div class="payment-summary-item payment-summary-item--total">
-                                <span>Tổng cộng</span>
-                                <span class="payment-summary-value--total">${feeTotal}</span>
+                                <span>Lệ phí tham khảo</span>
+                                <span class="payment-summary-value--total">
+                                    <fmt:formatNumber value="${selectedLicence.examFee}" type="number"/> đ
+                                </span>
                             </div>
+                            </c:if>
                         </div>
 
-                        <%-- Payment Methods --%>
-                        <div class="payment-method-section">
-                            <span class="payment-method-header">Phương thức thanh toán</span>
-                            <div class="payment-methods-grid">
-                                
-                                <%-- Option 1: QR Code (Checked by Default) --%>
-                                <label>
-                                    <input type="radio" name="paymentMethodSelect" class="pm-radio" value="QR" checked>
-                                    <div class="pm-card">
-                                        <span class="pm-card__icon">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect>
-                                                <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect>
-                                                <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"></rect>
-                                                <path d="M14 14h3v3h-3zm3 3h4v4h-4zm-3 4h3v-2h-3zm5-4h2v-3h-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
-                                            </svg>
-                                        </span>
-                                        <span class="pm-card__label">Mã QR<br>(MoMo/VNPAY)</span>
-                                    </div>
-                                </label>
-
-                                <%-- Option 2: Bank Transfer --%>
-                                <label>
-                                    <input type="radio" name="paymentMethodSelect" class="pm-radio" value="BANK">
-                                    <div class="pm-card">
-                                        <span class="pm-card__icon">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M3 21h18M3 10h18M5 10v7M10 10v7M14 10v7M19 10v7M2 10l10-7 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            </svg>
-                                        </span>
-                                        <span class="pm-card__label">Chuyển khoản<br>Ngân hàng</span>
-                                    </div>
-                                </label>
-
-                            </div>
+                        <div class="payment-footer-text register-exam-sbd-hint" style="margin-top:12px;">
+                            Số báo danh (SBD) được cấp sau khi bạn xác nhận đăng ký đợt thi.
+                            Ban sát hạch sẽ cập nhật SBD chính thức khi nhập danh sách thí sinh — bạn có thể theo dõi tại
+                            <a href="${pageContext.request.contextPath}/registrant/my-exams" class="profile-checklist-link">Lịch thi &amp; kết quả</a>.
                         </div>
 
-                        <%-- Action Button --%>
-                        <button type="submit" class="payment-submit-btn" id="btn-submit-registration">
-                            Đăng ký ngay
+                        <div class="payment-footer-text register-exam-date-hint" style="margin-top:12px;">
+                            Khi đăng ký chỉ xác định <strong>ngày thi</strong>. Giờ ca thi do Ban sát hạch mở và bố trí vào đúng ngày thi.
+                        </div>
+
+                        <div class="payment-footer-text" style="margin-top:12px;">
+                            Lệ phí thi sát hạch sẽ thu tại trung tâm khi làm bài thực hành.
+                        </div>
+
+                        <div class="payment-footer-text" style="margin-top:12px;">
+                            Mỗi hạng GPLX chỉ được một đăng ký đang xử lý cho từng phần thi (Lý thuyết, Sa hình, …).
+                            Chỉ đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.
+                        </div>
+
+                        <c:if test="${not empty registrationConflictMessage}">
+                        <div class="p-alert-banner" role="alert" style="margin-top:12px;background:#fff7ed;border-color:#fdba74;color:#9a3412;padding:0.75rem 1rem;border-radius:8px;font-size:0.875rem;">
+                            <c:out value="${registrationConflictMessage}"/>
+                        </div>
+                        </c:if>
+
+                        <button type="submit" class="payment-submit-btn" id="btn-submit-registration"
+                                ${not sessionChosen or not canRegisterExam or empty canConfirmRegistration or not canConfirmRegistration ? 'disabled' : ''}>
+                            Xác nhận đăng ký
                         </button>
 
-                        <%-- Footer Notice --%>
                         <div class="payment-footer-text">
-                            Bằng cách nhấn nút, bạn đồng ý với Điều khoản của Lái Vui.
+                            Bằng cách nhấn nút, bạn xác nhận thông tin đăng ký dự thi là chính xác.
                         </div>
                     </div>
+
+                    </form>
 
                 </div>
 
             </div>
-        </form>
-
     </main>
 
     <%-- Footer --%>
