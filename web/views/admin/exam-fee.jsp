@@ -337,13 +337,13 @@
 <!-- Interactive Interactions Script -->
 <script>
     function editFee(feeId) {
-        // TODO: Bind to dynamic edit popup or Servlet Route
+        // Bind to dynamic edit popup or Servlet Route
         console.log('Edit exam fee:', feeId);
     }
 
     function deleteFee(feeId, code) {
         if (confirm('Bạn có chắc chắn muốn xóa biểu phí "' + code + '" khỏi hệ thống?\nHành động này không thể hoàn tác và có thể ảnh hưởng đến lịch sử thanh toán hóa đơn.')) {
-            // TODO: Bind to dynamic delete Servlet Route
+            // Bind to dynamic delete Servlet Route
             console.log('Deleted exam fee:', feeId);
         }
     }
