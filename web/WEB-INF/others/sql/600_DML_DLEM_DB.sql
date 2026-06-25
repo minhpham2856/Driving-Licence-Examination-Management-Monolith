@@ -720,7 +720,7 @@ SELECT tp.TheoryPaperId,
            ELSE q.CorrectAnswer
        END
 FROM TheoryPaper tp
-JOIN Exam_Candidate ec ON tp.ExamCandidateId = ec.ExamCandidateId
+JOIN ExamEnrollment ec ON tp.ExamEnrollmentId = ec.ExamEnrollmentId
 JOIN Candidate c ON ec.CandidateId = c.CandidateId
 JOIN Question q ON q.QuestionNumber BETWEEN 1 AND 35
 WHERE c.CandidateNumber = N'046';

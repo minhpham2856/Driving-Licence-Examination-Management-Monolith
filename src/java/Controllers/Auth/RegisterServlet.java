@@ -1,5 +1,6 @@
-package Controllers.Auth.Public;
+package Controllers.Auth;
 
+import DTOs.RegisterResultDTO;
 import Services.AuthService;
 import Services.Impl.AuthServiceImpl;
 import jakarta.servlet.ServletException;
@@ -18,7 +19,7 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/landing/register.jsp").forward(request, response);
     }
 
     @Override
@@ -50,9 +51,8 @@ public class RegisterServlet extends HttpServlet {
         }
 
         boolean gender = "1".equals(genderParam);
-     
-        // attempt to register
-        String registerError = authService.register(
+
+        RegisterResultDTO result = authService.register(
                 govIdNo.trim(),
                 fullName.trim(),
                 phoneNo.trim(),
@@ -62,15 +62,25 @@ public class RegisterServlet extends HttpServlet {
                 gender
         );
 
-        if (registerError != null) {
-            request.setAttribute("error", registerError);
+        // case 1: registration failed
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getErrorMessage());
             forwardRegister(request, response);
-        } else {
-            HttpSession session = request.getSession();
-            session.setAttribute("successMessage",
-                    "Đăng ký thành công! Truy cập email của bạn để xác minh đăng ký.");
-            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
+
+        // case 2: registration succeeded
+        HttpSession session = request.getSession();
+        if (result.isEmailSent()) {
+            session.setAttribute("successMessage",
+                    "Đăng ký thành công! Kiểm tra email để lấy tên đăng nhập và mật khẩu.");
+        } else {
+            session.setAttribute("successMessage",
+                    "Đăng ký thành công! Không gửi được email - vui lòng lưu thông tin đăng nhập bên dưới.");
+            session.setAttribute("registrationUsername", result.getUsername());
+            session.setAttribute("registrationPassword", result.getPassword());
+        }
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 
     private boolean isBlank(String value) {
@@ -79,6 +89,6 @@ public class RegisterServlet extends HttpServlet {
 
     private void forwardRegister(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/public/register.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/landinglanding/register.jsp").forward(request, response);
     }
 }

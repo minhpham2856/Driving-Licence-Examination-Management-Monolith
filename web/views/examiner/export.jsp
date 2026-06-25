@@ -1,181 +1,183 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
+<!--variables-->
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="headerTitle" value="Xuất dữ liệu" />
+<c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
+<c:set var="exportMinutesUrl" value="${ctx}/examiner/export/minutes" />
+<c:set var="exportViolationsUrl" value="${ctx}/examiner/export/violations" />
+<c:set var="exportAuditUrl" value="${ctx}/examiner/export/audit" />
+<c:set var="exportCandidatesXmlUrl" value="${ctx}/examiner/export/candidates/xml" />
+<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
+<c:set var="exportMinutesXmlUrl" value="${ctx}/examiner/export/minutes/xml" />
+<c:set var="exportViolationsXmlUrl" value="${ctx}/examiner/export/violations/xml" />
+<c:set var="exportAuditXmlUrl" value="${ctx}/examiner/export/audit/xml" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
+
+<!--page-->
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xuất file - Lái Vui</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar examiner-portal">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SÁT HẠCH</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
+            <jsp:param name="pageCss" value="export.css" />
+        </jsp:include>
+    </head>
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
-    <jsp:param name="activeSidebar" value="xuat-file" />
-</jsp:include>
+        <!--sidebar-->
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
+            <jsp:param name="activeSidebar" value="export" />
+        </jsp:include>
 
-<div class="examiner-shell">
-    <jsp:include page="/views/layout/header-examiner.jsp" />
+        <!--shell-->
+        <div class="examiner-shell">
 
-    <main class="examiner-main examiner-main--scroll">
+            <!--header-->
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
-        <%-- Header Section --%>
-        <div class="export-header">
-            <h2 class="export-header__title">Xuất dữ liệu hệ thống</h2>
-            <p class="export-header__desc">
-                Lựa chọn định dạng phù hợp để tải xuống các báo cáo, biên bản và nhật ký hệ thống<br>
-                phục vụ cho công tác lưu trữ và kiểm tra.
-            </p>
+            <!--main content-->
+            <main class="examiner-main examiner-main--scroll">
+                
+                <!--export list-->
+                <div class="export-card">
+                    <jsp:include page="/views/examiner/components/export-row.jsp" />
+
+                    <div class="export-row">
+                        <div class="export-row__left">
+                            <div class="export-row__icon export-row__icon--blue">
+                                <span class="material-symbols-outlined">group</span>
+                            </div>
+                            <div class="export-row__info">
+                                <p class="export-row__title">Danh sách thí sinh</p>
+                            </div>
+                        </div>
+                        <div class="export-row__actions">
+                            <a href="${exportCandidatesUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportCandidatesXmlUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">XML</span>
+                            </a>
+                            <a href="${exportDocxUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="export-row">
+                        <div class="export-row__left">
+                            <div class="export-row__icon export-row__icon--blue">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <div class="export-row__info">
+                                <p class="export-row__title">Kết quả thi</p>
+                            </div>
+                        </div>
+                        <div class="export-row__actions">
+                            <a href="${exportResultsUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportResultsXmlUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">XML</span>
+                            </a>
+                            <a href="${exportDocxUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="export-row">
+                        <div class="export-row__left">
+                            <div class="export-row__icon export-row__icon--blue">
+                                <span class="material-symbols-outlined">description</span>
+                            </div>
+                            <div class="export-row__info">
+                                <p class="export-row__title">Biên bản thi</p>
+                            </div>
+                        </div>
+                        <div class="export-row__actions">
+                            <a href="${exportMinutesUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportMinutesXmlUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">XML</span>
+                            </a>
+                            <a href="${exportDocxUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="export-row">
+                        <div class="export-row__left">
+                            <div class="export-row__icon export-row__icon--red">
+                                <span class="material-symbols-outlined">warning</span>
+                            </div>
+                            <div class="export-row__info">
+                                <p class="export-row__title">Biên bản vi phạm</p>
+                            </div>
+                        </div>
+                        <div class="export-row__actions">
+                            <a href="${exportViolationsUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportViolationsXmlUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">XML</span>
+                            </a>
+                            <a href="${exportDocxUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="export-row export-row--last">
+                        <div class="export-row__left">
+                            <div class="export-row__icon export-row__icon--blue">
+                                <span class="material-symbols-outlined">list_alt</span>
+                            </div>
+                            <div class="export-row__info">
+                                <p class="export-row__title">Nhật ký</p>
+                            </div>
+                        </div>
+                        <div class="export-row__actions">
+                            <a href="${exportAuditUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportAuditXmlUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">XML</span>
+                            </a>
+                            <a href="${exportDocxUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
 
-        <%-- Content Card --%>
-        <div class="export-card">
-
-            <%-- Row 1: Danh sách thí sinh --%>
-            <div class="export-row">
-                <div class="export-row__left">
-                    <div class="export-row__icon export-row__icon--blue">
-                        <span class="material-symbols-outlined">group</span>
-                    </div>
-                    <div class="export-row__info">
-                        <p class="export-row__title">Danh sách thí sinh</p>
-                        <p class="export-row__desc">Danh sách tổng hợp toàn bộ thí sinh tham gia đợt sát hạch.</p>
-                    </div>
-                </div>
-                <div class="export-row__actions">
-                    <a href="${pageContext.request.contextPath}/examiner/export/candidates" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">excel</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">XML</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">docx</span>
-                    </a>
-                </div>
-            </div>
-
-            <%-- Row 2: Kết quả thi --%>
-            <div class="export-row">
-                <div class="export-row__left">
-                    <div class="export-row__icon export-row__icon--blue">
-                        <span class="material-symbols-outlined">assignment</span>
-                    </div>
-                    <div class="export-row__info">
-                        <p class="export-row__title">Kết quả thi</p>
-                        <p class="export-row__desc">Bảng điểm chi tiết từng phần thi của các thí sinh.</p>
-                    </div>
-                </div>
-                <div class="export-row__actions">
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">excel</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">XML</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">docx</span>
-                    </a>
-                </div>
-            </div>
-
-            <%-- Row 3: Biên bản thi --%>
-            <div class="export-row">
-                <div class="export-row__left">
-                    <div class="export-row__icon export-row__icon--blue">
-                        <span class="material-symbols-outlined">description</span>
-                    </div>
-                    <div class="export-row__info">
-                        <p class="export-row__title">Biên bản thi</p>
-                        <p class="export-row__desc">Biên bản chính thức xác nhận quá trình tổ chức sát hạch.</p>
-                    </div>
-                </div>
-                <div class="export-row__actions">
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">excel</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">XML</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">docx</span>
-                    </a>
-                </div>
-            </div>
-
-            <%-- Row 4: Biên bản vi phạm --%>
-            <div class="export-row">
-                <div class="export-row__left">
-                    <div class="export-row__icon export-row__icon--red">
-                        <span class="material-symbols-outlined">warning</span>
-                    </div>
-                    <div class="export-row__info">
-                        <p class="export-row__title">Biên bản vi phạm</p>
-                        <p class="export-row__desc">Ghi nhận các trường hợp thí sinh vi phạm quy chế phòng thi.</p>
-                    </div>
-                </div>
-                <div class="export-row__actions">
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">excel</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">XML</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">docx</span>
-                    </a>
-                </div>
-            </div>
-
-            <%-- Row 5: Nhật ký --%>
-            <div class="export-row export-row--last">
-                <div class="export-row__left">
-                    <div class="export-row__icon export-row__icon--gray">
-                        <span class="material-symbols-outlined">list_alt</span>
-                    </div>
-                    <div class="export-row__info">
-                        <p class="export-row__title">Nhật ký</p>
-                        <p class="export-row__desc">Log hoạt động của hệ thống, tác động của giám thị và máy trạm.</p>
-                    </div>
-                </div>
-                <div class="export-row__actions">
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">excel</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">XML</span>
-                    </a>
-                    <a href="#" class="export-btn">
-                        <span class="material-symbols-outlined">download</span>
-                        <span class="export-btn__text">docx</span>
-                    </a>
-                </div>
-            </div>
-
-        </div>
-
-    </main>
-</div>
-
-</body>
+    </body>
 </html>

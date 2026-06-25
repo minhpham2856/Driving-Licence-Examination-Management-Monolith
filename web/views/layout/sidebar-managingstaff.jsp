@@ -8,23 +8,23 @@
 <c:set var="activeSidebar" value="${param.activeSidebar}" />
 <c:if test="${empty activeSidebar}">
     <c:choose>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard') or fn:contains(pageContext.request.requestURI, 'tong-quan')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
             <c:set var="activeSidebar" value="dashboard" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'users') or fn:contains(pageContext.request.requestURI, 'hoc-vien') or fn:contains(pageContext.request.requestURI, 'user-detail')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'users') or fn:contains(pageContext.request.requestURI, 'user-detail')}">
             <c:set var="activeSidebar" value="hoc-vien" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'approve') or fn:contains(pageContext.request.requestURI, 'duyet-ho-so')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'approve')}">
             <c:set var="activeSidebar" value="duyet-ho-so" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user') or fn:contains(pageContext.request.requestURI, 'tao-tai-khoan')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user')}">
             <c:set var="activeSidebar" value="tao-tai-khoan" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'report') or fn:contains(pageContext.request.requestURI, 'bao-cao')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'report')}">
             <c:set var="activeSidebar" value="bao-cao" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit') or fn:contains(pageContext.request.requestURI, 'nhat-ky')}">
-            <c:set var="activeSidebar" value="nhat-ky" />
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit')}">
+            <c:set var="activeSidebar" value="audit" />
         </c:when>
         <c:otherwise>
             <c:set var="activeSidebar" value="dashboard" />
@@ -93,7 +93,7 @@
         </a>
 
         <%-- SC-034: Tạo tài khoản mới cho học viên --%>
-        <a href="${ctx}/views/staff/managingstaff/create-user.jsp"
+        <a href="${ctx}/manager/create-user"
            class="side-nav-bar__link${activeSidebar eq 'tao-tai-khoan' ? ' is-active' : ''}"
            data-node-id="manager:40"
            <c:if test="${activeSidebar eq 'tao-tai-khoan'}">aria-current="page"</c:if>>
@@ -123,9 +123,9 @@
 
         <%-- SC-036: Nhật ký thao tác --%>
         <a href="${ctx}/views/staff/managingstaff/audit.jsp"
-           class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
+           class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}"
            data-node-id="manager:60"
-           <c:if test="${activeSidebar eq 'nhat-ky'}">aria-current="page"</c:if>>
+           <c:if test="${activeSidebar eq 'audit'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--sm" aria-hidden="true">
                 <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 1L2 3.5V9.5C2 13.64 4.69 17.44 8 18.5C11.31 17.44 14 13.64 14 9.5V3.5L8 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>

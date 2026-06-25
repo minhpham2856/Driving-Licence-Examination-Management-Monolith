@@ -1,16 +1,15 @@
 package Services;
 
+import DTOs.RegisterResultDTO;
 import Models.User;
 
 public interface AuthService {
 
     /**
-     * Registers new registrant
-     *
-     * @return null if successful, else returns error msg
+     * Registers new registrant.
      */
-    String register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
-                    String address, String email, boolean gender);
+    RegisterResultDTO register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
+            String address, String email, boolean gender);
 
     /**
      * Validates credentials
