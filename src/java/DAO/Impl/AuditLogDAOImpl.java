@@ -399,6 +399,165 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return log;
     }
 
+    private static final String PROFILE_AUDIT_WHERE = """
+            WHERE (
+                (a.EntityName IN (N'Profile', N'Document', N'ExamRegistration', N'Hồ sơ', N'Tài liệu hồ sơ')
+                 AND TRY_CAST(a.EntityId AS INT) = ?)
+                OR EXISTS (
+                    SELECT 1 FROM Candidate c
+                    INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                    WHERE er.ProfileId = ?
+                      AND TRY_CAST(a.EntityId AS INT) = c.CandidateId
+                )
+            )
+            """;
+
+    @Override
+    public List<AuditLog> getLogsByProfileId(int profileId, int limit) {
+        return getLogsByProfileIdFiltered(profileId, 1, limit, null, null, null, null);
+    }
+
+    @Override
+    public List<AuditLog> getLogsByProfileIdFiltered(int profileId, int page, int pageSize,
+            String searchQuery, String actionFilter, String fromDate, String toDate) {
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.max(1, Math.min(pageSize, 100));
+        int offset = (safePage - 1) * safeSize;
+        String filterClause = buildProfileFilterClause(searchQuery, actionFilter, fromDate, toDate);
+        String sql = AUDIT_SELECT + PROFILE_AUDIT_WHERE + filterClause
+                + " ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        List<AuditLog> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            bindProfileFilterParams(ps, profileId, searchQuery, actionFilter, fromDate, toDate, offset, safeSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToAuditLog(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public List<String> listDistinctActionsByProfileId(int profileId) {
+        String sql = """
+                SELECT DISTINCT UPPER(a.Action) AS Action
+                FROM Audit a
+                LEFT JOIN [User] u ON u.UserId = a.UserId
+                LEFT JOIN Profile p ON p.UserId = u.UserId
+                """ + PROFILE_AUDIT_WHERE + """
+                 AND a.Action IS NOT NULL AND LTRIM(RTRIM(a.Action)) <> ''
+                 ORDER BY UPPER(a.Action)
+                """;
+        List<String> actions = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            ps.setInt(2, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String action = rs.getString("Action");
+                    if (action != null && !action.isBlank()) {
+                        actions.add(action.trim().toUpperCase());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return actions;
+    }
+
+    @Override
+    public int getLogsCountByProfileIdFiltered(int profileId, String searchQuery,
+            String actionFilter, String fromDate, String toDate) {
+        String filterClause = buildProfileFilterClause(searchQuery, actionFilter, fromDate, toDate);
+        String sql = """
+                SELECT COUNT(*) FROM Audit a
+                LEFT JOIN [User] u ON u.UserId = a.UserId
+                LEFT JOIN Profile p ON p.UserId = u.UserId
+                """ + PROFILE_AUDIT_WHERE + filterClause;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            bindProfileFilterCountParams(ps, profileId, searchQuery, actionFilter, fromDate, toDate);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private static String buildProfileFilterClause(String searchQuery, String actionFilter,
+            String fromDate, String toDate) {
+        StringBuilder sb = new StringBuilder();
+        if (actionFilter != null && !actionFilter.isBlank() && !"all".equalsIgnoreCase(actionFilter.trim())) {
+            sb.append(" AND UPPER(a.Action) = ? ");
+        }
+        if (fromDate != null && !fromDate.isBlank()) {
+            sb.append(" AND CAST(a.CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.isBlank()) {
+            sb.append(" AND CAST(a.CreatedAt AS DATE) <= ? ");
+        }
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            sb.append("""
+                     AND (
+                        a.Action LIKE ?
+                        OR a.EntityName LIKE ?
+                        OR a.NewValue LIKE ?
+                        OR a.OldValue LIKE ?
+                        OR a.Reason LIKE ?
+                        OR a.Details LIKE ?
+                        OR ISNULL(u.Username, p.FullName) LIKE ?
+                     )
+                    """);
+        }
+        return sb.toString();
+    }
+
+    private static void bindProfileFilterParams(PreparedStatement ps, int profileId,
+            String searchQuery, String actionFilter, String fromDate, String toDate,
+            int offset, int pageSize) throws SQLException {
+        int idx = 1;
+        ps.setInt(idx++, profileId);
+        ps.setInt(idx++, profileId);
+        idx = bindProfileFilterValues(ps, idx, searchQuery, actionFilter, fromDate, toDate);
+        ps.setInt(idx++, offset);
+        ps.setInt(idx, pageSize);
+    }
+
+    private static void bindProfileFilterCountParams(PreparedStatement ps, int profileId,
+            String searchQuery, String actionFilter, String fromDate, String toDate) throws SQLException {
+        ps.setInt(1, profileId);
+        ps.setInt(2, profileId);
+        bindProfileFilterValues(ps, 3, searchQuery, actionFilter, fromDate, toDate);
+    }
+
+    private static int bindProfileFilterValues(PreparedStatement ps, int startIdx,
+            String searchQuery, String actionFilter, String fromDate, String toDate) throws SQLException {
+        int idx = startIdx;
+        if (actionFilter != null && !actionFilter.isBlank() && !"all".equalsIgnoreCase(actionFilter.trim())) {
+            ps.setString(idx++, actionFilter.trim().toUpperCase());
+        }
+        if (fromDate != null && !fromDate.isBlank()) {
+            ps.setString(idx++, fromDate.trim());
+        }
+        if (toDate != null && !toDate.isBlank()) {
+            ps.setString(idx++, toDate.trim());
+        }
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            String pattern = "%" + searchQuery.trim() + "%";
+            for (int i = 0; i < 7; i++) {
+                ps.setString(idx++, pattern);
+            }
+        }
+        return idx;
+    }
+
     @FunctionalInterface
     private interface SqlBinder {
         void bind(PreparedStatement ps) throws SQLException;

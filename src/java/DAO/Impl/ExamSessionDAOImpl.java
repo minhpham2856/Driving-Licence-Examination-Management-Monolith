@@ -2,6 +2,7 @@ package DAO.Impl;
 
 import DBConnection.DBContext;
 import DAO.ExamSessionDAO;
+import Constants.ExamSessionStatus;
 import Models.ExamSession;
 import java.sql.*;
 import java.util.ArrayList;
@@ -123,6 +124,35 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, sessionId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean openSession(int sessionId) {
+        if (sessionId <= 0) {
+            return false;
+        }
+        String sql = """
+                UPDATE [Session]
+                SET [Status] = ?,
+                    EndTime = CASE
+                        WHEN DATEDIFF(MINUTE, StartTime, EndTime) > 0
+                        THEN DATEADD(MINUTE, DATEDIFF(MINUTE, StartTime, EndTime), GETDATE())
+                        ELSE DATEADD(HOUR, 2, GETDATE())
+                    END,
+                    StartTime = GETDATE()
+                WHERE SessionId = ?
+                  AND [Status] IN (?, ?)
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, ExamSessionStatus.IN_PROGRESS);
+            ps.setInt(2, sessionId);
+            ps.setString(3, ExamSessionStatus.SCHEDULED);
+            ps.setString(4, ExamSessionStatus.OPEN);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

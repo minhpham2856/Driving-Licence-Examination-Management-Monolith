@@ -13,6 +13,7 @@ public final class Db2CandidateSql {
               c.CandidateId AS id,
               ec.SessionId AS examSessionId,
               er.ProfileId AS personId,
+              c.CandidateNumber AS candidateNumber,
               TRY_CAST(SUBSTRING(c.CandidateNumber, CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT) AS candidateNo,
               CASE WHEN er.RegistrationStatus = 'WalkIn' THEN 'WalkIn' ELSE 'PreRegistered' END AS registrationType,
               CAST(CASE WHEN pay.PaymentId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS isPaymentCompleted,

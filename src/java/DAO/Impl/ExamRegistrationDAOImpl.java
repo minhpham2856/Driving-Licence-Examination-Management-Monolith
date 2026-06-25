@@ -2,15 +2,28 @@ package DAO.Impl;
 
 import Constants.CandidateSectionStatus;
 import Constants.Db2Mappings;
+import Constants.ExamRegistrationLifecycleStatus;
 import DBConnection.DBContext;
 import DAO.Db2CandidateSql;
 import DAO.ExamRegistrationDAO;
 import Models.ExamRegistration;
+import Models.RegistrantSectionRegistrationBlock;
+import Models.SessionExamSectionInfo;
+import Models.SessionScheduleInfo;
+import Utils.RegistrantExamResultEmailNotifier;
+import Utils.RegistrantExamSupport;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrationDAO {
+
+    private String lastInsertError;
+
+    @Override
+    public String getLastInsertError() {
+        return lastInsertError;
+    }
 
     @Override
     public ExamRegistration getById(int id) {
@@ -416,50 +429,53 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     @Override
+    public boolean updateCandidateNumber(int id, String candidateNumber) {
+        if (candidateNumber == null || candidateNumber.isBlank()) {
+            return false;
+        }
+        String sql = "UPDATE Candidate SET CandidateNumber = ? WHERE CandidateId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, candidateNumber.trim());
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean insert(ExamRegistration reg) {
+        lastInsertError = null;
         try {
             getConnection().setAutoCommit(false);
             SessionContext ctx = loadSessionContext(reg.getExamSessionId());
             if (ctx == null) {
+                lastInsertError = "Không tìm thấy ca thi hoặc đợt thi đã đóng.";
                 getConnection().rollback();
                 return false;
             }
             int applicationId = findOrCreateApplication(reg, ctx.licenceId);
             if (applicationId <= 0) {
+                lastInsertError = "Không thể tạo hồ sơ đăng ký ca thi.";
                 getConnection().rollback();
                 return false;
             }
             int userId = findUserIdByProfile(reg.getPersonId());
             if (userId <= 0) {
+                lastInsertError = "Không tìm thấy tài khoản liên kết hồ sơ.";
                 getConnection().rollback();
                 return false;
             }
-            PersonSnapshot snap = loadProfileSnapshot(reg.getPersonId());
-            String candidateNumber = Db2Mappings.buildCandidateNumber(ctx.licenseCode, reg.getCandidateNo());
-            String sqlCand = """
-                    INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
-                        GovernmentIdNumber, Address, UserId, ExamRegistrationId)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """;
-            int candidateId;
-            try (PreparedStatement ps = getConnection().prepareStatement(sqlCand, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, candidateNumber);
-                ps.setString(2, snap.fullName);
-                ps.setTimestamp(3, snap.dob);
-                ps.setString(4, snap.phone);
-                ps.setString(5, snap.sex);
-                ps.setString(6, snap.govId);
-                ps.setString(7, snap.address);
-                ps.setInt(8, userId);
-                ps.setInt(9, applicationId);
-                ps.executeUpdate();
-                try (ResultSet gk = ps.getGeneratedKeys()) {
-                    if (!gk.next()) {
-                        getConnection().rollback();
-                        return false;
-                    }
-                    candidateId = gk.getInt(1);
-                }
+            int candidateId = resolveOrCreateCandidate(reg, ctx, applicationId, userId);
+            if (candidateId <= 0) {
+                getConnection().rollback();
+                return false;
+            }
+            if (Db2Mappings.isPendingCandidateNumber(reg.getCandidateNumber())
+                    || reg.getCandidateNumber() == null
+                    || reg.getCandidateNumber().isBlank()) {
+                ensurePendingCandidateNumber(candidateId, reg.getPersonId(), reg.getExamSessionId());
             }
             String sqlEc = "INSERT INTO Exam_Candidate (ExamId, CandidateId, SessionId) VALUES (?, ?, ?)";
             try (PreparedStatement ps = getConnection().prepareStatement(sqlEc)) {
@@ -479,6 +495,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 getConnection().rollback();
             } catch (SQLException ignored) {
             }
+            lastInsertError = mapInsertSqlError(e);
             e.printStackTrace();
         } finally {
             try {
@@ -487,6 +504,123 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             }
         }
         return false;
+    }
+
+    private int resolveOrCreateCandidate(ExamRegistration reg, SessionContext ctx,
+            int applicationId, int userId) throws SQLException {
+        Integer existingId = findCandidateIdByProfile(reg.getPersonId());
+        if (existingId != null && existingId > 0) {
+            linkCandidateToApplication(existingId, applicationId);
+            return existingId;
+        }
+        PersonSnapshot snap = loadProfileSnapshot(reg.getPersonId());
+        String candidateNumber = resolveCandidateNumber(reg, ctx.licenseCode);
+        String sqlCand = """
+                INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
+                    GovernmentIdNumber, Address, UserId, ExamRegistrationId)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sqlCand, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, candidateNumber);
+            ps.setString(2, snap.fullName);
+            ps.setTimestamp(3, snap.dob);
+            ps.setString(4, snap.phone);
+            ps.setString(5, snap.sex);
+            ps.setString(6, snap.govId);
+            ps.setString(7, snap.address);
+            ps.setInt(8, userId);
+            ps.setInt(9, applicationId);
+            ps.executeUpdate();
+            try (ResultSet gk = ps.getGeneratedKeys()) {
+                if (gk.next()) {
+                    return gk.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            if (isDuplicateKey(e)) {
+                Integer byGovId = findCandidateIdByGovernmentId(snap.govId);
+                if (byGovId != null && byGovId > 0) {
+                    linkCandidateToApplication(byGovId, applicationId);
+                    return byGovId;
+                }
+            }
+            throw e;
+        }
+        lastInsertError = "Không thể tạo bản ghi thí sinh.";
+        return -1;
+    }
+
+    private void ensurePendingCandidateNumber(int candidateId, int profileId, int sessionId)
+            throws SQLException {
+        String pending = Db2Mappings.buildPendingCandidateNumber(profileId, sessionId);
+        updateCandidateNumber(candidateId, pending);
+    }
+
+    private Integer findCandidateIdByProfile(int profileId) throws SQLException {
+        String sql = """
+                SELECT TOP 1 c.CandidateId
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                WHERE er.ProfileId = ?
+                ORDER BY c.CandidateId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("CandidateId");
+                }
+            }
+        }
+        return null;
+    }
+
+    private Integer findCandidateIdByGovernmentId(String govId) throws SQLException {
+        if (govId == null || govId.isBlank()) {
+            return null;
+        }
+        String sql = "SELECT TOP 1 CandidateId FROM Candidate WHERE GovernmentIdNumber = ? ORDER BY CandidateId DESC";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, govId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("CandidateId");
+                }
+            }
+        }
+        return null;
+    }
+
+    private void linkCandidateToApplication(int candidateId, int applicationId) throws SQLException {
+        String sql = "UPDATE Candidate SET ExamRegistrationId = ? WHERE CandidateId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, applicationId);
+            ps.setInt(2, candidateId);
+            ps.executeUpdate();
+        }
+    }
+
+    private static boolean isDuplicateKey(SQLException e) {
+        int code = e.getErrorCode();
+        if (code == 2627 || code == 2601) {
+            return true;
+        }
+        String msg = e.getMessage();
+        return msg != null && (msg.contains("UNIQUE") || msg.contains("duplicate"));
+    }
+
+    private static String mapInsertSqlError(SQLException e) {
+        String msg = e.getMessage();
+        if (msg == null) {
+            return null;
+        }
+        if (msg.contains("GovernmentIdNumber") || msg.contains("CandidateNumber")) {
+            return "Thông tin thí sinh đã tồn tại trong hệ thống. Nếu bạn đã đăng ký trước đó, hãy kiểm tra mục Lịch thi & kết quả.";
+        }
+        if (msg.contains("Exam_Candidate")) {
+            return "Bạn đã đăng ký đợt thi này rồi.";
+        }
+        return null;
     }
 
     @Override
@@ -692,6 +826,241 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    @Override
+    public SessionExamSectionInfo findPrimarySectionForSession(int sessionId) {
+        if (sessionId <= 0) {
+            return null;
+        }
+        String sql = """
+                SELECT TOP 1 ses.ExamSectionId, es.SectionName
+                FROM Session_ExamSection ses
+                INNER JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
+                WHERE ses.SessionId = ?
+                ORDER BY ses.ExamSectionId
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new SessionExamSectionInfo(rs.getInt("ExamSectionId"), rs.getString("SectionName"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public RegistrantSectionRegistrationBlock findActiveSectionRegistration(int profileId, int licenceId, int sectionId) {
+        if (profileId <= 0 || licenceId <= 0 || sectionId <= 0) {
+            return null;
+        }
+        String sql = """
+                SELECT TOP 1 c.CandidateId, er.RegistrationStatus, es.SectionName, s.SessionName
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Session_ExamSection ses ON ses.SessionId = s.SessionId
+                INNER JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
+                WHERE er.ProfileId = ?
+                  AND e.LicenceId = ?
+                  AND ses.ExamSectionId = ?
+                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected',
+                      N'RegistrationRejected', N'Cancelled')
+                ORDER BY c.CandidateId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            ps.setInt(2, licenceId);
+            ps.setInt(3, sectionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    RegistrantSectionRegistrationBlock block = new RegistrantSectionRegistrationBlock();
+                    block.setCandidateId(rs.getInt("CandidateId"));
+                    block.setRegistrationStatus(rs.getString("RegistrationStatus"));
+                    block.setSectionName(rs.getString("SectionName"));
+                    block.setSessionName(rs.getString("SessionName"));
+                    return block;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public SessionScheduleInfo findSessionSchedule(int sessionId) {
+        if (sessionId <= 0) {
+            return null;
+        }
+        String sql = """
+                SELECT s.SessionId, s.SessionName, CAST(e.ExamDate AS DATE) AS examDate, e.LicenceId, l.LicenceClass
+                FROM [Session] s
+                INNER JOIN Exam e ON e.ExamId = s.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                WHERE s.SessionId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapSessionSchedule(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public List<SessionScheduleInfo> listActiveSessionSchedulesByProfileId(int profileId) {
+        if (profileId <= 0) {
+            return List.of();
+        }
+        String sql = """
+                SELECT ec.SessionId, s.SessionName, CAST(e.ExamDate AS DATE) AS examDate, e.LicenceId, l.LicenceClass
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                WHERE er.ProfileId = ?
+                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected',
+                      N'RegistrationRejected', N'Cancelled')
+                ORDER BY e.ExamDate ASC
+                """;
+        List<SessionScheduleInfo> rows = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(mapSessionSchedule(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rows;
+    }
+
+    private static SessionScheduleInfo mapSessionSchedule(ResultSet rs) throws SQLException {
+        SessionScheduleInfo info = new SessionScheduleInfo();
+        info.setSessionId(rs.getInt("SessionId"));
+        info.setLicenceId(rs.getInt("LicenceId"));
+        info.setUiLicenceCode(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        info.setSessionName(rs.getString("SessionName"));
+        Date examDate = rs.getDate("examDate");
+        if (examDate == null) {
+            Timestamp ts = rs.getTimestamp("examDate");
+            if (ts != null) {
+                examDate = new Date(ts.getTime());
+            }
+        }
+        info.setExamDate(examDate);
+        return info;
+    }
+
+    @Override
+    public boolean candidateBelongsToProfile(int candidateId, int profileId) {
+        if (candidateId <= 0 || profileId <= 0) {
+            return false;
+        }
+        String sql = """
+                SELECT TOP 1 1
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                WHERE c.CandidateId = ? AND er.ProfileId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean requestExamCancellation(int candidateId, int profileId, String reason) {
+        if (candidateId <= 0 || profileId <= 0 || !candidateBelongsToProfile(candidateId, profileId)) {
+            return false;
+        }
+        String sql = """
+                SELECT c.CandidateNumber, er.RegistrationStatus, er.ExamRegistrationId, s.SessionName
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                WHERE c.CandidateId = ? AND er.ProfileId = ?
+                """;
+        try {
+            getConnection().setAutoCommit(false);
+            String candidateNumber = null;
+            String currentStatus = null;
+            int examRegistrationId = -1;
+            try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+                ps.setInt(1, candidateId);
+                ps.setInt(2, profileId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        getConnection().rollback();
+                        return false;
+                    }
+                    candidateNumber = rs.getString("CandidateNumber");
+                    currentStatus = rs.getString("RegistrationStatus");
+                    examRegistrationId = rs.getInt("ExamRegistrationId");
+                }
+            }
+            if (!ExamRegistrationLifecycleStatus.canRequestCancellation(currentStatus,
+                    Db2Mappings.isPendingCandidateNumber(candidateNumber))) {
+                getConnection().rollback();
+                return false;
+            }
+            String note = buildCancellationNote(reason);
+            try (PreparedStatement upd = getConnection().prepareStatement(
+                    "UPDATE ExamRegistration SET RegistrationStatus = ?, Notes = ? WHERE ExamRegistrationId = ?")) {
+                upd.setString(1, ExamRegistrationLifecycleStatus.CANCEL_REQUESTED);
+                upd.setString(2, note);
+                upd.setInt(3, examRegistrationId);
+                if (upd.executeUpdate() <= 0) {
+                    getConnection().rollback();
+                    return false;
+                }
+            }
+            getConnection().commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                getConnection().rollback();
+            } catch (SQLException ignored) {
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                getConnection().setAutoCommit(true);
+            } catch (SQLException ignored) {
+            }
+        }
+        return false;
+    }
+
+    private static String buildCancellationNote(String reason) {
+        String trimmed = reason != null ? reason.trim() : "";
+        if (trimmed.isEmpty()) {
+            return "Thí sinh gửi yêu cầu hủy đăng ký ca thi.";
+        }
+        return "Thí sinh gửi yêu cầu hủy đăng ký ca thi. Lý do: " + trimmed;
+    }
+
     private boolean updateApplicationNotes(int candidateId, String notes) {
         String sql = """
                 UPDATE ExamRegistration SET Notes = ?                WHERE ExamRegistrationId = (SELECT ExamRegistrationId FROM Candidate WHERE CandidateId = ?)
@@ -815,7 +1184,24 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 ps.executeUpdate();
             }
         }
+        Integer candidateId = resolveCandidateIdByExamCandidateId(examCandidateId);
+        if (candidateId != null) {
+            RegistrantExamResultEmailNotifier.trySendAfterScoreSaved(candidateId);
+        }
         return true;
+    }
+
+    private Integer resolveCandidateIdByExamCandidateId(int examCandidateId) throws SQLException {
+        String sql = "SELECT CandidateId FROM Exam_Candidate WHERE ExamCandidateId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examCandidateId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("CandidateId");
+                }
+            }
+        }
+        return null;
     }
 
     private Integer findTheorySectionIdByCandidate(int candidateId) throws SQLException {
@@ -976,32 +1362,51 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private int findOrCreateApplication(ExamRegistration reg, int licenceId) throws SQLException {
-        String check = "SELECT ExamRegistrationId FROM ExamRegistration WHERE ProfileId = ? AND LicenceId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(check)) {
-            ps.setInt(1, reg.getPersonId());
+        /*
+         * Không ghi đè hàng workflow tài liệu (Draft/Pending/Approved/Rejected).
+         * Chỉ tái sử dụng hàng ca thi (PreRegistered, CheckedIn, …) hoặc INSERT mới.
+         */
+        int existingLifecycleId = findExistingExamLifecycleRow(reg.getPersonId(), licenceId);
+        if (existingLifecycleId > 0) {
+            updateExamLifecycleRow(existingLifecycleId, reg);
+            return existingLifecycleId;
+        }
+        return insertExamLifecycleRow(reg, licenceId);
+    }
+
+    private int findExistingExamLifecycleRow(int profileId, int licenceId) throws SQLException {
+        String sql = """
+                SELECT TOP 1 ExamRegistrationId
+                FROM ExamRegistration
+                WHERE ProfileId = ? AND LicenceId = ?
+                  AND RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                ORDER BY ExamRegistrationId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
             ps.setInt(2, licenceId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    int appId = rs.getInt("ExamRegistrationId");
-                    String status = "WalkIn".equals(reg.getRegistrationType()) ? "WalkIn" : "PreRegistered";
-                    if (reg.isPresent()) {
-                        status = "CheckedIn";
-                    }
-                    try (PreparedStatement upd = getConnection().prepareStatement(
-                            "UPDATE ExamRegistration SET RegistrationStatus = ?, Notes = ? WHERE ExamRegistrationId = ?")) {
-                        upd.setString(1, status);
-                        upd.setString(2, reg.getNotes());
-                        upd.setInt(3, appId);
-                        upd.executeUpdate();
-                    }
-                    return appId;
+                    return rs.getInt("ExamRegistrationId");
                 }
             }
         }
-        String status = "WalkIn".equals(reg.getRegistrationType()) ? "WalkIn" : "PreRegistered";
-        if (reg.isPresent()) {
-            status = "CheckedIn";
+        return -1;
+    }
+
+    private void updateExamLifecycleRow(int examRegistrationId, ExamRegistration reg) throws SQLException {
+        String status = resolveExamLifecycleStatus(reg);
+        try (PreparedStatement upd = getConnection().prepareStatement(
+                "UPDATE ExamRegistration SET RegistrationStatus = ?, Notes = ? WHERE ExamRegistrationId = ?")) {
+            upd.setString(1, status);
+            upd.setString(2, reg.getNotes());
+            upd.setInt(3, examRegistrationId);
+            upd.executeUpdate();
         }
+    }
+
+    private int insertExamLifecycleRow(ExamRegistration reg, int licenceId) throws SQLException {
+        String status = resolveExamLifecycleStatus(reg);
         String ins = """
                 INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
                 VALUES (?, ?, ?, ?)
@@ -1019,6 +1424,16 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             }
         }
         return -1;
+    }
+
+    private static String resolveExamLifecycleStatus(ExamRegistration reg) {
+        if (reg.isPresent()) {
+            return "CheckedIn";
+        }
+        if ("WalkIn".equals(reg.getRegistrationType())) {
+            return "WalkIn";
+        }
+        return "PreRegistered";
     }
 
     private int findUserIdByProfile(int profileId) throws SQLException {
@@ -1057,6 +1472,16 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         throw new SQLException("Profile not found: " + profileId);
     }
 
+    private String resolveCandidateNumber(ExamRegistration reg, String licenseCode) {
+        if (reg.getCandidateNumber() != null && !reg.getCandidateNumber().isBlank()) {
+            return reg.getCandidateNumber().trim();
+        }
+        if (reg.getCandidateNo() > 0) {
+            return Db2Mappings.buildCandidateNumber(licenseCode, reg.getCandidateNo());
+        }
+        return Db2Mappings.buildPendingCandidateNumber(reg.getPersonId(), reg.getExamSessionId());
+    }
+
     private SessionContext loadSessionContext(int sessionId) throws SQLException {
         String sql = """
                 SELECT s.ExamId, e.LicenceId, l.LicenceClass AS licenseCode
@@ -1086,6 +1511,10 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         er.setExamSessionId(rs.getInt("examSessionId"));
         er.setPersonId(rs.getInt("personId"));
         er.setCandidateNo(rs.getInt("candidateNo"));
+        try {
+            er.setCandidateNumber(rs.getString("candidateNumber"));
+        } catch (SQLException ignored) {
+        }
         er.setRegistrationType(rs.getString("registrationType"));
         er.setIsPaymentCompleted(rs.getBoolean("isPaymentCompleted"));
         er.setIsPresent(rs.getBoolean("isPresent"));

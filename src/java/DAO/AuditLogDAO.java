@@ -32,4 +32,16 @@ public interface AuditLogDAO {
     int getLogsCountForSession(int sessionId, String searchQuery);
 
     List<AuditLog> getViolationLogsForSession(int sessionId, int limit);
+
+    /** Nhật ký liên quan hồ sơ thí sinh (theo ProfileId), mới nhất trước. */
+    List<AuditLog> getLogsByProfileId(int profileId, int limit);
+
+    List<AuditLog> getLogsByProfileIdFiltered(int profileId, int page, int pageSize,
+            String searchQuery, String actionFilter, String fromDate, String toDate);
+
+    int getLogsCountByProfileIdFiltered(int profileId, String searchQuery,
+            String actionFilter, String fromDate, String toDate);
+
+    /** Các giá trị Action (UPPER) có trong nhật ký hồ sơ — dùng dựng dropdown lọc. */
+    List<String> listDistinctActionsByProfileId(int profileId);
 }

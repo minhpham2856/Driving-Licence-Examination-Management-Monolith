@@ -1,6 +1,9 @@
 package DAO;
 
 import Models.ExamRegistration;
+import Models.RegistrantSectionRegistrationBlock;
+import Models.SessionExamSectionInfo;
+import Models.SessionScheduleInfo;
 import java.util.List;
 
 public interface ExamRegistrationDAO {
@@ -23,11 +26,27 @@ public interface ExamRegistrationDAO {
     boolean updateExaminerProfile(int id, String fullName, java.sql.Date dob, String govIdNo,
             String email, String phoneNo, String address, String sex, String reasonForTaking);
     boolean updatePhoto(int id, String photoUrl);
+    boolean updateCandidateNumber(int id, String candidateNumber);
     boolean insert(ExamRegistration reg);
+
+    /** Thông báo lỗi chi tiết từ lần {@link #insert} gần nhất (null nếu thành công hoặc chưa gọi). */
+    String getLastInsertError();
     List<ExamRegistration> getAllCandidates();
     boolean markAbsent(int candidateId);
     boolean clearAbsentMarking(int candidateId);
     Integer findCandidateIdByProfileAndSession(int profileId, int sessionId);
+
+    SessionExamSectionInfo findPrimarySectionForSession(int sessionId);
+
+    RegistrantSectionRegistrationBlock findActiveSectionRegistration(int profileId, int licenceId, int sectionId);
+
+    SessionScheduleInfo findSessionSchedule(int sessionId);
+
+    List<SessionScheduleInfo> listActiveSessionSchedulesByProfileId(int profileId);
+
+    boolean requestExamCancellation(int candidateId, int profileId, String reason);
+
+    boolean candidateBelongsToProfile(int candidateId, int profileId);
 
     /** Applies score deductions for a candidate section and recalculates ExamScore. */
     boolean applyScoreDeductions(int candidateId, int[] deductionIds, String sectionKeyword);
