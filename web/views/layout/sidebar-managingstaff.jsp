@@ -79,7 +79,7 @@
         </a>
 
         <%-- SC-033: Duyệt / Từ chối hồ sơ, giấy tờ --%>
-        <a href="${ctx}/views/staff/managingstaff/approve.jsp"
+        <a href="${ctx}/manager/approve"
            class="side-nav-bar__link${activeSidebar eq 'duyet-ho-so' ? ' is-active' : ''}"
            data-node-id="manager:30"
            <c:if test="${activeSidebar eq 'duyet-ho-so'}">aria-current="page"</c:if>>

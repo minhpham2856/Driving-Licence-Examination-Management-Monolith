@@ -31,6 +31,24 @@
             <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Duyệt hồ sơ giấy tờ</span>
         </nav>
+
+        <c:if test="${not empty error}">
+            <section class="p-alert-banner" aria-label="Thông báo lỗi" style="margin-bottom: 1rem;">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Không thể xử lý</span>
+                    <span>${error}</span>
+                </div>
+            </section>
+        </c:if>
+
+        <c:if test="${param.success eq '1'}">
+            <section class="p-alert-banner" aria-label="Thông báo thành công" style="margin-bottom: 1rem;">
+                <div class="p-alert-banner__content">
+                    <span class="p-alert-banner__title">Đã cập nhật quyết định duyệt</span>
+                    <span>Trạng thái hồ sơ tài liệu đã được lưu.</span>
+                </div>
+            </section>
+        </c:if>
         
         <c:choose>
             <c:when test="${not empty param.id}">
@@ -44,7 +62,7 @@
                     </div>
                     
                     <div class="page-actions">
-                        <a href="approve.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
+                        <a href="${pageContext.request.contextPath}/manager/approve" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -102,25 +120,64 @@
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                                <div>
-                                    <span class="quick-info-label" style="display: block; margin-bottom: 6px;">1. Ảnh thẻ chân dung 3x4:</span>
-                                    <div class="face-photo-placeholder" style="width: 100px; height: 133px; border-style: solid; border-color: #cbd5e1; background-color: #f8fafc; color: #64748b; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                                        <img src="${pageContext.request.contextPath}/assets/imgs/avatar-placeholder.svg" alt="Ảnh chân dung" style="width: 40px; height: 40px; opacity: 0.4;">
-                                    </div>
-                                </div>
+                                <c:forTokens var="docType" items="Portrait,IdFront,IdBack,HealthCertificate" delims=",">
+                                    <c:set var="doc" value="${user.documentsByType[docType]}" />
+                                    <c:if test="${not empty doc.documentUrl}">
+                                        <div>
+                                            <span class="quick-info-label" style="display: block; margin-bottom: 6px;">
+                                                <c:choose>
+                                                    <c:when test="${docType eq 'Portrait'}">1. Ảnh thẻ chân dung 3x4</c:when>
+                                                    <c:when test="${docType eq 'IdFront'}">2. CCCD / CMND (Mặt trước)</c:when>
+                                                    <c:when test="${docType eq 'IdBack'}">3. CCCD / CMND (Mặt sau)</c:when>
+                                                    <c:otherwise>4. Giấy khám sức khỏe lái xe</c:otherwise>
+                                                </c:choose>
+                                                — <span class="r-stat-card__badge r-stat-card__badge--${doc.statusClass}" style="display:inline-flex;">${doc.statusLabel}</span>
+                                                <c:if test="${not empty doc.fileSizeLabel}"> · ${doc.fileSizeLabel}</c:if>
+                                            </span>
+                                            <c:choose>
+                                                <c:when test="${fn:contains(fn:toLowerCase(doc.documentUrl), '.pdf')}">
+                                                    <a href="${doc.documentUrl}" target="_blank" rel="noopener" class="profile-checklist-link">Mở tệp PDF</a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="${doc.documentUrl}" target="_blank" rel="noopener">
+                                                        <img src="${doc.documentUrl}" alt="Tài liệu ${docType}" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid #e2e8f0;">
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <c:if test="${not empty doc.notes}">
+                                                <p style="margin:0.5rem 0 0;font-size:0.85rem;color:#64748b;"><strong>Ghi chú:</strong> ${fn:substringBefore(doc.notes, ' · ')}</p>
+                                            </c:if>
+                                        </div>
+                                    </c:if>
+                                </c:forTokens>
 
-                                <div>
-                                    <span class="quick-info-label" style="display: block; margin-bottom: 6px;">2. Căn cước công dân (Mặt trước):</span>
-                                    <div class="face-photo-placeholder" style="width: 100%; aspect-ratio: 1.6; border-style: solid; border-color: #cbd5e1; background-color: #f8fafc; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #0052cc; font-weight: 700; gap: 8px;">
-                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                                            <circle cx="8" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M14 9h4M14 12h4M14 15h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                        [ẢNH CCCD MẶT TRƯỚC HỌC VIÊN]
-                                        <span style="font-size: 0.72rem; color: #64748b; font-weight: 400;">Bấm để xem ảnh phóng to</span>
-                                    </div>
-                                </div>
+                                <c:forEach var="other" items="${user.otherDocuments}" varStatus="st">
+                                    <c:if test="${not empty other.documentUrl}">
+                                        <div>
+                                            <span class="quick-info-label" style="display: block; margin-bottom: 6px;">
+                                                5.${st.index + 1} Hồ sơ khác
+                                                — <span class="r-stat-card__badge r-stat-card__badge--${other.statusClass}" style="display:inline-flex;">${other.statusLabel}</span>
+                                                <c:if test="${not empty other.fileSizeLabel}"> · ${other.fileSizeLabel}</c:if>
+                                            </span>
+                                            <c:choose>
+                                                <c:when test="${fn:contains(fn:toLowerCase(other.documentUrl), '.pdf')}">
+                                                    <a href="${other.documentUrl}" target="_blank" rel="noopener" class="profile-checklist-link">Mở tệp PDF</a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="${other.documentUrl}" target="_blank" rel="noopener">
+                                                        <img src="${other.documentUrl}" alt="Hồ sơ khác" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid #e2e8f0;">
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <c:if test="${not empty other.notes}">
+                                                <p style="margin:0.5rem 0 0;font-size:0.85rem;color:#64748b;"><strong>Ghi chú:</strong> ${fn:substringBefore(other.notes, ' · ')}</p>
+                                            </c:if>
+                                        </div>
+                                    </c:if>
+                                </c:forEach>
+                                <c:if test="${empty user.documentsByType}">
+                                    <p style="color:#64748b;margin:0;">Chưa có tài liệu đính kèm.</p>
+                                </c:if>
                             </div>
                         </div>
 
@@ -160,7 +217,7 @@
 
                                 <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
                                     <button type="submit" class="btn-filter" style="width: 100%; height: 42px; border-radius: 8px; background-color: #0052cc; border-color: #0052cc; justify-content: center; font-weight: 700;">Xác nhận quyết định</button>
-                                    <a href="approve.jsp" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff;">Hủy bỏ</a>
+                                    <a href="${pageContext.request.contextPath}/manager/approve" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff;">Hủy bỏ</a>
                                 </div>
                             </form>
                         </div>
@@ -177,7 +234,7 @@
                             <p style="font-size: 0.85rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
                                 Vui lòng quay trở lại danh sách hồ sơ chờ duyệt và chọn học viên khác.
                             </p>
-                            <a href="approve.jsp" class="btn-export" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; padding: 0 1.5rem; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff; margin-top: 1.5rem;">Quay lại danh sách</a>
+                            <a href="${pageContext.request.contextPath}/manager/approve" class="btn-export" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; padding: 0 1.5rem; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff; margin-top: 1.5rem;">Quay lại danh sách</a>
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -239,7 +296,7 @@
                                                     <span class="action-badge action-badge--warning">Chờ duyệt</span>
                                                 </td>
                                                 <td style="text-align: center;">
-                                                    <a href="approve.jsp?id=${user.id}" class="btn-filter" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; background-color: #d97706; border-color: #d97706;">Xem & Duyệt</a>
+                                                    <a href="${pageContext.request.contextPath}/manager/approve?id=${user.id}" class="btn-filter" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; background-color: #d97706; border-color: #d97706;">Xem &amp; Duyệt</a>
                                                 </td>
                                             </tr>
                                         </c:forEach>

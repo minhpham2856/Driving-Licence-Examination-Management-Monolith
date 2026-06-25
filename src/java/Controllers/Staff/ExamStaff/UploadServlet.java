@@ -124,6 +124,9 @@ public class UploadServlet extends HttpServlet {
                             reg.setIsPresent(true);
                             regDAO.updatePresent(regId, true);
                             regDAO.updatePhoto(regId, null);
+                            if (reg.getCandidateNumber() != null && !reg.getCandidateNumber().isBlank()) {
+                                regDAO.updateCandidateNumber(regId, reg.getCandidateNumber());
+                            }
                             importedCount++;
                         } else {
                             reg.setPersonId(profile.getId());
@@ -217,8 +220,6 @@ public class UploadServlet extends HttpServlet {
 
                 String line;
                 boolean isHeader = true;
-                int a1Count = 24;
-                int b2Count = 145;
                 boolean hasInvalidRows = false;
 
                 while ((line = reader.readLine()) != null) {
@@ -228,6 +229,7 @@ public class UploadServlet extends HttpServlet {
                         throw new Exception("Structure mismatch. The imported file must contain exactly 7 columns (SBD, Họ tên, Ngày sinh, CCCD, Hạng GPLX, SĐT, Email).");
                     if (isHeader) { isHeader = false; continue; }
 
+                    String sbdRaw        = parts[0].trim();
                     String fullName    = parts[1].trim();
                     String dobStr      = parts[2].trim();
                     String cccd        = parts[3].trim();
@@ -245,17 +247,21 @@ public class UploadServlet extends HttpServlet {
                     reg.setIsPaymentCompleted(false);
                     reg.setIsPresent(true);
 
-                    // Validate required fields (including Phone and Email per user request)
-                    if (fullName.isEmpty() || cccd.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+                    // Validate required fields (including SBD, Phone and Email per user request)
+                    if (sbdRaw.isEmpty() || fullName.isEmpty() || cccd.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                         reg.setInvalid(true);
                         hasInvalidRows = true;
                         java.util.List<String> missing = new java.util.ArrayList<>();
+                        if (sbdRaw.isEmpty())   missing.add("SBD");
                         if (fullName.isEmpty()) missing.add("Họ tên");
                         if (cccd.isEmpty())     missing.add("CCCD");
                         if (phone.isEmpty())    missing.add("SĐT");
                         if (email.isEmpty())    missing.add("Email");
                         reg.setValidationMessage("Thiếu " + String.join(" & ", missing));
                     }
+
+                    reg.setCandidateNumber(sbdRaw);
+                    reg.setCandidateNo(Db2Mappings.parseCandidateNo(sbdRaw));
 
                     // Parse DOB
                     try {
@@ -269,13 +275,6 @@ public class UploadServlet extends HttpServlet {
                         reg.setDateOfBirth(sqlDob);
                     } catch (Exception e) {
                         reg.setDateOfBirth(Date.valueOf("2000-01-01"));
-                    }
-
-                    // Auto-generate SBD
-                    if ("A1".equalsIgnoreCase(licenseCode)) {
-                        reg.setCandidateNo(a1Count++);
-                    } else {
-                        reg.setCandidateNo(b2Count++);
                     }
 
                     // Duplicate check (only if CCCD is valid)

@@ -40,7 +40,7 @@ public class ExamSessionControlService {
                     + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu ca.");
         }
 
-        if (!sessionDAO.updateStatus(sessionId, ExamSessionStatus.IN_PROGRESS)) {
+        if (!sessionDAO.openSession(sessionId)) {
             return StartResult.fail("Không cập nhật được trạng thái ca thi trên cơ sở dữ liệu.");
         }
 
@@ -115,7 +115,8 @@ public class ExamSessionControlService {
         public static StartResult ok(String sessionName, int examinerCount) {
             return new StartResult(true,
                     "Đã bắt đầu ca thi \"" + sessionName + "\". "
-                            + examinerCount + " giám khảo có thể đăng nhập.",
+                            + examinerCount + " giám khảo có thể đăng nhập. "
+                            + "Giờ ca thi đã được cập nhật cho thí sinh.",
                     sessionName, examinerCount);
         }
 
