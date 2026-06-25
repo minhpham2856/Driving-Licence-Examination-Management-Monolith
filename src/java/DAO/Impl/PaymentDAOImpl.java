@@ -45,6 +45,32 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
+    @Override
+    public double sumCompletedPaymentsByUserId(int userId) {
+        /*
+         * Gộp tổng tiền qua chuỗi Candidate -> Payment vì bảng Payment
+         * chỉ liên kết CandidateId, không trực tiếp ProfileId.
+         */
+        String sql = """
+                SELECT ISNULL(SUM(p.TotalAmount), 0) AS totalPaid
+                FROM Payment p
+                INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
+                WHERE c.UserId = ?
+                  AND p.PaymentStatus IN (N'Completed', N'Paid')
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("totalPaid");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     private int resolveExamId(int candidateId) throws SQLException {
         String sql = "SELECT TOP 1 ExamId FROM Exam_Candidate WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

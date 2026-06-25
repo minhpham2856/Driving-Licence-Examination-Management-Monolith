@@ -15,4 +15,7 @@ public interface UserDAO {
     boolean insert(User user);
 
     boolean updatePassword(int userId, String passwordHash);
+
+    /** Vô hiệu hoá tài khoản (Status = 0). */
+    boolean deactivate(int userId);
 }

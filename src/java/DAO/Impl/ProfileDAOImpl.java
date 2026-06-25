@@ -160,6 +160,26 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return false;
     }
 
+    @Override
+    public Profile getByUserId(int userId) {
+        String sql = PROFILE_SELECT + " where UserId = ?";
+
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSet(rs);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to load profile for user {0}: {1}",
+                    new Object[] { userId, e.getMessage() });
+        }
+
+        return null;
+    }
+
     private Profile mapResultSet(ResultSet rs) throws SQLException {
         Profile profile = new Profile();
         profile.setId(rs.getInt("ProfileId"));

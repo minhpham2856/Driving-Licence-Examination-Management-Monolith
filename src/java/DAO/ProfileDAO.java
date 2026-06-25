@@ -13,4 +13,7 @@ public interface ProfileDAO {
     boolean insert(Profile profile);
 
     boolean update(Profile profile);
+
+    /** Lấy hồ sơ cá nhân theo UserId của tài khoản đăng nhập. */
+    Profile getByUserId(int userId);
 }

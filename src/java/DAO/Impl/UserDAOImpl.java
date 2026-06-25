@@ -181,6 +181,25 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
+    @Override
+    public boolean deactivate(int userId) {
+        String sql = """
+                     update [User]
+                     set [Status] = 0
+                     where UserId = ?
+                     """;
+
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to deactivate user {0}: {1}",
+                    new Object[] { userId, e.getMessage() });
+        }
+
+        return false;
+    }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
 
