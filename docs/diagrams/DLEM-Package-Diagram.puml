@@ -1,0 +1,98 @@
+@startuml DLEM_Package_Diagram_Layers
+' DLEM — Layer Package Diagram (monochrome)
+' https://www.plantuml.com/plantuml
+
+!theme plain
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam packageStyle rectangle
+skinparam ArrowColor #333333
+skinparam ArrowFontSize 11
+skinparam defaultFontSize 12
+skinparam packageFontSize 14
+skinparam packageFontStyle bold
+skinparam Padding 16
+skinparam nodesep 60
+skinparam ranksep 50
+skinparam linetype ortho
+
+top to bottom direction
+
+title DLEM Monolith — Package Diagram
+
+skinparam package {
+  BackgroundColor transparent
+  BorderColor #333333
+  FontColor #000000
+}
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #333333
+  FontStyle bold
+  FontColor #000000
+}
+
+skinparam cloud {
+  BackgroundColor transparent
+  BorderColor #333333
+}
+
+skinparam database {
+  BackgroundColor transparent
+  BorderColor #333333
+}
+
+rectangle "DLEM Monolith" {
+
+  package "filter" as F
+  package "controller" as C
+  package "service" as S
+  package "views" as V
+  package "dao" as D
+  package "dto" as DTO
+  package "enums" as E
+  package "util" as U
+  package "model" as M
+  package "dbconnection" as DB
+
+}
+
+cloud "Cloudinary" as CL
+cloud "SePay" as SP
+database "SQL Server" as SQL
+
+' layout helpers
+F -[hidden]down-> C
+C -[hidden]down-> S
+D -[hidden]down-> DB
+DB -[hidden]down-> SQL
+V -[hidden]left- C
+DTO -[hidden]right- M
+CL -[hidden]right- SP
+
+' pipeline
+F --> C : <<use>>
+C --> S : <<use>>
+C ..> V : forward JSP
+
+S --> D : <<use>>
+S --> DTO : <<use>>
+S --> E : <<use>>
+S --> U : <<use>>
+S --> M : <<use>>
+
+D --> DB : <<access>>
+D --> M : map
+DTO --> M : map
+DB --> SQL : JDBC
+
+S ..> CL : HTTPS
+S ..> SP : HTTPS
+SP ..> C : IPN
+
+legend bottom
+  Pipeline: filter → controller → service → dao → dbconnection → SQL Server
+endlegend
+
+@enduml
