@@ -77,7 +77,7 @@
                         </svg>
                     </div>
                     <span class="tracking-node__title">Đăng ký thành công</span>
-                    <span class="tracking-node__desc">09:45 — 20/05/2025</span>
+                    <span class="tracking-node__desc">09:45 - 20/05/2025</span>
                 </div>
 
                 <%-- Step 2: Xác minh tài liệu --%>
@@ -88,7 +88,7 @@
                         </svg>
                     </div>
                     <span class="tracking-node__title">Xác minh định danh</span>
-                    <span class="tracking-node__desc">14:30 — 21/05/2025</span>
+                    <span class="tracking-node__desc">14:30 - 21/05/2025</span>
                 </div>
 
                 <%-- Step 3: Duyệt hồ sơ gốc --%>

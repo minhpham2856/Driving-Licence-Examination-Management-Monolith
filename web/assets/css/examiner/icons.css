@@ -1,0 +1,143 @@
+/* ========================================================
+   Google Material Symbols - replaces inline SVG icons.
+   Glyphs inherit `color` (like currentColor) and are sized
+   with `font-size`, so each context just sets a size below.
+   ======================================================== */
+.examiner-portal .material-symbols-outlined,
+.side-nav-bar--examiner .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    line-height: 1;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    user-select: none;
+    font-size: 20px;
+}
+
+/* Sidebar nav icons: uniform 24px box, 22px glyph */
+.side-nav-bar--examiner .side-nav-bar__icon {
+    width: 24px;
+    height: 24px;
+}
+.side-nav-bar--examiner .side-nav-bar__icon .material-symbols-outlined {
+    font-size: 22px;
+}
+
+/* ========================================================
+   Utility / Shared helpers used across staff JSPs
+   ======================================================== */
+.d-flex          { display: flex; }
+.d-flex-col      { display: flex; flex-direction: column; }
+.d-flex-center   { display: flex; align-items: center; justify-content: center; }
+.d-flex-between  { display: flex; justify-content: space-between; align-items: center; }
+.d-inline-flex   { display: inline-flex; align-items: center; }
+.flex-wrap       { flex-wrap: wrap; }
+.flex-grow       { flex-grow: 1; }
+.gap-2           { gap: 0.5rem; }
+.gap-4           { gap: 1rem; }
+.gap-6           { gap: 1.5rem; }
+.w-full          { width: 100%; }
+.text-center     { text-align: center; }
+.text-right      { text-align: right; }
+.font-mono       { font-family: monospace; }
+.font-bold       { font-weight: 700; }
+.font-black      { font-weight: 800; }
+.text-xs         { font-size: 0.72rem; }
+.text-sm         { font-size: 0.82rem; }
+.text-muted      { color: #94a3b8; }
+.text-dark       { color: #0f172a; }
+.text-slate      { color: #475569; }
+.text-brand      { color: #0052cc; }
+.text-success    { color: #10b981; }
+.text-danger     { color: #ef4444; }
+.text-upper      { text-transform: uppercase; letter-spacing: 0.05em; }
+.overflow-y-auto { overflow-y: auto; }
+.mt-0            { margin-top: 0; }
+.mb-0            { margin-bottom: 0; }
+.mt-4            { margin-top: 1rem; }
+.mt-6            { margin-top: 1.5rem; }
+.mb-4            { margin-bottom: 1rem; }
+.mb-6            { margin-bottom: 1.5rem; }
+
+/* ── Alert boxes ──────────────────────────────────────────────── */
+.alert-box {
+    border-radius: 12px;
+    padding: 0.88rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.alert-box--error   { background-color: #fef2f2; border: 1px solid #fecaca; }
+.alert-box--error .alert-box__text   { font-size: 0.88rem; font-weight: 700; color: #991b1b; }
+.alert-box--success { background-color: #ecfdf5; border: 1px solid #10b981; }
+.alert-box--success .alert-box__text { font-size: 0.88rem; font-weight: 700; color: #065f46; }
+.alert-box--warning { background-color: #fffbeb; border: 1px solid #f59e0b; }
+.alert-box--warning .alert-box__text { font-size: 0.88rem; font-weight: 700; color: #b45309; }
+.alert-box__icon { flex-shrink: 0; }
+
+/* Toolbar / action buttons */
+.examiner-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Search field leading icon (absolutely positioned) */
+.examiner-search__icon.material-symbols-outlined {
+    width: auto;
+    height: auto;
+    font-size: 18px;
+}
+
+/* Detail/section heading icons */
+.exr-section-title .material-symbols-outlined,
+.examiner-detail-section__icon.material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Export page: round icon tiles (color per variant) + download buttons */
+.export-row__icon .material-symbols-outlined {
+    font-size: 22px;
+}
+.export-row__icon--blue .material-symbols-outlined {
+    color: #3a56d4;
+}
+.export-row__icon--red .material-symbols-outlined {
+    color: #ba1a1a;
+}
+.export-row__icon--gray .material-symbols-outlined {
+    color: #5f6368;
+}
+.export-btn .material-symbols-outlined {
+    font-size: 15px;
+}
+
+/* Exam paper filter tabs */
+.paper-filter-tab .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Audit pagination chevrons */
+.audit-page-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Back button (detail pages) */
+.exr-back .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Large candidate photo placeholder */
+.examiner-profile__photo .material-symbols-outlined {
+    font-size: 96px;
+    color: #9aa1b1;
+}
+
+/* Result-edit page: warning banner, captcha refresh, confirm button */
+.exr-warning__icon.material-symbols-outlined {
+    font-size: 24px;
+}
+.exr-captcha__refresh .material-symbols-outlined {
+    font-size: 16px;
+}
+.exr-btn-confirm .material-symbols-outlined {
+    font-size: 16px;
+}

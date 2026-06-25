@@ -353,6 +353,123 @@
     background-color: #e2e8f0;
 }
 
+/* --- Search Input inside Filter Sidebar --- */
+.filter-search {
+    margin-bottom: 4px;
+}
+
+.filter-search__input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #c3c6d6;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #131b2e;
+    background: #ffffff;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+}
+
+.filter-search__input::placeholder {
+    color: #94a3b8;
+}
+
+.filter-search__input:focus {
+    border-color: #0052cc;
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+}
+
+/* --- Results Toolbar (search hint + sort bar) --- */
+.results-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    min-height: 36px;
+}
+
+.results-toolbar__hint {
+    font-size: 14px;
+    color: #434654;
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.results-toolbar__clear {
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.results-toolbar__clear:hover {
+    color: #ef4444 !important;
+}
+
+/* --- Sort Bar --- */
+.sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sort-bar__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.sort-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border: 1px solid #c3c6d6;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #434654 !important;
+    text-decoration: none !important;
+    background: #ffffff;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.sort-chip:hover {
+    border-color: #0052cc;
+    color: #0052cc !important;
+    background: rgba(0, 82, 204, 0.04);
+}
+
+.sort-chip--active {
+    border-color: #0052cc;
+    background: rgba(0, 82, 204, 0.08);
+    color: #0052cc !important;
+}
+
+.sort-chip--active::after {
+    content: "↑";
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.sort-chip--active.sort-chip--desc::after {
+    content: "↓";
+}
+
 /* --- Responsive Adaptations --- */
 @media (max-width: 992px) {
     .workspace-layout {

@@ -9,6 +9,7 @@
 <!-- in the project's Project Properties dialog box.-->
 <project name="Driving-Licence-Examination-Management-Monolith" default="default" basedir=".">
     <description>Builds, tests, and runs the project Driving-Licence-Examination-Management-Monolith.</description>
+    <property name="source.encoding" value="UTF-8"/>
     <import file="nbproject/build-impl.xml"/>
     <!--
 
