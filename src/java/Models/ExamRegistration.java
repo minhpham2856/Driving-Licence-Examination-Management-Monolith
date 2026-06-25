@@ -7,6 +7,8 @@ public class ExamRegistration {
     private int examSessionId;
     private int personId;
     private int candidateNo;
+    /** SBD thực tế từ DB hoặc file import (ưu tiên hơn candidateNo khi hiển thị). */
+    private String candidateNumber;
     private String registrationType; // 'PreRegistered', 'WalkIn'
     private boolean isPaymentCompleted;
     private boolean isPresent;
@@ -91,6 +93,14 @@ public class ExamRegistration {
 
     public void setCandidateNo(int candidateNo) {
         this.candidateNo = candidateNo;
+    }
+
+    public String getCandidateNumber() {
+        return candidateNumber;
+    }
+
+    public void setCandidateNumber(String candidateNumber) {
+        this.candidateNumber = candidateNumber;
     }
 
     public String getRegistrationType() {
@@ -296,6 +306,9 @@ public class ExamRegistration {
 
     // Convenience Getters for seamless JSP EL transition
     public String getSbd() {
+        if (candidateNumber != null && !candidateNumber.isBlank()) {
+            return candidateNumber.trim();
+        }
         if (licenseCode == null) return "XX-0000";
         return licenseCode + "-" + String.format("%04d", candidateNo);
     }
