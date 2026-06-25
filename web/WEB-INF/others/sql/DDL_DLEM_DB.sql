@@ -1,3 +1,8 @@
+-- ============================================
+-- Database Sschema
+-- Driving License Examination Management System
+-- ============================================
+
 -- Create Database
 USE master;
 GO
@@ -15,6 +20,7 @@ GO
 USE DLEM_DB_2;
 GO
 
+-- ============================== USER ==============================
 -- Role table
 CREATE TABLE [Role] (
     RoleId INT PRIMARY KEY IDENTITY(1,1),
@@ -22,24 +28,26 @@ CREATE TABLE [Role] (
 );
 GO
 
--- Users table
+-- User table
+-- User ở đây là người dùng hệ thống TRỪ actor CANDIDATE sẽ thực hiện thi bằng cách nhập số báo danh thay vì login
 CREATE TABLE [User] (
     UserId INT PRIMARY KEY IDENTITY(1,1),
     Username NVARCHAR(100) NOT NULL,
     Email NVARCHAR(255) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(255) NOT NULL,
     RoleId INT NOT NULL REFERENCES [Role](RoleId),
-    [Status] BIT NOT NULL DEFAULT 1
+    IsActive BIT NOT NULL DEFAULT 1
 );
 GO
 
 -- Profile table
+-- Profile đại diện cho tất cả mọi thông tin, tài liệu của USER không liên quan đến CANDIDATE
 CREATE TABLE Profile (
     ProfileId INT PRIMARY KEY IDENTITY(1,1),
     FullName NVARCHAR(255) NOT NULL,
     DateOfBirth DATETIME NOT NULL,
     PhoneNumber NVARCHAR(20) NOT NULL,
-    Sex NVARCHAR(10) NOT NULL,
+    Sex BIT NOT NULL,
     GovernmentIdNumber NVARCHAR(100) NOT NULL UNIQUE,
     Address NVARCHAR(500),
     UserId INT NOT NULL REFERENCES [User](UserId)
@@ -47,6 +55,7 @@ CREATE TABLE Profile (
 GO
 
 -- Document table
+-- Mỗi 1 profile có nhiều documents
 CREATE TABLE Document (
     DocumentId INT PRIMARY KEY IDENTITY(1,1),
     DocumentType NVARCHAR(50) NOT NULL,
@@ -63,11 +72,11 @@ CREATE TABLE Licence (
     Description NVARCHAR(500),
     MinimumAge INT NOT NULL,
     ValidForYears INT NOT NULL,
-    UpgradeFromLicenceId INT NULL REFERENCES Licence(LicenceId)
+    UpgradeFromLicenceId INT NULL REFERENCES Licence(LicenceId)	-- tt này dùng để xác định xem hạng bằng nào là thi lên từ hạng bằng nào (PRECONDITION): không đăng ký lẻ được
 );
 GO
 
--- ExamRegistration table
+-- ExamRegistration table (NOTE: chỉ sử dụng trong đăng ký thi qua trung tâm, không sử dụng trong kỳ thi)
 CREATE TABLE ExamRegistration (
     ExamRegistrationId INT PRIMARY KEY IDENTITY(1,1),
     RegistrationStatus NVARCHAR(50) NOT NULL,
@@ -77,21 +86,24 @@ CREATE TABLE ExamRegistration (
 );
 GO
 
+-- ============================== EXAM ==============================
 -- Exam table
+-- Exam ở đây thể hiện cho kỳ thi
 CREATE TABLE Exam (
     ExamId INT PRIMARY KEY IDENTITY(1,1),
-    ExamCode NVARCHAR(50) NOT NULL UNIQUE,
+    ExamCode NVARCHAR(50) NOT NULL UNIQUE,	-- tt này thể hiện cho "khoá thi" (là thuật ngữ chuẩn) chứ không phải mã kỳ thi
     ExamDate DATETIME NOT NULL,
-    CentreName NVARCHAR(255) NOT NULL,
+    CentreName NVARCHAR(255) NOT NULL,	-- 1 kỳ thi có thể diễn ra tại trung tâm khác nên cần để thông tin cho người đăng ký
     [Status] NVARCHAR(50) NOT NULL,
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
 );
 GO
 
 -- Session table
+-- Session là ca thi
 CREATE TABLE [Session] (
     SessionId INT PRIMARY KEY IDENTITY(1,1),
-    SessionName NVARCHAR(100) NOT NULL,
+    SessionName NVARCHAR(100) NOT NULL, -- chỉ có ca sáng hoặc ca chiều (vào ngày thi chỉ thi ca sáng hay thi cả 2 ca, và thời gian cho từng ca mới được quyết định)
     StartTime DATETIME NOT NULL,
     EndTime DATETIME NOT NULL,
     [Status] NVARCHAR(50) NOT NULL,
@@ -101,9 +113,13 @@ CREATE TABLE [Session] (
 GO
 
 -- ExamSection table
+-- Phần thi: CHUẨN HOÁ GỒM 3 PHẦN THEO THUẬT NGỮ CHUẨN:
+-- 1. Lý thuyết
+-- 2. (Thực hành) trong hình
+-- 3. (Thực hành) trên đường
 CREATE TABLE ExamSection (
     ExamSectionId INT PRIMARY KEY IDENTITY(1,1),
-    SectionName NVARCHAR(100) NOT NULL UNIQUE
+	SectionName NVARCHAR(100) NOT NULL UNIQUE, -- Theory, Layout, Road
 );
 GO
 
@@ -112,9 +128,8 @@ CREATE TABLE Licence_ExamSection (
     LicenceExamSectionId INT PRIMARY KEY IDENTITY(1,1),
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
     ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
-    DurationMinutes INT NULL,
+    DurationMinutes INT NULL, -- 0 -> không có thời gian (phần thi trong hình của A, A1 không tính thời gian)
     UNIQUE (LicenceId, ExamSectionId),
-    CHECK (DurationMinutes IS NULL OR DurationMinutes >= 0) -- 0 -> không có thời gian 
 );
 GO
 
@@ -128,12 +143,13 @@ CREATE TABLE Session_ExamSection (
 GO
 
 -- ExamArea table
+-- Thể hiện cho địa điểm thi cụ thể, không phải KHU VỰC THI
 CREATE TABLE ExamArea (
     ExamAreaId INT PRIMARY KEY IDENTITY(1,1),
-    AreaName NVARCHAR(100) NOT NULL,
-    AreaType NVARCHAR(50) NOT NULL,
-    Capacity INT NOT NULL,
-    [Location] NVARCHAR(255) NOT NULL,
+    AreaName NVARCHAR(100) NOT NULL, -- Đặt tên theo hạng gplx trừ phòng thử tục -> ví dụ: phòng 102 (phòng thủ tục), phòng thi LT 102, sân thi số 1, sân thi số 2, RIÊNG đường thi thì không cố định
+    AreaType NVARCHAR(50) NOT NULL, -- (phòng thủ tực, phòng thi, sân thi, đường thi)
+    Capacity INT NULL,
+    [Location] NVARCHAR(255) NOT NULL, -- ví dụ: tầng 2, toà A, khu sân thi thực hành,...
     CHECK (Capacity > 0)
 );
 GO
@@ -147,7 +163,7 @@ CREATE TABLE Session_ExamArea (
 );
 GO
 
--- ExaminerSchedule: phân công sát hạch viên theo ca (Session), phần thi (ExamSection), phòng (ExamArea).
+-- ExaminerSchedule: phân công shv theo ca (Session), kỳ thi (Exam), phần thi (ExamSection), địa điểm (ExamArea).
 CREATE TABLE ExaminerSchedule (
     ExaminerScheduleId INT PRIMARY KEY IDENTITY(1,1),
     SessionId INT NOT NULL REFERENCES [Session](SessionId),
@@ -163,15 +179,59 @@ CREATE TABLE ExaminerSchedule (
 GO
 
 -- ExamDevice table
+-- Thiết bị thi: bao gồm cả máy thi, và xe thi
 CREATE TABLE ExamDevice (
     ExamDeviceId INT PRIMARY KEY IDENTITY(1,1),
-    DeviceName NVARCHAR(100) NOT NULL,
-    DeviceType NVARCHAR(50) NOT NULL,
-    [Status] NVARCHAR(50) NOT NULL,
+    DeviceName NVARCHAR(100) NOT NULL, -- ví dụ: A1-01, B-02, B-03, PC-101, PC-211, A1-DP-01 (DP là dự phòng)
+    DeviceType NVARCHAR(50) NOT NULL, -- máy tính, xe máy, oto con, oto tải,... 
+    IsActive BIT NOT NULL,
     ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId)
 );
 GO
 
+-- Candidate table
+-- Candidate thể hiện cho các thí sinh được import excel mọi thao tác đều không liên quan tới các tt như
+-- User, ExamRegistration, Profile,....
+CREATE TABLE Candidate (
+    CandidateId INT PRIMARY KEY IDENTITY(1,1),
+    CandidateNumber NVARCHAR(50) NOT NULL, -- số báo danh
+	-- sbd ko unique vì sẽ mỗi Exam sẽ bị trùng sbd: ví dụ khoá thi OTO-123 có sbd 001 -> 240, A1-123 có sbd 001 -> 675 là vẫn được
+	-- sbd theo format số: ví dụ 500 thí sinh sẽ có sbd từ 001 -> 500
+
+	-- personal info
+    FullName NVARCHAR(255) NOT NULL,
+    DateOfBirth DATETIME NOT NULL,
+    PhoneNumber NVARCHAR(20),
+    Sex BIT NOT NUll,
+    GovernmentIdNumber NVARCHAR(100), -- số căn cước cũng không unique vì 1 thí sinh có thể thi nhiều lần/ nhiều kỳ thi
+    Address NVARCHAR(500),
+
+	-- tracking
+    TakeTheory BIT,
+    TakeLayout BIT,
+    TakeRoad BIT,
+	TakeNo INT NOT NULL, -- lần thi thứ ?
+    ReasonForTaking NVARCHAR(355),
+    PhotoImageUrl NVARCHAR(500),
+    IsAbsent BIT NOT NULL DEFAULT 0,
+    IsSuspended BIT NOT NULL DEFAULT 0,
+);
+GO
+
+-- ExamEnrollment table
+-- Thể hiện mqh giữa candidate và exam
+CREATE TABLE ExamEnrollment (
+	ExamEnrollmentId INT PRIMARY KEY IDENTITY(1,1),
+    CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
+    SessionId INT NOT NULL REFERENCES [Session](SessionId),
+    SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
+    SignaturePrinted BIT NOT NULL DEFAULT 0,
+    ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
+    UNIQUE (CandidateId, SessionId)
+);
+GO
+
+-- ============================== PAYMENT ==============================
 -- Fee table
 CREATE TABLE Fee (
     FeeId INT PRIMARY KEY IDENTITY(1,1),
@@ -183,14 +243,14 @@ CREATE TABLE Fee (
 );
 GO
 
--- Payment table (cần tạo sau ExamEnrollment)
+-- Payment table
 CREATE TABLE Payment (
     PaymentId INT PRIMARY KEY IDENTITY(1,1),
-    PaymentStatus NVARCHAR(50) NOT NULL,
-    PaymentMethod NVARCHAR(50) NOT NULL,
+    PaymentStatus NVARCHAR(50) NOT NULL,      -- Pending / Paid / Failed / Refunded
+    PaymentMethod NVARCHAR(50) NOT NULL,      -- Cash / QR
     TransactionReference NVARCHAR(255) UNIQUE,
     TotalAmount DECIMAL(18,2) NOT NULL,
-    PaidAt DATETIME,
+    PaidAt DATETIME NULL,
     ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
     CHECK (TotalAmount >= 0)
 );
@@ -205,6 +265,7 @@ CREATE TABLE Payment_Fee (
 );
 GO
 
+-- ============================== QUESTION ==============================
 -- QuestionCategory table
 CREATE TABLE QuestionCategory (
     QuestionCategoryId INT PRIMARY KEY IDENTITY(1,1),
@@ -217,14 +278,15 @@ GO
 CREATE TABLE Question (
     QuestionId INT PRIMARY KEY IDENTITY(1,1),
     QuestionNumber INT NOT NULL,
-    ImageUrl NVARCHAR(500),
+    ImageUrl NVARCHAR(500), -- url của ảnh câu hỏi đã chứa câu hỏi và lựa chọn
     CorrectAnswer NVARCHAR(10) NOT NULL,
-    IsCritical BIT NOT NULL DEFAULT 0,
+    IsCritical BIT NOT NULL DEFAULT 0, -- câu điểm liệt
     QuestionCategoryId INT NOT NULL REFERENCES QuestionCategory(QuestionCategoryId)
 );
 GO
 
 -- Licence_Question junction table
+-- 1 câu hỏi có thể sd cho nhiều hạng và 1 hạng có thể có nhiều câu hỏi
 CREATE TABLE Licence_Question (
     LicenceQuestionId INT PRIMARY KEY IDENTITY(1,1),
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
@@ -233,45 +295,12 @@ CREATE TABLE Licence_Question (
 );
 GO
 
--- Candidate table
-CREATE TABLE Candidate (
-    CandidateId INT PRIMARY KEY IDENTITY(1,1),
-    CandidateNumber NVARCHAR(50) NOT NULL UNIQUE,
-    FullName NVARCHAR(255) NOT NULL,
-    DateOfBirth DATETIME NOT NULL,
-    PhoneNumber NVARCHAR(20),
-    Sex NVARCHAR(10),
-    GovernmentIdNumber NVARCHAR(100) UNIQUE,
-    Address NVARCHAR(500),
-    TakeTheory BIT,
-    TakePractical BIT,
-    TakeRoadLayout BIT,
-    TakeOnRoad BIT,
-    ReasonForTaking NVARCHAR(355),
-    PhotoImageUrl NVARCHAR(500),
-    IsAbsent BIT NOT NULL DEFAULT 0,
-    IsSuspended BIT NOT NULL DEFAULT 0,
-    UserId INT NULL REFERENCES [User](UserId),
-    TakeNo INT NOT NULL DEFAULT 1
-);
-GO
-
--- ExamEnrollment junction table
-CREATE TABLE ExamEnrollment (
-    ExamEnrollmentId INT PRIMARY KEY IDENTITY(1,1),
-    CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
-    SessionId INT NOT NULL REFERENCES Session(SessionId),
-    SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
-    SignaturePrinted BIT NOT NULL DEFAULT 0,
-    ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
-    UNIQUE (CandidateId, SessionId)
-);
-GO
-
+-- ============================== EXAM COMPONENTS ==============================
 -- TheoryPaper table
+-- đề thi lý thuyết của thí sinh
 CREATE TABLE TheoryPaper (
     TheoryPaperId INT PRIMARY KEY IDENTITY(1,1),
-    ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
+	ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
     ExamDeviceId INT NOT NULL REFERENCES ExamDevice(ExamDeviceId),
     StartedAt DATETIME,
     SubmittedAt DATETIME,
@@ -311,6 +340,7 @@ CREATE TABLE ExamScore (
 GO
 
 -- ScoreDeduction table
+-- bảng lỗi để trừ điểm (theo hạng gplx)
 CREATE TABLE ScoreDeduction (
     ScoreDeductionId INT PRIMARY KEY IDENTITY(1,1),
     [Reason] NVARCHAR(500) NOT NULL,
@@ -322,7 +352,7 @@ CREATE TABLE ScoreDeduction (
 );
 GO
 
--- DeductionRecord junction table (số lần lỗi + thời điểm nhập gần nhất)
+-- DeductionRecord (số lần lỗi + thời điểm nhập gần nhất)
 CREATE TABLE DeductionRecord (
     DeductionRecordId INT PRIMARY KEY IDENTITY(1,1),
     ExamScoreId INT NOT NULL REFERENCES ExamScore(ExamScoreId),
@@ -344,35 +374,7 @@ CREATE TABLE Audit (
     EntityId NVARCHAR(255) NOT NULL,
     OldValue NVARCHAR(MAX),
     NewValue NVARCHAR(MAX),
-    Details NVARCHAR(MAX),
+	Details NVARCHAR(MAX),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
-GO
-
--- Indices
-CREATE INDEX IX_User_Username ON [User](Username);
-CREATE INDEX IX_User_Email ON [User](Email);
-CREATE INDEX IX_Profile_UserId ON Profile(UserId);
-CREATE INDEX IX_Profile_GovernmentId ON Profile(GovernmentIdNumber);
-CREATE INDEX IX_Document_ProfileId ON Document(ProfileId);
-CREATE INDEX IX_ExamRegistration_ProfileId ON ExamRegistration(ProfileId);
-CREATE INDEX IX_ExamRegistration_LicenceId ON ExamRegistration(LicenceId);
-CREATE INDEX IX_Exam_LicenceId ON Exam(LicenceId);
-CREATE INDEX IX_Exam_ExamCode ON Exam(ExamCode);
-CREATE INDEX IX_Session_ExamId ON Session(ExamId);
-CREATE INDEX IX_Licence_ExamSection_LicenceId ON Licence_ExamSection(LicenceId);
-CREATE INDEX IX_Licence_ExamSection_ExamSectionId ON Licence_ExamSection(ExamSectionId);
-CREATE INDEX IX_ExamDevice_ExamAreaId ON ExamDevice(ExamAreaId);
-CREATE INDEX IX_Candidate_UserId ON Candidate(UserId);
-CREATE INDEX IX_Candidate_CandidateNumber ON Candidate(CandidateNumber);
-CREATE INDEX IX_Payment_ExamEnrollmentId ON Payment(ExamEnrollmentId);
-CREATE INDEX IX_TheoryPaper_ExamEnrollmentId ON TheoryPaper(ExamEnrollmentId);
-CREATE INDEX IX_CandidateAnswer_TheoryPaperId ON CandidateAnswer(TheoryPaperId);
-CREATE INDEX IX_ExamResult_ExamEnrollmentId ON ExamResult(ExamEnrollmentId);
-CREATE INDEX IX_Audit_CreatedAt ON Audit(CreatedAt);
-CREATE INDEX IX_Audit_Entity ON Audit(EntityName, EntityId);
-CREATE INDEX IX_ExaminerSchedule_SessionId ON ExaminerSchedule(SessionId);
-CREATE INDEX IX_ExaminerSchedule_ExaminerId ON ExaminerSchedule(ExaminerId);
-CREATE INDEX IX_ExaminerSchedule_ExamSectionId ON ExaminerSchedule(ExamSectionId);
-CREATE INDEX IX_ExaminerSchedule_ExamAreaId ON ExaminerSchedule(ExamAreaId);
 GO
