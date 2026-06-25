@@ -78,7 +78,7 @@
             <%-- 2. Mặt trước CCCD --%>
             <div class="upload-card upload-card--approved">
                 <div class="upload-card__header">
-                    <h2 class="upload-card__title">2. Mặt trước CCCD / CMND</h2>
+                    <h2 class="upload-card__title">2. Mặt trước Số căn cước</h2>
                     <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
                 </div>
                 <div class="upload-card__preview-box">
@@ -94,7 +94,7 @@
             <%-- 3. Mặt sau CCCD --%>
             <div class="upload-card upload-card--approved">
                 <div class="upload-card__header">
-                    <h2 class="upload-card__title">3. Mặt sau CCCD / CMND</h2>
+                    <h2 class="upload-card__title">3. Mặt sau Số căn cước</h2>
                     <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
                 </div>
                 <div class="upload-card__preview-box">

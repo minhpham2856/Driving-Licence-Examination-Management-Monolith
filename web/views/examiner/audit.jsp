@@ -1,160 +1,141 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
+<!--variables-->
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="headerTitle" value="Nhật ký" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/audit" />
+
+<!--page-->
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhật Ký - Lái Vui</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar examiner-portal">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SÁT HẠCH</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
+            <jsp:param name="pageCss" value="audit.css" />
+        </jsp:include>
+    </head>
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
-<jsp:include page="/views/layout/sidebar-examiner.jsp">
-    <jsp:param name="activeSidebar" value="nhat-ky" />
-</jsp:include>
+        <!--sidebar-->
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
+            <jsp:param name="activeSidebar" value="audit" />
+        </jsp:include>
 
-<div class="examiner-shell">
-    <jsp:include page="/views/layout/header-examiner.jsp" />
+        <!--shell-->
+        <div class="examiner-shell">
 
-    <main class="examiner-main examiner-main--dashboard">
+            <!--header-->
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
-        <%-- Toolbar --%>
-        <section class="examiner-toolbar examiner-toolbar--tools">
-            <div class="examiner-toolbar__group">
-                <a href="#" class="examiner-btn examiner-btn--white">
-                    <span class="material-symbols-outlined">print</span>
-                    In nhật ký
-                </a>
-                <a href="#" class="examiner-btn examiner-btn--white">
-                    <span class="material-symbols-outlined">filter_alt</span>
-                    Lọc
-                </a>
-            </div>
-            <div class="examiner-toolbar__group">
-                <div class="examiner-search examiner-search--lg">
-                    <span class="examiner-search__icon material-symbols-outlined">search</span>
-                    <input type="text" class="examiner-search__input" placeholder="Lọc nhật ký...">
+            <!--main content-->
+            <main class="examiner-main examiner-main--dashboard">
+
+                <!--toolbar-->
+                <jsp:include page="/views/examiner/components/toolbar.jsp">
+                    <jsp:param name="btnPrintAudit" value="left" />
+                    <jsp:param name="btnSearch" value="right" />
+                    <jsp:param name="searchWide" value="true" />
+                    <jsp:param name="searchPlaceholder" value="Tìm kiếm mô tả, địa chỉ IP..." />
+                    <jsp:param name="btnRefresh" value="right" />
+                </jsp:include>
+
+                <!--audit list-->
+                <div class="audit-card">
+                    <div class="examiner-table-wrap">
+                        <table class="examiner-table audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Người dùng</th>
+                                    <th>Thao tác</th>
+                                    <th>Đối tượng</th>
+                                    <th>SBD</th>
+                                    <th>Thông tin</th>
+                                    <th>Cũ</th>
+                                    <th>Mới</th>
+                                    <th>Lý do</th>
+                                    <th>Thời gian</th>
+                                    <th>Ngày</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${empty auditLogs}">
+                                        <tr><td colspan="10" class="examiner-table__empty">
+                                            <c:choose>
+                                                <c:when test="${searchActive}">Không có kết quả phù hợp.</c:when>
+                                                <c:otherwise>Chưa có nhật ký.</c:otherwise>
+                                            </c:choose>
+                                        </td></tr>
+                                    </c:when>
+                                    <c:otherwise>
+                                <c:forEach items="${auditLogs}" var="log">
+                                    <tr>
+                                        <td>${log.username}</td>
+                                        <td><span class="audit-badge ${log.actionBadge}">${log.actionLabel}</span></td>
+                                        <td>${log.entityName}</td>
+                                        <td class="examiner-table__mono">${log.sbd}</td>
+                                        <td>${log.info}</td>
+                                        <td class="audit-td--old<c:if test='${log.multiline}'> audit-td--multiline</c:if>"><c:if test="${not empty log.oldValue}"><s>${log.oldValue}</s></c:if></td>
+                                        <td class="audit-td--new ${log.newValueClass}<c:if test='${log.multiline}'> audit-td--multiline</c:if>">${log.newValue}</td>
+                                        <td class="audit-td--reason"><c:if test="${log.reason ne '-'}">${log.reason}</c:if></td>
+                                        <td class="examiner-table__mono-md">${log.time}</td>
+                                        <td class="examiner-table__mono-md">${log.date}</td>
+                                    </tr>
+                                </c:forEach>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!--pagination-->
+                    <div class="audit-pagination">
+                        <nav class="audit-page-nav">
+                            <c:url var="prevUrl" value="/views/examiner/audit">
+                                <c:param name="page" value="${auditPage - 1}" />
+                                <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
+                            </c:url>
+                            <c:url var="nextUrl" value="/views/examiner/audit">
+                                <c:param name="page" value="${auditPage + 1}" />
+                                <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
+                            </c:url>
+                            <c:choose>
+                                <c:when test="${auditPage > 1}">
+                                    <a href="${prevUrl}" class="audit-page-btn audit-page-btn--nav">
+                                        <span class="material-symbols-outlined">chevron_left</span>
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="audit-page-btn audit-page-btn--nav audit-page-btn--disabled">
+                                        <span class="material-symbols-outlined">chevron_left</span>
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
+                            <span class="audit-page-btn audit-page-btn--active">${auditPage} / ${auditTotalPages}</span>
+                            <c:choose>
+                                <c:when test="${auditPage < auditTotalPages}">
+                                    <a href="${nextUrl}" class="audit-page-btn audit-page-btn--nav">
+                                        <span class="material-symbols-outlined">chevron_right</span>
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="audit-page-btn audit-page-btn--nav audit-page-btn--disabled">
+                                        <span class="material-symbols-outlined">chevron_right</span>
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
+                        </nav>
+                    </div>
                 </div>
-                <a href="#" class="examiner-btn examiner-btn--primary">
-                    <span class="material-symbols-outlined">search</span>
-                    Tìm kiếm
-                </a>
-                <a href="${pageContext.request.contextPath}/views/examiner/audit.jsp" class="examiner-btn examiner-btn--icon examiner-btn--white">
-                    <span class="material-symbols-outlined">refresh</span>
-                </a>
-            </div>
-        </section>
-
-        <%-- Table Card with Pagination --%>
-        <div class="audit-card">
-            <div class="examiner-table-wrap">
-                <table class="examiner-table audit-table">
-                    <thead>
-                        <tr>
-                            <th class="audit-col--user">Người dùng</th>
-                            <th class="audit-col--action">Thao tác</th>
-                            <th class="audit-col--target">Đối tượng</th>
-                            <th class="audit-col--sbd">SBD</th>
-                            <th class="audit-col--info">Thông tin</th>
-                            <th class="audit-col--old">Cũ</th>
-                            <th class="audit-col--new">Mới</th>
-                            <th class="audit-col--reason">Lý do</th>
-                            <th class="audit-col--time">Thời gian</th>
-                            <th class="audit-col--date">Ngày</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>admin_nv</td>
-                            <td><span class="audit-badge audit-badge--update">CẬP NHẬT</span></td>
-                            <td>Thí sinh</td>
-                            <td class="examiner-table__mono">SBD-00123</td>
-                            <td class="audit-td--ellipsis">Cập nhật điểm thi...</td>
-                            <td class="audit-td--old"><s>28/30</s></td>
-                            <td class="audit-td--new audit-new--green">30/30</td>
-                            <td class="audit-td--reason">Phúc khảo</td>
-                            <td class="examiner-table__mono-md">09:15:22</td>
-                            <td class="examiner-table__mono-md">2023-10-25</td>
-                        </tr>
-                        <tr>
-                            <td>system_auto</td>
-                            <td><span class="audit-badge audit-badge--system">HỆ THỐNG</span></td>
-                            <td>Phòng thi</td>
-                            <td class="examiner-table__mono">-</td>
-                            <td class="audit-td--ellipsis">Mở khóa ca thi s...</td>
-                            <td class="audit-td--old">Khóa</td>
-                            <td class="audit-td--new audit-new--blue">Mở</td>
-                            <td class="audit-td--reason">Theo lịch trình</td>
-                            <td class="examiner-table__mono-md">07:00:00</td>
-                            <td class="examiner-table__mono-md">2023-10-25</td>
-                        </tr>
-                        <tr>
-                            <td>giam_thi_01</td>
-                            <td><span class="audit-badge audit-badge--warning">CẢNH BÁO</span></td>
-                            <td>Thí sinh</td>
-                            <td class="examiner-table__mono">SBD-00456</td>
-                            <td class="audit-td--ellipsis">Đánh dấu vi phạm...</td>
-                            <td class="audit-td--old">Bình thường</td>
-                            <td class="audit-td--new audit-new--dark">Vi phạm</td>
-                            <td class="audit-td--reason">Mang điện thoại</td>
-                            <td class="examiner-table__mono-md">10:45:11</td>
-                            <td class="examiner-table__mono-md">2023-10-24</td>
-                        </tr>
-                        <tr>
-                            <td>admin_nv</td>
-                            <td><span class="audit-badge audit-badge--delete">XÓA</span></td>
-                            <td></td>
-                            <td class="examiner-table__mono">SBD-00789</td>
-                            <td class="audit-td--ellipsis">Xóa hồ sơ trùng ...</td>
-                            <td class="audit-td--old">Tồn tại</td>
-                            <td class="audit-td--new audit-new--red">Đã xóa</td>
-                            <td class="audit-td--reason">Trùng CMND</td>
-                            <td class="examiner-table__mono-md">14:20:05</td>
-                            <td class="examiner-table__mono-md">2023-10-24</td>
-                        </tr>
-                        <tr>
-                            <td>admin_nv</td>
-                            <td><span class="audit-badge audit-badge--update">CẬP NHẬT</span></td>
-                            <td>Thí sinh</td>
-                            <td class="examiner-table__mono">SBD-00124</td>
-                            <td class="audit-td--ellipsis">Sửa lỗi sai tên đệm</td>
-                            <td class="audit-td--old">Nguyễn Văn A</td>
-                            <td class="audit-td--new audit-new--green">Nguyễn Văn B</td>
-                            <td class="audit-td--reason">Yêu cầu từ Cục</td>
-                            <td class="examiner-table__mono-md">08:10:00</td>
-                            <td class="examiner-table__mono-md">2023-10-23</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <%-- Pagination --%>
-            <div class="audit-pagination">
-                <nav class="audit-page-nav">
-                    <button class="audit-page-btn audit-page-btn--nav" disabled>
-                        <span class="material-symbols-outlined">chevron_left</span>
-                    </button>
-                    <button class="audit-page-btn audit-page-btn--active">1</button>
-                    <button class="audit-page-btn">2</button>
-                    <button class="audit-page-btn">3</button>
-                    <span class="audit-page-dots">...</span>
-                    <button class="audit-page-btn">10</button>
-                    <button class="audit-page-btn audit-page-btn--nav">
-                        <span class="material-symbols-outlined">chevron_right</span>
-                    </button>
-                </nav>
-            </div>
+            </main>
         </div>
 
-    </main>
-</div>
-
-</body>
+    </body>
 </html>

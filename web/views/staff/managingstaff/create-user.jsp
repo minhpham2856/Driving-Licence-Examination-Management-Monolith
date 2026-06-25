@@ -29,13 +29,13 @@
             <span class="breadcrumbs__separator">/</span>
             <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
             <span class="breadcrumbs__separator">/</span>
-            <span class="breadcrumbs__current">Tạo tài khoản học viên</span>
+            <span class="breadcrumbs__current">Tạo tài khoản cho thí sinh nộp hồ sơ</span>
         </nav>
         
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Tạo Tài Khoản Học Viên Mới</h1>
-                <p class="page-subtitle">Nhập thông tin hồ sơ của học viên chính khóa hoặc thí sinh tự do để kích hoạt tài khoản ôn luyện.</p>
+                <h1 class="page-title">Tạo Tài Khoản Cho Thí Sinh Nộp Hồ Sơ</h1>
+                <p class="page-subtitle">Nhập thông tin hồ sơ thí sinh.</p>
             </div>
             
             <div class="page-actions">
@@ -62,51 +62,69 @@
                     </h2>
                 </div>
 
+                <c:if test="${not empty createUserError}">
+                    <div role="alert" style="margin-bottom: 1.25rem; padding: 0.9rem 1rem; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #b91c1c; font-size: 0.9rem; font-weight: 600;">
+                        <c:out value="${createUserError}" />
+                    </div>
+                </c:if>
+
+                <c:if test="${not empty createUserSuccess}">
+                    <div role="status" style="margin-bottom: 1.25rem; padding: 0.9rem 1rem; border: 1px solid #a7f3d0; border-radius: 8px; background: #ecfdf5; color: #047857; font-size: 0.9rem; font-weight: 600;">
+                        <c:out value="${createUserSuccess}" />
+                        <c:if test="${not empty createdUsername}">
+                            <div style="margin-top: 0.65rem; color: #065f46; line-height: 1.6;">
+                                Tên đăng nhập: <strong><c:out value="${createdUsername}" /></strong><br>
+                                Mật khẩu: <strong><c:out value="${createdPassword}" /></strong>
+                            </div>
+                        </c:if>
+                    </div>
+                </c:if>
+
                 <form action="${pageContext.request.contextPath}/manager/create-user" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <div class="input-group">
                             <label for="fullName" class="input-label">Họ và tên học viên <span style="color: #ef4444;">*</span></label>
-                            <input type="text" id="fullName" name="fullName" class="input-field" placeholder="Ví dụ: Nguyễn Văn A" required minlength="3" maxlength="50">
+                            <input type="text" id="fullName" name="fullName" class="input-field" placeholder="Ví dụ: Nguyễn Văn A" value="${fn:escapeXml(param.fullName)}" required minlength="3" maxlength="50">
                         </div>
 
                         <div class="input-group">
                             <label for="cccd" class="input-label">Số Căn cước công dân (12 chữ số) <span style="color: #ef4444;">*</span></label>
-                            <input type="text" id="cccd" name="cccd" class="input-field" placeholder="Ví dụ: 030098001234" required pattern="[0-9]{12}" title="Vui lòng nhập đúng 12 chữ số CCCD hợp lệ">
+                            <input type="text" id="cccd" name="cccd" class="input-field" placeholder="Ví dụ: 030098001234" value="${fn:escapeXml(param.cccd)}" required pattern="[0-9]{12}" title="Vui lòng nhập đúng 12 chữ số CCCD hợp lệ">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <div class="input-group">
                             <label for="phone" class="input-label">Số điện thoại liên hệ <span style="color: #ef4444;">*</span></label>
-                            <input type="tel" id="phone" name="phone" class="input-field" placeholder="Ví dụ: 0987654321" required pattern="0[0-9]{9}" title="Số điện thoại phải bắt đầu bằng số 0 và bao gồm đúng 10 chữ số">
+                            <input type="tel" id="phone" name="phone" class="input-field" placeholder="Ví dụ: 0987654321" value="${fn:escapeXml(param.phone)}" required pattern="0[0-9]{9}" title="Số điện thoại phải bắt đầu bằng số 0 và bao gồm đúng 10 chữ số">
                         </div>
 
                         <div class="input-group">
                             <label for="email" class="input-label">Địa chỉ Email <span style="color: #ef4444;">*</span></label>
-                            <input type="email" id="email" name="email" class="input-field" placeholder="Ví dụ: hocvien@gmail.com" required>
+                            <input type="email" id="email" name="email" class="input-field" placeholder="Ví dụ: hocvien@gmail.com" value="${fn:escapeXml(param.email)}" required>
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <div class="input-group">
                             <label for="dob" class="input-label">Ngày sinh <span style="color: #ef4444;">*</span></label>
-                            <input type="date" id="dob" name="dob" class="input-field" required>
+                            <input type="date" id="dob" name="dob" class="input-field" value="${fn:escapeXml(param.dob)}" max="<%= java.time.LocalDate.now() %>" required>
                         </div>
 
                         <div class="input-group">
                             <label for="gender" class="input-label">Giới tính <span style="color: #ef4444;">*</span></label>
                             <select id="gender" name="gender" class="input-field" required>
                                 <option value="">Chọn giới tính</option>
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
+                                <option value="male" ${param.gender eq 'male' ? 'selected' : ''}>Nam</option>
+                                <option value="female" ${param.gender eq 'female' ? 'selected' : ''}>Nữ</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="input-group">
                         <label for="address" class="input-label">Địa chỉ quê quán / Nơi thường trú <span style="color: #ef4444;">*</span></label>
-                        <input type="text" id="address" name="address" class="input-field" placeholder="Ví dụ: Thanh Xuân, Hà Nội" required minlength="5" maxlength="150">
+                        <input type="text" id="address" name="address" class="input-field" placeholder="Ví dụ: Thanh Xuân, Hà Nội" value="${fn:escapeXml(param.address)}" required minlength="5" maxlength="150">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
@@ -114,8 +132,8 @@
                             <label for="userType" class="input-label">Phân loại học viên <span style="color: #ef4444;">*</span></label>
                             <select id="userType" name="userType" class="input-field" required>
                                 <option value="">Chọn phân loại</option>
-                                <option value="student">Học viên chính khóa (Đăng ký học từ đầu)</option>
-                                <option value="free">Thí sinh tự do (Chỉ nộp hồ sơ thi sát hạch)</option>
+                                <option value="student" ${param.userType eq 'student' ? 'selected' : ''}>Học viên chính khóa (Đăng ký học từ đầu)</option>
+                                <option value="free" ${param.userType eq 'free' ? 'selected' : ''}>Thí sinh tự do (Chỉ nộp hồ sơ thi sát hạch)</option>
                             </select>
                         </div>
 
@@ -123,11 +141,11 @@
                             <label for="licenseClass" class="input-label">Hạng GPLX sát hạch <span style="color: #ef4444;">*</span></label>
                             <select id="licenseClass" name="licenseClass" class="input-field" required>
                                 <option value="">Chọn hạng bằng GPLX</option>
-                                <option value="A1">Hạng A1 (Xe máy dưới 175cc)</option>
-                                <option value="A2">Hạng A2 (Xe phân khối lớn từ 175cc)</option>
-                                <option value="B1">Hạng B1 (Ô tô số tự động)</option>
-                                <option value="B2">Hạng B2 (Ô tô số sàn)</option>
-                                <option value="C">Hạng C (Ô tô tải lớn)</option>
+                                <option value="A1" ${param.licenseClass eq 'A1' ? 'selected' : ''}>Hạng A1 (Xe máy dưới 175cc)</option>
+                                <option value="A2" ${param.licenseClass eq 'A2' ? 'selected' : ''}>Hạng A2 (Xe phân khối lớn từ 175cc)</option>
+                                <option value="B1" ${param.licenseClass eq 'B1' ? 'selected' : ''}>Hạng B1 (Ô tô số tự động)</option>
+                                <option value="B2" ${param.licenseClass eq 'B2' ? 'selected' : ''}>Hạng B2 (Ô tô số sàn)</option>
+                                <option value="C" ${param.licenseClass eq 'C' ? 'selected' : ''}>Hạng C (Ô tô tải lớn)</option>
                             </select>
                         </div>
                     </div>
@@ -135,8 +153,8 @@
                     <div class="input-group" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                         <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Thông tin tài khoản đăng nhập mặc định:</span>
                         <span style="font-size: 0.8rem; color: #64748b; display: block; line-height: 1.4;">
-                            • Tên đăng nhập: <strong>Tự động sinh ra dựa theo Email</strong> (Ví dụ: hocvien)<br>
-                            • Mật khẩu mặc định: <strong>123456</strong> (Học viên được khuyên thay đổi mật khẩu trong lần đầu tiên đăng nhập).
+                            • Tên đăng nhập: <strong>Tự động sinh từ họ tên và một dãy số ngẫu nhiên</strong>.<br>
+                            • Mật khẩu: <strong>Tự động tạo ngẫu nhiên</strong> và gửi đến email học viên.
                         </span>
                     </div>
 

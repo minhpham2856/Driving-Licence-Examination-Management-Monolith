@@ -1,0 +1,72 @@
+.examiner-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 17px;
+    border: 1px solid #c3c6d6;
+    border-radius: 4px;
+    background-color: #e4e9ed;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: #171c1f;
+    text-decoration: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.examiner-btn--white {
+    background-color: #ffffff;
+    color: #434654;
+}
+
+.examiner-btn--primary {
+    background-color: #003d9b;
+    border-color: #003d9b;
+    color: #ffffff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.examiner-btn--success {
+    background-color: #006846;
+    border-color: #006846;
+    color: #ffffff;
+}
+
+.examiner-btn--danger {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+.examiner-btn--orange {
+    background-color: #f97316;
+    border-color: #ea580c;
+    color: #ffffff;
+}
+
+.examiner-btn--icon {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+}
+
+.examiner-btn--compact {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    gap: 4px;
+}
+
+.examiner-btn--disabled {
+    opacity: 0.55;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.examiner-btn--ink {
+    color: #171c1f;
+}

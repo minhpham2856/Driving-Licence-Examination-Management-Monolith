@@ -7,3 +7,8 @@ private/
 nbproject/private/private.properties
 /dist/
 .env
+AGENTS.md
+skills-lock.json
+sources.txt
+.agents/
+out/

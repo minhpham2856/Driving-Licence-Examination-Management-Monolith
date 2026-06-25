@@ -180,7 +180,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${empty chamThiCount ? 0 : chamThiCount}</span>
-                    <span class="stat-label">Giám khảo chấm thi</span>
+                    <span class="stat-label">sát hạch viên chấm thi</span>
                     <span class="stat-trend stat-trend--up" style="color: #7c3aed;">Đánh giá sát hạch</span>
                 </div>
             </div>
@@ -207,7 +207,7 @@
                             <option value="">Tất cả vai trò</option>
                             <option value="admin" ${param.filterRole eq 'admin' ? 'selected' : ''}>Quản trị viên (Admin)</option>
                             <option value="coi_thi" ${param.filterRole eq 'coi_thi' ? 'selected' : ''}>Cán bộ coi thi</option>
-                            <option value="cham_thi" ${param.filterRole eq 'cham_thi' ? 'selected' : ''}>Giám khảo chấm thi</option>
+                            <option value="cham_thi" ${param.filterRole eq 'cham_thi' ? 'selected' : ''}>sát hạch viên chấm thi</option>
                             <option value="candidate" ${param.filterRole eq 'candidate' ? 'selected' : ''}>Thí sinh tự do</option>
                         </select>
                     </div>
@@ -294,7 +294,7 @@
                                                         </div>
                                                     </c:when>
                                                     <c:when test="${acc.role eq 'cham_thi'}">
-                                                        <div class="user-avatar user-avatar--purple" title="Giám khảo chấm thi">
+                                                        <div class="user-avatar user-avatar--purple" title="sát hạch viên chấm thi">
                                                             ${fn:substring(acc.fullName, 0, 1)}
                                                         </div>
                                                     </c:when>
@@ -327,7 +327,7 @@
                                                     <span class="role-badge role-badge--coi">Cán bộ coi thi</span>
                                                 </c:when>
                                                 <c:when test="${acc.role eq 'cham_thi'}">
-                                                    <span class="role-badge role-badge--cham">Giám khảo</span>
+                                                    <span class="role-badge role-badge--cham">sát hạch viên</span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="role-badge role-badge--other">Thí sinh</span>

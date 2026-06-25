@@ -3,17 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Models/User.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Services/FileService.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Controllers/Auth/Public/RegisterServlet.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Controllers/Auth/Public/LoginServlet.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/public/register.jsp</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Services/AuthService.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Services/Impl/FileServiceImpl.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/examiner/export.jsp</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Controllers/Examiner/ExportCandidatesExcelServlet.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Utils/UsernameGenerator.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/Services/Impl/AuthServiceImpl.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dbconnection/DBContext.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/util/ConfigManager.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/model/user/User.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/service/impl/AuthServiceImpl.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/model/payment/PaymentFee.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/auth/landing/LoginServlet.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/admin/ExamDeviceServlet.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/auth/landing/login.jsp</file>
         </group>
     </open-files>
 </project-private>
