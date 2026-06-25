@@ -153,6 +153,9 @@ public final class AuditLogViewHelper {
             case "WARNING" -> "Cảnh báo";
             case "SYSTEM" -> "Hệ thống";
             case "APPROVE" -> "Duyệt";
+            case "REJECT" -> "Từ chối";
+            case "REQUEST" -> "Gửi duyệt";
+            case "UPLOAD" -> "Tải lên";
             default -> "Cập nhật";
         };
     }
@@ -167,6 +170,9 @@ public final class AuditLogViewHelper {
             case "WARNING" -> "audit-badge--warning";
             case "SYSTEM" -> "audit-badge--system";
             case "APPROVE" -> "audit-badge--approve";
+            case "REJECT" -> "audit-badge--delete";
+            case "REQUEST" -> "audit-badge--import";
+            case "UPLOAD" -> "audit-badge--insert";
             default -> "audit-badge--update";
         };
     }

@@ -25,13 +25,19 @@ public final class AuditLogHelper {
         persistStatic(session, action, details, recordId);
     }
 
+    /** Ghi audit với EntityName cố định (dùng cho cổng thí sinh / tài liệu). */
+    public static void persistForEntity(HttpSession session, String entityName, String action,
+            String details, String newValue, int recordId) {
+        insertLog(session, action, details, null, newValue, null, null, recordId, entityName);
+    }
+
     public static void persistStatic(HttpSession session, String action, String details, int recordId) {
-        insertLog(session, action, details, null, details, null, null, recordId);
+        insertLog(session, action, details, null, details, null, null, recordId, null);
     }
 
     public static void persistChange(HttpSession session, String action, String details,
             String oldValue, String newValue, String reason, int recordId) {
-        insertLog(session, action, details, oldValue, newValue, reason, null, recordId);
+        insertLog(session, action, details, oldValue, newValue, reason, null, recordId, null);
     }
 
     public static void persistFieldChanges(HttpSession session, String action, String contextDetails,
@@ -41,18 +47,27 @@ public final class AuditLogHelper {
         }
         for (AuditChangeDetails.FieldChange change : changes) {
             String detailsJson = AuditChangeDetails.toJson(List.of(change));
-            insertLog(session, action, contextDetails, null, null, reason, detailsJson, recordId);
+            insertLog(session, action, contextDetails, null, null, reason, detailsJson, recordId, null);
         }
     }
 
     private static void insertLog(HttpSession session, String action, String contextDetails,
             String oldValue, String newValue, String reason, String detailsJson, int recordId) {
+        insertLog(session, action, contextDetails, oldValue, newValue, reason, detailsJson, recordId, null);
+    }
+
+    private static void insertLog(HttpSession session, String action, String contextDetails,
+            String oldValue, String newValue, String reason, String detailsJson, int recordId,
+            String explicitEntityName) {
         try {
             User user = (User) session.getAttribute("user");
             int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
 
             AuditLog log = new AuditLog();
-            log.setTableName(AuditEntityLabels.toVietnamese(resolveEntityName(action, contextDetails)));
+            String entity = explicitEntityName != null && !explicitEntityName.isBlank()
+                    ? explicitEntityName
+                    : resolveEntityName(action, contextDetails);
+            log.setTableName(entity);
             log.setRecordId(recordId > 0 ? recordId : 0);
             log.setAction(normalizeAction(action));
             log.setOldValue(oldValue);
@@ -73,7 +88,7 @@ public final class AuditLogHelper {
             int userId = (user != null && user.getId() > 0) ? user.getId() : 3;
 
             AuditLog log = new AuditLog();
-            log.setTableName(AuditEntityLabels.toVietnamese("Candidate"));
+            log.setTableName("Candidate");
             log.setRecordId(recordId > 0 ? recordId : 0);
             log.setAction("WARNING");
             log.setNewValue(details);
@@ -92,6 +107,9 @@ public final class AuditLogHelper {
         String upper = action != null ? action.toUpperCase() : "";
         String detailUpper = details != null ? details.toUpperCase() : "";
 
+        if (upper.contains("DOCUMENT") || upper.contains(" on DOCUMENT")) {
+            return "Document";
+        }
         if (upper.contains("SCOREENTRY") || detailUpper.contains("HÀNG ĐỢI")) {
             return "ScoreEntryQueue";
         }
@@ -116,7 +134,7 @@ public final class AuditLogHelper {
             return "ExamScore";
         }
         if (upper.contains("EXAMREGISTRATION") || upper.contains("ALLOCATE")) {
-            return "Candidate";
+            return "ExamRegistration";
         }
         if (upper.contains("SESSION")) {
             return "Session";
@@ -143,6 +161,18 @@ public final class AuditLogHelper {
         }
         if (upper.contains("ASSIGN")) {
             return "ASSIGN";
+        }
+        if (upper.contains("REQUEST")) {
+            return "REQUEST";
+        }
+        if (upper.contains("APPROVE")) {
+            return "APPROVE";
+        }
+        if (upper.contains("REJECT")) {
+            return "REJECT";
+        }
+        if (upper.contains("UPLOAD")) {
+            return "UPLOAD";
         }
         return "UPDATE";
     }
