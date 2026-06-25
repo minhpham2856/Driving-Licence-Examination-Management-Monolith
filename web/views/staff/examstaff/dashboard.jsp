@@ -4,10 +4,10 @@
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 
 <%
-    DAOs.ExamSessionDAO sessionDAO = new DAOs.Impl.ExamSessionDAOImpl();
+    DAO.ExamSessionDAO sessionDAO = new DAO.Impl.ExamSessionDAOImpl();
     java.util.List<Models.ExamSession> allSessions = null;
     try {
-        allSessions = sessionDAOs.getAllSessions();
+        allSessions = sessionDAO.getAllSessions();
     } catch (Exception e) {
         e.printStackTrace();
         allSessions = new java.util.ArrayList<>();
@@ -40,9 +40,9 @@
     java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
     Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
     if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
-        DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
+        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessionId);
+            qList = regDAO.getCandidatesBySession(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -52,7 +52,7 @@
     }
     if (qList != null) {
         Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAOs.Impl.ExamRegistrationDAOImpl());
+            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
     }
 
     java.util.List<Controllers.Staff.ExamStaff.ExaminerSlot> assignedExaminers =

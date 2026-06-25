@@ -54,7 +54,7 @@
             <img src="${logoUrl}" width="40" height="40" class="side-nav-bar__logo-img">
             <div class="side-nav-bar__brand-title-wrap">
                 <h1 class="side-nav-bar__brand-title">Sát hạch viên</h1>
-                <p class="side-nav-bar__brand-subtitle">${sessionScope.user.profile.fullName}</p>
+                <p class="side-nav-bar__brand-subtitle">${sessionScope.userProfile.fullName}</p>
             </div>
         </div>
     </div>

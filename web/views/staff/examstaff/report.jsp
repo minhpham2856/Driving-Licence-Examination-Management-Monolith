@@ -8,10 +8,10 @@
     Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to ca thi B2 sáng (ID = 2)
     
-    DAOs.ExamSessionDAO sessDAO = new DAOs.Impl.ExamSessionDAOImpl();
+    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
     Models.ExamSession currentSession = null;
     try {
-        currentSession = sessDAOs.getById(sessId);
+        currentSession = sessDAO.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -19,10 +19,10 @@
         request.setAttribute("currentSession", currentSession);
     }
 
-    DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
+    DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
     java.util.List<Models.ExamRegistration> qList = null;
     try {
-        qList = regDAOs.getCandidatesBySession(sessId);
+        qList = regDAO.getCandidatesBySession(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -36,7 +36,7 @@
         boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
         reg.setValidCapturedPhoto(valid);
         if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
-            regDAOs.updatePhoto(reg.getId(), null);
+            regDAO.updatePhoto(reg.getId(), null);
             reg.setPhotoUrl("");
         }
         if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {

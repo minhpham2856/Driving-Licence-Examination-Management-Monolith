@@ -15,10 +15,10 @@
     Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to B2 session
 
-    DAOs.ExamSessionDAO sessDAO = new DAOs.Impl.ExamSessionDAOImpl();
+    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
     Models.ExamSession currentSession = null;
     try {
-        currentSession = sessDAOs.getById(sessId);
+        currentSession = sessDAO.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -27,9 +27,9 @@
     }
 
     if (qList == null && !isShiftEnded) {
-        DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
+        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessId);
+            qList = regDAO.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -39,7 +39,7 @@
     }
     if (qList != null) {
         Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAOs.Impl.ExamRegistrationDAOImpl());
+            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
     }
     
     // Find active candidate (bỏ qua thí sinh đã hoàn tất thủ tục)

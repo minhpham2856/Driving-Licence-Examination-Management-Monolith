@@ -11,9 +11,9 @@
     // Ensure candidate queue is initialized
     java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
     if (qList == null) {
-        DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
+        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessId);
+            qList = regDAO.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -25,15 +25,15 @@
     Models.User user = (Models.User) session.getAttribute("user");
     int uId = (user != null) ? user.getId() : 3; // Default staff Trần Thị Thủ Tục (ID = 3)
     
-    DAOs.AuditLogDAO logDAO = new DAOs.Impl.AuditLogDAOImpl();
+    DAO.AuditLogDAO logDAO = new DAO.Impl.AuditLogDAOImpl();
     java.util.List<Models.AuditLog> personalLogs = null;
     String filterDate = request.getParameter("filterDate");
     try {
         if (filterDate != null && !filterDate.trim().isEmpty()) {
-            personalLogs = logDAOs.getLogsByUserAndDate(uId, filterDate);
+            personalLogs = logDAO.getLogsByUserAndDate(uId, filterDate);
         } else {
             // Retrieve all logs from the beginning if no date filter is specified
-            personalLogs = logDAOs.getLogsByUserAndDate(uId, null);
+            personalLogs = logDAO.getLogsByUserAndDate(uId, null);
         }
     } catch (Exception e) {
         e.printStackTrace();
@@ -43,7 +43,7 @@
     }
     request.setAttribute("personalLogs", personalLogs);
 
-    DTOs.StaffProcedureKpiDTO procedureKpi = logDAOs.getStaffProcedureKpi(uId, filterDate);
+    DTOs.StaffProcedureKpiDTO procedureKpi = logDAO.getStaffProcedureKpi(uId, filterDate);
     request.setAttribute("myCompletedProcedures", procedureKpi.getCompletedCount());
     request.setAttribute("myTotalFees", procedureKpi.getTotalFees());
 %>
@@ -97,12 +97,12 @@
         <!-- Personal Staff Profile Header -->
         <div class="staff-profile-card">
             <div class="profile-info-group">
-                <!-- Visual initials avatar dynamically parsed from the staff name -->
-                <div class="profile-avatar-circle">
-                    ${fn:substring(sessionScope.user.profile.fullName, 0, 2)}
-                </div>
-                <div class="profile-meta-text">
-                    <span style="font-size: 1.15rem; font-weight: 800;">${sessionScope.user.profile.fullName}</span>
+                <div class="user-info">
+                    <div class="avatar-circle">
+                    ${fn:substring(sessionScope.userProfile.fullName, 0, 2)}
+                    </div>
+                    <div class="name-role">
+                    <span style="font-size: 1.15rem; font-weight: 800;">${sessionScope.userProfile.fullName}</span>
                     <span style="font-size: 0.82rem; opacity: 0.85; font-family: monospace;">Tài khoản: @${sessionScope.user.username} | Mã cán bộ: CBSH-00${sessionScope.user.id}</span>
                 </div>
             </div>
