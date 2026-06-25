@@ -23,7 +23,9 @@ public final class AuditEntityLabels {
             Map.entry("CANDIDATECALL", "Gọi thí sinh"),
             Map.entry("KẾT QUẢ THI", "Kết quả thi"),
             Map.entry("PHÒNG THI", "Phòng thi"),
-            Map.entry("SCOREENTRYQUEUE", "Hàng đợi nhập điểm")
+            Map.entry("SCOREENTRYQUEUE", "Hàng đợi nhập điểm"),
+            Map.entry("DOCUMENT", "Tài liệu hồ sơ"),
+            Map.entry("TÀI LIỆU HỒ SƠ", "Tài liệu hồ sơ")
     );
 
     private AuditEntityLabels() {

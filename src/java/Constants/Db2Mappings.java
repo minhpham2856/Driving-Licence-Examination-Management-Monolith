@@ -54,9 +54,20 @@ public final class Db2Mappings {
         }
     }
 
+    /** Tiền tố CandidateNumber tạm khi thí sinh đăng ký online, chưa được cán bộ import SBD. */
+    public static final String PENDING_SBD_PREFIX = "PENDING-SBD-";
+
     public static String buildCandidateNumber(String licenseCode, int candidateNo) {
         String lc = licenseCode != null ? licenseCode : "XX";
         return lc + "-" + String.format("%04d", candidateNo);
+    }
+
+    public static String buildPendingCandidateNumber(int profileId, int sessionId) {
+        return PENDING_SBD_PREFIX + profileId + "-" + sessionId;
+    }
+
+    public static boolean isPendingCandidateNumber(String candidateNumber) {
+        return candidateNumber != null && candidateNumber.startsWith(PENDING_SBD_PREFIX);
     }
 
     public static boolean isPresentStatus(String registrationStatus) {
