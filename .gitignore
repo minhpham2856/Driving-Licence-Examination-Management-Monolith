@@ -10,3 +10,7 @@ AGENTS.md
 skills-lock.json
 sources.txt
 .agents/
+
+private/
+build/
+out/
