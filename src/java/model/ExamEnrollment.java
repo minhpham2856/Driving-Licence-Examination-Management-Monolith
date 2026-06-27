@@ -4,22 +4,22 @@ public class ExamEnrollment {
 
     private int examEnrollmentId;
     private int candidateId;
-    private int sessionId;
+    private int examId;
     private String sectionStatus;
     private boolean signaturePrinted;
     private Integer examDeviceId;
     private Candidate candidate;
-    private Session session;
+    private Exam exam;
     private ExamDevice examDevice;
 
     public ExamEnrollment() {
     }
 
-    public ExamEnrollment(int examEnrollmentId, int candidateId, int sessionId, String sectionStatus,
+    public ExamEnrollment(int examEnrollmentId, int candidateId, int examId, String sectionStatus,
             boolean signaturePrinted, Integer examDeviceId) {
         this.examEnrollmentId = examEnrollmentId;
         this.candidateId = candidateId;
-        this.sessionId = sessionId;
+        this.examId = examId;
         this.sectionStatus = sectionStatus;
         this.signaturePrinted = signaturePrinted;
         this.examDeviceId = examDeviceId;
@@ -41,12 +41,12 @@ public class ExamEnrollment {
         this.candidateId = candidateId;
     }
 
-    public int getSessionId() {
-        return sessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public String getSectionStatus() {
@@ -81,12 +81,12 @@ public class ExamEnrollment {
         this.candidate = candidate;
     }
 
-    public Session getSession() {
-        return session;
+    public Exam getExam() {
+        return exam;
     }
 
-    public void setSession(Session session) {
-        this.session = session;
+    public void setExam(Exam exam) {
+        this.exam = exam;
     }
 
     public ExamDevice getExamDevice() {

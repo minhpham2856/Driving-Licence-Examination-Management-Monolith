@@ -5,13 +5,13 @@ import java.sql.Timestamp;
 public class ExaminerSchedule {
 
     private int examinerScheduleId;
-    private int sessionId;
+    private int examId;
     private int examinerId; // user id of examiner
     private Integer examSectionId;
     private Integer examAreaId;
     private Integer assignedBy;
     private Timestamp assignedAt;
-    private Session session;
+    private Exam exam;
     private User examiner;
     private ExamSection examSection;
     private ExamArea examArea;
@@ -20,10 +20,10 @@ public class ExaminerSchedule {
     public ExaminerSchedule() {
     }
 
-    public ExaminerSchedule(int examinerScheduleId, int sessionId, int examinerId, Integer examSectionId,
+    public ExaminerSchedule(int examinerScheduleId, int examId, int examinerId, Integer examSectionId,
             Integer examAreaId, Integer assignedBy, Timestamp assignedAt) {
         this.examinerScheduleId = examinerScheduleId;
-        this.sessionId = sessionId;
+        this.examId = examId;
         this.examinerId = examinerId;
         this.examSectionId = examSectionId;
         this.examAreaId = examAreaId;
@@ -39,12 +39,12 @@ public class ExaminerSchedule {
         this.examinerScheduleId = examinerScheduleId;
     }
 
-    public int getSessionId() {
-        return sessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public int getExaminerId() {
@@ -87,12 +87,12 @@ public class ExaminerSchedule {
         this.assignedAt = assignedAt;
     }
 
-    public Session getSession() {
-        return session;
+    public Exam getExam() {
+        return exam;
     }
 
-    public void setSession(Session session) {
-        this.session = session;
+    public void setExam(Exam exam) {
+        this.exam = exam;
     }
 
     public User getExaminer() {
