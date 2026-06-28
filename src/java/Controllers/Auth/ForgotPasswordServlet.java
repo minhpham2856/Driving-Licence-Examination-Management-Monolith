@@ -3,13 +3,11 @@ package Controllers.Auth;
 import Services.AuthService;
 import Services.Impl.AuthServiceImpl;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet("/forgot-password")
 public class ForgotPasswordServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();

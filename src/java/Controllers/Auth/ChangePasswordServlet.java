@@ -6,14 +6,12 @@ import Models.User;
 import Utils.AuditLogHelper;
 import Utils.SessionUtil;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
 public class ChangePasswordServlet extends HttpServlet {
 
     private final UserDAO userDAO = new UserDAOImpl();

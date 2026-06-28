@@ -1,7 +1,7 @@
 package Controllers.Auth.Public;
 
-import DAO.UserDAO;
-import DAO.Impl.UserDAOImpl;
+import DAOs.UserDAO;
+import DAOs.Impl.UserDAOImpl;
 import Models.User;
 import Utils.AuditLogHelper;
 import Utils.SessionUtil;

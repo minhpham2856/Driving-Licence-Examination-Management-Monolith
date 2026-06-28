@@ -6,14 +6,12 @@ import Services.ExaminerSessionContextService;
 import Services.Impl.AuthServiceImpl;
 import Services.Impl.ExaminerSessionContextServiceImpl;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();
@@ -74,7 +72,7 @@ public class LoginServlet extends HttpServlet {
 
             String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
             if ("ManagingStaff".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/staff/managingstaff/dashboard.jsp");
+                response.sendRedirect(request.getContextPath() + "/manager/dashboard");
             } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/admin/examstaff/dashboard.jsp");
             } else if ("Examiner".equalsIgnoreCase(roleName)) {
