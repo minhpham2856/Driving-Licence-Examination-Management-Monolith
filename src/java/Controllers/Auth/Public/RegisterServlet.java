@@ -1,6 +1,6 @@
 package Controllers.Auth.Public;
 
-import DTOs.RegisterResult;
+import DTOs.RegisterResultDTO;
 import Services.AuthService;
 import Services.Impl.AuthServiceImpl;
 import jakarta.servlet.ServletException;
@@ -52,7 +52,7 @@ public class RegisterServlet extends HttpServlet {
 
         boolean gender = "1".equals(genderParam);
      
-        RegisterResult result = authService.register(
+        RegisterResultDTO result = authService.register(
                 govIdNo.trim(),
                 fullName.trim(),
                 phoneNo.trim(),
