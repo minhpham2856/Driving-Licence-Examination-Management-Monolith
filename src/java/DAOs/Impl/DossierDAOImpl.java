@@ -7,6 +7,7 @@ import Models.Document;
 import Models.Profile;
 import Models.User;
 import Utils.ExamConstants;
+import java.text.Normalizer;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -254,33 +255,45 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
     private String normalizeDocumentType(String documentType, DossierDTO dossier) {
         if (documentType == null) return "OTHER_" + dossier.getDocuments().size();
         String normalized = documentType.trim().toUpperCase();
+        String ascii = removeAccents(normalized);
+
         if (normalized.equals("PORTRAIT")
-                || normalized.contains("CHÂN DUNG")
-                || normalized.contains("CHAN DUNG")
-                || normalized.contains("ẢNH THẺ")) {
+                || ascii.contains("ANH")
+                || ascii.contains("CHAN DUNG")) {
             return "PORTRAIT";
         }
-        if (normalized.equals("ID_FRONT") || normalized.contains("CCCD MẶT TRƯỚC")) {
+        if (normalized.equals("ID_FRONT")
+                || ascii.contains("ID FRONT")
+                || ascii.contains("MAT TRUOC")) {
             return "ID_FRONT";
         }
-        if (normalized.equals("ID_BACK") || normalized.contains("CCCD MẶT SAU")) {
+        if (normalized.equals("ID_BACK")
+                || ascii.contains("ID BACK")
+                || ascii.contains("MAT SAU")) {
             return "ID_BACK";
         }
         if (normalized.equals("CCCD")) {
             return dossier.getDocuments().containsKey("ID_FRONT") ? "ID_BACK" : "ID_FRONT";
         }
         if (normalized.equals("HEALTH_CERTIFICATE")
-                || normalized.contains("KHÁM SK")
-                || normalized.contains("SỨC KHỎE")
-                || normalized.contains("SUC KHOE")) {
+                || ascii.contains("KHAM SK")
+                || ascii.contains("KHAM SUC KHOE")
+                || ascii.contains("SUC KHOE")) {
             return "HEALTH_CERTIFICATE";
         }
         if (normalized.equals("GRADUATION_CERTIFICATE")
-                || normalized.contains("TOT NGHIEP")
-                || normalized.contains("CHUNG CHI")
-                || normalized.contains("DAO TAO")) {
+                || ascii.contains("TOT NGHIEP")
+                || ascii.contains("CHUNG CHI")
+                || ascii.contains("DAO TAO")) {
             return "GRADUATION_CERTIFICATE";
         }
         return documentType;
+    }
+
+    private String removeAccents(String value) {
+        if (value == null) return "";
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return normalized.replace('\u0110', 'D').replace('\u0111', 'd');
     }
 }

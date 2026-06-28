@@ -69,8 +69,11 @@ public class DossierReviewServlet extends HttpServlet {
             return;
         }
         if ("Approved".equals(status) && !dossier.isComplete()) {
+            String missing = String.join(", ", dossier.getMissingRequiredDocumentLabels());
             request.getSession().setAttribute("reviewError",
-                    "Không thể duyệt khi hồ sơ chưa đủ ảnh chân dung, hai mặt CCCD và giấy khám sức khỏe.");
+                    "Không thể duyệt hồ sơ hạng " + dossier.getLicenceDisplayClass()
+                    + ". Cần đủ " + dossier.getRequiredDocumentTotal()
+                    + " giấy tờ, còn thiếu: " + missing + ".");
             response.sendRedirect(request.getContextPath() + "/manager/dossiers?id=" + registrationId);
             return;
         }

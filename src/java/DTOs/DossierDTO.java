@@ -3,7 +3,9 @@ package DTOs;
 import Models.Document;
 import Models.Profile;
 import Models.User;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DossierDTO {
@@ -89,12 +91,26 @@ public class DossierDTO {
         return separator >= 0 ? message.substring(0, separator) : message;
     }
     public boolean isComplete() {
-        return documents.containsKey("PORTRAIT")
-                && documents.containsKey("ID_FRONT")
-                && documents.containsKey("ID_BACK")
-                && documents.containsKey("HEALTH_CERTIFICATE")
-                && (!isGraduationCertificateRequired()
-                    || documents.containsKey("GRADUATION_CERTIFICATE"));
+        return getMissingRequiredDocumentLabels().isEmpty();
+    }
+    public List<String> getMissingRequiredDocumentLabels() {
+        List<String> missing = new ArrayList<>();
+        if (!documents.containsKey("PORTRAIT")) {
+            missing.add("Ảnh chân dung 3x4");
+        }
+        if (!documents.containsKey("ID_FRONT")) {
+            missing.add("CCCD mặt trước");
+        }
+        if (!documents.containsKey("ID_BACK")) {
+            missing.add("CCCD mặt sau");
+        }
+        if (!documents.containsKey("HEALTH_CERTIFICATE")) {
+            missing.add("Giấy khám sức khỏe");
+        }
+        if (isGraduationCertificateRequired() && !documents.containsKey("GRADUATION_CERTIFICATE")) {
+            missing.add("Giấy tốt nghiệp / chứng chỉ đào tạo");
+        }
+        return missing;
     }
     public boolean isMotorcycleLicence() {
         String value = normalisedLicenceClass();
