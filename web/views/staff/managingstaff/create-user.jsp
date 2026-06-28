@@ -27,7 +27,7 @@
         <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator">/</span>
-            <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
+            <a href="${pageContext.request.contextPath}/manager/dashboard">Dashboard quản lý</a>
             <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Tạo tài khoản cho thí sinh nộp hồ sơ</span>
         </nav>
@@ -39,7 +39,7 @@
             </div>
             
             <div class="page-actions">
-                <a href="${pageContext.request.contextPath}/views/staff/managingstaff/users.jsp" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
+                <a href="${pageContext.request.contextPath}/manager/registrants" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #ffffff; color: #475569;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -80,7 +80,9 @@
                     </div>
                 </c:if>
 
-                <form action="${pageContext.request.contextPath}/manager/create-user" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <form action="${pageContext.request.contextPath}/manager/create-user" method="POST"
+                      enctype="multipart/form-data"
+                      style="display: flex; flex-direction: column; gap: 1.25rem;">
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <div class="input-group">
@@ -127,28 +129,51 @@
                         <input type="text" id="address" name="address" class="input-field" placeholder="Ví dụ: Thanh Xuân, Hà Nội" value="${fn:escapeXml(param.address)}" required minlength="5" maxlength="150">
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                        <div class="input-group">
-                            <label for="userType" class="input-label">Phân loại học viên <span style="color: #ef4444;">*</span></label>
-                            <select id="userType" name="userType" class="input-field" required>
-                                <option value="">Chọn phân loại</option>
-                                <option value="student" ${param.userType eq 'student' ? 'selected' : ''}>Học viên chính khóa (Đăng ký học từ đầu)</option>
-                                <option value="free" ${param.userType eq 'free' ? 'selected' : ''}>Thí sinh tự do (Chỉ nộp hồ sơ thi sát hạch)</option>
+                    <section style="border: 1px solid #bfdbfe; border-radius: 12px; padding: 1.25rem; background: #f8fbff;">
+                        <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="margin: 0 0 4px; color: #0f172a; font-size: 1rem;">Hồ sơ Managing Staff tiếp nhận</h3>
+                                <p style="margin: 0; color: #64748b; font-size: 0.82rem; line-height: 1.5;">
+                                    Tải đủ giấy tờ đã đối chiếu tại quầy. Tài khoản tạo thành công sẽ có hồ sơ được xác minh.
+                                </p>
+                            </div>
+                            <span style="white-space: nowrap; padding: 5px 9px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-size: 0.72rem; font-weight: 700;">TIẾP NHẬN TRỰC TIẾP</span>
+                        </div>
+
+                        <div class="input-group" style="margin-bottom: 1rem;">
+                            <label for="licenseClass" class="input-label">Hạng GPLX đăng ký <span style="color: #ef4444;">*</span></label>
+                            <select id="licenseClass" name="licenseClass" class="input-field" required>
+                                <option value="">Chọn hạng GPLX</option>
+                                <option value="A1" ${param.licenseClass eq 'A1' ? 'selected' : ''}>Hạng A1</option>
+                                <option value="A2" ${param.licenseClass eq 'A2' ? 'selected' : ''}>Hạng A2</option>
+                                <option value="B1" ${param.licenseClass eq 'B1' ? 'selected' : ''}>Hạng B1</option>
+                                <option value="B2" ${param.licenseClass eq 'B2' ? 'selected' : ''}>Hạng B2</option>
+                                <option value="C" ${param.licenseClass eq 'C' ? 'selected' : ''}>Hạng C</option>
                             </select>
                         </div>
 
-                        <div class="input-group">
-                            <label for="licenseClass" class="input-label">Hạng GPLX sát hạch <span style="color: #ef4444;">*</span></label>
-                            <select id="licenseClass" name="licenseClass" class="input-field" required>
-                                <option value="">Chọn hạng bằng GPLX</option>
-                                <option value="A1" ${param.licenseClass eq 'A1' ? 'selected' : ''}>Hạng A1 (Xe máy dưới 175cc)</option>
-                                <option value="A2" ${param.licenseClass eq 'A2' ? 'selected' : ''}>Hạng A2 (Xe phân khối lớn từ 175cc)</option>
-                                <option value="B1" ${param.licenseClass eq 'B1' ? 'selected' : ''}>Hạng B1 (Ô tô số tự động)</option>
-                                <option value="B2" ${param.licenseClass eq 'B2' ? 'selected' : ''}>Hạng B2 (Ô tô số sàn)</option>
-                                <option value="C" ${param.licenseClass eq 'C' ? 'selected' : ''}>Hạng C (Ô tô tải lớn)</option>
-                            </select>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="input-group">
+                                <label for="portrait" class="input-label">Ảnh chân dung 3x4 <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="portrait" name="portrait" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="healthCertificate" class="input-label">Giấy khám sức khỏe <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="healthCertificate" name="healthCertificate" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="idFront" class="input-label">CCCD mặt trước <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="idFront" name="idFront" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="idBack" class="input-label">CCCD mặt sau <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="idBack" name="idBack" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
                         </div>
-                    </div>
+                        <p style="margin: 0.85rem 0 0; color: #64748b; font-size: 0.78rem;">
+                            Chấp nhận JPG, PNG hoặc PDF; tối đa 5 MB cho mỗi tệp.
+                        </p>
+                    </section>
 
                     <div class="input-group" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                         <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Thông tin tài khoản đăng nhập mặc định:</span>
@@ -161,8 +186,8 @@
                     <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 8px 0;">
 
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <a href="users.jsp" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; width: 120px; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff;">Hủy bỏ</a>
-                        <button type="submit" class="btn-filter" style="height: 42px; width: 180px; border-radius: 8px; background-color: #0052cc; border-color: #0052cc; justify-content: center; font-weight: 700;">Tạo tài khoản</button>
+                        <a href="${pageContext.request.contextPath}/manager/registrants" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; width: 120px; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff;">Hủy bỏ</a>
+                        <button type="submit" class="btn-filter" style="height: 42px; min-width: 230px; border-radius: 8px; background-color: #0052cc; border-color: #0052cc; justify-content: center; font-weight: 700;">Tạo tài khoản &amp; hoàn tất hồ sơ</button>
                     </div>
                 </form>
             </div>
@@ -213,7 +238,9 @@
                         </h2>
                     </div>
 
-                    <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">Sau khi tài khoản được tạo thành công, học viên sẽ phải đăng nhập để tải lên các giấy tờ pháp lý sau đây lên hệ thống:</p>
+                    <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">
+                        Managing Staff đối chiếu bản giấy và tải đủ các tài liệu dưới đây ngay khi tạo tài khoản:
+                    </p>
                     
                     <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.82rem; color: #64748b;">
                         <div style="display: flex; align-items: center; gap: 6px;">
@@ -227,6 +254,9 @@
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <span style="color: #10b981; font-weight: 900;">✓</span>
                             <span>Giấy khám sức khỏe lái xe còn thời hạn dưới 6 tháng</span>
+                        </div>
+                        <div style="margin-top: 0.35rem; padding: 0.75rem; border-radius: 7px; background: #ecfdf5; color: #047857; line-height: 1.45; font-weight: 600;">
+                            Hồ sơ sẽ được đánh dấu đã xác minh. Thí sinh không phải tải lại và có thể chuyển sang chọn phiên thi phù hợp.
                         </div>
                     </div>
                 </div>
