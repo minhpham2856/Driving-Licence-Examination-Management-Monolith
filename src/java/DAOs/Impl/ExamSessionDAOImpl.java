@@ -152,7 +152,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                                     Timestamp startTime, Timestamp endTime, String centreName) {
         Connection conn = null;
         try {
-            conn = getConnection();
+            conn = new DBContext().getConnection();
             conn.setAutoCommit(false);
 
             int examId = createExam(conn, licenceId, startTime, centreName);

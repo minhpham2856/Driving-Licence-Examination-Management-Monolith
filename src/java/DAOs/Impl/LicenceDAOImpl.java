@@ -33,9 +33,22 @@ public class LicenceDAOImpl implements LicenceDAO {
         int up = rs.getInt("UpgradeFromLicenceId");
         l.setUpgradeFromLicenceId(rs.wasNull() ? null : up);
         l.setUpgradeFromClass(rs.getString("UpgradeFromClass"));
-        l.setCreatedAt(rs.getTimestamp("CreatedAt"));
-        l.setUpdatedAt(rs.getTimestamp("UpdatedAt"));
+        if (hasColumn(rs, "CreatedAt")) {
+            l.setCreatedAt(rs.getTimestamp("CreatedAt"));
+        }
+        if (hasColumn(rs, "UpdatedAt")) {
+            l.setUpdatedAt(rs.getTimestamp("UpdatedAt"));
+        }
         return l;
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        try {
+            rs.findColumn(columnName);
+            return true;
+        } catch (SQLException ex) {
+            return false;
+        }
     }
 
     /**
@@ -129,8 +142,12 @@ public class LicenceDAOImpl implements LicenceDAO {
      */
     @Override
     public int insert(Licence l) {
-        String sql = "INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, "
-                   + "UpgradeFromLicenceId, CreatedByUserId, UpdatedByUserId) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        boolean hasAudit = hasTableColumn("Licence", "CreatedByUserId") && hasTableColumn("Licence", "UpdatedByUserId");
+        String sql = hasAudit
+                ? "INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, "
+                + "UpgradeFromLicenceId, CreatedByUserId, UpdatedByUserId) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                : "INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, "
+                + "UpgradeFromLicenceId) VALUES (?, ?, ?, ?, ?)";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, l.getLicenceClass());
@@ -138,8 +155,10 @@ public class LicenceDAOImpl implements LicenceDAO {
             ps.setInt(3, l.getMinimumAge());
             ps.setInt(4, l.getValidForYears());
             setIntOrNull(ps, 5, l.getUpgradeFromLicenceId());
-            setIntOrNull(ps, 6, l.getCreatedByUserId());
-            setIntOrNull(ps, 7, l.getUpdatedByUserId());
+            if (hasAudit) {
+                setIntOrNull(ps, 6, l.getCreatedByUserId());
+                setIntOrNull(ps, 7, l.getUpdatedByUserId());
+            }
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) return keys.getInt(1);
@@ -160,8 +179,13 @@ public class LicenceDAOImpl implements LicenceDAO {
      */
     @Override
     public boolean update(Licence l) {
+        boolean hasUpdatedAt = hasTableColumn("Licence", "UpdatedAt");
+        boolean hasUpdatedBy = hasTableColumn("Licence", "UpdatedByUserId");
         String sql = "UPDATE Licence SET LicenceClass = ?, Description = ?, MinimumAge = ?, ValidForYears = ?, "
-                   + "UpgradeFromLicenceId = ?, UpdatedAt = GETDATE(), UpdatedByUserId = ? WHERE LicenceId = ?";
+                   + "UpgradeFromLicenceId = ?"
+                   + (hasUpdatedAt ? ", UpdatedAt = GETDATE()" : "")
+                   + (hasUpdatedBy ? ", UpdatedByUserId = ?" : "")
+                   + " WHERE LicenceId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, l.getLicenceClass());
@@ -169,8 +193,11 @@ public class LicenceDAOImpl implements LicenceDAO {
             ps.setInt(3, l.getMinimumAge());
             ps.setInt(4, l.getValidForYears());
             setIntOrNull(ps, 5, l.getUpgradeFromLicenceId());
-            setIntOrNull(ps, 6, l.getUpdatedByUserId());
-            ps.setInt(7, l.getLicenceId());
+            int idx = 6;
+            if (hasUpdatedBy) {
+                setIntOrNull(ps, idx++, l.getUpdatedByUserId());
+            }
+            ps.setInt(idx, l.getLicenceId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -199,5 +226,19 @@ public class LicenceDAOImpl implements LicenceDAO {
     /** Helper to bind an Integer parameter as SQL NULL when the value is null. */
     private void setIntOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
         if (val == null) ps.setNull(idx, java.sql.Types.INTEGER); else ps.setInt(idx, val);
+    }
+
+    private boolean hasTableColumn(String tableName, String columnName) {
+        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?";
+        try (Connection c = new DBContext().getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, tableName);
+            ps.setString(2, columnName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -25,9 +25,22 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         a.setAreaType(rs.getString("AreaType"));
         a.setCapacity(rs.getInt("Capacity"));
         a.setLocation(rs.getString("Location"));
-        a.setCreatedAt(rs.getTimestamp("CreatedAt"));
-        a.setUpdatedAt(rs.getTimestamp("UpdatedAt"));
+        if (hasColumn(rs, "CreatedAt")) {
+            a.setCreatedAt(rs.getTimestamp("CreatedAt"));
+        }
+        if (hasColumn(rs, "UpdatedAt")) {
+            a.setUpdatedAt(rs.getTimestamp("UpdatedAt"));
+        }
         return a;
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        try {
+            rs.findColumn(columnName);
+            return true;
+        } catch (SQLException ex) {
+            return false;
+        }
     }
 
     /**
@@ -95,16 +108,21 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
      */
     @Override
     public int insert(ExamArea a) {
-        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, Location, CreatedByUserId, UpdatedByUserId) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        boolean hasAudit = hasTableColumn("ExamArea", "CreatedByUserId") && hasTableColumn("ExamArea", "UpdatedByUserId");
+        String sql = hasAudit
+                ? "INSERT INTO ExamArea (AreaName, AreaType, Capacity, Location, CreatedByUserId, UpdatedByUserId) "
+                + "VALUES (?, ?, ?, ?, ?, ?)"
+                : "INSERT INTO ExamArea (AreaName, AreaType, Capacity, Location) VALUES (?, ?, ?, ?)";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
             ps.setInt(3, a.getCapacity());
             ps.setString(4, a.getLocation());
-            setIntOrNull(ps, 5, a.getCreatedByUserId());
-            setIntOrNull(ps, 6, a.getUpdatedByUserId());
+            if (hasAudit) {
+                setIntOrNull(ps, 5, a.getCreatedByUserId());
+                setIntOrNull(ps, 6, a.getUpdatedByUserId());
+            }
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) return keys.getInt(1);
@@ -125,16 +143,23 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
      */
     @Override
     public boolean update(ExamArea a) {
-        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, Location = ?, "
-                   + "UpdatedAt = GETDATE(), UpdatedByUserId = ? WHERE ExamAreaId = ?";
+        boolean hasUpdatedAt = hasTableColumn("ExamArea", "UpdatedAt");
+        boolean hasUpdatedBy = hasTableColumn("ExamArea", "UpdatedByUserId");
+        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, Location = ?"
+                   + (hasUpdatedAt ? ", UpdatedAt = GETDATE()" : "")
+                   + (hasUpdatedBy ? ", UpdatedByUserId = ?" : "")
+                   + " WHERE ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
             ps.setInt(3, a.getCapacity());
             ps.setString(4, a.getLocation());
-            setIntOrNull(ps, 5, a.getUpdatedByUserId());
-            ps.setInt(6, a.getExamAreaId());
+            int idx = 5;
+            if (hasUpdatedBy) {
+                setIntOrNull(ps, idx++, a.getUpdatedByUserId());
+            }
+            ps.setInt(idx, a.getExamAreaId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -262,5 +287,19 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     /** Helper to bind an Integer parameter, setting SQL NULL when the value is null. */
     private void setIntOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
         if (val == null) ps.setNull(idx, java.sql.Types.INTEGER); else ps.setInt(idx, val);
+    }
+
+    private boolean hasTableColumn(String tableName, String columnName) {
+        String sql = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?";
+        try (Connection c = new DBContext().getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, tableName);
+            ps.setString(2, columnName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
