@@ -39,12 +39,14 @@ public class CreateUserServlet extends HttpServlet {
     private static final Pattern CCCD_PATTERN = Pattern.compile("\\d{12}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("0\\d{9}");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Set<String> LICENSE_CLASSES = Set.of("A1", "A2", "B1", "B2", "C");
+    private static final Set<String> LICENSE_CLASSES = Set.of("A1", "A", "B1", "B", "C1", "C", "D1", "D2", "D");
     private static final Map<String, String> DOSSIER_PARTS = Map.of(
             "portrait", "PORTRAIT",
             "idFront", "ID_FRONT",
             "idBack", "ID_BACK",
             "healthCertificate", "HEALTH_CERTIFICATE");
+    private static final String GRADUATION_PART = "graduationCertificate";
+    private static final String GRADUATION_DOCUMENT_TYPE = "GRADUATION_CERTIFICATE";
 
     private final AuthService authService = new AuthServiceImpl();
     private final EmailService emailService = new EmailServiceImpl();
@@ -79,7 +81,7 @@ public class CreateUserServlet extends HttpServlet {
         String dob = trim(request.getParameter("dob"));
         String gender = trim(request.getParameter("gender"));
         String address = trim(request.getParameter("address"));
-        String licenseClass = trim(request.getParameter("licenseClass")).toUpperCase();
+        String licenseClass = normalizeLicenceClass(request.getParameter("licenseClass"));
 
         String validationError = validate(
                 fullName, cccd, phone, email, dob, gender, address, licenseClass);
@@ -90,7 +92,7 @@ public class CreateUserServlet extends HttpServlet {
         }
 
         try {
-            validateDossierParts(request);
+            validateDossierParts(request, licenseClass);
         } catch (IllegalArgumentException ex) {
             request.setAttribute("createUserError", ex.getMessage());
             request.getRequestDispatcher(VIEW).forward(request, response);
@@ -122,7 +124,7 @@ public class CreateUserServlet extends HttpServlet {
         boolean applicationCreated = registrationId > 0;
         if (applicationCreated) {
             try {
-                saveDossierParts(request, profile.getId(), profile.getUserId());
+                saveDossierParts(request, profile.getId(), profile.getUserId(), licenseClass);
                 applicationCreated = dossierDAO.updateStatus(registrationId, "Approved",
                         "Hồ sơ bản giấy và tệp đính kèm đã được Managing Staff đối chiếu khi tạo tài khoản",
                         ((User) session.getAttribute("user")).getId());
@@ -187,7 +189,7 @@ public class CreateUserServlet extends HttpServlet {
             if (dateOfBirth.isAfter(LocalDate.now())) {
                 return "Ngày sinh không được nằm trong tương lai.";
             }
-            int minimumAge = "C".equals(licenseClass) ? 21 : 18;
+            int minimumAge = minimumAgeFor(licenseClass);
             int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
             if (age < minimumAge) {
                 return "Học viên phải đủ " + minimumAge + " tuổi để đăng ký hạng " + licenseClass + ".";
@@ -199,7 +201,7 @@ public class CreateUserServlet extends HttpServlet {
         return null;
     }
 
-    private void validateDossierParts(HttpServletRequest request)
+    private void validateDossierParts(HttpServletRequest request, String licenseClass)
             throws IOException, ServletException {
         for (String partName : DOSSIER_PARTS.keySet()) {
             Part part = request.getPart(partName);
@@ -215,9 +217,18 @@ public class CreateUserServlet extends HttpServlet {
                 throw new IllegalArgumentException("Định dạng tệp phải là JPG, JPEG, PNG hoặc PDF.");
             }
         }
+        Part graduation = request.getPart(GRADUATION_PART);
+        if (requiresGraduationCertificate(licenseClass)) {
+            if (graduation == null || graduation.getSize() == 0) {
+                throw new IllegalArgumentException("Hồ sơ hạng ô tô phải có giấy tốt nghiệp/chứng chỉ đào tạo từ trung tâm.");
+            }
+            validateOptionalFile(graduation);
+        } else if (graduation != null && graduation.getSize() > 0) {
+            validateOptionalFile(graduation);
+        }
     }
 
-    private void saveDossierParts(HttpServletRequest request, int profileId, int userId)
+    private void saveDossierParts(HttpServletRequest request, int profileId, int userId, String licenseClass)
             throws IOException, ServletException {
         String root = getServletContext().getRealPath("/uploads/dossiers/" + userId);
         if (root == null) {
@@ -240,6 +251,27 @@ public class CreateUserServlet extends HttpServlet {
                     "/uploads/dossiers/" + userId + "/" + fileName)) {
                 throw new IllegalArgumentException("Không thể ghi thông tin tài liệu vào cơ sở dữ liệu.");
             }
+        }
+        saveGraduationCertificateIfPresent(request, directory, profileId, userId);
+    }
+
+    private void saveGraduationCertificateIfPresent(HttpServletRequest request, Path directory, int profileId, int userId)
+            throws IOException, ServletException {
+        Part part = request.getPart(GRADUATION_PART);
+        if (part == null || part.getSize() == 0) {
+            return;
+        }
+        String extension = extension(part.getSubmittedFileName());
+        String fileName = GRADUATION_DOCUMENT_TYPE.toLowerCase() + "-" + UUID.randomUUID() + extension;
+        Path target = directory.resolve(fileName).normalize();
+        if (!target.startsWith(directory)) {
+            throw new IllegalArgumentException("TÃªn tá»‡p khÃ´ng há»£p lá»‡.");
+        }
+        part.write(target.toString());
+        persistAcrossCleanBuild(target, userId, fileName);
+        if (!dossierDAO.saveDocument(profileId, GRADUATION_DOCUMENT_TYPE,
+                "/uploads/dossiers/" + userId + "/" + fileName)) {
+            throw new IllegalArgumentException("KhÃ´ng thá»ƒ ghi thÃ´ng tin tÃ i liá»‡u vÃ o cÆ¡ sá»Ÿ dá»¯ liá»‡u.");
         }
     }
 
@@ -297,6 +329,37 @@ public class CreateUserServlet extends HttpServlet {
 
     private static String trim(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private static String normalizeLicenceClass(String value) {
+        String licenseClass = trim(value).toUpperCase();
+        return switch (licenseClass) {
+            case "A2" -> "A";
+            case "B2" -> "B";
+            default -> licenseClass;
+        };
+    }
+
+    private static boolean requiresGraduationCertificate(String licenseClass) {
+        return !Set.of("A1", "A").contains(normalizeLicenceClass(licenseClass));
+    }
+
+    private static int minimumAgeFor(String licenseClass) {
+        return switch (normalizeLicenceClass(licenseClass)) {
+            case "C1", "C" -> 21;
+            case "D1", "D2", "D" -> 24;
+            default -> 18;
+        };
+    }
+
+    private static void validateOptionalFile(Part part) {
+        String contentType = part.getContentType() == null ? "" : part.getContentType();
+        if (!(contentType.startsWith("image/") || "application/pdf".equals(contentType))) {
+            throw new IllegalArgumentException("Hồ sơ chỉ chấp nhận tệp ảnh hoặc PDF.");
+        }
+        if (extension(part.getSubmittedFileName()).isEmpty()) {
+            throw new IllegalArgumentException("Định dạng tệp phải là JPG, JPEG, PNG hoặc PDF.");
+        }
     }
 
     private static void moveFlashAttribute(HttpSession session, HttpServletRequest request,

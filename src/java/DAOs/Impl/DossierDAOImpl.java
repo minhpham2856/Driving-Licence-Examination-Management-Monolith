@@ -275,6 +275,12 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
                 || normalized.contains("SUC KHOE")) {
             return "HEALTH_CERTIFICATE";
         }
+        if (normalized.equals("GRADUATION_CERTIFICATE")
+                || normalized.contains("TOT NGHIEP")
+                || normalized.contains("CHUNG CHI")
+                || normalized.contains("DAO TAO")) {
+            return "GRADUATION_CERTIFICATE";
+        }
         return documentType;
     }
 }

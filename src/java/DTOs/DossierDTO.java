@@ -27,6 +27,13 @@ public class DossierDTO {
     public void setNotes(String notes) { this.notes = notes; }
     public String getLicenceClass() { return licenceClass; }
     public void setLicenceClass(String licenceClass) { this.licenceClass = licenceClass; }
+    public String getLicenceDisplayClass() {
+        return switch (normalisedLicenceClass()) {
+            case "A" -> "A2";
+            case "B" -> "B2";
+            default -> licenceClass;
+        };
+    }
     public Map<String, Document> getDocuments() { return documents; }
     public int getDocumentCount() {
         int count = 0;
@@ -34,7 +41,11 @@ public class DossierDTO {
         if (documents.containsKey("ID_FRONT")) count++;
         if (documents.containsKey("ID_BACK")) count++;
         if (documents.containsKey("HEALTH_CERTIFICATE")) count++;
+        if (isGraduationCertificateRequired() && documents.containsKey("GRADUATION_CERTIFICATE")) count++;
         return count;
+    }
+    public int getRequiredDocumentTotal() {
+        return isGraduationCertificateRequired() ? 5 : 4;
     }
     public String getStatusLabel() {
         return switch (status == null ? "" : status) {
@@ -81,6 +92,18 @@ public class DossierDTO {
         return documents.containsKey("PORTRAIT")
                 && documents.containsKey("ID_FRONT")
                 && documents.containsKey("ID_BACK")
-                && documents.containsKey("HEALTH_CERTIFICATE");
+                && documents.containsKey("HEALTH_CERTIFICATE")
+                && (!isGraduationCertificateRequired()
+                    || documents.containsKey("GRADUATION_CERTIFICATE"));
+    }
+    public boolean isMotorcycleLicence() {
+        String value = normalisedLicenceClass();
+        return "A1".equals(value) || "A".equals(value) || "A2".equals(value);
+    }
+    public boolean isGraduationCertificateRequired() {
+        return licenceClass != null && !licenceClass.isBlank() && !isMotorcycleLicence();
+    }
+    private String normalisedLicenceClass() {
+        return licenceClass == null ? "" : licenceClass.trim().toUpperCase(java.util.Locale.ROOT);
     }
 }
