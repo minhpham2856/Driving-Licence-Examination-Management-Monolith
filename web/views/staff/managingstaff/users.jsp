@@ -1,226 +1,154 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:if test="${empty requestScope.totalRegistrants}">
+    <c:redirect url="/manager/registrants" />
+</c:if>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý học viên - Lái Vui</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý thí sinh - Lái Vui</title>
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
-
 <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
     <jsp:param name="activeSidebar" value="hoc-vien" />
 </jsp:include>
-
 <div class="dashboard-shell">
-    <main class="main-content">
-        
-        <nav class="breadcrumbs">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator">/</span>
-            <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator">/</span>
-            <span class="breadcrumbs__current">Danh sách học viên</span>
-        </nav>
-        
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Danh Sách Học Viên</h1>
-                <p class="page-subtitle">Danh sách học viên đăng ký chính khóa và thí sinh tự do nộp hồ sơ.</p>
+<main class="main-content">
+    <nav class="breadcrumbs">
+        <a href="${ctx}/manager/dashboard">Dashboard</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span class="breadcrumbs__current">Quản lý thí sinh</span>
+    </nav>
+    <header class="page-header">
+        <div class="page-title-wrap">
+            <h1 class="page-title">Quản Lý Thí Sinh</h1>
+            <p class="page-subtitle">Quản lý tài khoản, hồ sơ và trạng thái đăng ký của toàn bộ Registrant.</p>
+        </div>
+        <div class="page-actions" style="display:flex;gap:.75rem">
+            <a class="btn-export"
+               href="${ctx}/manager/registrants?export=csv&amp;keyword=${fn:escapeXml(param.keyword)}&amp;licence=${fn:escapeXml(param.licence)}&amp;dossierStatus=${fn:escapeXml(param.dossierStatus)}&amp;accountStatus=${fn:escapeXml(param.accountStatus)}"
+               style="display:inline-flex;text-decoration:none">Xuất danh sách Excel</a>
+            <a class="btn-filter" href="${ctx}/manager/create-user"
+               style="display:inline-flex;text-decoration:none">Tạo tài khoản &amp; hồ sơ</a>
+        </div>
+    </header>
+
+    <c:if test="${not empty sessionScope.registrantSuccess}">
+        <div class="p-alert-banner" style="border-color:#10b981;color:#047857"><c:out value="${sessionScope.registrantSuccess}" /></div>
+        <c:remove var="registrantSuccess" scope="session" />
+    </c:if>
+    <c:if test="${not empty sessionScope.registrantError}">
+        <div class="p-alert-banner" style="border-color:#ef4444;color:#991b1b"><c:out value="${sessionScope.registrantError}" /></div>
+        <c:remove var="registrantError" scope="session" />
+    </c:if>
+
+    <div class="report-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:1.25rem 0">
+        <div class="profile-score-card"><span class="score-card-part">TỔNG THÍ SINH</span><strong style="font-size:1.7rem">${totalRegistrants}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">HỒ SƠ ĐÃ DUYỆT</span><strong style="font-size:1.7rem;color:#059669">${approvedCount}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">CẦN XỬ LÝ</span><strong style="font-size:1.7rem;color:#d97706">${pendingCount}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">TÀI KHOẢN ĐÃ KHÓA</span><strong style="font-size:1.7rem;color:#dc2626">${lockedCount}</strong></div>
+    </div>
+
+    <section class="filter-panel">
+        <h2 class="filter-title">Tìm kiếm và lọc dữ liệu</h2>
+        <form action="${ctx}/manager/registrants" method="get">
+            <div class="filter-grid" style="grid-template-columns:2fr 1fr 1.25fr 1fr 1.5fr">
+                <div class="input-group">
+                    <label class="input-label" for="keyword">Tên, CCCD, email, SĐT hoặc username</label>
+                    <input class="input-field" id="keyword" name="keyword" value="<c:out value='${param.keyword}' />" placeholder="Nhập từ khóa">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="licence">Hạng GPLX</label>
+                    <select class="input-field" id="licence" name="licence">
+                        <option value="">Tất cả</option>
+                        <option value="A1" ${param.licence eq 'A1' ? 'selected' : ''}>Hạng A1</option>
+                        <option value="A" ${param.licence eq 'A' ? 'selected' : ''}>Hạng A</option>
+                        <option value="B1" ${param.licence eq 'B1' ? 'selected' : ''}>Hạng B1</option>
+                        <option value="B" ${param.licence eq 'B' ? 'selected' : ''}>Hạng B</option>
+                        <option value="C" ${param.licence eq 'C' ? 'selected' : ''}>Hạng C</option>
+                        <option value="C1" ${param.licence eq 'C1' ? 'selected' : ''}>Hạng C1</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="dossierStatus">Trạng thái hồ sơ</label>
+                    <select class="input-field" id="dossierStatus" name="dossierStatus">
+                        <option value="">Tất cả</option>
+                        <option value="Draft" ${param.dossierStatus eq 'Draft' ? 'selected' : ''}>Bản nháp</option>
+                        <option value="Pending" ${param.dossierStatus eq 'Pending' ? 'selected' : ''}>Chờ duyệt</option>
+                        <option value="Submitted" ${param.dossierStatus eq 'Submitted' ? 'selected' : ''}>Đã gửi duyệt</option>
+                        <option value="NeedSupplement" ${param.dossierStatus eq 'NeedSupplement' ? 'selected' : ''}>Cần bổ sung</option>
+                        <option value="Approved" ${param.dossierStatus eq 'Approved' ? 'selected' : ''}>Đã duyệt</option>
+                        <option value="Rejected" ${param.dossierStatus eq 'Rejected' ? 'selected' : ''}>Đã từ chối</option>
+                        <option value="Present" ${param.dossierStatus eq 'Present' ? 'selected' : ''}>Đang tham gia thi</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="accountStatus">Tài khoản</label>
+                    <select class="input-field" id="accountStatus" name="accountStatus">
+                        <option value="">Tất cả</option>
+                        <option value="active" ${param.accountStatus eq 'active' ? 'selected' : ''}>Hoạt động</option>
+                        <option value="locked" ${param.accountStatus eq 'locked' ? 'selected' : ''}>Đã khóa</option>
+                    </select>
+                </div>
+                <div class="input-group filter-grid__btn-col">
+                    <div class="btn-group">
+                        <button class="btn-filter" type="submit">Áp dụng</button>
+                        <a class="btn-reset" href="${ctx}/manager/registrants">Đặt lại</a>
+                    </div>
+                </div>
             </div>
-            
-            <div class="page-actions" style="display: flex; gap: 10px;">
-                <a href="${pageContext.request.contextPath}/manager/create-user" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; border-color: #0052cc;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="8" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M20 8v6M17 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Tạo tài khoản học viên
-                </a>
-                <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Xuất danh sách Excel
-                </button>
-            </div>
+        </form>
+    </section>
+
+    <section class="log-card">
+        <header class="log-card-header">
+            <h2 class="log-card-title">Danh sách thí sinh từ database</h2>
+            <span class="action-badge action-badge--info">${fn:length(registrants)} kết quả</span>
         </header>
-
-        <section class="filter-panel">
-            <h2 class="filter-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Bộ lọc tìm kiếm học viên
-            </h2>
-            <form action="" method="GET">
-                <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.25fr 1.25fr 1.8fr;">
-                    <div class="input-group">
-                        <label for="searchKeyword" class="input-label">Tìm học viên</label>
-                        <input type="text" id="searchKeyword" name="searchKeyword" class="input-field" placeholder="Nhập tên, mã học viên, CCCD..." value="${param.searchKeyword}">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="filterUserType" class="input-label">Loại học viên</label>
-                        <select id="filterUserType" name="filterUserType" class="input-field">
-                            <option value="">Tất cả</option>
-                            <option value="student" ${param.filterUserType eq 'student' ? 'selected' : ''}>Học viên chính khóa</option>
-                            <option value="free" ${param.filterUserType eq 'free' ? 'selected' : ''}>Thí sinh tự do</option>
-                        </select>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="filterClass" class="input-label">Hạng bằng</label>
-                        <select id="filterClass" name="filterClass" class="input-field">
-                            <option value="">Tất cả hạng bằng</option>
-                            <option value="A1" ${param.filterClass eq 'A1' ? 'selected' : ''}>Hạng A1</option>
-                            <option value="A2" ${param.filterClass eq 'A2' ? 'selected' : ''}>Hạng A2</option>
-                            <option value="B1" ${param.filterClass eq 'B1' ? 'selected' : ''}>Hạng B1</option>
-                            <option value="B2" ${param.filterClass eq 'B2' ? 'selected' : ''}>Hạng B2</option>
-                            <option value="C" ${param.filterClass eq 'C' ? 'selected' : ''}>Hạng C</option>
-                        </select>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="filterStatus" class="input-label">Trạng thái hồ sơ</label>
-                        <select id="filterStatus" name="filterStatus" class="input-field">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="pending" ${param.filterStatus eq 'pending' ? 'selected' : ''}>Chờ duyệt</option>
-                            <option value="approved" ${param.filterStatus eq 'approved' ? 'selected' : ''}>Đã duyệt hồ sơ</option>
-                            <option value="rejected" ${param.filterStatus eq 'rejected' ? 'selected' : ''}>Từ chối hồ sơ</option>
-                        </select>
-                    </div>
-                    
-                    <div class="input-group filter-grid__btn-col">
-                        <div class="btn-group">
-                            <button type="submit" class="btn-filter">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Lọc
-                            </button>
-                            <a href="users.jsp" class="btn-reset">Đặt lại</a>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </section>
-
-        <section class="log-card">
-            <header class="log-card-header">
-                <h2 class="log-card-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                    Hồ sơ đăng ký học & thi
-                </h2>
-                
-                <span class="action-badge action-badge--info" style="font-weight: 700;">
-                    ${empty totalFilteredUsers ? 3 : totalFilteredUsers} học viên được lọc
-                </span>
-            </header>
-
-            <div class="table-responsive">
-                <table class="audit-table">
-                    <thead>
+        <div class="table-responsive">
+            <table class="audit-table">
+                <thead><tr><th>Mã</th><th>Thí sinh</th><th>CCCD / Liên hệ</th><th>Hạng</th><th>Nguồn hồ sơ</th><th>Giấy tờ</th><th>Hồ sơ</th><th>Tài khoản</th><th style="text-align:center">Thao tác</th></tr></thead>
+                <tbody>
+                    <c:forEach var="item" items="${registrants}">
                         <tr>
-                            <th scope="col" style="width: 80px; text-align: center;">Mã học viên</th>
-                            <th scope="col">Họ và tên</th>
-                            <th scope="col" style="width: 140px;">Số CCCD</th>
-                            <th scope="col" style="width: 120px; text-align: center;">Hạng GPLX</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Loại hồ sơ</th>
-                            <th scope="col" style="width: 150px;">Ngày đăng ký</th>
-                            <th scope="col" style="width: 130px; text-align: center;">Trạng thái</th>
-                            <th scope="col" style="width: 180px; text-align: center;">Hành động</th>
+                            <td>#${item.user.id}</td>
+                            <td><strong><c:out value="${item.profile.fullName}" /></strong><br><small>@<c:out value="${item.user.username}" /> · <c:out value="${item.user.email}" /></small></td>
+                            <td><c:out value="${item.profile.govIdNo}" /><br><small><c:out value="${item.profile.phoneNo}" /></small></td>
+                            <td><c:out value="${empty item.licenceClass ? '—' : item.licenceClass}" /></td>
+                            <td><c:out value="${item.sourceLabel}" /></td>
+                            <td>${item.documentCount}/4</td>
+                            <td><span class="action-badge action-badge--${item.statusKey}">${item.statusLabel}</span></td>
+                            <td><span class="action-badge action-badge--${item.user.active ? 'success' : 'danger'}">${item.user.active ? 'Hoạt động' : 'Đã khóa'}</span></td>
+                            <td>
+                                <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center">
+                                    <a class="btn-export" href="${ctx}/manager/dossier-detail?id=${item.user.id}" style="padding:.35rem .6rem;text-decoration:none">Chi tiết</a>
+                                    <c:if test="${item.reviewable}">
+                                        <a class="btn-export" href="${ctx}/manager/dossiers?id=${item.registrationId}" style="padding:.35rem .6rem;text-decoration:none;color:#d97706">Duyệt</a>
+                                    </c:if>
+                                    <form action="${ctx}/manager/registrants" method="post" style="margin:0" onsubmit="return confirm('${item.user.active ? 'Khóa' : 'Mở khóa'} tài khoản này?');">
+                                        <input type="hidden" name="id" value="${item.user.id}">
+                                        <input type="hidden" name="action" value="${item.user.active ? 'lock' : 'activate'}">
+                                        <button class="btn-export" type="submit" style="padding:.35rem .6rem;color:${item.user.active ? '#dc2626' : '#059669'}">${item.user.active ? 'Khóa' : 'Mở khóa'}</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty usersList}">
-                                <c:forEach var="user" items="${usersList}">
-                                    <tr>
-                                        <td style="text-align: center; font-weight: 700; color: #64748b;">${user.code}</td>
-                                        <td>
-                                            <div class="user-profile-cell" style="display: flex; align-items: center; gap: 8px;">
-                                                <div class="profile-avatar-large profile-avatar--blue" style="width: 32px; height: 32px; font-size: 0.85rem; border: none; box-shadow: none;">
-                                                    ${fn:substring(user.fullName, 0, 1)}
-                                                </div>
-                                                <div style="display: flex; flex-direction: column;">
-                                                    <span class="user-name" style="font-weight: 700; color: #0f172a;">${user.fullName}</span>
-                                                    <span class="user-username" style="font-size: 0.75rem; color: #64748b;">@${user.username}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style="font-family: monospace; font-size: 0.9rem;">${user.cccd}</td>
-                                        <td style="text-align: center;">
-                                            <span class="role-badge role-badge--coi" style="padding: 2px 8px; font-size: 0.75rem; font-weight: 700;">Hạng ${user.licenseClass}</span>
-                                        </td>
-                                        <td style="text-align: center; font-weight: 600; color: #475569;">
-                                            ${user.type eq 'student' ? 'Học viên chính khóa' : 'Thí sinh tự do'}
-                                        </td>
-                                        <td style="color: #64748b; font-size: 0.85rem;">${user.registerDate}</td>
-                                        <td style="text-align: center;">
-                                            <span class="action-badge action-badge--${user.statusKey}">${user.status}</span>
-                                        </td>
-                                        <td>
-                                            <div style="display: flex; gap: 6px; justify-content: center;">
-                                                <a href="user-detail.jsp?id=${user.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; text-decoration: none;">Xem chi tiết</a>
-                                                <c:if test="${user.statusKey eq 'warning'}">
-                                                    <a href="approve.jsp?id=${user.id}" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(217, 119, 6, 0.25); color: #d97706; font-weight: 700; text-decoration: none;">Duyệt</a>
-                                                </c:if>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr>
-                                    <td colspan="8" style="text-align: center; padding: 4rem 1.5rem; color: #64748b; font-weight: 500;">
-                                        Không tìm thấy danh sách học viên nào.
-                                    </td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-            
-            <footer class="pagination-footer">
-                <div class="pagination-info">
-                    <c:choose>
-                        <c:when test="${not empty usersList}">
-                            Hiển thị 1 - ${fn:length(usersList)} trong tổng số ${empty totalFilteredUsers ? fn:length(usersList) : totalFilteredUsers} học viên
-                        </c:when>
-                        <c:otherwise>
-                            Hiển thị 0 học viên
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-                <div class="pagination-nav">
-                    <button class="page-btn page-btn--wide disabled" disabled>Trước</button>
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn page-btn--wide disabled" disabled>Sau</button>
-                </div>
-            </footer>
-        </section>
-
-    </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
+                    </c:forEach>
+                    <c:if test="${empty registrants}">
+                        <tr><td colspan="9" style="padding:3rem;text-align:center;color:#64748b">Không tìm thấy thí sinh phù hợp.</td></tr>
+                    </c:if>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include>
 </div>
-
 </body>
 </html>
