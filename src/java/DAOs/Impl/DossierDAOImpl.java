@@ -105,8 +105,8 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
     @Override
     public int ensureRegistration(int profileId, String licenceClass, String source, String applicantType) {
         String normalizedClass = switch (licenceClass) {
-            case "A2" -> "A";
-            case "B2" -> "B";
+            case "A" -> "A2";
+            case "B" -> "B2";
             default -> licenceClass;
         };
         try {

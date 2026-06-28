@@ -39,7 +39,7 @@ public class CreateUserServlet extends HttpServlet {
     private static final Pattern CCCD_PATTERN = Pattern.compile("\\d{12}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("0\\d{9}");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Set<String> LICENSE_CLASSES = Set.of("A1", "A", "B1", "B", "C1", "C", "D1", "D2", "D");
+    private static final Set<String> LICENSE_CLASSES = Set.of("A1", "A2", "B1", "B2", "C1", "C", "D1", "D2", "D");
     private static final Map<String, String> DOSSIER_PARTS = Map.of(
             "portrait", "PORTRAIT",
             "idFront", "ID_FRONT",
@@ -334,14 +334,14 @@ public class CreateUserServlet extends HttpServlet {
     private static String normalizeLicenceClass(String value) {
         String licenseClass = trim(value).toUpperCase();
         return switch (licenseClass) {
-            case "A2" -> "A";
-            case "B2" -> "B";
+            case "A" -> "A2";
+            case "B" -> "B2";
             default -> licenseClass;
         };
     }
 
     private static boolean requiresGraduationCertificate(String licenseClass) {
-        return !Set.of("A1", "A").contains(normalizeLicenceClass(licenseClass));
+        return !Set.of("A1", "A2").contains(normalizeLicenceClass(licenseClass));
     }
 
     private static int minimumAgeFor(String licenseClass) {

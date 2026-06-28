@@ -68,9 +68,9 @@
                     <select class="input-field" id="licence" name="licence">
                         <option value="">Táº¥t cáº£</option>
                         <option value="A1" ${param.licence eq 'A1' ? 'selected' : ''}>Háº¡ng A1</option>
-                        <option value="A" ${param.licence eq 'A' ? 'selected' : ''}>Háº¡ng A</option>
+                        <option value="A2" ${param.licence eq 'A2' ? 'selected' : ''}>Háº¡ng A2</option>
                         <option value="B1" ${param.licence eq 'B1' ? 'selected' : ''}>Háº¡ng B1</option>
-                        <option value="B" ${param.licence eq 'B' ? 'selected' : ''}>Háº¡ng B</option>
+                        <option value="B2" ${param.licence eq 'B2' ? 'selected' : ''}>Háº¡ng B2</option>
                         <option value="C" ${param.licence eq 'C' ? 'selected' : ''}>Háº¡ng C</option>
                         <option value="C1" ${param.licence eq 'C1' ? 'selected' : ''}>Háº¡ng C1</option>
                     </select>

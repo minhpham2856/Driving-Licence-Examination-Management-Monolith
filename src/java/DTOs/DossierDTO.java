@@ -98,7 +98,7 @@ public class DossierDTO {
     }
     public boolean isMotorcycleLicence() {
         String value = normalisedLicenceClass();
-        return "A1".equals(value) || "A".equals(value) || "A2".equals(value);
+        return "A1".equals(value) || "A2".equals(value) || "A".equals(value);
     }
     public boolean isGraduationCertificateRequired() {
         return licenceClass != null && !licenceClass.isBlank() && !isMotorcycleLicence();

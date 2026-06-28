@@ -145,9 +145,10 @@
                             <select id="licenseClass" name="licenseClass" class="input-field" required>
                                 <option value="">Chá»n háº¡ng GPLX</option>
                                 <option value="A1" ${param.licenseClass eq 'A1' ? 'selected' : ''}>Háº¡ng A1</option>
-                                <option value="A" ${param.licenseClass eq 'A' or param.licenseClass eq 'A2' ? 'selected' : ''}>Háº¡ng A2</option>
+                                <option value="A2" ${param.licenseClass eq 'A2' ? 'selected' : ''}>Háº¡ng A2</option>
                                 <option value="B1" ${param.licenseClass eq 'B1' ? 'selected' : ''}>Háº¡ng B1</option>
-                                <option value="B" ${param.licenseClass eq 'B' or param.licenseClass eq 'B2' ? 'selected' : ''}>Háº¡ng B2</option>
+                                <option value="B2" ${param.licenseClass eq 'B2' ? 'selected' : ''}>Háº¡ng B2</option>
+                                <option value="C1" ${param.licenseClass eq 'C1' ? 'selected' : ''}>Háº¡ng C1</option>
                                 <option value="C" ${param.licenseClass eq 'C' ? 'selected' : ''}>Háº¡ng C</option>
                             </select>
                         </div>
@@ -291,7 +292,7 @@
         function updateGraduationRequirement() {
             if (!licenseSelect || !graduationInput) return;
             const value = (licenseSelect.value || '').toUpperCase();
-            const required = value !== '' && value !== 'A1' && value !== 'A';
+            const required = value !== '' && value !== 'A1' && value !== 'A2';
             graduationInput.required = required;
             if (requiredMark) requiredMark.style.display = required ? 'inline' : 'none';
             if (hint) {
@@ -309,4 +310,5 @@
 
 </body>
 </html>
+
 

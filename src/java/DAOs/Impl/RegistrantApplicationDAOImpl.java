@@ -24,18 +24,18 @@ public class RegistrantApplicationDAOImpl extends DBContext {
      *
      * @param profileId    the ProfileId of the applicant
      * @param licenseClass the requested licence class (e.g. "A1", "B2")
-     * @param userType     "student" for chính khoá, otherwise tự do
+     * @param userType     "student" for chÃ­nh khoÃ¡, otherwise tá»± do
      * @return true if the pending registration was created
      */
     public boolean insertPending(int profileId, String licenseClass, String userType) {
         String databaseLicenseClass = switch (licenseClass) {
-            case "A2" -> "A";
-            case "B2" -> "B";
+            case "A" -> "A2";
+            case "B" -> "B2";
             default -> licenseClass;
         };
         String notes = "student".equals(userType)
-                ? "Học viên chính khóa - chờ bổ sung và duyệt hồ sơ"
-                : "Thí sinh tự do - chờ bổ sung và duyệt hồ sơ";
+                ? "Há»c viÃªn chÃ­nh khÃ³a - chá» bá»• sung vÃ  duyá»‡t há»“ sÆ¡"
+                : "ThÃ­ sinh tá»± do - chá» bá»• sung vÃ  duyá»‡t há»“ sÆ¡";
 
         String insertSql = """
                 insert into ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
@@ -100,11 +100,12 @@ public class RegistrantApplicationDAOImpl extends DBContext {
 
     private LicenseDefaults defaultsFor(String licenseClass) {
         return switch (licenseClass) {
-            case "A1" -> new LicenseDefaults("Xe mô tô hai bánh đến 125 cm3", 18, 0);
-            case "A" -> new LicenseDefaults("Xe mô tô hai bánh trên 125 cm3", 18, 0);
-            case "B1" -> new LicenseDefaults("Ô tô số tự động", 18, 0);
-            case "B" -> new LicenseDefaults("Ô tô chở người đến 8 chỗ và ô tô tải đến 3.500 kg", 18, 10);
-            case "C" -> new LicenseDefaults("Ô tô tải trên 7.500 kg", 21, 5);
+            case "A1" -> new LicenseDefaults("Xe mÃ´ tÃ´ hai bÃ¡nh Ä‘áº¿n 125 cm3", 18, 0);
+            case "A2" -> new LicenseDefaults("Xe mÃ´ tÃ´ hai bÃ¡nh trÃªn 125 cm3", 18, 0);
+            case "B1" -> new LicenseDefaults("Ã” tÃ´ sá»‘ tá»± Ä‘á»™ng", 18, 0);
+            case "B2" -> new LicenseDefaults("Ã” tÃ´ chá»Ÿ ngÆ°á»i Ä‘áº¿n 8 chá»— vÃ  Ã´ tÃ´ táº£i Ä‘áº¿n 3.500 kg", 18, 10);
+            case "C1" -> new LicenseDefaults("Ô tô tải từ 3.500 kg đến 7.500 kg", 21, 10);
+            case "C" -> new LicenseDefaults("Ã” tÃ´ táº£i trÃªn 7.500 kg", 21, 5);
             default -> null;
         };
     }
@@ -112,3 +113,4 @@ public class RegistrantApplicationDAOImpl extends DBContext {
     private record LicenseDefaults(String description, int minimumAge, int validForYears) {
     }
 }
+
