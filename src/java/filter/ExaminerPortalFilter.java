@@ -1,6 +1,5 @@
 package filter;
 
-
 import model.user.User;
 import service.ExaminerSessionContextService;
 import service.impl.ExaminerSessionContextServiceImpl;
@@ -14,11 +13,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import service.RoleService;
+import service.impl.RoleServiceImpl;
 
 @WebFilter(urlPatterns = {"/views/examiner/*", "/examiner/*"})
 public class ExaminerPortalFilter extends HttpFilter {
 
     private final ExaminerSessionContextService contextService = new ExaminerSessionContextServiceImpl();
+     private final RoleService roleService = new RoleServiceImpl();
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -34,7 +36,7 @@ public class ExaminerPortalFilter extends HttpFilter {
             return;
         }
 
-        String roleName = enums.UserRole.roleNameFromId(user.getRoleId());
+        String roleName = roleService.getRoleNameById(user.getRoleId());
         if (!"Examiner".equalsIgnoreCase(roleName)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập.");
             return;
@@ -65,6 +67,3 @@ public class ExaminerPortalFilter extends HttpFilter {
         return uri;
     }
 }
-
-
-

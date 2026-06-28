@@ -6,9 +6,8 @@ import dbconnection.DBContext;
 import dao.AuditLogDAO;
 
 import model.user.Audit;
-import dto.user.AuditDTO;
 
-import dto.staff.StaffProcedureKpiDTO;
+import model.staff.StaffProcedureKpiModel;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,22 +21,17 @@ import java.util.List;
 public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
     private static final String AUDIT_SELECT = """
-            SELECT a.AuditId AS id,
-                   a.EntityName AS tableName,
-                   TRY_CAST(a.EntityId AS INT) AS recordId,
-                   a.Action AS action,
-                   a.OldValue AS oldValue,
-                   a.NewValue AS newValue,
-                   a.Details AS details,
-                   a.Reason AS reason,
-                   a.UserId AS changedBy,
-                   a.CreatedAt AS changedAt,
-                   NULL AS ipAddress,
-                   NULL AS sessionId,
-                   ISNULL(u.Username, p.FullName) AS changerName
+            SELECT a.AuditId,
+                   a.EntityName,
+                   a.EntityId,
+                   a.Action,
+                   a.OldValue,
+                   a.NewValue,
+                   a.Details,
+                   a.Reason,
+                   a.UserId,
+                   a.CreatedAt
             FROM Audit a
-            LEFT JOIN [User] u ON u.UserId = a.UserId
-            LEFT JOIN Profile p ON p.UserId = u.UserId
             """;
 
     private static final String SESSION_AUDIT_WHERE = """
@@ -123,10 +117,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * Returns today's audit log entries for a specific user (capped at 200 rows).
      *
      * @param userId the user whose logs to retrieve
-     * @return list of AuditDTO records
+     * @return list of Audit records
      */
     @Override
-    public List<AuditDTO> getLogsByUserToday(int userId) {
+    public List<Audit> getLogsByUserToday(int userId) {
         return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND a.CreatedAt >= CAST(GETDATE() AS DATE) ORDER BY a.CreatedAt DESC",
                 ps -> ps.setInt(1, userId), true);
     }
@@ -134,10 +128,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     /**
      * Returns all audit log entries created today (capped at 200 rows).
      *
-     * @return list of AuditDTO records
+     * @return list of Audit records
      */
     @Override
-    public List<AuditDTO> getAllLogsToday() {
+    public List<Audit> getAllLogsToday() {
         return queryLogs(AUDIT_SELECT + " WHERE a.CreatedAt >= CAST(GETDATE() AS DATE) ORDER BY a.CreatedAt DESC",
                 ps -> {}, false);
     }
@@ -147,10 +141,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      *
      * @param userId  the user ID
      * @param dateStr optional date string (yyyy-MM-dd); if null/empty returns all dates
-     * @return list of AuditDTO records
+     * @return list of Audit records
      */
     @Override
-    public List<AuditDTO> getLogsByUserAndDate(int userId, String dateStr) {
+    public List<Audit> getLogsByUserAndDate(int userId, String dateStr) {
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC",
                     ps -> {
@@ -166,10 +160,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * Returns all logs optionally filtered by date (capped at 200 rows).
      *
      * @param dateStr optional date string (yyyy-MM-dd)
-     * @return list of AuditDTO records
+     * @return list of Audit records
      */
     @Override
-    public List<AuditDTO> getAllLogsByDate(String dateStr) {
+    public List<Audit> getAllLogsByDate(String dateStr) {
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             return queryLogs(AUDIT_SELECT + " WHERE CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC",
                     ps -> ps.setString(1, dateStr), false);
@@ -185,10 +179,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * @param dateStr  optional date filter (yyyy-MM-dd)
      * @param page     the page number (1-based)
      * @param pageSize the number of rows per page
-     * @return list of AuditDTO records for the requested page
+     * @return list of Audit records for the requested page
      */
     @Override
-    public List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
+    public List<Audit> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
@@ -213,10 +207,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * @param dateStr  optional date filter (yyyy-MM-dd)
      * @param page     the page number (1-based)
      * @param pageSize the number of rows per page
-     * @return list of AuditDTO records for the requested page
+     * @return list of Audit records for the requested page
      */
     @Override
-    public List<AuditDTO> getAllLogsByDatePaginated(String dateStr, int page, int pageSize) {
+    public List<Audit> getAllLogsByDatePaginated(String dateStr, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             return queryLogs(AUDIT_SELECT + " WHERE CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
@@ -270,8 +264,8 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     /**
      * Executes a log query with parameter binding and optional row cap (TOP 200).
      */
-    private List<AuditDTO> queryLogs(String sql, SqlBinder binder, boolean limited) {
-        List<AuditDTO> list = new ArrayList<>();
+    private List<Audit> queryLogs(String sql, SqlBinder binder, boolean limited) {
+        List<Audit> list = new ArrayList<>();
         String finalSql = limited ? sql.replaceFirst("SELECT", "SELECT TOP 200") : sql;
         try (PreparedStatement ps = getConnection().prepareStatement(finalSql)) {
             binder.bind(ps);
@@ -310,7 +304,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * @return StaffProcedureKpiDTO with completedCount and totalFees
      */
     @Override
-    public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
+    public StaffProcedureKpiModel getStaffProcedureKpi(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
         String sql = """
                 SELECT COUNT(*) AS completedCount,
@@ -348,13 +342,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new StaffProcedureKpiDTO(rs.getInt("completedCount"), rs.getDouble("totalFees"));
+                    return new StaffProcedureKpiModel(rs.getInt("completedCount"), rs.getDouble("totalFees"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new StaffProcedureKpiDTO(0, 0);
+        return new StaffProcedureKpiModel(0, 0);
     }
 
     /**
@@ -363,10 +357,10 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * @param sessionId the SessionId
      * @param page      page number (1-based)
      * @param pageSize  rows per page
-     * @return list of AuditDTO records
+     * @return list of Audit records
      */
     @Override
-    public List<AuditDTO> getLogsForSessionPaginated(int sessionId, int page, int pageSize) {
+    public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize) {
         return getLogsForSessionPaginated(sessionId, page, pageSize, null);
     }
 
@@ -389,17 +383,17 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      * @param page        page number (1-based)
      * @param pageSize    rows per page
      * @param searchQuery optional full-text search keyword
-     * @return list of AuditDTO records
+     * @return list of Audit records
      */
     @Override
-    public List<AuditDTO> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
+    public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
         int safePage = Math.max(page, 1);
         int safeSize = Math.max(pageSize, 1);
         int offset = (safePage - 1) * safeSize;
         String searchClause = buildSessionSearchClause(searchQuery);
         String sql = AUDIT_SELECT + SESSION_AUDIT_WHERE + searchClause
                 + " ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-        List<AuditDTO> list = new ArrayList<>();
+        List<Audit> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             bindSessionParams(ps, sessionId, searchQuery);
             ps.setInt(paramIndexAfterSearch(searchQuery), offset);
@@ -426,8 +420,6 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     public int getLogsCountForSession(int sessionId, String searchQuery) {
         String searchClause = buildSessionSearchClause(searchQuery);
         String sql = "SELECT COUNT(*) FROM Audit a "
-                + "LEFT JOIN [User] u ON u.UserId = a.UserId "
-                + "LEFT JOIN Profile p ON p.UserId = u.UserId "
                 + SESSION_AUDIT_WHERE + searchClause;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             bindSessionParams(ps, sessionId, searchQuery);
@@ -455,7 +447,6 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                     OR a.OldValue LIKE ?
                     OR a.Reason LIKE ?
                     OR a.Details LIKE ?
-                    OR ISNULL(u.Username, p.FullName) LIKE ?
                  )
                 """;
     }
@@ -466,7 +457,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         ps.setInt(1, sessionId);
         if (searchQuery != null && !searchQuery.isBlank()) {
             String pattern = "%" + searchQuery.trim() + "%";
-            for (int i = 2; i <= 8; i++) {
+            for (int i = 2; i <= 7; i++) {
                 ps.setString(i, pattern);
             }
         }
@@ -474,7 +465,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
     /** Calculates the next parameter index after session ID and optional search params. */
     private static int paramIndexAfterSearch(String searchQuery) {
-        return (searchQuery != null && !searchQuery.isBlank()) ? 9 : 2;
+        return (searchQuery != null && !searchQuery.isBlank()) ? 8 : 2;
     }
 
     /**
@@ -482,14 +473,14 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      *
      * @param sessionId the SessionId
      * @param limit     maximum rows to return (clamped between 1 and 5000)
-     * @return list of AuditDTO records with action = 'WARNING'
+     * @return list of Audit records with action = 'WARNING'
      */
     @Override
-    public List<AuditDTO> getViolationLogsForSession(int sessionId, int limit) {
+    public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
         int safeLimit = Math.max(1, Math.min(limit, 5000));
         String sql = AUDIT_SELECT + SESSION_AUDIT_WHERE
                 + " AND UPPER(a.Action) = 'WARNING' ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
-        List<AuditDTO> list = new ArrayList<>();
+        List<Audit> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, sessionId);
             ps.setInt(2, safeLimit);
@@ -504,25 +495,22 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return list;
     }
 
-    /** Maps a ResultSet row to an AuditDTO using the aliased column names from AUDIT_SELECT. */
-    private AuditDTO mapResultSetToAuditLog(ResultSet rs) throws SQLException {
-        AuditDTO log = new AuditDTO();
-        log.setId(rs.getLong("id"));
-        log.setTableName(rs.getString("tableName"));
-        log.setRecordId(rs.getInt("recordId"));
-        if (rs.wasNull()) {
-            log.setRecordId(null);
+    /** Maps a ResultSet row to an Audit object. */
+    private Audit mapResultSetToAuditLog(ResultSet rs) throws SQLException {
+        Audit log = new Audit();
+        log.setAuditId(rs.getLong("AuditId"));
+        log.setEntityName(rs.getString("EntityName"));
+        log.setEntityId(rs.getString("EntityId"));
+        log.setAction(rs.getString("Action"));
+        log.setOldValue(rs.getString("OldValue"));
+        log.setNewValue(rs.getString("NewValue"));
+        log.setDetails(rs.getString("Details"));
+        log.setReason(rs.getString("Reason"));
+        int userId = rs.getInt("UserId");
+        if (!rs.wasNull()) {
+            log.setUserId(userId);
         }
-        log.setAction(rs.getString("action"));
-        log.setOldValue(rs.getString("oldValue"));
-        log.setNewValue(rs.getString("newValue"));
-        log.setDetails(rs.getString("details"));
-        log.setReason(rs.getString("reason"));
-        log.setChangedBy(rs.getInt("changedBy"));
-        log.setChangedAt(rs.getTimestamp("changedAt"));
-        log.setIpAddress(rs.getString("ipAddress"));
-        log.setSessionId(rs.getString("sessionId"));
-        log.setChangerName(rs.getString("changerName"));
+        log.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return log;
     }
 

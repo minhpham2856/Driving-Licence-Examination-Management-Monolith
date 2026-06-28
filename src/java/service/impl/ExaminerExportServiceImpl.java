@@ -1,9 +1,5 @@
 package service.impl;
 
-import dto.xml.XmlExportTable;
-import dto.xml.XmlExportDocument;
-import dto.examiner.ExaminerExportPayload;
-
 import enums.SectionType;
 import dto.examiner.ExaminerSlotDTO;
 import dao.AuditLogDAO;
@@ -11,7 +7,7 @@ import dao.ExaminerSessionDataDAO;
 import dao.impl.AuditLogDAOImpl;
 import dao.impl.ExaminerSessionDataDAOImpl;
 
-import dto.user.AuditDTO;
+import model.user.AuditRecordModel;
 
 import dto.candidate.CandidateDTO;
 
@@ -22,8 +18,7 @@ import dto.examiner.ExaminerExportContext;
 import dto.examiner.ExaminerExportPayload;
 import service.ExaminerExportService;
 import dto.xml.XmlExportTable;
-import util.AuditLogViewHelper;
-
+import service.AuditLogService;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
@@ -33,9 +28,11 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import service.ExaminerDataService;
 
- // Implementation of {@link ExaminerExportService}.
+// Implementation of {@link ExaminerExportService}.
 public class ExaminerExportServiceImpl implements ExaminerExportService {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     // Date formatter for Vietnamese date display (dd/MM/yyyy) — shared, thread-unsafe, sync on use
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
@@ -60,15 +57,15 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
             "Diem thuc hanh", "Diem duong truong");
 
     // Service used to load candidate rows and build summary statistics
-    private final service.ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
+    private final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     // DAO for session-level export metadata (session name, exam code, dates)
     private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
     // DAO for audit log entries (violations and general audit trail)
-    private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
+
     // DAO for candidate data (used to build SBD lookup maps)
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
 
-         // Builds the candidate-list export payload (danh sach thi sinh).
+    // Builds the candidate-list export payload (danh sach thi sinh).
     @Override
     public ExaminerExportPayload buildCandidatesExport(ExaminerExportContext ctx) {
         // Load candidate rows from the view-data service, filtered by section
@@ -81,26 +78,26 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         // Convert each candidate map into an ordered row of cell values
         for (Map<String, Object> c : candidates) {
             rows.add(Arrays.asList(
-                    index++,                                                          // STT
-                    c.get("sbd"),                                                     // SBD (candidate number)
-                    c.get("fullName"),                                                // Full name
-                    c.get("dob"),                                                     // Date of birth
-                    c.get("sex"),                                                     // Gender
-                    c.get("governmentId"),                                            // Government ID (CCCD)
-                    c.get("email"),                                                   // Email
-                    c.get("phoneNo"),                                                 // Phone number
-                    c.get("address"),                                                 // Address
-                    c.get("licenceClass"),                                            // Licence class
-                    c.get("reasonForTaking"),                                         // Reason for taking exam
-                    c.get("examDate"),                                                // Exam date
-                    Boolean.TRUE.equals(c.get("absent")) ? "Co" : "Khong",           // Absent (yes/no)
-                    c.get("statusLabel"),                                             // Status label
-                    c.get("correct"),                                                 // Theory correct count
-                    c.get("wrong"),                                                   // Theory wrong count
-                    c.get("unanswered"),                                              // Theory unanswered count
-                    c.get("scoreTheory"),                                             // Theory score
-                    c.get("resultLabel"),                                             // Theory result
-                    c.get("scorePractical"),                                          // Practical score
+                    index++, // STT
+                    c.get("sbd"), // SBD (candidate number)
+                    c.get("fullName"), // Full name
+                    c.get("dob"), // Date of birth
+                    c.get("sex"), // Gender
+                    c.get("governmentId"), // Government ID (CCCD)
+                    c.get("email"), // Email
+                    c.get("phoneNo"), // Phone number
+                    c.get("address"), // Address
+                    c.get("licenceClass"), // Licence class
+                    c.get("reasonForTaking"), // Reason for taking exam
+                    c.get("examDate"), // Exam date
+                    Boolean.TRUE.equals(c.get("absent")) ? "Co" : "Khong", // Absent (yes/no)
+                    c.get("statusLabel"), // Status label
+                    c.get("correct"), // Theory correct count
+                    c.get("wrong"), // Theory wrong count
+                    c.get("unanswered"), // Theory unanswered count
+                    c.get("scoreTheory"), // Theory score
+                    c.get("resultLabel"), // Theory result
+                    c.get("scorePractical"), // Practical score
                     c.get("scoreOnRoad")));                                           // On-road score
         }
 
@@ -112,7 +109,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                 "Danh sach thi sinh", "danhSachThiSinh", Map.of(), List.of(table), null);
     }
 
-         // Builds the results export payload (ket qua sat hach).
+    // Builds the results export payload (ket qua sat hach).
     @Override
     public ExaminerExportPayload buildResultsExport(ExaminerExportContext ctx) {
         // Load candidate rows filtered by section type and name
@@ -135,7 +132,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                         index++,
                         c.get("sbd"),
                         c.get("fullName"),
-                        c.get("examScore"),                                          // Single score column
+                        c.get("examScore"), // Single score column
                         c.get("resultLabel"),
                         c.get("statusLabel"),
                         Boolean.TRUE.equals(c.get("absent")) ? "Co" : "Khong"));
@@ -150,9 +147,9 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                         index++,
                         c.get("sbd"),
                         c.get("fullName"),
-                        c.get("correct"),                                            // Correct count
-                        c.get("wrong"),                                              // Wrong count
-                        c.get("unanswered"),                                         // Unanswered count
+                        c.get("correct"), // Correct count
+                        c.get("wrong"), // Wrong count
+                        c.get("unanswered"), // Unanswered count
                         c.get("resultLabel"),
                         c.get("statusLabel"),
                         Boolean.TRUE.equals(c.get("absent")) ? "Co" : "Khong"));
@@ -164,7 +161,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         return new ExaminerExportPayload("Ket qua thi", "ketQuaThi", Map.of(), List.of(table), null);
     }
 
-         // Builds the exam minutes export payload (bien ban sat hach).
+    // Builds the exam minutes export payload (bien ban sat hach).
     @Override
     public ExaminerExportPayload buildMinutesExport(ExaminerExportContext ctx) {
         // Load session metadata (name, exam code, date, times) from the DAO
@@ -203,13 +200,13 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                 "Bien ban thi", "bienBanThi", metadata, List.of(table), preamble);
     }
 
-         // Builds the violations export payload (bien ban vi pham).
+    // Builds the violations export payload (bien ban vi pham).
     @Override
     public ExaminerExportPayload buildViolationsExport(ExaminerExportContext ctx) {
         // Load session metadata for the export header
         Map<String, Object> meta = sessionDataDAO.findSessionExportMeta(ctx.sessionId());
         // Load violation audit log entries (regulatory violations from the audit trail)
-        List<AuditDTO> auditViolations = auditLogDAO.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
+        List<AuditRecordModel> auditViolations = auditLogService.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
         // Load score violation rows (deductions applied to candidate scores)
         List<Map<String, Object>> scoreViolations = sessionDataDAO.findScoreViolationRows(ctx.sessionId());
 
@@ -223,14 +220,14 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         List<List<Object>> auditRows = new ArrayList<>();
         // Row counter for the STT column
         int index = 1;
-        for (AuditDTO log : auditViolations) {
+        for (AuditRecordModel log : auditViolations) {
             // Format the timestamp to Vietnamese date+time format
             String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "-";
             auditRows.add(Arrays.asList(
                     index++,
-                    nullToDash(log.getChangerName()),    // Person who recorded the violation
-                    nullToDash(log.getNewValue()),       // Violation description/content
-                    nullToDash(log.getReason()),          // Reason for the violation
+                    nullToDash(log.getChangerName()), // Person who recorded the violation
+                    nullToDash(log.getNewValue()), // Violation description/content
+                    nullToDash(log.getReason()), // Reason for the violation
                     time));                               // Timestamp
         }
 
@@ -241,12 +238,12 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         for (Map<String, Object> row : scoreViolations) {
             scoreRows.add(Arrays.asList(
                     index++,
-                    row.get("sbd"),                                                    // Candidate SBD
-                    row.get("fullName"),                                                // Candidate name
-                    row.get("sectionName"),                                             // Exam section
-                    row.get("violationReason"),                                         // Deduction reason
-                    row.get("deductionPoints"),                                         // Points deducted
-                    Boolean.TRUE.equals(row.get("critical")) ? "Co" : "Khong",         // Critical flag
+                    row.get("sbd"), // Candidate SBD
+                    row.get("fullName"), // Candidate name
+                    row.get("sectionName"), // Exam section
+                    row.get("violationReason"), // Deduction reason
+                    row.get("deductionPoints"), // Points deducted
+                    Boolean.TRUE.equals(row.get("critical")) ? "Co" : "Khong", // Critical flag
                     row.get("currentScore")));                                          // Current score after deduction
         }
 
@@ -273,31 +270,31 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
                 "Bien ban vi pham", "bienBanViPham", metadata, List.of(auditTable, scoreTable), excelRows);
     }
 
-         // Builds the audit-log export payload (nhat ky).
+    // Builds the audit-log export payload (nhat ky).
     @Override
     public ExaminerExportPayload buildAuditExport(ExaminerExportContext ctx, String searchQuery) {
         // Load paginated audit log entries for the session (up to AUDIT_LIMIT)
-        List<AuditDTO> logs = auditLogDAO.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
+        List<AuditRecordModel> logs = auditLogService.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
         // Build a lookup map of candidate record ID -> SBD for display
         Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
         // Build the data rows from the audit log entries
         List<List<Object>> rows = new ArrayList<>();
-        for (AuditDTO log : logs) {
+        for (AuditRecordModel log : logs) {
             // Convert each audit log entry into one or more display rows
-            for (Map<String, Object> viewRow : AuditLogViewHelper.toViewRows(log, sbdByRecordId)) {
+            for (Map<String, Object> viewRow : auditLogService.toViewRows(log, sbdByRecordId)) {
                 // Format the timestamp for display
                 String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "";
                 // Extract the reason, converting the dash placeholder to empty string
                 Object reason = viewRow.get("reason");
                 rows.add(Arrays.asList(
-                        viewRow.get("username"),                                       // User who performed the action
-                        log.getAction(),                                               // Action type
-                        viewRow.get("entityName"),                                     // Entity affected
-                        viewRow.get("sbd"),                                            // Candidate SBD
-                        viewRow.get("info"),                                           // Additional info
+                        viewRow.get("username"), // User who performed the action
+                        log.getAction(), // Action type
+                        viewRow.get("entityName"), // Entity affected
+                        viewRow.get("sbd"), // Candidate SBD
+                        viewRow.get("info"), // Additional info
                         viewRow.get("oldValue") != null ? viewRow.get("oldValue") : "",// Old value (before change)
-                        viewRow.get("newValue"),                                       // New value (after change)
-                        "-".equals(reason) ? "" : reason,                              // Reason for change
+                        viewRow.get("newValue"), // New value (after change)
+                        "-".equals(reason) ? "" : reason, // Reason for change
                         time));                                                        // Timestamp
             }
         }
@@ -423,7 +420,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     }
 
     // Builds the full Excel row set (preamble + data) for the violations export.
-    private List<List<Object>> buildViolationsExcelRows(Map<String, Object> meta, List<AuditDTO> auditViolations,
+    private List<List<Object>> buildViolationsExcelRows(Map<String, Object> meta, List<AuditRecordModel> auditViolations,
             List<Map<String, Object>> scoreViolations) {
         List<List<Object>> rows = new ArrayList<>();
         // Document title and session identification
@@ -438,7 +435,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         // Column headers for the audit violations table
         rows.add(Arrays.asList("STT", "Nguoi ghi", "Noi dung", "Ly do", "Thoi gian"));
         int index = 1;
-        for (AuditDTO log : auditViolations) {
+        for (AuditRecordModel log : auditViolations) {
             // Format the timestamp for each audit entry
             String time = log.getChangedAt() != null ? AUDIT_DATE_FMT.format(log.getChangedAt()) : "-";
             rows.add(Arrays.asList(
@@ -535,10 +532,3 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         return lookup;
     }
 }
-
-
-
-
-
-
-

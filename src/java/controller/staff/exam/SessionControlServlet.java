@@ -2,7 +2,8 @@ package controller.staff.exam;
 
 import model.user.User;
 import service.ExamSessionControlService;
-import util.AuditLogHelper;
+import service.impl.ExamSessionControlServiceImpl;
+import service.AuditLogService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,10 +14,11 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-@WebServlet("/views/staff/examstaff/session-control")
+@WebServlet("/views/staff/exam/session-control")
 public class SessionControlServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
-    private final ExamSessionControlService controlService = new service.impl.ExamSessionControlServiceImpl();
+    private final ExamSessionControlService controlService = new ExamSessionControlServiceImpl();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -31,7 +33,7 @@ public class SessionControlServlet extends HttpServlet {
             ExamSessionControlService.StartResult result = controlService.startSession(sessionId, staffId);
             if (result.isSuccess()) {
                 controlService.applyRuntimeStart(getServletContext(), session, sessionId);
-                AuditLogHelper.persist(session, "UPDATE Session",
+                auditLogService.persist(session, "UPDATE Session",
                         "Bắt đầu ca thi SessionId=" + sessionId + " - " + result.getSessionName()
                                 + " (" + result.getExaminerCount() + " sát hạch viên)",
                         sessionId);
@@ -43,7 +45,7 @@ public class SessionControlServlet extends HttpServlet {
             ExamSessionControlService.EndResult result = controlService.endSession(sessionId);
             if (result.isSuccess()) {
                 controlService.applyRuntimeEnd(getServletContext(), session, sessionId);
-                AuditLogHelper.persist(session, "UPDATE Session",
+                auditLogService.persist(session, "UPDATE Session",
                         "Kết thúc ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
@@ -81,9 +83,9 @@ public class SessionControlServlet extends HttpServlet {
         String from = request.getParameter("redirect");
         String ctx = request.getContextPath();
         if ("examiner-allocation".equals(from)) {
-            return ctx + "/views/staff/examstaff/examiner-allocation?sessionId=" + sessionId;
+            return ctx + "/views/staff/exam/examiner-allocation?sessionId=" + sessionId;
         }
-        return ctx + "/views/staff/examstaff/dashboard.jsp?sessionId=" + sessionId;
+        return ctx + "/views/staff/exam/dashboard.jsp?sessionId=" + sessionId;
     }
 }
 

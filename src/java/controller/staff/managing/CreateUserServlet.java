@@ -3,6 +3,9 @@ package controller.staff.managing;
 import service.UserManagementService;
 import service.impl.UserManagementServiceImpl;
 import model.user.User;
+import dto.user.CreateUserResultDTO;
+import service.RoleService;
+import service.impl.RoleServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,14 +18,10 @@ import java.io.IOException;
 @WebServlet("/manager/create-user")
 public class CreateUserServlet extends HttpServlet {
 
-    private static final String VIEW = "/views/staff/managingstaff/create-user.jsp";
-    
-    private UserManagementService userManagementService;
+    private static final String VIEW = "/views/staff/managing/create-user.jsp";
 
-    @Override
-    public void init() {
-        userManagementService = new UserManagementServiceImpl();
-    }
+    private final UserManagementService userManagementService = new UserManagementServiceImpl();
+    private final RoleService roleService = new RoleServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -55,22 +54,22 @@ public class CreateUserServlet extends HttpServlet {
         String userType = trim(request.getParameter("userType"));
         String licenseClass = trim(request.getParameter("licenseClass")).toUpperCase();
 
-        UserManagementService.CreateUserResult result = userManagementService.createUser(
+        CreateUserResultDTO result = userManagementService.createUser(
                 fullName, cccd, phone, email, dob, gender, address, userType, licenseClass);
 
-        if (!result.success) {
-            request.setAttribute("createUserError", result.message);
+        if (!result.isSuccess()) {
+            request.setAttribute("createUserError", result.getMessage());
             request.getRequestDispatcher(VIEW).forward(request, response);
             return;
         }
 
         HttpSession session = request.getSession();
-        session.setAttribute("createUserSuccess", result.message);
-        if (result.username != null) {
-            session.setAttribute("createdUsername", result.username);
-            session.setAttribute("createdPassword", result.password);
+        session.setAttribute("createUserSuccess", result.getMessage());
+        if (result.getUsername() != null) {
+            session.setAttribute("createdUsername", result.getUsername());
+            session.setAttribute("createdPassword", result.getPassword());
         }
-        
+
         response.sendRedirect(request.getContextPath() + "/manager/create-user");
     }
 
@@ -85,8 +84,9 @@ public class CreateUserServlet extends HttpServlet {
             return false;
         }
 
-        String roleName = enums.UserRole.roleNameFromId(user.getRoleId());
-        if (!"ManagingStaff".equalsIgnoreCase(roleName) && !"Admin".equalsIgnoreCase(roleName)) {
+        String roleName = roleService.getRoleNameById(user.getRoleId());
+        if (!"ManagingStaff".equalsIgnoreCase(roleName)
+                && !"Admin".equalsIgnoreCase(roleName)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Bạn không có quyền tạo tài khoản học viên.");
             return false;
@@ -107,5 +107,3 @@ public class CreateUserServlet extends HttpServlet {
         }
     }
 }
-
-

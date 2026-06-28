@@ -1,7 +1,7 @@
 package dao;
 
 
-import dto.candidate.CandidateCallDTO;
+import model.candidate.CandidateCall;
 
 
 /**
@@ -13,8 +13,8 @@ public interface CandidateCallDAO {
     /**
      * Ghi nhận một lượt gọi thí sinh.
      *
-     * @param call đối tượng CandidateCallDTO chứa thông tin gọi thí sinh
+     * @param call đối tượng CandidateCall chứa thông tin gọi thí sinh
      * @return true nếu ghi thành công
      */
-    boolean insert(CandidateCallDTO call);
+    boolean insert(CandidateCall call);
 }

@@ -4,7 +4,7 @@ import service.LicenceService;
 import service.impl.LicenceServiceImpl;
 import model.licence.Licence;
 import model.user.User;
-import util.AuditLogHelper;
+import service.AuditLogService;
 
 import util.Sanitize;
 import util.SessionUtil;
@@ -18,6 +18,7 @@ import java.io.IOException;
 
 @WebServlet(name = "LicenceServlet", urlPatterns = {"/admin/licence-class"})
 public class LicenceServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private LicenceService licenceService;
     private static final String LIST_VIEW = "/views/admin/licence-class.jsp";
@@ -31,7 +32,6 @@ public class LicenceServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
         String action = Sanitize.text(req.getParameter("action"));
 
         if ("new".equals(action)) {
@@ -61,7 +61,6 @@ public class LicenceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
         User admin = SessionUtil.getCurrentUser(req);
 
         int id = Sanitize.toInt(req.getParameter("licenceId"), 0);
@@ -85,7 +84,7 @@ public class LicenceServlet extends HttpServlet {
             return;
         }
 
-        AuditLogHelper.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
+        auditLogService.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
                 (isEdit ? "Cập Nhật Hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, result.id);
         SessionUtil.flash(req, "success", result.message);
         

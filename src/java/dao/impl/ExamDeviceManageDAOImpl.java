@@ -5,8 +5,7 @@ import dbconnection.DBContext;
 
 import dao.ExamDeviceManageDAO;
 
-import dto.exam.ExamDeviceViewDTO;
-
+import model.exam.ExamDevice;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,27 +14,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * JDBC implementation of ExamDeviceManageDAO for admin device management.
- * Returns ExamDeviceViewDTO objects with area names, supports CRUD operations.
- */
 public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceManageDAO {
 
     private static final String BASE_SELECT =
-            "SELECT d.ExamDeviceId, d.DeviceName, d.DeviceType, d.[Status], d.ExamAreaId, " +
-            "       a.AreaName " +
-            "FROM ExamDevice d " +
-            "LEFT JOIN ExamArea a ON d.ExamAreaId = a.ExamAreaId ";
+            "SELECT d.ExamDeviceId, d.DeviceName, d.DeviceType, d.[Status], d.ExamAreaId " +
+            "FROM ExamDevice d ";
 
-    /**
-     * Searches devices by name keyword and/or status filter.
-     *
-     * @param keyword optional text to match against DeviceName
-     * @param status  optional exact match on Status column
-     * @return list of matching ExamDeviceViewDTO objects
-     */
     @Override
-    public List<ExamDeviceViewDTO> search(String keyword, String status) {
+    public List<ExamDevice> search(String keyword, String status) {
         StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
         if (keyword != null && !keyword.isBlank()) {
@@ -48,7 +34,7 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         }
         sql.append(" ORDER BY d.ExamDeviceId DESC ");
 
-        List<ExamDeviceViewDTO> list = new ArrayList<>();
+        List<ExamDevice> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
             try (ResultSet rs = ps.executeQuery()) {
@@ -60,14 +46,8 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return list;
     }
 
-    /**
-     * Retrieves a device view DTO by primary key.
-     *
-     * @param examDeviceId the ExamDeviceId
-     * @return the ExamDeviceViewDTO, or null if not found
-     */
     @Override
-    public ExamDeviceViewDTO findById(int examDeviceId) {
+    public ExamDevice findById(int examDeviceId) {
         String sql = BASE_SELECT + " WHERE d.ExamDeviceId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examDeviceId);
@@ -80,15 +60,8 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return null;
     }
 
-    /**
-     * Inserts a new device record with created/updated by tracking.
-     *
-     * @param d         the device data to insert
-     * @param createdBy the user ID creating this device
-     * @return the new ExamDeviceId, or 0 on failure
-     */
     @Override
-    public int insert(ExamDeviceViewDTO d, Integer createdBy) {
+    public int insert(ExamDevice d, Integer createdBy) {
         String sql = "INSERT INTO ExamDevice (DeviceName, DeviceType, [Status], ExamAreaId, " +
                      "CreatedByUserId, UpdatedByUserId) " +
                      "VALUES (?,?,?,?, ?, ?)";
@@ -109,15 +82,8 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return 0;
     }
 
-    /**
-     * Updates device fields and sets UpdatedAt/UpdatedByUserId.
-     *
-     * @param d         the device data with updated values
-     * @param updatedBy the user ID performing the update
-     * @return true if at least one row was updated
-     */
     @Override
-    public boolean update(ExamDeviceViewDTO d, Integer updatedBy) {
+    public boolean update(ExamDevice d, Integer updatedBy) {
         String sql = "UPDATE ExamDevice SET DeviceName=?, DeviceType=?, [Status]=?, ExamAreaId=?, " +
                      "UpdatedAt=GETDATE(), UpdatedByUserId=? WHERE ExamDeviceId=?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -134,12 +100,6 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return false;
     }
 
-    /**
-     * Deletes a device by its primary key.
-     *
-     * @param examDeviceId the ExamDeviceId to delete
-     * @return true if deletion succeeded
-     */
     @Override
     public boolean delete(int examDeviceId) {
         String sql = "DELETE FROM ExamDevice WHERE ExamDeviceId = ?";
@@ -152,11 +112,6 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return false;
     }
 
-    /**
-     * Returns the total number of devices.
-     *
-     * @return the count
-     */
     @Override
     public int countAll() {
         try (PreparedStatement ps = getConnection().prepareStatement("SELECT COUNT(*) FROM ExamDevice");
@@ -168,12 +123,6 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return 0;
     }
 
-    /**
-     * Returns the number of devices with the given status.
-     *
-     * @param status the status value to count
-     * @return the count
-     */
     @Override
     public int countByStatus(String status) {
         try (PreparedStatement ps = getConnection().prepareStatement("SELECT COUNT(*) FROM ExamDevice WHERE [Status] = ?")) {
@@ -187,20 +136,17 @@ public class ExamDeviceManageDAOImpl extends DBContext implements ExamDeviceMana
         return 0;
     }
 
-    /** Sets an Integer parameter; uses SQL NULL when the value is null. */
     private void setNullableInt(PreparedStatement ps, int idx, Integer val) throws SQLException {
         if (val == null) ps.setNull(idx, java.sql.Types.INTEGER); else ps.setInt(idx, val);
     }
 
-    /** Maps a ResultSet row into an ExamDeviceViewDTO including area name. */
-    private ExamDeviceViewDTO map(ResultSet rs) throws SQLException {
-        ExamDeviceViewDTO d = new ExamDeviceViewDTO();
+    private ExamDevice map(ResultSet rs) throws SQLException {
+        ExamDevice d = new ExamDevice();
         d.setExamDeviceId(rs.getInt("ExamDeviceId"));
         d.setDeviceName(rs.getString("DeviceName"));
         d.setDeviceType(rs.getString("DeviceType"));
         d.setStatus(rs.getString("Status"));
         d.setExamAreaId(rs.getInt("ExamAreaId"));
-        d.setAreaName(rs.getString("AreaName"));
         return d;
     }
 }

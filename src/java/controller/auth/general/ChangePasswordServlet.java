@@ -1,9 +1,10 @@
 package controller.auth.general;
 
+import dto.auth.ChangePasswordResultDTO;
 import service.AuthService;
 import service.impl.AuthServiceImpl;
 import model.user.User;
-import util.AuditLogHelper;
+import service.AuditLogService;
 
 import util.SessionUtil;
 
@@ -17,14 +18,10 @@ import java.io.IOException;
 
 @WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
 public class ChangePasswordServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
-    private AuthService authService;
-    private static final String VIEW = "/views/landing/forgot-password.jsp";
-
-    @Override
-    public void init() {
-        authService = new AuthServiceImpl();
-    }
+    private AuthService authService = new AuthServiceImpl();
+    private static final String VIEW = "/views/auth/general/forgot-password.jsp";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -49,12 +46,12 @@ public class ChangePasswordServlet extends HttpServlet {
         String newPwd = req.getParameter("newPassword");
         String confirm = req.getParameter("confirmPassword");
 
-        AuthService.ChangePasswordResult result = authService.changePassword(sessionUser.getUserId(), current, newPwd, confirm);
+        ChangePasswordResultDTO result = authService.changePassword(sessionUser.getUserId(), current, newPwd, confirm);
 
         if (result.success) {
             HttpSession s = req.getSession(false);
             if (s != null) {
-                AuditLogHelper.persist(s, "UPDATE", "Đổi mật khẩu tài khoản", sessionUser.getUserId());
+                auditLogService.persist(s, "UPDATE", "Đổi mật khẩu tài khoản", sessionUser.getUserId());
             }
             req.setAttribute("messageType", "success");
         } else {
@@ -65,4 +62,3 @@ public class ChangePasswordServlet extends HttpServlet {
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 }
-

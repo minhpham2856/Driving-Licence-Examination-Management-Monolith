@@ -2,7 +2,7 @@ package dao.impl;
 
 import dao.AdminStatsDAO;
 import dbconnection.DBContext;
-import dto.admin.RecentActivityDTO;
+import model.admin.RecentActivityModel;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,8 +37,8 @@ public class AdminStatsDAOImpl extends DBContext implements AdminStatsDAO {
     public int countDevices()    { return count("ExamDevice"); }
 
     @Override
-    public List<RecentActivityDTO> recentActivity(int limit) {
-        List<RecentActivityDTO> list = new ArrayList<>();
+    public List<RecentActivityModel> recentActivity(int limit) {
+        List<RecentActivityModel> list = new ArrayList<>();
         String sql = "SELECT TOP (" + limit + ") a.Action, a.TableName, a.RecordId, a.ChangedAt, "
                    + "u.Username "
                    + "FROM Audit a LEFT JOIN [User] u ON a.ChangedBy = u.UserId "
@@ -47,7 +47,7 @@ public class AdminStatsDAOImpl extends DBContext implements AdminStatsDAO {
              ResultSet rs = ps.executeQuery()) {
             SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             while (rs.next()) {
-                RecentActivityDTO r = new RecentActivityDTO();
+                RecentActivityModel r = new RecentActivityModel();
                 r.setAction(rs.getString("Action"));
                 r.setModule(rs.getString("TableName"));
                 r.setRecordId(rs.getString("RecordId"));

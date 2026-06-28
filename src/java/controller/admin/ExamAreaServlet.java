@@ -5,7 +5,7 @@ import service.impl.ExamAreaServiceImpl;
 
 import model.exam.ExamArea;
 import model.user.User;
-import util.AuditLogHelper;
+import service.AuditLogService;
 
 import util.Sanitize;
 
@@ -20,6 +20,7 @@ import java.io.IOException;
 
 @WebServlet(name = "ExamAreaServlet", urlPatterns = {"/admin/exam-area"})
 public class ExamAreaServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private ExamAreaService examAreaService;
     private static final String LIST_VIEW = "/views/admin/exam-area.jsp";
@@ -33,7 +34,6 @@ public class ExamAreaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
         String action = Sanitize.text(req.getParameter("action"));
 
         if ("new".equals(action)) {
@@ -62,7 +62,6 @@ public class ExamAreaServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
         String action = Sanitize.text(req.getParameter("action"));
         User admin = SessionUtil.getCurrentUser(req);
 
@@ -93,7 +92,7 @@ public class ExamAreaServlet extends HttpServlet {
             return;
         }
 
-        AuditLogHelper.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT",
+        auditLogService.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT",
                 (isEdit ? "cap nhat khu vuc thi: " : "tao khu vuc thi: ") + name, result.id);
         SessionUtil.flash(req, "success", result.message);
         
@@ -109,7 +108,7 @@ public class ExamAreaServlet extends HttpServlet {
         ExamAreaService.DeleteResult result = examAreaService.delete(id, admin.getUserId());
         
         if (result.success) {
-            AuditLogHelper.persist(req.getSession(), "DELETE", "Xóa khu vực thi: " + name, id);
+            auditLogService.persist(req.getSession(), "DELETE", "Xóa khu vực thi: " + name, id);
             SessionUtil.flash(req, "success", result.message);
         } else {
             SessionUtil.flash(req, "danger", result.message);

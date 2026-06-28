@@ -12,8 +12,10 @@ import dto.exam.SessionDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import service.EnumMappingService;
 
 public class ExamSessionControlServiceImpl implements ExamSessionControlService {
+     private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     public static final String CTX_ACTIVE_SESSION_ID = "examActiveSessionId";
 
@@ -26,8 +28,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (examSession == null) {
             return StartResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
         }
-        if (!enums.ExamSessionStatus.canStartSession(examSession.getStatus())) {
-            if (enums.ExamSessionStatus.isSessionInProgress(examSession.getStatus())) {
+        if (!enumMappingService.canStartSession(examSession.getStatus())) {
+            if (enumMappingService.isSessionInProgress(examSession.getStatus())) {
                 return StartResult.fail("Ca thi \"" + examSession.getSessionName() + "\" đã được bắt đầu.");
             }
             return StartResult.fail("Ca thi \"" + examSession.getSessionName()
@@ -54,7 +56,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (examSession == null) {
             return EndResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
         }
-        if (!enums.ExamSessionStatus.isSessionInProgress(examSession.getStatus())) {
+        if (!enumMappingService.isSessionInProgress(examSession.getStatus())) {
             return EndResult.fail("Ca thi \"" + examSession.getSessionName()
                     + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
         }
@@ -83,7 +85,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
             if (active != null && active == sessionId) {
                 ctx.removeAttribute(CTX_ACTIVE_SESSION_ID);
             }
-            service.CandidateCallBoardService boardService = new service.impl.CandidateCallBoardServiceImpl();
+            service.CandidateCallBoardService boardService = new CandidateCallBoardServiceImpl();
             dto.candidate.CandidateCallBoardStateDTO board = boardService.getState(ctx, sessionId);
             if (board != null) {
                 board.setShiftEnded(true);

@@ -1,8 +1,5 @@
 package service.impl;
 
-
-
-
 import enums.SectionType;
 
 import controller.examiner.ExaminerScoreEntryQueue;
@@ -20,32 +17,34 @@ import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.CandidateDAOImpl;
 import dao.impl.ExaminerSessionDataDAOImpl;
 
-import dto.candidate.CandidateCallDTO;
-
 import dto.candidate.CandidateDTO;
 
 import model.user.User;
 import service.ExaminerActionsService;
 import service.ExaminerSessionContextService;
-import service.ExaminerViewDataService;
 import util.AuditChangeDetails;
 
-import util.AuditLogHelper;
+import service.AuditLogService;
 
 import jakarta.servlet.http.HttpSession;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import service.EnumMappingService;
+import service.ExaminerDataService;
 
 public class ExaminerActionsServiceImpl implements ExaminerActionsService {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+
+    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     private final CandidateCallDAO callDAO = new CandidateCallDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExamCandidateVehicleDAO vehicleDAO = new ExamCandidateVehicleDAOImpl();
     private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
-    private final ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
+    private final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
 
     @Override
     public CandidateDTO findCandidate(int sessionId, String sbd) {
@@ -91,7 +90,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                 sexDb,
                 reasonForTaking != null ? reasonForTaking.trim() : null);
         if (updated && session != null && !changes.isEmpty()) {
-            AuditLogHelper.persistFieldChanges(session, "UPDATE on Profile",
+            auditLogService.persistFieldChanges(session, "UPDATE on Profile",
                     "Giám khảo cập nhật thông tin SBD " + reg.getSbd(), changes, null, reg.getId());
         }
         return updated;
@@ -106,7 +105,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         candidateDAO.updateScores(reg.getId(), 0, "failed", 0, "failed");
         boolean updated = candidateDAO.markAbsent(reg.getId());
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+            auditLogService.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo xác nhận vắng thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
@@ -120,7 +119,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         boolean updated = candidateDAO.clearAbsentMarking(reg.getId());
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+            auditLogService.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo hoàn tác vắng thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
@@ -224,7 +223,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         String nextSbd = ExaminerScoreEntryQueue.moveToBottom(session, sessionId, reg.getSbd());
         if (session != null) {
-            AuditLogHelper.persist(session, "UPDATE ScoreEntryQueue",
+            auditLogService.persist(session, "UPDATE ScoreEntryQueue",
                     "Giám khảo đẩy xuống cuối hàng đợi nhập điểm (chưa vắng) SBD " + reg.getSbd(),
                     reg.getId());
         }
@@ -245,7 +244,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         boolean updated = deviceDAO.updateStatus(deviceId, "Maintenance");
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamDevice",
+            auditLogService.persist(session, "UPDATE ExamDevice",
                     "Giám khảo chuyển thiết bị #" + deviceId + " sang bảo trì", deviceId);
         }
         return updated;
@@ -258,7 +257,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         boolean updated = deviceDAO.updateStatus(deviceId, "Available");
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamDevice",
+            auditLogService.persist(session, "UPDATE ExamDevice",
                     "Giám khảo chuyển thiết bị #" + deviceId + " sang sử dụng", deviceId);
         }
         return updated;
@@ -278,7 +277,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         boolean updated = vehicleDAO.assignExamDevice(reg.getId(), sessionId, deviceId);
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE Exam_Candidate",
+            auditLogService.persist(session, "UPDATE Exam_Candidate",
                     "Giám khảo đổi xe thi cho SBD " + reg.getSbd() + " sang thiết bị #" + deviceId,
                     reg.getId());
         }
@@ -319,7 +318,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     private boolean insertCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
-        dto.candidate.CandidateCallDTO call = new dto.candidate.CandidateCallDTO();
+        model.candidate.CandidateCall call = new model.candidate.CandidateCall();
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
         call.setCalledTo("Phòng thi lý thuyết");
@@ -327,14 +326,14 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         call.setResult("Calling");
         boolean inserted = callDAO.insert(call);
         if (inserted && session != null) {
-            AuditLogHelper.persist(session, "INSERT on CandidateCall",
+            auditLogService.persist(session, "INSERT on CandidateCall",
                     "Giám khảo gọi thí sinh SBD " + reg.getSbd(), reg.getId());
         }
         return inserted;
     }
 
     private boolean insertScoreEntryCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
-        dto.candidate.CandidateCallDTO call = new dto.candidate.CandidateCallDTO();
+        model.candidate.CandidateCall call = new model.candidate.CandidateCall();
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
         call.setCalledTo(resolveScoreEntryCallDestination(session));
@@ -342,7 +341,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         call.setResult("Calling");
         boolean inserted = callDAO.insert(call);
         if (inserted && session != null) {
-            AuditLogHelper.persist(session, "INSERT on CandidateCall",
+            auditLogService.persist(session, "INSERT on CandidateCall",
                     "Giám khảo gọi thí sinh nhập điểm SBD " + reg.getSbd(), reg.getId());
         }
         return inserted;
@@ -387,12 +386,12 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                 reg.getId(), newScore, viewDataService.theoryPassThreshold());
         if (updated && session != null) {
             String passed = newScore >= viewDataService.theoryPassThreshold() ? "passed" : "failed";
-            AuditLogHelper.persistFieldChanges(session, "UPDATE ExamScore",
+            auditLogService.persistFieldChanges(session, "UPDATE ExamScore",
                     "Giám khảo điều chỉnh điểm LT SBD " + reg.getSbd(),
                     List.of(new AuditChangeDetails.FieldChange(
-                             "Điểm lý thuyết",
-                             oldScore != null ? String.valueOf(oldScore) : "-",
-                             newScore + " (" + passed.toUpperCase() + ")")),
+                            "Điểm lý thuyết",
+                            oldScore != null ? String.valueOf(oldScore) : "-",
+                            newScore + " (" + passed.toUpperCase() + ")")),
                     auditReason.isBlank() ? null : auditReason,
                     reg.getId());
         }
@@ -415,7 +414,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         String auditReason = buildReasonText(reasonCode, reasonDetail);
         if (session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamScore",
+            auditLogService.persist(session, "UPDATE ExamScore",
                     "Giám khảo xác nhận sửa kết quả thực hành SBD " + reg.getSbd()
                     + (auditReason.isBlank() ? "" : " - Lý do: " + auditReason),
                     reg.getId());
@@ -434,12 +433,12 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             return false;
         }
 
-        String reasonLabel = enums.ViolationReason.violationLabel(reasonCode);
+        String reasonLabel = enumMappingService.violationLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, evidencePath);
         boolean hasDeductions = deductionIds != null && deductionIds.length > 0;
 
-        AuditLogHelper.persistWarning(session,
+        auditLogService.persistWarning(session,
                 "Đình chỉ vi phạm SBD " + reg.getSbd() + ": " + auditText, auditText, reg.getId());
 
         SectionType sectionType = resolveSectionType(session);
@@ -462,12 +461,12 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             return false;
         }
 
-        String reasonLabel = enums.ViolationReason.violationLabel(reasonCode);
+        String reasonLabel = enumMappingService.violationLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, null);
         boolean undone = candidateDAO.undoSuspension(reg.getId());
         if (undone && session != null) {
-            AuditLogHelper.persistFieldChanges(session, "UPDATE Candidate",
+            auditLogService.persistFieldChanges(session, "UPDATE Candidate",
                     "Hoàn tác đình chỉ SBD " + reg.getSbd(),
                     List.of(new AuditChangeDetails.FieldChange(
                             "Trạng thái", "Đình chỉ", "Hoạt động bình thường")),
@@ -489,9 +488,9 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                 reg.getId(), sessionId, deductionId, delta);
         if (updated && session != null) {
             String action = delta > 0 ? "cộng" : "trừ";
-            AuditLogHelper.persist(session, "UPDATE Score_Deduction",
+            auditLogService.persist(session, "UPDATE Score_Deduction",
                     "Giám khảo " + action + " lỗi trừ điểm SBD " + reg.getSbd()
-                            + " (mã lỗi #" + deductionId + ", Δ=" + delta + ")",
+                    + " (mã lỗi #" + deductionId + ", Δ=" + delta + ")",
                     reg.getId());
         }
         return updated;
@@ -510,7 +509,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         boolean updated = candidateDAO.finalizeScoreEntry(reg.getId(), sessionId, sectionKeyword);
         if (updated && session != null) {
             ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, null);
-            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+            auditLogService.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo hoàn tất nhập điểm SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
@@ -525,12 +524,12 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     @Override
     public boolean printSignatureForm(int sessionId, String sbd, HttpSession session) {
         CandidateDTO reg = findCandidate(sessionId, sbd);
-        if (reg == null || !enums.CandidateStatus.isCandidateAwaitingSignature(reg.getSectionStatus())) {
+        if (reg == null || !enumMappingService.isCandidateAwaitingSignature(reg.getSectionStatus())) {
             return false;
         }
         boolean updated = candidateDAO.markSignaturePrinted(reg.getId(), sessionId);
         if (updated && session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+            auditLogService.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo in biên bản kết quả thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
@@ -542,7 +541,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reg == null) {
             return "notFound";
         }
-        if (!enums.CandidateStatus.isCandidateAwaitingSignature(reg.getSectionStatus())) {
+        if (!enumMappingService.isCandidateAwaitingSignature(reg.getSectionStatus())) {
             return "notAwaiting";
         }
         if (!reg.isSignaturePrinted()) {
@@ -553,7 +552,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             return "completeFailed";
         }
         if (session != null) {
-            AuditLogHelper.persist(session, "UPDATE ExamRegistration",
+            auditLogService.persist(session, "UPDATE ExamRegistration",
                     "Giám khảo hoàn tất phần thi SBD " + reg.getSbd(), reg.getId());
         }
         return null;
@@ -598,11 +597,16 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
 
     private static String buildReasonText(String reasonCode, String reasonDetail) {
         String label = switch (reasonCode != null ? reasonCode : "") {
-            case "cham-sai" -> "Chấm sai";
-            case "nhap-nham" -> "Nhập nhầm điểm";
-            case "khieu-nai" -> "Thí sinh khiếu nại";
-            case "khac" -> "Lý do khác";
-            default -> "";
+            case "cham-sai" ->
+                "Chấm sai";
+            case "nhap-nham" ->
+                "Nhập nhầm điểm";
+            case "khieu-nai" ->
+                "Thí sinh khiếu nại";
+            case "khac" ->
+                "Lý do khác";
+            default ->
+                "";
         };
         if (reasonDetail != null && !reasonDetail.isBlank()) {
             return label.isBlank() ? reasonDetail.trim() : label + ": " + reasonDetail.trim();
@@ -610,11 +614,3 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         return label;
     }
 }
-
-
-
-
-
-
-
-

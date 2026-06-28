@@ -1,7 +1,5 @@
 package controller.staff.exam;
 
-
-
 import service.ExamRegistrationService;
 
 import service.impl.ExamRegistrationServiceImpl;
@@ -15,8 +13,7 @@ import dto.exam.SessionDTO;
 
 import dto.exam.ExamRegistrationDTO;
 
-import dto.candidate.CandidateCallDTO;
-
+import model.candidate.CandidateCall;
 
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
@@ -26,7 +23,6 @@ import service.impl.CandidateCallBoardServiceImpl;
 
 import dto.candidate.CandidateCallBoardStateDTO;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -35,21 +31,24 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.DriverManager;
+import service.EnumMappingService;
+import service.impl.EnumMappingServiceImpl;
 
-@WebServlet("/views/staff/examstaff/candidatecall")
+@WebServlet("/views/staff/exam/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
+
+    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
     private final CandidateCallDAO callDAO = new CandidateCallDAOImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+    private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession();
 
         if ("desk".equals(request.getParameter("view"))) {
@@ -64,7 +63,7 @@ public class CandidateCallServlet extends HttpServlet {
             }
             return;
         }
-        
+
         // 1. Luôn tải hàng đợi từ DB (đồng bộ với bàn thủ tục)
         int examSessionId = 2;
         Integer selectedSessionId = (Integer) session.getAttribute("selectedSessionId");
@@ -75,40 +74,39 @@ public class CandidateCallServlet extends HttpServlet {
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
         boolean isShiftEnded = "true".equals(shiftEndedVal);
         SessionDTO SessionDTO = sessionDAO.getById(examSessionId);
-        if (SessionDTO != null && enums.ExamSessionStatus.isSessionEnded(SessionDTO.getStatus())) {
+        if (SessionDTO != null && enumMappingService.isSessionEnded(SessionDTO.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
-        
+
         List<ExamRegistrationDTO> candidateQueue = null;
         String webRoot = request.getServletContext().getRealPath("/");
         if (!isShiftEnded) {
             candidateQueue = regDAO.getCandidatesBySession(examSessionId);
-            CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
             photoService.normalizeQueue(webRoot, candidateQueue);
             session.setAttribute("candidateQueue", candidateQueue);
             session.setAttribute("lastLoadedSessionId", examSessionId);
         }
-        
+
         // 2. Handle operations
         String qAction = request.getParameter("action");
         String qSbd = request.getParameter("sbd");
-        
+
         List<ExamRegistrationDTO> permanentAbsents = (List<ExamRegistrationDTO>) session.getAttribute("permanentAbsents");
         if (permanentAbsents == null) {
             permanentAbsents = new java.util.ArrayList<>();
             session.setAttribute("permanentAbsents", permanentAbsents);
         }
-        
+
         if ("startCall".equals(qAction)) {
             if (candidateQueue != null) {
                 for (ExamRegistrationDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
                         session.setAttribute("callingSbd", c.getSbd());
-                        
+
                         // Insert call record in database
-                        CandidateCallDTO call = new CandidateCallDTO();
+                        CandidateCall call = new CandidateCall();
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
@@ -132,9 +130,9 @@ public class CandidateCallServlet extends HttpServlet {
                 if (foundIdx != -1) {
                     ExamRegistrationDTO removed = candidateQueue.remove(foundIdx);
                     candidateQueue.add(removed); // Move to the end of the queue
-                    
+
                     // Insert Call Record as Absent in DB
-                    CandidateCallDTO call = new CandidateCallDTO();
+                    CandidateCall call = new CandidateCall();
                     call.setExamSessionId(removed.getExamSessionId());
                     call.setCandidateNo(removed.getCandidateNo());
                     call.setCalledTo("Bàn làm thủ tục số 2");
@@ -142,16 +140,16 @@ public class CandidateCallServlet extends HttpServlet {
                     call.setResult("Absent");
                     callDAO.insert(call);
                 }
-                
+
                 // Find next candidate who is not done
                 String nextSbd = null;
                 for (ExamRegistrationDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone && !c.getSbd().equals(qSbd)) {
                         nextSbd = c.getSbd();
-                        
+
                         // Register a calling log for next person
-                        CandidateCallDTO call = new CandidateCallDTO();
+                        CandidateCall call = new CandidateCall();
                         call.setExamSessionId(c.getExamSessionId());
                         call.setCandidateNo(c.getCandidateNo());
                         call.setCalledTo("Bàn làm thủ tục số 2");
@@ -162,7 +160,7 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 session.setAttribute("callingSbd", nextSbd);
-                
+
                 if ("autoAbsent".equals(qAction)) {
                     request.setAttribute("autoAbsentAlert", qSbd);
                 } else {
@@ -182,17 +180,17 @@ public class CandidateCallServlet extends HttpServlet {
                 if (foundIdx != -1) {
                     ExamRegistrationDTO removed = candidateQueue.remove(foundIdx);
                     permanentAbsents.add(removed);
-                    
+
                     regDAO.updateScores(removed.getId(), 0, "failed", 0, "failed");
                     regDAO.markAbsent(removed.getId());
-                    
+
                     removed.setAbsent(true);
                     removed.setTheoryPassed("failed");
                     removed.setPracticalPassed("failed");
                     removed.setTheoryScore(0);
                     removed.setPracticalScore(0);
                 }
-                
+
                 // Find next candidate who is not done
                 String nextSbd = null;
                 for (ExamRegistrationDTO c : candidateQueue) {
@@ -217,21 +215,21 @@ public class CandidateCallServlet extends HttpServlet {
                 }
                 if (foundIdx != -1) {
                     ExamRegistrationDTO restored = permanentAbsents.remove(foundIdx);
-                    
+
                     // Reset fields
                     restored.setAbsent(false);
                     restored.setTheoryPassed("none");
                     restored.setPracticalPassed("none");
                     restored.setTheoryScore(null);
                     restored.setPracticalScore(null);
-                    
+
                     regDAO.clearAbsentMarking(restored.getId());
-                    
+
                     // Put back to queue
                     if (candidateQueue != null) {
                         candidateQueue.add(0, restored); // Put at the beginning so they can be called next!
                     }
-                    
+
                     session.setAttribute("callingSbd", restored.getSbd()); // Set as active call immediately
                     request.setAttribute("undoAlert", qSbd);
                 }
@@ -270,7 +268,6 @@ public class CandidateCallServlet extends HttpServlet {
         }
 
         advanceCallingIfDone(session, candidateQueue);
-        CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
         CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), examSessionId);
         if (state != null) {
             String callingSbd = (String) session.getAttribute("callingSbd");
@@ -279,7 +276,7 @@ public class CandidateCallServlet extends HttpServlet {
             }
             state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
         }
-        
+
         String callingSbd = (String) session.getAttribute("callingSbd");
         String nextSbd = null;
         if (candidateQueue != null) {
@@ -305,7 +302,7 @@ public class CandidateCallServlet extends HttpServlet {
                 }
             }
         }
-        
+
         ExamRegistrationDTO nextCallingCandidate = null;
         if (nextSbd != null && candidateQueue != null) {
             for (ExamRegistrationDTO c : candidateQueue) {
@@ -317,7 +314,7 @@ public class CandidateCallServlet extends HttpServlet {
         }
         request.setAttribute("nextCallingCandidate", nextCallingCandidate);
 
-        request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/staff/exam/candidatecall.jsp").forward(request, response);
     }
 
     @Override
@@ -355,11 +352,3 @@ public class CandidateCallServlet extends HttpServlet {
         session.setAttribute("callingSbd", nextSbd);
     }
 }
-
-
-
-
-
-
-
-

@@ -4,8 +4,9 @@ import dao.ProfileDAO;
 import dao.UserDAO;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
+import dto.auth.ChangePasswordResultDTO;
 import model.user.Profile;
-import dto.registration.RegisterResultDTO;
+import dto.auth.RegisterResultDTO;
 import service.AuthService;
 import service.EmailService;
 import model.user.User;
@@ -45,7 +46,8 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(email);
         user.setPasswordHash(password);
         user.setActive(true);
-        user.setRoleId(enums.UserRole.roleFromName("Registrant").getId());
+        service.RoleService roleService = new RoleServiceImpl();
+        user.setRoleId(roleService.getRoleIdByName("Registrant"));
 
         if (!userDAO.insert(user)) {
             return RegisterResultDTO.failed("Không thể đăng ký tài khoản. Vui lòng thử lại.");
@@ -172,26 +174,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ChangePasswordResult changePassword(int userId, String currentPwd, String newPwd, String confirmPwd) {
+    public ChangePasswordResultDTO changePassword(int userId, String currentPwd, String newPwd, String confirmPwd) {
         User fresh = userDAO.getById(userId);
         if (fresh == null) {
-            return new ChangePasswordResult(false, "Có lỗi xảy ra, vui lòng thử lại.");
+            return new ChangePasswordResultDTO(false, "Có lỗi xảy ra, vui lòng thử lại.");
         }
         if (currentPwd == null || !currentPwd.equals(fresh.getPasswordHash())) {
-            return new ChangePasswordResult(false, "Mật khẩu hiện tại không chính xác.");
+            return new ChangePasswordResultDTO(false, "Mật khẩu hiện tại không chính xác.");
         }
         if (newPwd == null || newPwd.length() < 6) {
-            return new ChangePasswordResult(false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
+            return new ChangePasswordResultDTO(false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
         }
         if (!newPwd.equals(confirmPwd)) {
-            return new ChangePasswordResult(false, "Mật khẩu mới và xác nhận không khớp.");
+            return new ChangePasswordResultDTO(false, "Mật khẩu mới và xác nhận không khớp.");
         }
         if (newPwd.equals(fresh.getPasswordHash())) {
-            return new ChangePasswordResult(false, "Mật khẩu mới không được trùng mật khẩu cũ.");
+            return new ChangePasswordResultDTO(false, "Mật khẩu mới không được trùng mật khẩu cũ.");
         }
         if (userDAO.updatePassword(fresh.getUserId(), newPwd)) {
-            return new ChangePasswordResult(true, "Đổi mật khẩu thành công.");
+            return new ChangePasswordResultDTO(true, "Đổi mật khẩu thành công.");
         }
-        return new ChangePasswordResult(false, "Có lỗi xảy ra, vui lòng thử lại.");
+        return new ChangePasswordResultDTO(false, "Có lỗi xảy ra, vui lòng thử lại.");
     }
 }

@@ -2,7 +2,7 @@ package service.impl;
 
 import dao.AdminStatsDAO;
 import dao.impl.AdminStatsDAOImpl;
-import dto.admin.RecentActivityDTO;
+import model.admin.RecentActivityModel;
 import service.AdminDashboardService;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     }
 
     @Override
-    public List<RecentActivityDTO> getRecentActivities(int limit) {
+    public List<RecentActivityModel> getRecentActivities(int limit) {
         return statsDAO.recentActivity(limit);
     }
 }

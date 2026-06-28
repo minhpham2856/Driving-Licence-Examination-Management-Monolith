@@ -1,39 +1,28 @@
 package service.impl;
 
-
-
-
 import enums.SectionType;
-
 import dto.examiner.ExaminerSlotDTO;
-
 import service.ExamSessionControlService;
-
 import service.ExaminerSessionContextService;
-
 import static service.ExaminerSessionContextService.ATTR_ACTIVE_SESSION_ID;
-
 import static service.ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME;
-
 import static service.ExaminerSessionContextService.ATTR_HAS_ACTIVE;
-
 import static service.ExaminerSessionContextService.ATTR_MESSAGE;
-
 import static service.ExaminerSessionContextService.ATTR_SECTION_THEORY;
-
 import static service.ExaminerSessionContextService.ATTR_SECTION_TYPE;
-
 import static service.ExaminerSessionContextService.ATTR_SLOT;
-
 import util.ExaminerBreadcrumbs;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
+import service.EnumMappingService;
 
 // Implementation of {@link ExaminerSessionContextService}.
 public class ExaminerSessionContextServiceImpl implements ExaminerSessionContextService {
+
+    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     // Service used to query the examiner's eligible in-progress assignments from the database
     private final ExamSessionControlService controlService = new ExamSessionControlServiceImpl();
@@ -61,7 +50,7 @@ public class ExaminerSessionContextServiceImpl implements ExaminerSessionContext
         // Use the first assignment slot (examiner typically has one active slot)
         ExaminerSlotDTO slot = slots.get(0);
         // Resolve the section type enum from the exam type name string
-        SectionType sectionType = enums.SectionType.resolveSectionType(slot.getExamTypeName());
+        SectionType sectionType = enumMappingService.resolveSectionType(slot.getExamTypeName());
         // Cache the slot object for use by controllers and export servlets
         session.setAttribute(ATTR_SLOT, slot);
         // Cache the database session ID for quick access
@@ -146,10 +135,3 @@ public class ExaminerSessionContextServiceImpl implements ExaminerSessionContext
         return "-";
     }
 }
-
-
-
-
-
-
-

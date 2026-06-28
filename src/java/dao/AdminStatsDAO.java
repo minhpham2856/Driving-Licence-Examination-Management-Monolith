@@ -1,6 +1,6 @@
 package dao;
 
-import dto.admin.RecentActivityDTO;
+import model.admin.RecentActivityModel;
 import java.util.List;
 
 public interface AdminStatsDAO {
@@ -15,5 +15,5 @@ public interface AdminStatsDAO {
 
     int countDevices();
 
-    List<RecentActivityDTO> recentActivity(int limit);
+    List<RecentActivityModel> recentActivity(int limit);
 }

@@ -99,6 +99,5 @@
         <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText" value="Phần thi kết thúc khi thí sinh chọn “NỘP BÀI” hoặc khi hết thời gian làm bài" />
-        </jsp:include>
-    </body>
+</body>
 </html>

@@ -248,7 +248,7 @@
             body.append('photoBase64', dataUrl);
 
             try {
-                var resp = await fetch(ctxPath + '/views/staff/examstaff/procedure', {
+                var resp = await fetch(ctxPath + '/views/staff/exam/procedure', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
                     body: body.toString(),
@@ -260,7 +260,7 @@
                 }
                 stopCamera();
                 markProcedureDeskScroll();
-                window.location.href = ctxPath + '/views/staff/examstaff/procedure?sbd='
+                window.location.href = ctxPath + '/views/staff/exam/procedure?sbd='
                     + encodeURIComponent(sbd) + '&step=2#procedure-desk';
             } catch (err) {
                 console.error(err);

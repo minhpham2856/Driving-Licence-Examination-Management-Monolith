@@ -1,6 +1,6 @@
 package service;
 
-import dto.admin.RecentActivityDTO;
+import model.admin.RecentActivityModel;
 import java.util.List;
 
 public interface AdminDashboardService {
@@ -8,5 +8,5 @@ public interface AdminDashboardService {
     int getTotalUsers();
     int getTotalExamSessions();
     int getTotalComputers();
-    List<RecentActivityDTO> getRecentActivities(int limit);
+    List<RecentActivityModel> getRecentActivities(int limit);
 }

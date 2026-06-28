@@ -49,4 +49,12 @@ public interface ProfileDAO {
      * @return true nếu cập nhật thành công
      */
     boolean update(Profile profile);
+
+    /**
+     * Lấy danh sách hồ sơ theo danh sách mã người dùng.
+     *
+     * @param userIds danh sách mã người dùng
+     * @return danh sách Profile
+     */
+    java.util.List<Profile> findByUserIds(java.util.List<Integer> userIds);
 }

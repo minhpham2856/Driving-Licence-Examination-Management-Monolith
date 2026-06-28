@@ -1,6 +1,5 @@
 package util;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.net.URLEncoder;
@@ -8,15 +7,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
- // Utility for building breadcrumb navigation items in the examiner portal.
+// Utility for building breadcrumb navigation items in the examiner portal.
 public final class ExaminerBreadcrumbs {
 
     // Private constructor prevents instantiation — all methods are static
     private ExaminerBreadcrumbs() {
     }
 
-         // A single breadcrumb item with a display label, hyperlink href, and a flag
+    // A single breadcrumb item with a display label, hyperlink href, and a flag
     public static final class Item {
+
         // Vietnamese display text shown in the breadcrumb link
         private String label;
         // Full URL path (including context path) for the breadcrumb hyperlink
@@ -25,14 +25,22 @@ public final class ExaminerBreadcrumbs {
         private boolean primary;
 
         // Returns the display label text
-        public String getLabel() { return label; }
+        public String getLabel() {
+            return label;
+        }
+
         // Returns the hyperlink URL
-        public String getHref() { return href; }
+        public String getHref() {
+            return href;
+        }
+
         // Returns whether this is a primary (section-level) breadcrumb
-        public boolean isPrimary() { return primary; }
+        public boolean isPrimary() {
+            return primary;
+        }
     }
 
-         // Builds a breadcrumb trail for the current request.
+    // Builds a breadcrumb trail for the current request.
     public static List<Item> buildItems(HttpServletRequest request) {
         // Initialise the breadcrumb list — will always have at least one item
         List<Item> items = new ArrayList<>();
@@ -52,7 +60,6 @@ public final class ExaminerBreadcrumbs {
         String sbdQuery = sbdQuery(sbd);
 
         // --- Match the URI path against known examiner views (most specific first) ---
-
         // Candidate paper review page — deepest in the candidate-details hierarchy
         if (path.contains("/candidate-paper")) {
             items.add(primary(ctx, "Sua thong tin", "/views/examiner/candidate-details"));
@@ -156,7 +163,7 @@ public final class ExaminerBreadcrumbs {
         return items;
     }
 
-         // Resolves the complete breadcrumb trail as a plain-text string.
+    // Resolves the complete breadcrumb trail as a plain-text string.
     public static String resolve(HttpServletRequest request) {
         // Build the breadcrumb items for the current request
         List<Item> items = buildItems(request);

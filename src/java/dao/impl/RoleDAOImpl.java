@@ -1,48 +1,47 @@
 package dao.impl;
 
-
-
-
 import dao.RoleDAO;
-
+import dbconnection.DBContext;
 import model.user.Role;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- * In-memory implementation of RoleDAO backed by ExamConstants.ROLE_NAME_TO_ID.
- * No database calls are made; roles are resolved from the constant map.
- */
-public class RoleDAOImpl implements RoleDAO {
+public class RoleDAOImpl extends DBContext implements RoleDAO {
 
-    /**
-     * Looks up a role by its integer ID from the constant map.
-     *
-     * @param id the role ID
-     * @return the Role model, or null if not found
-     */
+    private static final Logger LOG = Logger.getLogger(RoleDAOImpl.class.getName());
+
     @Override
     public Role getById(int id) {
-        for (var entry : java.util.Arrays.stream(enums.UserRole.values()).collect(java.util.stream.Collectors.toMap(enums.UserRole::getRoleName, enums.UserRole::getId)).entrySet()) {
-            if (entry.getValue() == id) {
-                return new Role(id, entry.getKey());
+        String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleId = ?";
+        try (PreparedStatement st = getConnection().prepareStatement(sql)) {
+            st.setInt(1, id);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return new Role(rs.getInt("RoleId"), rs.getString("RoleName"));
+                }
             }
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, "Error getting role by id", ex);
         }
         return null;
     }
 
-    /**
-     * Looks up a role by its display name via ExamConstants.
-     *
-     * @param roleName the role name (e.g. "Admin", "Examiner")
-     * @return the Role model, or null if the name is unknown
-     */
     @Override
     public Role getByName(String roleName) {
-        int id = enums.UserRole.roleIdFromName(roleName);
-        if (id == 0) {
-            return null;
+        String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleName = ?";
+        try (PreparedStatement st = getConnection().prepareStatement(sql)) {
+            st.setString(1, roleName);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return new Role(rs.getInt("RoleId"), rs.getString("RoleName"));
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, "Error getting role by name", ex);
         }
-        return new Role(id, roleName);
+        return null;
     }
 }
-
-

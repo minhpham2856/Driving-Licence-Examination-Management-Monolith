@@ -273,10 +273,6 @@
         </section>
 
     </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
 </div>
 
 <form id="deleteDevForm" action="${ctx}/admin/exam-computer" method="POST" style="display:none;">

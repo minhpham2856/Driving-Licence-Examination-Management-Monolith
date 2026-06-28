@@ -2,9 +2,8 @@ package dao;
 
 
 import model.user.Audit;
-import dto.user.AuditDTO;
 
-import dto.staff.StaffProcedureKpiDTO;
+import model.staff.StaffProcedureKpiModel;
 
 import java.util.List;
 
@@ -27,33 +26,33 @@ public interface AuditLogDAO {
      * Lấy danh sách nhật ký của người dùng trong ngày hôm nay.
      *
      * @param userId mã người dùng
-     * @return danh sách AuditDTO
+     * @return danh sách Audit
      */
-    List<AuditDTO> getLogsByUserToday(int userId);
+    List<Audit> getLogsByUserToday(int userId);
 
     /**
      * Lấy tất cả nhật ký trong ngày hôm nay.
      *
-     * @return danh sách tất cả AuditDTO trong ngày
+     * @return danh sách tất cả Audit trong ngày
      */
-    List<AuditDTO> getAllLogsToday();
+    List<Audit> getAllLogsToday();
 
     /**
      * Lấy danh sách nhật ký của người dùng theo ngày cụ thể.
      *
      * @param userId mã người dùng
      * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return danh sách AuditDTO
+     * @return danh sách Audit
      */
-    List<AuditDTO> getLogsByUserAndDate(int userId, String dateStr);
+    List<Audit> getLogsByUserAndDate(int userId, String dateStr);
 
     /**
      * Lấy tất cả nhật ký theo ngày cụ thể.
      *
      * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return danh sách AuditDTO
+     * @return danh sách Audit
      */
-    List<AuditDTO> getAllLogsByDate(String dateStr);
+    List<Audit> getAllLogsByDate(String dateStr);
 
     /**
      * Lấy danh sách nhật ký của người dùng theo ngày có phân trang.
@@ -62,9 +61,9 @@ public interface AuditLogDAO {
      * @param dateStr  ngày cần lọc (định dạng yyyy-MM-dd)
      * @param page     số trang (bắt đầu từ 1)
      * @param pageSize số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @return danh sách Audit theo trang
      */
-    List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize);
+    List<Audit> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize);
 
     /**
      * Lấy tất cả nhật ký theo ngày có phân trang.
@@ -72,9 +71,9 @@ public interface AuditLogDAO {
      * @param dateStr  ngày cần lọc (định dạng yyyy-MM-dd)
      * @param page     số trang (bắt đầu từ 1)
      * @param pageSize số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @return danh sách Audit theo trang
      */
-    List<AuditDTO> getAllLogsByDatePaginated(String dateStr, int page, int pageSize);
+    List<Audit> getAllLogsByDatePaginated(String dateStr, int page, int pageSize);
 
     /**
      * Đếm số lượng nhật ký của người dùng theo ngày.
@@ -98,9 +97,9 @@ public interface AuditLogDAO {
      *
      * @param userId     mã cán bộ
      * @param filterDate ngày lọc (định dạng yyyy-MM-dd) hoặc null để lấy tất cả
-     * @return StaffProcedureKpiDTO chứa thông tin KPI
+     * @return StaffProcedureKpiModel chứa thông tin KPI
      */
-    StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate);
+    StaffProcedureKpiModel getStaffProcedureKpi(int userId, String filterDate);
 
     /**
      * Lấy danh sách nhật ký theo kỳ thi có phân trang.
@@ -108,9 +107,9 @@ public interface AuditLogDAO {
      * @param sessionId mã kỳ thi
      * @param page      số trang (bắt đầu từ 1)
      * @param pageSize  số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @return danh sách Audit theo trang
      */
-    List<AuditDTO> getLogsForSessionPaginated(int sessionId, int page, int pageSize);
+    List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize);
 
     /**
      * Đếm số lượng nhật ký theo kỳ thi.
@@ -127,9 +126,9 @@ public interface AuditLogDAO {
      * @param page        số trang (bắt đầu từ 1)
      * @param pageSize    số lượng bản ghi trên mỗi trang
      * @param searchQuery từ khóa tìm kiếm
-     * @return danh sách AuditDTO theo trang
+     * @return danh sách Audit theo trang
      */
-    List<AuditDTO> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
+    List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
 
     /**
      * Đếm số lượng nhật ký theo kỳ thi có tìm kiếm.
@@ -145,7 +144,7 @@ public interface AuditLogDAO {
      *
      * @param sessionId mã kỳ thi
      * @param limit     số lượng tối đa bản ghi trả về
-     * @return danh sách AuditDTO các vi phạm
+     * @return danh sách Audit các vi phạm
      */
-    List<AuditDTO> getViolationLogsForSession(int sessionId, int limit);
+    List<Audit> getViolationLogsForSession(int sessionId, int limit);
 }

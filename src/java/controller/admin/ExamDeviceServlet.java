@@ -5,7 +5,7 @@ import service.impl.ExamDeviceServiceImpl;
 import dto.exam.ExamDeviceViewDTO;
 
 import model.user.User;
-import util.AuditLogHelper;
+import service.AuditLogService;
 import util.Sanitize;
 import util.SessionUtil;
 
@@ -18,6 +18,7 @@ import java.io.IOException;
 
 @WebServlet(name = "ExamDeviceServlet", urlPatterns = {"/admin/exam-computer"})
 public class ExamDeviceServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private ExamDeviceService examDeviceService;
     private static final String LIST_VIEW = "/views/admin/exam-computer.jsp";
@@ -30,7 +31,6 @@ public class ExamDeviceServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
 
         String keyword = Sanitize.text(req.getParameter("searchKeyword"));
         String status = Sanitize.text(req.getParameter("filterStatus"));
@@ -46,7 +46,6 @@ public class ExamDeviceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
         String action = Sanitize.text(req.getParameter("action"));
         User admin = SessionUtil.getCurrentUser(req);
         Integer adminId = (admin != null) ? admin.getUserId() : null;
@@ -56,7 +55,7 @@ public class ExamDeviceServlet extends HttpServlet {
             ExamDeviceService.DeleteResult result = examDeviceService.delete(id, adminId);
             
             if (result.success) {
-                AuditLogHelper.persist(req.getSession(), "DELETE", "Xóa máy thi id: " + id, id);
+                auditLogService.persist(req.getSession(), "DELETE", "Xóa máy thi id: " + id, id);
                 SessionUtil.flash(req, "success", result.message);
             } else {
                 SessionUtil.flash(req, "danger", result.message);
@@ -87,7 +86,7 @@ public class ExamDeviceServlet extends HttpServlet {
             return;
         }
 
-        AuditLogHelper.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
+        auditLogService.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
                 (isEdit ? "Cập nhật máy thi: " : "Tạo máy thi: ") + name, result.id);
         SessionUtil.flash(req, "success", result.message);
         

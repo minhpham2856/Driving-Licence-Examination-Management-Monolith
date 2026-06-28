@@ -13,8 +13,12 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import service.EnumMappingService;
+import service.impl.EnumMappingServiceImpl;
 
 public class ProfileDAOImpl extends DBContext implements ProfileDAO {
+
+    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     private static final Logger LOG = Logger.getLogger(ProfileDAOImpl.class.getName());
 
@@ -117,7 +121,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
-            ps.setString(4, enums.Gender.sexFromGender(profile.isGender()));
+            ps.setString(4, enumMappingService.sexFromGender(profile.isGender()));
             ps.setString(5, profile.getGovIdNo());
 
             if (profile.getAddress() == null) {
@@ -166,7 +170,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
-            ps.setString(4, enums.Gender.sexFromGender(profile.isGender()));
+            ps.setString(4, enumMappingService.sexFromGender(profile.isGender()));
             ps.setString(5, profile.getGovIdNo());
 
             if (profile.getAddress() == null) {
@@ -198,7 +202,36 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         profile.setPhoneNo(rs.getString("PhoneNumber"));
         profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
         profile.setAddress(rs.getString("Address"));
-        profile.setGender(enums.Gender.genderFromSex(rs.getString("Sex")));
+        profile.setGender(enumMappingService.genderFromSex(rs.getString("Sex")));
         return profile;
+    }
+
+    @Override
+    public java.util.List<Profile> findByUserIds(java.util.List<Integer> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < userIds.size(); i++) {
+            placeholders.append("?");
+            if (i < userIds.size() - 1) {
+                placeholders.append(",");
+            }
+        }
+        String sql = PROFILE_SELECT + " WHERE UserId IN (" + placeholders.toString() + ")";
+        java.util.List<Profile> list = new java.util.ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < userIds.size(); i++) {
+                ps.setInt(i + 1, userIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

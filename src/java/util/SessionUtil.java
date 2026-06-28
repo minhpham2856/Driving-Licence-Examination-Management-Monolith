@@ -1,14 +1,8 @@
 package util;
 
-
-
-
 import model.user.User;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import java.io.IOException;
 
 // Session helpers for the admin slice.
 public final class SessionUtil {
@@ -30,34 +24,6 @@ public final class SessionUtil {
         return getCurrentUser(req) != null;
     }
 
-    public static String roleName(User u) {
-        if (u == null || (Integer)u.getRoleId() == null) {
-            return "";
-        }
-        return enums.UserRole.roleNameFromId(u.getRoleId()) == null ? "" : enums.UserRole.roleNameFromId(u.getRoleId());
-    }
-
-    public static boolean isAdmin(HttpServletRequest req) {
-        return enums.UserRole.ADMIN.getRoleName().equalsIgnoreCase(roleName(getCurrentUser(req)));
-    }
-
-    // Guards an admin-only endpoint.
-    public static boolean requireAdmin(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        User u = getCurrentUser(req);
-        if (u == null) {
-            HttpSession s = req.getSession(true);
-            s.setAttribute("errorMessage", "ban can dang nhap de truy cap");
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return false;
-        }
-        if (!enums.UserRole.ADMIN.getRoleName().equalsIgnoreCase(roleName(u))) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "ban khong co quyen truy cap trang nay");
-            return false;
-        }
-        return true;
-    }
-
     // Put a one-time flash message into the session (read+cleared on the next page).
     public static void flash(HttpServletRequest req, String type, String message) {
         HttpSession s = req.getSession(true);
@@ -65,5 +31,3 @@ public final class SessionUtil {
         s.setAttribute(FLASH_MSG, message);
     }
 }
-
-

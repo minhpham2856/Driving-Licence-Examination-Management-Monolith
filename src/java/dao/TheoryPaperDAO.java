@@ -5,6 +5,8 @@ import dto.score.TheoryPaperAnswerDTO;
 
 import java.util.List;
 
+import model.exam.TheoryPaper;
+
 /**
  * DAO cho thao tác với bài thi lý thuyết (TheoryPaper).
  * Cung cấp các phương thức truy vấn câu trả lời và đếm số câu hỏi
@@ -13,20 +15,10 @@ import java.util.List;
 public interface TheoryPaperDAO {
 
     /**
-     * Lấy danh sách câu trả lời của thí sinh theo kỳ thi và số báo danh.
+     * Tìm kiếm bài thi lý thuyết theo mã ứng viên trong kỳ thi.
      *
-     * @param sessionId mã kỳ thi
-     * @param sbd       số báo danh
-     * @return danh sách TheoryPaperAnswerDTO chứa câu trả lời
+     * @param examCandidateId mã ứng viên trong kỳ thi
+     * @return TheoryPaper model hoặc null nếu không có
      */
-    List<TheoryPaperAnswerDTO> getAnswersBySessionAndSbd(int sessionId, String sbd);
-
-    /**
-     * Đếm số lượng câu hỏi của thí sinh trong bài thi lý thuyết.
-     *
-     * @param sessionId mã kỳ thi
-     * @param sbd       số báo danh
-     * @return số lượng câu hỏi
-     */
-    int countQuestionsBySessionAndSbd(int sessionId, String sbd);
+    TheoryPaper findByExamCandidateId(int examCandidateId);
 }

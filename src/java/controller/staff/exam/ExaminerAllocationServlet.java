@@ -22,14 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@WebServlet("/views/staff/examstaff/examiner-allocation")
+@WebServlet("/views/staff/exam/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
-    private ExaminerAllocationService allocationService;
-
-    @Override
-    public void init() {
-        allocationService = new ExaminerAllocationServiceImpl();
-    }
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -119,7 +115,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("areasBySession", areasBySession);
         }
 
-        request.getRequestDispatcher("/views/staff/examstaff/examiner-allocation.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/staff/exam/examiner-allocation.jsp").forward(request, response);
     }
 
     private void handleAction(HttpServletRequest request, HttpSession session, String action,
@@ -212,7 +208,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {
-        util.AuditLogHelper.persist(session, action, details);
+        auditLogService.persist(session, action, details);
     }
 
     @Override

@@ -108,7 +108,5 @@
         <jsp:include page="../layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText" value="Thí sinh di chuyển tới bàn ký tên để hoàn tất thủ tục sau khi xem kết quả." />
-        </jsp:include>
-
-    </body>
+</body>
 </html>

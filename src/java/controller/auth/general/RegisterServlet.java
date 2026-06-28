@@ -1,7 +1,7 @@
 package controller.auth.general;
 
 
-import dto.registration.RegisterResultDTO;
+import dto.auth.RegisterResultDTO;
 
 import service.AuthService;
 import service.impl.AuthServiceImpl;
@@ -22,7 +22,7 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/landing/register.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);
     }
 
     @Override
@@ -92,6 +92,6 @@ public class RegisterServlet extends HttpServlet {
 
     private void forwardRegister(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/landinglanding/register.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);
     }
 }

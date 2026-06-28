@@ -74,7 +74,6 @@
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText"
                        value="Sử dụng bàn phím trên màn hình hoặc bàn phím số bên phải của máy tính" />
-        </jsp:include>
-    </body>
+</body>
 
 </html>

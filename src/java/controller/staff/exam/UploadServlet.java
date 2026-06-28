@@ -25,6 +25,8 @@ import util.UsernameGenerator;
 
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
+import service.RoleService;
+import service.impl.RoleServiceImpl;
 
 
 import jakarta.servlet.ServletException;
@@ -44,16 +46,19 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/upload")
+@WebServlet("/views/staff/exam/upload")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
                  maxFileSize = 1024 * 1024 * 15,      // 15MB
                  maxRequestSize = 1024 * 1024 * 30)   // 30MB
 public class UploadServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+    private final RoleService roleService = new RoleServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -154,7 +159,6 @@ public class UploadServlet extends HttpServlet {
 
                 session.removeAttribute("previewCandidates");
                 List<ExamRegistrationDTO> updatedQueue = regDAO.getCandidatesBySession(selectedSessionId);
-                CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
                 photoService.normalizeQueue(request.getServletContext().getRealPath("/"), updatedQueue);
                 session.setAttribute("candidateQueue", updatedQueue);
                 session.setAttribute("lastLoadedSessionId", selectedSessionId);
@@ -177,7 +181,7 @@ public class UploadServlet extends HttpServlet {
         }
 
         request.setAttribute("activeSessions", sessionDAO.getActiveSessions());
-        request.getRequestDispatcher("/views/staff/examstaff/upload.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/staff/exam/upload.jsp").forward(request, response);
     }
 
     @Override
@@ -333,7 +337,7 @@ public class UploadServlet extends HttpServlet {
             user.setEmail(finalEmail);
             user.setPasswordHash(UsernameGenerator.randomPassword(10));
             user.setActive(true);
-            user.setRoleId(enums.UserRole.roleIdFromName("Registrant"));
+            user.setRoleId(roleService.getRoleIdByName("Registrant"));
 
             if (!userDAO.insert(user)) {
                 return null;
@@ -390,7 +394,7 @@ public class UploadServlet extends HttpServlet {
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
 
-        util.AuditLogHelper.persist(session, action, details, recordId);
+        auditLogService.persist(session, action, details, recordId);
     }
 
     private boolean isValidUTF8(byte[] bytes) {

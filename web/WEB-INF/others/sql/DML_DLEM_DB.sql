@@ -46,8 +46,8 @@ GO
 INSERT INTO [Role] (RoleName) VALUES
 (N'Admin'),
 (N'Examiner'),
-(N'ManagingStaff'),
-(N'ExamStaff'),
+(N'managing'),
+(N'exam'),
 (N'Candidate'),
 (N'Registrant');
 GO
@@ -60,8 +60,8 @@ INSERT INTO [User] (Username, Email, PasswordHash, RoleId, IsActive) VALUES
 (N'examiner_tung',   N'tung.nguyen@pc08a.com',   N'login123', 2, 1),
 (N'examiner_lan',    N'lan.tran@pc08a.com',      N'login123', 2, 1),
 (N'manager_dung',   N'dung.pham@laivui.vn',       N'login123', 3, 1),
-(N'examstaff_hoa',  N'hoa.le@laivui.vn',          N'login123', 4, 1),
-(N'examstaff_minh', N'minh.vu@laivui.vn',         N'login123', 4, 1),
+(N'exam_hoa',  N'hoa.le@laivui.vn',          N'login123', 4, 1),
+(N'exam_minh', N'minh.vu@laivui.vn',         N'login123', 4, 1),
 (N'an.nguyen',       N'an.nguyen@gmail.com',       N'login123', 6, 1),
 (N'binh.tran',       N'binh.tran@gmail.com',       N'login123', 6, 1),
 (N'chinh.le',        N'chinh.le@gmail.com',        N'login123', 6, 1),

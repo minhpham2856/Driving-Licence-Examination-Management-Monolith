@@ -1,7 +1,5 @@
 package enums;
 
-import java.util.Locale;
-
 public enum AuditEntity {
     CANDIDATE("Thí sinh"),
     THI_SINH("Thí sinh"),
@@ -25,23 +23,7 @@ public enum AuditEntity {
         this.labelVi = labelVi;
     }
 
-    public static String auditLabel(String entityName) {
-        if (entityName == null || entityName.isBlank()) return "-";
-        String trimmed = entityName.trim();
-        String key = trimmed.toUpperCase(Locale.ROOT).replace(" ", "_").replace("Í", "I").replace("Ồ", "O").replace("Ơ", "O").replace("Đ", "D").replace("Ă", "A").replace("Ỳ", "Y").replace("Ế", "E").replace("Ậ", "A");
-        
-        for (AuditEntity e : values()) {
-            if (e.name().equals(key)) {
-                return e.labelVi;
-            }
-        }
-        
-        // Exact mapping from original AuditEntityLabels
-        return switch (trimmed.toUpperCase(Locale.ROOT)) {
-            case "HỒ SƠ ĐĂNG KÝ", "THÍ SINH" -> "Thí sinh";
-            case "KẾT QUẢ THI" -> "Kết quả thi";
-            case "PHÒNG THI" -> "Phòng thi";
-            default -> trimmed;
-        };
+    public String getLabelVi() {
+        return labelVi;
     }
 }

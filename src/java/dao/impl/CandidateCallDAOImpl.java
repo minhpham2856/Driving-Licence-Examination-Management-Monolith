@@ -5,7 +5,7 @@ import dbconnection.DBContext;
 
 import dao.CandidateCallDAO;
 
-import dto.candidate.CandidateCallDTO;
+import model.candidate.CandidateCall;
 
 import java.sql.*;
 
@@ -23,7 +23,7 @@ public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO 
      * @return true if insertion succeeded
      */
     @Override
-    public boolean insert(CandidateCallDTO call) {
+    public boolean insert(CandidateCall call) {
         String sql = """
                 INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, NewValue, CreatedAt)
                 VALUES (?, 'CALL', ?, 'Candidate', ?, ?, GETDATE())

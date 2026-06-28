@@ -1,6 +1,5 @@
 package controller.auth.general;
 
-
 import service.AuthService;
 import service.impl.AuthServiceImpl;
 
@@ -19,7 +18,7 @@ public class ForgotPasswordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/landing/forgot-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
     }
 
     @Override
@@ -29,7 +28,7 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         if (email == null || email.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập địa chỉ email.");
-            request.getRequestDispatcher("/views/landing/forgot-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
             return;
         }
 
@@ -40,6 +39,6 @@ public class ForgotPasswordServlet extends HttpServlet {
             request.setAttribute("success", "Mật khẩu tạm thời đã được gửi tới email của bạn.");
         }
 
-        request.getRequestDispatcher("/views/landing/forgot-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
     }
 }

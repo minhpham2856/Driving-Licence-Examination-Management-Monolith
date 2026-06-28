@@ -37,12 +37,16 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/allocation")
+@WebServlet("/views/staff/exam/allocation")
 public class AllocationServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
+    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+    private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -96,7 +100,6 @@ public class AllocationServlet extends HttpServlet {
         if (action != null) {
             try {
                 if ("autoAllocate".equals(action)) {
-                    ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
                     AutoAllocateResultDTO allocResult = allocationService.autoAllocateSession(sessionId);
                     if (allocResult.errorMsg != null) {
                         request.setAttribute("errorMsg", allocResult.errorMsg);
@@ -133,7 +136,6 @@ public class AllocationServlet extends HttpServlet {
                             }
                         } else if ("callCandidate".equals(action)) {
                             session.setAttribute("callingSbd", profile.getSbd());
-                            CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
                             CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), sessionId);
                             if (state != null) {
                                 state.setCallingSbd(profile.getSbd());
@@ -223,12 +225,10 @@ public class AllocationServlet extends HttpServlet {
 
         // 4. Reload all database state after actions to ensure 100% request/response synchronization
         qList = regDAO.getCandidatesBySession(sessionId);
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
         photoService.normalizeQueue(request.getServletContext().getRealPath("/"), qList);
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", sessionId);
 
-        CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
         CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), sessionId);
         if (state != null) {
             String callingSbd = (String) session.getAttribute("callingSbd");
@@ -240,7 +240,7 @@ public class AllocationServlet extends HttpServlet {
 
         request.setAttribute("activeTheoryRooms", areaDAO.getActiveTheoryRooms());
 
-        request.getRequestDispatcher("/views/staff/examstaff/allocation.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/staff/exam/allocation.jsp").forward(request, response);
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {
@@ -249,7 +249,7 @@ public class AllocationServlet extends HttpServlet {
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
         try {
-            util.AuditLogHelper.persist(session, action, details, recordId);
+            auditLogService.persist(session, action, details, recordId);
         } catch (Exception e) {
             e.printStackTrace();
         }

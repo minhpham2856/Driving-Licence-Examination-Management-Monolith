@@ -1,6 +1,5 @@
 package controller.auth.internal;
 
-import controller.auth.general.*;
 import service.AuthService;
 import service.ExaminerSessionContextService;
 import model.user.User;
@@ -14,12 +13,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import service.RoleService;
+import service.impl.RoleServiceImpl;
 
-@WebServlet("/login")
+@WebServlet("/staff/login")
 public class LoginServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();
     private final ExaminerSessionContextService examinerSessionContext = new ExaminerSessionContextServiceImpl();
+    private final RoleService roleService = new RoleServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -47,21 +49,21 @@ public class LoginServlet extends HttpServlet {
             session.removeAttribute("registrationPassword");
         }
 
-        request.getRequestDispatcher("/views/auth/landing/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // get attributes
-        String identifier = request.getParameter("identifier"); // lets user login with 
+        String identifier = request.getParameter("identifier");
         String password = request.getParameter("password");
 
         // case 1: blank inputs
         if (identifier == null || identifier.trim().isEmpty()
                 || password == null || password.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập tên đăng nhập/email/số căn cước và mật khẩu.");
-            request.getRequestDispatcher("/views/auth/landing/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
             return;
         }
 
@@ -69,23 +71,24 @@ public class LoginServlet extends HttpServlet {
         User user = authService.login(identifier.trim(), password.trim());
         if (user == null) {
             request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
-            request.getRequestDispatcher("/views/auth/landing/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
         } else {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
 
-            String roleName = enums.UserRole.roleNameFromId(user.getRoleId());
+            String roleName = roleService.getRoleNameById(user.getRoleId());
             if ("ManagingStaff".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/staff/managingstaff/dashboard.jsp");
+                response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard.jsp");
             } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/dashboard");
+                response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard.jsp");
             } else if ("Examiner".equalsIgnoreCase(roleName)) {
                 examinerSessionContext.refresh(session, user.getUserId());
-                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard.jsp");
             } else if ("Admin".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+                response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
             } else {
-                response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
+                request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
+                request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
             }
         }
     }

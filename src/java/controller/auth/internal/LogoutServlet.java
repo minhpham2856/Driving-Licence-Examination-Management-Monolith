@@ -1,7 +1,5 @@
 package controller.auth.internal;
 
-
-import controller.auth.general.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -10,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet("/logout")
+@WebServlet("/staff/logout")
 public class LogoutServlet extends HttpServlet {
 
     @Override
@@ -34,6 +32,6 @@ public class LogoutServlet extends HttpServlet {
 
         HttpSession newSession = request.getSession(true);
         newSession.setAttribute("successMessage", "Bạn đã đăng xuất.");
-        response.sendRedirect(request.getContextPath() + "/login");
+        response.sendRedirect(request.getContextPath() + "/staff/login");
     }
 }

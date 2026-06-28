@@ -1,7 +1,5 @@
 package dao.impl;
 
-
-
 import dbconnection.DBContext;
 
 import dao.ExaminerAssignmentDAO;
@@ -19,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import service.impl.RoleServiceImpl;
 
 // JDBC implementation of {@link ExaminerAssignmentDAO}.
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
@@ -425,7 +424,8 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
         // Resolve the role from the RoleName string
         String roleName = rs.getString("Role");
-        user.setRoleId(enums.UserRole.roleIdFromName(roleName));
+        service.RoleService roleService = new RoleServiceImpl();
+        user.setRoleId(roleService.getRoleIdByName(roleName));
 
         // Check if a Profile record exists for this user (LEFT JOIN may return null)
         Integer profileId = (Integer) rs.getObject("ProfileId");
@@ -456,5 +456,3 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
-
-

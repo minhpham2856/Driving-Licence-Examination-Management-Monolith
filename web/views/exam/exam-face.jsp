@@ -58,6 +58,5 @@
         <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText" value="Thí sinh đưa mặt bên trong khung hình rồi chọn “CHỤP ẢNH” để bắt đầu thi" />
-        </jsp:include>
-    </body>
+</body>
 </html>

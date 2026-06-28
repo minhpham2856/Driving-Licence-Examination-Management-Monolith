@@ -4,11 +4,12 @@ package service.impl;
 import dao.ProfileDAO;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.RegistrantApplicationDAOImpl;
-import dto.registration.RegisterResultDTO;
+import dto.auth.RegisterResultDTO;
 import model.user.Profile;
 import service.AuthService;
 import service.EmailService;
 import service.UserManagementService;
+import dto.user.CreateUserResultDTO;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -30,17 +31,17 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final dao.impl.RegistrantApplicationDAOImpl applicationDAO = new RegistrantApplicationDAOImpl();
 
     @Override
-    public CreateUserResult createUser(
+    public CreateUserResultDTO createUser(
             String fullName, String cccd, String phone, String email,
             String dob, String gender, String address, String userType, String licenseClass) {
 
         String validationError = validate(fullName, cccd, phone, email, dob, gender, address, userType, licenseClass);
         if (validationError != null) {
-            return new CreateUserResult(false, validationError, null, null);
+            return new CreateUserResultDTO(false, validationError, null, null);
         }
 
         if (!emailService.isConfigured()) {
-            return new CreateUserResult(false, "Chưa cấu hình email gửi đi. Vui lòng cấu hình MAIL_SENDER_USERNAME "
+            return new CreateUserResultDTO(false, "Chưa cấu hình email gửi đi. Vui lòng cấu hình MAIL_SENDER_USERNAME "
                     + "và MAIL_SENDER_PASSWORD trong file .env, sau đó khởi động lại Tomcat.", null, null);
         }
 
@@ -49,7 +50,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                 cccd, fullName, phone, dob, address, email, female);
 
         if (!result.isSuccess()) {
-            return new CreateUserResult(false, result.getErrorMessage(), null, null);
+            return new CreateUserResultDTO(false, result.getErrorMessage(), null, null);
         }
 
         Profile profile = profileDAO.getByGovIdNo(cccd);
@@ -61,14 +62,14 @@ public class UserManagementServiceImpl implements UserManagementService {
             if (!applicationCreated) {
                 message += " Tuy nhiên, chưa thể tạo hồ sơ GPLX tự động; vui lòng kiểm tra lại cấu hình hạng GPLX.";
             }
-            return new CreateUserResult(true, message, null, null);
+            return new CreateUserResultDTO(true, message, null, null);
         } else {
             String message = "Tạo tài khoản thành công nhưng chưa gửi được email. "
                     + "Hãy bàn giao thông tin đăng nhập bên dưới cho học viên.";
             if (!applicationCreated) {
                 message += " Hồ sơ GPLX cũng chưa được tạo tự động; vui lòng kiểm tra cấu hình hạng GPLX.";
             }
-            return new CreateUserResult(true, message, result.getUsername(), result.getPassword());
+            return new CreateUserResultDTO(true, message, result.getUsername(), result.getPassword());
         }
     }
 

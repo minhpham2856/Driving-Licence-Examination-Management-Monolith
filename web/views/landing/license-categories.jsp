@@ -304,5 +304,3 @@
         </div>
     </div>
 </main>
-
-<jsp:include page="/views/layout/footer.jsp" />

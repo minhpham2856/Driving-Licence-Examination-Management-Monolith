@@ -39,11 +39,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/views/staff/examstaff/procedure")
+@WebServlet("/views/staff/exam/procedure")
 public class ProcedureServlet extends HttpServlet {
+    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
     private final PaymentDAO payDAO = new PaymentDAOImpl();
+    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+    private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
+    private final ExaminerAllocationService allocator = new ExaminerAllocationServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -207,7 +211,6 @@ public class ProcedureServlet extends HttpServlet {
                 }
 
                 // Tự động phân bổ phòng thi lý thuyết ngay sau khi hoàn tất hồ sơ (non-UI; thiết bị do Examiner quản lý)
-                ExaminerAllocationService allocator = new ExaminerAllocationServiceImpl();
                 AutoAllocateResultDTO allocResult = allocator.autoAllocateCandidate(
                         profile.getExamSessionId(), profile.getId());
 
@@ -243,7 +246,7 @@ public class ProcedureServlet extends HttpServlet {
     private void forwardDeskView(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("deskMode", Boolean.TRUE);
-        request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/staff/exam/candidatecall.jsp").forward(request, response);
     }
 
     @Override
@@ -321,7 +324,6 @@ public class ProcedureServlet extends HttpServlet {
         if (profile.isAbsent()) {
             clearAbsentMarking(profile);
         }
-        ExaminerAllocationService allocator = new ExaminerAllocationServiceImpl();
         AutoAllocateResultDTO allocResult = allocator.autoAllocateCandidate(
                 profile.getExamSessionId(), profile.getId());
         qList = regDAO.getCandidatesBySession(profile.getExamSessionId());
@@ -418,7 +420,6 @@ public class ProcedureServlet extends HttpServlet {
             e.printStackTrace();
             qList = new ArrayList<>();
         }
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
         photoService.normalizeQueue(webRoot, qList);
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", examSessionId);
@@ -441,7 +442,6 @@ public class ProcedureServlet extends HttpServlet {
             }
         }
         if (profile != null) {
-            CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
             photoService.normalizeQueue(webRoot, java.util.Collections.singletonList(profile));
             syncProfileInQueue(qList, profile);
         }
@@ -454,7 +454,6 @@ public class ProcedureServlet extends HttpServlet {
         if (fresh == null) {
             return loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         }
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
         photoService.normalizeQueue(webRoot, java.util.Collections.singletonList(fresh));
         syncProfileInQueue(qList, fresh);
         return fresh;
@@ -518,7 +517,6 @@ public class ProcedureServlet extends HttpServlet {
         session.removeAttribute("procedureJustPaid");
 
         qList = regDAO.getCandidatesBySession(examSessionId);
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
         photoService.normalizeQueue(webRoot, qList);
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", examSessionId);
@@ -532,7 +530,6 @@ public class ProcedureServlet extends HttpServlet {
             }
         }
         session.setAttribute("callingSbd", nextSbd);
-        CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
         CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), examSessionId);
         if (state != null) {
             state.setCallingSbd(nextSbd);
@@ -553,7 +550,7 @@ public class ProcedureServlet extends HttpServlet {
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
 
-        util.AuditLogHelper.persist(session, action, details, recordId);
+        auditLogService.persist(session, action, details, recordId);
     }
 }
 

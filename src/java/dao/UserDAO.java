@@ -58,4 +58,12 @@ public interface UserDAO {
      * @return true nếu cập nhật thành công
      */
     boolean updatePassword(int userId, String passwordHash);
+
+    /**
+     * Lấy danh sách người dùng theo danh sách ID.
+     *
+     * @param ids danh sách mã người dùng
+     * @return danh sách User
+     */
+    java.util.List<User> findByIds(java.util.List<Integer> ids);
 }

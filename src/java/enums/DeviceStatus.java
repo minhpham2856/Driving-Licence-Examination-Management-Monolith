@@ -16,23 +16,15 @@ public enum DeviceStatus {
         this.cssClass = cssClass;
     }
 
-    public static String statusLabelVi(String status) {
-        if (status == null) return "-";
-        for (DeviceStatus ds : values()) {
-            if (ds.status.equalsIgnoreCase(status.trim())) {
-                return ds.labelVi;
-            }
-        }
+    public String getStatus() {
         return status;
     }
 
-    public static String statusCssClass(String status) {
-        if (status == null) return "device-grid-card--unknown";
-        for (DeviceStatus ds : values()) {
-            if (ds.status.equalsIgnoreCase(status.trim())) {
-                return ds.cssClass;
-            }
-        }
-        return "device-grid-card--unknown";
+    public String getLabelVi() {
+        return labelVi;
+    }
+
+    public String getCssClass() {
+        return cssClass;
     }
 }

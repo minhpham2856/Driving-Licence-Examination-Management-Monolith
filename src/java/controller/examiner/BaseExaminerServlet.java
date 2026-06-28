@@ -3,10 +3,9 @@ package controller.examiner;
 
 import service.ExaminerActionsService;
 import service.ExaminerSessionContextService;
-import service.ExaminerViewDataService;
 import service.impl.ExaminerActionsServiceImpl;
 
-import service.impl.ExaminerViewDataServiceImpl;
+import service.impl.ExaminerDataServiceImpl;
 
 import enums.SectionType;
 
@@ -17,12 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import service.ExaminerDataService;
 
 // Base servlet containing shared dependencies and utilities for the Examiner portal.
 public abstract class BaseExaminerServlet extends HttpServlet {
 
     // Services required for data fetching and logic execution
-    protected final ExaminerViewDataService viewDataService = new ExaminerViewDataServiceImpl();
+    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     // Ensures a valid HTTP session exists, otherwise sends 401 Unauthorized.

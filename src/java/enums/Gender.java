@@ -19,14 +19,4 @@ public enum Gender {
     public String getLabelVi() {
         return labelVi;
     }
-
-    public static String sexFromGender(boolean isMale) {
-        return isMale ? MALE.labelVi : FEMALE.labelVi;
-    }
-
-    public static boolean genderFromSex(String sex) {
-        if (sex == null) return false;
-        String s = sex.trim();
-        return s.equalsIgnoreCase("Nam") || s.equalsIgnoreCase("Male") || s.equals("M") || s.equals("1");
-    }
 }

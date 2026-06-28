@@ -1,58 +1,44 @@
 package dao.impl;
 
-
-
 import dbconnection.DBContext;
 
 import dao.UserDAO;
 
 import model.user.Profile;
-import model.user.Role;
 import model.user.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.List;
+import java.util.Collections;
+import java.util.ArrayList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import service.EnumMappingService;
+import service.impl.EnumMappingServiceImpl;
+import service.impl.RoleServiceImpl;
 
-/**
- * JDBC implementation of UserDAO using DBContext connection management. Maps
- * result sets to User model objects including nested Profile and Role.
- */
 public class UserDAOImpl extends DBContext implements UserDAO {
+
+    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
 
     private static final String USER_SELECT = """
-                     select u.UserId,
-                     	u.Username,
-                     	u.Email,
-                     	u.PasswordHash,
-                     	r.RoleName,
-                     	u.IsActive,
-                     	p.ProfileId,
-                     	p.FullName,
-                     	p.DateOfBirth,
-                     	p.PhoneNumber,
-                     	p.Sex,
-                     	p.GovernmentIdNumber,
-                     	p.Address
-                     from [User] u
-                     join [Role] r on r.RoleId = u.RoleId
-                     left join Profile p on p.UserId = u.UserId
+                     select UserId,
+                     	Username,
+                     	Email,
+                     	PasswordHash,
+                     	RoleId,
+                     	IsActive
+                     from [User]
                      """;
 
-    /**
-     * Retrieves a user by primary key, including nested Profile and Role.
-     *
-     * @param id the UserId
-     * @return the User model, or null if not found
-     */
     @Override
     public User getById(int id) {
-        String sql = USER_SELECT + " where u.UserId = ?";
+        String sql = USER_SELECT + " where UserId = ?";
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -77,7 +63,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
      */
     @Override
     public User getByUsername(String username) {
-        String sql = USER_SELECT + " where u.Username = ?";
+        String sql = USER_SELECT + " where Username = ?";
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
@@ -104,17 +90,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
-                 where u.Username = ?
-                    or u.Email = ?
-                    or p.PhoneNumber = ?
-                    or p.GovernmentIdNumber = ?
+                 where Username = ?
+                    or Email = ?
                 """;
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
-            ps.setString(3, identifier);
-            ps.setString(4, identifier);
+            ps.setString(2, identifier);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -136,7 +119,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
      */
     @Override
     public User getByEmail(String email) {
-        String sql = USER_SELECT + " where u.Email = ?";
+        String sql = USER_SELECT + " where Email = ?";
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, email);
@@ -175,7 +158,8 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
         int roleId = user.getRoleId();
         if (roleId <= 0) {
-            roleId = enums.UserRole.roleIdFromName("Registrant");
+            service.RoleService roleService = new RoleServiceImpl();
+            roleId = roleService.getRoleIdByName("Registrant");
         }
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -244,26 +228,35 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setPasswordHash(rs.getString("PasswordHash"));
         user.setActive(rs.getBoolean("IsActive"));
 
-        String roleName = rs.getString("RoleName");
-        Role role = enums.UserRole.roleFromName(roleName);
-        user.setRoleId(role.getId());
-        user.setRoleId(role.getId());
-
-        if (false) {
-            Profile profile = new Profile();
-            
-            profile.setUserId(rs.getInt("UserId"));
-            profile.setFullName(rs.getString("FullName"));
-            profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
-            profile.setPhoneNo(rs.getString("PhoneNumber"));
-            profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
-            profile.setAddress(rs.getString("Address"));
-            profile.setGender(enums.Gender.genderFromSex(rs.getString("Sex")));
-            
-        }
+        user.setRoleId(rs.getInt("RoleId"));
 
         return user;
+    @Override
+    public List<User> findByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            placeholders.append("?");
+            if (i < ids.size() - 1) {
+                placeholders.append(",");
+            }
+        }
+        String sql = USER_SELECT + " WHERE UserId IN (" + placeholders.toString() + ")";
+        List<User> list = new java.util.ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < ids.size(); i++) {
+                ps.setInt(i + 1, ids.get(i));
+            }
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
-
-

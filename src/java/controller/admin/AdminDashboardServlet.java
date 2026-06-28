@@ -1,10 +1,7 @@
 package controller.admin;
 
-
 import service.AdminDashboardService;
 import service.impl.AdminDashboardServiceImpl;
-
-import util.SessionUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -26,7 +23,6 @@ public class AdminDashboardServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
 
         int totalAreas = dashboardService.getTotalExamCenters();
         req.setAttribute("totalExamCenters", totalAreas);
@@ -38,4 +34,3 @@ public class AdminDashboardServlet extends HttpServlet {
         req.getRequestDispatcher("/views/admin/dashboard.jsp").forward(req, resp);
     }
 }
-

@@ -40,6 +40,8 @@ public class PublicCallServlet extends HttpServlet {
 
     private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+    private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -66,10 +68,8 @@ public class PublicCallServlet extends HttpServlet {
             e.printStackTrace();
             qList = new ArrayList<>();
         }
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
         photoService.normalizeQueue(getServletContext().getRealPath("/"), qList);
 
-        CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
         CandidateCallBoardStateDTO board = callBoardService.getState(getServletContext(), sessionId);
         
         String callingSbd = board != null ? board.getCallingSbd() : null;

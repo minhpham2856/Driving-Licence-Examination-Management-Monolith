@@ -431,8 +431,8 @@ GO
 INSERT INTO [Role] (RoleName) VALUES
 (N'Admin'),
 (N'Examiner'),
-(N'ManagingStaff'),
-(N'ExamStaff'),
+(N'managing'),
+(N'exam'),
 (N'Candidate'),
 (N'Registrant');
 GO
@@ -444,9 +444,9 @@ INSERT INTO [User] (Username, Email, PasswordHash, RoleId, [Status]) VALUES
 (N'admin',           N'admin@laivui.vn',           N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'Admin'),          1),
 (N'examiner_tung',   N'tung.nguyen@pc08a.com',   N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'Examiner'),       1),
 (N'examiner_lan',    N'lan.tran@pc08a.com',      N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'Examiner'),       1),
-(N'manager_dung',   N'dung.pham@laivui.vn',       N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'ManagingStaff'),  1),
-(N'examstaff_hoa',  N'hoa.le@laivui.vn',          N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'ExamStaff'),      1),
-(N'examstaff_minh', N'minh.vu@laivui.vn',         N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'ExamStaff'),      1),
+(N'manager_dung',   N'dung.pham@laivui.vn',       N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'managing'),  1),
+(N'exam_hoa',  N'hoa.le@laivui.vn',          N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'exam'),      1),
+(N'exam_minh', N'minh.vu@laivui.vn',         N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'exam'),      1),
 (N'an.nguyen',       N'an.nguyen@gmail.com',       N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'Registrant'),     1),
 (N'binh.tran',       N'binh.tran@gmail.com',       N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'Registrant'),     1),
 (N'chinh.le',        N'chinh.le@gmail.com',        N'login123', (SELECT RoleId FROM [Role] WHERE RoleName = 'Registrant'),     1),
@@ -468,8 +468,8 @@ INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber
 (N'Nguyễn Văn Tùng',         '1988-06-15', N'0911223344', N'Nam', N'001088061501', N'12 Phạm Hùng, Hà Nội',     (SELECT UserId FROM [User] WHERE Username = N'examiner_tung')),
 (N'Trần Thị Lan',            '1990-03-22', N'0922334455', N'Nữ', N'001090032201', N'45 Lê Văn Lương, Hà Nội',  (SELECT UserId FROM [User] WHERE Username = N'examiner_lan')),
 (N'Phạm Thị Dung',           '1992-08-08', N'0933445566', N'Nữ', N'001092080801', N'56 Hai Bà Trưng, Hà Nội',  (SELECT UserId FROM [User] WHERE Username = N'manager_dung')),
-(N'Lê Văn Hòa',              '1991-11-11', N'0944556677', N'Nam', N'001091111101', N'78 Trần Phú, Đà Nẵng',     (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa')),
-(N'Vũ Minh Khang',            '1993-04-04', N'0955667788', N'Nam', N'001093040401', N'34 Nguyễn Trãi, Hà Nội',   (SELECT UserId FROM [User] WHERE Username = N'examstaff_minh')),
+(N'Lê Văn Hòa',              '1991-11-11', N'0944556677', N'Nam', N'001091111101', N'78 Trần Phú, Đà Nẵng',     (SELECT UserId FROM [User] WHERE Username = N'exam_hoa')),
+(N'Vũ Minh Khang',            '1993-04-04', N'0955667788', N'Nam', N'001093040401', N'34 Nguyễn Trãi, Hà Nội',   (SELECT UserId FROM [User] WHERE Username = N'exam_minh')),
 (N'Nguyễn Văn An',           '2000-03-15', N'0989123456', N'Nam', N'001203012345', N'123 Lê Duẩn, Hà Nội',      (SELECT UserId FROM [User] WHERE Username = N'an.nguyen')),
 (N'Trần Thị Bình',           '1995-08-22', N'0912345678', N'Nữ', N'001203012346', N'45 Nguyễn Huệ, TP.HCM',    (SELECT UserId FROM [User] WHERE Username = N'binh.tran')),
 (N'Lê Văn Chính',            '1988-11-10', N'0978563412', N'Nam', N'001203012347', N'78 Trần Phú, Đà Nẵng',     (SELECT UserId FROM [User] WHERE Username = N'chinh.le')),
@@ -630,7 +630,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 1'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'),
     '2026-05-25 08:00:00'
 ),
 (
@@ -638,7 +638,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi Ô tô 1'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'),
     '2026-05-25 08:05:00'
 ),
 (
@@ -646,7 +646,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Đường trường'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_lan'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'),
     '2026-05-25 08:10:00'
 ),
 (
@@ -654,7 +654,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 2'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_lan'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_minh'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_minh'),
     '2026-05-25 08:15:00'
 ),
 (
@@ -662,7 +662,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 1'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_tung'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_minh'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_minh'),
     '2026-05-25 08:20:00'
 );
 GO
@@ -1047,7 +1047,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng LT 2'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_lt'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'),
     '2026-06-09 08:00:00'
 ),
 (
@@ -1055,7 +1055,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi Ô tô 1'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_sh'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'),
     '2026-06-09 08:05:00'
 ),
 (
@@ -1063,7 +1063,7 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
     (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Đường trường'),
     (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường trường 1'),
     (SELECT UserId FROM [User] WHERE Username = N'examiner_b1292_dt'),
-    (SELECT UserId FROM [User] WHERE Username = N'examstaff_hoa'),
+    (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'),
     '2026-06-09 08:10:00'
 );
 GO
