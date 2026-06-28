@@ -3,6 +3,7 @@ package DAOs;
 import DTOs.SessionDTO;
 import Models.Session;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 // DAO cho thao tác với kỳ thi (Session).
@@ -22,6 +23,10 @@ public interface ExamSessionDAO {
 
     // Lấy danh sách kỳ thi theo ngày thi.
     List<SessionDTO> getSessionsByExamDate(Date examDate);
+
+    // Tạo phiên thi mới cho Managing Staff. Trả về SessionId mới, hoặc -1 nếu thất bại.
+    int createManagedSession(String sessionName, int licenceId, int examAreaId, int examSectionId,
+                             Timestamp startTime, Timestamp endTime, String centreName);
 
     // Cập nhật trạng thái kỳ thi.
     boolean updateStatus(int sessionId, String status);

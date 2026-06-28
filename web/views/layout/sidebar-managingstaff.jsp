@@ -23,6 +23,9 @@
         <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user') or fn:contains(pageContext.request.requestURI, '/manager/create-user')}">
             <c:set var="activeSidebar" value="tao-tai-khoan" />
         </c:when>
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'exam-schedules') or fn:contains(pageContext.request.requestURI, '/manager/exam-schedules')}">
+            <c:set var="activeSidebar" value="phien-thi" />
+        </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'report')}">
             <c:set var="activeSidebar" value="bao-cao" />
         </c:when>
@@ -123,6 +126,19 @@
                 </svg>
             </span>
             <span class="side-nav-bar__label" data-node-id="manager:41">Tạo tài khoản</span>
+        </a>
+
+        <a href="${ctx}/manager/exam-schedules"
+           class="side-nav-bar__link${activeSidebar eq 'phien-thi' ? ' is-active' : ''}"
+           data-node-id="manager:45"
+           <c:if test="${activeSidebar eq 'phien-thi'}">aria-current="page"</c:if>>
+            <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 2v4M16 2v4M3 10h18M8 15h3M14 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__label" data-node-id="manager:46">Phiên thi</span>
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>

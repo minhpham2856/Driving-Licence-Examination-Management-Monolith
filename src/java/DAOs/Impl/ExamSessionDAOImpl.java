@@ -147,6 +147,119 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return list;
     }
 
+    @Override
+    public int createManagedSession(String sessionName, int licenceId, int examAreaId, int examSectionId,
+                                    Timestamp startTime, Timestamp endTime, String centreName) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            int examId = createExam(conn, licenceId, startTime, centreName);
+            int sessionId;
+            String insertSession = """
+                    INSERT INTO [Session] (SessionName, StartTime, EndTime, [Status], ExamId)
+                    VALUES (?, ?, ?, N'Scheduled', ?)
+                    """;
+            try (PreparedStatement ps = conn.prepareStatement(insertSession, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, sessionName);
+                ps.setTimestamp(2, startTime);
+                ps.setTimestamp(3, endTime);
+                ps.setInt(4, examId);
+                ps.executeUpdate();
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (!keys.next()) {
+                        throw new SQLException("Cannot read generated SessionId");
+                    }
+                    sessionId = keys.getInt(1);
+                }
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO Session_ExamArea (SessionId, ExamAreaId) VALUES (?, ?)")) {
+                ps.setInt(1, sessionId);
+                ps.setInt(2, examAreaId);
+                ps.executeUpdate();
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO Session_ExamSection (SessionId, ExamSectionId) VALUES (?, ?)")) {
+                ps.setInt(1, sessionId);
+                ps.setInt(2, examSectionId);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return sessionId;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+        return -1;
+    }
+
+    private int createExam(Connection conn, int licenceId, Timestamp startTime, String centreName) throws SQLException {
+        String licenceClass = getLicenceClass(conn, licenceId);
+        String examCode = buildExamCode(conn, licenceClass, startTime);
+        String sql = """
+                INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], LicenceId)
+                VALUES (?, ?, ?, N'Scheduled', ?)
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, examCode);
+            ps.setTimestamp(2, startTime);
+            ps.setString(3, centreName);
+            ps.setInt(4, licenceId);
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Cannot create exam");
+    }
+
+    private String getLicenceClass(Connection conn, int licenceId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("SELECT LicenceClass FROM Licence WHERE LicenceId = ?")) {
+            ps.setInt(1, licenceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString(1);
+                }
+            }
+        }
+        throw new SQLException("Licence not found: " + licenceId);
+    }
+
+    private String buildExamCode(Connection conn, String licenceClass, Timestamp startTime) throws SQLException {
+        String datePart = startTime.toLocalDateTime().toLocalDate().toString().replace("-", "");
+        String prefix = "EX-" + licenceClass + "-" + datePart;
+        String sql = "SELECT COUNT(*) FROM Exam WHERE ExamCode LIKE ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, prefix + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                int count = rs.next() ? rs.getInt(1) : 0;
+                return count == 0 ? prefix : prefix + "-" + (count + 1);
+            }
+        }
+    }
+
     // Updates the status of a session.
     @Override
     public boolean updateStatus(int sessionId, String status) {
