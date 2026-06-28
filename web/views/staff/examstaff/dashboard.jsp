@@ -5,9 +5,9 @@
 
 <%
     DAOs.ExamSessionDAO sessionDAO = new DAOs.Impl.ExamSessionDAOImpl();
-    java.util.List<Models.ExamSession> allSessions = null;
+    java.util.List<DTOs.SessionDTO> allSessions = null;
     try {
-        allSessions = sessionDAOs.getAllSessions();
+        allSessions = sessionDAO.getAllSessions();
     } catch (Exception e) {
         e.printStackTrace();
         allSessions = new java.util.ArrayList<>();
@@ -27,8 +27,8 @@
     session.setAttribute("selectedSessionId", sessionId);
 
     // Retrieve current session details for display
-    Models.ExamSession currentSession = null;
-    for (Models.ExamSession s : allSessions) {
+    DTOs.SessionDTO currentSession = null;
+    for (DTOs.SessionDTO s : allSessions) {
         if (s.getId() == sessionId) {
             currentSession = s;
             break;
@@ -37,12 +37,13 @@
     pageContext.setAttribute("currentSession", currentSession);
 
     // Load queue for this session if session changed or first time
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<DTOs.ExamRegistrationDTO> qList =
+            (java.util.List<DTOs.ExamRegistrationDTO>) session.getAttribute("candidateQueue");
     Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
     if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
         DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessionId);
+            qList = regDAO.getCandidatesBySession(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();

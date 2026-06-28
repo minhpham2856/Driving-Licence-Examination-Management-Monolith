@@ -9,9 +9,9 @@
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to ca thi B2 sáng (ID = 2)
     
     DAOs.ExamSessionDAO sessDAO = new DAOs.Impl.ExamSessionDAOImpl();
-    Models.ExamSession currentSession = null;
+    DTOs.SessionDTO currentSession = null;
     try {
-        currentSession = sessDAOs.getById(sessId);
+        currentSession = sessDAO.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -20,9 +20,9 @@
     }
 
     DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
-    java.util.List<Models.ExamRegistration> qList = null;
+    java.util.List<DTOs.ExamRegistrationDTO> qList = null;
     try {
-        qList = regDAOs.getCandidatesBySession(sessId);
+        qList = regDAO.getCandidatesBySession(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -32,11 +32,11 @@
     String webRoot = application.getRealPath("/");
     java.util.List<String> missingPhotoSbds = new java.util.ArrayList<>();
     int missingPhotoCount = 0;
-    for (Models.ExamRegistration reg : qList) {
+    for (DTOs.ExamRegistrationDTO reg : qList) {
         boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
         reg.setValidCapturedPhoto(valid);
         if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
-            regDAOs.updatePhoto(reg.getId(), null);
+            regDAO.updatePhoto(reg.getId(), null);
             reg.setPhotoUrl("");
         }
         if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {
@@ -84,7 +84,7 @@
     // examCompletedCount = số thí sinh đã có kết quả thi cuối cùng
     int examCompletedCount = 0;
 
-    for (Models.ExamRegistration reg : qList) {
+    for (DTOs.ExamRegistrationDTO reg : qList) {
         String licCode = reg.getLicenseCode();
         boolean isA1 = "A1".equalsIgnoreCase(licCode) || "A2".equalsIgnoreCase(licCode);
         boolean isB2 = "B2".equalsIgnoreCase(licCode);
@@ -213,7 +213,7 @@
 
     // Fetch real infractions from database
     java.util.List<java.util.Map<String, Object>> infractions = new java.util.ArrayList<>();
-    try (java.sql.Connection conn = DBConnection.DBConfig.getConnection();
+    try (java.sql.Connection conn = new DBConnection.DBContext().getConnection();
          java.sql.PreparedStatement ps = conn.prepareStatement(
              "select top 3 sd.[Reason] as deductionReason, count(*) as countVal " +
              "from Score_Deduction sdd " +

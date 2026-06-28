@@ -14,7 +14,7 @@ import DAOs.Impl.ExamCandidateVehicleDAOImpl;
 import DAOs.Impl.ExamDeviceDAOImpl;
 import DAOs.Impl.CandidateDAOImpl;
 import DAOs.Impl.ExaminerSessionDataDAOImpl;
-import DTOs.CandidateCall;
+import DTOs.CandidateCallDTO;
 import DTOs.CandidateDTO;
 import Models.User;
 import Services.ExaminerCrudService;
@@ -309,7 +309,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     }
 
     private boolean insertCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
-        CandidateCall call = new CandidateCall();
+        CandidateCallDTO call = new CandidateCallDTO();
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
         call.setCalledTo("Phòng thi lý thuyết");
@@ -324,7 +324,7 @@ public class ExaminerCrudServiceImpl implements ExaminerCrudService {
     }
 
     private boolean insertScoreEntryCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
-        CandidateCall call = new CandidateCall();
+        CandidateCallDTO call = new CandidateCallDTO();
         call.setExamSessionId(sessionId);
         call.setCandidateNo(reg.getCandidateNo());
         call.setCalledTo(resolveScoreEntryCallDestination(session));

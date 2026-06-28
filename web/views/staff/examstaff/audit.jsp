@@ -9,11 +9,12 @@
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default B2 session
 
     // Ensure candidate queue is initialized
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<DTOs.ExamRegistrationDTO> qList =
+            (java.util.List<DTOs.ExamRegistrationDTO>) session.getAttribute("candidateQueue");
     if (qList == null) {
         DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessId);
+            qList = regDAO.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -26,14 +27,14 @@
     int uId = (user != null) ? user.getId() : 3; // Default staff Trần Thị Thủ Tục (ID = 3)
     
     DAOs.AuditLogDAO logDAO = new DAOs.Impl.AuditLogDAOImpl();
-    java.util.List<Models.AuditLog> personalLogs = null;
+    java.util.List<DTOs.AuditDTO> personalLogs = null;
     String filterDate = request.getParameter("filterDate");
     try {
         if (filterDate != null && !filterDate.trim().isEmpty()) {
-            personalLogs = logDAOs.getLogsByUserAndDate(uId, filterDate);
+            personalLogs = logDAO.getLogsByUserAndDate(uId, filterDate);
         } else {
             // Retrieve all logs from the beginning if no date filter is specified
-            personalLogs = logDAOs.getLogsByUserAndDate(uId, null);
+            personalLogs = logDAO.getLogsByUserAndDate(uId, null);
         }
     } catch (Exception e) {
         e.printStackTrace();
@@ -43,7 +44,7 @@
     }
     request.setAttribute("personalLogs", personalLogs);
 
-    DTOs.StaffProcedureKpiDTO procedureKpi = logDAOs.getStaffProcedureKpi(uId, filterDate);
+    DTOs.StaffProcedureKpiDTO procedureKpi = logDAO.getStaffProcedureKpi(uId, filterDate);
     request.setAttribute("myCompletedProcedures", procedureKpi.getCompletedCount());
     request.setAttribute("myTotalFees", procedureKpi.getTotalFees());
 %>

@@ -5,7 +5,8 @@
 
 <%
     // Retrieve the candidate queue from the session dynamically
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<DTOs.ExamRegistrationDTO> qList =
+            (java.util.List<DTOs.ExamRegistrationDTO>) session.getAttribute("candidateQueue");
     
     // Check if shift is ended
     String shiftEndedVal = (String) session.getAttribute("shiftEnded");
@@ -16,9 +17,9 @@
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to B2 session
 
     DAOs.ExamSessionDAO sessDAO = new DAOs.Impl.ExamSessionDAOImpl();
-    Models.ExamSession currentSession = null;
+    DTOs.SessionDTO currentSession = null;
     try {
-        currentSession = sessDAOs.getById(sessId);
+        currentSession = sessDAO.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -29,7 +30,7 @@
     if (qList == null && !isShiftEnded) {
         DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessId);
+            qList = regDAO.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -44,16 +45,16 @@
     
     // Find active candidate (bỏ qua thí sinh đã hoàn tất thủ tục)
     String sbdParam = (String) session.getAttribute("callingSbd");
-    Models.ExamRegistration callingCandidate = null;
+    DTOs.ExamRegistrationDTO callingCandidate = null;
     if (sbdParam != null && !sbdParam.trim().isEmpty() && qList != null) {
-        for (Models.ExamRegistration c : qList) {
+        for (DTOs.ExamRegistrationDTO c : qList) {
             if (sbdParam.equals(c.getSbd())) {
                 boolean procedureDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                 if (!procedureDone) {
                     callingCandidate = c;
                 } else {
                     String nextSbd = null;
-                    for (Models.ExamRegistration pending : qList) {
+                    for (DTOs.ExamRegistrationDTO pending : qList) {
                         if (!(pending.isPaymentCompleted() && pending.isValidCapturedPhoto())) {
                             nextSbd = pending.getSbd();
                             break;
@@ -62,7 +63,7 @@
                     session.setAttribute("callingSbd", nextSbd);
                     sbdParam = nextSbd;
                     if (nextSbd != null) {
-                        for (Models.ExamRegistration pending : qList) {
+                        for (DTOs.ExamRegistrationDTO pending : qList) {
                             if (nextSbd.equals(pending.getSbd())) {
                                 callingCandidate = pending;
                                 break;
