@@ -31,7 +31,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	u.Email,
                      	u.PasswordHash,
                      	r.RoleName,
-                     	u.[Status],
+                     	u.IsActive,
                      	p.ProfileId,
                      	p.FullName,
                      	p.DateOfBirth,
@@ -169,7 +169,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
 
         String sql = """
-                     insert into [User] (Username, Email, PasswordHash, RoleId, [Status])
+                     insert into [User] (Username, Email, PasswordHash, RoleId, IsActive)
                      values (?, ?, ?, ?, ?)
                      """;
 
@@ -242,9 +242,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setUsername(rs.getString("Username"));
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
-        user.setActive(rs.getBoolean("Status"));
+        user.setActive(rs.getBoolean("IsActive"));
 
-        String roleName = rs.getString("Role");
+        String roleName = rs.getString("RoleName");
         Role role = enums.UserRole.roleFromName(roleName);
         user.setRoleId(role.getId());
         user.setRoleId(role.getId());
