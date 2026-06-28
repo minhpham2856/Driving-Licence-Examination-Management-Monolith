@@ -10,8 +10,11 @@ public class ConfigManager {
 
     private static final Properties props = new Properties();
 
-    private ConfigManager() {
+    static {
         loadProperties();
+    }
+
+    private ConfigManager() {
     }
 
     private static void loadProperties() {

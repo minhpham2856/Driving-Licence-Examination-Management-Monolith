@@ -27,7 +27,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	u.Username,
                      	u.Email,
                      	u.PasswordHash,
-                     	r.RoleName as [Role],
+                        u.[Role],
                      	u.[Status],
                      	p.ProfileId,
                      	p.FullName,
@@ -37,7 +37,6 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	p.GovernmentIdNumber,
                      	p.Address
                      from [User] u
-                     join [Role] r on r.RoleId = u.RoleId
                      left join Profile p on p.UserId = u.UserId
                      """;
 
@@ -165,20 +164,20 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
 
         String sql = """
-                     insert into [User] (Username, Email, PasswordHash, RoleId, [Status])
+                     insert into [User] (Username, Email, PasswordHash, [Role], [Status])
                      values (?, ?, ?, ?, ?)
                      """;
 
-        int roleId = user.getRole() != null ? user.getRole().getId() : user.getRoleId();
-        if (roleId <= 0) {
-            roleId = ExamConstants.roleIdFromName("Registrant");
+        String roleName = user.getRole() != null ? user.getRole().getRoleName() : null;
+        if (roleName == null || roleName.isBlank()) {
+            roleName = "Registrant";
         }
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
-            ps.setInt(4, roleId);
+            ps.setString(4, roleName);
             ps.setBoolean(5, user.isIsActive());
 
             if (ps.executeUpdate() == 0) {
@@ -225,6 +224,19 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean updateStatus(int userId, boolean active) {
+        String sql = "UPDATE [User] SET [Status] = ? WHERE UserId = ? AND [Role] = 'Registrant'";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setBoolean(1, active);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to update registrant status for user " + userId, e);
+            return false;
+        }
     }
 
     /**

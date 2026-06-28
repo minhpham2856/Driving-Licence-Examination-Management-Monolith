@@ -57,4 +57,6 @@ public interface UserDAO {
      * @return true nếu cập nhật thành công
      */
     boolean updatePassword(int userId, String passwordHash);
+
+    boolean updateStatus(int userId, boolean active);
 }
