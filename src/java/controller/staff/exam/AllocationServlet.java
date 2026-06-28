@@ -5,7 +5,6 @@ import service.ExamRegistrationService;
 import service.impl.ExamRegistrationServiceImpl;
 
 import dao.ExamAreaDAO;
-
 import dao.impl.ExamAreaDAOImpl;
 
 import dto.exam.ExamRegistrationDTO;
@@ -14,7 +13,6 @@ import model.exam.ExamArea;
 import dto.exam.SessionDTO;
 
 import dao.ExamSessionDAO;
-
 import dao.impl.ExamSessionDAOImpl;
 
 import service.ExaminerAllocationService;

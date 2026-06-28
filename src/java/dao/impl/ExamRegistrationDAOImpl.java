@@ -6,7 +6,6 @@ package dao.impl;
 import dbconnection.DBContext;
 
 import dao.Db2CandidateSql;
-
 import dao.ExamRegistrationDAO;
 
 import dto.exam.ExamRegistrationDTO;

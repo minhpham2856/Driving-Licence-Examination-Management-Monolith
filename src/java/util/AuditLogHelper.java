@@ -4,7 +4,6 @@ package util;
 
 
 import dao.AuditLogDAO;
-
 import dao.impl.AuditLogDAOImpl;
 
 import model.user.Audit;

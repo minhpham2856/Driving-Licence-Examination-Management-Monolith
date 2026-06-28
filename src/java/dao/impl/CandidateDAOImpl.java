@@ -6,7 +6,6 @@ package dao.impl;
 import dbconnection.DBContext;
 
 import dao.Db2CandidateSql;
-
 import dao.CandidateDAO;
 
 import dto.candidate.CandidateDTO;

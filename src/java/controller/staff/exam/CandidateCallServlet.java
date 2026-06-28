@@ -7,11 +7,8 @@ import service.ExamRegistrationService;
 import service.impl.ExamRegistrationServiceImpl;
 
 import dao.CandidateCallDAO;
-
 import dao.ExamSessionDAO;
-
 import dao.impl.CandidateCallDAOImpl;
-
 import dao.impl.ExamSessionDAOImpl;
 
 import dto.exam.SessionDTO;

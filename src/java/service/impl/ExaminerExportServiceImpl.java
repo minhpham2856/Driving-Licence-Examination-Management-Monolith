@@ -7,11 +7,8 @@ import dto.examiner.ExaminerExportPayload;
 import enums.SectionType;
 import dto.examiner.ExaminerSlotDTO;
 import dao.AuditLogDAO;
-
 import dao.ExaminerSessionDataDAO;
-
 import dao.impl.AuditLogDAOImpl;
-
 import dao.impl.ExaminerSessionDataDAOImpl;
 
 import dto.user.AuditDTO;
@@ -19,7 +16,6 @@ import dto.user.AuditDTO;
 import dto.candidate.CandidateDTO;
 
 import dao.CandidateDAO;
-
 import dao.impl.CandidateDAOImpl;
 
 import dto.examiner.ExaminerExportContext;

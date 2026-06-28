@@ -1,4 +1,4 @@
-package controller.auth.landing;
+package controller.auth.general;
 
 import service.AuthService;
 import service.ExaminerSessionContextService;
@@ -74,15 +74,8 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", user);
 
             String roleName = enums.UserRole.roleNameFromId(user.getRoleId());
-            if ("ManagingStaff".equalsIgnoreCase(roleName)) {
+            if ("Registrant".equalsIgnoreCase(roleName)) {
                 response.sendRedirect(request.getContextPath() + "/views/staff/managingstaff/dashboard.jsp");
-            } else if ("ExamStaff".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/dashboard");
-            } else if ("Examiner".equalsIgnoreCase(roleName)) {
-                examinerSessionContext.refresh(session, user.getUserId());
-                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
-            } else if ("Admin".equalsIgnoreCase(roleName)) {
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
             } else {
                 response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
             }

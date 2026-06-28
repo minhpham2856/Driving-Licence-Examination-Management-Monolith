@@ -2,7 +2,6 @@
 package service.impl;
 
 import dao.ProfileDAO;
-
 import dao.impl.ProfileDAOImpl;
 import dao.impl.RegistrantApplicationDAOImpl;
 import dto.registration.RegisterResultDTO;

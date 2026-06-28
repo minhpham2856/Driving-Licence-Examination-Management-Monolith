@@ -1,4 +1,4 @@
-package controller.auth;
+package controller.auth.general;
 
 
 import dto.registration.RegisterResultDTO;

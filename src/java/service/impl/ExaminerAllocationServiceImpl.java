@@ -3,23 +3,14 @@ package service.impl;
 
 
 import dao.ExamAreaDAO;
-
 import dao.ExamDeviceDAO;
-
 import dao.ExamRegistrationDAO;
-
 import dao.ExamSessionDAO;
-
 import dao.ExaminerAssignmentDAO;
-
 import dao.impl.ExamAreaDAOImpl;
-
 import dao.impl.ExamDeviceDAOImpl;
-
 import dao.impl.ExamRegistrationDAOImpl;
-
 import dao.impl.ExamSessionDAOImpl;
-
 import dao.impl.ExaminerAssignmentDAOImpl;
 
 import dto.examiner.AutoAllocateResultDTO;

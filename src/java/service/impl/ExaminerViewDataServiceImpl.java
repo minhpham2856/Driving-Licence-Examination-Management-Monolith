@@ -10,23 +10,14 @@ import controller.examiner.ExaminerScoreEntryQueue;
 import dto.examiner.ExaminerSlotDTO;
 
 import dao.AuditLogDAO;
-
 import dao.ExamCandidateVehicleDAO;
-
 import dao.CandidateDAO;
-
 import dao.ExaminerSessionDataDAO;
-
 import dao.TheoryPaperDAO;
-
 import dao.impl.AuditLogDAOImpl;
-
 import dao.impl.ExamCandidateVehicleDAOImpl;
-
 import dao.impl.CandidateDAOImpl;
-
 import dao.impl.ExaminerSessionDataDAOImpl;
-
 import dao.impl.TheoryPaperDAOImpl;
 
 import dto.user.AuditDTO;
