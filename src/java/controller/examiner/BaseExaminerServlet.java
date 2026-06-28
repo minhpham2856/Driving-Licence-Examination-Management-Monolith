@@ -8,6 +8,7 @@ import service.impl.ExaminerActionsServiceImpl;
 import service.impl.ExaminerDataServiceImpl;
 
 import enums.SectionType;
+import dto.examiner.ExaminerSlotDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -30,7 +31,7 @@ public abstract class BaseExaminerServlet extends HttpServlet {
             throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Bạn cần đăng nhập.");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡n cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§n ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ng nhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­p.");
         }
         return session;
     }
@@ -47,6 +48,38 @@ public abstract class BaseExaminerServlet extends HttpServlet {
             return value == SectionType.THEORY;
         }
         return Boolean.TRUE.equals(request.getAttribute(ExaminerSessionContextService.ATTR_SECTION_THEORY));
+    }
+
+    protected SectionType resolveSectionType(HttpSession session) {
+        if (session == null) return SectionType.THEORY;
+        Object value = session.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
+        if (value instanceof SectionType) {
+            return (SectionType) value;
+        }
+        return SectionType.THEORY;
+    }
+
+    protected String resolveSectionName(HttpSession session) {
+        if (session == null) return null;
+        Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
+        if (slotObj instanceof dto.examiner.ExaminerSlotDTO) {
+            return ((dto.examiner.ExaminerSlotDTO) slotObj).getExamTypeName();
+        }
+        Object name = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
+        return name != null ? String.valueOf(name) : null;
+    }
+
+    protected String resolveCallDestination(HttpSession session) {
+        if (session == null) return "Khu vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±c thi";
+        Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
+        if (slotObj instanceof dto.examiner.ExaminerSlotDTO slot && slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
+            return slot.getAreaName();
+        }
+        Object sectionName = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
+        if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
+            return String.valueOf(sectionName);
+        }
+        return "Khu vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±c thi thÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±c hÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â nh";
     }
 
     // Helper to forward the request to a JSP.
@@ -103,6 +136,11 @@ public abstract class BaseExaminerServlet extends HttpServlet {
         return trimmed;
     }
 }
+
+
+
+
+
 
 
 

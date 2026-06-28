@@ -1,50 +1,45 @@
-// Forced recompilation trigger
 package service.impl;
 
+import dao.ExaminerScheduleDAO;
 import service.ExamSessionControlService;
 
 import dto.examiner.ExaminerSlotDTO;
-import dao.ExamSessionDAO;
-import dao.ExaminerAssignmentDAO;
-import dao.impl.ExamSessionDAOImpl;
-import dao.impl.ExaminerAssignmentDAOImpl;
+import dao.SessionDAO;
+import dao.impl.ExaminerScheduleDAOImpl;
+import dao.impl.SessionDAOImpl;
 import dto.exam.SessionDTO;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import service.EnumMappingService;
 
 public class ExamSessionControlServiceImpl implements ExamSessionControlService {
      private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
-    public static final String CTX_ACTIVE_SESSION_ID = "examActiveSessionId";
-
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
-    private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
+    private final SessionDAO sessionDAO = new SessionDAOImpl();
+    private final ExaminerScheduleDAO assignmentDAO = new ExaminerScheduleDAOImpl();
 
     @Override
     public StartResult startSession(int sessionId, int staffUserId) {
         SessionDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
-            return StartResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
+            return StartResult.fail("KhAA'ng tAAm thAAA,Ay ca thi (SessionId=" + sessionId + ").");
         }
         if (!enumMappingService.canStartSession(examSession.getStatus())) {
             if (enumMappingService.isSessionInProgress(examSession.getStatus())) {
-                return StartResult.fail("Ca thi \"" + examSession.getSessionName() + "\" đã được bắt đầu.");
+                return StartResult.fail("Ca thi \"" + examSession.getSessionName() + "\" A?zA,EaA? bAAA,AA,A_t A?zA,EoAAA,AA,A u.");
             }
             return StartResult.fail("Ca thi \"" + examSession.getSessionName()
-                    + "\" không thể bắt đầu (trạng thái: " + examSession.getStatus() + ").");
+                    + "\" khAA'ng thAAA' bAAA,AA,A_t A?zA,EoAAA,AA,A u (trAAng thAAi: " + examSession.getStatus() + ").");
         }
 
         List<ExaminerSlotDTO> assignments = assignmentDAO.getBySessionId(sessionId);
         long withArea = assignments.stream().filter(s -> s.getAreaId() > 0).count();
         if (withArea == 0) {
-            return StartResult.fail("Chưa phân công sát hạch viên vào khu vực thi. "
-                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu ca.");
+            return StartResult.fail("ChA?A,Aa phAAn cA'ng sAAt hAAch viA'A,An vAAo khu vA?A,Ac thi. "
+                    + "VAAo mA?A,Ac \"PhAAn bAAA' sAAt hAAch viA'A,An\" trA?A,AA?c khi bAAA,AA,A_t A?zA,EoAAA,AA,A u ca.");
         }
 
         if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.IN_PROGRESS.getStatus())) {
-            return StartResult.fail("Không cập nhật được trạng thái ca thi trên cơ sở dữ liệu.");
+            return StartResult.fail("KhAA'ng cAA,AAAp nhAA,AAAt A?zA,EaA?A?A,Ac trAAng thAAi ca thi trA'A,An cA? sAAA dA?A,A liAAA,AAAu.");
         }
 
         return StartResult.ok(examSession.getSessionName(), (int) withArea);
@@ -54,52 +49,16 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
     public EndResult endSession(int sessionId) {
         SessionDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
-            return EndResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
+            return EndResult.fail("KhAA'ng tAAm thAAA,Ay ca thi (SessionId=" + sessionId + ").");
         }
         if (!enumMappingService.isSessionInProgress(examSession.getStatus())) {
             return EndResult.fail("Ca thi \"" + examSession.getSessionName()
-                    + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
+                    + "\" chA?A,Aa AAA trAAng thAAi A?zA,Eoang diAAA,AAA,An ra (hiAAA,AAAn tAAi: " + examSession.getStatus() + ").");
         }
         if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.COMPLETED.getStatus())) {
-            return EndResult.fail("Không cập nhật được trạng thái kết thúc ca thi.");
+            return EndResult.fail("KhAA'ng cAA,AAAp nhAA,AAAt A?zA,EaA?A?A,Ac trAAng thAAi kAAA,AA,At thA'A,Ac ca thi.");
         }
         return EndResult.ok(examSession.getSessionName());
-    }
-
-    @Override
-    public void applyRuntimeStart(ServletContext ctx, HttpSession httpSession, int sessionId) {
-        if (ctx != null) {
-            ctx.setAttribute(CTX_ACTIVE_SESSION_ID, sessionId);
-        }
-        if (httpSession != null) {
-            httpSession.setAttribute("selectedSessionId", sessionId);
-            httpSession.removeAttribute("shiftEnded");
-            httpSession.removeAttribute("callingSbd");
-        }
-    }
-
-    @Override
-    public void applyRuntimeEnd(ServletContext ctx, HttpSession httpSession, int sessionId) {
-        if (ctx != null) {
-            Integer active = (Integer) ctx.getAttribute(CTX_ACTIVE_SESSION_ID);
-            if (active != null && active == sessionId) {
-                ctx.removeAttribute(CTX_ACTIVE_SESSION_ID);
-            }
-            service.CandidateCallBoardService boardService = new CandidateCallBoardServiceImpl();
-            dto.candidate.CandidateCallBoardStateDTO board = boardService.getState(ctx, sessionId);
-            if (board != null) {
-                board.setShiftEnded(true);
-                board.setCallingSbd(null);
-                
-            }
-        }
-        if (httpSession != null) {
-            Integer selected = (Integer) httpSession.getAttribute("selectedSessionId");
-            if (selected != null && selected == sessionId) {
-                httpSession.setAttribute("shiftEnded", "true");
-                httpSession.removeAttribute("callingSbd");
-            }
-        }
     }
 
     @Override
@@ -107,9 +66,3 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         return assignmentDAO.getInProgressAssignmentsForExaminer(examinerUserId);
     }
 }
-
-
-
-
-
-

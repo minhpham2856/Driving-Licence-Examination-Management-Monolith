@@ -6,5 +6,5 @@ public interface UserManagementService {
 
     CreateUserResultDTO createUser(
             String fullName, String cccd, String phone, String email,
-            String dob, String gender, String address, String userType, String licenseClass);
+            String dob, String sex, String address, String userType, String licenseClass);
 }

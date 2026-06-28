@@ -32,7 +32,7 @@ public class ExaminerDashboardServlet extends BaseExaminerServlet {
 
         if (sessionId != null && sessionId > 0) {
             // Attach generic list data
-            viewDataService.attachToRequest(request, sessionId, sbd, search);
+            java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
         String jsp = "/views/examiner/dashboard".equals(path)
@@ -41,3 +41,6 @@ public class ExaminerDashboardServlet extends BaseExaminerServlet {
         forward(request, response, jsp);
     }
 }
+
+
+

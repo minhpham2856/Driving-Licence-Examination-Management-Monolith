@@ -11,7 +11,7 @@ import java.util.Set;
  // Manages the in-memory score-entry queue stored in the HTTP session.
 public final class ExaminerScoreEntryQueue {
 
-    // Private constructor prevents instantiation — all methods are static
+    // Private constructor prevents instantiation ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â all methods are static
     private ExaminerScoreEntryQueue() {
     }
 
@@ -51,7 +51,7 @@ public final class ExaminerScoreEntryQueue {
             }
             return copy;
         }
-        // No queue exists yet — return a fresh empty mutable list
+        // No queue exists yet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â return a fresh empty mutable list
         return new ArrayList<>();
     }
 
@@ -175,7 +175,7 @@ public final class ExaminerScoreEntryQueue {
         if (idx + 1 < queue.size()) {
             return queue.get(idx + 1);
         }
-        // Current SBD is the last in the queue — no next candidate (no wrapping)
+        // Current SBD is the last in the queue ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no next candidate (no wrapping)
         return null;
     }
 
@@ -208,3 +208,6 @@ public final class ExaminerScoreEntryQueue {
         return queue.isEmpty() ? null : queue.get(0);
     }
 }
+
+
+

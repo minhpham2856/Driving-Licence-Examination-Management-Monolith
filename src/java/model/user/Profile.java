@@ -8,7 +8,7 @@ public class Profile {
     private String fullName;
     private Timestamp dateOfBirth;
     private String phoneNumber;
-    private String sex;
+    private boolean sex;
     private String governmentIdNumber;
     private String address;
     private int userId;
@@ -16,7 +16,7 @@ public class Profile {
     public Profile() {
     }
 
-    public Profile(int id, String fullName, Timestamp dateOfBirth, String phoneNumber, String sex, String governmentIdNumber, String address, int userId) {
+    public Profile(int id, String fullName, Timestamp dateOfBirth, String phoneNumber, boolean sex, String governmentIdNumber, String address, int userId) {
         this.id = id;
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
@@ -59,11 +59,11 @@ public class Profile {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getSex() {
+    public boolean isSex() {
         return sex;
     }
 
-    public void setSex(String sex) {
+    public void setSex(boolean sex) {
         this.sex = sex;
     }
 
@@ -108,15 +108,4 @@ public class Profile {
         this.phoneNumber = phoneNo;
     }
 
-    public boolean isGender() {
-        if (sex == null) {
-            return false;
-        }
-        String s = sex.trim();
-        return !(s.equalsIgnoreCase("Nam") || s.equalsIgnoreCase("Male") || s.equals("M"));
-    }
-
-    public void setGender(boolean gender) {
-        this.sex = gender ? "Nữ" : "Nam";
-    }
 }

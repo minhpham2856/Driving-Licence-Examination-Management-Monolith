@@ -49,13 +49,13 @@ public class CreateUserServlet extends HttpServlet {
         String phone = trim(request.getParameter("phone"));
         String email = trim(request.getParameter("email")).toLowerCase();
         String dob = trim(request.getParameter("dob"));
-        String gender = trim(request.getParameter("gender"));
+        String sex = trim(request.getParameter("sex"));
         String address = trim(request.getParameter("address"));
         String userType = trim(request.getParameter("userType"));
         String licenseClass = trim(request.getParameter("licenseClass")).toUpperCase();
 
         CreateUserResultDTO result = userManagementService.createUser(
-                fullName, cccd, phone, email, dob, gender, address, userType, licenseClass);
+                fullName, cccd, phone, email, dob, sex, address, userType, licenseClass);
 
         if (!result.isSuccess()) {
             request.setAttribute("createUserError", result.getMessage());

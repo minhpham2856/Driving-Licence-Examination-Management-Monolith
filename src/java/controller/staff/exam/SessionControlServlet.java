@@ -17,7 +17,6 @@ import java.io.IOException;
 @WebServlet("/views/staff/exam/session-control")
 public class SessionControlServlet extends HttpServlet {
     private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
-
     private final ExamSessionControlService controlService = new ExamSessionControlServiceImpl();
 
     @Override
@@ -32,10 +31,14 @@ public class SessionControlServlet extends HttpServlet {
         if ("startSession".equals(action)) {
             ExamSessionControlService.StartResult result = controlService.startSession(sessionId, staffId);
             if (result.isSuccess()) {
-                controlService.applyRuntimeStart(getServletContext(), session, sessionId);
-                auditLogService.persist(session, "UPDATE Session",
-                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + result.getSessionName()
-                                + " (" + result.getExaminerCount() + " sát hạch viên)",
+                getServletContext().setAttribute("examActiveSessionId", sessionId);
+                session.setAttribute("selectedSessionId", sessionId);
+                session.removeAttribute("shiftEnded");
+                session.removeAttribute("callingSbd");
+
+                auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), "UPDATE Session",
+                        "BAAA,AA,A_t A?zA,EoAAA,AA,A u ca thi SessionId=" + sessionId + " - " + result.getSessionName()
+                                + " (" + result.getExaminerCount() + " sA'A,At hAAA,AA,Ach viA'A,An)",
                         sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
@@ -44,9 +47,24 @@ public class SessionControlServlet extends HttpServlet {
         } else if ("endSession".equals(action)) {
             ExamSessionControlService.EndResult result = controlService.endSession(sessionId);
             if (result.isSuccess()) {
-                controlService.applyRuntimeEnd(getServletContext(), session, sessionId);
-                auditLogService.persist(session, "UPDATE Session",
-                        "Kết thúc ca thi SessionId=" + sessionId, sessionId);
+                Integer active = (Integer) getServletContext().getAttribute("examActiveSessionId");
+                if (active != null && active == sessionId) {
+                    getServletContext().removeAttribute("examActiveSessionId");
+                }
+                service.CandidateCallBoardService boardService = new service.impl.CandidateCallBoardServiceImpl();
+                dto.candidate.CandidateCallBoardStateDTO board = boardService.getState(getServletContext(), sessionId);
+                if (board != null) {
+                    board.setShiftEnded(true);
+                    board.setCallingSbd(null);
+                }
+                Integer selected = (Integer) session.getAttribute("selectedSessionId");
+                if (selected != null && selected == sessionId) {
+                    session.setAttribute("shiftEnded", "true");
+                    session.removeAttribute("callingSbd");
+                }
+
+                auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), "UPDATE Session",
+                        "KAAA,AA,At thA'A,Ac ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
                 session.setAttribute("sessionControlError", result.getMessage());
@@ -88,5 +106,6 @@ public class SessionControlServlet extends HttpServlet {
         return ctx + "/views/staff/exam/dashboard.jsp?sessionId=" + sessionId;
     }
 }
+
 
 

@@ -51,7 +51,7 @@ public class ChangePasswordServlet extends HttpServlet {
         if (result.success) {
             HttpSession s = req.getSession(false);
             if (s != null) {
-                auditLogService.persist(s, "UPDATE", "Đổi mật khẩu tài khoản", sessionUser.getUserId());
+                auditLogService.persist(sessionUser.getUserId(), "UPDATE", "Äá»•i máº­t kháº©u tÃ i khoáº£n", sessionUser.getUserId());
             }
             req.setAttribute("messageType", "success");
         } else {
@@ -62,3 +62,4 @@ public class ChangePasswordServlet extends HttpServlet {
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 }
+

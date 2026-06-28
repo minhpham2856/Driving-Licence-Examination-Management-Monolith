@@ -55,12 +55,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Finds a user by their login username.
-     *
-     * @param username the exact username
-     * @return the User model, or null if not found
-     */
+    
     @Override
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where Username = ?";
@@ -80,13 +75,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Looks up a user by any of: Username, Email, PhoneNumber, or
-     * GovernmentIdNumber.
-     *
-     * @param identifier the search value to match against multiple columns
-     * @return the User model, or null if not found
-     */
+    
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
@@ -111,12 +100,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Finds a user by their email address.
-     *
-     * @param email the exact email
-     * @return the User model, or null if not found
-     */
+    
     @Override
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where Email = ?";
@@ -136,13 +120,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return null;
     }
 
-    /**
-     * Inserts a new User record with RETURN_GENERATED_KEYS to populate the user
-     * ID. Defaults the role to Registrant if none is set.
-     *
-     * @param user the User to insert (id will be populated on success)
-     * @return true if the insert succeeded and a key was generated
-     */
+    
     @Override
     public boolean insert(User user) {
         Connection conn = getConnection();
@@ -188,13 +166,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
-    /**
-     * Updates the password hash for the given user.
-     *
-     * @param userId the target UserId
-     * @param passwordHash the new BCrypt-style hash
-     * @return true if at least one row was updated
-     */
+    
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
@@ -215,10 +187,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return false;
     }
 
-    /**
-     * Maps the current row of a ResultSet (from USER_SELECT) to a User model,
-     * including the nested Profile and Role objects.
-     */
+    
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
 
@@ -231,6 +200,8 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setRoleId(rs.getInt("RoleId"));
 
         return user;
+    }
+
     @Override
     public List<User> findByIds(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -258,5 +229,17 @@ public class UserDAOImpl extends DBContext implements UserDAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    @Override
+    public int countAll() {
+        String sql = "SELECT COUNT(*) FROM [User]";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

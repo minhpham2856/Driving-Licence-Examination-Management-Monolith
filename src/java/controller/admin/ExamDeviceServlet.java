@@ -55,7 +55,7 @@ public class ExamDeviceServlet extends HttpServlet {
             ExamDeviceService.DeleteResult result = examDeviceService.delete(id, adminId);
             
             if (result.success) {
-                auditLogService.persist(req.getSession(), "DELETE", "Xóa máy thi id: " + id, id);
+                auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a mÃ¡y thi id: " + id, id);
                 SessionUtil.flash(req, "success", result.message);
             } else {
                 SessionUtil.flash(req, "danger", result.message);
@@ -86,11 +86,12 @@ public class ExamDeviceServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cập nhật máy thi: " : "Tạo máy thi: ") + name, result.id);
+        auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+                (isEdit ? "Cáº­p nháº­t mÃ¡y thi: " : "Táº¡o mÃ¡y thi: ") + name, result.id);
         SessionUtil.flash(req, "success", result.message);
         
         resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
     }
 }
+
 

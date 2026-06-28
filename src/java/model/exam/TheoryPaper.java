@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class TheoryPaper {
 
     private int theoryPaperId;
-    private int examCandidateId;
+    private int examEnrollmentId;
     private int examDeviceId;
     private Timestamp startedAt;
     private Timestamp submittedAt;
@@ -13,9 +13,9 @@ public class TheoryPaper {
     public TheoryPaper() {
     }
 
-    public TheoryPaper(int theoryPaperId, int examCandidateId, int examDeviceId, Timestamp startedAt, Timestamp submittedAt) {
+    public TheoryPaper(int theoryPaperId, int examEnrollmentId, int examDeviceId, Timestamp startedAt, Timestamp submittedAt) {
         this.theoryPaperId = theoryPaperId;
-        this.examCandidateId = examCandidateId;
+        this.examEnrollmentId = examEnrollmentId;
         this.examDeviceId = examDeviceId;
         this.startedAt = startedAt;
         this.submittedAt = submittedAt;
@@ -29,12 +29,12 @@ public class TheoryPaper {
         this.theoryPaperId = theoryPaperId;
     }
 
-    public int getExamCandidateId() {
-        return examCandidateId;
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
     }
 
-    public void setExamCandidateId(int examCandidateId) {
-        this.examCandidateId = examCandidateId;
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 
     public int getExamDeviceId() {

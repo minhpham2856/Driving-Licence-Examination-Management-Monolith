@@ -41,4 +41,24 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
         }
         return list;
     }
+
+    @Override
+    public List<Question> findAll() {
+        List<Question> list = new ArrayList<>();
+        String sql = "SELECT * FROM Question";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Question q = new Question();
+                q.setQuestionId(rs.getInt("QuestionId"));
+                q.setQuestionNumber(rs.getInt("QuestionNumber"));
+                q.setImageUrl(rs.getString("ImageUrl"));
+                q.setCorrectAnswer(rs.getString("CorrectAnswer"));
+                list.add(q);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

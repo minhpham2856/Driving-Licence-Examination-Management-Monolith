@@ -1,156 +1,119 @@
-// Forced recompilation trigger
 package service.impl;
 
-import dao.ExamRegistrationDAO;
-import dao.impl.ExamRegistrationDAOImpl;
+import dao.CandidateDAO;
+import dao.ExamEnrollmentDAO;
+import dao.DeductionRecordDAO;
+import dao.impl.CandidateDAOImpl;
+import dao.impl.ExamEnrollmentDAOImpl;
+import dao.impl.DeductionRecordDAOImpl;
+import dto.candidate.CandidateEnrollmentDTO;
+import dto.candidate.CandidateProfileDTO;
+import model.candidate.Candidate;
+import model.exam.ExamEnrollment;
 import service.ExamRegistrationService;
-import dto.exam.ExamRegistrationDTO;
-import model.exam.ExamRegistration;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ExamRegistrationServiceImpl implements ExamRegistrationService {
 
-    private final ExamRegistrationDAO dao = new ExamRegistrationDAOImpl();
+    private final CandidateDAO candidateDAO = new CandidateDAOImpl();
+    private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
+    private final DeductionRecordDAO deductionDAO = new DeductionRecordDAOImpl();
 
     @Override
-    public ExamRegistrationDTO getById(int id) {
-        return dao.getById(id);
+    public CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, String sbd) {
+        Candidate c = candidateDAO.findByNumber(sbd);
+        if (c == null) return null;
+        ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, c.getCandidateId());
+        if (e == null) return null;
+        return mapToDTO(c, e);
     }
 
     @Override
-    public ExamRegistration findById(int id) {
-        return dao.findById(id);
+    public List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId) {
+        List<ExamEnrollment> enrollments = enrollmentDAO.findBySessionId(sessionId);
+        if (enrollments == null || enrollments.isEmpty()) return new ArrayList<>();
+        List<Integer> ids = new ArrayList<>();
+        for (ExamEnrollment e : enrollments) ids.add(e.getCandidateId());
+        List<Candidate> candidates = candidateDAO.findByIds(ids);
+        Map<Integer, Candidate> map = new HashMap<>();
+        for (Candidate c : candidates) map.put(c.getCandidateId(), c);
+        List<CandidateEnrollmentDTO> result = new ArrayList<>();
+        for (ExamEnrollment e : enrollments) {
+            Candidate c = map.get(e.getCandidateId());
+            if (c != null) result.add(mapToDTO(c, e));
+        }
+        return result;
+    }
+
+    private CandidateEnrollmentDTO mapToDTO(Candidate c, ExamEnrollment e) {
+        CandidateProfileDTO p = new CandidateProfileDTO();
+        p.setCandidateId(c.getCandidateId());
+        p.setCandidateNumber(c.getCandidateNumber());
+        p.setFullName(c.getFullName());
+        p.setGovernmentIdNumber(c.getGovernmentIdNumber());
+        p.setAbsent(c.isAbsent());
+        p.setSuspended(c.isSuspended());
+        p.setPhotoImageUrl(c.getPhotoImageUrl());
+        return new CandidateEnrollmentDTO(p, e);
     }
 
     @Override
-    public ExamRegistrationDTO getBySessionAndSbd(int sessionId, String sbd) {
-        return dao.getBySessionAndSbd(sessionId, sbd);
+    public boolean updateProfile(int candidateId, String fullName, java.sql.Date dob, String govIdNo, String email, String phoneNo) {
+        Candidate c = candidateDAO.findById(candidateId);
+        if (c == null) return false;
+        c.setFullName(fullName);
+        if (dob != null) c.setDateOfBirth(new java.sql.Timestamp(dob.getTime()));
+        c.setGovernmentIdNumber(govIdNo);
+        c.setPhoneNumber(phoneNo);
+        return candidateDAO.update(c);
     }
 
     @Override
-    public List<ExamRegistrationDTO> getCandidatesBySession(int sessionId) {
-        return dao.getCandidatesBySession(sessionId);
-    }
-
-    @Override
-    public boolean updatePresent(int id, boolean isPresent) {
-        return dao.updatePresent(id, isPresent);
-    }
-
-    @Override
-    public boolean updatePayment(int id, boolean isPaymentCompleted) {
-        return dao.updatePayment(id, isPaymentCompleted);
-    }
-
-    @Override
-    public boolean updateComputer(int id, String computerCode) {
-        return dao.updateComputer(id, computerCode);
-    }
-
-    @Override
-    public boolean updateAllocatedRoom(int id, int areaId, String areaName) {
-        return dao.updateAllocatedRoom(id, areaId, areaName);
-    }
-
-    @Override
-    public boolean updateDevice(int id, String deviceCode) {
-        return dao.updateDevice(id, deviceCode);
-    }
-
-    @Override
-    public boolean updateScores(int id, Integer theoryScore, String theoryPassed, Integer practicalScore, String practicalPassed) {
-        return dao.updateScores(id, theoryScore, theoryPassed, practicalScore, practicalPassed);
-    }
-
-    @Override
-    public boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold) {
-        return dao.updateTheoryCorrectCount(id, correctCount, passThreshold);
-    }
-
-    @Override
-    public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
-        return dao.updateRoadScore(id, roadScore, roadPassed);
-    }
-
-    @Override
-    public boolean updateProfile(int id, String fullName, java.sql.Date dob, String govIdNo, String email, String phoneNo) {
-        return dao.updateProfile(id, fullName, dob, govIdNo, email, phoneNo);
-    }
-
-    @Override
-    public boolean updatePhoto(int id, String photoUrl) {
-        return dao.updatePhoto(id, photoUrl);
-    }
-
-    @Override
-    public boolean insert(ExamRegistrationDTO reg) {
-        return dao.insert(reg);
-    }
-
-    @Override
-    public List<ExamRegistrationDTO> getAllCandidates() {
-        return dao.getAllCandidates();
+    public boolean updatePhoto(int candidateId, String photoUrl) {
+        Candidate c = candidateDAO.findById(candidateId);
+        if (c == null) return false;
+        c.setPhotoImageUrl(photoUrl);
+        return candidateDAO.update(c);
     }
 
     @Override
     public boolean markAbsent(int candidateId) {
-        return dao.markAbsent(candidateId);
+        Candidate c = candidateDAO.findById(candidateId);
+        if (c == null) return false;
+        c.setAbsent(true);
+        return candidateDAO.update(c);
     }
 
     @Override
     public boolean clearAbsentMarking(int candidateId) {
-        return dao.clearAbsentMarking(candidateId);
-    }
-
-    @Override
-    public Integer findCandidateIdByProfileAndSession(int profileId, int sessionId) {
-        return dao.findCandidateIdByProfileAndSession(profileId, sessionId);
-    }
-
-    @Override
-    public boolean applyScoreDeductions(int candidateId, int[] deductionIds, String sectionKeyword) {
-        return dao.applyScoreDeductions(candidateId, deductionIds, sectionKeyword);
-    }
-
-    @Override
-    public boolean adjustScoreDeductionOccurrence(int candidateId, int sessionId, int deductionId, int delta) {
-        return dao.adjustScoreDeductionOccurrence(candidateId, sessionId, deductionId, delta);
-    }
-
-    @Override
-    public boolean finalizeScoreEntry(int candidateId, int sessionId, String sectionKeyword) {
-        return dao.finalizeScoreEntry(candidateId, sessionId, sectionKeyword);
-    }
-
-    @Override
-    public java.util.List<java.util.Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId) {
-        return dao.findAppliedScoreDeductions(candidateId, sessionId);
+        Candidate c = candidateDAO.findById(candidateId);
+        if (c == null) return false;
+        c.setAbsent(false);
+        return candidateDAO.update(c);
     }
 
     @Override
     public boolean markSuspended(int candidateId) {
-        return dao.markSuspended(candidateId);
+        Candidate c = candidateDAO.findById(candidateId);
+        if (c == null) return false;
+        c.setSuspended(true);
+        return candidateDAO.update(c);
     }
 
     @Override
     public boolean undoSuspension(int candidateId) {
-        return dao.undoSuspension(candidateId);
+        Candidate c = candidateDAO.findById(candidateId);
+        if (c == null) return false;
+        c.setSuspended(false);
+        return candidateDAO.update(c);
     }
 
     @Override
-    public void syncSectionStatusesForSession(int sessionId) {
-        dao.syncSectionStatusesForSession(sessionId);
-    }
-
-    @Override
-    public boolean markSignaturePrinted(int candidateId, int sessionId) {
-        return dao.markSignaturePrinted(candidateId, sessionId);
-    }
-
-    @Override
-    public boolean completeSection(int candidateId, int sessionId) {
-        return dao.completeSection(candidateId, sessionId);
+    public List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId) {
+        return deductionDAO.findAppliedScoreDeductions(candidateId, sessionId);
     }
 }
-
-

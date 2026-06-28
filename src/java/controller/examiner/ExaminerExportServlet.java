@@ -25,7 +25,7 @@ abstract class ExaminerExportServlet extends HttpServlet {
             throws IOException {
         // Retrieve the existing HTTP session; do not create a new one
         HttpSession session = request.getSession(false);
-        // Reject unauthenticated requests — no session means no login
+        // Reject unauthenticated requests ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no session means no login
         if (session == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Ban can dang nhap.");
             return null;
@@ -86,6 +86,9 @@ abstract class ExaminerExportServlet extends HttpServlet {
         out.flush();
     }
 }
+
+
+
 
 
 

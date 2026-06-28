@@ -11,13 +11,12 @@ import dto.candidate.CandidateCallBoardStateDTO;
 
 import service.ExamRegistrationService;
 
-import dao.ExamSessionDAO;
-
+import dao.SessionDAO;
 import service.impl.ExamRegistrationServiceImpl;
 
-import dao.impl.ExamSessionDAOImpl;
+import dao.impl.SessionDAOImpl;
 
-import dto.exam.ExamRegistrationDTO;
+import dto.candidate.CandidateEnrollmentDTO;
 
 import dto.exam.SessionDTO;
 
@@ -38,8 +37,8 @@ import java.util.List;
 @WebServlet("/views/public/public-call")
 public class PublicCallServlet extends HttpServlet {
 
-    private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
+    private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
     private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
 
@@ -61,9 +60,9 @@ public class PublicCallServlet extends HttpServlet {
             }
         }
 
-        List<ExamRegistrationDTO> qList;
+        List<CandidateEnrollmentDTO> qList;
         try {
-            qList = regDAO.getCandidatesBySession(sessionId);
+            qList = regService.getCandidatesBySession(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new ArrayList<>();
@@ -78,7 +77,7 @@ public class PublicCallServlet extends HttpServlet {
 
         if (!shiftEnded) {
             if (callingSbd == null || callingSbd.trim().isEmpty()) {
-                for (ExamRegistrationDTO c : qList) {
+                for (CandidateEnrollmentDTO c : qList) {
                     if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                         nextSbd = c.getSbd();
                         break;
@@ -86,7 +85,7 @@ public class PublicCallServlet extends HttpServlet {
                 }
             } else {
                 boolean foundCurrent = false;
-                for (ExamRegistrationDTO c : qList) {
+                for (CandidateEnrollmentDTO c : qList) {
                     if (foundCurrent) {
                         if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                             nextSbd = c.getSbd();
@@ -100,9 +99,9 @@ public class PublicCallServlet extends HttpServlet {
             }
         }
 
-        ExamRegistrationDTO callingCandidate = null;
+        CandidateEnrollmentDTO callingCandidate = null;
         if (callingSbd != null) {
-            for (ExamRegistrationDTO c : qList) {
+            for (CandidateEnrollmentDTO c : qList) {
                 if (callingSbd.equals(c.getSbd())) {
                     callingCandidate = c;
                     break;
@@ -110,9 +109,9 @@ public class PublicCallServlet extends HttpServlet {
             }
         }
         
-        ExamRegistrationDTO nextCandidate = null;
+        CandidateEnrollmentDTO nextCandidate = null;
         if (nextSbd != null) {
-            for (ExamRegistrationDTO c : qList) {
+            for (CandidateEnrollmentDTO c : qList) {
                 if (nextSbd.equals(c.getSbd())) {
                     nextCandidate = c;
                     break;
@@ -137,6 +136,10 @@ public class PublicCallServlet extends HttpServlet {
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);
     }
 }
+
+
+
+
 
 
 

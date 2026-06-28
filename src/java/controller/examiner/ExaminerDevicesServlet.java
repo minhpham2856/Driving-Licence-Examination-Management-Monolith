@@ -37,20 +37,24 @@ public class ExaminerDevicesServlet extends BaseExaminerServlet {
                 boolean updated;
                 String redirectParam;
                 if ("operational".equals(action)) {
-                    updated = examinerService.setDeviceAvailable(deviceId, session);
+                    updated = examinerService.setDeviceAvailable(deviceId, ((model.user.User) session.getAttribute("user")).getUserId());
                     redirectParam = updated ? "/views/examiner/devices?operationalDone=" + deviceId : "/views/examiner/devices?error=operationalFailed&deviceId=" + deviceId;
                 } else {
-                    updated = examinerService.setDeviceMaintenance(deviceId, session);
+                    updated = examinerService.setDeviceMaintenance(deviceId, ((model.user.User) session.getAttribute("user")).getUserId());
                     redirectParam = updated ? "/views/examiner/devices?maintenanceDone=" + deviceId : "/views/examiner/devices?error=maintenanceFailed&deviceId=" + deviceId;
                 }
                 redirect(response, request, redirectParam);
                 return;
             }
 
-            viewDataService.attachDevices(request, sessionId, search);
+            java.util.Map<String, Object> data = viewDataService.getDevicesData(sessionId, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
         forward(request, response, "/views/examiner/devices.jsp");
     }
 }
+
+
+
+
 

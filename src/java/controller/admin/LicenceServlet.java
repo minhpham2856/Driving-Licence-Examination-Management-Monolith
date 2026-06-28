@@ -42,7 +42,7 @@ public class LicenceServlet extends HttpServlet {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             Licence licence = licenceService.findById(id);
             if (licence == null) {
-                SessionUtil.flash(req, "danger", "Không tìm thấy hạng GPLX cần sửa.");
+                SessionUtil.flash(req, "danger", "KhÃ´ng tÃ¬m tháº¥y háº¡ng GPLX cáº§n sá»­a.");
                 resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
                 return;
             }
@@ -84,8 +84,8 @@ public class LicenceServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cập Nhật Hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, result.id);
+        auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+                (isEdit ? "Cáº­p Nháº­t Háº¡ng GPLX: " : "Táº¡o háº¡ng GPLX: ") + licenceClass, result.id);
         SessionUtil.flash(req, "success", result.message);
         
         resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
@@ -102,4 +102,5 @@ public class LicenceServlet extends HttpServlet {
         return l;
     }
 }
+
 

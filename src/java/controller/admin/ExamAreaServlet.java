@@ -43,7 +43,7 @@ public class ExamAreaServlet extends HttpServlet {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             ExamArea area = examAreaService.findById(id);
             if (area == null) {
-                SessionUtil.flash(req, "danger", "Không tìm thấy khu vực thi cần sửa.");
+                SessionUtil.flash(req, "danger", "KhÃ´ng tÃ¬m tháº¥y khu vá»±c thi cáº§n sá»­a.");
                 resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
                 return;
             }
@@ -92,7 +92,7 @@ public class ExamAreaServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT",
+        auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT",
                 (isEdit ? "cap nhat khu vuc thi: " : "tao khu vuc thi: ") + name, result.id);
         SessionUtil.flash(req, "success", result.message);
         
@@ -108,7 +108,7 @@ public class ExamAreaServlet extends HttpServlet {
         ExamAreaService.DeleteResult result = examAreaService.delete(id, admin.getUserId());
         
         if (result.success) {
-            auditLogService.persist(req.getSession(), "DELETE", "Xóa khu vực thi: " + name, id);
+            auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a khu vá»±c thi: " + name, id);
             SessionUtil.flash(req, "success", result.message);
         } else {
             SessionUtil.flash(req, "danger", result.message);
@@ -126,3 +126,4 @@ public class ExamAreaServlet extends HttpServlet {
         return area;
     }
 }
+

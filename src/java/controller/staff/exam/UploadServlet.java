@@ -1,20 +1,18 @@
 package controller.staff.exam;
 
-
-
 import service.ExamRegistrationService;
 
-import dao.ExamSessionDAO;
+import dao.SessionDAO;
 import dao.ProfileDAO;
 import dao.UserDAO;
 
 import service.impl.ExamRegistrationServiceImpl;
 
-import dao.impl.ExamSessionDAOImpl;
+import dao.impl.SessionDAOImpl;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
 
-import dto.exam.ExamRegistrationDTO;
+import dto.candidate.CandidateEnrollmentDTO;
 
 import dto.exam.SessionDTO;
 
@@ -22,12 +20,10 @@ import model.user.Profile;
 import model.user.User;
 import util.UsernameGenerator;
 
-
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
-
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -40,7 +36,6 @@ import jakarta.servlet.http.Part;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -48,15 +43,16 @@ import java.util.List;
 
 @WebServlet("/views/staff/exam/upload")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-                 maxFileSize = 1024 * 1024 * 15,      // 15MB
-                 maxRequestSize = 1024 * 1024 * 30)   // 30MB
+        maxFileSize = 1024 * 1024 * 15, // 15MB
+        maxRequestSize = 1024 * 1024 * 30)   // 30MB
 public class UploadServlet extends HttpServlet {
+
     private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
 
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
-    private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
+    private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
     private final RoleService roleService = new RoleServiceImpl();
 
@@ -70,14 +66,14 @@ public class UploadServlet extends HttpServlet {
         if ("downloadTemplate".equals(action)) {
             response.setContentType("text/csv; charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment; filename=\"danh_sach_mau.csv\"");
-            
+
             // Write UTF-8 BOM explicitly
-            byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+            byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
             response.getOutputStream().write(bom);
-            
+
             // Write template data
-            String csvData = "Số báo danh,Họ và tên,Ngày sinh,CCCD,Hạng GPLX,Số điện thoại,Email\r\n"
-                    + "SBD-000001,Nguyễn Văn A,15/06/2000,012345678901,B2,0987654321,nguyenvana@gmail.com\r\n";
+            String csvData = "SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ bÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡o danh,HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªn,NgÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â y sinh,CCCD,HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ng GPLX,SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡n thoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡i,Email\r\n"
+                    + "SBD-000001,NguyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦n VÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢n A,15/06/2000,012345678901,B2,0987654321,nguyenvana@gmail.com\r\n";
             response.getOutputStream().write(csvData.getBytes(StandardCharsets.UTF_8));
             response.getOutputStream().flush();
             return;
@@ -86,18 +82,18 @@ public class UploadServlet extends HttpServlet {
         if ("downloadTestFile".equals(action)) {
             response.setContentType("text/csv; charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment; filename=\"danh_sach_thi_sinh_test.csv\"");
-            
+
             // Write UTF-8 BOM explicitly
-            byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+            byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
             response.getOutputStream().write(bom);
-            
+
             // Write test file data
-            String csvData = "Số báo danh,Họ và tên,Ngày sinh,CCCD,Hạng GPLX,Số điện thoại,Email\r\n"
-                    + "SBD-202611,Lê Hoàng Long,12/10/1997,038201999991,B2,0912345678,hoanglong@gmail.com\r\n"
-                    + "SBD-202612,Phạm Minh Anh,25/08/2002,038202888882,A1,0987654322,minhanh@gmail.com\r\n"
-                    + "SBD-202613,Nguyễn Trung Kiên,04/05/1995,038203777773,B2,0901234567,trungkien@gmail.com\r\n"
-                    + "SBD-202614,Hoàng Thu Thủy,18/02/1998,038204666664,A1,0934567890,thuthuy@gmail.com\r\n"
-                    + "SBD-202615,Trần Đức Thắng,30/11/1996,038205555555,B2,0945678901,ducthang@gmail.com\r\n";
+            String csvData = "SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ bÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡o danh,HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªn,NgÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â y sinh,CCCD,HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ng GPLX,SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡n thoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡i,Email\r\n"
+                    + "SBD-202611,LÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª HoÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ng Long,12/10/1997,038201999991,B2,0912345678,hoanglong@gmail.com\r\n"
+                    + "SBD-202612,PhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡m Minh Anh,25/08/2002,038202888882,A1,0987654322,minhanh@gmail.com\r\n"
+                    + "SBD-202613,NguyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦n Trung KiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªn,04/05/1995,038203777773,B2,0901234567,trungkien@gmail.com\r\n"
+                    + "SBD-202614,HoÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ng Thu ThÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§y,18/02/1998,038204666664,A1,0934567890,thuthuy@gmail.com\r\n"
+                    + "SBD-202615,TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§n ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©c ThÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ng,30/11/1996,038205555555,B2,0945678901,ducthang@gmail.com\r\n";
             response.getOutputStream().write(csvData.getBytes(StandardCharsets.UTF_8));
             response.getOutputStream().flush();
             return;
@@ -105,14 +101,16 @@ public class UploadServlet extends HttpServlet {
 
         // UC-01 Normal Flow Step 6: Confirm & save from preview
         if ("save".equals(action)) {
-            List<ExamRegistrationDTO> previewList = (List<ExamRegistrationDTO>) session.getAttribute("previewCandidates");
+            List<CandidateEnrollmentDTO> previewList = (List<CandidateEnrollmentDTO>) session.getAttribute("previewCandidates");
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
-            if (selectedSessionId == null) selectedSessionId = 2;
+            if (selectedSessionId == null) {
+                selectedSessionId = 2;
+            }
 
             if (previewList != null && !previewList.isEmpty()) {
                 int importedCount = 0;
                 int skippedCount = 0;
-                for (ExamRegistrationDTO reg : previewList) {
+                for (CandidateEnrollmentDTO reg : previewList) {
                     try {
                         String dupAction = request.getParameter("dupAction_" + reg.getGovIdNo());
                         if (reg.isDuplicate() && "skip".equals(dupAction)) {
@@ -130,7 +128,7 @@ public class UploadServlet extends HttpServlet {
                             continue;
                         }
 
-                        Integer existingId = regDAO.findCandidateIdByProfileAndSession(profile.getId(), selectedSessionId);
+                        Integer existingId = regService.findCandidateIdByProfileAndSession(profile.getId(), selectedSessionId);
                         boolean regExists = existingId != null;
 
                         if (regExists) {
@@ -139,15 +137,15 @@ public class UploadServlet extends HttpServlet {
                             reg.setPersonId(profile.getId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
-                            regDAO.updatePresent(regId, true);
-                            regDAO.updatePhoto(regId, null);
+                            regService.updatePresent(regId, true);
+                            regService.updatePhoto(regId, null);
                             importedCount++;
                         } else {
                             reg.setPersonId(profile.getId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
-                            if (regDAO.insert(reg)) {
-                                regDAO.updatePhoto(reg.getId(), null);
+                            if (regService.insert(reg)) {
+                                regService.updatePhoto(reg.getId(), null);
                                 importedCount++;
                             }
                         }
@@ -158,7 +156,7 @@ public class UploadServlet extends HttpServlet {
                 }
 
                 session.removeAttribute("previewCandidates");
-                List<ExamRegistrationDTO> updatedQueue = regDAO.getCandidatesBySession(selectedSessionId);
+                List<CandidateEnrollmentDTO> updatedQueue = regService.getCandidatesBySession(selectedSessionId);
                 photoService.normalizeQueue(request.getServletContext().getRealPath("/"), updatedQueue);
                 session.setAttribute("candidateQueue", updatedQueue);
                 session.setAttribute("lastLoadedSessionId", selectedSessionId);
@@ -170,9 +168,9 @@ public class UploadServlet extends HttpServlet {
                 }
                 SessionDTO importSession = sessionDAO.getById(selectedSessionId);
                 String sessionLabel = importSession != null ? importSession.getSessionName() : ("SessionId " + selectedSessionId);
-                String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
-                        + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
-                        + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");
+                String auditDetails = "Import CSV \"" + uploadedFile + "\": nhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­p " + importedCount
+                        + " thÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ sinh vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â o ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
+                        + (skippedCount > 0 ? ", bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â qua " + skippedCount + " dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â²ng" : "");
                 addAuditLog(session, "IMPORT Candidates", auditDetails, selectedSessionId);
 
                 response.sendRedirect("upload?importSuccess=true");
@@ -195,7 +193,10 @@ public class UploadServlet extends HttpServlet {
         String sessionParam = request.getParameter("examSessionId");
         int selectedSessionId = 2;
         if (sessionParam != null && !sessionParam.isEmpty()) {
-            try { selectedSessionId = Integer.parseInt(sessionParam); } catch (Exception e) { /* ignore */ }
+            try {
+                selectedSessionId = Integer.parseInt(sessionParam);
+            } catch (Exception e) {
+                /* ignore */ }
         }
         session.setAttribute("selectedImportSessionId", selectedSessionId);
 
@@ -210,7 +211,7 @@ public class UploadServlet extends HttpServlet {
                 }
 
                 byte[] fileBytes = filePart.getInputStream().readAllBytes();
-                
+
                 java.nio.charset.Charset charset = StandardCharsets.UTF_8;
                 if (!isValidUTF8(fileBytes)) {
                     try {
@@ -223,13 +224,13 @@ public class UploadServlet extends HttpServlet {
                         }
                     }
                 }
-                
+
                 String fileContent = new String(fileBytes, charset);
                 if (fileContent.startsWith("\uFEFF")) {
                     fileContent = fileContent.substring(1);
                 }
-                
-                List<ExamRegistrationDTO> parsedList = new ArrayList<>();
+
+                List<CandidateEnrollmentDTO> parsedList = new ArrayList<>();
                 BufferedReader reader = new BufferedReader(new java.io.StringReader(fileContent));
 
                 String line;
@@ -239,20 +240,26 @@ public class UploadServlet extends HttpServlet {
                 boolean hasInvalidRows = false;
 
                 while ((line = reader.readLine()) != null) {
-                    if (line.trim().isEmpty()) continue;
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
                     String[] parts = line.split(",");
-                    if (parts.length != 7)
-                        throw new Exception("Structure mismatch. The imported file must contain exactly 7 columns (SBD, Họ tên, Ngày sinh, CCCD, Hạng GPLX, SĐT, Email).");
-                    if (isHeader) { isHeader = false; continue; }
+                    if (parts.length != 7) {
+                        throw new Exception("Structure mismatch. The imported file must contain exactly 7 columns (SBD, HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªn, NgÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â y sinh, CCCD, HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ng GPLX, SÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂT, Email).");
+                    }
+                    if (isHeader) {
+                        isHeader = false;
+                        continue;
+                    }
 
-                    String fullName    = parts[1].trim();
-                    String dobStr      = parts[2].trim();
-                    String cccd        = parts[3].trim();
+                    String fullName = parts[1].trim();
+                    String dobStr = parts[2].trim();
+                    String cccd = parts[3].trim();
                     String licenseCode = parts[4].trim();
-                    String phone       = parts[5].trim();
-                    String email       = parts[6].trim();
+                    String phone = parts[5].trim();
+                    String email = parts[6].trim();
 
-                    ExamRegistrationDTO reg = new ExamRegistrationDTO();
+                    CandidateEnrollmentDTO reg = new CandidateEnrollmentDTO();
                     reg.setFullName(fullName);
                     reg.setGovIdNo(cccd);
                     reg.setLicenseCode(licenseCode.isEmpty() ? "B2" : licenseCode);
@@ -267,11 +274,19 @@ public class UploadServlet extends HttpServlet {
                         reg.setInvalid(true);
                         hasInvalidRows = true;
                         java.util.List<String> missing = new java.util.ArrayList<>();
-                        if (fullName.isEmpty()) missing.add("Họ tên");
-                        if (cccd.isEmpty())     missing.add("CCCD");
-                        if (phone.isEmpty())    missing.add("SĐT");
-                        if (email.isEmpty())    missing.add("Email");
-                        reg.setValidationMessage("Thiếu " + String.join(" & ", missing));
+                        if (fullName.isEmpty()) {
+                            missing.add("HÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªn");
+                        }
+                        if (cccd.isEmpty()) {
+                            missing.add("CCCD");
+                        }
+                        if (phone.isEmpty()) {
+                            missing.add("SÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂT");
+                        }
+                        if (email.isEmpty()) {
+                            missing.add("Email");
+                        }
+                        reg.setValidationMessage("ThiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿u " + String.join(" & ", missing));
                     }
 
                     // Parse DOB
@@ -299,7 +314,7 @@ public class UploadServlet extends HttpServlet {
                     if (!cccd.isEmpty()) {
                         Profile existingProfile = profileDAO.getByGovIdNo(cccd);
                         if (existingProfile != null) {
-                            if (regDAO.findCandidateIdByProfileAndSession(existingProfile.getId(), selectedSessionId) != null) {
+                            if (regService.findCandidateIdByProfileAndSession(existingProfile.getId(), selectedSessionId) != null) {
                                 reg.setDuplicate(true);
                             }
                         }
@@ -315,13 +330,13 @@ public class UploadServlet extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            session.setAttribute("uploadError", "Lỗi xử lý tệp: " + e.getMessage());
+            session.setAttribute("uploadError", "LÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Âi xÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡p: " + e.getMessage());
         }
 
         response.sendRedirect("upload");
     }
 
-    private Profile ensureProfileForImport(ExamRegistrationDTO reg) {
+    private Profile ensureProfileForImport(CandidateEnrollmentDTO reg) {
         Profile profile = profileDAO.getByGovIdNo(reg.getGovIdNo());
 
         String finalPhone = (reg.getPhoneNo() != null && !reg.getPhoneNo().trim().isEmpty())
@@ -348,9 +363,9 @@ public class UploadServlet extends HttpServlet {
             profile.setFullName(reg.getFullName());
             profile.setGovernmentIdNumber(reg.getGovIdNo());
             profile.setDateOfBirth(reg.getDateOfBirth() != null ? new java.sql.Timestamp(reg.getDateOfBirth().getTime()) : null);
-            profile.setSex("Nữ");
+            profile.setSex(true);
             profile.setPhoneNumber(finalPhone);
-            profile.setAddress("Hà Nội, Việt Nam");
+            profile.setAddress("HÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢i, ViÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡t Nam");
 
             if (!profileDAO.insert(profile)) {
                 return null;
@@ -394,7 +409,7 @@ public class UploadServlet extends HttpServlet {
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
 
-        auditLogService.persist(session, action, details, recordId);
+        auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), action, details, recordId);
     }
 
     private boolean isValidUTF8(byte[] bytes) {
@@ -407,13 +422,19 @@ public class UploadServlet extends HttpServlet {
             if (b <= 0x7F) {
                 i++;
             } else if ((b & 0xE0) == 0xC0) {
-                if (i + 1 >= bytes.length || (bytes[i + 1] & 0xC0) != 0x80) return false;
+                if (i + 1 >= bytes.length || (bytes[i + 1] & 0xC0) != 0x80) {
+                    return false;
+                }
                 i += 2;
             } else if ((b & 0xF0) == 0xE0) {
-                if (i + 2 >= bytes.length || (bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80) return false;
+                if (i + 2 >= bytes.length || (bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80) {
+                    return false;
+                }
                 i += 3;
             } else if ((b & 0xF8) == 0xF0) {
-                if (i + 3 >= bytes.length || (bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80 || (bytes[i + 3] & 0xC0) != 0x80) return false;
+                if (i + 3 >= bytes.length || (bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80 || (bytes[i + 3] & 0xC0) != 0x80) {
+                    return false;
+                }
                 i += 4;
             } else {
                 return false;
@@ -422,10 +443,6 @@ public class UploadServlet extends HttpServlet {
         return true;
     }
 }
-
-
-
-
 
 
 

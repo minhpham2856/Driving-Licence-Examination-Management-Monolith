@@ -22,8 +22,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RegisterResultDTO register(String govIdNo, String fullName, String phoneNo,
-            String dateOfBirth, String address, String email, boolean gender) {
-        // input validation
+            String dateOfBirth, String address, String email, boolean sex) {
+        
         if (userDAO.getByEmail(email) != null) {
             return RegisterResultDTO.failed("Email đã được sử dụng.");
         }
@@ -36,11 +36,11 @@ public class AuthServiceImpl implements AuthService {
             return RegisterResultDTO.failed("Số điện thoại đã được sử dụng.");
         }
 
-        // generate auth credentials
+        
         String username = generateUniqueUsername(fullName);
         String password = UsernameGenerator.randomPassword(10);
 
-        // create new user
+        
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
@@ -53,13 +53,13 @@ public class AuthServiceImpl implements AuthService {
             return RegisterResultDTO.failed("Không thể đăng ký tài khoản. Vui lòng thử lại.");
         }
 
-        // create new profile
+        
         Profile profile = new Profile();
         profile.setUserId(user.getUserId());
         profile.setGovIdNo(govIdNo);
         profile.setFullName(fullName);
         profile.setDateOfBirth(new java.sql.Timestamp(Date.valueOf(dateOfBirth).getTime()));
-        profile.setGender(gender);
+        profile.setSex(sex);
         profile.setPhoneNo(phoneNo);
         profile.setAddress(address);
 
@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
             return RegisterResultDTO.failed("Lỗi hệ thống. Vui lòng thử lại.");
         }
 
-        // connect user to profile
+        
         profile.setUserId(user.getUserId());
 
         String subject = "[Lái Vui] Thông tin tài khoản";
@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User login(String identifier, String password) {
-        // check for empty inputs
+        
         if (identifier == null || password == null) {
             return null;
         }
@@ -108,12 +108,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String forgotPassword(String email) {
-        // check for blank inputs
+        
         if (email == null || email.trim().isEmpty()) {
             return "Không tìm thấy tài khoản";
         }
 
-        // check if email exist
+        
         String trimmed = email.trim();
         User user = userDAO.getByEmail(trimmed);
         if (user == null) {
@@ -128,7 +128,7 @@ public class AuthServiceImpl implements AuthService {
             return "Lỗi hệ thống. Vui lòng thử lại.";
         }
 
-        // validate email again
+        
         String recipient = user.getEmail();
         if (recipient == null || recipient.isBlank()) {
             return "Lỗi hệ thống. Vui lòng thử lại.";
@@ -151,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
-    // compare password hashes
+    
     protected static boolean passwordsMatch(String rawPassword, String storedPasswordHash) {
         if (rawPassword == null || storedPasswordHash == null) {
             return false;
@@ -159,17 +159,17 @@ public class AuthServiceImpl implements AuthService {
         return rawPassword.equals(storedPasswordHash.trim());
     }
 
-    // get username
-    // generate username
+    
+    
     private String generateUniqueUsername(String fullName) {
-        // case 1: username generation sucess
+        
         for (int attempt = 0; attempt < 10; attempt++) {
             String username = UsernameGenerator.generateFromFullName(fullName);
             if (userDAO.getByUsername(username) == null) {
                 return username;
             }
         }
-        // case 2: username generation failed
+        
         return UsernameGenerator.generateFromFullName(fullName) + System.currentTimeMillis() % 1000;
     }
 

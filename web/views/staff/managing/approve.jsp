@@ -87,7 +87,7 @@
                                                 </div>
                                                 <div class="quick-info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                                                     <span class="quick-info-label">Giới tính / Số điện thoại:</span>
-                                                    <span class="quick-info-value" style="font-size: 1rem; color: #0f172a;">${user.gender} | ${user.phone}</span>
+                                                    <span class="quick-info-value" style="font-size: 1rem; color: #0f172a;">${user.sex} | ${user.phone}</span>
                                                 </div>
                                                 <div class="quick-info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                                                     <span class="quick-info-label">Hạng GPLX đăng ký / Đợt nộp:</span>

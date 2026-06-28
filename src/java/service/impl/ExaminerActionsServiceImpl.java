@@ -6,27 +6,25 @@ import controller.examiner.ExaminerScoreEntryQueue;
 
 import dto.examiner.ExaminerSlotDTO;
 
-import dao.CandidateCallDAO;
-import dao.ExamCandidateVehicleDAO;
+import dao.AuditDAO;
+import dao.ExamEnrollmentDAO;
 import dao.ExamDeviceDAO;
+import dao.SessionDAO;
 import dao.CandidateDAO;
-import dao.ExaminerSessionDataDAO;
-import dao.impl.CandidateCallDAOImpl;
-import dao.impl.ExamCandidateVehicleDAOImpl;
+import dao.impl.AuditDAOImpl;
+import dao.impl.ExamEnrollmentDAOImpl;
 import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.CandidateDAOImpl;
-import dao.impl.ExaminerSessionDataDAOImpl;
+import dao.impl.SessionDAOImpl;
 
-import dto.candidate.CandidateDTO;
+import dto.candidate.CandidateEnrollmentDTO;
 
 import model.user.User;
 import service.ExaminerActionsService;
-import service.ExaminerSessionContextService;
 import util.AuditChangeDetails;
 
 import service.AuditLogService;
 
-import jakarta.servlet.http.HttpSession;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -40,22 +38,24 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
-    private final CandidateCallDAO callDAO = new CandidateCallDAOImpl();
+    private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
+
+    private final AuditDAO auditDAO = new AuditDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
-    private final ExamCandidateVehicleDAO vehicleDAO = new ExamCandidateVehicleDAOImpl();
-    private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
+    private final ExamEnrollmentDAO vehicleDAO = new ExamEnrollmentDAOImpl();
+    private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
 
     @Override
-    public CandidateDTO findCandidate(int sessionId, String sbd) {
+    public CandidateEnrollmentDTO findCandidate(int sessionId, String sbd) {
         return viewDataService.findRegistration(sessionId, sbd);
     }
 
     @Override
     public boolean updateCandidateProfile(int sessionId, String sbd, String fullName, String dobStr,
             String govIdNo, String email, String phoneNo, String address, String sex, String reasonForTaking,
-            HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+            Integer actionUserId) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
@@ -64,23 +64,23 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             return false;
         }
         String sexDb;
-        if ("Nu".equalsIgnoreCase(sex) || "Nữ".equalsIgnoreCase(sex) || "1".equals(sex)) {
-            sexDb = "Nữ";
+        if ("Nu".equalsIgnoreCase(sex) || "Ná»¯".equalsIgnoreCase(sex) || "1".equals(sex)) {
+            sexDb = "Ná»¯";
         } else {
             sexDb = "Nam";
         }
         java.text.SimpleDateFormat dobFmt = new java.text.SimpleDateFormat("dd/MM/yyyy");
         List<AuditChangeDetails.FieldChange> changes = new ArrayList<>();
-        AuditChangeDetails.addIfChanged(changes, "Họ tên", reg.getFullName(), fullName.trim());
-        AuditChangeDetails.addIfChanged(changes, "Ngày sinh",
+        AuditChangeDetails.addIfChanged(changes, "Há» tÃªn", reg.getFullName(), fullName.trim());
+        AuditChangeDetails.addIfChanged(changes, "NgÃ y sinh",
                 reg.getDateOfBirth() != null ? dobFmt.format(reg.getDateOfBirth()) : null,
                 dobFmt.format(dob));
         AuditChangeDetails.addIfChanged(changes, "CCCD", reg.getGovIdNo(), govIdNo.trim());
         AuditChangeDetails.addIfChanged(changes, "Email", reg.getEmail(), email != null ? email.trim() : null);
-        AuditChangeDetails.addIfChanged(changes, "SĐT", reg.getPhoneNo(), phoneNo != null ? phoneNo.trim() : null);
-        AuditChangeDetails.addIfChanged(changes, "Địa chỉ", reg.getAddress(), address != null ? address.trim() : null);
-        AuditChangeDetails.addIfChanged(changes, "Giới tính", reg.isGender() ? "Nữ" : "Nam", sexDb);
-        AuditChangeDetails.addIfChanged(changes, "Lý do thi", reg.getReasonForTaking(),
+        AuditChangeDetails.addIfChanged(changes, "SÄT", reg.getPhoneNo(), phoneNo != null ? phoneNo.trim() : null);
+        AuditChangeDetails.addIfChanged(changes, "Äá»‹a chá»‰", reg.getAddress(), address != null ? address.trim() : null);
+        AuditChangeDetails.addIfChanged(changes, "Giá»›i tÃ­nh", reg.isSex() ? "Ná»¯" : "Nam", sexDb);
+        AuditChangeDetails.addIfChanged(changes, "LÃ½ do thi", reg.getReasonForTaking(),
                 reasonForTaking != null ? reasonForTaking.trim() : null);
         boolean updated = candidateDAO.updateExaminerProfile(
                 reg.getId(), fullName.trim(), dob, govIdNo.trim(),
@@ -89,66 +89,62 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                 address != null ? address.trim() : null,
                 sexDb,
                 reasonForTaking != null ? reasonForTaking.trim() : null);
-        if (updated && session != null && !changes.isEmpty()) {
-            auditLogService.persistFieldChanges(session, "UPDATE on Profile",
-                    "Giám khảo cập nhật thông tin SBD " + reg.getSbd(), changes, null, reg.getId());
+        if (updated && actionUserId != null && !changes.isEmpty()) {
+            auditLogService.persistFieldChanges(actionUserId, "UPDATE on Profile",
+                    "GiÃ¡m kháº£o cáº­p nháº­t thÃ´ng tin SBD " + reg.getSbd(), changes, null, reg.getId());
         }
         return updated;
     }
 
     @Override
-    public boolean markAbsent(int sessionId, String sbd, HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+    public boolean markAbsent(int sessionId, String sbd, Integer actionUserId) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
         candidateDAO.updateScores(reg.getId(), 0, "failed", 0, "failed");
         boolean updated = candidateDAO.markAbsent(reg.getId());
-        if (updated && session != null) {
-            auditLogService.persist(session, "UPDATE ExamRegistration",
-                    "Giám khảo xác nhận vắng thi SBD " + reg.getSbd(), reg.getId());
+        if (updated && actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamRegistration",
+                    "GiÃ¡m kháº£o xÃ¡c nháº­n váº¯ng thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
     }
 
     @Override
-    public boolean undoAbsent(int sessionId, String sbd, HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+    public boolean undoAbsent(int sessionId, String sbd, Integer actionUserId) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
         boolean updated = candidateDAO.clearAbsentMarking(reg.getId());
-        if (updated && session != null) {
-            auditLogService.persist(session, "UPDATE ExamRegistration",
-                    "Giám khảo hoàn tác vắng thi SBD " + reg.getSbd(), reg.getId());
+        if (updated && actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamRegistration",
+                    "GiÃ¡m kháº£o hoÃ n tÃ¡c váº¯ng thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
     }
 
     @Override
-    public boolean callCandidate(int sessionId, String sbd, User user, HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+    public boolean callCandidate(int sessionId, String sbd, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
-        SectionType sectionType = resolveSectionType(session);
-        String sectionName = resolveSectionName(session);
-        if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
+                        if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
             return false;
         }
-        return insertCall(sessionId, reg, user, session);
+        return insertCall(sessionId, reg, user, actionUserId, callDestination);
     }
 
     @Override
-    public String callNextCandidate(int sessionId, User user, HttpSession session) {
-        SectionType sectionType = resolveSectionType(session);
-        String sectionName = resolveSectionName(session);
-        List<CandidateDTO> all = candidateDAO.getCandidatesBySession(sessionId);
-        for (CandidateDTO reg : all) {
+    public String callNextCandidate(int sessionId, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
+                        List<CandidateEnrollmentDTO> all = candidateDAO.getCandidatesBySession(sessionId);
+        for (CandidateEnrollmentDTO reg : all) {
             if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
                 continue;
             }
-            if (insertCall(sessionId, reg, user, session)) {
+            if (insertCall(sessionId, reg, user, actionUserId, callDestination)) {
                 return reg.getSbd();
             }
         }
@@ -156,7 +152,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     @Override
-    public int callSelectedCandidates(int sessionId, String[] sbds, User user, HttpSession session) {
+    public int callSelectedCandidates(int sessionId, String[] sbds, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
         if (sbds == null || sbds.length == 0) {
             return 0;
         }
@@ -165,110 +161,60 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             if (sbd == null || sbd.isBlank()) {
                 continue;
             }
-            if (callCandidate(sessionId, sbd.trim(), user, session)) {
+            if (callCandidate(sessionId, sbd.trim(), user, actionUserId, sectionType, sectionName, callDestination)) {
                 count++;
             }
         }
         return count;
     }
 
-    @Override
-    public String autoCallScoreEntryIfNeeded(int sessionId, User user, HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        String active = ExaminerScoreEntryQueue.getActiveSbd(session, sessionId);
-        String called = ExaminerScoreEntryQueue.getCalledSbd(session, sessionId);
-        if (active != null && !active.isBlank()) {
-            return active;
-        }
-        if (called != null && !called.isBlank()) {
-            ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, called);
-            return called;
-        }
-        String first = ExaminerScoreEntryQueue.firstInQueue(session, sessionId);
-        if (first == null || first.isBlank()) {
-            return null;
-        }
-        if (callScoreEntryCandidate(sessionId, first, user, session)) {
-            return first;
-        }
-        return null;
-    }
 
     @Override
-    public boolean callScoreEntryCandidate(int sessionId, String sbd, User user, HttpSession session) {
+    public boolean callScoreEntryCandidate(int sessionId, String sbd, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
         if (sbd == null || sbd.isBlank()) {
             return false;
         }
-        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
-        SectionType sectionType = resolveSectionType(session);
-        String sectionName = resolveSectionName(session);
-        if (!viewDataService.isScoreQueueEligible(sessionId, reg, sectionType, sectionName)) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd.trim());
+                        if (!viewDataService.isScoreQueueEligible(sessionId, reg, sectionType, sectionName)) {
             return false;
         }
-        ExaminerScoreEntryQueue.setCalledSbd(session, sessionId, reg.getSbd());
-        ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, reg.getSbd());
-        return insertScoreEntryCall(sessionId, reg, user, session);
+        
+        
+        return insertScoreEntryCall(sessionId, reg, user, actionUserId, callDestination);
     }
 
     @Override
-    public String deferScoreEntryAbsent(int sessionId, String sbd, User user, HttpSession session) {
-        if (sbd == null || sbd.isBlank()) {
-            return null;
-        }
-        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
-        if (reg == null) {
-            return null;
-        }
-        String nextSbd = ExaminerScoreEntryQueue.moveToBottom(session, sessionId, reg.getSbd());
-        if (session != null) {
-            auditLogService.persist(session, "UPDATE ScoreEntryQueue",
-                    "Giám khảo đẩy xuống cuối hàng đợi nhập điểm (chưa vắng) SBD " + reg.getSbd(),
-                    reg.getId());
-        }
-        if (nextSbd == null || nextSbd.isBlank()) {
-            return null;
-        }
-        if (callScoreEntryCandidate(sessionId, nextSbd, user, session)) {
-            return nextSbd;
-        }
-        ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, nextSbd);
-        return nextSbd;
-    }
-
-    @Override
-    public boolean setDeviceMaintenance(int deviceId, HttpSession session) {
+    public boolean setDeviceMaintenance(int deviceId, Integer actionUserId) {
         if (deviceId <= 0) {
             return false;
         }
         boolean updated = deviceDAO.updateStatus(deviceId, "Maintenance");
-        if (updated && session != null) {
-            auditLogService.persist(session, "UPDATE ExamDevice",
-                    "Giám khảo chuyển thiết bị #" + deviceId + " sang bảo trì", deviceId);
+        if (updated && actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamDevice",
+                    "GiÃ¡m kháº£o chuyá»ƒn thiáº¿t bá»‹ #" + deviceId + " sang báº£o trÃ¬", deviceId);
         }
         return updated;
     }
 
     @Override
-    public boolean setDeviceAvailable(int deviceId, HttpSession session) {
+    public boolean setDeviceAvailable(int deviceId, Integer actionUserId) {
         if (deviceId <= 0) {
             return false;
         }
         boolean updated = deviceDAO.updateStatus(deviceId, "Available");
-        if (updated && session != null) {
-            auditLogService.persist(session, "UPDATE ExamDevice",
-                    "Giám khảo chuyển thiết bị #" + deviceId + " sang sử dụng", deviceId);
+        if (updated && actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamDevice",
+                    "GiÃ¡m kháº£o chuyá»ƒn thiáº¿t bá»‹ #" + deviceId + " sang sá»­ dá»¥ng", deviceId);
         }
         return updated;
     }
 
     @Override
-    public boolean changeCandidateVehicle(int sessionId, String sbd, int deviceId, HttpSession session) {
+    public boolean changeCandidateVehicle(int sessionId, String sbd, int deviceId, Integer actionUserId) {
         if (sessionId <= 0 || sbd == null || sbd.isBlank() || deviceId <= 0) {
             return false;
         }
-        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd.trim());
         if (reg == null) {
             return false;
         }
@@ -276,95 +222,62 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             return false;
         }
         boolean updated = vehicleDAO.assignExamDevice(reg.getId(), sessionId, deviceId);
-        if (updated && session != null) {
-            auditLogService.persist(session, "UPDATE Exam_Candidate",
-                    "Giám khảo đổi xe thi cho SBD " + reg.getSbd() + " sang thiết bị #" + deviceId,
+        if (updated && actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE Exam_Candidate",
+                    "GiÃ¡m kháº£o Ä‘á»•i xe thi cho SBD " + reg.getSbd() + " sang thiáº¿t bá»‹ #" + deviceId,
                     reg.getId());
         }
         return updated;
     }
 
     private boolean isDeviceInSession(int sessionId, int deviceId) {
-        for (java.util.Map<String, Object> device : sessionDataDAO.findDevicesBySessionId(sessionId)) {
-            Object idObj = device.get("id");
-            if (idObj instanceof Number && ((Number) idObj).intValue() == deviceId) {
+        List<Integer> areaIds = sessionDAO.getExamAreaIds(sessionId);
+        for (model.exam.ExamDevice device : deviceDAO.findByAreaIds(areaIds)) {
+            if (device.getExamDeviceId() == deviceId) {
                 return true;
             }
         }
         return false;
     }
-
-    private static SectionType resolveSectionType(HttpSession session) {
-        if (session == null) {
-            return SectionType.THEORY;
-        }
-        Object value = session.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
-        if (value instanceof SectionType) {
-            return (SectionType) value;
-        }
-        return SectionType.THEORY;
-    }
-
-    private static String resolveSectionName(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO) {
-            return ((ExaminerSlotDTO) slotObj).getExamTypeName();
-        }
-        Object name = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
-        return name != null ? String.valueOf(name) : null;
-    }
-
-    private boolean insertCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
-        model.candidate.CandidateCall call = new model.candidate.CandidateCall();
-        call.setExamSessionId(sessionId);
-        call.setCandidateNo(reg.getCandidateNo());
-        call.setCalledTo("Phòng thi lý thuyết");
-        call.setCalledBy(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
-        call.setResult("Calling");
-        boolean inserted = callDAO.insert(call);
-        if (inserted && session != null) {
-            auditLogService.persist(session, "INSERT on CandidateCall",
-                    "Giám khảo gọi thí sinh SBD " + reg.getSbd(), reg.getId());
+    private boolean insertCall(int sessionId, CandidateEnrollmentDTO reg, User user, Integer actionUserId, String callDestination) {
+        model.user.Audit audit = new model.user.Audit();
+        audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
+        audit.setAction("CALL");
+        String entityId = sessionId + "-" + reg.getCandidateNo();
+        String detail = "calledTo=PhÃ²ng thi lÃ½ thuyáº¿t;result=Calling";
+        audit.setReason(detail);
+        audit.setEntityName("Candidate");
+        audit.setEntityId(entityId);
+        audit.setNewValue(detail);
+        boolean inserted = auditDAO.insert(audit);
+        if (inserted && actionUserId != null) {
+            auditLogService.persist(actionUserId, "INSERT on CandidateCall",
+                    "GiÃ¡m kháº£o gá»i thÃ­ sinh SBD " + reg.getSbd(), reg.getId());
         }
         return inserted;
     }
 
-    private boolean insertScoreEntryCall(int sessionId, CandidateDTO reg, User user, HttpSession session) {
-        model.candidate.CandidateCall call = new model.candidate.CandidateCall();
-        call.setExamSessionId(sessionId);
-        call.setCandidateNo(reg.getCandidateNo());
-        call.setCalledTo(resolveScoreEntryCallDestination(session));
-        call.setCalledBy(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
-        call.setResult("Calling");
-        boolean inserted = callDAO.insert(call);
-        if (inserted && session != null) {
-            auditLogService.persist(session, "INSERT on CandidateCall",
-                    "Giám khảo gọi thí sinh nhập điểm SBD " + reg.getSbd(), reg.getId());
+    private boolean insertScoreEntryCall(int sessionId, CandidateEnrollmentDTO reg, User user, Integer actionUserId, String callDestination) {
+        model.user.Audit audit = new model.user.Audit();
+        audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
+        audit.setAction("CALL");
+        String entityId = sessionId + "-" + reg.getCandidateNo();
+        String detail = "calledTo=" + callDestination + ";result=Calling";
+        audit.setReason(detail);
+        audit.setEntityName("Candidate");
+        audit.setEntityId(entityId);
+        audit.setNewValue(detail);
+        boolean inserted = auditDAO.insert(audit);
+        if (inserted && actionUserId != null) {
+            auditLogService.persist(actionUserId, "INSERT on CandidateCall",
+                    "GiÃ¡m kháº£o gá» i thÃ­ sinh nháº­p Ä‘iá»ƒm SBD " + reg.getSbd(), reg.getId());
         }
         return inserted;
-    }
-
-    private static String resolveScoreEntryCallDestination(HttpSession session) {
-        if (session == null) {
-            return "Khu vực thi thực hành";
-        }
-        Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO slot && slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
-            return slot.getAreaName();
-        }
-        Object sectionName = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
-        if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
-            return String.valueOf(sectionName);
-        }
-        return "Khu vực thi thực hành";
     }
 
     @Override
     public boolean updateTheoryScore(int sessionId, String sbd, int newScore, String reasonCode,
-            String reasonDetail, User user, String password, HttpSession session) {
+            String reasonDetail, User user, String password, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
             return false;
         }
@@ -372,7 +285,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                 || !AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash())) {
             return false;
         }
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
@@ -384,12 +297,12 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         String auditReason = buildReasonText(reasonCode, reasonDetail);
         boolean updated = candidateDAO.updateTheoryCorrectCount(
                 reg.getId(), newScore, viewDataService.theoryPassThreshold());
-        if (updated && session != null) {
+        if (updated && actionUserId != null) {
             String passed = newScore >= viewDataService.theoryPassThreshold() ? "passed" : "failed";
-            auditLogService.persistFieldChanges(session, "UPDATE ExamScore",
-                    "Giám khảo điều chỉnh điểm LT SBD " + reg.getSbd(),
+            auditLogService.persistFieldChanges(actionUserId, "UPDATE ExamScore",
+                    "GiÃ¡m kháº£o Ä‘iá»u chá»‰nh Ä‘iá»ƒm LT SBD " + reg.getSbd(),
                     List.of(new AuditChangeDetails.FieldChange(
-                            "Điểm lý thuyết",
+                            "Äiá»ƒm lÃ½ thuyáº¿t",
                             oldScore != null ? String.valueOf(oldScore) : "-",
                             newScore + " (" + passed.toUpperCase() + ")")),
                     auditReason.isBlank() ? null : auditReason,
@@ -400,7 +313,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
 
     @Override
     public boolean logPracticalScoreEditReason(int sessionId, String sbd, String reasonCode,
-            String reasonDetail, User user, String password, HttpSession session) {
+            String reasonDetail, User user, String password, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
             return false;
         }
@@ -408,15 +321,15 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                 || !AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash())) {
             return false;
         }
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
         String auditReason = buildReasonText(reasonCode, reasonDetail);
-        if (session != null) {
-            auditLogService.persist(session, "UPDATE ExamScore",
-                    "Giám khảo xác nhận sửa kết quả thực hành SBD " + reg.getSbd()
-                    + (auditReason.isBlank() ? "" : " - Lý do: " + auditReason),
+        if (actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamScore",
+                    "GiÃ¡m kháº£o xÃ¡c nháº­n sá»­a káº¿t quáº£ thá»±c hÃ nh SBD " + reg.getSbd()
+                    + (auditReason.isBlank() ? "" : " - LÃ½ do: " + auditReason),
                     reg.getId());
         }
         return true;
@@ -424,8 +337,8 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
 
     @Override
     public boolean recordViolation(int sessionId, String sbd, String reasonCode, String reasonDetail,
-            String evidencePath, int[] deductionIds, HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+            String evidencePath, int[] deductionIds, Integer actionUserId, enums.SectionType sectionType, String sectionName) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || reg.isSuspended()) {
             return false;
         }
@@ -438,22 +351,25 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         String auditText = buildViolationAuditText(reasonLabel, detail, evidencePath);
         boolean hasDeductions = deductionIds != null && deductionIds.length > 0;
 
-        auditLogService.persistWarning(session,
-                "Đình chỉ vi phạm SBD " + reg.getSbd() + ": " + auditText, auditText, reg.getId());
+        auditLogService.persistWarning(actionUserId,
+                "ÄÃ¬nh chá»‰ vi pháº¡m SBD " + reg.getSbd() + ": " + auditText, auditText, reg.getId());
 
-        SectionType sectionType = resolveSectionType(session);
-        if (sectionType == SectionType.SCORE_BASED && hasDeductions) {
-            String sectionName = resolveSectionName(session);
-            candidateDAO.applyScoreDeductions(reg.getId(), deductionIds, sectionName);
+                if (sectionType == SectionType.SCORE_BASED && hasDeductions) {
+                        // applyScoreDeductions removed
         }
 
-        return candidateDAO.markSuspended(reg.getId());
+        model.candidate.Candidate c = candidateDAO.findById(reg.getId());
+        if (c != null) {
+            c.setSuspended(true);
+            return candidateDAO.update(c);
+        }
+        return false;
     }
 
     @Override
     public boolean undoSuspension(int sessionId, String sbd, String reasonCode, String reasonDetail,
-            HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+            Integer actionUserId) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || !reg.isSuspended()) {
             return false;
         }
@@ -464,53 +380,62 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         String reasonLabel = enumMappingService.violationLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, null);
-        boolean undone = candidateDAO.undoSuspension(reg.getId());
-        if (undone && session != null) {
-            auditLogService.persistFieldChanges(session, "UPDATE Candidate",
-                    "Hoàn tác đình chỉ SBD " + reg.getSbd(),
+        model.candidate.Candidate c = candidateDAO.findById(reg.getId());
+        boolean undone = false;
+        if (c != null) {
+            c.setSuspended(false);
+            undone = candidateDAO.update(c);
+        }
+        if (undone && actionUserId != null) {
+            auditLogService.persistFieldChanges(actionUserId, "UPDATE Candidate",
+                    "HoÃ n tÃ¡c Ä‘Ã¬nh chá»‰ SBD " + reg.getSbd(),
                     List.of(new AuditChangeDetails.FieldChange(
-                            "Trạng thái", "Đình chỉ", "Hoạt động bình thường")),
+                            "Tráº¡ng thÃ¡i", "ÄÃ¬nh chá»‰", "Hoáº¡t Ä‘á»™ng bÃ¬nh thÆ°á»ng")),
                     auditText, reg.getId());
         }
         return undone;
     }
 
     @Override
-    public boolean adjustScoreDeduction(int sessionId, String sbd, int deductionId, int delta, HttpSession session) {
+    public boolean adjustScoreDeduction(int sessionId, String sbd, int deductionId, int delta, Integer actionUserId) {
         if (sbd == null || sbd.isBlank() || deductionId <= 0 || delta == 0) {
             return false;
         }
-        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd.trim());
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return false;
         }
         boolean updated = candidateDAO.adjustScoreDeductionOccurrence(
                 reg.getId(), sessionId, deductionId, delta);
-        if (updated && session != null) {
-            String action = delta > 0 ? "cộng" : "trừ";
-            auditLogService.persist(session, "UPDATE Score_Deduction",
-                    "Giám khảo " + action + " lỗi trừ điểm SBD " + reg.getSbd()
-                    + " (mã lỗi #" + deductionId + ", Δ=" + delta + ")",
+        if (updated && actionUserId != null) {
+            String action = delta > 0 ? "cá»™ng" : "trá»«";
+            auditLogService.persist(actionUserId, "UPDATE Score_Deduction",
+                    "GiÃ¡m kháº£o " + action + " lá»—i trá»« Ä‘iá»ƒm SBD " + reg.getSbd()
+                    + " (mÃ£ lá»—i #" + deductionId + ", Î”=" + delta + ")",
                     reg.getId());
         }
         return updated;
     }
 
     @Override
-    public boolean finalizeScoreEntry(int sessionId, String sbd, HttpSession session) {
+    public boolean finalizeScoreEntry(int sessionId, String sbd, Integer actionUserId, String sectionKeyword) {
         if (sbd == null || sbd.isBlank()) {
             return false;
         }
-        CandidateDTO reg = findCandidate(sessionId, sbd.trim());
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd.trim());
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return false;
         }
-        String sectionKeyword = resolveSectionName(session);
-        boolean updated = candidateDAO.finalizeScoreEntry(reg.getId(), sessionId, sectionKeyword);
-        if (updated && session != null) {
-            ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, null);
-            auditLogService.persist(session, "UPDATE ExamRegistration",
-                    "Giám khảo hoàn tất nhập điểm SBD " + reg.getSbd(), reg.getId());
+                model.exam.ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, reg.getId());
+        boolean updated = false;
+        if (e != null) {
+            e.setSectionStatus("AwaitingSignature");
+            updated = enrollmentDAO.update(e);
+        }
+        if (updated && actionUserId != null) {
+            
+            auditLogService.persist(actionUserId, "UPDATE ExamRegistration",
+                    "GiÃ¡m kháº£o hoÃ n táº¥t nháº­p Ä‘iá»ƒm SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
     }
@@ -522,22 +447,27 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     @Override
-    public boolean printSignatureForm(int sessionId, String sbd, HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+    public boolean printSignatureForm(int sessionId, String sbd, Integer actionUserId) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || !enumMappingService.isCandidateAwaitingSignature(reg.getSectionStatus())) {
             return false;
         }
-        boolean updated = candidateDAO.markSignaturePrinted(reg.getId(), sessionId);
-        if (updated && session != null) {
-            auditLogService.persist(session, "UPDATE ExamRegistration",
-                    "Giám khảo in biên bản kết quả thi SBD " + reg.getSbd(), reg.getId());
+        model.exam.ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, reg.getId());
+        boolean updated = false;
+        if (e != null) {
+            e.setSignaturePrinted(true);
+            updated = enrollmentDAO.update(e);
+        }
+        if (updated && actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamRegistration",
+                    "GiÃ¡m kháº£o in biÃªn báº£n káº¿t quáº£ thi SBD " + reg.getSbd(), reg.getId());
         }
         return updated;
     }
 
     @Override
-    public String completeCandidateSection(int sessionId, String sbd, HttpSession session) {
-        CandidateDTO reg = findCandidate(sessionId, sbd);
+    public String completeCandidateSection(int sessionId, String sbd, Integer actionUserId) {
+        CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return "notFound";
         }
@@ -547,13 +477,18 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (!reg.isSignaturePrinted()) {
             return "needSignaturePrint";
         }
-        boolean completed = candidateDAO.completeSection(reg.getId(), sessionId);
+        model.exam.ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, reg.getId());
+        boolean completed = false;
+        if (e != null) {
+            e.setSectionStatus("Done");
+            completed = enrollmentDAO.update(e);
+        }
         if (!completed) {
             return "completeFailed";
         }
-        if (session != null) {
-            auditLogService.persist(session, "UPDATE ExamRegistration",
-                    "Giám khảo hoàn tất phần thi SBD " + reg.getSbd(), reg.getId());
+        if (actionUserId != null) {
+            auditLogService.persist(actionUserId, "UPDATE ExamRegistration",
+                    "GiÃ¡m kháº£o hoÃ n táº¥t pháº§n thi SBD " + reg.getSbd(), reg.getId());
         }
         return null;
     }
@@ -590,7 +525,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             if (text.length() > 0) {
                 text.append(" | ");
             }
-            text.append("Minh chứng: ").append(evidencePath);
+            text.append("Minh chá»©ng: ").append(evidencePath);
         }
         return text.toString();
     }
@@ -598,13 +533,13 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     private static String buildReasonText(String reasonCode, String reasonDetail) {
         String label = switch (reasonCode != null ? reasonCode : "") {
             case "cham-sai" ->
-                "Chấm sai";
+                "Cháº¥m sai";
             case "nhap-nham" ->
-                "Nhập nhầm điểm";
+                "Nháº­p nháº§m Ä‘iá»ƒm";
             case "khieu-nai" ->
-                "Thí sinh khiếu nại";
+                "ThÃ­ sinh khiáº¿u náº¡i";
             case "khac" ->
-                "Lý do khác";
+                "LÃ½ do khÃ¡c";
             default ->
                 "";
         };
@@ -614,3 +549,5 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         return label;
     }
 }
+
+

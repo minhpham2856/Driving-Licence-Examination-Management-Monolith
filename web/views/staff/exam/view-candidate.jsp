@@ -104,7 +104,7 @@
                                         </div>
                                         <div class="quick-info-item">
                                             <span class="quick-info-label">Giới tính:</span>
-                                            <span class="quick-info-value">${candidateDetail.gender}</span>
+                                            <span class="quick-info-value">${candidateDetail.sex}</span>
                                         </div>
                                         <div class="quick-info-item">
                                             <span class="quick-info-label">Điện thoại:</span>

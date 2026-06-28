@@ -113,11 +113,11 @@
                         </div>
 
                         <div class="input-group">
-                            <label for="gender" class="input-label">Giới tính <span style="color: #ef4444;">*</span></label>
-                            <select id="gender" name="gender" class="input-field" required>
+                            <label for="sex" class="input-label">Giới tính <span style="color: #ef4444;">*</span></label>
+                            <select id="sex" name="sex" class="input-field" required>
                                 <option value="">Chọn giới tính</option>
-                                <option value="male" ${param.gender eq 'male' ? 'selected' : ''}>Nam</option>
-                                <option value="female" ${param.gender eq 'female' ? 'selected' : ''}>Nữ</option>
+                                <option value="male" ${param.sex eq 'male' ? 'selected' : ''}>Nam</option>
+                                <option value="female" ${param.sex eq 'female' ? 'selected' : ''}>Nữ</option>
                             </select>
                         </div>
                     </div>

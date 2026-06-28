@@ -1,7 +1,7 @@
 package service.impl;
 
-import dao.AuditLogDAO;
-import dao.impl.AuditLogDAOImpl;
+import dao.AuditDAO;
+import dao.impl.AuditDAOImpl;
 import model.user.AuditRecordModel;
 import model.user.Audit;
 import model.user.User;
@@ -11,7 +11,7 @@ import dao.impl.UserDAOImpl;
 import dao.ProfileDAO;
 import dao.impl.ProfileDAOImpl;
 import java.util.stream.Collectors;
-import jakarta.servlet.http.HttpSession;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,45 +26,44 @@ import util.AuditChangeDetails;
 public class AuditLogServiceImpl implements AuditLogService {
 
     private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
-    private final AuditLogDAO DAO = new AuditLogDAOImpl();
+    private final AuditDAO DAO = new AuditDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
 
     private static final Pattern SBD_PATTERN = Pattern.compile("SBD\\s+([A-Za-z0-9]+-\\d+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
     @Override
-    public void persist(HttpSession session, String action, String details) {
-        persist(session, action, details, 0);
+    public void persist(Integer actionUserId, String action, String details) {
+        persist(actionUserId, action, details, 0);
     }
 
     @Override
-    public void persist(HttpSession session, String action, String details, int recordId) {
-        insertLog(session, action, details, null, details, null, null, recordId);
+    public void persist(Integer actionUserId, String action, String details, int recordId) {
+        insertLog(actionUserId, action, details, null, details, null, null, recordId);
     }
 
     @Override
-    public void persistChange(HttpSession session, String action, String details,
+    public void persistChange(Integer actionUserId, String action, String details,
             String oldValue, String newValue, String reason, int recordId) {
-        insertLog(session, action, details, oldValue, newValue, reason, null, recordId);
+        insertLog(actionUserId, action, details, oldValue, newValue, reason, null, recordId);
     }
 
     @Override
-    public void persistFieldChanges(HttpSession session, String action, String contextDetails,
+    public void persistFieldChanges(Integer actionUserId, String action, String contextDetails,
             List<AuditChangeDetails.FieldChange> changes, String reason, int recordId) {
         if (changes == null || changes.isEmpty()) {
             return;
         }
         for (AuditChangeDetails.FieldChange change : changes) {
             String detailsJson = AuditChangeDetails.toJson(List.of(change));
-            insertLog(session, action, contextDetails, null, null, reason, detailsJson, recordId);
+            insertLog(actionUserId, action, contextDetails, null, null, reason, detailsJson, recordId);
         }
     }
 
-    private void insertLog(HttpSession session, String action, String contextDetails,
+    private void insertLog(Integer actionUserId, String action, String contextDetails,
             String oldValue, String newValue, String reason, String detailsJson, int recordId) {
         try {
-            User user = (User) session.getAttribute("user");
-            int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
+            int userId = (actionUserId != null && actionUserId > 0) ? actionUserId : 3;
 
             Audit log = new Audit();
             log.setEntityName(enumMappingService.auditLabel(resolveEntityName(action, contextDetails)));
@@ -83,7 +82,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public void persistWarning(HttpSession session, String details, String reason, int recordId) {
+    public void persistWarning(Integer actionUserId, String details, String reason, int recordId) {
         try {
             User user = (User) session.getAttribute("user");
             int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
@@ -461,3 +460,4 @@ public class AuditLogServiceImpl implements AuditLogService {
         return result;
     }
 }
+

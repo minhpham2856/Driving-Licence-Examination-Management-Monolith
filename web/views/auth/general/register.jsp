@@ -122,9 +122,9 @@
                             </div>
                         </div>
                         <div class="form-group form-group--half">
-                            <label class="form-label" for="gender">Giới tính</label>
+                            <label class="form-label" for="sex">Giới tính</label>
                             <div class="input-wrapper">
-                                <select class="form-input" id="gender" name="gender" required>
+                                <select class="form-input" id="sex" name="sex" required>
                                     <option value="0">Nam</option>
                                     <option value="1">Nữ</option>
                                 </select>

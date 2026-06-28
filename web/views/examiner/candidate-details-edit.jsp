@@ -115,8 +115,8 @@
                                     <div class="examiner-field">
                                         <label class="examiner-field__label" for="sex">Giới tính</label>
                                         <select id="sex" name="sex" class="exr-select">
-                                            <option value="0" ${candidate.genderValue eq '0' ? 'selected' : ''}>Nam</option>
-                                            <option value="1" ${candidate.genderValue eq '1' ? 'selected' : ''}>Nữ</option>
+                                            <option value="0" ${candidate.sexValue eq '0' ? 'selected' : ''}>Nam</option>
+                                            <option value="1" ${candidate.sexValue eq '1' ? 'selected' : ''}>Nữ</option>
                                         </select>
                                     </div>
 

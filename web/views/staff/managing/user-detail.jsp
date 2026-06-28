@@ -99,7 +99,7 @@
                         </div>
                         <div class="quick-info-item">
                             <span class="quick-info-label">Giới tính:</span>
-                            <span class="quick-info-value">${user.gender}</span>
+                            <span class="quick-info-value">${user.sex}</span>
                         </div>
                         <div class="quick-info-item">
                             <span class="quick-info-label">Điện thoại:</span>

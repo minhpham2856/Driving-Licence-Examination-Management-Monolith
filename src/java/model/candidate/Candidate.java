@@ -9,7 +9,7 @@ public class Candidate {
     private String fullName;
     private Timestamp dateOfBirth;
     private String phoneNumber;
-    private String sex;
+    private boolean sex;
     private String governmentIdNumber;
     private String address;
     private Boolean takeTheory;
@@ -26,7 +26,7 @@ public class Candidate {
     }
 
     public Candidate(int candidateId, String candidateNumber, String fullName, Timestamp dateOfBirth,
-                     String phoneNumber, String sex, String governmentIdNumber, String address,
+                     String phoneNumber, boolean sex, String governmentIdNumber, String address,
                      Boolean takeTheory, Boolean takePractical, Boolean takeRoadLayout, Boolean takeOnRoad,
                      int takeNo, String reasonForTaking, String photoImageUrl,
                      boolean isAbsent, boolean isSuspended) {
@@ -89,11 +89,11 @@ public class Candidate {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getSex() {
+    public boolean isSex() {
         return sex;
     }
 
-    public void setSex(String sex) {
+    public void setSex(boolean sex) {
         this.sex = sex;
     }
 

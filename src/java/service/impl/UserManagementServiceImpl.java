@@ -1,4 +1,4 @@
-// Forced recompilation trigger
+
 package service.impl;
 
 import dao.ProfileDAO;
@@ -33,9 +33,9 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public CreateUserResultDTO createUser(
             String fullName, String cccd, String phone, String email,
-            String dob, String gender, String address, String userType, String licenseClass) {
+            String dob, String sex, String address, String userType, String licenseClass) {
 
-        String validationError = validate(fullName, cccd, phone, email, dob, gender, address, userType, licenseClass);
+        String validationError = validate(fullName, cccd, phone, email, dob, sex, address, userType, licenseClass);
         if (validationError != null) {
             return new CreateUserResultDTO(false, validationError, null, null);
         }
@@ -45,7 +45,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                     + "và MAIL_SENDER_PASSWORD trong file .env, sau đó khởi động lại Tomcat.", null, null);
         }
 
-        boolean female = "female".equals(gender);
+        boolean female = "female".equals(sex);
         RegisterResultDTO result = authService.register(
                 cccd, fullName, phone, dob, address, email, female);
 
@@ -74,9 +74,9 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     private String validate(String fullName, String cccd, String phone, String email,
-            String dob, String gender, String address, String userType, String licenseClass) {
+            String dob, String sex, String address, String userType, String licenseClass) {
         if (fullName.isEmpty() || cccd.isEmpty() || phone.isEmpty() || email.isEmpty()
-                || dob.isEmpty() || gender.isEmpty() || address.isEmpty()
+                || dob.isEmpty() || sex.isEmpty() || address.isEmpty()
                 || userType.isEmpty() || licenseClass.isEmpty()) {
             return "Vui lòng nhập đầy đủ thông tin bắt buộc.";
         }
@@ -92,7 +92,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             return "Địa chỉ email không hợp lệ.";
         }
-        if (!Set.of("male", "female").contains(gender)) {
+        if (!Set.of("male", "female").contains(sex)) {
             return "Giới tính không hợp lệ.";
         }
         if (address.length() < 5 || address.length() > 150) {

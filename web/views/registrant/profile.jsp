@@ -116,7 +116,7 @@
 
                             <%-- Giới tính --%>
                             <div class="p-input-group">
-                                <label class="p-input-label" for="gender">Giới tính</label>
+                                <label class="p-input-label" for="sex">Giới tính</label>
                                 <div class="p-input-wrapper">
                                     <span class="p-input-icon">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -124,10 +124,10 @@
                                             <path d="M12 10v6M10 13h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
                                         </svg>
                                     </span>
-                                    <select class="p-input-field p-input-field--select" id="gender" name="gender" disabled>
-                                        <option value="Nam" ${empty gender or gender eq 'Nam' ? 'selected' : ''}>Nam</option>
-                                        <option value="Nữ" ${gender eq 'Nữ' ? 'selected' : ''}>Nữ</option>
-                                        <option value="Khác" ${gender eq 'Khác' ? 'selected' : ''}>Khác</option>
+                                    <select class="p-input-field p-input-field--select" id="sex" name="sex" disabled>
+                                        <option value="Nam" ${empty sex or sex eq 'Nam' ? 'selected' : ''}>Nam</option>
+                                        <option value="Nữ" ${sex eq 'Nữ' ? 'selected' : ''}>Nữ</option>
+                                        <option value="Khác" ${sex eq 'Khác' ? 'selected' : ''}>Khác</option>
                                     </select>
                                 </div>
                             </div>

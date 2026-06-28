@@ -4,7 +4,6 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/impl/UserDAOImpl.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/impl/ExaminerAssignmentDAOImpl.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/dashboard.jsp</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/examiner/ExaminerScoreEntryQueue.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/impl/CandidateDAOImpl.java</file>
@@ -20,7 +19,6 @@
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/editscore.jsp</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/service/impl/ExamSessionControlServiceImpl.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/examiner/ExaminerViolationsServlet.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/model/payment/PaymentFee.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/impl/ProfileDAOImpl.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/allocation.jsp</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/util/ConfigManager.java</file>
@@ -43,10 +41,8 @@
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/model/user/User.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/util/UsernameGenerator.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/report.jsp</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/impl/AdminStatsDAOImpl.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/managing/approve.jsp</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/view-candidate.jsp</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/AdminStatsDAO.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/layout/sidebar-examiner.jsp</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/filter/ExaminerPortalFilter.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/candidatecall.jsp</file>
@@ -67,13 +63,12 @@
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/examiner/ExaminerMiscServlet.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/web/views/staff/exam/upload.jsp</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/service/impl/ExaminerActionsServiceImpl.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dto/user/AuditDTO.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/examiner/ExaminerCandidateCallServlet.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/service/impl/ExaminerDataServiceImpl.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/auth/general/LogoutServlet.java</file>
+            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/model/user/Profile.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/service/impl/AuthServiceImpl.java</file>
             <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/controller/staff/exam/UploadServlet.java</file>
-            <file>file:/C:/Users/admin/Documents/University/Term5/SWP391/Project/Driving-Licence-Examination-Management-Monolith/src/java/dao/Db2CandidateSql.java</file>
         </group>
     </open-files>
 </project-private>

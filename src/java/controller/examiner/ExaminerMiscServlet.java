@@ -31,9 +31,9 @@ public class ExaminerMiscServlet extends BaseExaminerServlet {
 
         if (sessionId != null && sessionId > 0) {
             if ("/views/examiner/audit".equals(path)) {
-                viewDataService.attachAuditLogs(request, sessionId, request.getParameter("page"), search);
+                java.util.Map<String, Object> data = viewDataService.getAuditLogsData(sessionId, request.getParameter("page"), search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else if ("/views/examiner/print-documents".equals(path)) {
-                viewDataService.attachToRequest(request, sessionId, sbd, search);
+                java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else if ("/views/examiner/export".equals(path)) {
                 // Export page has no specific dynamic data load beyond active session layout
             }
@@ -48,3 +48,7 @@ public class ExaminerMiscServlet extends BaseExaminerServlet {
         forward(request, response, jsp);
     }
 }
+
+
+
+

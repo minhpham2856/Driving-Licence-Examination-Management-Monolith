@@ -8,19 +8,10 @@ import dao.PaymentDAO;
 import model.payment.Payment;
 import java.sql.*;
 
-/**
- * JDBC implementation of PaymentDAO for recording candidate payments.
- * Resolves the ExamId from the candidate's exam enrollment before inserting.
- */
+
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
-    /**
-     * Inserts a payment record after resolving the associated exam ID.
-     * Defaults PaymentStatus to "Completed" and PaymentMethod to "Cash" when null.
-     *
-     * @param payment the Payment to insert (id will be populated on success)
-     * @return true if insertion succeeded
-     */
+    
     @Override
     public boolean insert(Payment payment) {
         String sql = """
@@ -59,7 +50,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
-    /** Resolves the ExamId for a candidate from their Exam_Candidate enrollment. */
+    
     private int resolveExamId(int candidateId) throws SQLException {
         String sql = "SELECT TOP 1 ExamId FROM Exam_Candidate WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

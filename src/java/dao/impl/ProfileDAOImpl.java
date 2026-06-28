@@ -47,12 +47,6 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return null;
     }
 
-    /**
-     * Finds a profile by GovernmentIdNumber (CMND/CCCD).
-     *
-     * @param govIdNo the government ID to search for
-     * @return the matching Profile, or null
-     */
     @Override
     public Profile getByGovIdNo(String govIdNo) {
         String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
@@ -72,12 +66,6 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return null;
     }
 
-    /**
-     * Finds a profile by phone number.
-     *
-     * @param phoneNo the phone number to search for
-     * @return the matching Profile, or null
-     */
     @Override
     public Profile getByPhoneNo(String phoneNo) {
         String sql = PROFILE_SELECT + " where PhoneNumber = ?";
@@ -97,13 +85,6 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return null;
     }
 
-    /**
-     * Inserts a new Profile with RETURN_GENERATED_KEYS and populates the
-     * profile ID.
-     *
-     * @param profile the Profile to insert (id will be set on success)
-     * @return true if insertion succeeded
-     */
     @Override
     public boolean insert(Profile profile) {
         Connection conn = getConnection();
@@ -121,7 +102,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
-            ps.setString(4, enumMappingService.sexFromGender(profile.isGender()));
+            ps.setBoolean(4, profile.isSex());
             ps.setString(5, profile.getGovIdNo());
 
             if (profile.getAddress() == null) {
@@ -151,12 +132,6 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return false;
     }
 
-    /**
-     * Updates all mutable fields of an existing Profile.
-     *
-     * @param profile the Profile containing updated values
-     * @return true if at least one row was updated
-     */
     @Override
     public boolean update(Profile profile) {
         String sql = """
@@ -170,7 +145,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
             ps.setString(3, profile.getPhoneNo());
-            ps.setString(4, enumMappingService.sexFromGender(profile.isGender()));
+            ps.setBoolean(4, profile.isSex());
             ps.setString(5, profile.getGovIdNo());
 
             if (profile.getAddress() == null) {
@@ -190,9 +165,6 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return false;
     }
 
-    /**
-     * Maps a ResultSet row into a Profile model with gender conversion.
-     */
     private Profile mapResultSet(ResultSet rs) throws SQLException {
         Profile profile = new Profile();
         profile.setId(rs.getInt("ProfileId"));
@@ -202,7 +174,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         profile.setPhoneNo(rs.getString("PhoneNumber"));
         profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
         profile.setAddress(rs.getString("Address"));
-        profile.setGender(enumMappingService.genderFromSex(rs.getString("Sex")));
+        profile.setSex(enumMappingService.sexFromSex(rs.getString("Sex")));
         return profile;
     }
 

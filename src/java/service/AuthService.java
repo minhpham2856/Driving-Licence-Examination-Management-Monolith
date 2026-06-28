@@ -8,7 +8,7 @@ import model.user.User;
 public interface AuthService {
 
     RegisterResultDTO register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
-            String address, String email, boolean gender);
+            String address, String email, boolean sex);
 
     User login(String identifier, String password);
 

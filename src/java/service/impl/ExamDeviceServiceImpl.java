@@ -1,10 +1,13 @@
 package service.impl;
 
-import dao.ExamDeviceManageDAO;
-import dao.impl.ExamDeviceManageDAOImpl;
+import dao.ExamDeviceDAO;
+import dao.impl.ExamDeviceDAOImpl;
+import dao.AuditDAO;
+import dao.impl.AuditDAOImpl;
 import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
 import dto.exam.ExamDeviceViewDTO;
+import model.user.Audit;
 import model.exam.ExamArea;
 import model.exam.ExamDevice;
 import service.ExamDeviceService;
@@ -15,9 +18,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ExamDeviceServiceImpl implements ExamDeviceService {
-    
-    private final ExamDeviceManageDAO dao = new ExamDeviceManageDAOImpl();
+
+    private final ExamDeviceDAO dao = new ExamDeviceDAOImpl();
     private final ExamAreaDAO areaDao = new ExamAreaDAOImpl();
+    private final AuditDAO auditDAO = new AuditDAOImpl();
 
     @Override
     public List<ExamDeviceViewDTO> search(String keyword, String status) {
@@ -26,7 +30,6 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
             return new ArrayList<>();
         }
 
-        // Stitch AreaName
         List<ExamArea> areas = areaDao.search(null, null);
         Map<Integer, String> areaMap = areas.stream()
                 .collect(Collectors.toMap(ExamArea::getExamAreaId, ExamArea::getAreaName));
@@ -74,16 +77,18 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
 
         boolean isEdit = dev.getExamDeviceId() > 0;
         if (isEdit) {
-            boolean ok = dao.update(model, adminUserId);
+            boolean ok = dao.update(model);
             if (ok) {
+                logAudit(adminUserId, "UPDATE", "ExamDevice", String.valueOf(dev.getExamDeviceId()), "Giám khảo cập nhật máy thi");
                 return new SaveResult(true, "Đã cập nhật máy \"" + dev.getDeviceName() + "\".", dev.getExamDeviceId());
             } else {
                 return new SaveResult(false, "Cập nhật máy thi thất bại.", dev.getExamDeviceId());
             }
         } else {
-            int newId = dao.insert(model, adminUserId);
+            int newId = dao.insert(model);
             boolean ok = newId > 0;
             if (ok) {
+                logAudit(adminUserId, "INSERT", "ExamDevice", String.valueOf(newId), "Giám khảo thêm máy thi");
                 return new SaveResult(true, "Đã thêm máy \"" + dev.getDeviceName() + "\".", newId);
             } else {
                 return new SaveResult(false, "Thêm máy thi thất bại.", 0);
@@ -99,6 +104,7 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         }
         boolean ok = id > 0 && dao.delete(id);
         if (ok) {
+            logAudit(adminUserId, "DELETE", "ExamDevice", String.valueOf(id), "Giám khảo xóa máy thi");
             return new DeleteResult(true, "Đã xóa máy thi.");
         } else {
             return new DeleteResult(false, "Xóa máy thi thất bại.");
@@ -113,5 +119,15 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         dto.setStatus(model.getStatus());
         dto.setExamAreaId(model.getExamAreaId());
         return dto;
+    }
+
+    private void logAudit(Integer userId, String action, String entityName, String entityId, String reason) {
+        Audit audit = new Audit();
+        audit.setUserId(userId != null ? userId : 3);
+        audit.setAction(action);
+        audit.setEntityName(entityName);
+        audit.setEntityId(entityId);
+        audit.setReason(reason);
+        auditDAO.insert(audit);
     }
 }

@@ -40,11 +40,11 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
 
         if (sessionId != null && sessionId > 0) {
             if ("/views/examiner/violations".equals(path)) {
-                viewDataService.attachToRequest(request, sessionId, sbd, search);
+                java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else {
                 if (sbd == null || sbd.isBlank() || request.getAttribute("candidate") == null) {
                     // Try to attach if missing
-                    viewDataService.attachViolation(request, sessionId, sbd);
+                    java.util.Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     if (request.getAttribute("candidate") == null) {
                         redirect(response, request, "/views/examiner/violations?error=noSbd");
                         return;
@@ -92,7 +92,7 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
 
         Integer sessionId = activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Chưa có ca thi đang diễn ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ang diÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦n ra.");
             return;
         }
 
@@ -117,8 +117,8 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         String reasonDetail = request.getParameter("reasonDetail");
 
         if (reasonCode == null || reasonCode.isBlank()) {
-            viewDataService.attachViolation(request, sessionId, sbd);
-            request.setAttribute("violationError", "Vui lòng chọn lý do vi phạm.");
+            java.util.Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            request.setAttribute("violationError", "Vui lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â²ng chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Ân lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ do vi phÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â¡m.");
             forward(request, response, "/views/examiner/violation-confirm.jsp");
             return;
         }
@@ -128,8 +128,8 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
             Part evidencePart = request.getPart("evidenceFile");
             evidencePath = ExaminerViolationUploadHelper.saveUpload(request, evidencePart, sessionId);
         } catch (IOException | ServletException e) {
-            viewDataService.attachViolation(request, sessionId, sbd);
-            request.setAttribute("violationError", e.getMessage() != null ? e.getMessage() : "Không tải được file minh chứng.");
+            java.util.Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            request.setAttribute("violationError", e.getMessage() != null ? e.getMessage() : "KhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´ng tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â£i ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â£c file minh chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â©ng.");
             forward(request, response, "/views/examiner/violation-confirm.jsp");
             return;
         }
@@ -143,7 +143,7 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         int[] deductionIds = parseDeductionIds(deductionParams);
 
         boolean saved = examinerService.recordViolation(
-                sessionId, sbd, reasonCode, reasonDetail, evidencePath, deductionIds, session);
+                sessionId, sbd, reasonCode, reasonDetail, evidencePath, deductionIds, ((model.user.User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session));
         if (saved) {
             redirect(response, request, returnTo + "?suspended=" + urlEncode(sbd));
             return;
@@ -159,13 +159,13 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         String reasonDetail = request.getParameter("reasonDetail");
 
         if (reasonCode == null || reasonCode.isBlank()) {
-            viewDataService.attachViolation(request, sessionId, sbd);
-            request.setAttribute("undoError", "Vui lòng chọn lý do hoàn tác.");
+            java.util.Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            request.setAttribute("undoError", "Vui lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â²ng chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Ân lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ do hoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡c.");
             forward(request, response, "/views/examiner/violation-undo.jsp");
             return;
         }
 
-        boolean undone = examinerService.undoSuspension(sessionId, sbd, reasonCode, reasonDetail, session);
+        boolean undone = examinerService.undoSuspension(sessionId, sbd, reasonCode, reasonDetail, ((model.user.User) session.getAttribute("user")).getUserId());
         if (undone) {
             redirect(response, request, "/views/examiner/violations?undoSuspended=" + urlEncode(sbd));
             return;
@@ -173,4 +173,8 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         redirect(response, request, "/views/examiner/violation-undo?sbd=" + urlEncode(sbd) + "&error=undoFailed");
     }
 }
+
+
+
+
 

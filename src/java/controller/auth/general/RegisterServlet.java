@@ -35,7 +35,7 @@ public class RegisterServlet extends HttpServlet {
         String dateOfBirth = request.getParameter("dateOfBirth");
         String address = request.getParameter("address");
         String email = request.getParameter("email");
-        String genderParam = request.getParameter("gender");
+        String sexParam = request.getParameter("sex");
         String terms = request.getParameter("terms");
 
         // blank inputs
@@ -53,7 +53,7 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
-        boolean gender = "1".equals(genderParam);
+        boolean sex = "1".equals(sexParam);
 
         RegisterResultDTO result = authService.register(
                 govIdNo.trim(),
@@ -62,7 +62,7 @@ public class RegisterServlet extends HttpServlet {
                 dateOfBirth.trim(),
                 address.trim(),
                 email.trim(),
-                gender
+                sex
         );
 
         // case 1: registration failed

@@ -28,7 +28,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
         
         for (AuditEntity e : AuditEntity.values()) {
             if (e.name().equals(key)) {
-                return e.getLabelVi(); // Assuming we add getter
+                return e.getLabelVi(); 
             }
         }
         
@@ -42,10 +42,10 @@ public class EnumMappingServiceImpl implements EnumMappingService {
 
     @Override
     public String candidateStatusLabel(String status) {
-        if (status == null) return CandidateStatus.PENDING.getLabelVi(); // assuming we add getter
+        if (status == null) return CandidateStatus.PENDING.getLabelVi(); 
         for (CandidateStatus cs : CandidateStatus.values()) {
             if (cs.getStatus().equals(status)) {
-                return cs.getLabelVi(); // assuming we add getter
+                return cs.getLabelVi(); 
             }
         }
         return CandidateStatus.PENDING.getLabelVi();
@@ -71,8 +71,8 @@ public class EnumMappingServiceImpl implements EnumMappingService {
     public String statusLabelVi(String status) {
         if (status == null) return "-";
         for (DeviceStatus ds : DeviceStatus.values()) {
-            if (ds.getStatus().equalsIgnoreCase(status.trim())) { // assuming getter
-                return ds.getLabelVi(); // assuming getter
+            if (ds.getStatus().equalsIgnoreCase(status.trim())) { 
+                return ds.getLabelVi(); 
             }
         }
         return status;
@@ -83,7 +83,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
         if (status == null) return "device-grid-card--unknown";
         for (DeviceStatus ds : DeviceStatus.values()) {
             if (ds.getStatus().equalsIgnoreCase(status.trim())) {
-                return ds.getCssClass(); // assuming getter
+                return ds.getCssClass(); 
             }
         }
         return "device-grid-card--unknown";
@@ -135,7 +135,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
         if (deviceType == null) return "devices";
         for (DeviceType dt : DeviceType.values()) {
             if (dt.getTypeName().equalsIgnoreCase(deviceType.trim())) {
-                return dt.getIcon(); // assuming getter
+                return dt.getIcon(); 
             }
         }
         return "devices";
@@ -146,7 +146,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
         if (deviceType == null) return "Thit b<";
         for (DeviceType dt : DeviceType.values()) {
             if (dt.getTypeName().equalsIgnoreCase(deviceType.trim())) {
-                return dt.getLabelVi(); // assuming getter
+                return dt.getLabelVi(); 
             }
         }
         return deviceType;
@@ -168,12 +168,12 @@ public class EnumMappingServiceImpl implements EnumMappingService {
     }
 
     @Override
-    public String sexFromGender(boolean isMale) {
-        return isMale ? Gender.MALE.getLabelVi() : Gender.FEMALE.getLabelVi();
+    public String sexFromSex(boolean isMale) {
+        return isMale ? Sex.MALE.getLabelVi() : Sex.FEMALE.getLabelVi();
     }
 
     @Override
-    public boolean genderFromSex(String sex) {
+    public boolean sexFromSex(String sex) {
         if (sex == null) return false;
         String s = sex.trim();
         return s.equalsIgnoreCase("Nam") || s.equalsIgnoreCase("Male") || s.equals("M") || s.equals("1");

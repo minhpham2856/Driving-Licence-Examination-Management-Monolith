@@ -1,61 +1,55 @@
 package service;
 
-
-import dto.candidate.CandidateDTO;
-
+import dto.candidate.CandidateEnrollmentDTO;
+import enums.SectionType;
 import model.user.User;
-import jakarta.servlet.http.HttpSession;
 
 public interface ExaminerActionsService {
 
-    CandidateDTO findCandidate(int sessionId, String sbd);
+    CandidateEnrollmentDTO findCandidate(int sessionId, String sbd);
 
     boolean updateCandidateProfile(int sessionId, String sbd, String fullName, String dobStr,
             String govIdNo, String email, String phoneNo, String address, String sex, String reasonForTaking,
-            HttpSession session);
+            Integer actionUserId);
 
-    boolean markAbsent(int sessionId, String sbd, HttpSession session);
+    boolean markAbsent(int sessionId, String sbd, Integer actionUserId);
 
-    boolean undoAbsent(int sessionId, String sbd, HttpSession session);
+    boolean undoAbsent(int sessionId, String sbd, Integer actionUserId);
 
-    boolean callCandidate(int sessionId, String sbd, User user, HttpSession session);
+    boolean callCandidate(int sessionId, String sbd, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination);
 
-    String callNextCandidate(int sessionId, User user, HttpSession session);
+    String callNextCandidate(int sessionId, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination);
 
-    int callSelectedCandidates(int sessionId, String[] sbds, User user, HttpSession session);
+    int callSelectedCandidates(int sessionId, String[] sbds, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination);
 
-    String autoCallScoreEntryIfNeeded(int sessionId, User user, HttpSession session);
+    boolean callScoreEntryCandidate(int sessionId, String sbd, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination);
 
-    boolean callScoreEntryCandidate(int sessionId, String sbd, User user, HttpSession session);
+    boolean adjustScoreDeduction(int sessionId, String sbd, int deductionId, int delta, Integer actionUserId);
 
-    String deferScoreEntryAbsent(int sessionId, String sbd, User user, HttpSession session);
+    boolean finalizeScoreEntry(int sessionId, String sbd, Integer actionUserId, String sectionKeyword);
 
-    boolean adjustScoreDeduction(int sessionId, String sbd, int deductionId, int delta, HttpSession session);
+    boolean setDeviceMaintenance(int deviceId, Integer actionUserId);
 
-    boolean finalizeScoreEntry(int sessionId, String sbd, HttpSession session);
+    boolean setDeviceAvailable(int deviceId, Integer actionUserId);
 
-    boolean setDeviceMaintenance(int deviceId, HttpSession session);
-
-    boolean setDeviceAvailable(int deviceId, HttpSession session);
-
-    boolean changeCandidateVehicle(int sessionId, String sbd, int deviceId, HttpSession session);
+    boolean changeCandidateVehicle(int sessionId, String sbd, int deviceId, Integer actionUserId);
 
     boolean updateTheoryScore(int sessionId, String sbd, int newScore, String reasonCode,
-            String reasonDetail, User user, String password, HttpSession session);
+            String reasonDetail, User user, String password, Integer actionUserId);
 
     boolean logPracticalScoreEditReason(int sessionId, String sbd, String reasonCode,
-            String reasonDetail, User user, String password, HttpSession session);
+            String reasonDetail, User user, String password, Integer actionUserId);
 
     boolean recordViolation(int sessionId, String sbd, String reasonCode, String reasonDetail,
-            String evidencePath, int[] deductionIds, HttpSession session);
+            String evidencePath, int[] deductionIds, Integer actionUserId, SectionType sectionType, String sectionName);
 
     boolean undoSuspension(int sessionId, String sbd, String reasonCode, String reasonDetail,
-            HttpSession session);
+            Integer actionUserId);
 
     boolean verifyPassword(User user, String password);
 
-    boolean printSignatureForm(int sessionId, String sbd, HttpSession session);
+    boolean printSignatureForm(int sessionId, String sbd, Integer actionUserId);
 
-    /** null = success; otherwise error code (e.g. needSignaturePrint). */
-    String completeCandidateSection(int sessionId, String sbd, HttpSession session);
+    String completeCandidateSection(int sessionId, String sbd, Integer actionUserId);
 }
+
