@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet("/forgot-password")
+@WebServlet("/legacy/forgot-password")
 public class ForgotPasswordServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();

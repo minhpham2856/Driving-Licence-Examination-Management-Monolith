@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet("/register")
+@WebServlet("/legacy/register")
 public class RegisterServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();

@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
+@WebServlet(name = "LegacyChangePasswordServlet", urlPatterns = {"/legacy/change-password"})
 public class ChangePasswordServlet extends HttpServlet {
 
     private final UserDAO userDAO = new UserDAOImpl();
