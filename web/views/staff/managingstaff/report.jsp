@@ -27,7 +27,7 @@
         <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator">/</span>
-            <a href="${pageContext.request.contextPath}/views/staff/managingstaff/dashboard.jsp">Dashboard quản lý</a>
+            <a href="${pageContext.request.contextPath}/manager/dashboard">Dashboard quản lý</a>
             <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Báo cáo thống kê đào tạo</span>
         </nav>

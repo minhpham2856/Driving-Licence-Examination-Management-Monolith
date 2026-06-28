@@ -11,13 +11,16 @@
         <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
             <c:set var="activeSidebar" value="dashboard" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'users') or fn:contains(pageContext.request.requestURI, 'user-detail')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'user-detail')}">
+            <c:set var="activeSidebar" value="chi-tiet-hoc-vien" />
+        </c:when>
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'users')}">
             <c:set var="activeSidebar" value="hoc-vien" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'approve')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'approve') or fn:contains(pageContext.request.requestURI, '/manager/dossiers')}">
             <c:set var="activeSidebar" value="duyet-ho-so" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user')}">
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'create-user') or fn:contains(pageContext.request.requestURI, '/manager/create-user')}">
             <c:set var="activeSidebar" value="tao-tai-khoan" />
         </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'report')}">
@@ -35,7 +38,7 @@
 <aside class="side-nav-bar" role="navigation" aria-label="Ban quản lý đào tạo" data-node-id="manager:1">
     <div class="side-nav-bar__brand" data-node-id="manager:2">
         <div class="side-nav-bar__brand-inner" data-node-id="manager:3">
-            <a href="#" class="side-nav-bar__logo-link" aria-label="Quản lý đào tạo">
+            <a href="${ctx}/manager/dashboard" class="side-nav-bar__logo-link" aria-label="Về Dashboard quản lý">
                 <img src="${logoUrl}" alt="Lái Vui" width="63" height="63" class="side-nav-bar__logo-img" data-node-id="manager:4">
             </a>
             <div class="side-nav-bar__brand-title-wrap" data-node-id="manager:5">
@@ -47,7 +50,7 @@
     <nav class="side-nav-bar__menu" data-node-id="manager:7">
         
         <%-- SC-030: Dashboard quản lý --%>
-        <a href="${ctx}/views/staff/managingstaff/dashboard.jsp"
+        <a href="${ctx}/manager/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="manager:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -63,7 +66,7 @@
         </a>
 
         <%-- SC-031: Danh sách registered users --%>
-        <a href="${ctx}/views/staff/managingstaff/users.jsp"
+        <a href="${ctx}/manager/registrants"
            class="side-nav-bar__link${activeSidebar eq 'hoc-vien' ? ' is-active' : ''}"
            data-node-id="manager:20"
            <c:if test="${activeSidebar eq 'hoc-vien'}">aria-current="page"</c:if>>
@@ -78,8 +81,23 @@
             <span class="side-nav-bar__label" data-node-id="manager:21">Danh sách học viên</span>
         </a>
 
+        <%-- Chi tiết hồ sơ học viên --%>
+        <a href="${ctx}/manager/dossier-detail"
+           class="side-nav-bar__link${activeSidebar eq 'chi-tiet-hoc-vien' ? ' is-active' : ''}"
+           data-node-id="manager:25"
+           <c:if test="${activeSidebar eq 'chi-tiet-hoc-vien'}">aria-current="page"</c:if>>
+            <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M14 2v6h6M8 13h8M8 17h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="10" cy="9" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__label" data-node-id="manager:26">Chi tiết hồ sơ</span>
+        </a>
+
         <%-- SC-033: Duyệt / Từ chối hồ sơ, giấy tờ --%>
-        <a href="${ctx}/views/staff/managingstaff/approve.jsp"
+        <a href="${ctx}/manager/dossiers"
            class="side-nav-bar__link${activeSidebar eq 'duyet-ho-so' ? ' is-active' : ''}"
            data-node-id="manager:30"
            <c:if test="${activeSidebar eq 'duyet-ho-so'}">aria-current="page"</c:if>>
@@ -138,7 +156,7 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="manager:90">
-        <a href="#" class="side-nav-bar__logout" data-node-id="manager:91">
+        <a href="${ctx}/logout" class="side-nav-bar__logout" data-node-id="manager:91">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6.5 16H3.5C2.67 16 2 15.33 2 14.5V3.5C2 2.67 2.67 2 3.5 2H6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
