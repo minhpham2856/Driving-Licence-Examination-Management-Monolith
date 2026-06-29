@@ -13,7 +13,7 @@ import java.util.Map;
 public class DeductionRecordViewDAOImpl extends DBContext implements DeductionRecordViewDAO {
 
     @Override
-    public List<Map<String, Object>> getViolationRowsForSession(int sessionId) {
+    public List<Map<String, Object>> getViolationRowsForExam(int examId) {
         List<Map<String, Object>> rows = new ArrayList<>();
         String sql = "SELECT c.CandidateNumber AS sbd, "
                 + "       c.FullName AS fullName, "
@@ -29,10 +29,10 @@ public class DeductionRecordViewDAOImpl extends DBContext implements DeductionRe
                 + "JOIN DeductionRecord sded ON sded.ExamScoreId = es.ExamScoreId "
                 + "JOIN ScoreDeduction sd ON sd.ScoreDeductionId = sded.ScoreDeductionId "
                 + "JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId "
-                + "WHERE ec.SessionId = ? "
+                + "WHERE ec.ExamId = ? "
                 + "ORDER BY c.CandidateNumber, sd.ScoreDeductionId";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();

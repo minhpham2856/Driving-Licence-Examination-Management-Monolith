@@ -61,13 +61,13 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
     }
 
     @Override
-    public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
+    public List<Audit> getLogsForExamPaginated(int examId, int page, int pageSize, String searchQuery) {
         int safePage = Math.max(page, 1);
         int safeSize = pageSize > 0 ? pageSize : 20;
         int offset = (safePage - 1) * safeSize;
         StringBuilder sql = new StringBuilder(BASE_SELECT)
                 .append(" WHERE EntityId LIKE ?");
-        String pattern = "%" + sessionId + "-%";
+        String pattern = "%" + examId + "-%";
         if (searchQuery != null && !searchQuery.isBlank()) {
             sql.append(" AND (Reason LIKE ? OR NewValue LIKE ? OR Details LIKE ?)");
         }
@@ -87,9 +87,9 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
     }
 
     @Override
-    public int getLogsCountForSession(int sessionId, String searchQuery) {
+    public int getLogsCountForExam(int examId, String searchQuery) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Audit WHERE EntityId LIKE ?");
-        String pattern = "%" + sessionId + "-%";
+        String pattern = "%" + examId + "-%";
         if (searchQuery != null && !searchQuery.isBlank()) {
             sql.append(" AND (Reason LIKE ? OR NewValue LIKE ? OR Details LIKE ?)");
         }
@@ -114,17 +114,17 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
     }
 
     @Override
-    public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
+    public List<Audit> getViolationLogsForExam(int examId, int limit) {
         int safeLimit = limit > 0 ? limit : 20;
         String sql = "SELECT a.AuditId, a.UserId, a.Action, a.Reason, a.EntityName, a.EntityId, "
                 + "a.OldValue, a.NewValue, a.Details, a.CreatedAt "
                 + "FROM Audit a "
                 + "INNER JOIN ExamEnrollment e ON TRY_CAST(a.EntityId AS INT) = e.CandidateId "
-                + "WHERE e.SessionId = ? "
+                + "WHERE e.ExamId = ? "
                 + "AND (a.Action = N'Cảnh báo' OR a.NewValue LIKE N'%Vi phạm%' OR a.NewValue LIKE N'%đình chỉ%') "
                 + "ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             ps.setInt(2, safeLimit);
         });
     }
@@ -156,19 +156,22 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
     public List<Audit> getLogsByUser(int userId, String dateFilter) {
         StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE UserId = ?");
 
-        Timestamp start = null;
-        Timestamp end = null;
+        Timestamp startTime = null;
+        Timestamp endTime = null;
 
         if (dateFilter != null && !dateFilter.trim().isEmpty()) {
             try {
                 java.sql.Date day = java.sql.Date.valueOf(dateFilter.trim());
-                start = new Timestamp(day.getTime());
-                end = new Timestamp(day.getTime() + (24L * 60 * 60 * 1000) - 1);
+                startTime = new Timestamp(day.getTime());
+                endTime = new Timestamp(day.getTime() + (24L * 60 * 60 * 1000) - 1);
                 sql.append(" AND CreatedAt >= ? AND CreatedAt <= ?");
             } catch (IllegalArgumentException ex) {
                 // Invalid date format; ignore date filter.
             }
         }
+
+        final Timestamp start = startTime;
+        final Timestamp end = endTime;
 
         sql.append(" ORDER BY CreatedAt DESC");
 

@@ -6,5 +6,5 @@ public interface ExamSectionDAO {
 
     ExamSection getById(int examSectionId);
 
-    ExamSection getBySectionName(String sectionName);
+    ExamSection getBySectionType(String sectionType);
 }

@@ -17,7 +17,7 @@ import java.util.List;
 public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDAO {
 
     private static final String ENROLLMENT_COLUMNS =
-            "ExamEnrollmentId, CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId";
+            "ExamEnrollmentId, CandidateId, ExamId, SectionStatus, SignaturePrinted, ExamDeviceId";
 
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
 
@@ -43,11 +43,11 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
 
     @Override
     public int insert(ExamEnrollment enrollment) {
-        String sql = "INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId) "
+        String sql = "INSERT INTO ExamEnrollment (CandidateId, ExamId, SectionStatus, SignaturePrinted, ExamDeviceId) "
                 + "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, enrollment.getCandidateId());
-            ps.setInt(2, enrollment.getSessionId());
+            ps.setInt(2, enrollment.getExamId());
             ps.setString(3, enrollment.getSectionStatus() != null
                     ? enrollment.getSectionStatus() : CandidateStatus.NOT_STARTED.getValue());
             ps.setBoolean(4, enrollment.isSignaturePrinted());
@@ -70,12 +70,12 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public List<ExamEnrollment> getBySessionId(int sessionId) {
+    public List<ExamEnrollment> getByExamId(int examId) {
         List<ExamEnrollment> list = new ArrayList<>();
         String sql = "SELECT " + ENROLLMENT_COLUMNS
-                + " FROM ExamEnrollment WHERE SessionId = ? ORDER BY CandidateId";
+                + " FROM ExamEnrollment WHERE ExamId = ? ORDER BY CandidateId";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapEnrollment(rs));
@@ -88,22 +88,22 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public List<ExamEnrollment> searchBySession(int sessionId, String keyword) {
+    public List<ExamEnrollment> searchByExam(int examId, String keyword) {
         List<ExamEnrollment> list = new ArrayList<>();
-        if (keyword == null || keyword.isBlank() || sessionId <= 0) {
+        if (keyword == null || keyword.isBlank() || examId <= 0) {
             return list;
         }
         String like = "%" + keyword.trim() + "%";
         String sql = "SELECT " + ENROLLMENT_COLUMNS
                 + " FROM ExamEnrollment ee"
                 + " JOIN Candidate c ON c.CandidateId = ee.CandidateId"
-                + " WHERE ee.SessionId = ?"
+                + " WHERE ee.ExamId = ?"
                 + " AND (LOWER(c.CandidateNumber) LIKE LOWER(?)"
                 + " OR LOWER(c.FullName) LIKE LOWER(?)"
                 + " OR LOWER(c.GovernmentIdNumber) LIKE LOWER(?))"
                 + " ORDER BY ee.CandidateId";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             ps.setString(2, like);
             ps.setString(3, like);
             ps.setString(4, like);
@@ -119,11 +119,11 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public ExamEnrollment getBySessionAndCandidate(int sessionId, int candidateId) {
+    public ExamEnrollment getByExamAndCandidate(int examId, int candidateId) {
         String sql = "SELECT " + ENROLLMENT_COLUMNS
-                + " FROM ExamEnrollment WHERE SessionId = ? AND CandidateId = ?";
+                + " FROM ExamEnrollment WHERE ExamId = ? AND CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             ps.setInt(2, candidateId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -154,16 +154,16 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public Integer findCandidateIdByGovIdAndSession(String governmentIdNumber, int sessionId) {
-        if (governmentIdNumber == null || governmentIdNumber.isBlank() || sessionId <= 0) {
+    public Integer findCandidateIdByGovIdAndExam(String governmentIdNumber, int examId) {
+        if (governmentIdNumber == null || governmentIdNumber.isBlank() || examId <= 0) {
             return null;
         }
         String sql = "SELECT TOP 1 e.CandidateId FROM ExamEnrollment e "
                 + "JOIN Candidate c ON c.CandidateId = e.CandidateId "
-                + "WHERE e.SessionId = ? AND c.GovernmentIdNumber = ? "
+                + "WHERE e.ExamId = ? AND c.GovernmentIdNumber = ? "
                 + "ORDER BY e.ExamEnrollmentId DESC";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             ps.setString(2, governmentIdNumber.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -199,8 +199,8 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public boolean assignExamDevice(int candidateId, int sessionId, int deviceId) {
-        ExamEnrollment enrollment = getBySessionAndCandidate(sessionId, candidateId);
+    public boolean assignExamDevice(int candidateId, int examId, int deviceId) {
+        ExamEnrollment enrollment = getByExamAndCandidate(examId, candidateId);
         if (enrollment == null) {
             return false;
         }
@@ -212,7 +212,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         ExamEnrollment enrollment = new ExamEnrollment();
         enrollment.setExamEnrollmentId(rs.getInt("ExamEnrollmentId"));
         enrollment.setCandidateId(rs.getInt("CandidateId"));
-        enrollment.setSessionId(rs.getInt("SessionId"));
+        enrollment.setExamId(rs.getInt("ExamId"));
         enrollment.setSectionStatus(rs.getString("SectionStatus"));
         enrollment.setSignaturePrinted(rs.getBoolean("SignaturePrinted"));
         int deviceId = rs.getInt("ExamDeviceId");
