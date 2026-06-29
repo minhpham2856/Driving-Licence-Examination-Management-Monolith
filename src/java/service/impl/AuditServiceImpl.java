@@ -230,18 +230,18 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
-        return DAO.getLogsForSessionPaginated(sessionId, page, pageSize, searchQuery);
+    public List<Audit> getLogsForExamPaginated(int examId, int page, int pageSize, String searchQuery) {
+        return DAO.getLogsForExamPaginated(examId, page, pageSize, searchQuery);
     }
 
     @Override
-    public int getLogsCountForSession(int sessionId, String searchQuery) {
-        return DAO.getLogsCountForSession(sessionId, searchQuery);
+    public int getLogsCountForExam(int examId, String searchQuery) {
+        return DAO.getLogsCountForExam(examId, searchQuery);
     }
 
     @Override
-    public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
-        return DAO.getViolationLogsForSession(sessionId, limit);
+    public List<Audit> getViolationLogsForExam(int examId, int limit) {
+        return DAO.getViolationLogsForExam(examId, limit);
     }
 
     @Override

@@ -4,7 +4,7 @@ import java.util.List;
 public interface DashboardService {
     int getTotalExamCenters();
     int getTotalUsers();
-    int getTotalExamSessions();
+    int getTotalExams();
     int getTotalComputers();
     List<AuditRowDTO> getRecentActivities(int limit);
 }

@@ -10,47 +10,47 @@ import java.util.Map;
 
 public interface ExamViewService {
 
-    List<CandidateRowDTO> loadCandidateRows(int sessionId);
+    List<CandidateRowDTO> loadCandidateRows(int examId);
 
-    List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName);
+    List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName);
 
-    List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName,
+    List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName,
             String searchQuery);
 
-    ExamStatsDTO buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
+    ExamStatsDTO buildCandidateSummary(int examId, boolean isTheory, String sectionName);
 
-    // Builds the end-of-day exam report for a session (result + licence breakdown
+    // Builds the end-of-day exam report for an exam (result + licence breakdown
     // + top deduction reasons). Used by the examstaff report screen.
-    ExamReportDTO buildExamReport(int sessionId);
+    ExamReportDTO buildExamReport(int examId);
 
-    Map<String, Object> getAuditLogsData(int sessionId, String pageParam);
+    Map<String, Object> getAuditLogsData(int examId, String pageParam);
 
-    Map<String, Object> getAuditLogsData(int sessionId, String pageParam, String searchQuery);
+    Map<String, Object> getAuditLogsData(int examId, String pageParam, String searchQuery);
 
-    Map<String, Object> getPaperAnswersData(int sessionId, int sbd, String contextPath);
+    Map<String, Object> getPaperAnswersData(int examId, int sbd, String contextPath);
 
     int theoryPassThreshold();
 
     int theoryMaxQuestions();
 
-    EnrollmentDTO findRegistration(int sessionId, int sbd);
+    EnrollmentDTO findRegistration(int examId, int sbd);
 
-    CandidateRowDTO getCandidateViewRow(int sessionId, int sbd, boolean isTheory, String sectionName);
+    CandidateRowDTO getCandidateViewRow(int examId, int sbd, boolean isTheory, String sectionName);
 
-    Map<String, Object> getScoreEntryData(int sessionId, Integer sbd, String sectionName);
+    Map<String, Object> getScoreEntryData(int examId, Integer sbd, String sectionName);
 
-    Map<String, Object> getResultDetailsEditData(int sessionId, Integer sbd);
+    Map<String, Object> getResultDetailsEditData(int examId, Integer sbd);
 
-    boolean isScoreQueueEligible(int sessionId, EnrollmentDTO reg,
+    boolean isScoreQueueEligible(int examId, EnrollmentDTO reg,
             boolean isTheory, String sectionName);
 
-    Map<String, Object> getViolationData(int sessionId, Integer sbd);
+    Map<String, Object> getViolationData(int examId, Integer sbd);
 
-    Map<String, Object> getDevicesData(int sessionId, String searchQuery);
+    Map<String, Object> getDevicesData(int examId, String searchQuery);
 
-    Map<String, Object> getDevicesData(int sessionId, String searchQuery, Integer preferredAreaId);
+    Map<String, Object> getDevicesData(int examId, String searchQuery, Integer preferredAreaId);
 
-    boolean isCallEligible(int sessionId, EnrollmentDTO reg, boolean isTheory, String sectionName);
+    boolean isCallEligible(int examId, EnrollmentDTO reg, boolean isTheory, String sectionName);
 
     List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows,
             SectionType examSection);

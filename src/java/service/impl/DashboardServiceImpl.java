@@ -34,7 +34,7 @@ public class DashboardServiceImpl implements DashboardService {
         return userDAO.countAll();
     }
     @Override
-    public int getTotalExamSessions() {
+    public int getTotalExams() {
         return examDAO.countAll();
     }
     @Override

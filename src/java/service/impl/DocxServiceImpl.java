@@ -6,13 +6,11 @@ import dao.CandidateAnswerDAO;
 import dao.DeductionRecordViewDAO;
 import dao.ExamDAO;
 import dao.QuestionDAO;
-import dao.SessionDAO;
 import dao.TheoryPaperDAO;
 import dao.impl.CandidateAnswerDAOImpl;
 import dao.impl.DeductionRecordViewDAOImpl;
 import dao.impl.ExamDAOImpl;
 import dao.impl.QuestionDAOImpl;
-import dao.impl.SessionDAOImpl;
 import dao.impl.TheoryPaperDAOImpl;
 import dto.CandidateRowDTO;
 import dto.EnrollmentDTO;
@@ -27,7 +25,6 @@ import model.CandidateAnswer;
 import model.Exam;
 import model.ExaminerSchedule;
 import model.Question;
-import model.Session;
 import model.TheoryPaper;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -80,7 +77,6 @@ public class DocxServiceImpl implements DocumentService {
     private static final String TEMPLATE_DIR = "/docx-template/examiner/";
 
     private final AuditService auditService = new AuditServiceImpl();
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final ExamDAO examDAO = new ExamDAOImpl();
     private final DeductionRecordViewDAO deductionRecordViewDAO = new DeductionRecordViewDAOImpl();
     private final ExamViewService viewDataService = new ExamViewServiceImpl();
@@ -95,22 +91,21 @@ public class DocxServiceImpl implements DocumentService {
 
     // === build* (duplicated from DocumentServiceImpl) ===
 
-    private Map<String, Object> getSessionExportMeta(int sessionId) {
+    private Map<String, Object> getExamExportMeta(int examId) {
         Map<String, Object> meta = new LinkedHashMap<>();
-        Session s = sessionDAO.getById(sessionId);
-        if (s != null) {
-            meta.put("shiftLabel", (s.isMorningSession()));
-            meta.put("startTime", s.getStartTime() != null ? s.getStartTime().toString() : "");
-            meta.put("endTime", s.getEndTime() != null ? s.getEndTime().toString() : "");
-            Exam e = examDAO.getById(s.getExamId());
-            meta.put("examCode", e != null ? e.getExamCode() : null);
+        Exam e = examDAO.getById(examId);
+        if (e != null) {
+            meta.put("shiftLabel", false);
+            meta.put("startTime", e.getStartTime() != null ? e.getStartTime().toString() : "");
+            meta.put("endTime", e.getEndTime() != null ? e.getEndTime().toString() : "");
+            meta.put("examCode", e.getExamCode());
         }
         return meta;
     }
 
     public ExportPayloadDTO buildCandidatesExport(ExportContextDTO ctx) {
         List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
-                ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
+                ctx.examId(), ctx.isTheory(), ctx.sectionName());
         List<List<Object>> rows = new ArrayList<>();
         int index = 1;
         for (CandidateRowDTO c : candidates) {
@@ -144,7 +139,7 @@ public class DocxServiceImpl implements DocumentService {
 
     public ExportPayloadDTO buildResultsExport(ExportContextDTO ctx) {
         List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
-                ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
+                ctx.examId(), ctx.isTheory(), ctx.sectionName());
         List<String> fields;
         List<String> headers;
         List<List<Object>> rows = new ArrayList<>();
@@ -184,11 +179,11 @@ public class DocxServiceImpl implements DocumentService {
     }
 
     public ExportPayloadDTO buildMinutesExport(ExportContextDTO ctx) {
-        Map<String, Object> meta = getSessionExportMeta(ctx.sessionId());
+        Map<String, Object> meta = getExamExportMeta(ctx.examId());
         ExamStatsDTO summary = viewDataService.buildCandidateSummary(
-                ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
+                ctx.examId(), ctx.isTheory(), ctx.sectionName());
         List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
-                ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
+                ctx.examId(), ctx.isTheory(), ctx.sectionName());
         Map<String, Object> metadata = buildMinutesMetadata(meta, summary, ctx.schedule(), ctx.isTheory(),
                 ctx.sectionName());
         List<List<Object>> preamble = buildMinutesPreamble(meta, summary, ctx.schedule(), ctx.isTheory(),
@@ -214,10 +209,10 @@ public class DocxServiceImpl implements DocumentService {
     }
 
     public ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx, String sbdFilterRaw) {
-        Map<String, Object> meta = getSessionExportMeta(ctx.sessionId());
-        List<Audit> auditViolations = auditService.getViolationLogsForSession(ctx.sessionId(), AUDIT_LIMIT);
+        Map<String, Object> meta = getExamExportMeta(ctx.examId());
+        List<Audit> auditViolations = auditService.getViolationLogsForExam(ctx.examId(), AUDIT_LIMIT);
         Map<Long, String> changerNames = auditService.loadChangerNames(auditViolations);
-        List<Map<String, Object>> scoreViolations = deductionRecordViewDAO.getViolationRowsForSession(ctx.sessionId());
+        List<Map<String, Object>> scoreViolations = deductionRecordViewDAO.getViolationRowsForExam(ctx.examId());
         Integer sbdFilter = parseSbdFilter(sbdFilterRaw);
         if (sbdFilter != null) {
             final String sbdText = String.valueOf(sbdFilter);
@@ -228,7 +223,7 @@ public class DocxServiceImpl implements DocumentService {
                 }
             }
             scoreViolations = filteredScore;
-            Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
+            Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.examId());
             List<Audit> filteredAudits = new ArrayList<>();
             for (Audit log : auditViolations) {
                 if (sbdText.equals(auditService.extractSbdForDisplay(log, sbdByRecordId))) {
@@ -285,9 +280,9 @@ public class DocxServiceImpl implements DocumentService {
     }
 
     public ExportPayloadDTO buildAuditExport(ExportContextDTO ctx, String searchQuery) {
-        List<Audit> logs = auditService.getLogsForSessionPaginated(ctx.sessionId(), 1, AUDIT_LIMIT, searchQuery);
+        List<Audit> logs = auditService.getLogsForExamPaginated(ctx.examId(), 1, AUDIT_LIMIT, searchQuery);
         Map<Long, String> changerNames = auditService.loadChangerNames(logs);
-        Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
+        Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.examId());
         List<List<Object>> rows = new ArrayList<>();
         for (Audit log : logs) {
             String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
@@ -479,9 +474,9 @@ public class DocxServiceImpl implements DocumentService {
         return text.isEmpty() ? "-" : text;
     }
 
-    private Map<Integer, String> buildSbdLookup(int sessionId) {
+    private Map<Integer, String> buildSbdLookup(int examId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (EnrollmentDTO reg : registrationService.getCandidatesBySession(sessionId)) {
+        for (EnrollmentDTO reg : registrationService.getCandidatesByExam(examId)) {
             lookup.put(reg.getId(), String.valueOf(reg.getCandidateNumber()));
         }
         return lookup;
@@ -664,9 +659,6 @@ public class DocxServiceImpl implements DocumentService {
         Map<String, Object> data = new LinkedHashMap<>();
         TheoryPaper paper = loadTheoryPaper(candidate);
         String shiftLabel = "-";
-        if (ctx.schedule() != null && ctx.schedule().getSession() != null) {
-            shiftLabel = format((ctx.schedule().getSession().isMorningSession()));
-        }
 
         data.put("DEPT", "TP. HÀ NỘI");
         data.put("FNAME", format(candidate.getFullName()));
@@ -685,7 +677,7 @@ public class DocxServiceImpl implements DocumentService {
 
     private CandidateRowDTO findCandidateRow(ExportContextDTO ctx, int sbd) throws IOException {
         CandidateRowDTO row = viewDataService.getCandidateViewRow(
-                ctx.sessionId(), sbd, ctx.isTheory(), ctx.sectionName());
+                ctx.examId(), sbd, ctx.isTheory(), ctx.sectionName());
         if (row == null) {
             throw new IOException("Không tìm thấy thí sinh SBD " + sbd);
         }

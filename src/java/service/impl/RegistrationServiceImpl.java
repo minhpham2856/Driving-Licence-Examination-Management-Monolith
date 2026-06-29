@@ -44,11 +44,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final ExamScoreService examScoreService = new ExamScoreServiceImpl();
 
     @Override
-    public EnrollmentDTO getBySessionAndSbd(int sessionId, int sbd) {
-        if (sessionId <= 0 || sbd <= 0) {
+    public EnrollmentDTO getByExamAndSbd(int examId, int sbd) {
+        if (examId <= 0 || sbd <= 0) {
             return null;
         }
-        for (EnrollmentDTO row : getCandidatesBySession(sessionId)) {
+        for (EnrollmentDTO row : getCandidatesByExam(examId)) {
             if (row.getCandidateNumber() == sbd) {
                 return row;
             }
@@ -57,16 +57,16 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
-    public List<EnrollmentDTO> getCandidatesBySession(int sessionId) {
-        return toEnrollmentDtoList(enrollmentDAO.getBySessionId(sessionId));
+    public List<EnrollmentDTO> getCandidatesByExam(int examId) {
+        return toEnrollmentDtoList(enrollmentDAO.getByExamId(examId));
     }
 
     @Override
-    public List<EnrollmentDTO> searchCandidatesBySession(int sessionId, String keyword) {
+    public List<EnrollmentDTO> searchCandidatesByExam(int examId, String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return new ArrayList<>();
         }
-        return toEnrollmentDtoList(enrollmentDAO.searchBySession(sessionId, keyword));
+        return toEnrollmentDtoList(enrollmentDAO.searchByExam(examId, keyword));
     }
 
     // Builds EnrollmentDTOs from enrollments by joining their Candidate details.
@@ -228,7 +228,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
-    public List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId) {
+    public List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int examId) {
         return new ArrayList<>();
     }
 
@@ -286,7 +286,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (deviceId == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thiết bị khả dụng trong khu vực thi.");
         }
-        if (!enrollmentDAO.assignExamDevice(candidateId, enrollment.getSessionId(), deviceId)) {
+        if (!enrollmentDAO.assignExamDevice(candidateId, enrollment.getExamId(), deviceId)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể phân phòng cho thí sinh.");
         }
         return ServiceResult.ok(null);
@@ -338,19 +338,19 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
-    public Integer findCandidateIdByGovIdAndSession(String governmentIdNumber, int sessionId) {
-        return enrollmentDAO.findCandidateIdByGovIdAndSession(governmentIdNumber, sessionId);
+    public Integer findCandidateIdByGovIdAndExam(String governmentIdNumber, int examId) {
+        return enrollmentDAO.findCandidateIdByGovIdAndExam(governmentIdNumber, examId);
     }
 
     @Override
     public ServiceResult<Void> insert(UploadRowDTO dto) {
-        if (dto == null || dto.getExamSessionId() <= 0) {
+        if (dto == null || dto.getExamId() <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Dữ liệu import không hợp lệ.");
         }
         if (dto.getGovIdNo() == null || dto.getGovIdNo().isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiếu số CCCD.");
         }
-        Integer existingId = findCandidateIdByGovIdAndSession(dto.getGovIdNo(), dto.getExamSessionId());
+        Integer existingId = findCandidateIdByGovIdAndExam(dto.getGovIdNo(), dto.getExamId());
         if (existingId != null) {
             dto.setId(existingId);
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh đã tồn tại trong ca thi.");
@@ -377,7 +377,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
         ExamEnrollment enrollment = new ExamEnrollment();
         enrollment.setCandidateId(candidateId);
-        enrollment.setSessionId(dto.getExamSessionId());
+        enrollment.setExamId(dto.getExamId());
         enrollment.setSectionStatus(CandidateStatus.NOT_STARTED.getValue());
         enrollment.setSignaturePrinted(false);
         int enrollmentId = enrollmentDAO.insert(enrollment);

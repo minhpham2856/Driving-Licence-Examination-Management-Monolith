@@ -3,7 +3,7 @@ package service;
 import dto.AllocateResultDTO;
 import dto.AssignmentDTO;
 import dto.ServiceResult;
-import dto.SessionViewDTO;
+import dto.ExamViewDTO;
 import dto.UserRowDTO;
 import model.ExamArea;
 import model.ExamDevice;
@@ -16,13 +16,13 @@ import java.util.Set;
 
 public interface AllocationService {
 
-    List<SessionViewDTO> getAllSessions();
+    List<ExamViewDTO> getAllExams();
 
-    SessionViewDTO getSessionById(int sessionId);
+    ExamViewDTO getExamById(int examId);
 
-    List<SessionViewDTO> getSessionsByExamDate(Date date);
+    List<ExamViewDTO> getExamsByExamDate(Date date);
 
-    List<ExamArea> getAreasBySessionId(int sessionId);
+    List<ExamArea> getAreasByExamId(int examId);
 
     // Candidate-room allocation (ported from the examstaff branch).
     // Main models candidates per session as ExamEnrollment; there is no
@@ -30,7 +30,7 @@ public interface AllocationService {
     // balanced plan and reports it rather than persisting a room link.
     List<ExamArea> getActiveTheoryRooms();
 
-    List<ExamEnrollment> getCandidatesBySession(int sessionId);
+    List<ExamEnrollment> getCandidatesByExam(int examId);
 
     ServiceResult<Boolean> checkInCandidate(int candidateId);
 
@@ -40,19 +40,19 @@ public interface AllocationService {
 
     List<UserRowDTO> getActiveExaminers();
 
-    boolean isAreaInSession(int sessionId, int areaId);
+    boolean isAreaInExam(int examId, int areaId);
 
-    List<AssignmentDTO> getAssignmentsByExamDate(Date date, Map<Integer, Date> sessionDates);
+    List<AssignmentDTO> getAssignmentsByExamDate(Date date, Map<Integer, Date> examDates);
 
-    List<AssignmentDTO> getAssignmentsBySessionId(int sessionId);
+    List<AssignmentDTO> getAssignmentsByExamId(int examId);
 
-    Set<Integer> getBusyExaminerIds(Date examDate, Map<Integer, Date> sessionDates);
+    Set<Integer> getBusyExaminerIds(Date examDate, Map<Integer, Date> examDates);
 
     boolean assignExaminer(AssignmentDTO slot);
 
     boolean removeAssignment(String slotKey);
 
-    ServiceResult<AllocateResultDTO> autoAllocateSession(int sessionId);
+    ServiceResult<AllocateResultDTO> autoAllocateExam(int examId);
 
-    ServiceResult<AllocateResultDTO> autoAllocateCandidate(int sessionId, int registrationId);
+    ServiceResult<AllocateResultDTO> autoAllocateCandidate(int examId, int registrationId);
 }

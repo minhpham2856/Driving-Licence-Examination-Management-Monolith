@@ -10,15 +10,15 @@ import java.util.Map;
 
 public interface TheoryService {
 
-    Integer getActiveSessionId();
+    Integer getActiveExamId();
 
     ServiceResult<TheoryEntranceDTO> validateEntrance(int sbd);
 
-    double scanFace(int sessionId, int sbd);
+    double scanFace(int examId, int sbd);
 
-    List<Question> loadExamQuestions(int sessionId, int sbd);
+    List<Question> loadExamQuestions(int examId, int sbd);
 
-    void saveDraftAnswers(int sessionId, int sbd, Map<Integer, String> answers);
+    void saveDraftAnswers(int examId, int sbd, Map<Integer, String> answers);
 
-    ServiceResult<TheorySubmitDTO> submitExam(int sessionId, int sbd, Map<Integer, String> answers);
+    ServiceResult<TheorySubmitDTO> submitExam(int examId, int sbd, Map<Integer, String> answers);
 }
