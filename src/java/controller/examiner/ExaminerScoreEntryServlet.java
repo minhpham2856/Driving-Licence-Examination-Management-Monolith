@@ -22,10 +22,8 @@ import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
 
-
 import java.io.IOException;
 
-// Handles real-time score entry for practical driving and simulator sections.
 @WebServlet("/views/examiner/score-entry")
 public class ExaminerScoreEntryServlet extends HttpServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
@@ -79,7 +77,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
 
         Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œang diÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦n ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -187,8 +185,4 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
         return nextSbd;
     }
 }
-
-
-
-
 

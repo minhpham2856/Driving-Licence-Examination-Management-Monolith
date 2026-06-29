@@ -99,11 +99,6 @@
                                 </div>
                             </div>
 
-                            <!-- Remember Me Checkbox -->
-                            <div class="remember-me-group">
-                                <input type="checkbox" id="rememberMe" name="rememberMe">
-                                <label for="rememberMe" class="remember-me-text">Ghi nhớ đăng nhập</label>
-                            </div>
 
                             <!-- Submit Area -->
                             <div class="form-submit-wrap">
@@ -113,15 +108,6 @@
                                           style="font-size:18px">arrow_forward</span>
                                 </button>
 
-                                <div class="alternate-prompt-wrap">
-                                    <p class="alternate-prompt-text">Chưa có tài khoản?</p>
-                                    <a href="${pageContext.request.contextPath}/register"
-                                       class="btn-capsule-register">
-                                        Đăng ký ngay
-                                        <span class="material-symbols-outlined"
-                                              style="font-size:16px">arrow_forward</span>
-                                    </a>
-                                </div>
                             </div>
                         </form>
                     </div>

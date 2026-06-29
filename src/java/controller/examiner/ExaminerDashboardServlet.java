@@ -2,7 +2,6 @@ package controller.examiner;
 
 import java.util.*;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,10 +14,8 @@ import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
 
-
 import java.io.IOException;
 
-// Handles dashboard and confirmation page rendering.
 @WebServlet(urlPatterns = {
     "/views/examiner/dashboard",
     "/views/examiner/confirmation"
@@ -27,7 +24,6 @@ public class ExaminerDashboardServlet extends HttpServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
-    // Handles GET requests to render the examiner dashboard or confirmation.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -42,7 +38,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
         String search = request.getParameter("q");
 
         if (sessionId != null && sessionId > 0) {
-            // Attach generic list data
+            
             Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
@@ -52,6 +48,4 @@ public class ExaminerDashboardServlet extends HttpServlet {
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 }
-
-
 

@@ -4,7 +4,6 @@ import java.util.*;
 
 import model.*;
 
-
 import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,21 +17,21 @@ import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
 
-
 import java.io.IOException;
 
-// Handles candidate calling logic, absence marking, and signature printing in the call queue.
 @WebServlet("/views/examiner/candidate-call")
 public class ExaminerCandidateCallServlet extends HttpServlet {
+
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
-    // Handles GET actions for candidate call (call, undoAbsent, markAbsent, completeSection, printSignature).
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        if (session == null) {
+            return;
+        }
 
         Integer sessionId = ExaminerUtil.activeSessionId(session);
         String sbd = request.getParameter("sbd");
@@ -40,12 +39,11 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         if (sessionId != null && sessionId > 0) {
-            // Block access to result edit features for theory sections
+            
             if (ExaminerUtil.isTheorySection(request) && request.getParameter("error") != null && request.getParameter("error").equals("theoryNoResultEdit")) {
-                // Keep the error parameter and render
+                
             }
 
-            // Route absence confirmation from the modal
             if ("1".equals(request.getParameter("absenceConfirmed"))) {
                 examinerService.markAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId());
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?absentDone=" + ExaminerUtil.urlEncode(sbd));
@@ -58,22 +56,26 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
                 }
             }
 
-            Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search);
+            for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            }
         }
 
         request.getRequestDispatcher("/views/examiner/candidate-call.jsp").forward(request, response);
     }
 
-    // Handles POST requests, specifically batch calling selected candidates.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        if (session == null) {
+            return;
+        }
 
         Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œang diÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦n ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -92,7 +94,6 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    // Processes single-candidate call-related actions.
     private boolean handleCallAction(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int sessionId, String action, String sbd) throws IOException {
         User user = (User) session.getAttribute("user");
@@ -173,9 +174,3 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         }
     }
 }
-
-
-
-
-
-

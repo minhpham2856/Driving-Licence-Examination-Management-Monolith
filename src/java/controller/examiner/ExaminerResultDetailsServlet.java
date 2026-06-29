@@ -4,7 +4,6 @@ import java.util.*;
 
 import model.*;
 
-
 import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,10 +17,8 @@ import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
 
-
 import java.io.IOException;
 
-// Handles viewing and editing result details (score deductions).
 @WebServlet(urlPatterns = {
     "/views/examiner/result-details",
     "/views/examiner/result-details-edit"
@@ -30,7 +27,6 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
-    // Renders the score details view and the score edit form.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -44,7 +40,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         if (sessionId != null && sessionId > 0) {
-            // Block access to result edit features for theory sections
+            
             if (ExaminerUtil.isTheorySection(request)) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
@@ -95,7 +91,6 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 
-    // Handles POST requests to save score edit reasons and password validations.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -104,7 +99,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
 
         Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ang diÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦n ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -148,7 +143,6 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    // Forwards back to the score edit form with an error message, preserving form state.
     private void forwardScoreFormError(HttpServletRequest request, HttpServletResponse response,
             int sessionId, String sbd, String reason, String reasonDetail,
             String errorMessage) throws ServletException, IOException {
@@ -165,10 +159,4 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         request.getRequestDispatcher("/views/examiner/result-details-edit.jsp").forward(request, response);
     }
 }
-
-
-
-
-
-
 

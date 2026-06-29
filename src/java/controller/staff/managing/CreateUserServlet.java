@@ -87,8 +87,7 @@ public class CreateUserServlet extends HttpServlet {
         String roleName = roleService.getRoleNameById(user.getRoleId());
         if (!"ManagingStaff".equalsIgnoreCase(roleName)
                 && !"Admin".equalsIgnoreCase(roleName)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "Bạn không có quyền tạo tài khoản học viên.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
         return true;

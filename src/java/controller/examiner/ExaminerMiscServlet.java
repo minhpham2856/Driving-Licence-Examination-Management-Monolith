@@ -2,7 +2,6 @@ package controller.examiner;
 
 import java.util.*;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,10 +14,8 @@ import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
 
-
 import java.io.IOException;
 
-// Handles miscellaneous simple view-only pages: audit, export, and print-documents.
 @WebServlet(urlPatterns = {
     "/views/examiner/audit",
     "/views/examiner/export",
@@ -28,7 +25,6 @@ public class ExaminerMiscServlet extends HttpServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
-    // Renders the audit, export, or print-documents view.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -46,7 +42,7 @@ public class ExaminerMiscServlet extends HttpServlet {
             } else if ("/views/examiner/print-documents".equals(path)) {
                 Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else if ("/views/examiner/export".equals(path)) {
-                // Export page has no specific dynamic data load beyond active session layout
+                
             }
         }
 
@@ -59,7 +55,4 @@ public class ExaminerMiscServlet extends HttpServlet {
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 }
-
-
-
 

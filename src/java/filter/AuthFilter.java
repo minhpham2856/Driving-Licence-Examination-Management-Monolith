@@ -39,7 +39,7 @@ public class AuthFilter implements Filter {
                 || "Examiner".equalsIgnoreCase(roleName)) {
             chain.doFilter(request, response);
         } else {
-            httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập trang này.");
+            httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 }

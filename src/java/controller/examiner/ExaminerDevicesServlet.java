@@ -4,7 +4,6 @@ import java.util.*;
 
 import model.*;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,16 +16,13 @@ import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
 
-
 import java.io.IOException;
 
-// Handles viewing and toggling device (exam machine) statuses.
 @WebServlet("/views/examiner/devices")
 public class ExaminerDevicesServlet extends HttpServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
-    // Renders the devices list and handles status toggle actions.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -66,8 +62,4 @@ public class ExaminerDevicesServlet extends HttpServlet {
         request.getRequestDispatcher("/views/examiner/devices.jsp").forward(request, response);
     }
 }
-
-
-
-
 

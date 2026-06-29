@@ -15,7 +15,7 @@ public class ExaminerUtil {
     public static HttpSession requireSession(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Bạn cần đăng nhập.");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         }
         return session;
     }

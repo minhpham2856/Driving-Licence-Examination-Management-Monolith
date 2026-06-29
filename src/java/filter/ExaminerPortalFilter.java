@@ -38,7 +38,7 @@ public class ExaminerPortalFilter extends HttpFilter {
 
         String roleName = roleService.getRoleNameById(user.getRoleId());
         if (!"Examiner".equalsIgnoreCase(roleName)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -46,8 +46,7 @@ public class ExaminerPortalFilter extends HttpFilter {
         contextService.copyToRequest(session, request);
 
         if (!contextService.hasActiveSession(session) && isExaminerActionPath(request)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "Ca thi chưa bắt đầu hoặc bạn chưa được phân công ca đang diễn ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 

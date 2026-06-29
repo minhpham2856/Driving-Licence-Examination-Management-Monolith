@@ -4,7 +4,6 @@ import java.util.*;
 
 import model.*;
 
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,11 +20,9 @@ import service.impl.ExaminerActionsServiceImpl;
 import jakarta.servlet.http.Part;
 import util.ExaminerViolationUploadHelper;
 
-
 import java.io.IOException;
 import java.util.Map;
 
-// Handles violation management: viewing violations, confirming new violations (with evidence upload), and undoing suspensions.
 @WebServlet(urlPatterns = {
     "/views/examiner/violations",
     "/views/examiner/violation-confirm",
@@ -39,7 +36,6 @@ public class ExaminerViolationsServlet extends HttpServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
-    // Renders the violations list or the specific violation confirm/undo forms.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -56,7 +52,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else {
                 if (sbd == null || sbd.isBlank() || request.getAttribute("candidate") == null) {
-                    // Try to attach if missing
+                    
                     Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     if (request.getAttribute("candidate") == null) {
                         response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSbd");
@@ -96,7 +92,6 @@ public class ExaminerViolationsServlet extends HttpServlet {
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 
-    // Handles POST requests for recording violations and undoing suspensions.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -105,7 +100,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
 
         Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ang diÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦n ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -122,7 +117,6 @@ public class ExaminerViolationsServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    // Records a new violation, processes evidence upload, and suspends the candidate.
     private void handleRecordViolation(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int sessionId) throws IOException, ServletException {
         String sbd = request.getParameter("sbd");
@@ -164,7 +158,6 @@ public class ExaminerViolationsServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=saveFailed&returnTo=" + ExaminerUtil.urlEncode(returnTo));
     }
 
-    // Reverses a suspension and logs the undo action.
     private void handleUndoSuspension(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int sessionId) throws IOException, ServletException {
         String sbd = request.getParameter("sbd");
@@ -186,8 +179,4 @@ public class ExaminerViolationsServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/views/examiner/violation-undo?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=undoFailed");
     }
 }
-
-
-
-
 
