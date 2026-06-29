@@ -1,7 +1,7 @@
 package controller.auth.general;
 
 import service.AuthService;
-import model.user.User;
+import model.User;
 import service.impl.AuthServiceImpl;
 
 import jakarta.servlet.ServletException;

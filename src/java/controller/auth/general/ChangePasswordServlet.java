@@ -1,9 +1,12 @@
 package controller.auth.general;
 
-import dto.auth.ChangePasswordResultDTO;
+import service.*;
+import service.impl.*;
+
+import dto.ChangePasswordResultDTO;
 import service.AuthService;
 import service.impl.AuthServiceImpl;
-import model.user.User;
+import model.User;
 import service.AuditLogService;
 
 import util.SessionUtil;
@@ -18,7 +21,7 @@ import java.io.IOException;
 
 @WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
 public class ChangePasswordServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     private AuthService authService = new AuthServiceImpl();
     private static final String VIEW = "/views/auth/general/forgot-password.jsp";

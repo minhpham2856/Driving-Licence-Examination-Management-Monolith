@@ -1,6 +1,6 @@
 package dao;
 
-import model.exam.ExamScore;
+import model.ExamScore;
 import java.util.List;
 
 public interface ExamScoreDAO {

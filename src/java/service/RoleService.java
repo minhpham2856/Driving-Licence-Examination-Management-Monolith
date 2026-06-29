@@ -1,6 +1,6 @@
 package service;
 
-import model.user.Role;
+import model.Role;
 
 public interface RoleService {
     Role getRoleById(int id);

@@ -1,7 +1,9 @@
 package dao;
 
+import java.util.*;
 
-import model.user.User;
+
+import model.User;
 
 
 public interface UserDAO {
@@ -25,7 +27,7 @@ public interface UserDAO {
     boolean updatePassword(int userId, String passwordHash);
 
     
-    java.util.List<User> findByIds(java.util.List<Integer> ids);
+    List<User> getAllByIds(List<Integer> ids);
     
     int countAll();
 }

@@ -1,10 +1,21 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import java.text.*;
+
+import dao.*;
+import dao.impl.*;
+import enums.*;
+import model.*;
+import service.*;
+import service.impl.*;
 
 import enums.SectionType;
 
 import controller.examiner.ExaminerScoreEntryQueue;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
 import dao.AuditDAO;
 import dao.ExamEnrollmentDAO;
@@ -17,9 +28,9 @@ import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.CandidateDAOImpl;
 import dao.impl.SessionDAOImpl;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
-import model.user.User;
+import model.User;
 import service.ExaminerActionsService;
 import util.AuditChangeDetails;
 
@@ -33,7 +44,7 @@ import service.EnumMappingService;
 import service.ExaminerDataService;
 
 public class ExaminerActionsServiceImpl implements ExaminerActionsService {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
@@ -44,9 +55,9 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExamEnrollmentDAO vehicleDAO = new ExamEnrollmentDAOImpl();
     private final SessionDAO sessionDAO = new SessionDAOImpl();
-    private final dao.ExamScoreDAO examScoreDAO = new dao.impl.ExamScoreDAOImpl();
-    private final dao.ExamResultDAO examResultDAO = new dao.impl.ExamResultDAOImpl();
-    private final dao.ScoreDeductionDAO scoreDeductionDAO = new dao.impl.ScoreDeductionDAOImpl();
+    private final ExamScoreDAO examScoreDAO = new ExamScoreDAOImpl();
+    private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
+    private final ScoreDeductionDAO scoreDeductionDAO = new ScoreDeductionDAOImpl();
     private final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
 
     @Override
@@ -72,7 +83,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         } else {
             sexDb = "Nam";
         }
-        java.text.SimpleDateFormat dobFmt = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat dobFmt = new SimpleDateFormat("dd/MM/yyyy");
         List<AuditChangeDetails.FieldChange> changes = new ArrayList<>();
         AuditChangeDetails.addIfChanged(changes, "HÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªn", reg.getFullName(), fullName.trim());
         AuditChangeDetails.addIfChanged(changes, "NgÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â y sinh",
@@ -129,7 +140,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     @Override
-    public boolean callCandidate(int sessionId, String sbd, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
+    public boolean callCandidate(int sessionId, String sbd, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
@@ -141,7 +152,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     @Override
-    public String callNextCandidate(int sessionId, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
+    public String callNextCandidate(int sessionId, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination) {
                         List<CandidateEnrollmentDTO> all = enrollmentDAO.getCandidatesBySession(sessionId);
         for (CandidateEnrollmentDTO reg : all) {
             if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
@@ -155,7 +166,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     @Override
-    public int callSelectedCandidates(int sessionId, String[] sbds, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
+    public int callSelectedCandidates(int sessionId, String[] sbds, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination) {
         if (sbds == null || sbds.length == 0) {
             return 0;
         }
@@ -173,7 +184,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
 
 
     @Override
-    public boolean callScoreEntryCandidate(int sessionId, String sbd, User user, Integer actionUserId, enums.SectionType sectionType, String sectionName, String callDestination) {
+    public boolean callScoreEntryCandidate(int sessionId, String sbd, User user, Integer actionUserId, SectionType sectionType, String sectionName, String callDestination) {
         if (sbd == null || sbd.isBlank()) {
             return false;
         }
@@ -235,7 +246,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
 
     private boolean isDeviceInSession(int sessionId, int deviceId) {
         List<Integer> areaIds = sessionDAO.getExamAreaIds(sessionId);
-        for (model.exam.ExamDevice device : deviceDAO.findByAreaIds(areaIds)) {
+        for (ExamDevice device : deviceDAO.getAllByAreaIds(areaIds)) {
             if (device.getExamDeviceId() == deviceId) {
                 return true;
             }
@@ -243,7 +254,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         return false;
     }
     private boolean insertCall(int sessionId, CandidateEnrollmentDTO reg, User user, Integer actionUserId, String callDestination) {
-        model.user.Audit audit = new model.user.Audit();
+        Audit audit = new Audit();
         audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         audit.setAction("CALL");
         String entityId = sessionId + "-" + reg.getCandidateNo();
@@ -261,7 +272,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
 
     private boolean insertScoreEntryCall(int sessionId, CandidateEnrollmentDTO reg, User user, Integer actionUserId, String callDestination) {
-        model.user.Audit audit = new model.user.Audit();
+        Audit audit = new Audit();
         audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         audit.setAction("CALL");
         String entityId = sessionId + "-" + reg.getCandidateNo();
@@ -339,7 +350,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
 
     @Override
     public boolean recordViolation(int sessionId, String sbd, String reasonCode, String reasonDetail,
-            String evidencePath, int[] deductionIds, Integer actionUserId, enums.SectionType sectionType, String sectionName) {
+            String evidencePath, int[] deductionIds, Integer actionUserId, SectionType sectionType, String sectionName) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || reg.isSuspended()) {
             return false;
@@ -360,7 +371,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                         // applyScoreDeductions removed
         }
 
-        model.candidate.Candidate c = candidateDAO.findById(reg.getId());
+        Candidate c = candidateDAO.getById(reg.getId());
         if (c != null) {
             c.setSuspended(true);
             return candidateDAO.update(c);
@@ -382,7 +393,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         String reasonLabel = enumMappingService.violationLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, null);
-        model.candidate.Candidate c = candidateDAO.findById(reg.getId());
+        Candidate c = candidateDAO.getById(reg.getId());
         boolean undone = false;
         if (c != null) {
             c.setSuspended(false);
@@ -428,7 +439,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return false;
         }
-                model.exam.ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, reg.getId());
+                ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
         boolean updated = false;
         if (e != null) {
             e.setSectionStatus("AwaitingSignature");
@@ -454,7 +465,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reg == null || !enumMappingService.isCandidateAwaitingSignature(reg.getSectionStatus())) {
             return false;
         }
-        model.exam.ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
         boolean updated = false;
         if (e != null) {
             e.setSignaturePrinted(true);
@@ -479,7 +490,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (!reg.isSignaturePrinted()) {
             return "needSignaturePrint";
         }
-        model.exam.ExamEnrollment e = enrollmentDAO.findBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
         boolean completed = false;
         if (e != null) {
             e.setSectionStatus("Done");

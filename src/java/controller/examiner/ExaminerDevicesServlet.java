@@ -1,5 +1,9 @@
 package controller.examiner;
 
+import java.util.*;
+
+import model.*;
+
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,17 +41,17 @@ public class ExaminerDevicesServlet extends BaseExaminerServlet {
                 boolean updated;
                 String redirectParam;
                 if ("operational".equals(action)) {
-                    updated = examinerService.setDeviceAvailable(deviceId, ((model.user.User) session.getAttribute("user")).getUserId());
+                    updated = examinerService.setDeviceAvailable(deviceId, ((User) session.getAttribute("user")).getUserId());
                     redirectParam = updated ? "/views/examiner/devices?operationalDone=" + deviceId : "/views/examiner/devices?error=operationalFailed&deviceId=" + deviceId;
                 } else {
-                    updated = examinerService.setDeviceMaintenance(deviceId, ((model.user.User) session.getAttribute("user")).getUserId());
+                    updated = examinerService.setDeviceMaintenance(deviceId, ((User) session.getAttribute("user")).getUserId());
                     redirectParam = updated ? "/views/examiner/devices?maintenanceDone=" + deviceId : "/views/examiner/devices?error=maintenanceFailed&deviceId=" + deviceId;
                 }
                 redirect(response, request, redirectParam);
                 return;
             }
 
-            java.util.Map<String, Object> data = viewDataService.getDevicesData(sessionId, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            Map<String, Object> data = viewDataService.getDevicesData(sessionId, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
         forward(request, response, "/views/examiner/devices.jsp");

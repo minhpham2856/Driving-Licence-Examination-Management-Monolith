@@ -1,8 +1,10 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import enums.SectionType;
 import controller.examiner.ExaminerScoreEntryQueue;
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 import dao.AuditDAO;
 import dao.CandidateDAO;
 import dao.TheoryPaperDAO;
@@ -11,12 +13,12 @@ import dao.impl.AuditDAOImpl;
 import dao.impl.CandidateDAOImpl;
 import dao.impl.TheoryPaperDAOImpl;
 import dao.impl.ExamEnrollmentDAOImpl;
-import dto.candidate.CandidateEnrollmentDTO;
-import dto.examiner.ExaminerAnswerStatsDTO;
-import dto.examiner.ExaminerPaperStateDTO;
-import dto.score.TheoryPaperAnswerDTO;
+import dto.CandidateEnrollmentDTO;
+import dto.ExaminerAnswerStatsDTO;
+import dto.ExaminerPaperStateDTO;
+import dto.TheoryPaperAnswerDTO;
 import service.ExaminerDataService;
-import model.user.Audit;
+import model.Audit;
 
 import java.sql.Date;
 import java.sql.Timestamp;

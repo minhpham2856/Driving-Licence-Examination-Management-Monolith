@@ -1,8 +1,12 @@
 package controller.examiner;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import java.util.*;
+
+import model.*;
+
+import dto.CandidateEnrollmentDTO;
 import enums.SectionType;
-import model.user.User;
+import model.User;
 
 import service.AuditLogService;
 import service.impl.AuditLogServiceImpl;
@@ -47,11 +51,11 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
                 if (request.getAttribute("candidate") == null && action == null) {
                     String called = autoCallScoreEntryIfNeeded(sessionId, user, session, user.getUserId());
                     if (called != null) {
-                        java.util.Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, called); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                        Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, called); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     }
                 }
             } else {
-                java.util.Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             }
         }
 
@@ -76,7 +80,7 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
                 redirect(response, request, "/views/examiner/score-entry?error=noSbd");
                 return;
             }
-            if (!examinerService.finalizeScoreEntry(sessionId, sbd, ((model.user.User) session.getAttribute("user")).getUserId(), resolveSectionName(session))) {
+            if (!examinerService.finalizeScoreEntry(sessionId, sbd, ((User) session.getAttribute("user")).getUserId(), resolveSectionName(session))) {
                 redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=finalizeFailed");
                 return;
             }

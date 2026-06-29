@@ -1,6 +1,6 @@
 package filter;
 
-import model.user.User;
+import model.User;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
 import util.SessionUtil;

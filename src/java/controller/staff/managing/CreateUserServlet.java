@@ -2,8 +2,8 @@ package controller.staff.managing;
 
 import service.UserManagementService;
 import service.impl.UserManagementServiceImpl;
-import model.user.User;
-import dto.user.CreateUserResultDTO;
+import model.User;
+import dto.CreateUserResultDTO;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
 

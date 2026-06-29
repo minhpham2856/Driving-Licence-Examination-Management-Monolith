@@ -1,5 +1,7 @@
 package controller.examiner;
 
+import java.util.*;
+
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,9 +33,9 @@ public class ExaminerMiscServlet extends BaseExaminerServlet {
 
         if (sessionId != null && sessionId > 0) {
             if ("/views/examiner/audit".equals(path)) {
-                java.util.Map<String, Object> data = viewDataService.getAuditLogsData(sessionId, request.getParameter("page"), search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getAuditLogsData(sessionId, request.getParameter("page"), search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else if ("/views/examiner/print-documents".equals(path)) {
-                java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             } else if ("/views/examiner/export".equals(path)) {
                 // Export page has no specific dynamic data load beyond active session layout
             }

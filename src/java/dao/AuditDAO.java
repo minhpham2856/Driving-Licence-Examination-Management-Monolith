@@ -1,6 +1,6 @@
 package dao;
 
-import model.user.Audit;
+import model.Audit;
 import java.util.List;
 
 public interface AuditDAO {

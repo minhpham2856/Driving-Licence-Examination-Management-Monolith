@@ -1,7 +1,7 @@
 package dao;
 
 
-import model.user.Role;
+import model.Role;
 
 
 public interface RoleDAO {

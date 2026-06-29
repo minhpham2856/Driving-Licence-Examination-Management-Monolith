@@ -1,7 +1,7 @@
 package dao.impl;
 
 import dao.AuditDAO;
-import model.user.Audit;
+import model.Audit;
 import java.util.ArrayList;
 import java.util.List;
 

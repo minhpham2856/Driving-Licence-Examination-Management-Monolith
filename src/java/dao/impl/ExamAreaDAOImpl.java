@@ -1,11 +1,13 @@
 package dao.impl;
 
+import java.sql.*;
+
 
 import dbconnection.DBContext;
 
 import dao.ExamAreaDAO;
 
-import model.exam.ExamArea;
+import model.ExamArea;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -60,7 +62,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     
     @Override
-    public ExamArea findById(int examAreaId) {
+    public ExamArea getById(int examAreaId) {
         String sql = "SELECT * FROM ExamArea WHERE ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -152,12 +154,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     
     @Override
-    public ExamArea getById(int examAreaId) {
-        return findById(examAreaId);
-    }
-
-    
-    @Override
     public List<ExamArea> getActiveTheoryRooms() {
         List<ExamArea> list = new ArrayList<>();
         String sql = "SELECT * FROM ExamArea WHERE AreaType = N'Lý thuyết' ORDER BY AreaName";
@@ -209,7 +205,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     
     private void setIntOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
-        if (val == null) ps.setNull(idx, java.sql.Types.INTEGER); else ps.setInt(idx, val);
+        if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }
 }
 

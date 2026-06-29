@@ -1,9 +1,9 @@
 package service;
 
-import dto.auth.ChangePasswordResultDTO;
-import dto.auth.RegisterResultDTO;
+import dto.ChangePasswordResultDTO;
+import dto.RegisterResultDTO;
 
-import model.user.User;
+import model.User;
 
 public interface AuthService {
 

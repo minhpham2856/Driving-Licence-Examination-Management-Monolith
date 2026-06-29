@@ -1,8 +1,8 @@
 package controller.examiner;
 
 
-import dto.examiner.ExaminerExportContext;
-import dto.examiner.ExaminerExportPayload;
+import dto.ExaminerExportContext;
+import dto.ExaminerExportPayload;
 import service.ExaminerExportService;
 import service.XmlService;
 import service.impl.ExaminerExportServiceImpl;

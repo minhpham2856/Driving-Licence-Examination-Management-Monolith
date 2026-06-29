@@ -1,6 +1,6 @@
 package dao;
 
-import model.exam.CandidateAnswer;
+import model.CandidateAnswer;
 import java.util.List;
 
 public interface CandidateAnswerDAO {

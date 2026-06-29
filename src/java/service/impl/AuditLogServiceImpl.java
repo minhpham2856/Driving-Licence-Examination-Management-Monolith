@@ -1,11 +1,15 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import model.*;
 
 import dao.AuditDAO;
 import dao.impl.AuditDAOImpl;
-import model.user.AuditRecordModel;
-import model.user.Audit;
-import model.user.User;
-import model.user.Profile;
+import model.AuditRecordModel;
+import model.Audit;
+import model.User;
+import model.Profile;
 import dao.UserDAO;
 import dao.impl.UserDAOImpl;
 import dao.ProfileDAO;
@@ -38,7 +42,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public boolean insertAudit(model.user.Audit audit) { return DAO.insert(audit) > 0; }
+    public boolean insertAudit(Audit audit) { return DAO.insert(audit) > 0; }
 
     @Override
     public void persist(Integer actionUserId, String action, String details, int recordId) {
@@ -366,10 +370,10 @@ public class AuditLogServiceImpl implements AuditLogService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Integer, User> userMap = userDAO.findByIds(userIds).stream()
+        Map<Integer, User> userMap = userDAO.getAllByIds(userIds).stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
 
-        Map<Integer, Profile> profileMap = profileDAO.findByUserIds(userIds).stream()
+        Map<Integer, Profile> profileMap = profileDAO.getAllByUserIds(userIds).stream()
                 .collect(Collectors.toMap(Profile::getUserId, p -> p));
 
         List<AuditRecordModel> result = new ArrayList<>();
@@ -423,10 +427,10 @@ public class AuditLogServiceImpl implements AuditLogService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<Integer, User> userMap = userDAO.findByIds(userIds).stream()
+        Map<Integer, User> userMap = userDAO.getAllByIds(userIds).stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
 
-        Map<Integer, Profile> profileMap = profileDAO.findByUserIds(userIds).stream()
+        Map<Integer, Profile> profileMap = profileDAO.getAllByUserIds(userIds).stream()
                 .collect(Collectors.toMap(Profile::getUserId, p -> p));
 
         List<AuditRecordModel> result = new ArrayList<>();

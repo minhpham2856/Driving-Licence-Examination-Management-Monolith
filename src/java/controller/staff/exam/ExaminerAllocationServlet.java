@@ -1,13 +1,19 @@
 package controller.staff.exam;
+import dto.*;
+import model.*;
 
-import dto.examiner.ExaminerSlotDTO;
+import model.*;
+import service.*;
+import service.impl.*;
+
+import dto.ExaminerSlotDTO;
 import service.ExaminerAllocationService;
 import service.impl.ExaminerAllocationServiceImpl;
-import model.exam.ExamArea;
-import model.exam.ExamDevice;
-import dto.exam.SessionDTO;
-import dto.user.UserDTO;
-import model.user.User;
+import model.ExamArea;
+import model.ExamDevice;
+import dto.SessionDTO;
+import dto.UserDTO;
+import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,7 +30,7 @@ import java.util.Set;
 
 @WebServlet("/views/staff/exam/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
     private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
 
     @Override
@@ -208,7 +214,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {
-        auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), action, details);
+        auditLogService.persist(((User) session.getAttribute("user")).getUserId(), action, details);
     }
 
     @Override

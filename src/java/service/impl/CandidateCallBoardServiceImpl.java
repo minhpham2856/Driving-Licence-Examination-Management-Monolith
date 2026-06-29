@@ -1,7 +1,9 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 
 import service.CandidateCallBoardService;
 import jakarta.servlet.ServletContext;

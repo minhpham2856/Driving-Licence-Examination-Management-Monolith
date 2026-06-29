@@ -1,7 +1,7 @@
 package dao;
 
 
-import model.exam.ExamSection;
+import model.ExamSection;
 import java.util.List;
 
 

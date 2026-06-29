@@ -1,6 +1,6 @@
 package filter;
 
-import model.user.User;
+import model.User;
 import service.ExaminerSessionContextService;
 import service.impl.ExaminerSessionContextServiceImpl;
 

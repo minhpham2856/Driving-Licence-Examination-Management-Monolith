@@ -1,4 +1,6 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import dao.ExamDeviceDAO;
 import dao.impl.ExamDeviceDAOImpl;
@@ -6,10 +8,10 @@ import dao.AuditDAO;
 import dao.impl.AuditDAOImpl;
 import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
-import dto.exam.ExamDeviceViewDTO;
-import model.user.Audit;
-import model.exam.ExamArea;
-import model.exam.ExamDevice;
+import dto.ExamDeviceViewDTO;
+import model.Audit;
+import model.ExamArea;
+import model.ExamDevice;
 import service.ExamDeviceService;
 
 import java.util.ArrayList;

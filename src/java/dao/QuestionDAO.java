@@ -1,6 +1,6 @@
 package dao;
 
-import model.exam.Question;
+import model.Question;
 import java.util.List;
 
 public interface QuestionDAO {

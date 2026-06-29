@@ -1,6 +1,6 @@
 package service;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
 import java.util.List;
 

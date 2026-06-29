@@ -1,7 +1,11 @@
 package controller.examiner;
 
+import java.util.*;
 
-import model.user.User;
+import model.*;
+
+
+import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +55,7 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                     redirect(response, request, path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
                     return;
                 }
-                if (!examinerService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, ((model.user.User) session.getAttribute("user")).getUserId())) {
+                if (!examinerService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, ((User) session.getAttribute("user")).getUserId())) {
                     redirect(response, request, path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
                     return;
                 }
@@ -60,7 +64,7 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
             }
 
             if ("/views/examiner/result-details-edit".equals(path)) {
-                java.util.Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                 if (sbd == null || sbd.isBlank() || request.getAttribute("candidate") == null) {
                     redirect(response, request, "/views/examiner/result-details");
                     return;
@@ -69,10 +73,10 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                 request.setAttribute("theoryPassScore", viewDataService.theoryPassThreshold());
                 Object candidateObj = request.getAttribute("candidate");
                 if (candidateObj != null) {
-                    request.setAttribute("singleCandidateList", java.util.Collections.singletonList(candidateObj));
+                    request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
                 }
             } else {
-                java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             }
         }
 
@@ -139,14 +143,14 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
     private void forwardScoreFormError(HttpServletRequest request, HttpServletResponse response,
             int sessionId, String sbd, String reason, String reasonDetail,
             String errorMessage) throws ServletException, IOException {
-        java.util.Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+        Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         request.setAttribute("scoreError", errorMessage);
         request.setAttribute("formReason", reason);
         request.setAttribute("formReasonDetail", reasonDetail);
 
         Object candidateObj = request.getAttribute("candidate");
         if (candidateObj != null) {
-            request.setAttribute("singleCandidateList", java.util.Collections.singletonList(candidateObj));
+            request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
         }
 
         forward(request, response, "/views/examiner/result-details-edit.jsp");

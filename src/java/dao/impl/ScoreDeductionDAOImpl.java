@@ -1,7 +1,9 @@
 package dao.impl;
 
+import model.*;
+
 import dao.ScoreDeductionDAO;
-import model.exam.ScoreDeduction;
+import model.DeductionRule;
 import java.util.ArrayList;
 import java.util.List;
 

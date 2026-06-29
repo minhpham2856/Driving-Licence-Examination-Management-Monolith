@@ -1,6 +1,6 @@
 package dao;
 
-import model.exam.ExamDevice;
+import model.ExamDevice;
 import java.util.List;
 
 public interface ExamDeviceDAO {
@@ -21,6 +21,6 @@ public interface ExamDeviceDAO {
 
     List<ExamDevice> getDevicesByAreaId(int examAreaId);
 
-    List<ExamDevice> findByAreaIds(List<Integer> areaIds);
+    List<ExamDevice> getAllByAreaIds(List<Integer> areaIds);
 }
 

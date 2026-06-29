@@ -1,4 +1,6 @@
 package controller.staff.exam;
+import dto.*;
+import model.*;
 
 import service.CandidateCallBoardService;
 import service.impl.CandidateCallBoardServiceImpl;
@@ -6,7 +8,7 @@ import service.impl.CandidateCallBoardServiceImpl;
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
 
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 
 
 import service.ExamRegistrationService;
@@ -16,9 +18,9 @@ import service.impl.ExamRegistrationServiceImpl;
 
 import service.impl.ExamSessionControlServiceImpl;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
 import service.CandidateCallBoardService;
 

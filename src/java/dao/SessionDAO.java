@@ -1,9 +1,9 @@
 package dao;
 
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import model.exam.Session;
+import model.Session;
 import java.sql.Date;
 import java.util.List;
 
@@ -11,10 +11,10 @@ import java.util.List;
 public interface SessionDAO {
 
     
-    SessionDTO getById(int id);
+    SessionDTO getDtoById(int id);
 
     
-    Session findById(int id);
+    Session getById(int id);
 
     
     List<SessionDTO> getActiveSessions();

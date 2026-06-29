@@ -5,7 +5,7 @@ import dbconnection.DBContext;
 
 import dao.PaymentDAO;
 
-import model.payment.Payment;
+import model.Payment;
 import java.sql.*;
 
 

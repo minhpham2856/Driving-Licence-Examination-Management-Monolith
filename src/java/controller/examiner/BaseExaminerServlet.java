@@ -1,5 +1,10 @@
 package controller.examiner;
 
+import java.net.*;
+import java.nio.charset.*;
+
+import dto.*;
+
 
 import service.ExaminerActionsService;
 import service.ExaminerSessionContextService;
@@ -8,7 +13,7 @@ import service.impl.ExaminerActionsServiceImpl;
 import service.impl.ExaminerDataServiceImpl;
 
 import enums.SectionType;
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -62,8 +67,8 @@ public abstract class BaseExaminerServlet extends HttpServlet {
     protected String resolveSectionName(HttpSession session) {
         if (session == null) return null;
         Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
-        if (slotObj instanceof dto.examiner.ExaminerSlotDTO) {
-            return ((dto.examiner.ExaminerSlotDTO) slotObj).getExamTypeName();
+        if (slotObj instanceof ExaminerSlotDTO) {
+            return ((ExaminerSlotDTO) slotObj).getExamTypeName();
         }
         Object name = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
         return name != null ? String.valueOf(name) : null;
@@ -72,7 +77,7 @@ public abstract class BaseExaminerServlet extends HttpServlet {
     protected String resolveCallDestination(HttpSession session) {
         if (session == null) return "Khu vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±c thi";
         Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
-        if (slotObj instanceof dto.examiner.ExaminerSlotDTO slot && slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
+        if (slotObj instanceof ExaminerSlotDTO slot && slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
             return slot.getAreaName();
         }
         Object sectionName = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
@@ -109,7 +114,7 @@ public abstract class BaseExaminerServlet extends HttpServlet {
         if (value == null) {
             return "";
         }
-        return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     // Parses an array of deduction ID strings into an int array.

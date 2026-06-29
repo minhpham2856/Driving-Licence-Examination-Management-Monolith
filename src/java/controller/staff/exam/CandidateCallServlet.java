@@ -1,4 +1,8 @@
 package controller.staff.exam;
+import dto.*;
+import model.*;
+
+import java.util.*;
 
 import service.ExamRegistrationService;
 
@@ -9,11 +13,11 @@ import service.ExamSessionControlService;
 import service.impl.AuditLogServiceImpl;
 import service.impl.ExamSessionControlServiceImpl;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
-import model.user.Audit;
+import model.Audit;
 
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
@@ -21,7 +25,7 @@ import service.impl.CandidatePhotoServiceImpl;
 import service.CandidateCallBoardService;
 import service.impl.CandidateCallBoardServiceImpl;
 
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -94,7 +98,7 @@ public class CandidateCallServlet extends HttpServlet {
 
         List<CandidateEnrollmentDTO> permanentAbsents = (List<CandidateEnrollmentDTO>) session.getAttribute("permanentAbsents");
         if (permanentAbsents == null) {
-            permanentAbsents = new java.util.ArrayList<>();
+            permanentAbsents = new ArrayList<>();
             session.setAttribute("permanentAbsents", permanentAbsents);
         }
 
@@ -245,7 +249,7 @@ public class CandidateCallServlet extends HttpServlet {
             }
         } else if ("endShift".equals(qAction)) {
             if (candidateQueue != null) {
-                java.util.List<CandidateEnrollmentDTO> toRemove = new java.util.ArrayList<>();
+                List<CandidateEnrollmentDTO> toRemove = new ArrayList<>();
                 for (CandidateEnrollmentDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {

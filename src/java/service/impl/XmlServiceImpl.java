@@ -1,9 +1,13 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import java.text.*;
 
 
 import service.XmlService;
-import dto.xml.XmlExportDocument;
-import dto.xml.XmlExportTable;
+import dto.XmlExportDocument;
+import dto.XmlExportTable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -264,7 +268,7 @@ public class XmlServiceImpl implements XmlService {
         
         if (value instanceof Date) {
             Date date = (Date) value;
-            return new java.text.SimpleDateFormat("dd/MM/yyyy").format(date);
+            return new SimpleDateFormat("dd/MM/yyyy").format(date);
         }
         
         return value.toString();

@@ -1,15 +1,15 @@
 package dao;
 
-import model.candidate.Candidate;
+import model.Candidate;
 import java.util.List;
 
 public interface CandidateDAO {
 
-    Candidate findById(int candidateId);
+    Candidate getById(int candidateId);
 
-    Candidate findByNumber(String candidateNumber);
+    Candidate getByNumber(String candidateNumber);
 
-    List<Candidate> findByIds(List<Integer> candidateIds);
+    List<Candidate> getAllByIds(List<Integer> candidateIds);
 
     int insert(Candidate candidate);
 

@@ -1,8 +1,10 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import dao.RoleDAO;
 import dao.impl.RoleDAOImpl;
-import model.user.Role;
+import model.Role;
 import service.RoleService;
 
 public class RoleServiceImpl implements RoleService {

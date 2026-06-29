@@ -1,4 +1,8 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import java.sql.*;
 
 import dao.UserDAO;
 import dao.ExamAreaDAO;
@@ -10,9 +14,9 @@ import dao.impl.ExamAreaDAOImpl;
 import dao.impl.ExamDAOImpl;
 import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.AuditDAOImpl;
-import model.admin.RecentActivityModel;
-import model.user.Audit;
-import model.user.User;
+import model.RecentActivityModel;
+import model.Audit;
+import model.User;
 import service.AdminDashboardService;
 
 import java.text.SimpleDateFormat;
@@ -60,7 +64,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         }
         
         
-        List<User> users = userDAO.findByIds(userIds);
+        List<User> users = userDAO.getAllByIds(userIds);
         
         List<RecentActivityModel> list = new ArrayList<>();
         SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -71,7 +75,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
             r.setModule(log.getEntityName());
             r.setRecordId(log.getEntityId());
             
-            java.sql.Timestamp ts = log.getCreatedAt();
+            Timestamp ts = log.getCreatedAt();
             r.setTimestamp((ts == null) ? "" : fmt.format(ts));
             
             String username = "Hệ thống";

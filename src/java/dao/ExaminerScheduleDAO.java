@@ -1,12 +1,12 @@
 package dao;
 
-import model.exam.ExaminerSchedule;
+import model.ExaminerSchedule;
 import java.util.List;
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 import java.sql.Date;
 import java.util.Map;
 import java.util.Set;
-import dto.user.UserDTO;
+import dto.UserDTO;
 
 public interface ExaminerScheduleDAO {
 

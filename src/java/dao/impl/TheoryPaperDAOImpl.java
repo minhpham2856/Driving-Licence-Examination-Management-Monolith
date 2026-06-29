@@ -1,8 +1,10 @@
 package dao.impl;
 
+import java.util.*;
+
 import dao.TheoryPaperDAO;
 import dbconnection.DBContext;
-import model.exam.TheoryPaper;
+import model.TheoryPaper;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,7 +14,7 @@ import java.util.List;
 public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
 
     @Override
-    public TheoryPaper findByExamEnrollmentId(int examEnrollmentId) {
+    public TheoryPaper getByExamEnrollmentId(int examEnrollmentId) {
         String sql = "SELECT * FROM TheoryPaper WHERE ExamEnrollmentId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examEnrollmentId);
@@ -34,8 +36,8 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
     }
 
     @Override
-    public List<TheoryPaper> findByExamEnrollmentIds(List<Integer> examEnrollmentIds) {
-        List<TheoryPaper> list = new java.util.ArrayList<>();
+    public List<TheoryPaper> getAllByExamEnrollmentIds(List<Integer> examEnrollmentIds) {
+        List<TheoryPaper> list = new ArrayList<>();
         if (examEnrollmentIds == null || examEnrollmentIds.isEmpty()) {
             return list;
         }

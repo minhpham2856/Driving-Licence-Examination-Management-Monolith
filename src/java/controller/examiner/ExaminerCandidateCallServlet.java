@@ -1,7 +1,11 @@
 package controller.examiner;
 
+import java.util.*;
 
-import model.user.User;
+import model.*;
+
+
+import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +38,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
 
             // Route absence confirmation from the modal
             if ("1".equals(request.getParameter("absenceConfirmed"))) {
-                examinerService.markAbsent(sessionId, sbd, ((model.user.User) session.getAttribute("user")).getUserId());
+                examinerService.markAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId());
                 redirect(response, request, "/views/examiner/candidate-call?absentDone=" + urlEncode(sbd));
                 return;
             }
@@ -45,7 +49,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                 }
             }
 
-            java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
         forward(request, response, "/views/examiner/candidate-call.jsp");
@@ -67,7 +71,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         if ("callSelected".equals(request.getParameter("action"))) {
             User user = (User) session.getAttribute("user");
             String[] sbds = request.getParameterValues("sbd");
-            int count = examinerService.callSelectedCandidates(sessionId, sbds, user, ((model.user.User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session));
+            int count = examinerService.callSelectedCandidates(sessionId, sbds, user, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session));
             if (count <= 0) {
                 redirect(response, request, "/views/examiner/candidate-call?error=callSelectedFailed");
                 return;
@@ -86,7 +90,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         switch (action) {
             case "call" -> {
                 if (sbd == null || sbd.isBlank()) {
-                    String calledSbd = examinerService.callNextCandidate(sessionId, user, ((model.user.User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session));
+                    String calledSbd = examinerService.callNextCandidate(sessionId, user, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session));
                     if (calledSbd == null) {
                         redirect(response, request, "/views/examiner/candidate-call?error=noCandidate");
                         return true;
@@ -94,7 +98,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     redirect(response, request, "/views/examiner/candidate-call?called=" + urlEncode(calledSbd));
                     return true;
                 }
-                if (!examinerService.callCandidate(sessionId, sbd, user, ((model.user.User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session))) {
+                if (!examinerService.callCandidate(sessionId, sbd, user, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session))) {
                     redirect(response, request, "/views/examiner/candidate-call?error=callFailed&sbd=" + urlEncode(sbd));
                     return true;
                 }
@@ -106,7 +110,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.undoAbsent(sessionId, sbd, ((model.user.User) session.getAttribute("user")).getUserId())) {
+                if (!examinerService.undoAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId())) {
                     redirect(response, request, "/views/examiner/candidate-call?error=undoAbsentFailed&sbd=" + urlEncode(sbd));
                     return true;
                 }
@@ -118,7 +122,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.markAbsent(sessionId, sbd, ((model.user.User) session.getAttribute("user")).getUserId())) {
+                if (!examinerService.markAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId())) {
                     redirect(response, request, "/views/examiner/candidate-call?error=absentFailed&sbd=" + urlEncode(sbd));
                     return true;
                 }
@@ -130,7 +134,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.printSignatureForm(sessionId, sbd, ((model.user.User) session.getAttribute("user")).getUserId())) {
+                if (!examinerService.printSignatureForm(sessionId, sbd, ((User) session.getAttribute("user")).getUserId())) {
                     redirect(response, request, "/views/examiner/candidate-call?error=signaturePrintFailed&sbd=" + urlEncode(sbd));
                     return true;
                 }
@@ -142,7 +146,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                String completeError = examinerService.completeCandidateSection(sessionId, sbd, ((model.user.User) session.getAttribute("user")).getUserId());
+                String completeError = examinerService.completeCandidateSection(sessionId, sbd, ((User) session.getAttribute("user")).getUserId());
                 if ("needSignaturePrint".equals(completeError)) {
                     redirect(response, request, "/views/examiner/candidate-call?error=needSignaturePrint&sbd=" + urlEncode(sbd));
                     return true;

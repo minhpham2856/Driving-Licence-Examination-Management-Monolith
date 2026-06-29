@@ -1,6 +1,8 @@
 package service;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.*;
+
+import dto.ExaminerSlotDTO;
 import java.util.List;
 
 public interface ExamSessionControlService {
@@ -46,7 +48,7 @@ public interface ExamSessionControlService {
     StartResult startSession(int sessionId, int staffUserId);
     EndResult endSession(int sessionId);
     List<ExaminerSlotDTO> getLoginEligibleAssignments(int examinerUserId);
-    dto.exam.SessionDTO getSessionById(int id);
-    List<dto.exam.SessionDTO> getAllSessions();
-    List<dto.exam.SessionDTO> getActiveSessions();
+    SessionDTO getSessionById(int id);
+    List<SessionDTO> getAllSessions();
+    List<SessionDTO> getActiveSessions();
 }

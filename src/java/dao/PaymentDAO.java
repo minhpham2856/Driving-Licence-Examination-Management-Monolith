@@ -1,7 +1,7 @@
 package dao;
 
 
-import model.payment.Payment;
+import model.Payment;
 
 
 public interface PaymentDAO {

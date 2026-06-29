@@ -1,6 +1,6 @@
 package service;
 
-import model.admin.RecentActivityModel;
+import model.RecentActivityModel;
 import java.util.List;
 
 public interface AdminDashboardService {

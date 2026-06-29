@@ -1,10 +1,10 @@
 package service;
 
-import model.exam.ExamArea;
+import model.ExamArea;
 import java.util.List;
 
 public interface ExamAreaService {
-    ExamArea findById(int id);
+    ExamArea getById(int id);
     List<ExamArea> search(String keyword, String type);
     int countAll();
     List<ExamArea> getActiveTheoryRooms();

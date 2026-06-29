@@ -1,10 +1,12 @@
 package dao.impl;
 
+import java.util.*;
+
 import dbconnection.DBContext;
 
 import dao.ProfileDAO;
 
-import model.user.Profile;
+import model.Profile;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -179,9 +181,9 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
     }
 
     @Override
-    public java.util.List<Profile> findByUserIds(java.util.List<Integer> userIds) {
+    public List<Profile> getAllByUserIds(List<Integer> userIds) {
         if (userIds == null || userIds.isEmpty()) {
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         }
         StringBuilder placeholders = new StringBuilder();
         for (int i = 0; i < userIds.size(); i++) {
@@ -191,7 +193,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
             }
         }
         String sql = PROFILE_SELECT + " WHERE UserId IN (" + placeholders.toString() + ")";
-        java.util.List<Profile> list = new java.util.ArrayList<>();
+        List<Profile> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             for (int i = 0; i < userIds.size(); i++) {
                 ps.setInt(i + 1, userIds.get(i));

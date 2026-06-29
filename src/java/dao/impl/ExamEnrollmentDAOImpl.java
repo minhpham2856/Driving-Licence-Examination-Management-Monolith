@@ -1,15 +1,17 @@
 package dao.impl;
 
+import model.*;
+
 import dao.ExamEnrollmentDAO;
-import model.exam.ExamEnrollment;
+import model.ExamEnrollment;
 import java.util.ArrayList;
 import java.util.List;
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
 public class ExamEnrollmentDAOImpl implements ExamEnrollmentDAO {
 
     @Override
-    public ExamEnrollment findById(int examEnrollmentId) { return null; }
+    public ExamEnrollment getById(int examEnrollmentId) { return null; }
 
     @Override
     public int insert(ExamEnrollment enrollment) { return 0; }
@@ -36,7 +38,7 @@ public class ExamEnrollmentDAOImpl implements ExamEnrollmentDAO {
     @Override
     public boolean clearAbsentMarking(int candidateId) { return false; }
     public boolean assignExamDevice(int regId, int sessionId, int deviceId) { return false; }
-    public model.exam.ExamEnrollment findBySessionAndCandidate(int sessionId, int candidateId) { return null; }
+    public ExamEnrollment getBySessionAndCandidate(int sessionId, int candidateId) { return null; }
 }
 
 

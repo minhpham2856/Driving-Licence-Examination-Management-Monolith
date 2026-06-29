@@ -1,7 +1,9 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import enums.SectionType;
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 import service.ExamSessionControlService;
 import service.ExaminerSessionContextService;
 import static service.ExaminerSessionContextService.ATTR_ACTIVE_SESSION_ID;

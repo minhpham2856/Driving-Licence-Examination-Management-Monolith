@@ -1,7 +1,7 @@
 package dao;
 
 
-import model.licence.Licence;
+import model.Licence;
 import java.util.List;
 
 
@@ -14,7 +14,7 @@ public interface LicenceDAO {
     List<Licence> search(String keyword);
 
     
-    Licence findById(int licenceId);
+    Licence getById(int licenceId);
 
     
     boolean existsByClass(String licenceClass, int excludeId);

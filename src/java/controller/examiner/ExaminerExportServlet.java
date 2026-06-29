@@ -3,9 +3,9 @@ package controller.examiner;
 
 import enums.SectionType;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import dto.examiner.ExaminerExportContext;
+import dto.ExaminerExportContext;
 import service.ExaminerSessionContextService;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;

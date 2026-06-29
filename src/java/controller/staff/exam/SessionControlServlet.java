@@ -1,6 +1,11 @@
 package controller.staff.exam;
 
-import model.user.User;
+import dto.*;
+import model.*;
+import service.*;
+import service.impl.*;
+
+import model.User;
 import service.ExamSessionControlService;
 import service.impl.ExamSessionControlServiceImpl;
 import service.AuditLogService;
@@ -16,7 +21,7 @@ import java.io.IOException;
 
 @WebServlet("/views/staff/exam/session-control")
 public class SessionControlServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
     private final ExamSessionControlService controlService = new ExamSessionControlServiceImpl();
 
     @Override
@@ -36,7 +41,7 @@ public class SessionControlServlet extends HttpServlet {
                 session.removeAttribute("shiftEnded");
                 session.removeAttribute("callingSbd");
 
-                auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), "UPDATE Session",
+                auditLogService.persist(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
                         "BAAA,AA,A_t A?zA,EoAAA,AA,A u ca thi SessionId=" + sessionId + " - " + result.getSessionName()
                                 + " (" + result.getExaminerCount() + " sA'A,At hAAA,AA,Ach viA'A,An)",
                         sessionId);
@@ -51,8 +56,8 @@ public class SessionControlServlet extends HttpServlet {
                 if (active != null && active == sessionId) {
                     getServletContext().removeAttribute("examActiveSessionId");
                 }
-                service.CandidateCallBoardService boardService = new service.impl.CandidateCallBoardServiceImpl();
-                dto.candidate.CandidateCallBoardStateDTO board = boardService.getState(getServletContext(), sessionId);
+                CandidateCallBoardService boardService = new CandidateCallBoardServiceImpl();
+                CandidateCallBoardStateDTO board = boardService.getState(getServletContext(), sessionId);
                 if (board != null) {
                     board.setShiftEnded(true);
                     board.setCallingSbd(null);
@@ -63,7 +68,7 @@ public class SessionControlServlet extends HttpServlet {
                     session.removeAttribute("callingSbd");
                 }
 
-                auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), "UPDATE Session",
+                auditLogService.persist(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
                         "KAAA,AA,At thA'A,Ac ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {

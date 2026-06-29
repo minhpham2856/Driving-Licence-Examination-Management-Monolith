@@ -1,7 +1,7 @@
 package service;
 
 
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 
 import jakarta.servlet.ServletContext;
 

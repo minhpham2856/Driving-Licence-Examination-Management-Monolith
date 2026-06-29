@@ -1,7 +1,7 @@
 package dao;
 
 
-import model.exam.ExamArea;
+import model.ExamArea;
 import java.util.List;
 
 
@@ -11,7 +11,7 @@ public interface ExamAreaDAO {
     List<ExamArea> search(String keyword, String areaType);
 
     
-    ExamArea findById(int examAreaId);
+    ExamArea getById(int examAreaId);
 
     
     int insert(ExamArea area);
@@ -24,9 +24,6 @@ public interface ExamAreaDAO {
 
     
     int countAll();
-
-    
-    ExamArea getById(int examAreaId);
 
     
     List<ExamArea> getActiveTheoryRooms();

@@ -1,7 +1,7 @@
 package dao.impl;
 
 import dao.ExamResultDAO;
-import model.exam.ExamResult;
+import model.ExamResult;
 import java.util.ArrayList;
 import java.util.List;
 

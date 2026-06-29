@@ -1,11 +1,16 @@
 package dao.impl;
 
+import java.sql.*;
+import java.util.*;
+
+import service.*;
+
 import dbconnection.DBContext;
 
 import dao.UserDAO;
 
-import model.user.Profile;
-import model.user.User;
+import model.Profile;
+import model.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -136,7 +141,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
         int roleId = user.getRoleId();
         if (roleId <= 0) {
-            service.RoleService roleService = new RoleServiceImpl();
+            RoleService roleService = new RoleServiceImpl();
             roleId = roleService.getRoleIdByName("Registrant");
         }
 
@@ -203,9 +208,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     }
 
     @Override
-    public List<User> findByIds(List<Integer> ids) {
+    public List<User> getAllByIds(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         }
         StringBuilder placeholders = new StringBuilder();
         for (int i = 0; i < ids.size(); i++) {
@@ -215,12 +220,12 @@ public class UserDAOImpl extends DBContext implements UserDAO {
             }
         }
         String sql = USER_SELECT + " WHERE UserId IN (" + placeholders.toString() + ")";
-        List<User> list = new java.util.ArrayList<>();
+        List<User> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             for (int i = 0; i < ids.size(); i++) {
                 ps.setInt(i + 1, ids.get(i));
             }
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToUser(rs));
                 }

@@ -1,6 +1,6 @@
 package service;
 
-import dto.user.CreateUserResultDTO;
+import dto.CreateUserResultDTO;
 
 public interface UserManagementService {
 

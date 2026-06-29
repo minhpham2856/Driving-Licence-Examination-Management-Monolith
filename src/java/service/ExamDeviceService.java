@@ -1,6 +1,6 @@
 package service;
 
-import dto.exam.ExamDeviceViewDTO;
+import dto.ExamDeviceViewDTO;
 import java.util.List;
 
 public interface ExamDeviceService {

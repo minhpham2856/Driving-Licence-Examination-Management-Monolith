@@ -1,7 +1,7 @@
 package controller.auth.general;
 
 
-import dto.auth.RegisterResultDTO;
+import dto.RegisterResultDTO;
 
 import service.AuthService;
 import service.impl.AuthServiceImpl;

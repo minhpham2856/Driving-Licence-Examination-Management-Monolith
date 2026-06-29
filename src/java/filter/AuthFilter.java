@@ -1,6 +1,6 @@
 package filter;
 
-import model.user.User;
+import model.User;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;

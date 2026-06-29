@@ -2,7 +2,7 @@ package dao.impl;
 
 import dao.QuestionDAO;
 import dbconnection.DBContext;
-import model.exam.Question;
+import model.Question;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

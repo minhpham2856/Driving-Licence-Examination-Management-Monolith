@@ -1,15 +1,17 @@
 package service;
+
+import model.*;
 import java.util.List;
 import java.util.Map;
 import util.AuditChangeDetails;
-import model.user.AuditRecordModel;
+import model.AuditRecordModel;
 
 public interface AuditLogService {
 
     void persist(Integer actionUserId, String action, String details);
 
     void persist(Integer actionUserId, String action, String details, int recordId);
-    boolean insertAudit(model.user.Audit audit);
+    boolean insertAudit(Audit audit);
 
     void persistChange(Integer actionUserId, String action, String details,
             String oldValue, String newValue, String reason, int recordId);

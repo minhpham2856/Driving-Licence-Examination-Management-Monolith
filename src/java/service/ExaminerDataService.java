@@ -1,7 +1,7 @@
 package service;
 
 import enums.SectionType;
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
 
 import java.util.List;

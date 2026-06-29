@@ -1,8 +1,10 @@
 package dao.impl;
 
+import java.sql.*;
+
 import dbconnection.DBContext;
 import dao.CandidateDAO;
-import model.candidate.Candidate;
+import model.Candidate;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,19 +21,19 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         "ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended FROM Candidate";
 
     @Override
-    public Candidate findById(int candidateId) {
+    public Candidate getById(int candidateId) {
         String sql = BASE_SELECT + " WHERE CandidateId = ?";
         return querySingle(sql, ps -> ps.setInt(1, candidateId));
     }
 
     @Override
-    public Candidate findByNumber(String candidateNumber) {
+    public Candidate getByNumber(String candidateNumber) {
         String sql = BASE_SELECT + " WHERE CandidateNumber = ?";
         return querySingle(sql, ps -> ps.setString(1, candidateNumber));
     }
 
     @Override
-    public List<Candidate> findByIds(List<Integer> candidateIds) {
+    public List<Candidate> getAllByIds(List<Integer> candidateIds) {
         if (candidateIds == null || candidateIds.isEmpty()) return new ArrayList<>();
         StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE CandidateId IN (");
         for (int i = 0; i < candidateIds.size(); i++) {
@@ -61,13 +63,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
             ps.setString(7, c.getAddress());
             
             if (c.getTakeTheory() != null) ps.setBoolean(8, c.getTakeTheory());
-            else ps.setNull(8, java.sql.Types.BIT);
+            else ps.setNull(8, Types.BIT);
             
             if (c.getTakePractical() != null) ps.setBoolean(9, c.getTakePractical()); // maps to TakeLayout
-            else ps.setNull(9, java.sql.Types.BIT);
+            else ps.setNull(9, Types.BIT);
             
             if (c.getTakeRoadLayout() != null) ps.setBoolean(10, c.getTakeRoadLayout()); // maps to TakeRoad
-            else ps.setNull(10, java.sql.Types.BIT);
+            else ps.setNull(10, Types.BIT);
             
             ps.setInt(11, c.getTakeNo());
             ps.setString(12, c.getReasonForTaking());
@@ -101,13 +103,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
             ps.setString(7, c.getAddress());
             
             if (c.getTakeTheory() != null) ps.setBoolean(8, c.getTakeTheory());
-            else ps.setNull(8, java.sql.Types.BIT);
+            else ps.setNull(8, Types.BIT);
             
             if (c.getTakePractical() != null) ps.setBoolean(9, c.getTakePractical()); // maps to TakeLayout
-            else ps.setNull(9, java.sql.Types.BIT);
+            else ps.setNull(9, Types.BIT);
             
             if (c.getTakeRoadLayout() != null) ps.setBoolean(10, c.getTakeRoadLayout()); // maps to TakeRoad
-            else ps.setNull(10, java.sql.Types.BIT);
+            else ps.setNull(10, Types.BIT);
             
             ps.setInt(11, c.getTakeNo());
             ps.setString(12, c.getReasonForTaking());

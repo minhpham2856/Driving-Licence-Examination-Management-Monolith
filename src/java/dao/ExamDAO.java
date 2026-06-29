@@ -1,9 +1,10 @@
 package dao;
 
-
+import model.Exam;
 
 public interface ExamDAO {
-    int countAll();
-    model.exam.Exam findById(int examId);
-}
 
+    int countAll();
+
+    Exam getById(int examId);
+}

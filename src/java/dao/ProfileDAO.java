@@ -1,7 +1,9 @@
 package dao;
 
+import java.util.*;
 
-import model.user.Profile;
+
+import model.Profile;
 
 
 public interface ProfileDAO {
@@ -22,5 +24,5 @@ public interface ProfileDAO {
     boolean update(Profile profile);
 
     
-    java.util.List<Profile> findByUserIds(java.util.List<Integer> userIds);
+    List<Profile> getAllByUserIds(List<Integer> userIds);
 }

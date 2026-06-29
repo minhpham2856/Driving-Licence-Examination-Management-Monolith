@@ -1,12 +1,14 @@
 package dao;
 
-import model.exam.ExamEnrollment;
+import model.*;
+
+import model.ExamEnrollment;
 import java.util.List;
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
 public interface ExamEnrollmentDAO {
 
-    ExamEnrollment findById(int examEnrollmentId);
+    ExamEnrollment getById(int examEnrollmentId);
 
     int insert(ExamEnrollment enrollment);
 
@@ -24,7 +26,7 @@ public interface ExamEnrollmentDAO {
     boolean markAbsent(int candidateId);
     boolean clearAbsentMarking(int candidateId);
     boolean assignExamDevice(int regId, int sessionId, int deviceId);
-    model.exam.ExamEnrollment findBySessionAndCandidate(int sessionId, int candidateId);
+    ExamEnrollment getBySessionAndCandidate(int sessionId, int candidateId);
 }
 
 

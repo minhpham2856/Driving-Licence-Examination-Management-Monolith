@@ -1,18 +1,18 @@
 package dao;
 
 
-import dto.score.TheoryPaperAnswerDTO;
+import dto.TheoryPaperAnswerDTO;
 
 import java.util.List;
 
-import model.exam.TheoryPaper;
+import model.TheoryPaper;
 
 
 public interface TheoryPaperDAO {
 
     
-    TheoryPaper findByExamEnrollmentId(int examEnrollmentId);
+    TheoryPaper getByExamEnrollmentId(int examEnrollmentId);
 
     
-    List<TheoryPaper> findByExamEnrollmentIds(List<Integer> examEnrollmentIds);
+    List<TheoryPaper> getAllByExamEnrollmentIds(List<Integer> examEnrollmentIds);
 }

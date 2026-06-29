@@ -1,4 +1,10 @@
 package controller.staff.exam;
+import dto.*;
+import model.*;
+
+import model.*;
+import service.*;
+import service.impl.*;
 
 import service.ExamRegistrationService;
 
@@ -7,10 +13,10 @@ import service.impl.ExamRegistrationServiceImpl;
 import service.ExamAreaService;
 import service.impl.ExamAreaServiceImpl;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
-import model.exam.ExamArea;
-import dto.exam.SessionDTO;
+import model.ExamArea;
+import dto.SessionDTO;
 
 import service.ExamSessionControlService;
 import service.impl.ExamSessionControlServiceImpl;
@@ -24,9 +30,9 @@ import service.impl.CandidateCallBoardServiceImpl;
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
 
-import dto.examiner.AutoAllocateResultDTO;
+import dto.AutoAllocateResultDTO;
 
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -39,7 +45,7 @@ import java.util.List;
 
 @WebServlet("/views/staff/exam/allocation")
 public class AllocationServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final ExamAreaService areaService = new ExamAreaServiceImpl();
@@ -143,7 +149,7 @@ public class AllocationServlet extends HttpServlet {
                             }
                         } else if ("allocateRoom".equals(action)) {
                             int areaId = Integer.parseInt(request.getParameter("areaId"));
-                            ExamArea targetArea = areaService.findById(areaId);
+                            ExamArea targetArea = areaService.getById(areaId);
                             if (targetArea != null && profile.getAllocatedAreaId() != areaId) {
                                 boolean ok = regService.updateAllocatedRoom(regId, targetArea.getId(), targetArea.getAreaName());
                                 if (ok) {
@@ -249,7 +255,7 @@ public class AllocationServlet extends HttpServlet {
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
         try {
-            auditLogService.persist(((model.user.User) session.getAttribute("user")).getUserId(), action, details, recordId);
+            auditLogService.persist(((User) session.getAttribute("user")).getUserId(), action, details, recordId);
         } catch (Exception e) {
             e.printStackTrace();
         }

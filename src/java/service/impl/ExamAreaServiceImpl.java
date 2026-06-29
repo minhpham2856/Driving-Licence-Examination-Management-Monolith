@@ -1,8 +1,10 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
-import model.exam.ExamArea;
+import model.ExamArea;
 import service.ExamAreaService;
 
 import java.util.List;
@@ -12,8 +14,8 @@ public class ExamAreaServiceImpl implements ExamAreaService {
     private final ExamAreaDAO dao = new ExamAreaDAOImpl();
 
     @Override
-    public ExamArea findById(int id) {
-        return dao.findById(id);
+    public ExamArea getById(int id) {
+        return dao.getById(id);
     }
 
     @Override
@@ -68,7 +70,7 @@ public class ExamAreaServiceImpl implements ExamAreaService {
 
     @Override
     public DeleteResult delete(int id, int adminUserId) {
-        ExamArea area = dao.findById(id);
+        ExamArea area = dao.getById(id);
         if (area == null) {
             return new DeleteResult(false, "Khu vá»±c khÃ´ng tá»“n táº¡i.");
         }

@@ -1,16 +1,16 @@
 package service;
 
 
-import dto.examiner.AutoAllocateResultDTO;
+import dto.AutoAllocateResultDTO;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import dto.user.UserDTO;
+import dto.UserDTO;
 
-import model.exam.ExamArea;
-import model.exam.ExamDevice;
+import model.ExamArea;
+import model.ExamDevice;
 
 import java.sql.Date;
 import java.util.List;

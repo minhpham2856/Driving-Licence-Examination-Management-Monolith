@@ -1,12 +1,19 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import java.sql.*;
+
+import dao.impl.*;
+import model.*;
 
 import dao.CandidateDAO;
 import dao.ExamEnrollmentDAO;
 import dao.impl.CandidateDAOImpl;
 import dao.impl.ExamEnrollmentDAOImpl;
-import dto.candidate.CandidateEnrollmentDTO;
-import dto.candidate.UploadRecordDTO;
-import model.exam.ExamEnrollment;
+import dto.CandidateEnrollmentDTO;
+import dto.UploadRecordDTO;
+import model.ExamEnrollment;
 import service.ExamRegistrationService;
 
 import java.util.ArrayList;
@@ -29,7 +36,7 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
-    public boolean updateProfile(int candidateId, String fullName, java.sql.Date dob, String govIdNo, String email, String phoneNo) {
+    public boolean updateProfile(int candidateId, String fullName, Date dob, String govIdNo, String email, String phoneNo) {
         return false;
     }
 
@@ -79,7 +86,7 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
-    public boolean insertPayment(model.payment.Payment payment) { return new dao.impl.PaymentDAOImpl().insert(payment); }
+    public boolean insertPayment(Payment payment) { return new PaymentDAOImpl().insert(payment); }
 
     @Override
     public boolean updatePayment(int candidateId, boolean isPaid) {
@@ -97,15 +104,15 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
-    public boolean insertProfile(model.user.Profile profile) { return new dao.impl.ProfileDAOImpl().insert(profile); }
+    public boolean insertProfile(Profile profile) { return new ProfileDAOImpl().insert(profile); }
     @Override
-    public boolean updateProfile(model.user.Profile profile) { return new dao.impl.ProfileDAOImpl().update(profile); }
+    public boolean updateProfile(Profile profile) { return new ProfileDAOImpl().update(profile); }
     @Override
-    public model.user.Profile getProfileByGovId(String govId) { return new dao.impl.ProfileDAOImpl().getByGovIdNo(govId); }
+    public Profile getProfileByGovId(String govId) { return new ProfileDAOImpl().getByGovIdNo(govId); }
     @Override
-    public boolean insertUser(model.user.User user) { return new dao.impl.UserDAOImpl().insert(user); }
+    public boolean insertUser(User user) { return new UserDAOImpl().insert(user); }
     @Override
-    public model.user.User getUserByUsername(String username) { return new dao.impl.UserDAOImpl().getByUsername(username); }
+    public User getUserByUsername(String username) { return new UserDAOImpl().getByUsername(username); }
 
     @Override
     public boolean insert(UploadRecordDTO dto) {

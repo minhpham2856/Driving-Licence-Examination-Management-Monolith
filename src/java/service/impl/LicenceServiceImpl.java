@@ -1,8 +1,10 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import dao.LicenceDAO;
 import dao.impl.LicenceDAOImpl;
-import model.licence.Licence;
+import model.Licence;
 import service.LicenceService;
 
 import java.util.List;
@@ -22,8 +24,8 @@ public class LicenceServiceImpl implements LicenceService {
     }
 
     @Override
-    public Licence findById(int id) {
-        return dao.findById(id);
+    public Licence getById(int id) {
+        return dao.getById(id);
     }
 
     @Override

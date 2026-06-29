@@ -2,7 +2,7 @@ package dao.impl;
 
 import dbconnection.DBContext;
 import dao.ExamDeviceDAO;
-import model.exam.ExamDevice;
+import model.ExamDevice;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -127,7 +127,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
     }
 
     @Override
-    public List<ExamDevice> findByAreaIds(List<Integer> areaIds) {
+    public List<ExamDevice> getAllByAreaIds(List<Integer> areaIds) {
         List<ExamDevice> list = new ArrayList<>();
         if (areaIds == null || areaIds.isEmpty()) return list;
         StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE ExamAreaId IN (");

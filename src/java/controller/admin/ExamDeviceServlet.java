@@ -1,10 +1,16 @@
 package controller.admin;
+import dto.*;
+import model.*;
+
+import model.*;
+import service.*;
+import service.impl.*;
 
 import service.ExamDeviceService;
 import service.impl.ExamDeviceServiceImpl;
-import dto.exam.ExamDeviceViewDTO;
+import dto.ExamDeviceViewDTO;
 
-import model.user.User;
+import model.User;
 import service.AuditLogService;
 import util.Sanitize;
 import util.SessionUtil;
@@ -18,7 +24,7 @@ import java.io.IOException;
 
 @WebServlet(name = "ExamDeviceServlet", urlPatterns = {"/admin/exam-computer"})
 public class ExamDeviceServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     private ExamDeviceService examDeviceService;
     private static final String LIST_VIEW = "/views/admin/exam-computer.jsp";
@@ -55,7 +61,7 @@ public class ExamDeviceServlet extends HttpServlet {
             ExamDeviceService.DeleteResult result = examDeviceService.delete(id, adminId);
             
             if (result.success) {
-                auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a mÃ¡y thi id: " + id, id);
+                auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a mÃ¡y thi id: " + id, id);
                 SessionUtil.flash(req, "success", result.message);
             } else {
                 SessionUtil.flash(req, "danger", result.message);
@@ -86,7 +92,7 @@ public class ExamDeviceServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+        auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
                 (isEdit ? "Cáº­p nháº­t mÃ¡y thi: " : "Táº¡o mÃ¡y thi: ") + name, result.id);
         SessionUtil.flash(req, "success", result.message);
         

@@ -1,12 +1,14 @@
 package service.impl;
+import dto.*;
+import model.*;
 
 import dao.CandidateDAO;
 import dao.impl.CandidateDAOImpl;
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 import service.CandidatePhotoService;
 import java.io.File;
 import java.util.List;
-import model.candidate.Candidate;
+import model.Candidate;
 
 public class CandidatePhotoServiceImpl implements CandidatePhotoService {
 
@@ -21,7 +23,7 @@ public class CandidatePhotoServiceImpl implements CandidatePhotoService {
             if (pUrl != null && !pUrl.trim().isEmpty()) {
                 File f = new File(appRoot, pUrl.trim());
                 if (!f.exists() || !f.isFile()) {
-                    Candidate c = candidateDAO.findById(r.getCandidate().getCandidateId());
+                    Candidate c = candidateDAO.getById(r.getCandidate().getCandidateId());
                     if (c != null) {
                         c.setPhotoImageUrl(null);
                         candidateDAO.update(c);

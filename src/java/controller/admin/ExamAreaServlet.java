@@ -1,10 +1,16 @@
 package controller.admin;
+import dto.*;
+import model.*;
+
+import model.*;
+import service.*;
+import service.impl.*;
 
 import service.ExamAreaService;
 import service.impl.ExamAreaServiceImpl;
 
-import model.exam.ExamArea;
-import model.user.User;
+import model.ExamArea;
+import model.User;
 import service.AuditLogService;
 
 import util.Sanitize;
@@ -20,7 +26,7 @@ import java.io.IOException;
 
 @WebServlet(name = "ExamAreaServlet", urlPatterns = {"/admin/exam-area"})
 public class ExamAreaServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     private ExamAreaService examAreaService;
     private static final String LIST_VIEW = "/views/admin/exam-area.jsp";
@@ -41,7 +47,7 @@ public class ExamAreaServlet extends HttpServlet {
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else if ("edit".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            ExamArea area = examAreaService.findById(id);
+            ExamArea area = examAreaService.getById(id);
             if (area == null) {
                 SessionUtil.flash(req, "danger", "KhÃ´ng tÃ¬m tháº¥y khu vá»±c thi cáº§n sá»­a.");
                 resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
@@ -92,7 +98,7 @@ public class ExamAreaServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT",
+        auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT",
                 (isEdit ? "cap nhat khu vuc thi: " : "tao khu vuc thi: ") + name, result.id);
         SessionUtil.flash(req, "success", result.message);
         
@@ -102,13 +108,13 @@ public class ExamAreaServlet extends HttpServlet {
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp, User admin)
             throws IOException {
         int id = Sanitize.toInt(req.getParameter("id"), 0);
-        ExamArea area = examAreaService.findById(id);
+        ExamArea area = examAreaService.getById(id);
         String name = area != null ? area.getAreaName() : String.valueOf(id);
         
         ExamAreaService.DeleteResult result = examAreaService.delete(id, admin.getUserId());
         
         if (result.success) {
-            auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a khu vá»±c thi: " + name, id);
+            auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a khu vá»±c thi: " + name, id);
             SessionUtil.flash(req, "success", result.message);
         } else {
             SessionUtil.flash(req, "danger", result.message);

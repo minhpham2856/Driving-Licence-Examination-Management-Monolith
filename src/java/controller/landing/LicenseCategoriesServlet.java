@@ -2,7 +2,7 @@ package controller.landing;
 
 import service.LicenceService;
 import service.impl.LicenceServiceImpl;
-import model.licence.Licence;
+import model.Licence;
 import util.Sanitize;
 
 import jakarta.servlet.ServletException;

@@ -2,7 +2,7 @@ package dao.impl;
 
 import dao.RoleDAO;
 import dbconnection.DBContext;
-import model.user.Role;
+import model.Role;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;

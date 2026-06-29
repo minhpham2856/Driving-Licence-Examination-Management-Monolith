@@ -2,7 +2,7 @@ package dao.impl;
 
 import dao.CandidateAnswerDAO;
 import dbconnection.DBContext;
-import model.exam.CandidateAnswer;
+import model.CandidateAnswer;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -1,7 +1,13 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import model.*;
+import service.*;
+import service.impl.*;
 
 import enums.SectionType;
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 import dao.AuditDAO;
 import dao.SessionDAO;
 import dao.impl.SessionDAOImpl;
@@ -10,19 +16,19 @@ import dao.impl.ExamDAOImpl;
 import dao.DeductionRecordDAO;
 import dao.impl.DeductionRecordDAOImpl;
 
-import model.user.AuditRecordModel;
+import model.AuditRecordModel;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 
 import dao.CandidateDAO;
 import dao.impl.CandidateDAOImpl;
 import dao.ExamEnrollmentDAO;
 import dao.impl.ExamEnrollmentDAOImpl;
 
-import dto.examiner.ExaminerExportContext;
-import dto.examiner.ExaminerExportPayload;
+import dto.ExaminerExportContext;
+import dto.ExaminerExportPayload;
 import service.ExaminerExportService;
-import dto.xml.XmlExportTable;
+import dto.XmlExportTable;
 import service.AuditLogService;
 
 import java.sql.Time;
@@ -37,7 +43,7 @@ import service.ExaminerDataService;
 
 
 public class ExaminerExportServiceImpl implements ExaminerExportService {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
@@ -69,13 +75,13 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
 
     private Map<String, Object> getSessionExportMeta(int sessionId) {
         Map<String, Object> meta = new LinkedHashMap<>();
-        model.exam.Session s = sessionDAO.findById(sessionId);
+        Session s = sessionDAO.getById(sessionId);
         if (s != null) {
             meta.put("sessionName", s.getSessionName());
             /* meta.put("examDate", s.getExamDate().toString()); */
             meta.put("startTime", s.getStartTime() != null ? s.getStartTime().toString() : "");
             meta.put("endTime", s.getEndTime() != null ? s.getEndTime().toString() : "");
-            model.exam.Exam e = examDAO.findById(s.getExamId());
+            Exam e = examDAO.getById(s.getExamId());
             meta.put("examCode", e != null ? e.getExamCode() : null);
         }
         return meta;

@@ -1,15 +1,19 @@
 
 package service.impl;
+import dto.*;
+import model.*;
+
+import dao.impl.*;
 
 import dao.ProfileDAO;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.RegistrantApplicationDAOImpl;
-import dto.auth.RegisterResultDTO;
-import model.user.Profile;
+import dto.RegisterResultDTO;
+import model.Profile;
 import service.AuthService;
 import service.EmailService;
 import service.UserManagementService;
-import dto.user.CreateUserResultDTO;
+import dto.CreateUserResultDTO;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -28,7 +32,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final AuthService authService = new AuthServiceImpl();
     private final EmailService emailService = new EmailServiceImpl();
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
-    private final dao.impl.RegistrantApplicationDAOImpl applicationDAO = new RegistrantApplicationDAOImpl();
+    private final RegistrantApplicationDAOImpl applicationDAO = new RegistrantApplicationDAOImpl();
 
     @Override
     public CreateUserResultDTO createUser(

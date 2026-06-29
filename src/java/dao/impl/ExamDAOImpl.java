@@ -1,28 +1,30 @@
 package dao.impl;
 
+import java.sql.*;
+
 import dao.ExamDAO;
 import dbconnection.DBContext;
-import model.exam.Exam;
+import model.Exam;
 
 public class ExamDAOImpl extends DBContext implements ExamDAO {
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM Exam";
-        try (java.sql.PreparedStatement ps = getConnection().prepareStatement(sql);
-             java.sql.ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return 0;
     }
 
     @Override
-    public Exam findById(int examId) {
+    public Exam getById(int examId) {
         String sql = "SELECT * FROM Exam WHERE ExamId = ?";
-        try (java.sql.PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examId);
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Exam e = new Exam();
                     e.setExamId(rs.getInt("ExamId"));
@@ -34,7 +36,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
                     return e;
                 }
             }
-        } catch (java.sql.SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;

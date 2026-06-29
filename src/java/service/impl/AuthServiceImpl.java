@@ -1,15 +1,21 @@
 package service.impl;
+import dto.*;
+import model.*;
+
+import java.sql.*;
+
+import service.*;
 
 import dao.ProfileDAO;
 import dao.UserDAO;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
-import dto.auth.ChangePasswordResultDTO;
-import model.user.Profile;
-import dto.auth.RegisterResultDTO;
+import dto.ChangePasswordResultDTO;
+import model.Profile;
+import dto.RegisterResultDTO;
 import service.AuthService;
 import service.EmailService;
-import model.user.User;
+import model.User;
 import util.UsernameGenerator;
 
 import java.sql.Date;
@@ -46,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(email);
         user.setPasswordHash(password);
         user.setActive(true);
-        service.RoleService roleService = new RoleServiceImpl();
+        RoleService roleService = new RoleServiceImpl();
         user.setRoleId(roleService.getRoleIdByName("Registrant"));
 
         if (!userDAO.insert(user)) {
@@ -58,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
         profile.setUserId(user.getUserId());
         profile.setGovIdNo(govIdNo);
         profile.setFullName(fullName);
-        profile.setDateOfBirth(new java.sql.Timestamp(Date.valueOf(dateOfBirth).getTime()));
+        profile.setDateOfBirth(new Timestamp(Date.valueOf(dateOfBirth).getTime()));
         profile.setSex(sex);
         profile.setPhoneNo(phoneNo);
         profile.setAddress(address);

@@ -1,5 +1,7 @@
 package controller.examiner;
 
+import java.util.*;
+
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,7 +34,7 @@ public class ExaminerDashboardServlet extends BaseExaminerServlet {
 
         if (sessionId != null && sessionId > 0) {
             // Attach generic list data
-            java.util.Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(java.util.Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
         String jsp = "/views/examiner/dashboard".equals(path)

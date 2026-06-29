@@ -1,7 +1,7 @@
 package dao.impl;
 
 import dao.ExamScoreDAO;
-import model.exam.ExamScore;
+import model.ExamScore;
 import java.util.ArrayList;
 import java.util.List;
 

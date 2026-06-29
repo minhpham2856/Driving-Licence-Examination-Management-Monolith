@@ -1,9 +1,15 @@
 package controller.admin;
+import dto.*;
+import model.*;
+
+import model.*;
+import service.*;
+import service.impl.*;
 
 import service.LicenceService;
 import service.impl.LicenceServiceImpl;
-import model.licence.Licence;
-import model.user.User;
+import model.Licence;
+import model.User;
 import service.AuditLogService;
 
 import util.Sanitize;
@@ -18,7 +24,7 @@ import java.io.IOException;
 
 @WebServlet(name = "LicenceServlet", urlPatterns = {"/admin/licence-class"})
 public class LicenceServlet extends HttpServlet {
-    private final service.AuditLogService auditLogService = new service.impl.AuditLogServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
 
     private LicenceService licenceService;
     private static final String LIST_VIEW = "/views/admin/licence-class.jsp";
@@ -40,7 +46,7 @@ public class LicenceServlet extends HttpServlet {
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else if ("edit".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            Licence licence = licenceService.findById(id);
+            Licence licence = licenceService.getById(id);
             if (licence == null) {
                 SessionUtil.flash(req, "danger", "KhÃ´ng tÃ¬m tháº¥y háº¡ng GPLX cáº§n sá»­a.");
                 resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
@@ -84,7 +90,7 @@ public class LicenceServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(((model.user.User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+        auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
                 (isEdit ? "Cáº­p Nháº­t Háº¡ng GPLX: " : "Táº¡o háº¡ng GPLX: ") + licenceClass, result.id);
         SessionUtil.flash(req, "success", result.message);
         

@@ -1,6 +1,8 @@
 package dao;
 
-import model.exam.ScoreDeduction;
+import model.*;
+
+import model.DeductionRule;
 import java.util.List;
 
 public interface ScoreDeductionDAO {

@@ -1,14 +1,17 @@
 package dao.impl;
 
+import java.util.*;
+
 
 import dbconnection.DBContext;
 
 import dao.SessionDAO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import model.exam.Session;
+import model.Session;
 import java.sql.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +19,7 @@ import java.util.List;
 public class SessionDAOImpl extends DBContext implements SessionDAO {
 
     
-    @Override
-    public Session findById(int id) {
+    public Session getById(int id) {
         String sql = "SELECT * FROM [Session] WHERE SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -83,7 +85,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
 
     
     @Override
-    public SessionDTO getById(int id) {
+    public SessionDTO getDtoById(int id) {
         String sql = SESSION_SELECT + " WHERE s.SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -135,7 +137,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
 
     
     @Override
-    public List<SessionDTO> getSessionsByExamDate(Date examDate) {
+    public List<SessionDTO> getSessionsByExamDate(java.sql.Date examDate) {
         List<SessionDTO> list = new ArrayList<>();
         String sql = SESSION_SELECT + " WHERE CAST(s.StartTime AS DATE) = ? ORDER BY CAST(s.StartTime AS TIME)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -167,7 +169,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
 
     @Override
     public List<Integer> getExamAreaIds(int sessionId) {
-        List<Integer> list = new java.util.ArrayList<>();
+        List<Integer> list = new ArrayList<>();
         String sql = "SELECT ExamAreaId FROM Session_ExamArea WHERE SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, sessionId);

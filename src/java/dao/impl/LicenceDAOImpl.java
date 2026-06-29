@@ -1,11 +1,13 @@
 package dao.impl;
 
+import java.sql.*;
+
 
 import dao.LicenceDAO;
 
 import dbconnection.DBContext;
 
-import model.licence.Licence;
+import model.Licence;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -68,7 +70,7 @@ public class LicenceDAOImpl implements LicenceDAO {
 
     
     @Override
-    public Licence findById(int licenceId) {
+    public Licence getById(int licenceId) {
         String sql = BASE_SELECT + "WHERE l.LicenceId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -162,6 +164,6 @@ public class LicenceDAOImpl implements LicenceDAO {
 
     
     private void setIntOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
-        if (val == null) ps.setNull(idx, java.sql.Types.INTEGER); else ps.setInt(idx, val);
+        if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }
 }

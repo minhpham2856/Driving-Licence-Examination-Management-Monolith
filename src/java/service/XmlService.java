@@ -1,6 +1,6 @@
 package service;
 
-import dto.xml.XmlExportDocument;
+import dto.XmlExportDocument;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,15 +1,15 @@
 package dao.impl;
 
 import dao.ExaminerScheduleDAO;
-import model.exam.ExaminerSchedule;
-import dto.examiner.ExaminerSlotDTO;
+import model.ExaminerSchedule;
+import dto.ExaminerSlotDTO;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import dto.user.UserDTO;
+import dto.UserDTO;
 
 public class ExaminerScheduleDAOImpl implements ExaminerScheduleDAO {
 

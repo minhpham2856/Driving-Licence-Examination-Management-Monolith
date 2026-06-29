@@ -1,5 +1,9 @@
 
 package service.impl;
+import dto.*;
+import model.*;
+
+import java.util.*;
 
 
 import dao.ExamAreaDAO;
@@ -15,18 +19,18 @@ import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.SessionDAOImpl;
 import dao.impl.ExaminerScheduleDAOImpl;
 
-import dto.examiner.AutoAllocateResultDTO;
+import dto.AutoAllocateResultDTO;
 
 
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import dto.user.UserDTO;
+import dto.UserDTO;
 
-import model.exam.ExamArea;
-import model.exam.ExamDevice;
+import model.ExamArea;
+import model.ExamDevice;
 import service.ExaminerAllocationService;
 
 import java.sql.Date;
@@ -53,7 +57,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
     @Override
     public SessionDTO getSessionById(int sessionId) {
-        return sessionDAO.getById(sessionId);
+        return sessionDAO.getDtoById(sessionId);
     }
 
     @Override
@@ -93,7 +97,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
     @Override
     public List<ExaminerSlotDTO> getAssignmentsBySessionId(int sessionId) {
-        return new java.util.ArrayList<>(); /* return assignmentDAO.getBySessionId(sessionId); */
+        return new ArrayList<>(); /* return assignmentDAO.getBySessionId(sessionId); */
     }
 
     @Override

@@ -1,8 +1,8 @@
 package service;
 
-import dto.candidate.CandidateEnrollmentDTO;
+import dto.CandidateEnrollmentDTO;
 import enums.SectionType;
-import model.user.User;
+import model.User;
 
 public interface ExaminerActionsService {
 

@@ -2,7 +2,7 @@ package controller.auth.internal;
 
 import service.AuthService;
 import service.ExaminerSessionContextService;
-import model.user.User;
+import model.User;
 import service.impl.AuthServiceImpl;
 import service.impl.ExaminerSessionContextServiceImpl;
 
