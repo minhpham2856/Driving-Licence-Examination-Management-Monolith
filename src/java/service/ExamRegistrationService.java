@@ -1,6 +1,7 @@
 package service;
 
 import dto.candidate.CandidateEnrollmentDTO;
+import dto.candidate.UploadRecordDTO;
 import java.util.List;
 import java.util.Map;
 
@@ -17,4 +18,21 @@ public interface ExamRegistrationService {
     boolean undoSuspension(int candidateId);
     
     List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
+
+    boolean updateScores(int candidateId, Integer theoryScore, String theoryResult, Integer pracScore, String pracResult);
+    boolean updatePresent(int candidateId, boolean isPresent);
+    
+    boolean updateAllocatedRoom(int candidateId, int areaId, String areaName);
+    boolean updatePayment(int candidateId, boolean isPaid);
+    boolean insertPayment(model.payment.Payment payment);
+    CandidateEnrollmentDTO getById(int candidateId);
+    
+    Integer findCandidateIdByProfileAndSession(int profileId, int sessionId);
+    boolean insert(UploadRecordDTO dto);
+    boolean insertProfile(model.user.Profile profile);
+    boolean updateProfile(model.user.Profile profile);
+    model.user.Profile getProfileByGovId(String govId);
+    boolean insertUser(model.user.User user);
+    model.user.User getUserByUsername(String username);
+    boolean updateRoadScore(int candidateId, int score, String passed);
 }

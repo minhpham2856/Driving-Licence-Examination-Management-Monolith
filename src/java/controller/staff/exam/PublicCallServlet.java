@@ -11,10 +11,10 @@ import dto.candidate.CandidateCallBoardStateDTO;
 
 import service.ExamRegistrationService;
 
-import dao.SessionDAO;
+import service.ExamSessionControlService;
 import service.impl.ExamRegistrationServiceImpl;
 
-import dao.impl.SessionDAOImpl;
+import service.impl.ExamSessionControlServiceImpl;
 
 import dto.candidate.CandidateEnrollmentDTO;
 
@@ -38,7 +38,7 @@ import java.util.List;
 public class PublicCallServlet extends HttpServlet {
 
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
+    private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
     private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
 
@@ -121,7 +121,7 @@ public class PublicCallServlet extends HttpServlet {
 
         SessionDTO currentSession = null;
         try {
-            currentSession = sessionDAO.getById(sessionId);
+            currentSession = sessionService.getSessionById(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
         }

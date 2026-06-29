@@ -159,4 +159,18 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         d.setExamAreaId(rs.getInt("ExamAreaId"));
         return d;
     }
+
+    public int countByStatus(boolean isActive) { return 0; }
+
+    public List<ExamDevice> search(String keyword, boolean isActive) {
+        return new ArrayList<>();
+    }
 }
+
+
+
+
+
+
+
+

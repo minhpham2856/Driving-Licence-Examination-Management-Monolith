@@ -1,11 +1,19 @@
 package dao;
 
-import java.util.List;
 import model.exam.ScoreDeduction;
+import java.util.List;
 
 public interface ScoreDeductionDAO {
 
-    List<ScoreDeduction> findAll();
+    ScoreDeduction findById(int scoreDeductionId);
 
-    List<ScoreDeduction> findBySectionId(int examSectionId);
+    int insert(ScoreDeduction deduction);
+
+    boolean update(ScoreDeduction deduction);
+
+    boolean delete(int scoreDeductionId);
+
+    int countAll();
+
+    boolean adjustScoreDeductionOccurrence(int candidateId, int ruleId, int adjustment, int amount);
 }

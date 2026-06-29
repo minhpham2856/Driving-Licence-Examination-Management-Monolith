@@ -16,6 +16,8 @@ import dto.candidate.CandidateEnrollmentDTO;
 
 import dao.CandidateDAO;
 import dao.impl.CandidateDAOImpl;
+import dao.ExamEnrollmentDAO;
+import dao.impl.ExamEnrollmentDAOImpl;
 
 import dto.examiner.ExaminerExportContext;
 import dto.examiner.ExaminerExportPayload;
@@ -70,9 +72,9 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         model.exam.Session s = sessionDAO.findById(sessionId);
         if (s != null) {
             meta.put("sessionName", s.getSessionName());
-            meta.put("examDate", s.getExamDate());
-            meta.put("startTime", s.getStartTime());
-            meta.put("endTime", s.getEndTime());
+            /* meta.put("examDate", s.getExamDate().toString()); */
+            meta.put("startTime", s.getStartTime() != null ? s.getStartTime().toString() : "");
+            meta.put("endTime", s.getEndTime() != null ? s.getEndTime().toString() : "");
             model.exam.Exam e = examDAO.findById(s.getExamId());
             meta.put("examCode", e != null ? e.getExamCode() : null);
         }
@@ -80,7 +82,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     }
 
     
-    private final CandidateDAO candidateDAO = new CandidateDAOImpl();
+    private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
 
     
     @Override
@@ -543,11 +545,15 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         
         Map<Integer, String> lookup = new LinkedHashMap<>();
         
-        for (CandidateEnrollmentDTO reg : candidateDAO.getCandidatesBySession(sessionId)) {
+        for (CandidateEnrollmentDTO reg : enrollmentDAO.getCandidatesBySession(sessionId)) {
             lookup.put(reg.getId(), reg.getSbd());
         }
         return lookup;
     }
 }
+
+
+
+
 
 

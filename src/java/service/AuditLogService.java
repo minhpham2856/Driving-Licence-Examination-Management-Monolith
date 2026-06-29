@@ -9,6 +9,7 @@ public interface AuditLogService {
     void persist(Integer actionUserId, String action, String details);
 
     void persist(Integer actionUserId, String action, String details, int recordId);
+    boolean insertAudit(model.user.Audit audit);
 
     void persistChange(Integer actionUserId, String action, String details,
             String oldValue, String newValue, String reason, int recordId);

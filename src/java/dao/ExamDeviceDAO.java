@@ -14,6 +14,8 @@ public interface ExamDeviceDAO {
     boolean delete(int examDeviceId);
 
     int countAll();
+    List<ExamDevice> search(String keyword, boolean isActive);
+    int countByStatus(boolean isActive);
 
     boolean updateStatus(int examDeviceId, boolean isActive);
 
@@ -21,3 +23,4 @@ public interface ExamDeviceDAO {
 
     List<ExamDevice> findByAreaIds(List<Integer> areaIds);
 }
+

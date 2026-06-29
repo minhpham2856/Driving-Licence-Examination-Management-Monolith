@@ -38,6 +38,9 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
+    public boolean insertAudit(model.user.Audit audit) { return DAO.insert(audit) > 0; }
+
+    @Override
     public void persist(Integer actionUserId, String action, String details, int recordId) {
         insertLog(actionUserId, action, details, null, details, null, null, recordId);
     }
@@ -84,8 +87,8 @@ public class AuditLogServiceImpl implements AuditLogService {
     @Override
     public void persistWarning(Integer actionUserId, String details, String reason, int recordId) {
         try {
-            User user = (User) session.getAttribute("user");
-            int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
+            
+            int userId = (actionUserId != null && actionUserId > 0) ? actionUserId : 3;
 
             Audit log = new Audit();
             log.setEntityName(enumMappingService.auditLabel("Candidate"));
@@ -94,7 +97,7 @@ public class AuditLogServiceImpl implements AuditLogService {
             log.setNewValue(details);
             log.setReason(reason);
             log.setDetails(AuditChangeDetails.toJson(List.of(
-                    new AuditChangeDetails.FieldChange("Trạng thái", "Hoạt động bình thường", "Đình chỉ"))));
+                    new AuditChangeDetails.FieldChange("TrÃƒÂ¡Ã‚ÂºÃ‚Â¡ng thÃƒÆ’Ã‚Â¡i", "HoÃƒÂ¡Ã‚ÂºÃ‚Â¡t Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢ng bÃƒÆ’Ã‚Â¬nh thÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Âng", "Ãƒâ€žÃ‚ÂÃƒÆ’Ã‚Â¬nh chÃƒÂ¡Ã‚Â»Ã¢â‚¬Â°"))));
             log.setUserId(userId);
             log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             DAO.insert(log);
@@ -107,10 +110,10 @@ public class AuditLogServiceImpl implements AuditLogService {
         String upper = action != null ? action.toUpperCase() : "";
         String detailUpper = details != null ? details.toUpperCase() : "";
 
-        if (upper.contains("SCOREENTRY") || detailUpper.contains("HÀNG ĐỢI")) {
+        if (upper.contains("SCOREENTRY") || detailUpper.contains("HÃƒÆ’Ã¢â€šÂ¬NG Ãƒâ€žÃ‚ÂÃƒÂ¡Ã‚Â»Ã‚Â¢I")) {
             return "ScoreEntryQueue";
         }
-        if (upper.contains("EXAMDEVICE") || detailUpper.contains("THIẾT BỊ")) {
+        if (upper.contains("EXAMDEVICE") || detailUpper.contains("THIÃƒÂ¡Ã‚ÂºÃ‚Â¾T BÃƒÂ¡Ã‚Â»Ã…Â ")) {
             return "ExamDevice";
         }
         if (upper.contains("IMPORT")) {
@@ -125,9 +128,9 @@ public class AuditLogServiceImpl implements AuditLogService {
         if (upper.contains("EXAMINER") || upper.contains("ASSIGN") || upper.contains("REMOVE")) {
             return "Session_Examiner";
         }
-        if (detailUpper.contains("ĐIỂM") || detailUpper.contains("DIEM")
-                || upper.contains("EXAMSCORE") || detailUpper.contains("LÝ THUYẾT")
-                || detailUpper.contains("THỰC HÀNH") || detailUpper.contains("ĐƯỜNG TRƯỜNG")) {
+        if (detailUpper.contains("Ãƒâ€žÃ‚ÂIÃƒÂ¡Ã‚Â»Ã¢â‚¬Å¡M") || detailUpper.contains("DIEM")
+                || upper.contains("EXAMSCORE") || detailUpper.contains("LÃƒÆ’Ã‚Â THUYÃƒÂ¡Ã‚ÂºÃ‚Â¾T")
+                || detailUpper.contains("THÃƒÂ¡Ã‚Â»Ã‚Â°C HÃƒÆ’Ã¢â€šÂ¬NH") || detailUpper.contains("Ãƒâ€žÃ‚ÂÃƒâ€ Ã‚Â¯ÃƒÂ¡Ã‚Â»Ã…â€œNG TRÃƒâ€ Ã‚Â¯ÃƒÂ¡Ã‚Â»Ã…â€œNG")) {
             return "ExamScore";
         }
         if (upper.contains("EXAMREGISTRATION") || upper.contains("ALLOCATE")) {
@@ -228,7 +231,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         row.put("sbd", sbd);
         row.put("newValueClass", mapNewValueClass(action));
         row.put("multiline", false);
-        row.put("info", "Thay đổi " + change.field().toLowerCase());
+        row.put("info", "Thay Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¢i " + change.field().toLowerCase());
         row.put("oldValue", nullToDash(change.oldValue()));
         row.put("newValue", nullToDash(change.newValue()));
         row.put("reason", nullToDash(reason));
@@ -284,36 +287,36 @@ public class AuditLogServiceImpl implements AuditLogService {
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
             case "WARNING" ->
-                "Cảnh báo" + sbdSuffix;
+                "CÃƒÂ¡Ã‚ÂºÃ‚Â£nh bÃƒÆ’Ã‚Â¡o" + sbdSuffix;
             case "INSERT" ->
-                "Thêm " + entity.toLowerCase() + sbdSuffix;
+                "ThÃƒÆ’Ã‚Âªm " + entity.toLowerCase() + sbdSuffix;
             case "DELETE" ->
-                "Xóa " + entity.toLowerCase() + sbdSuffix;
+                "XÃƒÆ’Ã‚Â³a " + entity.toLowerCase() + sbdSuffix;
             default ->
-                "Cập nhật " + entity.toLowerCase() + sbdSuffix;
+                "CÃƒÂ¡Ã‚ÂºÃ‚Â­p nhÃƒÂ¡Ã‚ÂºÃ‚Â­t " + entity.toLowerCase() + sbdSuffix;
         };
     }
 
     private String mapActionLabel(String action) {
         return switch (action.toUpperCase()) {
             case "INSERT" ->
-                "Thêm";
+                "ThÃƒÆ’Ã‚Âªm";
             case "DELETE" ->
-                "Xóa";
+                "XÃƒÆ’Ã‚Â³a";
             case "EXPORT" ->
-                "Xuất";
+                "XuÃƒÂ¡Ã‚ÂºÃ‚Â¥t";
             case "ASSIGN" ->
-                "Phân công";
+                "PhÃƒÆ’Ã‚Â¢n cÃƒÆ’Ã‚Â´ng";
             case "IMPORT" ->
-                "Nhập";
+                "NhÃƒÂ¡Ã‚ÂºÃ‚Â­p";
             case "WARNING" ->
-                "Cảnh báo";
+                "CÃƒÂ¡Ã‚ÂºÃ‚Â£nh bÃƒÆ’Ã‚Â¡o";
             case "SYSTEM" ->
-                "Hệ thống";
+                "HÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡ thÃƒÂ¡Ã‚Â»Ã¢â‚¬Ëœng";
             case "APPROVE" ->
-                "Duyệt";
+                "DuyÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡t";
             default ->
-                "Cập nhật";
+                "CÃƒÂ¡Ã‚ÂºÃ‚Â­p nhÃƒÂ¡Ã‚ÂºÃ‚Â­t";
         };
     }
 
@@ -460,4 +463,5 @@ public class AuditLogServiceImpl implements AuditLogService {
         return result;
     }
 }
+
 

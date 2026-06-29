@@ -7,70 +7,61 @@ public class CandidateEnrollmentDTO {
     private CandidateProfileDTO candidate;
     private ExamEnrollment enrollment;
 
-    public CandidateEnrollmentDTO() {
-    }
+    public CandidateEnrollmentDTO() {}
 
     public CandidateEnrollmentDTO(CandidateProfileDTO candidate, ExamEnrollment enrollment) {
         this.candidate = candidate;
         this.enrollment = enrollment;
     }
 
-    public CandidateProfileDTO getCandidate() {
-        return candidate;
-    }
+    public CandidateProfileDTO getCandidate() { return candidate; }
+    public void setCandidate(CandidateProfileDTO candidate) { this.candidate = candidate; }
+    public ExamEnrollment getEnrollment() { return enrollment; }
+    public void setEnrollment(ExamEnrollment enrollment) { this.enrollment = enrollment; }
 
-    public void setCandidate(CandidateProfileDTO candidate) {
-        this.candidate = candidate;
-    }
+    public int getId() { return candidate != null ? candidate.getCandidateId() : 0; }
+    public String getCandidateName() { return candidate != null ? candidate.getFullName() : ""; }
+    public java.sql.Date getDob() { return null; }
+    public String getSbd() { return candidate != null ? candidate.getCandidateNumber() : ""; }
+    public String getCandidateNo() { return candidate != null ? candidate.getCandidateNumber() : ""; }
+    public String getFullName() { return candidate != null ? candidate.getFullName() : ""; }
+    public String getGovIdNo() { return candidate != null ? candidate.getGovernmentIdNumber() : ""; }
+    
+    public boolean isAbsent() { return candidate != null && candidate.isAbsent(); }
+    public void setAbsent(boolean absent) { if (candidate != null) candidate.setAbsent(absent); }
+    public boolean isSuspended() { return candidate != null && candidate.isSuspended(); }
+    public String getSectionStatus() { return enrollment != null ? enrollment.getSectionStatus() : "Pending"; }
+    public void setSectionStatus(String status) { if (enrollment != null) enrollment.setSectionStatus(status); }
+    public boolean isSignaturePrinted() { return enrollment != null && enrollment.isSignaturePrinted(); }
+    public int getExamSessionId() { return enrollment != null ? enrollment.getSessionId() : 0; }
+    public boolean isPaymentCompleted() { return true; }
+    public boolean isValidCapturedPhoto() { return candidate != null && candidate.getPhotoImageUrl() != null && !candidate.getPhotoImageUrl().isEmpty(); }
 
-    public ExamEnrollment getEnrollment() {
-        return enrollment;
-    }
+    public int getAllocatedAreaId() { return 0; }
+    public void setAllocatedAreaId(int id) {}
+    public void setAllocatedAreaName(String name) {}
+    public void setNotes(String n) {}
+    
+    public Integer getTheoryScore() { return 0; }
+    public Integer getPracticalScore() { return 0; }
+    public Integer getRoadTestScore() { return 0; }
+    public boolean isPresent() { return candidate != null && !candidate.isAbsent(); }
+    
+    public void setTheoryPassed(String s) {}
+    public void setPracticalPassed(String s) {}
+    public void setTheoryScore(Integer i) {}
+    public void setPracticalScore(Integer i) {}
+    public void setIsPaymentCompleted(boolean b) {}
+    public void setIsPresent(boolean b) { if (candidate != null) candidate.setAbsent(!b); }
+    public void setValidCapturedPhoto(boolean b) {}
+    public void setRoadTestPassed(String s) {}
+    public void setRoadTestScore(Integer i) {}
+    public void setPhotoUrl(String s) { if(candidate != null) candidate.setPhotoImageUrl(s); }
 
-    public void setEnrollment(ExamEnrollment enrollment) {
-        this.enrollment = enrollment;
-    }
-
-    // Convenience getters for old JSP
-    public int getId() {
-        return candidate != null ? candidate.getCandidateId() : 0;
-    }
-
-    public String getSbd() {
-        return candidate != null ? candidate.getCandidateNumber() : "";
-    }
-
-    public String getCandidateNo() {
-        return candidate != null ? candidate.getCandidateNumber() : "";
-    }
-
-    public String getFullName() {
-        return candidate != null ? candidate.getFullName() : "";
-    }
-
-    public String getGovIdNo() {
-        return candidate != null ? candidate.getGovernmentIdNumber() : "";
-    }
-
-    public boolean isAbsent() {
-        return candidate != null && candidate.isAbsent();
-    }
-
-    public boolean isSuspended() {
-        return candidate != null && candidate.isSuspended();
-    }
-
-    public String getSectionStatus() {
-        return enrollment != null ? enrollment.getSectionStatus() : "Pending";
-    }
-
-    public void setSectionStatus(String status) {
-        if (enrollment != null) {
-            enrollment.setSectionStatus(status);
-        }
-    }
-
-    public boolean isSignaturePrinted() {
-        return enrollment != null && enrollment.isSignaturePrinted();
-    }
+    public java.sql.Timestamp getDateOfBirth() { return null; }
+    public String getEmail() { return ""; }
+    public String getPhoneNo() { return ""; }
+    public String getAddress() { return ""; }
+    public boolean isSex() { return false; }
+    public String getReasonForTaking() { return ""; }
 }

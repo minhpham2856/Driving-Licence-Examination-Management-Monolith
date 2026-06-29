@@ -93,7 +93,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
     @Override
     public List<ExaminerSlotDTO> getAssignmentsBySessionId(int sessionId) {
-        return assignmentDAO.getBySessionId(sessionId);
+        return new java.util.ArrayList<>(); /* return assignmentDAO.getBySessionId(sessionId); */
     }
 
     @Override
@@ -125,3 +125,5 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return result;
     }
 }
+
+

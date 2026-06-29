@@ -4,10 +4,10 @@ import service.ExamRegistrationService;
 
 import service.impl.ExamRegistrationServiceImpl;
 
-import dao.AuditDAO;
-import dao.SessionDAO;
-import dao.impl.AuditDAOImpl;
-import dao.impl.SessionDAOImpl;
+import service.AuditLogService;
+import service.ExamSessionControlService;
+import service.impl.AuditLogServiceImpl;
+import service.impl.ExamSessionControlServiceImpl;
 
 import dto.exam.SessionDTO;
 
@@ -40,8 +40,8 @@ public class CandidateCallServlet extends HttpServlet {
     private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
 
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
-    private final AuditDAO auditDAO = new AuditDAOImpl();
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
+    private final AuditLogService auditService = new AuditLogServiceImpl();
+    private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
     private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
 
@@ -64,7 +64,7 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
 
-        // 1. LuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´n tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â£i hÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â ng ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â£i tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â« DB (ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œng bÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ vÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Âºi bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n thÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¥c)
+        // 1. LuÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â´n tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£i hÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ng ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£i tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â« DB (ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ng bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âºi bÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â n thÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥c)
         int examSessionId = 2;
         Integer selectedSessionId = (Integer) session.getAttribute("selectedSessionId");
         if (selectedSessionId != null) {
@@ -73,7 +73,7 @@ public class CandidateCallServlet extends HttpServlet {
 
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
         boolean isShiftEnded = "true".equals(shiftEndedVal);
-        SessionDTO SessionDTO = sessionDAO.getById(examSessionId);
+        SessionDTO SessionDTO = sessionService.getSessionById(examSessionId);
         if (SessionDTO != null && enumMappingService.isSessionEnded(SessionDTO.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
@@ -110,12 +110,12 @@ public class CandidateCallServlet extends HttpServlet {
                         audit.setUserId(3); // Default staff
                         audit.setAction("CALL");
                         String entityId = c.getExamSessionId() + "-" + c.getCandidateNo();
-                        String detail = "calledTo=BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â m thÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¥c sÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ 2;result=Calling";
+                        String detail = "calledTo=BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â n lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â m thÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥c sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ 2;result=Calling";
                         audit.setReason(detail);
                         audit.setEntityName("Candidate");
                         audit.setEntityId(entityId);
                         audit.setNewValue(detail);
-                        auditDAO.insert(audit);
+                        auditService.insertAudit(audit);
                         break;
                     }
                 }
@@ -139,12 +139,12 @@ public class CandidateCallServlet extends HttpServlet {
                     audit.setUserId(3);
                     audit.setAction("CALL");
                     String entityId = removed.getExamSessionId() + "-" + removed.getCandidateNo();
-                    String detail = "calledTo=BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â m thÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¥c sÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ 2;result=Absent";
+                    String detail = "calledTo=BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â n lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â m thÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥c sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ 2;result=Absent";
                     audit.setReason(detail);
                     audit.setEntityName("Candidate");
                     audit.setEntityId(entityId);
                     audit.setNewValue(detail);
-                    auditDAO.insert(audit);
+                    auditService.insertAudit(audit);
                 }
 
                 // Find next candidate who is not done
@@ -159,12 +159,12 @@ public class CandidateCallServlet extends HttpServlet {
                         audit.setUserId(3);
                         audit.setAction("CALL");
                         String entityId = c.getExamSessionId() + "-" + c.getCandidateNo();
-                        String detail = "calledTo=BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â m thÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â¥c sÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ 2;result=Calling";
+                        String detail = "calledTo=BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â n lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â m thÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥c sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œ 2;result=Calling";
                         audit.setReason(detail);
                         audit.setEntityName("Candidate");
                         audit.setEntityId(entityId);
                         audit.setNewValue(detail);
-                        auditDAO.insert(audit);
+                        auditService.insertAudit(audit);
                         break;
                     }
                 }

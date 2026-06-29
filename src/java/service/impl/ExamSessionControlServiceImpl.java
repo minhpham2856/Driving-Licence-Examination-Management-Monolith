@@ -31,7 +31,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
                     + "\" khAA'ng thAAA' bAAA,AA,A_t A?zA,EoAAA,AA,A u (trAAng thAAi: " + examSession.getStatus() + ").");
         }
 
-        List<ExaminerSlotDTO> assignments = assignmentDAO.getBySessionId(sessionId);
+        List<dto.examiner.ExaminerSlotDTO> assignments = new java.util.ArrayList<>();
         long withArea = assignments.stream().filter(s -> s.getAreaId() > 0).count();
         if (withArea == 0) {
             return StartResult.fail("ChA?A,Aa phAAn cA'ng sAAt hAAch viA'A,An vAAo khu vA?A,Ac thi. "
@@ -62,7 +62,15 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
     }
 
     @Override
+    public dto.exam.SessionDTO getSessionById(int id) { return sessionDAO.getById(id); }
+    @Override
+    public List<dto.exam.SessionDTO> getAllSessions() { return sessionDAO.getAllSessions(); }
+    @Override
+    public List<dto.exam.SessionDTO> getActiveSessions() { return sessionDAO.getActiveSessions(); }
+
+    @Override
     public List<ExaminerSlotDTO> getLoginEligibleAssignments(int examinerUserId) {
         return assignmentDAO.getInProgressAssignmentsForExaminer(examinerUserId);
     }
 }
+

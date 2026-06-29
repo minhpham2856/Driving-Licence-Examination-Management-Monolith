@@ -7,6 +7,7 @@ public interface ExamAreaService {
     ExamArea findById(int id);
     List<ExamArea> search(String keyword, String type);
     int countAll();
+    List<ExamArea> getActiveTheoryRooms();
     SaveResult save(ExamArea area, int adminUserId);
     DeleteResult delete(int id, int adminUserId);
 

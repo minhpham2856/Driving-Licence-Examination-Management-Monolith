@@ -17,18 +17,19 @@ public class CandidatePhotoServiceImpl implements CandidatePhotoService {
         if (qList == null || qList.isEmpty()) return;
 
         for (CandidateEnrollmentDTO r : qList) {
-            String pUrl = r.getProfile().getPhotoImageUrl();
+            String pUrl = r.getCandidate().getPhotoImageUrl();
             if (pUrl != null && !pUrl.trim().isEmpty()) {
                 File f = new File(appRoot, pUrl.trim());
                 if (!f.exists() || !f.isFile()) {
-                    Candidate c = candidateDAO.findById(r.getProfile().getCandidateId());
+                    Candidate c = candidateDAO.findById(r.getCandidate().getCandidateId());
                     if (c != null) {
                         c.setPhotoImageUrl(null);
                         candidateDAO.update(c);
-                        r.getProfile().setPhotoImageUrl(null);
+                        r.getCandidate().setPhotoImageUrl(null);
                     }
                 }
             }
         }
     }
 }
+

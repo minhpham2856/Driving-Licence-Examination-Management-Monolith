@@ -46,4 +46,7 @@ public interface ExamSessionControlService {
     StartResult startSession(int sessionId, int staffUserId);
     EndResult endSession(int sessionId);
     List<ExaminerSlotDTO> getLoginEligibleAssignments(int examinerUserId);
+    dto.exam.SessionDTO getSessionById(int id);
+    List<dto.exam.SessionDTO> getAllSessions();
+    List<dto.exam.SessionDTO> getActiveSessions();
 }
