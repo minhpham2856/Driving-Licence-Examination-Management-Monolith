@@ -1,13 +1,11 @@
 package service.impl;
-import dto.*;
-import model.*;
-
 
 import service.EmailService;
 
 import util.ConfigManager;
 
 import jakarta.mail.*;
+import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 

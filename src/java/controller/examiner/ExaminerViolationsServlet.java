@@ -11,6 +11,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServlet;
+import util.ExaminerUtil;
+import service.ExaminerDataService;
+import service.impl.ExaminerDataServiceImpl;
+import service.ExaminerActionsService;
+import service.impl.ExaminerActionsServiceImpl;
+
 import jakarta.servlet.http.Part;
 import util.ExaminerViolationUploadHelper;
 
@@ -28,17 +35,19 @@ import java.util.Map;
         fileSizeThreshold = 1024 * 1024,
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 10 * 1024 * 1024)
-public class ExaminerViolationsServlet extends BaseExaminerServlet {
+public class ExaminerViolationsServlet extends HttpServlet {
+    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
+    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     // Renders the violations list or the specific violation confirm/undo forms.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = ExaminerUtil.requireSession(request, response);
         if (session == null) return;
 
-        Integer sessionId = activeSessionId(session);
-        String path = stripContextPath(request);
+        Integer sessionId = ExaminerUtil.activeSessionId(session);
+        String path = ExaminerUtil.stripContextPath(request);
         String sbd = request.getParameter("sbd");
         String search = request.getParameter("q");
 
@@ -50,7 +59,7 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
                     // Try to attach if missing
                     Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     if (request.getAttribute("candidate") == null) {
-                        redirect(response, request, "/views/examiner/violations?error=noSbd");
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSbd");
                         return;
                     }
                 }
@@ -59,7 +68,7 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
                     Object candidateObj = request.getAttribute("candidate");
                     if (candidateObj instanceof Map<?, ?> candidateMap) {
                         if (Boolean.TRUE.equals(candidateMap.get("suspended"))) {
-                            redirect(response, request, "/views/examiner/violations?error=alreadySuspended");
+                            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=alreadySuspended");
                             return;
                         }
                     }
@@ -67,14 +76,14 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
                     Object candidateObj = request.getAttribute("candidate");
                     if (candidateObj instanceof Map<?, ?> candidateMap) {
                         if (!Boolean.TRUE.equals(candidateMap.get("suspended"))) {
-                            redirect(response, request, "/views/examiner/violations?error=notSuspended");
+                            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=notSuspended");
                             return;
                         }
                     }
                 }
             }
         } else {
-            redirect(response, request, "/views/examiner/violations?error=noSession");
+            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSession");
             return;
         }
 
@@ -84,23 +93,23 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
             case "/views/examiner/violation-undo" -> "/views/examiner/violation-undo.jsp";
             default -> "/views/examiner/violations.jsp";
         };
-        forward(request, response, jsp);
+        request.getRequestDispatcher(jsp).forward(request, response);
     }
 
     // Handles POST requests for recording violations and undoing suspensions.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = ExaminerUtil.requireSession(request, response);
         if (session == null) return;
 
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ang diÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦n ra.");
             return;
         }
 
-        String path = stripContextPath(request);
+        String path = ExaminerUtil.stripContextPath(request);
         if ("/views/examiner/violation-confirm".equals(path)) {
             handleRecordViolation(request, response, session, sessionId);
             return;
@@ -123,7 +132,7 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         if (reasonCode == null || reasonCode.isBlank()) {
             Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             request.setAttribute("violationError", "Vui lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â²ng chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Ân lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ do vi phÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â¡m.");
-            forward(request, response, "/views/examiner/violation-confirm.jsp");
+            request.getRequestDispatcher("/views/examiner/violation-confirm.jsp").forward(request, response);
             return;
         }
 
@@ -134,7 +143,7 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         } catch (IOException | ServletException e) {
             Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             request.setAttribute("violationError", e.getMessage() != null ? e.getMessage() : "KhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´ng tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â£i ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â£c file minh chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â©ng.");
-            forward(request, response, "/views/examiner/violation-confirm.jsp");
+            request.getRequestDispatcher("/views/examiner/violation-confirm.jsp").forward(request, response);
             return;
         }
 
@@ -144,15 +153,15 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         }
 
         String[] deductionParams = request.getParameterValues("deductionId");
-        int[] deductionIds = parseDeductionIds(deductionParams);
+        int[] deductionIds = ExaminerUtil.parseDeductionIds(deductionParams);
 
         boolean saved = examinerService.recordViolation(
-                sessionId, sbd, reasonCode, reasonDetail, evidencePath, deductionIds, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session));
+                sessionId, sbd, reasonCode, reasonDetail, evidencePath, deductionIds, ((User) session.getAttribute("user")).getUserId(), ExaminerUtil.resolveSectionType(session), ExaminerUtil.resolveSectionName(session));
         if (saved) {
-            redirect(response, request, returnTo + "?suspended=" + urlEncode(sbd));
+            response.sendRedirect(request.getContextPath() + returnTo + "?suspended=" + ExaminerUtil.urlEncode(sbd));
             return;
         }
-        redirect(response, request, "/views/examiner/violation-confirm?sbd=" + urlEncode(sbd) + "&error=saveFailed&returnTo=" + urlEncode(returnTo));
+        response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=saveFailed&returnTo=" + ExaminerUtil.urlEncode(returnTo));
     }
 
     // Reverses a suspension and logs the undo action.
@@ -165,16 +174,16 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         if (reasonCode == null || reasonCode.isBlank()) {
             Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
             request.setAttribute("undoError", "Vui lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â²ng chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Ân lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ do hoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡c.");
-            forward(request, response, "/views/examiner/violation-undo.jsp");
+            request.getRequestDispatcher("/views/examiner/violation-undo.jsp").forward(request, response);
             return;
         }
 
         boolean undone = examinerService.undoSuspension(sessionId, sbd, reasonCode, reasonDetail, ((User) session.getAttribute("user")).getUserId());
         if (undone) {
-            redirect(response, request, "/views/examiner/violations?undoSuspended=" + urlEncode(sbd));
+            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?undoSuspended=" + ExaminerUtil.urlEncode(sbd));
             return;
         }
-        redirect(response, request, "/views/examiner/violation-undo?sbd=" + urlEncode(sbd) + "&error=undoFailed");
+        response.sendRedirect(request.getContextPath() + "/views/examiner/violation-undo?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=undoFailed");
     }
 }
 

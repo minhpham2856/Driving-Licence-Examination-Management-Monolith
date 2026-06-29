@@ -11,35 +11,44 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServlet;
+import util.ExaminerUtil;
+import service.ExaminerDataService;
+import service.impl.ExaminerDataServiceImpl;
+import service.ExaminerActionsService;
+import service.impl.ExaminerActionsServiceImpl;
+
 
 import java.io.IOException;
 
 // Handles candidate calling logic, absence marking, and signature printing in the call queue.
 @WebServlet("/views/examiner/candidate-call")
-public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
+public class ExaminerCandidateCallServlet extends HttpServlet {
+    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
+    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     // Handles GET actions for candidate call (call, undoAbsent, markAbsent, completeSection, printSignature).
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = ExaminerUtil.requireSession(request, response);
         if (session == null) return;
 
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = ExaminerUtil.activeSessionId(session);
         String sbd = request.getParameter("sbd");
         String search = request.getParameter("q");
         String action = request.getParameter("action");
 
         if (sessionId != null && sessionId > 0) {
             // Block access to result edit features for theory sections
-            if (isTheorySection(request) && request.getParameter("error") != null && request.getParameter("error").equals("theoryNoResultEdit")) {
+            if (ExaminerUtil.isTheorySection(request) && request.getParameter("error") != null && request.getParameter("error").equals("theoryNoResultEdit")) {
                 // Keep the error parameter and render
             }
 
             // Route absence confirmation from the modal
             if ("1".equals(request.getParameter("absenceConfirmed"))) {
                 examinerService.markAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId());
-                redirect(response, request, "/views/examiner/candidate-call?absentDone=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?absentDone=" + ExaminerUtil.urlEncode(sbd));
                 return;
             }
 
@@ -52,17 +61,17 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
         }
 
-        forward(request, response, "/views/examiner/candidate-call.jsp");
+        request.getRequestDispatcher("/views/examiner/candidate-call.jsp").forward(request, response);
     }
 
     // Handles POST requests, specifically batch calling selected candidates.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = ExaminerUtil.requireSession(request, response);
         if (session == null) return;
 
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œang diÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦n ra.");
             return;
@@ -71,12 +80,12 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         if ("callSelected".equals(request.getParameter("action"))) {
             User user = (User) session.getAttribute("user");
             String[] sbds = request.getParameterValues("sbd");
-            int count = examinerService.callSelectedCandidates(sessionId, sbds, user, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session));
+            int count = examinerService.callSelectedCandidates(sessionId, sbds, user, ((User) session.getAttribute("user")).getUserId(), ExaminerUtil.resolveSectionType(session), ExaminerUtil.resolveSectionName(session), ExaminerUtil.resolveCallDestination(session));
             if (count <= 0) {
-                redirect(response, request, "/views/examiner/candidate-call?error=callSelectedFailed");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=callSelectedFailed");
                 return;
             }
-            redirect(response, request, "/views/examiner/candidate-call?calledBatch=" + count);
+            response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?calledBatch=" + count);
             return;
         }
 
@@ -90,72 +99,72 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         switch (action) {
             case "call" -> {
                 if (sbd == null || sbd.isBlank()) {
-                    String calledSbd = examinerService.callNextCandidate(sessionId, user, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session));
+                    String calledSbd = examinerService.callNextCandidate(sessionId, user, ((User) session.getAttribute("user")).getUserId(), ExaminerUtil.resolveSectionType(session), ExaminerUtil.resolveSectionName(session), ExaminerUtil.resolveCallDestination(session));
                     if (calledSbd == null) {
-                        redirect(response, request, "/views/examiner/candidate-call?error=noCandidate");
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noCandidate");
                         return true;
                     }
-                    redirect(response, request, "/views/examiner/candidate-call?called=" + urlEncode(calledSbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?called=" + ExaminerUtil.urlEncode(calledSbd));
                     return true;
                 }
-                if (!examinerService.callCandidate(sessionId, sbd, user, ((User) session.getAttribute("user")).getUserId(), resolveSectionType(session), resolveSectionName(session), resolveCallDestination(session))) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=callFailed&sbd=" + urlEncode(sbd));
+                if (!examinerService.callCandidate(sessionId, sbd, user, ((User) session.getAttribute("user")).getUserId(), ExaminerUtil.resolveSectionType(session), ExaminerUtil.resolveSectionName(session), ExaminerUtil.resolveCallDestination(session))) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=callFailed&sbd=" + ExaminerUtil.urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/candidate-call?called=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?called=" + ExaminerUtil.urlEncode(sbd));
                 return true;
             }
             case "undoAbsent" -> {
                 if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
                 if (!examinerService.undoAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId())) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=undoAbsentFailed&sbd=" + urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=undoAbsentFailed&sbd=" + ExaminerUtil.urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/candidate-call?undoAbsent=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?undoAbsent=" + ExaminerUtil.urlEncode(sbd));
                 return true;
             }
             case "markAbsent" -> {
                 if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
                 if (!examinerService.markAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId())) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=absentFailed&sbd=" + urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=absentFailed&sbd=" + ExaminerUtil.urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/candidate-call?absentDone=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?absentDone=" + ExaminerUtil.urlEncode(sbd));
                 return true;
             }
             case "printSignature" -> {
                 if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
                 if (!examinerService.printSignatureForm(sessionId, sbd, ((User) session.getAttribute("user")).getUserId())) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=signaturePrintFailed&sbd=" + urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=signaturePrintFailed&sbd=" + ExaminerUtil.urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/print-documents?sbd=" + urlEncode(sbd) + "&signatureMarked=1");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/print-documents?sbd=" + ExaminerUtil.urlEncode(sbd) + "&signatureMarked=1");
                 return true;
             }
             case "completeSection" -> {
                 if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=noSbd");
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
                 String completeError = examinerService.completeCandidateSection(sessionId, sbd, ((User) session.getAttribute("user")).getUserId());
                 if ("needSignaturePrint".equals(completeError)) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=needSignaturePrint&sbd=" + urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=needSignaturePrint&sbd=" + ExaminerUtil.urlEncode(sbd));
                     return true;
                 }
                 if (completeError != null) {
-                    redirect(response, request, "/views/examiner/candidate-call?error=completeFailed&sbd=" + urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=completeFailed&sbd=" + ExaminerUtil.urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/candidate-call?completeDone=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?completeDone=" + ExaminerUtil.urlEncode(sbd));
                 return true;
             }
             default -> {

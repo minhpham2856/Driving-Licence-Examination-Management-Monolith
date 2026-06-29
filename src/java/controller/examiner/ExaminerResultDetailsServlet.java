@@ -11,6 +11,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServlet;
+import util.ExaminerUtil;
+import service.ExaminerDataService;
+import service.impl.ExaminerDataServiceImpl;
+import service.ExaminerActionsService;
+import service.impl.ExaminerActionsServiceImpl;
+
 
 import java.io.IOException;
 
@@ -19,31 +26,33 @@ import java.io.IOException;
     "/views/examiner/result-details",
     "/views/examiner/result-details-edit"
 })
-public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
+public class ExaminerResultDetailsServlet extends HttpServlet {
+    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
+    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     // Renders the score details view and the score edit form.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = ExaminerUtil.requireSession(request, response);
         if (session == null) return;
 
-        Integer sessionId = activeSessionId(session);
-        String path = stripContextPath(request);
+        Integer sessionId = ExaminerUtil.activeSessionId(session);
+        String path = ExaminerUtil.stripContextPath(request);
         String sbd = request.getParameter("sbd");
         String search = request.getParameter("q");
         String action = request.getParameter("action");
 
         if (sessionId != null && sessionId > 0) {
             // Block access to result edit features for theory sections
-            if (isTheorySection(request)) {
-                redirect(response, request, "/views/examiner/candidate-call?error=theoryNoResultEdit");
+            if (ExaminerUtil.isTheorySection(request)) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
             }
 
             if ("/views/examiner/result-details-edit".equals(path) && "adjustDeduction".equals(action)) {
                 if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, path + "?error=noSbd");
+                    response.sendRedirect(request.getContextPath() + path + "?error=noSbd");
                     return;
                 }
                 int deductionId;
@@ -52,21 +61,21 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                     deductionId = Integer.parseInt(request.getParameter("deductionId"));
                     delta = Integer.parseInt(request.getParameter("delta"));
                 } catch (Exception e) {
-                    redirect(response, request, path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
+                    response.sendRedirect(request.getContextPath() + path + "?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=invalidDeduction");
                     return;
                 }
                 if (!examinerService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, ((User) session.getAttribute("user")).getUserId())) {
-                    redirect(response, request, path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
+                    response.sendRedirect(request.getContextPath() + path + "?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=deductionFailed");
                     return;
                 }
-                redirect(response, request, path + "?sbd=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + path + "?sbd=" + ExaminerUtil.urlEncode(sbd));
                 return;
             }
 
             if ("/views/examiner/result-details-edit".equals(path)) {
                 Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                 if (sbd == null || sbd.isBlank() || request.getAttribute("candidate") == null) {
-                    redirect(response, request, "/views/examiner/result-details");
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/result-details");
                     return;
                 }
                 request.setAttribute("theoryMaxScore", viewDataService.theoryMaxQuestions());
@@ -83,26 +92,26 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
         String jsp = "/views/examiner/result-details-edit".equals(path) 
                 ? "/views/examiner/result-details-edit.jsp" 
                 : "/views/examiner/result-details.jsp";
-        forward(request, response, jsp);
+        request.getRequestDispatcher(jsp).forward(request, response);
     }
 
     // Handles POST requests to save score edit reasons and password validations.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = ExaminerUtil.requireSession(request, response);
         if (session == null) return;
 
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = ExaminerUtil.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "ChÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°a cÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³ ca thi ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ang diÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦n ra.");
             return;
         }
 
-        String path = stripContextPath(request);
+        String path = ExaminerUtil.stripContextPath(request);
         if ("/views/examiner/result-details-edit".equals(path)) {
-            if (isTheorySection(request)) {
-                redirect(response, request, "/views/examiner/candidate-call?error=theoryNoResultEdit");
+            if (ExaminerUtil.isTheorySection(request)) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
             }
 
@@ -129,7 +138,7 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                     sessionId, sbd, reason, reasonDetail, user, password, user.getUserId());
 
             if (updated) {
-                redirect(response, request, "/views/examiner/result-details-edit?sbd=" + urlEncode(sbd) + "&saved=1");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/result-details-edit?sbd=" + ExaminerUtil.urlEncode(sbd) + "&saved=1");
                 return;
             }
             forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "KhÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â´ng lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°u ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£c lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ do. KiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢m tra thÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ sinh vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  ca thi.");
@@ -153,7 +162,7 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
             request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
         }
 
-        forward(request, response, "/views/examiner/result-details-edit.jsp");
+        request.getRequestDispatcher("/views/examiner/result-details-edit.jsp").forward(request, response);
     }
 }
 

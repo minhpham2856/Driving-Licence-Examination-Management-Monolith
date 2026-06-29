@@ -1,6 +1,4 @@
 package service.impl;
-import dto.*;
-import model.*;
 
 import dao.CandidateDAO;
 import dao.impl.CandidateDAOImpl;
@@ -16,7 +14,9 @@ public class CandidatePhotoServiceImpl implements CandidatePhotoService {
 
     @Override
     public void normalizeQueue(String appRoot, List<CandidateEnrollmentDTO> qList) {
-        if (qList == null || qList.isEmpty()) return;
+        if (qList == null || qList.isEmpty()) {
+            return;
+        }
 
         for (CandidateEnrollmentDTO r : qList) {
             String pUrl = r.getCandidate().getPhotoImageUrl();
@@ -34,4 +34,3 @@ public class CandidatePhotoServiceImpl implements CandidatePhotoService {
         }
     }
 }
-
