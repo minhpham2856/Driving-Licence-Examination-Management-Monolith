@@ -2,7 +2,7 @@ package dto;
 
 public class TheoryEntranceDTO {
 
-    private int sessionId;
+    private int examId;
     private int sbd;
     private String fullName;
     private String dob;
@@ -10,12 +10,12 @@ public class TheoryEntranceDTO {
     private String licenceClass;
     private String errorCode;
 
-    public int getSessionId() {
-        return sessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public int getCandidateNumber() {

@@ -6,10 +6,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-public class SessionViewDTO {
+public class ExamViewDTO {
 
     private int id;
-    private boolean morningSession;
+    private boolean morningShift;
     private int licenseTypeId;
     private SectionType examSection;
     private Date examDate;
@@ -23,9 +23,9 @@ public class SessionViewDTO {
     private String licenseCode;
     private String examTypeName;
     private String areaName;
-    private String sessionLabel;
+    private String examLabel;
 
-    public SessionViewDTO() {
+    public ExamViewDTO() {
     }
 
     public int getId() {
@@ -36,20 +36,20 @@ public class SessionViewDTO {
         this.id = id;
     }
 
-    public boolean isMorningSession() {
-        return morningSession;
+    public boolean isMorningShift() {
+        return morningShift;
     }
 
-    public void setMorningSession(boolean morningSession) {
-        this.morningSession = morningSession;
+    public void setMorningShift(boolean morningShift) {
+        this.morningShift = morningShift;
     }
 
-    public String getSessionLabel() {
-        return sessionLabel;
+    public String getExamLabel() {
+        return examLabel;
     }
 
-    public void setSessionLabel(String sessionLabel) {
-        this.sessionLabel = sessionLabel;
+    public void setExamLabel(String examLabel) {
+        this.examLabel = examLabel;
     }
 
     public int getLicenseTypeId() {
