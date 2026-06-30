@@ -7,7 +7,7 @@ public interface CandidateDAO {
 
     Candidate getById(int candidateId);
 
-    Candidate getByNumber(String candidateNumber);
+    Candidate getByNumber(int candidateNumber);
 
     List<Candidate> getAllByIds(List<Integer> candidateIds);
 

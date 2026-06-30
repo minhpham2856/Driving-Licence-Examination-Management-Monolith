@@ -214,7 +214,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {
-        auditLogService.persist(((User) session.getAttribute("user")).getUserId(), action, details);
+        auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details);
     }
 
     @Override

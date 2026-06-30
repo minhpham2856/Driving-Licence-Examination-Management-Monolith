@@ -58,16 +58,16 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
     @Override
     public SaveResult save(ExamDeviceViewDTO dev, Integer adminUserId) {
         if (dev.getDeviceName() == null || dev.getDeviceName().trim().isEmpty()) {
-            return new SaveResult(false, "Vui lÃƒÂ²ng nhÃ¡ÂºÂ­p tÃƒÂªn mÃƒÂ¡y thi.", dev.getExamDeviceId());
+            return new SaveResult(false, "Vui lòng nhập tên máy thi.", dev.getExamDeviceId());
         }
         if (dev.getDeviceType() == null || dev.getDeviceType().trim().isEmpty()) {
-            return new SaveResult(false, "Vui lÃƒÂ²ng nhÃ¡ÂºÂ­p loÃ¡ÂºÂ¡i thiÃ¡ÂºÂ¿t bÃ¡Â»â€¹.", dev.getExamDeviceId());
+            return new SaveResult(false, "Vui lòng nhập loại thiết bị.", dev.getExamDeviceId());
         }
         if (dev.getStatus() == null || dev.getStatus().trim().isEmpty()) {
-            return new SaveResult(false, "Vui lÃƒÂ²ng chÃ¡Â»Ân tÃƒÂ¬nh trÃ¡ÂºÂ¡ng mÃƒÂ¡y.", dev.getExamDeviceId());
+            return new SaveResult(false, "Vui lòng chọn tình trạng máy.", dev.getExamDeviceId());
         }
         if (dev.getExamAreaId() <= 0) {
-            return new SaveResult(false, "Vui lÃƒÂ²ng chÃ¡Â»Ân khu vÃ¡Â»Â±c thi.", dev.getExamDeviceId());
+            return new SaveResult(false, "Vui lòng chọn khu vực thi.", dev.getExamDeviceId());
         }
 
         ExamDevice model = new ExamDevice();
@@ -81,19 +81,19 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         if (isEdit) {
             boolean ok = dao.update(model);
             if (ok) {
-                logAudit(adminUserId, "UPDATE", "ExamDevice", String.valueOf(dev.getExamDeviceId()), "GiÃƒÂ¡m khÃ¡ÂºÂ£o cÃ¡ÂºÂ­p nhÃ¡ÂºÂ­t mÃƒÂ¡y thi");
-                return new SaveResult(true, "Ã„ÂÃƒÂ£ cÃ¡ÂºÂ­p nhÃ¡ÂºÂ­t mÃƒÂ¡y \"" + dev.getDeviceName() + "\".", dev.getExamDeviceId());
+                logAudit(adminUserId, "UPDATE", "ExamDevice", String.valueOf(dev.getExamDeviceId()), "Giám khảo cập nhật máy thi");
+                return new SaveResult(true, "Đã cập nhật máy \"" + dev.getDeviceName() + "\".", dev.getExamDeviceId());
             } else {
-                return new SaveResult(false, "CÃ¡ÂºÂ­p nhÃ¡ÂºÂ­t mÃƒÂ¡y thi thÃ¡ÂºÂ¥t bÃ¡ÂºÂ¡i.", dev.getExamDeviceId());
+                return new SaveResult(false, "Cập nhật máy thi thất bại.", dev.getExamDeviceId());
             }
         } else {
             int newId = dao.insert(model);
             boolean ok = newId > 0;
             if (ok) {
-                logAudit(adminUserId, "INSERT", "ExamDevice", String.valueOf(newId), "GiÃƒÂ¡m khÃ¡ÂºÂ£o thÃƒÂªm mÃƒÂ¡y thi");
-                return new SaveResult(true, "Ã„ÂÃƒÂ£ thÃƒÂªm mÃƒÂ¡y \"" + dev.getDeviceName() + "\".", newId);
+                logAudit(adminUserId, "INSERT", "ExamDevice", String.valueOf(newId), "Giám khảo thêm máy thi");
+                return new SaveResult(true, "Đã thêm máy \"" + dev.getDeviceName() + "\".", newId);
             } else {
-                return new SaveResult(false, "ThÃƒÂªm mÃƒÂ¡y thi thÃ¡ÂºÂ¥t bÃ¡ÂºÂ¡i.", 0);
+                return new SaveResult(false, "Thêm máy thi thất bại.", 0);
             }
         }
     }
@@ -102,14 +102,14 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
     public DeleteResult delete(int id, Integer adminUserId) {
         ExamDevice dev = dao.findById(id);
         if (dev == null) {
-            return new DeleteResult(false, "MÃƒÂ¡y thi khÃƒÂ´ng tÃ¡Â»â€œn tÃ¡ÂºÂ¡i.");
+            return new DeleteResult(false, "Máy thi không tồn tại.");
         }
         boolean ok = id > 0 && dao.delete(id);
         if (ok) {
-            logAudit(adminUserId, "DELETE", "ExamDevice", String.valueOf(id), "GiÃƒÂ¡m khÃ¡ÂºÂ£o xÃƒÂ³a mÃƒÂ¡y thi");
-            return new DeleteResult(true, "Ã„ÂÃƒÂ£ xÃƒÂ³a mÃƒÂ¡y thi.");
+            logAudit(adminUserId, "DELETE", "ExamDevice", String.valueOf(id), "Giám khảo xóa máy thi");
+            return new DeleteResult(true, "Đã xóa máy thi.");
         } else {
-            return new DeleteResult(false, "XÃƒÂ³a mÃƒÂ¡y thi thÃ¡ÂºÂ¥t bÃ¡ÂºÂ¡i.");
+            return new DeleteResult(false, "Xóa máy thi thất bại.");
         }
     }
 

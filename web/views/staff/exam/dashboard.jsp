@@ -220,7 +220,7 @@
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <a href="upload.jsp" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #ffffff; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
+                                <a href="upload" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #ffffff; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
                                     <span style="color: #0052cc; display: inline-flex; align-items: center;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

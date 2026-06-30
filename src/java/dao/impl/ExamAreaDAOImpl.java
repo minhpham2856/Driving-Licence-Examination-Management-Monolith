@@ -79,16 +79,13 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     
     @Override
     public int insert(ExamArea a) {
-        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, Location, CreatedByUserId, UpdatedByUserId) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES (?, ?, ?, ?)";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
             ps.setInt(3, a.getCapacity());
             ps.setString(4, a.getLocation());
-            setIntOrNull(ps, 5, null);
-            setIntOrNull(ps, 6, null);
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) return keys.getInt(1);
@@ -104,16 +101,14 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     
     @Override
     public boolean update(ExamArea a) {
-        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, Location = ?, "
-                   + "UpdatedAt = GETDATE(), UpdatedByUserId = ? WHERE ExamAreaId = ?";
+        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, [Location] = ? WHERE ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
             ps.setInt(3, a.getCapacity());
             ps.setString(4, a.getLocation());
-            setIntOrNull(ps, 5, null);
-            ps.setInt(6, a.getExamAreaId());
+            ps.setInt(5, a.getExamAreaId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

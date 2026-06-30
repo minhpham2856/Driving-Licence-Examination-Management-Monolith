@@ -20,24 +20,25 @@ import java.io.OutputStream;
 public class ExportAuditExcelServlet extends BaseExaminerExportServlet {
 
     private final XmlService fileService = new XmlServiceImpl();
-    
+
     private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         ExaminerExportContext ctx = requireExportContext(request, response);
-        if (ctx == null) return;
+        if (ctx == null) {
+            return;
+        }
 
         ExaminerExportPayload payload = exportService.buildAuditExport(ctx, request.getParameter("q"));
-        
+
         prepareExcelDownload(response, "nhat-ky.xlsx");
 
         OutputStream out = response.getOutputStream();
         fileService.exportToExcel(payload.excelSheetName(), payload.primaryHeaders(), payload.primaryRows(), out);
-        
+
         flush(out);
     }
 }
-

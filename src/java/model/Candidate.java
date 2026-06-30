@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class Candidate {
 
     private int candidateId;
-    private String candidateNumber;
+    private int candidateNumber;
     private String fullName;
     private Timestamp dateOfBirth;
     private String phoneNumber;
@@ -25,7 +25,7 @@ public class Candidate {
     public Candidate() {
     }
 
-    public Candidate(int candidateId, String candidateNumber, String fullName, Timestamp dateOfBirth,
+    public Candidate(int candidateId, int candidateNumber, String fullName, Timestamp dateOfBirth,
                      String phoneNumber, boolean sex, String governmentIdNumber, String address,
                      Boolean takeTheory, Boolean takePractical, Boolean takeRoadLayout, Boolean takeOnRoad,
                      int takeNo, String reasonForTaking, String photoImageUrl,
@@ -57,11 +57,11 @@ public class Candidate {
         this.candidateId = candidateId;
     }
 
-    public String getCandidateNumber() {
+    public int getCandidateNumber() {
         return candidateNumber;
     }
 
-    public void setCandidateNumber(String candidateNumber) {
+    public void setCandidateNumber(int candidateNumber) {
         this.candidateNumber = candidateNumber;
     }
 

@@ -1,9 +1,10 @@
 package dao;
 
-import model.*;
-
 import model.ExamEnrollment;
+
+import java.sql.Date;
 import java.util.List;
+
 import dto.CandidateEnrollmentDTO;
 
 public interface ExamEnrollmentDAO {
@@ -22,7 +23,8 @@ public interface ExamEnrollmentDAO {
 
     List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId);
 
-    boolean updateExaminerProfile(int candidateId, String fullName, String dob, String govIdNo, String email, String phoneNo, String address, String sexDb, String reasonForTaking);
+    boolean updateExaminerProfile(int candidateId, String fullName, Date dob, String govIdNo, String email,
+            String phoneNo, String address, String sexDb, String reasonForTaking);
     boolean markAbsent(int candidateId);
     boolean clearAbsentMarking(int candidateId);
     boolean assignExamDevice(int regId, int sessionId, int deviceId);

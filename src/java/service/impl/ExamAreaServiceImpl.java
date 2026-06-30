@@ -34,16 +34,16 @@ public class ExamAreaServiceImpl implements ExamAreaService {
     @Override
     public SaveResult save(ExamArea area, int adminUserId) {
         if (area.getAreaName() == null || area.getAreaName().trim().isEmpty()) {
-            return new SaveResult(false, "Vui lÃ²ng nháº­p tÃªn khu vá»±c thi.", area.getExamAreaId());
+            return new SaveResult(false, "Vui lòng nhập tên khu vực thi.", area.getExamAreaId());
         }
         if (area.getAreaType() == null || area.getAreaType().trim().isEmpty()) {
-            return new SaveResult(false, "Vui lÃ²ng chá»n loáº¡i khu vá»±c.", area.getExamAreaId());
+            return new SaveResult(false, "Vui lòng chọn loại khu vực.", area.getExamAreaId());
         }
         if (area.getLocation() == null || area.getLocation().trim().isEmpty()) {
-            return new SaveResult(false, "Vui lÃ²ng nháº­p Ä‘á»‹a chá»‰ khu vá»±c.", area.getExamAreaId());
+            return new SaveResult(false, "Vui lòng nhập địa chỉ khu vực.", area.getExamAreaId());
         }
         if (area.getCapacity() <= 0) {
-            return new SaveResult(false, "Sá»©c chá»©a pháº£i lá»›n hÆ¡n 0.", area.getExamAreaId());
+            return new SaveResult(false, "Sức chứa phải lớn hơn 0.", area.getExamAreaId());
         }
 
         boolean isEdit = area.getExamAreaId() > 0;
@@ -51,9 +51,9 @@ public class ExamAreaServiceImpl implements ExamAreaService {
             
             boolean ok = dao.update(area);
             if (ok) {
-                return new SaveResult(true, "da cap nhat khu vuc \"" + area.getAreaName() + "\".", area.getExamAreaId());
+                return new SaveResult(true, "Đã cập nhật khu vực \"" + area.getAreaName() + "\".", area.getExamAreaId());
             } else {
-                return new SaveResult(false, "cap nhat khu vuc that bai", area.getExamAreaId());
+                return new SaveResult(false, "Cập nhật khu vực thất bại.", area.getExamAreaId());
             }
         } else {
             
@@ -61,9 +61,9 @@ public class ExamAreaServiceImpl implements ExamAreaService {
             int newId = dao.insert(area);
             boolean ok = newId > 0;
             if (ok) {
-                return new SaveResult(true, "ÄÃ£ thÃªm khu vá»±c \"" + area.getAreaName() + "\".", newId);
+                return new SaveResult(true, "Đã thêm khu vực \"" + area.getAreaName() + "\".", newId);
             } else {
-                return new SaveResult(false, "them khu vuc that bai", 0);
+                return new SaveResult(false, "Thêm khu vực thất bại.", 0);
             }
         }
     }
@@ -72,13 +72,13 @@ public class ExamAreaServiceImpl implements ExamAreaService {
     public DeleteResult delete(int id, int adminUserId) {
         ExamArea area = dao.getById(id);
         if (area == null) {
-            return new DeleteResult(false, "Khu vá»±c khÃ´ng tá»“n táº¡i.");
+            return new DeleteResult(false, "Khu vực không tồn tại.");
         }
         boolean ok = id > 0 && dao.delete(id);
         if (ok) {
-            return new DeleteResult(true, "ÄÃ£ xÃ³a khu vá»±c thi.");
+            return new DeleteResult(true, "Đã xóa khu vực thi.");
         } else {
-            return new DeleteResult(false, "KhÃ´ng thá»ƒ xÃ³a khu vá»±c nÃ y (cÃ³ thá»ƒ Ä‘ang Ä‘Æ°á»£c sá»­ dá»¥ng bá»Ÿi phÃ²ng/thiáº¿t bá»‹/ká»³ thi).");
+            return new DeleteResult(false, "Không thể xóa khu vực này (có thể đang được sử dụng bởi phòng/thiết bị/kỳ thi).");
         }
     }
 }

@@ -9,8 +9,6 @@ import service.impl.AuthServiceImpl;
 import model.User;
 import service.AuditLogService;
 
-import util.SessionUtil;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -29,7 +27,8 @@ public class ChangePasswordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.isLoggedIn(req)) {
+        HttpSession checkSession = req.getSession(false);
+        if (checkSession == null || checkSession.getAttribute("user") == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
@@ -39,7 +38,8 @@ public class ChangePasswordServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        User sessionUser = SessionUtil.getCurrentUser(req);
+        HttpSession userSession = req.getSession(false);
+        User sessionUser = userSession == null ? null : (User) userSession.getAttribute("user");
         if (sessionUser == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -54,7 +54,7 @@ public class ChangePasswordServlet extends HttpServlet {
         if (result.success) {
             HttpSession s = req.getSession(false);
             if (s != null) {
-                auditLogService.persist(sessionUser.getUserId(), "UPDATE", "Äá»•i máº­t kháº©u tÃ i khoáº£n", sessionUser.getUserId());
+                auditLogService.logAction(sessionUser.getUserId(), "UPDATE", "Đổi mật khẩu tài khoản", sessionUser.getUserId());
             }
             req.setAttribute("messageType", "success");
         } else {

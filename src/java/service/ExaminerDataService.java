@@ -1,17 +1,16 @@
 package service;
 
-import enums.SectionType;
 import dto.CandidateEnrollmentDTO;
-
+import enums.SectionType;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ExaminerDataService {
 
-    Map<String, Object> getCandidateCallData(int sessionId, String sbdParam);
+    Map<String, Object> getCandidateCallData(int sessionId, Integer sbd);
 
-    Map<String, Object> getCandidateCallData(int sessionId, String sbdParam, String searchQuery);
+    Map<String, Object> getCandidateCallData(int sessionId, Integer sbd, String searchQuery);
 
     List<Map<String, Object>> loadCandidateRows(int sessionId);
 
@@ -23,25 +22,29 @@ public interface ExaminerDataService {
 
     Map<String, Object> getAuditLogsData(int sessionId, String pageParam, String searchQuery);
 
-    Map<String, Object> getPaperAnswersData(int sessionId, String sbd, String contextPath);
+    Map<String, Object> getPaperAnswersData(int sessionId, int sbd, String contextPath);
 
     int theoryPassThreshold();
 
     int theoryMaxQuestions();
 
-    CandidateEnrollmentDTO findRegistration(int sessionId, String sbd);
+    CandidateEnrollmentDTO findRegistration(int sessionId, int sbd);
 
-    Map<String, Object> getScoreEntryData(int sessionId, String sbdParam);
+    Map<String, Object> getScoreEntryData(int sessionId, Integer sbd, String sectionName);
 
-    Map<String, Object> getResultDetailsEditData(int sessionId, String sbdParam);
+    Map<String, Object> getResultDetailsEditData(int sessionId, Integer sbd);
 
     boolean isScoreQueueEligible(int sessionId, CandidateEnrollmentDTO reg,
             SectionType sectionType, String sectionName);
 
-    Map<String, Object> getViolationData(int sessionId, String sbdParam);
+    Map<String, Object> getViolationData(int sessionId, Integer sbd);
 
     Map<String, Object> getDevicesData(int sessionId, String searchQuery);
 
-    boolean isCallEligible(int sessionId, CandidateEnrollmentDTO reg, SectionType sectionType, String sectionName);
-}
+    Map<String, Object> getDevicesData(int sessionId, String searchQuery, Integer preferredAreaId);
 
+    boolean isCallEligible(int sessionId, CandidateEnrollmentDTO reg, SectionType sectionType, String sectionName);
+
+    List<Map<String, Object>> orderCandidateRowsByQueue(List<Map<String, Object>> rows, SectionType sectionType,
+            String sectionName);
+}

@@ -34,8 +34,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         int up = rs.getInt("UpgradeFromLicenceId");
         l.setUpgradeFromLicenceId(rs.wasNull() ? null : up);
         l.setUpgradeFromClass(rs.getString("UpgradeFromClass"));
-        l.setCreatedAt(rs.getTimestamp("CreatedAt"));
-        l.setUpdatedAt(rs.getTimestamp("UpdatedAt"));
         return l;
     }
 
@@ -104,8 +102,8 @@ public class LicenceDAOImpl implements LicenceDAO {
     
     @Override
     public int insert(Licence l) {
-        String sql = "INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, "
-                   + "UpgradeFromLicenceId, CreatedByUserId, UpdatedByUserId) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, UpgradeFromLicenceId) "
+                   + "VALUES (?, ?, ?, ?, ?)";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, l.getLicenceClass());
@@ -113,8 +111,6 @@ public class LicenceDAOImpl implements LicenceDAO {
             ps.setInt(3, l.getMinimumAge());
             ps.setInt(4, l.getValidForYears());
             setIntOrNull(ps, 5, l.getUpgradeFromLicenceId());
-            setIntOrNull(ps, 6, l.getCreatedByUserId());
-            setIntOrNull(ps, 7, l.getUpdatedByUserId());
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) return keys.getInt(1);
@@ -131,7 +127,7 @@ public class LicenceDAOImpl implements LicenceDAO {
     @Override
     public boolean update(Licence l) {
         String sql = "UPDATE Licence SET LicenceClass = ?, Description = ?, MinimumAge = ?, ValidForYears = ?, "
-                   + "UpgradeFromLicenceId = ?, UpdatedAt = GETDATE(), UpdatedByUserId = ? WHERE LicenceId = ?";
+                   + "UpgradeFromLicenceId = ? WHERE LicenceId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, l.getLicenceClass());
@@ -139,8 +135,7 @@ public class LicenceDAOImpl implements LicenceDAO {
             ps.setInt(3, l.getMinimumAge());
             ps.setInt(4, l.getValidForYears());
             setIntOrNull(ps, 5, l.getUpgradeFromLicenceId());
-            setIntOrNull(ps, 6, l.getUpdatedByUserId());
-            ps.setInt(7, l.getLicenceId());
+            ps.setInt(6, l.getLicenceId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

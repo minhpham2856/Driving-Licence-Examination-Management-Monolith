@@ -13,8 +13,7 @@ import model.User;
 import service.AuditLogService;
 
 import util.Sanitize;
-import util.SessionUtil;
-
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -48,7 +47,9 @@ public class LicenceServlet extends HttpServlet {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             Licence licence = licenceService.getById(id);
             if (licence == null) {
-                SessionUtil.flash(req, "danger", "KhÃ´ng tÃ¬m tháº¥y háº¡ng GPLX cáº§n sá»­a.");
+                HttpSession flashSession = req.getSession(true);
+                flashSession.setAttribute("flashType", "danger");
+                flashSession.setAttribute("flashMessage", "Không tìm thấy hạng GPLX cần sửa.");
                 resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
                 return;
             }
@@ -67,7 +68,7 @@ public class LicenceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        User admin = SessionUtil.getCurrentUser(req);
+        User admin = (User) req.getSession().getAttribute("user");
 
         int id = Sanitize.toInt(req.getParameter("licenceId"), 0);
         String licenceClass = Sanitize.text(req.getParameter("licenceClass"));
@@ -90,9 +91,11 @@ public class LicenceServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cáº­p Nháº­t Háº¡ng GPLX: " : "Táº¡o háº¡ng GPLX: ") + licenceClass, result.id);
-        SessionUtil.flash(req, "success", result.message);
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+                (isEdit ? "Cập nhật hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, result.id);
+        HttpSession flashSession = req.getSession(true);
+        flashSession.setAttribute("flashType", "success");
+        flashSession.setAttribute("flashMessage", result.message);
         
         resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
     }

@@ -41,7 +41,7 @@ public class SessionControlServlet extends HttpServlet {
                 session.removeAttribute("shiftEnded");
                 session.removeAttribute("callingSbd");
 
-                auditLogService.persist(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
+                auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
                         "BAAA,AA,A_t A?zA,EoAAA,AA,A u ca thi SessionId=" + sessionId + " - " + result.getSessionName()
                                 + " (" + result.getExaminerCount() + " sA'A,At hAAA,AA,Ach viA'A,An)",
                         sessionId);
@@ -68,7 +68,7 @@ public class SessionControlServlet extends HttpServlet {
                     session.removeAttribute("callingSbd");
                 }
 
-                auditLogService.persist(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
+                auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
                         "KAAA,AA,At thA'A,Ac ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {

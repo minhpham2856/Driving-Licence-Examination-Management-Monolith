@@ -52,7 +52,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
                    ISNULL(sea.ExamAreaId, 0) AS areaId,
                    s.[Status] AS status,
                    ISNULL(ea.Capacity, 100) AS maxCandidates,
-                   (SELECT COUNT(*) FROM Exam_Candidate ec2 WHERE ec2.SessionId = s.SessionId) AS registeredCount,
+                   (SELECT COUNT(*) FROM ExamEnrollment ec2 WHERE ec2.SessionId = s.SessionId) AS registeredCount,
                    s.StartTime AS createdAt,
                    l.LicenceClass AS licenseCode,
                    sect.examTypeName,
@@ -72,7 +72,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
                        MIN(es.ExamSectionId) AS examSectionId,
                        CASE
                            WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1
-                           WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2
+                           WHEN MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2
                            WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4
                            ELSE 1
                        END AS examTypeId,

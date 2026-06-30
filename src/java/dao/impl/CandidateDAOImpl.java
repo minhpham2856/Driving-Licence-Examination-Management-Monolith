@@ -27,9 +27,9 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
     }
 
     @Override
-    public Candidate getByNumber(String candidateNumber) {
+    public Candidate getByNumber(int candidateNumber) {
         String sql = BASE_SELECT + " WHERE CandidateNumber = ?";
-        return querySingle(sql, ps -> ps.setString(1, candidateNumber));
+        return querySingle(sql, ps -> ps.setString(1, String.valueOf(candidateNumber)));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
                      "ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended) " +
                      "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, c.getCandidateNumber());
+            ps.setString(1, String.valueOf(c.getCandidateNumber()));
             ps.setString(2, c.getFullName());
             ps.setTimestamp(3, c.getDateOfBirth());
             ps.setString(4, c.getPhoneNumber());
@@ -94,7 +94,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
                      "GovernmentIdNumber=?, Address=?, TakeTheory=?, TakeLayout=?, TakeRoad=?, TakeNo=?, " +
                      "ReasonForTaking=?, PhotoImageUrl=?, IsAbsent=?, IsSuspended=? WHERE CandidateId=?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, c.getCandidateNumber());
+            ps.setString(1, String.valueOf(c.getCandidateNumber()));
             ps.setString(2, c.getFullName());
             ps.setTimestamp(3, c.getDateOfBirth());
             ps.setString(4, c.getPhoneNumber());
@@ -173,7 +173,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
     private Candidate map(ResultSet rs) throws SQLException {
         Candidate c = new Candidate();
         c.setCandidateId(rs.getInt("CandidateId"));
-        c.setCandidateNumber(rs.getString("CandidateNumber"));
+        c.setCandidateNumber(parseCandidateNumber(rs.getString("CandidateNumber")));
         c.setFullName(rs.getString("FullName"));
         c.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
         c.setPhoneNumber(rs.getString("PhoneNumber"));
@@ -191,5 +191,16 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         c.setAbsent(rs.getBoolean("IsAbsent"));
         c.setSuspended(rs.getBoolean("IsSuspended"));
         return c;
+    }
+
+    private static int parseCandidateNumber(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

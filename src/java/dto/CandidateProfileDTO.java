@@ -2,7 +2,7 @@ package dto;
 
 public class CandidateProfileDTO {
     private int candidateId;
-    private String candidateNumber;
+    private int candidateNumber;
     private String fullName;
     private String governmentIdNumber;
     private boolean isAbsent;
@@ -27,11 +27,11 @@ public class CandidateProfileDTO {
         this.candidateId = candidateId;
     }
 
-    public String getCandidateNumber() {
+    public int getCandidateNumber() {
         return candidateNumber;
     }
 
-    public void setCandidateNumber(String candidateNumber) {
+    public void setCandidateNumber(int candidateNumber) {
         this.candidateNumber = candidateNumber;
     }
 

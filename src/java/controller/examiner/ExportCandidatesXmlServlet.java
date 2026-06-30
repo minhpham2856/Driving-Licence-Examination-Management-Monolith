@@ -20,24 +20,25 @@ import java.io.OutputStream;
 public class ExportCandidatesXmlServlet extends BaseExaminerExportServlet {
 
     private final XmlService fileService = new XmlServiceImpl();
-    
+
     private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         ExaminerExportContext ctx = requireExportContext(request, response);
-        if (ctx == null) return;
+        if (ctx == null) {
+            return;
+        }
 
         ExaminerExportPayload payload = exportService.buildCandidatesExport(ctx);
-        
+
         prepareXmlDownload(response, "danh-sach-thi-sinh.xml");
 
         OutputStream out = response.getOutputStream();
         fileService.exportToXml(payload.toXmlDocument(), out);
-        
+
         flush(out);
     }
 }
-

@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServlet;
-import util.ExaminerUtil;
+import dto.ExaminerSlotDTO;
+import service.ExaminerSessionContextService;
+import controller.examiner.ExaminerServletSupport;
 import service.ExaminerDataService;
 import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
@@ -20,16 +22,19 @@ import java.io.IOException;
 
 @WebServlet("/views/examiner/devices")
 public class ExaminerDevicesServlet extends HttpServlet {
+
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        HttpSession session = ExaminerServletSupport.requireSession(request, response);
+        if (session == null) {
+            return;
+        }
 
-        Integer sessionId = ExaminerUtil.activeSessionId(session);
+        Integer sessionId = ExaminerServletSupport.activeSessionId(session);
         String search = request.getParameter("q");
         String action = request.getParameter("action");
 
@@ -56,10 +61,21 @@ public class ExaminerDevicesServlet extends HttpServlet {
                 return;
             }
 
-            Map<String, Object> data = viewDataService.getDevicesData(sessionId, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            Integer preferredAreaId = null;
+            Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
+            if (slotObj instanceof ExaminerSlotDTO) {
+                int areaId = ((ExaminerSlotDTO) slotObj).getAreaId();
+                if (areaId > 0) {
+                    preferredAreaId = areaId;
+                }
+            }
+
+            Map<String, Object> data = viewDataService.getDevicesData(sessionId, search, preferredAreaId);
+            for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            }
         }
 
         request.getRequestDispatcher("/views/examiner/devices.jsp").forward(request, response);
     }
 }
-

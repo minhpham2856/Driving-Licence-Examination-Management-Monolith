@@ -19,25 +19,19 @@ public class EnumMappingServiceImpl implements EnumMappingService {
         String trimmed = entityName.trim();
         String key = trimmed.toUpperCase(Locale.ROOT)
                 .replace(" ", "_")
-                .replace("A?", "I")
-                .replace("'", "O")
-                .replace("", "O")
-                .replace("?", "D")
-                .replace(",", "A")
-                .replace("", "Y")
-                .replace("_", "E")
-                .replace("", "A");
-        
+                .replace("-", "_");
+
         for (AuditEntity e : AuditEntity.values()) {
             if (e.name().equals(key)) {
-                return e.getLabelVi(); 
+                return e.getLabelVi();
             }
         }
-        
-        return switch (trimmed.toUpperCase(Locale.ROOT)) {
-            case "H' S ?,NG KA?", "THA? SINH" -> "ThA- sinh";
-            case "K_T QU THI" -> "Kt qu thi";
-            case "PHA'NG THI" -> "PhAng thi";
+
+        return switch (trimmed) {
+            case "Candidate", "ExamEnrollment", "ExamRegistration" -> "Thí sinh";
+            case "ExamResult" -> "Kết quả thi";
+            case "ExamArea" -> "Phòng thi";
+            case "ExamDevice" -> "Thiết bị thi";
             default -> trimmed;
         };
     }
@@ -145,7 +139,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
 
     @Override
     public String typeLabelVi(String deviceType) {
-        if (deviceType == null) return "Thit b<";
+        if (deviceType == null) return "Thiết bị";
         for (DeviceType dt : DeviceType.values()) {
             if (dt.getTypeName().equalsIgnoreCase(deviceType.trim())) {
                 return dt.getLabelVi(); 
@@ -187,7 +181,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
             return SectionType.THEORY;
         }
         String normalized = sectionName.trim().toLowerCase();
-        if (normalized.contains("lA thuyt") || normalized.contains("ly thuyet") || normalized.contains("theory")) {
+        if (normalized.contains("lý thuyết") || normalized.contains("ly thuyet") || normalized.contains("theory")) {
             return SectionType.THEORY;
         }
         return SectionType.SCORE_BASED;
@@ -203,7 +197,7 @@ public class EnumMappingServiceImpl implements EnumMappingService {
 
     @Override
     public String violationLabel(String code) {
-        if (code == null || code.isBlank()) return "";
+        if (code == null || code.isBlank()) return "Chưa chọn lý do";
         for (ViolationReason reason : ViolationReason.values()) {
             if (reason.getCode().equalsIgnoreCase(code.trim())) {
                 return reason.getLabel();

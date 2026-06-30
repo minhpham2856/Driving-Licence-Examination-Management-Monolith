@@ -552,7 +552,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
         Map<Integer, String> lookup = new LinkedHashMap<>();
         
         for (CandidateEnrollmentDTO reg : enrollmentDAO.getCandidatesBySession(sessionId)) {
-            lookup.put(reg.getId(), reg.getSbd());
+            lookup.put(reg.getId(), String.valueOf(reg.getSbd()));
         }
         return lookup;
     }

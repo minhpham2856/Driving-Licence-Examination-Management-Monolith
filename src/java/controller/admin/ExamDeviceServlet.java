@@ -13,8 +13,7 @@ import dto.ExamDeviceViewDTO;
 import model.User;
 import service.AuditLogService;
 import util.Sanitize;
-import util.SessionUtil;
-
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -53,7 +52,7 @@ public class ExamDeviceServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String action = Sanitize.text(req.getParameter("action"));
-        User admin = SessionUtil.getCurrentUser(req);
+        User admin = (User) req.getSession().getAttribute("user");
         Integer adminId = (admin != null) ? admin.getUserId() : null;
 
         if ("delete".equals(action)) {
@@ -61,10 +60,14 @@ public class ExamDeviceServlet extends HttpServlet {
             ExamDeviceService.DeleteResult result = examDeviceService.delete(id, adminId);
             
             if (result.success) {
-                auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a mÃ¡y thi id: " + id, id);
-                SessionUtil.flash(req, "success", result.message);
+                auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "Xóa máy thi id: " + id, id);
+                HttpSession flashSession = req.getSession(true);
+                flashSession.setAttribute("flashType", "success");
+                flashSession.setAttribute("flashMessage", result.message);
             } else {
-                SessionUtil.flash(req, "danger", result.message);
+                HttpSession flashSession = req.getSession(true);
+                flashSession.setAttribute("flashType", "danger");
+                flashSession.setAttribute("flashMessage", result.message);
             }
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
@@ -87,14 +90,18 @@ public class ExamDeviceServlet extends HttpServlet {
         ExamDeviceService.SaveResult result = examDeviceService.save(dev, adminId);
 
         if (!result.success) {
-            SessionUtil.flash(req, "danger", result.message);
+            HttpSession flashSession = req.getSession(true);
+            flashSession.setAttribute("flashType", "danger");
+            flashSession.setAttribute("flashMessage", result.message);
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
         }
 
-        auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cáº­p nháº­t mÃ¡y thi: " : "Táº¡o mÃ¡y thi: ") + name, result.id);
-        SessionUtil.flash(req, "success", result.message);
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+                (isEdit ? "Cập nhật máy thi: " : "Tạo máy thi: ") + name, result.id);
+        HttpSession flashSession = req.getSession(true);
+        flashSession.setAttribute("flashType", "success");
+        flashSession.setAttribute("flashMessage", result.message);
         
         resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
     }

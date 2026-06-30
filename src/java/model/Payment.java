@@ -11,6 +11,7 @@ public class Payment {
     private double totalAmount;
     private Timestamp paidAt;
     private int candidateId;
+    private int examEnrollmentId;
     private int examId;
 
     public Payment() {
@@ -81,6 +82,14 @@ public class Payment {
 
     public void setCandidateId(int candidateId) {
         this.candidateId = candidateId;
+    }
+
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
+    }
+
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 
     public int getExamId() {

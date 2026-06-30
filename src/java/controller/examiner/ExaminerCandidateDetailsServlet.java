@@ -1,22 +1,20 @@
 package controller.examiner;
 
-import java.util.*;
-
-import model.*;
+import model.User;
+import service.ExaminerActionsService;
+import service.ExaminerDataService;
+import service.impl.ExaminerActionsServiceImpl;
+import service.impl.ExaminerDataServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.HttpServlet;
-import util.ExaminerUtil;
-import service.ExaminerDataService;
-import service.impl.ExaminerDataServiceImpl;
-import service.ExaminerActionsService;
-import service.impl.ExaminerActionsServiceImpl;
 
 import java.io.IOException;
+import java.util.Map;
 
 @WebServlet(urlPatterns = {
     "/views/examiner/candidate-details",
@@ -24,26 +22,39 @@ import java.io.IOException;
     "/views/examiner/candidate-paper"
 })
 public class ExaminerCandidateDetailsServlet extends HttpServlet {
+
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        HttpSession session = ExaminerServletSupport.requireSession(request, response);
+        if (session == null) {
+            return;
+        }
 
-        Integer sessionId = ExaminerUtil.activeSessionId(session);
-        String path = ExaminerUtil.stripContextPath(request);
-        String sbd = request.getParameter("sbd");
+        Integer sessionId = ExaminerServletSupport.activeSessionId(session);
+        String path = ExaminerServletSupport.stripContextPath(request);
+        Integer sbd = ExaminerServletSupport.parseSbdParam(request.getParameter("sbd"));
         String search = request.getParameter("q");
 
         if (sessionId != null && sessionId > 0) {
             if ("/views/examiner/candidate-paper".equals(path)) {
-                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-                Map<String, Object> ansData = viewDataService.getPaperAnswersData(sessionId, sbd, request.getContextPath()); for(Map.Entry<String, Object> mapEntry : ansData.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search);
+                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                }
+                int paperSbd = sbd != null ? sbd : 0;
+                Map<String, Object> ansData = viewDataService.getPaperAnswersData(sessionId, paperSbd, request.getContextPath());
+                for (Map.Entry<String, Object> mapEntry : ansData.entrySet()) {
+                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                }
             } else {
-                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search);
+                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                }
             }
         }
 
@@ -59,18 +70,24 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        HttpSession session = ExaminerServletSupport.requireSession(request, response);
+        if (session == null) {
+            return;
+        }
 
-        Integer sessionId = ExaminerUtil.activeSessionId(session);
+        Integer sessionId = ExaminerServletSupport.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        String path = ExaminerUtil.stripContextPath(request);
+        String path = ExaminerServletSupport.stripContextPath(request);
         if ("/views/examiner/candidate-details-edit".equals(path)) {
-            String sbd = request.getParameter("sbd");
+            Integer sbd = ExaminerServletSupport.parseSbdParam(request.getParameter("sbd"));
+            if (sbd == null) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details?error=noSbd");
+                return;
+            }
             boolean updated = examinerService.updateCandidateProfile(
                     sessionId,
                     sbd,
@@ -85,12 +102,16 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
                     ((User) session.getAttribute("user")).getUserId());
 
             if (updated) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details-edit?sbd=" + ExaminerUtil.urlEncode(sbd) + "&saved=1");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details-edit?sbd="
+                        + ExaminerServletSupport.urlEncode(sbd) + "&saved=1");
                 return;
             }
 
-            Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, null); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-            request.setAttribute("profileError", "KhÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â´ng lÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°u ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£c thÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â´ng tin. KiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢m tra lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡i dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡u nhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­p.");
+            Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, null);
+            for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            }
+            request.setAttribute("profileError", "Không lưu được thông tin. Kiểm tra lại dữ liệu nhập.");
             request.getRequestDispatcher("/views/examiner/candidate-details-edit.jsp").forward(request, response);
             return;
         }
@@ -98,4 +119,3 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         doGet(request, response);
     }
 }
-

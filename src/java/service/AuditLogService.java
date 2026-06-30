@@ -1,30 +1,22 @@
 package service;
 
-import model.*;
+import model.AuditRecordModel;
+
 import java.util.List;
 import java.util.Map;
-import util.AuditChangeDetails;
-import model.AuditRecordModel;
 
 public interface AuditLogService {
 
-    void persist(Integer actionUserId, String action, String details);
+    void logAction(Integer userId, String action, String message);
 
-    void persist(Integer actionUserId, String action, String details, int recordId);
-    boolean insertAudit(Audit audit);
+    void logAction(Integer userId, String action, String message, int recordId);
 
-    void persistChange(Integer actionUserId, String action, String details,
-            String oldValue, String newValue, String reason, int recordId);
-
-    void persistFieldChanges(Integer actionUserId, String action, String contextDetails,
-            List<AuditChangeDetails.FieldChange> changes, String reason, int recordId);
-
-    void persistWarning(Integer actionUserId, String details, String reason, int recordId);
+    void logWarning(Integer userId, String message, String reason, int recordId);
 
     List<Map<String, Object>> toViewRows(AuditRecordModel log, Map<Integer, String> sbdByRecordId);
 
     Map<String, Object> toViewRow(AuditRecordModel log, Map<Integer, String> sbdByRecordId);
-    
+
     String resolveSbd(AuditRecordModel log, Map<Integer, String> sbdByRecordId);
 
     List<AuditRecordModel> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);

@@ -1,18 +1,26 @@
-package util;
+package controller.examiner;
 
+import dto.ExaminerSlotDTO;
+import enums.SectionType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import service.ExaminerSessionContextService;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import enums.SectionType;
-import dto.ExaminerSlotDTO;
-import service.ExaminerSessionContextService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-public class ExaminerUtil {
+public final class ExaminerServletSupport {
 
-    public static HttpSession requireSession(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private ExaminerServletSupport() {
+    }
+
+    public static HttpSession requireSession(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -21,7 +29,9 @@ public class ExaminerUtil {
     }
 
     public static Integer activeSessionId(HttpSession session) {
-        if (session == null) return null;
+        if (session == null) {
+            return null;
+        }
         return (Integer) session.getAttribute(ExaminerSessionContextService.ATTR_ACTIVE_SESSION_ID);
     }
 
@@ -34,7 +44,9 @@ public class ExaminerUtil {
     }
 
     public static SectionType resolveSectionType(HttpSession session) {
-        if (session == null) return SectionType.THEORY;
+        if (session == null) {
+            return SectionType.THEORY;
+        }
         Object value = session.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
         if (value instanceof SectionType) {
             return (SectionType) value;
@@ -43,7 +55,9 @@ public class ExaminerUtil {
     }
 
     public static String resolveSectionName(HttpSession session) {
-        if (session == null) return null;
+        if (session == null) {
+            return null;
+        }
         Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
         if (slotObj instanceof ExaminerSlotDTO) {
             return ((ExaminerSlotDTO) slotObj).getExamTypeName();
@@ -53,16 +67,32 @@ public class ExaminerUtil {
     }
 
     public static String resolveCallDestination(HttpSession session) {
-        if (session == null) return "Khu vực thi";
+        if (session == null) {
+            return "Khu vực thi";
+        }
         Object slotObj = session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO slot && slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
-            return slot.getAreaName();
+        if (slotObj instanceof ExaminerSlotDTO) {
+            ExaminerSlotDTO slot = (ExaminerSlotDTO) slotObj;
+            if (slot.getAreaName() != null && !slot.getAreaName().trim().isEmpty()) {
+                return slot.getAreaName();
+            }
         }
         Object sectionName = session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
-        if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
+        if (sectionName != null && !String.valueOf(sectionName).trim().isEmpty()) {
             return String.valueOf(sectionName);
         }
         return "Khu vực thi thực hành";
+    }
+
+    public static void applyCandidateSort(HttpServletRequest request, List<Map<String, Object>> candidates) {
+        if (candidates == null) {
+            return;
+        }
+        ExaminerCandidateSort.Spec spec = ExaminerCandidateSort.parse(
+                request.getParameter("sort"), request.getParameter("dir"));
+        ExaminerCandidateSort.sort(candidates, spec);
+        request.setAttribute("sortBy", spec.getColumn());
+        request.setAttribute("sortDir", spec.isAscending() ? "asc" : "desc");
     }
 
     public static String stripContextPath(HttpServletRequest request) {
@@ -74,11 +104,38 @@ public class ExaminerUtil {
         return uri;
     }
 
-    public static String urlEncode(String value) {
-        if (value == null) {
-            return "";
+    public static String urlEncode(int value) {
+        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+    }
+
+    public static Integer parseSbdParam(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
         }
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        try {
+            int sbd = Integer.parseInt(raw.trim());
+            return sbd > 0 ? sbd : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public static int[] parseSbdParams(String[] values) {
+        if (values == null || values.length == 0) {
+            return new int[0];
+        }
+        List<Integer> parsed = new ArrayList<>();
+        for (String value : values) {
+            Integer sbd = parseSbdParam(value);
+            if (sbd != null) {
+                parsed.add(sbd);
+            }
+        }
+        int[] result = new int[parsed.size()];
+        for (int i = 0; i < parsed.size(); i++) {
+            result[i] = parsed.get(i);
+        }
+        return result;
     }
 
     public static int[] parseDeductionIds(String[] values) {

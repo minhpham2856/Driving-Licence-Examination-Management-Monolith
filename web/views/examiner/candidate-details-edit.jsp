@@ -145,6 +145,7 @@
                                         <a href="${backUrl}" class="examiner-btn examiner-btn--white">Hủy</a>
                                     </div>
                                 </div>
+                            </div>
                         </form>
                     </c:otherwise>
                 </c:choose>

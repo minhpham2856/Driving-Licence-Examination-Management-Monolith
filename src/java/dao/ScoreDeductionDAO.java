@@ -1,9 +1,6 @@
 package dao;
 
-import model.*;
-
-import model.DeductionRule;
-import java.util.List;
+import model.ScoreDeduction;
 
 public interface ScoreDeductionDAO {
 
@@ -17,5 +14,5 @@ public interface ScoreDeductionDAO {
 
     int countAll();
 
-    boolean adjustScoreDeductionOccurrence(int candidateId, int ruleId, int adjustment, int amount);
+    boolean adjustScoreDeductionOccurrence(int candidateId, int sessionId, int scoreDeductionId, int delta);
 }

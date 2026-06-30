@@ -32,6 +32,18 @@
                     <span class="breadcrumbs__current" aria-current="page">Tải DS Thí sinh</span>
                 </nav>
 
+                <c:if test="${not empty sessionScope.uploadError}">
+                    <div class="alert alert--error" style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-size: 0.9rem;">
+                        ${sessionScope.uploadError}
+                    </div>
+                    <c:remove var="uploadError" scope="session"/>
+                </c:if>
+                <c:if test="${param.importSuccess eq 'true'}">
+                    <div class="alert alert--success" style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: 8px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; font-size: 0.9rem;">
+                        Đã nhập danh sách thí sinh thành công<c:if test="${not empty sessionScope.importedCount}"> (${sessionScope.importedCount} thí sinh)</c:if>.
+                    </div>
+                </c:if>
+
                 <header class="page-header">
                     <div class="page-title-wrap">
                         <h1 class="page-title">Tải danh sách thí sinh</h1>
@@ -39,7 +51,7 @@
                     </div>
 
                     <div class="page-actions">
-                        <a href="${pageContext.request.contextPath}/assets/templates/danh_sach_mau.xlsx" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #0052cc; border-color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <a href="${pageContext.request.contextPath}/views/staff/exam/upload?action=downloadTemplate" class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; background-color: #ffffff; color: #0052cc; border-color: #0052cc; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -54,14 +66,14 @@
                             <h2 class="grading-pane__title" style="font-size: 1.05rem;">Tải tệp dữ liệu lên</h2>
                         </div>
 
-                        <form action="${pageContext.request.contextPath}/examiner/upload" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%;">
+                        <form action="${pageContext.request.contextPath}/views/staff/exam/upload" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; width: 100%;">
                             <div class="upload-dropzone" style="cursor: pointer; width: 100%; box-sizing: border-box;">
                                 <div class="dropzone-icon">
                                     <img src="${pageContext.request.contextPath}/assets/imgs/cloud-upload.svg" alt="Tải lên đám mây" style="width: 48px; height: 48px;">
                                 </div>
                                 <span style="font-size: 1rem; font-weight: 700; color: #0f172a; display: block; margin-bottom: 0.5rem;">Chọn tệp danh sách thí sinh</span>
-                                <span style="font-size: 0.82rem; color: #64748b; display: block; margin-bottom: 1rem;">Hỗ trợ định dạng: .xlsx, .xls, .csv (Tối đa 15MB)</span>
-                                <input type="file" name="file" accept=".xlsx, .xls, .csv" required style="font-size: 0.85rem; color: #475569;">
+                                <span style="font-size: 0.82rem; color: #64748b; display: block; margin-bottom: 1rem;">Hỗ trợ định dạng: .csv, .txt (Tối đa 15MB)</span>
+                                <input type="file" name="fileInput" accept=".csv,.txt" required style="font-size: 0.85rem; color: #475569;">
                             </div>
                             <button type="submit" class="btn-filter" style="height: 42px; padding: 0 2rem; font-size: 0.9rem; border-radius: 8px; width: 100%; justify-content: center;">Tải lên và phân tích</button>
                         </form>
@@ -105,7 +117,7 @@
                     </div>
                 </div>
 
-                <c:if test="${not empty importedCandidates}">
+                <c:if test="${not empty sessionScope.previewCandidates}">
                     <div class="log-card" style="margin-top: 2rem; margin-bottom: 2.5rem;">
                         <div class="log-card-header" style="justify-content: space-between;">
                             <h2 class="log-card-title">
@@ -116,12 +128,10 @@
                                 Xem trước dữ liệu thí sinh nhập khẩu (Phân tích từ Excel)
                             </h2>
 
-                            <form action="${pageContext.request.contextPath}/examiner/confirm-import" method="POST" style="margin: 0;">
-                                <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
-                                    <a href="${pageContext.request.contextPath}/views/staff/exam/upload.jsp" class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
-                                    <button type="submit" class="btn-filter" style="height: 36px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; white-space: nowrap;">Xác nhận</button>
-                                </div>
-                            </form>
+                            <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
+                                <a href="${pageContext.request.contextPath}/views/staff/exam/upload?action=cancel" class="btn-reset" style="height: 36px; padding: 0 1rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy bỏ</a>
+                                <a href="${pageContext.request.contextPath}/views/staff/exam/upload?action=save" class="btn-filter" style="height: 36px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center;">Xác nhận nhập</a>
+                            </div>
                         </div>
 
                         <div class="table-responsive">
@@ -137,15 +147,28 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="candidate" items="${importedCandidates}">
+                                    <c:forEach var="candidate" items="${sessionScope.previewCandidates}">
                                         <tr>
-                                            <td style="font-weight: 700; color: #0052cc;">${candidate.sbd}</td>
-                                            <td style="font-weight: 600; color: #0f172a;">${candidate.name}</td>
-                                            <td style="text-align: center; font-weight: 500;">${candidate.dob}</td>
-                                            <td style="text-align: center; font-family: monospace;">${candidate.cccd}</td>
-                                            <td><span class="role-badge role-badge--admin">${candidate.licenseClass}</span></td>
+                                            <td style="font-weight: 700; color: #0052cc;">${candidate.candidateNo}</td>
+                                            <td style="font-weight: 600; color: #0f172a;">${candidate.fullName}</td>
+                                            <td style="text-align: center; font-weight: 500;">
+                                                <fmt:formatDate value="${candidate.dateOfBirth}" pattern="dd/MM/yyyy"/>
+                                            </td>
+                                            <td style="text-align: center; font-family: monospace;">${candidate.govIdNo}</td>
+                                            <td><span class="role-badge role-badge--admin">${candidate.licenseCode}</span></td>
                                             <td style="text-align: center;">
-                                                <span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>
+                                                <c:choose>
+                                                    <c:when test="${candidate.invalid}">
+                                                        <span class="action-badge action-badge--danger" style="font-weight: 700;">LỖI</span>
+                                                        <div style="font-size: 0.75rem; color: #b91c1c; margin-top: 4px;">${candidate.validationMessage}</div>
+                                                    </c:when>
+                                                    <c:when test="${candidate.duplicate}">
+                                                        <span class="action-badge" style="font-weight: 700; background: #fef3c7; color: #b45309;">TRÙNG</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="action-badge action-badge--success" style="font-weight: 700;">HỢP LỆ</span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </td>
                                         </tr>
                                     </c:forEach>

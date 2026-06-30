@@ -81,7 +81,7 @@ public class PublicCallServlet extends HttpServlet {
             if (callingSbd == null || callingSbd.trim().isEmpty()) {
                 for (CandidateEnrollmentDTO c : qList) {
                     if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
-                        nextSbd = c.getSbd();
+                        nextSbd = String.valueOf(c.getSbd());
                         break;
                     }
                 }
@@ -90,11 +90,11 @@ public class PublicCallServlet extends HttpServlet {
                 for (CandidateEnrollmentDTO c : qList) {
                     if (foundCurrent) {
                         if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
-                            nextSbd = c.getSbd();
+                            nextSbd = String.valueOf(c.getSbd());
                             break;
                         }
                     }
-                    if (callingSbd.equals(c.getSbd())) {
+                    if (callingSbd.equals(String.valueOf(c.getSbd()))) {
                         foundCurrent = true;
                     }
                 }
@@ -104,7 +104,7 @@ public class PublicCallServlet extends HttpServlet {
         CandidateEnrollmentDTO callingCandidate = null;
         if (callingSbd != null) {
             for (CandidateEnrollmentDTO c : qList) {
-                if (callingSbd.equals(c.getSbd())) {
+                if (callingSbd.equals(String.valueOf(c.getSbd()))) {
                     callingCandidate = c;
                     break;
                 }
@@ -114,7 +114,7 @@ public class PublicCallServlet extends HttpServlet {
         CandidateEnrollmentDTO nextCandidate = null;
         if (nextSbd != null) {
             for (CandidateEnrollmentDTO c : qList) {
-                if (nextSbd.equals(c.getSbd())) {
+                if (nextSbd.equals(String.valueOf(c.getSbd()))) {
                     nextCandidate = c;
                     break;
                 }

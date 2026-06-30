@@ -20,24 +20,24 @@ import java.io.OutputStream;
 public class ExportViolationsXmlServlet extends BaseExaminerExportServlet {
 
     private final XmlService fileService = new XmlServiceImpl();
-    
     private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         ExaminerExportContext ctx = requireExportContext(request, response);
-        if (ctx == null) return;
+        if (ctx == null) {
+            return;
+        }
 
         ExaminerExportPayload payload = exportService.buildViolationsExport(ctx);
-        
+
         prepareXmlDownload(response, "bien-ban-vi-pham.xml");
 
         OutputStream out = response.getOutputStream();
         fileService.exportToXml(payload.toXmlDocument(), out);
-        
+
         flush(out);
     }
 }
-

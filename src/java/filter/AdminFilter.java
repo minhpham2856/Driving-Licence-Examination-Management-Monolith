@@ -3,8 +3,6 @@ package filter;
 import model.User;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
-import util.SessionUtil;
-
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +22,8 @@ public class AdminFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
-        User u = SessionUtil.getCurrentUser(req);
+        HttpSession userSession = req.getSession(false);
+        User u = userSession == null ? null : (User) userSession.getAttribute("user");
 
         // 1. Check if logged in
         if (u == null) {

@@ -20,24 +20,25 @@ import java.io.OutputStream;
 public class ExportAuditXmlServlet extends BaseExaminerExportServlet {
 
     private final XmlService fileService = new XmlServiceImpl();
-    
+
     private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         ExaminerExportContext ctx = requireExportContext(request, response);
-        if (ctx == null) return;
+        if (ctx == null) {
+            return;
+        }
 
         ExaminerExportPayload payload = exportService.buildAuditExport(ctx, request.getParameter("q"));
-        
+
         prepareXmlDownload(response, "audit.xml");
 
         OutputStream out = response.getOutputStream();
         fileService.exportToXml(payload.toXmlDocument(), out);
-        
+
         flush(out);
     }
 }
-

@@ -13,7 +13,8 @@ import java.util.List;
 
 public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
 
-    private static final String BASE_SELECT = "SELECT ExamDeviceId, DeviceName, DeviceType, IsActive, ExamAreaId FROM ExamDevice";
+    private static final String BASE_SELECT =
+            "SELECT ExamDeviceId, DeviceName, DeviceType, IsActive, ExamAreaId FROM ExamDevice";
 
     @Override
     public ExamDevice findById(int examDeviceId) {
@@ -129,7 +130,9 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
     @Override
     public List<ExamDevice> getAllByAreaIds(List<Integer> areaIds) {
         List<ExamDevice> list = new ArrayList<>();
-        if (areaIds == null || areaIds.isEmpty()) return list;
+        if (areaIds == null || areaIds.isEmpty()) {
+            return list;
+        }
         StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE ExamAreaId IN (");
         for (int i = 0; i < areaIds.size(); i++) {
             sql.append(i == 0 ? "?" : ",?");
@@ -150,7 +153,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return list;
     }
 
-    private ExamDevice map(ResultSet rs) throws SQLException {
+    private static ExamDevice map(ResultSet rs) throws SQLException {
         ExamDevice d = new ExamDevice();
         d.setExamDeviceId(rs.getInt("ExamDeviceId"));
         d.setDeviceName(rs.getString("DeviceName"));
@@ -160,17 +163,11 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return d;
     }
 
-    public int countByStatus(boolean isActive) { return 0; }
+    public int countByStatus(boolean isActive) {
+        return 0;
+    }
 
     public List<ExamDevice> search(String keyword, boolean isActive) {
         return new ArrayList<>();
     }
 }
-
-
-
-
-
-
-
-

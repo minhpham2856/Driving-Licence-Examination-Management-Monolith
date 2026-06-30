@@ -25,7 +25,7 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
                     tp.setExamEnrollmentId(rs.getInt("ExamEnrollmentId"));
                     tp.setExamDeviceId(rs.getInt("ExamDeviceId"));
                     tp.setStartedAt(rs.getTimestamp("StartedAt"));
-                    tp.setSubmittedAt(rs.getTimestamp("FinishedAt"));
+                    tp.setSubmittedAt(rs.getTimestamp("SubmittedAt"));
                     return tp;
                 }
             }
@@ -59,7 +59,7 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
                     tp.setExamEnrollmentId(rs.getInt("ExamEnrollmentId"));
                     tp.setExamDeviceId(rs.getInt("ExamDeviceId"));
                     tp.setStartedAt(rs.getTimestamp("StartedAt"));
-                    tp.setSubmittedAt(rs.getTimestamp("FinishedAt"));
+                    tp.setSubmittedAt(rs.getTimestamp("SubmittedAt"));
                     list.add(tp);
                 }
             }

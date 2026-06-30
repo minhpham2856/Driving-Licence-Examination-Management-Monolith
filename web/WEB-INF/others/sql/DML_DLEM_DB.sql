@@ -284,8 +284,8 @@ INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
 -- A1: thi lần đầu (lý thuyết + thực hành)
 (N'789',N'Hoàng Thị Mai',    '1999-11-30', N'0955667788', 0, N'079012345683', N'34 Nguyễn Trãi, Hà Nội',                          1, 1, 0, N'Thi lần đầu',              NULL, 1),
 -- B: ca lý thuyết đang thi (InProgress) - thêm cho examiner test
-(N'B-0048', N'Nguyễn Thị Hoa', '1997-05-14', N'0911004801', 0, N'079012345684', N'18 Hoàng Hoa Thám, Hà Nội',                     1, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi048.jpg', 1),
-(N'B-0049', N'Trần Văn Khoa',  '1996-09-03', N'0911004901', 1, N'079012345685', N'72 Cầu Giấy, Hà Nội',                           1, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi049.jpg', 1);
+(N'048', N'Nguyễn Thị Hoa', '1997-05-14', N'0911004801', 0, N'079012345684', N'18 Hoàng Hoa Thám, Hà Nội',                     1, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi048.jpg', 1),
+(N'049', N'Trần Văn Khoa',  '1996-09-03', N'0911004901', 1, N'079012345685', N'72 Cầu Giấy, Hà Nội',                           1, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi049.jpg', 1);
 GO
 
 -- ============================================
@@ -317,7 +317,7 @@ JOIN [Session] s ON s.SessionId = ec.SessionId
 CROSS JOIN ExamArea ea
 WHERE s.SessionName = N'Ca sáng - Lý thuyết B'
   AND ea.AreaName = N'Phòng LT 1'
-  AND c.CandidateNumber IN (N'046', N'123', N'456', N'B-0048', N'B-0049');
+  AND c.CandidateNumber IN (N'046', N'123', N'456', N'048', N'049');
 GO
 
 UPDATE c
@@ -384,10 +384,10 @@ GO
 -- ============================================
 -- 21. SCORE DEDUCTIONS
 -- ============================================
-INSERT INTO ScoreDeduction ([Reason], Points, IsCritical) VALUES
-(N'Không bật đèn xi-nhan khi chuyển làn', 1.00, 0),
-(N'Vượt quá tốc độ cho phép trong sân thi', 2.00, 0),
-(N'Không nhường đường cho người đi bộ', 5.00, 1);
+INSERT INTO ScoreDeduction ([Reason], Points, IsCritical, ExamSectionId, SortOrder) VALUES
+(N'Không bật đèn xi-nhan khi chuyển làn', 1.00, 0, (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'), 1),
+(N'Vượt quá tốc độ cho phép trong sân thi', 2.00, 0, (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'), 2),
+(N'Không nhường đường cho người đi bộ', 5.00, 1, (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'), 3);
 GO
 
 INSERT INTO DeductionRecord (ExamScoreId, ScoreDeductionId) VALUES

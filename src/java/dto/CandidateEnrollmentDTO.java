@@ -3,7 +3,6 @@ package dto;
 import java.sql.*;
 
 import model.ExamEnrollment;
-
 public class CandidateEnrollmentDTO {
 
     private CandidateProfileDTO candidate;
@@ -23,9 +22,15 @@ public class CandidateEnrollmentDTO {
 
     public int getId() { return candidate != null ? candidate.getCandidateId() : 0; }
     public String getCandidateName() { return candidate != null ? candidate.getFullName() : ""; }
-    public Date getDob() { return null; }
-    public String getSbd() { return candidate != null ? candidate.getCandidateNumber() : ""; }
-    public String getCandidateNo() { return candidate != null ? candidate.getCandidateNumber() : ""; }
+    public Date getDob() {
+        return dateOfBirth != null ? new Date(dateOfBirth.getTime()) : null;
+    }
+    public int getSbd() {
+        return candidate != null ? candidate.getCandidateNumber() : 0;
+    }
+    public int getCandidateNo() {
+        return getSbd();
+    }
     public String getFullName() { return candidate != null ? candidate.getFullName() : ""; }
     public String getGovIdNo() { return candidate != null ? candidate.getGovernmentIdNumber() : ""; }
     
@@ -60,10 +65,22 @@ public class CandidateEnrollmentDTO {
     public void setRoadTestScore(Integer i) {}
     public void setPhotoUrl(String s) { if(candidate != null) candidate.setPhotoImageUrl(s); }
 
-    public Timestamp getDateOfBirth() { return null; }
+    private Timestamp dateOfBirth;
+    private String phoneNo;
+    private String address;
+    private String reasonForTaking;
+    private boolean sex;
+
+    public void setDateOfBirth(Timestamp dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public void setPhoneNo(String phoneNo) { this.phoneNo = phoneNo != null ? phoneNo : ""; }
+    public void setAddress(String address) { this.address = address != null ? address : ""; }
+    public void setReasonForTaking(String reasonForTaking) { this.reasonForTaking = reasonForTaking != null ? reasonForTaking : ""; }
+    public void setSex(boolean sex) { this.sex = sex; }
+
+    public Timestamp getDateOfBirth() { return dateOfBirth; }
     public String getEmail() { return ""; }
-    public String getPhoneNo() { return ""; }
-    public String getAddress() { return ""; }
-    public boolean isSex() { return false; }
-    public String getReasonForTaking() { return ""; }
+    public String getPhoneNo() { return phoneNo != null ? phoneNo : ""; }
+    public String getAddress() { return address != null ? address : ""; }
+    public boolean isSex() { return sex; }
+    public String getReasonForTaking() { return reasonForTaking != null ? reasonForTaking : ""; }
 }

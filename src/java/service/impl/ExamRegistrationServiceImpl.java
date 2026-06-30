@@ -26,7 +26,15 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
 
     @Override
-    public CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, String sbd) {
+    public CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, int sbd) {
+        if (sessionId <= 0 || sbd <= 0) {
+            return null;
+        }
+        for (CandidateEnrollmentDTO row : enrollmentDAO.getCandidatesBySession(sessionId)) {
+            if (row.getSbd() == sbd) {
+                return row;
+            }
+        }
         return null;
     }
 

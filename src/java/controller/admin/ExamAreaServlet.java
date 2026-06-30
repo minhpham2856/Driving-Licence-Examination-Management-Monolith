@@ -15,8 +15,7 @@ import service.AuditLogService;
 
 import util.Sanitize;
 
-import util.SessionUtil;
-
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -49,7 +48,9 @@ public class ExamAreaServlet extends HttpServlet {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             ExamArea area = examAreaService.getById(id);
             if (area == null) {
-                SessionUtil.flash(req, "danger", "KhÃ´ng tÃ¬m tháº¥y khu vá»±c thi cáº§n sá»­a.");
+                HttpSession flashSession = req.getSession(true);
+                flashSession.setAttribute("flashType", "danger");
+                flashSession.setAttribute("flashMessage", "Không tìm thấy khu vực thi cần sửa.");
                 resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
                 return;
             }
@@ -69,7 +70,7 @@ public class ExamAreaServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String action = Sanitize.text(req.getParameter("action"));
-        User admin = SessionUtil.getCurrentUser(req);
+        User admin = (User) req.getSession().getAttribute("user");
 
         if ("delete".equals(action)) {
             handleDelete(req, resp, admin);
@@ -98,9 +99,11 @@ public class ExamAreaServlet extends HttpServlet {
             return;
         }
 
-        auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT",
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT",
                 (isEdit ? "cap nhat khu vuc thi: " : "tao khu vuc thi: ") + name, result.id);
-        SessionUtil.flash(req, "success", result.message);
+        HttpSession flashSession = req.getSession(true);
+        flashSession.setAttribute("flashType", "success");
+        flashSession.setAttribute("flashMessage", result.message);
         
         resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
     }
@@ -114,10 +117,14 @@ public class ExamAreaServlet extends HttpServlet {
         ExamAreaService.DeleteResult result = examAreaService.delete(id, admin.getUserId());
         
         if (result.success) {
-            auditLogService.persist(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "XÃ³a khu vá»±c thi: " + name, id);
-            SessionUtil.flash(req, "success", result.message);
+            auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "Xóa khu vực thi: " + name, id);
+            HttpSession flashSession = req.getSession(true);
+        flashSession.setAttribute("flashType", "success");
+        flashSession.setAttribute("flashMessage", result.message);
         } else {
-            SessionUtil.flash(req, "danger", result.message);
+            HttpSession flashSession = req.getSession(true);
+            flashSession.setAttribute("flashType", "danger");
+            flashSession.setAttribute("flashMessage", result.message);
         }
         resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
     }

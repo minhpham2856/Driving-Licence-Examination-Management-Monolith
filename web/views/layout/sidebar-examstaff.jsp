@@ -63,7 +63,7 @@
                <span class="side-nav-bar__label" data-node-id="examiner:dash-lbl">Dashboard</span>
            </a>
 
-           <a href="${pageContext.request.contextPath}/views/staff/exam/upload.jsp"
+           <a href="${pageContext.request.contextPath}/views/staff/exam/upload"
            class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
            data-node-id="4:757"
            <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>

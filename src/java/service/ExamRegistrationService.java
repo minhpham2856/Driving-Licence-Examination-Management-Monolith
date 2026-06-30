@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ExamRegistrationService {
-    CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, String sbd);
+    CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, int sbd);
     List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId);
     
     boolean updateProfile(int candidateId, String fullName, Date dob, String govIdNo, String email, String phoneNo);

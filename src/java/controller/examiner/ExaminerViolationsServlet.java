@@ -1,26 +1,28 @@
 package controller.examiner;
 
-import java.util.*;
-
-import model.*;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.HttpServlet;
-import util.ExaminerUtil;
-import service.ExaminerDataService;
-import service.impl.ExaminerDataServiceImpl;
-import service.ExaminerActionsService;
-import service.impl.ExaminerActionsServiceImpl;
-
 import jakarta.servlet.http.Part;
-import util.ExaminerViolationUploadHelper;
+import model.User;
+import service.ExaminerActionsService;
+import service.ExaminerDataService;
+import service.impl.ExaminerActionsServiceImpl;
+import service.impl.ExaminerDataServiceImpl;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
@@ -33,27 +35,43 @@ import java.util.Map;
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 10 * 1024 * 1024)
 public class ExaminerViolationsServlet extends HttpServlet {
+
+    private static final String UPLOAD_SUBDIR = "uploads/violations";
+
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        HttpSession session = ExaminerServletSupport.requireSession(request, response);
+        if (session == null) {
+            return;
+        }
 
-        Integer sessionId = ExaminerUtil.activeSessionId(session);
-        String path = ExaminerUtil.stripContextPath(request);
-        String sbd = request.getParameter("sbd");
-        String search = request.getParameter("q");
+        Integer sessionId = ExaminerServletSupport.activeSessionId(session);
+        String path = ExaminerServletSupport.stripContextPath(request);
+        Integer sbd = ExaminerServletSupport.parseSbdParam(request.getParameter("sbd"));
 
         if (sessionId != null && sessionId > 0) {
             if ("/views/examiner/violations".equals(path)) {
-                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                }
+                Object candidatesObj = request.getAttribute("candidates");
+                if (candidatesObj instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> candidates = (List<Map<String, Object>>) candidatesObj;
+                    ExaminerServletSupport.applyCandidateSort(request, candidates);
+                    request.setAttribute("candidates", candidates);
+                }
             } else {
-                if (sbd == null || sbd.isBlank() || request.getAttribute("candidate") == null) {
-                    
-                    Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                if (sbd == null || request.getAttribute("candidate") == null) {
+                    Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+                    for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                        request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                    }
                     if (request.getAttribute("candidate") == null) {
                         response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSbd");
                         return;
@@ -62,7 +80,9 @@ public class ExaminerViolationsServlet extends HttpServlet {
 
                 if ("/views/examiner/violation-confirm".equals(path)) {
                     Object candidateObj = request.getAttribute("candidate");
-                    if (candidateObj instanceof Map<?, ?> candidateMap) {
+                    if (candidateObj instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> candidateMap = (Map<String, Object>) candidateObj;
                         if (Boolean.TRUE.equals(candidateMap.get("suspended"))) {
                             response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=alreadySuspended");
                             return;
@@ -70,7 +90,9 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     }
                 } else if ("/views/examiner/violation-undo".equals(path)) {
                     Object candidateObj = request.getAttribute("candidate");
-                    if (candidateObj instanceof Map<?, ?> candidateMap) {
+                    if (candidateObj instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> candidateMap = (Map<String, Object>) candidateObj;
                         if (!Boolean.TRUE.equals(candidateMap.get("suspended"))) {
                             response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=notSuspended");
                             return;
@@ -95,22 +117,24 @@ public class ExaminerViolationsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = ExaminerUtil.requireSession(request, response);
-        if (session == null) return;
+        HttpSession session = ExaminerServletSupport.requireSession(request, response);
+        if (session == null) {
+            return;
+        }
 
-        Integer sessionId = ExaminerUtil.activeSessionId(session);
+        Integer sessionId = ExaminerServletSupport.activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        String path = ExaminerUtil.stripContextPath(request);
+        String path = ExaminerServletSupport.stripContextPath(request);
         if ("/views/examiner/violation-confirm".equals(path)) {
             handleRecordViolation(request, response, session, sessionId);
             return;
         }
         if ("/views/examiner/violation-undo".equals(path)) {
-            handleUndoSuspension(request, response, session, sessionId);
+            handleUndoSuspension(request, response, sessionId);
             return;
         }
 
@@ -119,13 +143,16 @@ public class ExaminerViolationsServlet extends HttpServlet {
 
     private void handleRecordViolation(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int sessionId) throws IOException, ServletException {
-        String sbd = request.getParameter("sbd");
+        Integer sbd = ExaminerServletSupport.parseSbdParam(request.getParameter("sbd"));
         String reasonCode = request.getParameter("reasonCode");
         String reasonDetail = request.getParameter("reasonDetail");
 
         if (reasonCode == null || reasonCode.isBlank()) {
-            Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-            request.setAttribute("violationError", "Vui lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â²ng chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Ân lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ do vi phÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â¡m.");
+            Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+            for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            }
+            request.setAttribute("violationError", "Vui lòng chọn lý do vi phạm.");
             request.getRequestDispatcher("/views/examiner/violation-confirm.jsp").forward(request, response);
             return;
         }
@@ -133,10 +160,13 @@ public class ExaminerViolationsServlet extends HttpServlet {
         String evidencePath = null;
         try {
             Part evidencePart = request.getPart("evidenceFile");
-            evidencePath = ExaminerViolationUploadHelper.saveUpload(request, evidencePart, sessionId);
+            evidencePath = saveViolationEvidence(request, evidencePart, sessionId);
         } catch (IOException | ServletException e) {
-            Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-            request.setAttribute("violationError", e.getMessage() != null ? e.getMessage() : "KhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´ng tÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚ÂºÃƒâ€šÃ‚Â£i ÃƒÆ’Ã¢â‚¬Å¾ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã¢â‚¬Â Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â£c file minh chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Â©ng.");
+            Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+            for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            }
+            request.setAttribute("violationError", e.getMessage() != null ? e.getMessage() : "Không tải được file minh chứng.");
             request.getRequestDispatcher("/views/examiner/violation-confirm.jsp").forward(request, response);
             return;
         }
@@ -146,37 +176,97 @@ public class ExaminerViolationsServlet extends HttpServlet {
             returnTo = "/views/examiner/violations";
         }
 
-        String[] deductionParams = request.getParameterValues("deductionId");
-        int[] deductionIds = ExaminerUtil.parseDeductionIds(deductionParams);
+        int[] deductionIds = ExaminerServletSupport.parseDeductionIds(request.getParameterValues("deductionId"));
 
-        boolean saved = examinerService.recordViolation(
-                sessionId, sbd, reasonCode, reasonDetail, evidencePath, deductionIds, ((User) session.getAttribute("user")).getUserId(), ExaminerUtil.resolveSectionType(session), ExaminerUtil.resolveSectionName(session));
-        if (saved) {
-            response.sendRedirect(request.getContextPath() + returnTo + "?suspended=" + ExaminerUtil.urlEncode(sbd));
+        if (sbd == null) {
+            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSbd");
             return;
         }
-        response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=saveFailed&returnTo=" + ExaminerUtil.urlEncode(returnTo));
+
+        boolean saved = examinerService.recordViolation(
+                sessionId, sbd, reasonCode, reasonDetail, evidencePath, deductionIds,
+                ((User) session.getAttribute("user")).getUserId(),
+                ExaminerServletSupport.resolveSectionType(session),
+                ExaminerServletSupport.resolveSectionName(session));
+        if (saved) {
+            response.sendRedirect(request.getContextPath() + returnTo + "?suspended="
+                    + ExaminerServletSupport.urlEncode(sbd));
+            return;
+        }
+        response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd="
+                + ExaminerServletSupport.urlEncode(sbd) + "&error=saveFailed&returnTo=" + returnTo);
     }
 
     private void handleUndoSuspension(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, int sessionId) throws IOException, ServletException {
-        String sbd = request.getParameter("sbd");
+            int sessionId) throws IOException, ServletException {
+        Integer sbd = ExaminerServletSupport.parseSbdParam(request.getParameter("sbd"));
         String reasonCode = request.getParameter("reasonCode");
         String reasonDetail = request.getParameter("reasonDetail");
 
         if (reasonCode == null || reasonCode.isBlank()) {
-            Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd); for(Map.Entry<String, Object> mapEntry : data.entrySet()) request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-            request.setAttribute("undoError", "Vui lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â²ng chÃƒÆ’Ã‚Â¡Ãƒâ€šÃ‚Â»Ãƒâ€šÃ‚Ân lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â½ do hoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â n tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡c.");
+            Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+            for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+            }
+            request.setAttribute("undoError", "Vui lòng chọn lý do hoàn tác.");
             request.getRequestDispatcher("/views/examiner/violation-undo.jsp").forward(request, response);
             return;
         }
 
-        boolean undone = examinerService.undoSuspension(sessionId, sbd, reasonCode, reasonDetail, ((User) session.getAttribute("user")).getUserId());
-        if (undone) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?undoSuspended=" + ExaminerUtil.urlEncode(sbd));
+        if (sbd == null) {
+            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSbd");
             return;
         }
-        response.sendRedirect(request.getContextPath() + "/views/examiner/violation-undo?sbd=" + ExaminerUtil.urlEncode(sbd) + "&error=undoFailed");
+
+        boolean undone = examinerService.undoSuspension(sessionId, sbd, reasonCode, reasonDetail,
+                ((User) request.getSession().getAttribute("user")).getUserId());
+        if (undone) {
+            response.sendRedirect(request.getContextPath() + "/views/examiner/violations?undoSuspended="
+                    + ExaminerServletSupport.urlEncode(sbd));
+            return;
+        }
+        response.sendRedirect(request.getContextPath() + "/views/examiner/violation-undo?sbd="
+                + ExaminerServletSupport.urlEncode(sbd) + "&error=undoFailed");
+    }
+
+    private String saveViolationEvidence(HttpServletRequest request, Part filePart, int sessionId) {
+        if (filePart == null || filePart.getSize() <= 0) {
+            return null;
+        }
+        try {
+            String webRoot = request.getServletContext().getRealPath("/");
+            String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String dirPath = webRoot + File.separator + UPLOAD_SUBDIR + File.separator + sessionId;
+            File dir = new File(dirPath);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            String fileName = datePrefix + "_" + System.currentTimeMillis() + "_" + getSubmittedFileName(filePart);
+            Path target = new File(dir, fileName).toPath();
+            try (InputStream in = filePart.getInputStream()) {
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return UPLOAD_SUBDIR + "/" + sessionId + "/" + fileName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String getSubmittedFileName(Part part) {
+        String cd = part.getHeader("Content-Disposition");
+        if (cd == null) {
+            return "unknown";
+        }
+        for (String token : cd.split(";")) {
+            String t = token.trim();
+            if (t.startsWith("filename")) {
+                String val = t.substring(t.indexOf('=') + 1).trim().replace("\"", "");
+                int idx = Math.max(val.lastIndexOf('/'), val.lastIndexOf('\\'));
+                return idx >= 0 ? val.substring(idx + 1) : val;
+            }
+        }
+        return "unknown";
     }
 }
-
