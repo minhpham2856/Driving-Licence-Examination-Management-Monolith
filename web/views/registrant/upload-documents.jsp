@@ -1,164 +1,128 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Hồ Sơ Bổ Sung - Lái Vui</title>
-    <meta name="description" content="Tải lên và cập nhật hồ sơ, ảnh chân dung, CCCD và giấy khám sức khỏe để đăng ký thi sát hạch lái xe tại Lái Vui.">
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Layout Stylesheets -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nộp hồ sơ sát hạch - Lái Vui</title>
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
-
-<%-- Inject registrant sidebar --%>
 <jsp:include page="/views/layout/sidebar-registrant.jsp">
     <jsp:param name="activeSidebar" value="upload-documents" />
 </jsp:include>
-
 <div class="dashboard-shell">
-    <main class="main-content" id="main-content">
+<main class="main-content">
+    <nav class="breadcrumbs">
+        <a href="${ctx}/views/registrant/dashboard.jsp">Trang chủ</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span class="breadcrumbs__current">Nộp hồ sơ</span>
+    </nav>
 
-        <%-- Breadcrumbs --%>
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/registrant/dashboard.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/registrant/profile.jsp">Hồ sơ cá nhân</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Upload hồ sơ bổ sung</span>
-        </nav>
+    <header class="page-header">
+        <div class="page-title-wrap">
+            <h1 class="page-title">Nộp hồ sơ sát hạch</h1>
+            <p class="page-subtitle">Tải đầy đủ giấy tờ và gửi Ban quản lý thẩm định trước khi đăng ký lịch thi.</p>
+        </div>
+        <span class="action-badge action-badge--warning">${empty dossier.status ? 'Draft' : dossier.status}</span>
+    </header>
 
-        <%-- Page Header --%>
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Upload hồ sơ bổ sung</h1>
-                <p class="page-subtitle">Tải lên tài liệu đính kèm để hoàn tất thủ tục xét duyệt hồ sơ sát hạch</p>
-            </div>
-        </header>
+    <c:if test="${not empty dossierError}">
+        <div class="p-alert-banner" style="border-color:#ef4444;color:#991b1b">${dossierError}</div>
+    </c:if>
+    <c:if test="${not empty sessionScope.dossierSuccess}">
+        <div class="p-alert-banner" style="border-color:#10b981;color:#047857">${sessionScope.dossierSuccess}</div>
+        <c:remove var="dossierSuccess" scope="session" />
+    </c:if>
 
-        <%-- Notification Banner (File requirements) --%>
-        <section class="p-alert-banner" aria-label="Hướng dẫn upload">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
-                <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            <div class="p-alert-banner__content">
-                <span class="p-alert-banner__title">Yêu cầu định dạng tệp tin</span>
-                <span>
-                    Chấp nhận các định dạng ảnh: <strong>PNG, JPG, JPEG</strong>. Dung lượng tối đa: <strong>5MB mỗi tệp</strong>. Các bản quét hoặc ảnh chụp tài liệu cần rõ chữ, không mờ, không bị lóa và hiển thị đầy đủ thông tin hoặc con dấu (đối với Giấy khám sức khỏe).
-                </span>
-            </div>
-        </section>
+    <c:choose>
+        <c:when test="${dossier.status eq 'Approved'}">
+            <section class="report-pane" style="padding:2rem;text-align:center">
+                <h2 style="color:#047857">Hồ sơ đã được xác minh</h2>
+                <p>Bạn có thể chuyển sang bước đăng ký lịch sát hạch.</p>
+                <a class="btn-filter" href="${ctx}/views/registrant/register-exam.jsp">Đăng ký lịch thi</a>
+            </section>
+        </c:when>
+        <c:otherwise>
+            <form action="${ctx}/registrant/dossier" method="post" enctype="multipart/form-data">
+                <section class="p-form-card" style="margin-bottom:1.5rem">
+                    <div class="p-form-header"><h2 class="p-form-title">Thông tin đăng ký</h2></div>
+                    <div class="p-form-body">
+                        <div class="p-form-grid">
+                            <div class="p-input-group">
+                                <label class="p-input-label" for="applicantType">Phân loại học viên</label>
+                                <select class="p-input-field" id="applicantType" name="applicantType" required>
+                                    <option value="free">Thí sinh tự do</option>
+                                    <option value="student">Học viên chính khóa</option>
+                                </select>
+                            </div>
+                            <div class="p-input-group">
+                                <label class="p-input-label" for="licenceClass">Hạng GPLX</label>
+                                <select class="p-input-field" id="licenceClass" name="licenceClass" required>
+                                    <option value="A1">A1</option>
+                                    <option value="A2">A2 / A</option>
+                                    <option value="B1">B1</option>
+                                    <option value="B2">B2 / B</option>
+                                    <option value="C">C</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-        <%-- Upload Cards Grid --%>
-        <div class="upload-grid">
-            
-            <%-- 1. Ảnh chân dung 3x4 --%>
-            <div class="upload-card upload-card--approved">
-                <div class="upload-card__header">
-                    <h2 class="upload-card__title">1. Ảnh chân dung 3x4</h2>
-                    <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
+                <div class="report-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem">
+                    <c:set var="portrait" value="${dossier.documents['PORTRAIT']}" />
+                    <c:set var="idFront" value="${dossier.documents['ID_FRONT']}" />
+                    <c:set var="idBack" value="${dossier.documents['ID_BACK']}" />
+                    <c:set var="health" value="${dossier.documents['HEALTH_CERTIFICATE']}" />
+                    <section class="p-form-card">
+                        <div class="p-form-header"><h3 class="p-form-title">Ảnh chân dung</h3></div>
+                        <div class="p-form-body">
+                            <c:if test="${not empty portrait}"><a href="${ctx}${portrait.documentUrl}" target="_blank">Xem tệp đã tải</a></c:if>
+                            <input class="p-input-field" type="file" name="portrait" accept=".jpg,.jpeg,.png">
+                        </div>
+                    </section>
+                    <section class="p-form-card">
+                        <div class="p-form-header"><h3 class="p-form-title">CCCD mặt trước</h3></div>
+                        <div class="p-form-body">
+                            <c:if test="${not empty idFront}"><a href="${ctx}${idFront.documentUrl}" target="_blank">Xem tệp đã tải</a></c:if>
+                            <input class="p-input-field" type="file" name="idFront" accept=".jpg,.jpeg,.png,.pdf">
+                        </div>
+                    </section>
+                    <section class="p-form-card">
+                        <div class="p-form-header"><h3 class="p-form-title">CCCD mặt sau</h3></div>
+                        <div class="p-form-body">
+                            <c:if test="${not empty idBack}"><a href="${ctx}${idBack.documentUrl}" target="_blank">Xem tệp đã tải</a></c:if>
+                            <input class="p-input-field" type="file" name="idBack" accept=".jpg,.jpeg,.png,.pdf">
+                        </div>
+                    </section>
+                    <section class="p-form-card">
+                        <div class="p-form-header"><h3 class="p-form-title">Giấy khám sức khỏe</h3></div>
+                        <div class="p-form-body">
+                            <c:if test="${not empty health}"><a href="${ctx}${health.documentUrl}" target="_blank">Xem tệp đã tải</a></c:if>
+                            <input class="p-input-field" type="file" name="healthCertificate" accept=".jpg,.jpeg,.png,.pdf">
+                        </div>
+                    </section>
                 </div>
-                <div class="upload-card__preview-box">
-                    <img src="${pageContext.request.contextPath}/assets/imgs/LOGO.png" alt="Ảnh chân dung đã duyệt" class="upload-card__preview-img" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop'">
-                </div>
-            </div>
 
-            <%-- 2. Mặt trước CCCD --%>
-            <div class="upload-card upload-card--approved">
-                <div class="upload-card__header">
-                    <h2 class="upload-card__title">2. Mặt trước Số căn cước</h2>
-                    <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
-                </div>
-                <div class="upload-card__preview-box">
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="upload-card__approved-icon">
-                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"></rect>
-                        <circle cx="7" cy="12" r="2.5" stroke="currentColor" stroke-width="1.5"></circle>
-                        <path d="M12 9h7M12 12h5M12 15h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                    </svg>
-                    <span class="upload-card__approved-label">[Mặt trước CCCD đã tải lên]</span>
-                </div>
-            </div>
-
-            <%-- 3. Mặt sau CCCD --%>
-            <div class="upload-card upload-card--approved">
-                <div class="upload-card__header">
-                    <h2 class="upload-card__title">3. Mặt sau Số căn cước</h2>
-                    <span class="r-stat-card__badge r-stat-card__badge--success">Đã duyệt</span>
-                </div>
-                <div class="upload-card__preview-box">
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="upload-card__approved-icon">
-                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"></rect>
-                        <path d="M6 9h12M6 12h12M6 15h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                    </svg>
-                    <span class="upload-card__approved-label">[Mặt sau CCCD đã tải lên]</span>
-                </div>
-            </div>
-
-            <%-- 4. Giấy khám sức khỏe --%>
-            <div class="upload-card upload-card--rejected">
-                <div class="upload-card__header">
-                    <h2 class="upload-card__title">4. Giấy khám sức khỏe lái xe</h2>
-                    <span class="r-stat-card__badge r-stat-card__badge--danger">Yêu cầu bổ sung</span>
-                </div>
-                
-                <%-- Drag & Drop Upload Zone --%>
-                <div class="upload-card__preview-box">
-                    <div class="upload-card__dropzone" id="medical-certificate-dropzone">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 16V8m0 8-3-3m3 3 3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                        <span class="upload-card__dropzone-text">Kéo thả hoặc nhấp để chọn tệp tải lên</span>
-                        <span class="upload-card__dropzone-sub">Kích thước ảnh chụp Giấy khám sức khỏe < 5MB</span>
+                <div class="upload-action-bar" style="margin-top:1.5rem">
+                    <div class="upload-action-bar__info">
+                        <strong>${dossier.documentCount}/4 tài liệu đã có</strong>
+                        <span>Mỗi tệp tối đa 5 MB, định dạng JPG, PNG hoặc PDF.</span>
+                    </div>
+                    <div class="upload-action-bar__buttons">
+                        <button class="btn-export" type="submit" name="action" value="save">Lưu bản nháp</button>
+                        <button class="btn-filter" type="submit" name="action" value="submit">Gửi duyệt hồ sơ</button>
                     </div>
                 </div>
-
-                <%-- Rejection Feedback Message --%>
-                <div class="upload-card__feedback upload-card__feedback--error">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
-                        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                    <span><strong>Lý do từ chối:</strong> Ảnh chụp Giấy khám sức khỏe bị mờ phần giáp lai ảnh. Vui lòng chụp lại rõ nét hơn, đặc biệt là vị trí đóng dấu giáp lai ảnh thẻ chân dung trên giấy khám.</span>
-                </div>
-            </div>
-
-        </div>
-
-        <%-- Submit Button Action Bar --%>
-        <div class="upload-action-bar">
-            <div class="upload-action-bar__info">
-                <span class="upload-action-bar__title">Hoàn tất tải lên?</span>
-                <span class="upload-action-bar__subtitle">Hồ sơ của bạn sẽ được chuyển đến Cán bộ coi thi kiểm tra và duyệt lại ngay sau khi bạn bấm gửi.</span>
-            </div>
-            <div class="upload-action-bar__buttons">
-                <a href="${pageContext.request.contextPath}/views/registrant/profile.jsp" class="welcome-banner__btn welcome-banner__btn--outline upload-action-bar__btn-outline">
-                    Quay lại hồ sơ
-                </a>
-                <button type="button" class="welcome-banner__btn welcome-banner__btn--primary upload-action-bar__btn-primary" id="btn-submit-documents">
-                    Gửi duyệt hồ sơ bổ sung
-                </button>
-            </div>
-        </div>
-
-
-    </main>
-
-    <%-- Footer --%>
-    <jsp:include page="/views/layout/footer.jsp" />
+            </form>
+        </c:otherwise>
+    </c:choose>
+</main>
+<jsp:include page="/views/layout/footer.jsp" />
 </div>
-
 </body>
 </html>

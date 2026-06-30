@@ -66,7 +66,7 @@
 
         <%-- 2. Hồ sơ cá nhân (Nhóm menu với Submenu) --%>
         <div class="side-nav-bar__menu-group">
-            <a href="${ctx}/views/registrant/profile.jsp"
+            <a href="${ctx}/registrant/dossier?view=profile"
                class="side-nav-bar__link${(activeSidebar eq 'profile' or activeSidebar eq 'upload-documents') ? ' is-active' : ''}"
                <c:if test="${activeSidebar eq 'profile' or activeSidebar eq 'upload-documents'}">aria-current="page"</c:if>>
                 <span class="side-nav-bar__icon side-nav-bar__icon--user" aria-hidden="true">
@@ -78,12 +78,12 @@
                 <span class="side-nav-bar__label">Hồ sơ cá nhân</span>
             </a>
             <div class="side-nav-bar__submenu">
-                <a href="${ctx}/views/registrant/profile.jsp"
+                <a href="${ctx}/registrant/dossier?view=profile"
                    class="side-nav-bar__submenu-link${activeSidebar eq 'profile' ? ' is-active' : ''}">
                     <span class="submenu-dot"></span>
                     <span class="side-nav-bar__label">Thông tin cá nhân</span>
                 </a>
-                <a href="${ctx}/views/registrant/upload-documents.jsp"
+                <a href="${ctx}/registrant/dossier"
                    class="side-nav-bar__submenu-link${activeSidebar eq 'upload-documents' ? ' is-active' : ''}">
                     <span class="submenu-dot"></span>
                     <span class="side-nav-bar__label">Upload hồ sơ bổ sung</span>
@@ -108,7 +108,7 @@
         </a>
 
         <%-- 5. Theo dõi tiến trình hồ sơ --%>
-        <a href="${ctx}/views/registrant/track-profile.jsp"
+        <a href="${ctx}/registrant/dossier?view=track"
            class="side-nav-bar__link${activeSidebar eq 'track-profile' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'track-profile'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">

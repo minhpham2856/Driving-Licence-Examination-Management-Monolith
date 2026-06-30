@@ -14,3 +14,6 @@ sources.txt
 private/
 build/
 out/
+/web/uploads/
+**/.env
+web/WEB-INF/.env
