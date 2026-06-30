@@ -11,9 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import service.RegistrationService;
-import service.SessionService;
 import service.impl.RegistrationServiceImpl;
-import service.impl.SessionServiceImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,7 +31,6 @@ public class UploadServlet extends HttpServlet {
 
     // Controller talks to the service layer only. No DAO or DB access here.
     private final RegistrationService registrationService = new RegistrationServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
 
     // Default target session, matching the branch's default.
     private static final int DEFAULT_SESSION_ID = 2;
@@ -72,8 +69,8 @@ public class UploadServlet extends HttpServlet {
             return;
         }
 
-        // Default: render the upload page with the active session dropdown.
-        request.setAttribute("activeSessions", sessionService.getActiveSessions());
+        // Default: render the upload page. The active-exam dropdown previously came from
+        // SessionService (now removed); it is intentionally dropped here.
         request.getRequestDispatcher("/views/staff/examstaff/upload.jsp").forward(request, response);
     }
 
@@ -85,16 +82,16 @@ public class UploadServlet extends HttpServlet {
         session.removeAttribute("uploadError");
         session.removeAttribute("hasInvalidRows");
 
-        int selectedSessionId = DEFAULT_SESSION_ID;
-        String sessionParam = request.getParameter("examSessionId");
+        int selectedExamId = DEFAULT_SESSION_ID;
+        String sessionParam = request.getParameter("examExamId");
         if (sessionParam != null && !sessionParam.isEmpty()) {
             try {
-                selectedSessionId = Integer.parseInt(sessionParam);
+                selectedExamId = Integer.parseInt(sessionParam);
             } catch (NumberFormatException e) {
                 // Keep the default when the param is not a valid number.
             }
         }
-        session.setAttribute("selectedImportSessionId", selectedSessionId);
+        session.setAttribute("selectedImportExamId", selectedExamId);
 
         try {
             Part filePart = request.getPart("fileInput");
@@ -120,7 +117,7 @@ public class UploadServlet extends HttpServlet {
                     fileContent = fileContent.substring(1);
                 }
 
-                List<UploadRowDTO> parsedList = parseCsv(fileContent, selectedSessionId, session);
+                List<UploadRowDTO> parsedList = parseCsv(fileContent, selectedExamId, session);
                 session.setAttribute("previewCandidates", parsedList);
                 response.sendRedirect("upload?preview=true");
                 return;
@@ -133,7 +130,7 @@ public class UploadServlet extends HttpServlet {
     }
 
     // Parse the CSV content into a list of upload rows (preview candidates).
-    private List<UploadRowDTO> parseCsv(String fileContent, int selectedSessionId, HttpSession session)
+    private List<UploadRowDTO> parseCsv(String fileContent, int selectedExamId, HttpSession session)
             throws Exception {
         List<UploadRowDTO> parsedList = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new StringReader(fileContent));
@@ -216,7 +213,7 @@ public class UploadServlet extends HttpServlet {
             // Duplicate check: already enrolled in the target session.
             if (!cccd.isEmpty()) {
                 Integer existingId =
-                        registrationService.findCandidateIdByGovIdAndSession(cccd, selectedSessionId);
+                        registrationService.findCandidateIdByGovIdAndExam(cccd, selectedExamId);
                 if (existingId != null) {
                     row.setDuplicate(true);
                 }
@@ -234,10 +231,10 @@ public class UploadServlet extends HttpServlet {
             throws ServletException, IOException {
 
         List<UploadRowDTO> previewList = (List<UploadRowDTO>) session.getAttribute("previewCandidates");
-        int selectedSessionId = DEFAULT_SESSION_ID;
-        Integer stored = (Integer) session.getAttribute("selectedImportSessionId");
+        int selectedExamId = DEFAULT_SESSION_ID;
+        Integer stored = (Integer) session.getAttribute("selectedImportExamId");
         if (stored != null) {
-            selectedSessionId = stored;
+            selectedExamId = stored;
         }
 
         if (previewList != null && !previewList.isEmpty()) {
@@ -259,8 +256,8 @@ public class UploadServlet extends HttpServlet {
                         continue;
                     }
                     // Duplicate not skipped: ensure the existing candidate is marked present.
-                    Integer existingId = registrationService.findCandidateIdByGovIdAndSession(
-                            row.getGovIdNo(), selectedSessionId);
+                    Integer existingId = registrationService.findCandidateIdByGovIdAndExam(
+                            row.getGovIdNo(), selectedExamId);
                     if (existingId != null) {
                         registrationService.updatePresent(existingId, true);
                         importedCount++;
@@ -269,7 +266,7 @@ public class UploadServlet extends HttpServlet {
                 }
 
                 // Normal row: persist candidate + enrollment via the service.
-                row.setExamSessionId(selectedSessionId);
+                row.setExamId(selectedExamId);
                 ServiceResult<Void> result = registrationService.insert(row);
                 if (result.isSuccess()) {
                     importedCount++;

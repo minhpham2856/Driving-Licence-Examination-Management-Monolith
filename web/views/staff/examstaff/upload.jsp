@@ -93,13 +93,13 @@
                 <form id="uploadForm" action="${ctx}/staff/examstaff/upload" method="POST" enctype="multipart/form-data"
                       style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
 
-                    <!-- Target session selector -->
+                    <!-- Target exam selector -->
                     <div style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
-                        <label for="examSessionId" style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
-                        <select id="examSessionId" name="examSessionId" style="height: 42px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #1e293b; outline: none; width: 100%; background: #ffffff; cursor: pointer;">
-                            <c:forEach var="sess" items="${requestScope.activeSessions}">
-                                <option value="${sess.id}" ${sessionScope.selectedImportSessionId eq sess.id ? 'selected' : ''}>
-                                    Ca #${sess.id} - ${sess.sessionLabel} (${sess.examDate} | Hạng ${sess.licenseCode})
+                        <label for="examExamId" style="font-size: 0.82rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
+                        <select id="examExamId" name="examExamId" style="height: 42px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #1e293b; outline: none; width: 100%; background: #ffffff; cursor: pointer;">
+                            <c:forEach var="sess" items="${requestScope.activeExams}">
+                                <option value="${sess.id}" ${sessionScope.selectedImportExamId eq sess.id ? 'selected' : ''}>
+                                    Ca #${sess.id} - ${sess.examLabel} (${sess.examDate} | Hạng ${sess.licenseCode})
                                 </option>
                             </c:forEach>
                         </select>
@@ -335,7 +335,7 @@
             <%
                 session.removeAttribute("importedCount");
                 session.removeAttribute("uploadedFileName");
-                session.removeAttribute("selectedImportSessionId");
+                session.removeAttribute("selectedImportExamId");
             %>
         </c:if>
 

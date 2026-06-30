@@ -2,7 +2,7 @@ package controller.staff.examstaff;
 
 import dto.AllocateResultDTO;
 import dto.ServiceResult;
-import dto.SessionViewDTO;
+import dto.ExamViewDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -33,35 +33,35 @@ public class AllocationServlet extends HttpServlet {
         request.removeAttribute("alertMsg");
 
         // 0. Load all sessions for the session dropdown.
-        List<SessionViewDTO> allSessions = allocationService.getAllSessions();
-        request.setAttribute("allSessions", allSessions);
+        List<ExamViewDTO> allExams = allocationService.getAllExams();
+        request.setAttribute("allExams", allExams);
 
         // 1. Resolve the selected session id (request param wins, then session).
-        String sessIdParam = request.getParameter("sessionId");
-        int sessionId = 2; // Default session, matching the branch default.
+        String sessIdParam = request.getParameter("examId");
+        int examId = 2; // Default session, matching the branch default.
         if (sessIdParam != null && !sessIdParam.isEmpty()) {
             try {
-                sessionId = Integer.parseInt(sessIdParam);
+                examId = Integer.parseInt(sessIdParam);
             } catch (NumberFormatException e) {
                 // Keep the default when the param is not a valid number.
             }
-        } else if (session.getAttribute("selectedSessionId") != null) {
-            sessionId = (Integer) session.getAttribute("selectedSessionId");
+        } else if (session.getAttribute("selectedExamId") != null) {
+            examId = (Integer) session.getAttribute("selectedExamId");
         }
-        session.setAttribute("selectedSessionId", sessionId);
+        session.setAttribute("selectedExamId", examId);
 
         // Current session details for the header.
-        SessionViewDTO currentSession = null;
-        for (SessionViewDTO s : allSessions) {
-            if (s.getId() == sessionId) {
-                currentSession = s;
+        ExamViewDTO currentExam = null;
+        for (ExamViewDTO s : allExams) {
+            if (s.getId() == examId) {
+                currentExam = s;
                 break;
             }
         }
-        request.setAttribute("currentSession", currentSession);
+        request.setAttribute("currentExam", currentExam);
 
         // 2. Load the candidate queue for this session.
-        List<ExamEnrollment> candidateQueue = allocationService.getCandidatesBySession(sessionId);
+        List<ExamEnrollment> candidateQueue = allocationService.getCandidatesByExam(examId);
         request.setAttribute("candidateQueue", candidateQueue);
 
         // Active theory rooms used by the manual room selector.
@@ -76,7 +76,7 @@ public class AllocationServlet extends HttpServlet {
             try {
                 if ("autoAllocate".equals(action)) {
                     ServiceResult<AllocateResultDTO> result =
-                            allocationService.autoAllocateSession(sessionId);
+                            allocationService.autoAllocateExam(examId);
                     if (result.isSuccess()) {
                         AllocateResultDTO data = result.getData();
                         int allocated = (data != null) ? data.getAllocatedCount() : 0;
@@ -94,7 +94,7 @@ public class AllocationServlet extends HttpServlet {
                         request.setAttribute("errorMsg", result.getMessage());
                     }
                     // Reload the queue to reflect the latest state.
-                    candidateQueue = allocationService.getCandidatesBySession(sessionId);
+                    candidateQueue = allocationService.getCandidatesByExam(examId);
                     request.setAttribute("candidateQueue", candidateQueue);
 
                 } else if ("checkin".equals(action) && idStr != null) {

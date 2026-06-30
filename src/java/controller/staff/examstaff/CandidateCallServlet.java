@@ -2,15 +2,15 @@ package controller.staff.examstaff;
 
 import dto.EnrollmentDTO;
 import dto.ServiceResult;
-import dto.SessionViewDTO;
-import enums.ExamSessionStatus;
+import enums.ExamStatus;
+import model.Exam;
 import model.User;
 import service.CallService;
+import service.ExamService;
 import service.RegistrationService;
-import service.SessionService;
 import service.impl.CallServiceImpl;
+import service.impl.ExamServiceImpl;
 import service.impl.RegistrationServiceImpl;
-import service.impl.SessionServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,7 +31,7 @@ public class CandidateCallServlet extends HttpServlet {
 
     private final CallService callService = new CallServiceImpl();
     private final RegistrationService registrationService = new RegistrationServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
+    private final ExamService examService = new ExamServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -54,27 +54,27 @@ public class CandidateCallServlet extends HttpServlet {
         }
 
         // Resolve the active exam session (mirrors branch default of session 2).
-        int examSessionId = 2;
-        Integer selectedSessionId = (Integer) session.getAttribute("selectedSessionId");
-        if (selectedSessionId != null) {
-            examSessionId = selectedSessionId;
+        int examId = 2;
+        Integer selectedExamId = (Integer) session.getAttribute("selectedExamId");
+        if (selectedExamId != null) {
+            examId = selectedExamId;
         }
 
         // Detect shift ended: session flag OR DB session status.
         boolean isShiftEnded = "true".equals(session.getAttribute("shiftEnded"));
-        SessionViewDTO sessionDto = sessionService.getSessionById(examSessionId);
-        if (sessionDto != null && ExamSessionStatus.isEnded(sessionDto.getStatus())) {
+        Exam sessionDto = examService.getById(examId);
+        if (sessionDto != null && ExamStatus.isEnded(sessionDto.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
-        request.setAttribute("currentSession", sessionDto);
+        request.setAttribute("currentExam", sessionDto);
 
         // Load the candidate queue from DB while the shift is active.
         List<EnrollmentDTO> candidateQueue = null;
         if (!isShiftEnded) {
-            candidateQueue = registrationService.getCandidatesBySession(examSessionId);
+            candidateQueue = registrationService.getCandidatesByExam(examId);
             session.setAttribute("candidateQueue", candidateQueue);
-            session.setAttribute("lastLoadedSessionId", examSessionId);
+            session.setAttribute("lastLoadedExamId", examId);
         }
 
         // Permanent-absent list lives in the session for undo support.
@@ -97,7 +97,7 @@ public class CandidateCallServlet extends HttpServlet {
                         continue;
                     }
                     session.setAttribute("callingSbd", String.valueOf(c.getCandidateNumber()));
-                    callService.recordProcedureCall(examSessionId, c.getCandidateNumber(), "Calling",
+                    callService.recordProcedureCall(examId, c.getCandidateNumber(), "Calling",
                             PROCEDURE_DESK, actionUserId);
                     break;
                 }
@@ -108,7 +108,7 @@ public class CandidateCallServlet extends HttpServlet {
                 if (foundIdx != -1) {
                     EnrollmentDTO removed = candidateQueue.remove(foundIdx);
                     candidateQueue.add(removed);
-                    callService.recordProcedureCall(examSessionId, removed.getCandidateNumber(), "Absent",
+                    callService.recordProcedureCall(examId, removed.getCandidateNumber(), "Absent",
                             PROCEDURE_DESK, actionUserId);
                 }
                 String nextSbd = null;
@@ -117,7 +117,7 @@ public class CandidateCallServlet extends HttpServlet {
                         continue;
                     }
                     nextSbd = String.valueOf(c.getCandidateNumber());
-                    callService.recordProcedureCall(examSessionId, c.getCandidateNumber(), "Calling",
+                    callService.recordProcedureCall(examId, c.getCandidateNumber(), "Calling",
                             PROCEDURE_DESK, actionUserId);
                     break;
                 }

@@ -137,7 +137,7 @@
     white-space: nowrap;
 }
 
-.es-session-selector__select {
+.es-exam-selector__select {
     height: 30px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
@@ -151,7 +151,7 @@
     max-width: 320px;
 }
 
-.es-session-selector__select--wide {
+.es-exam-selector__select--wide {
     height: 38px;
     flex-grow: 1;
     max-width: none;
@@ -1312,19 +1312,19 @@
     color: #0f172a;
 }
 
-.examiner-session-form {
+.examiner-exam-form {
     display: flex;
     gap: 8px;
     align-items: center;
 }
 
-.examiner-session-form__label {
+.examiner-exam-form__label {
     font-size: 0.78rem;
     font-weight: 700;
     color: #64748b;
 }
 
-.examiner-session-form__select {
+.examiner-exam-form__select {
     height: 38px;
     min-width: 280px;
     border-radius: 8px;

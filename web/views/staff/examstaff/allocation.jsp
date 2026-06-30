@@ -95,14 +95,14 @@
             </div>
 
             <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: flex-end; margin-top: 1rem; border-top: 1.5px solid #f1f5f9; padding-top: 1rem;">
-                <!-- Target Session Selection -->
+                <!-- Target Exam Selection -->
                 <form action="${ctx}/staff/examstaff/allocation" method="GET" style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 250px;">
-                    <label for="sessionId" style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
+                    <label for="examId" style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">Chọn ca sát hạch mục tiêu:</label>
                     <div style="display: flex; gap: 8px;">
-                        <select id="sessionId" name="sessionId" class="es-session-selector__select es-session-selector__select--wide">
-                            <c:forEach var="sess" items="${requestScope.allSessions}">
-                                <option value="${sess.id}" ${sessionScope.selectedSessionId eq sess.id ? 'selected' : ''}>
-                                    Ca #${sess.id} - ${sess.sessionLabel} (${sess.licenseCode} | ${sess.status})
+                        <select id="examId" name="examId" class="es-exam-selector__select es-exam-selector__select--wide">
+                            <c:forEach var="sess" items="${requestScope.allExams}">
+                                <option value="${sess.id}" ${sessionScope.selectedExamId eq sess.id ? 'selected' : ''}>
+                                    Ca #${sess.id} - ${sess.examLabel} (${sess.licenseCode} | ${sess.status})
                                 </option>
                             </c:forEach>
                         </select>
@@ -117,7 +117,7 @@
                 <!-- Auto allocate action -->
                 <form action="${ctx}/staff/examstaff/allocation" method="GET" style="display: flex; gap: 8px; align-items: flex-end;">
                     <input type="hidden" name="action" value="autoAllocate">
-                    <input type="hidden" name="sessionId" value="${sessionScope.selectedSessionId}">
+                    <input type="hidden" name="examId" value="${sessionScope.selectedExamId}">
                     <button type="submit" class="btn-export" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; background-color: #0052cc; color: #ffffff; border-color: #0052cc;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -202,7 +202,7 @@
                                             </c:choose>
                                         </td>
                                         <td style="text-align: center;">
-                                            <a href="${ctx}/staff/examstaff/allocation?action=checkin&id=${enr.candidateId}&sessionId=${sessionScope.selectedSessionId}"
+                                            <a href="${ctx}/staff/examstaff/allocation?action=checkin&id=${enr.candidateId}&examId=${sessionScope.selectedExamId}"
                                                class="btn-export" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; text-decoration: none; border-color: rgba(37,99,235,0.25); color: #2563eb; font-weight: 700;">
                                                 Điểm danh
                                             </a>

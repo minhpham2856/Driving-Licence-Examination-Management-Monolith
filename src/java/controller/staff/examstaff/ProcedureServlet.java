@@ -3,11 +3,12 @@ package controller.staff.examstaff;
 import dto.EnrollmentDTO;
 import dto.ServiceResult;
 import enums.PaymentStatus;
+import model.Exam;
 import model.Payment;
+import service.ExamService;
 import service.RegistrationService;
-import service.SessionService;
+import service.impl.ExamServiceImpl;
 import service.impl.RegistrationServiceImpl;
-import service.impl.SessionServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,7 +32,7 @@ public class ProcedureServlet extends HttpServlet {
     private static final String PROCEDURE_FEE = "200,000 đ";
 
     private final RegistrationService registrationService = new RegistrationServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
+    private final ExamService examService = new ExamServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -40,10 +41,10 @@ public class ProcedureServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         // 1. Always load the queue from the Service layer (no legacy in-session queue).
-        int examSessionId = resolveSessionId(session);
-        List<EnrollmentDTO> qList = registrationService.getCandidatesBySession(examSessionId);
+        int examId = resolveExamId(session);
+        List<EnrollmentDTO> qList = registrationService.getCandidatesByExam(examId);
         session.setAttribute("candidateQueue", qList);
-        session.setAttribute("lastLoadedSessionId", examSessionId);
+        session.setAttribute("lastLoadedExamId", examId);
 
         // 2. Resolve SBD and load the profile through the Service layer.
         String sbdParam = request.getParameter("sbd");
@@ -63,14 +64,14 @@ public class ProcedureServlet extends HttpServlet {
             session.setAttribute("lastSelectedSbd", null);
         }
 
-        EnrollmentDTO profile = loadProfile(examSessionId, sbdParam, qList);
+        EnrollmentDTO profile = loadProfile(examId, sbdParam, qList);
 
         // Mark the candidate present the first time the desk opens their file.
         if (profile != null && !profile.isPresent()) {
             ServiceResult<Void> presentResult = registrationService.updatePresent(profile.getId(), true);
             if (presentResult.isSuccess()) {
                 profile = reloadProfile(profile.getId());
-                qList = registrationService.getCandidatesBySession(examSessionId);
+                qList = registrationService.getCandidatesByExam(examId);
                 session.setAttribute("candidateQueue", qList);
             }
         }
@@ -109,7 +110,7 @@ public class ProcedureServlet extends HttpServlet {
         String pAction = request.getParameter("action");
 
         if ("nextCandidate".equals(pAction)) {
-            advanceToNextCandidate(session, examSessionId);
+            advanceToNextCandidate(session, examId);
             response.sendRedirect("candidate-call");
             return;
         }
@@ -131,7 +132,7 @@ public class ProcedureServlet extends HttpServlet {
             if (updateResult.isSuccess()) {
                 profile = reloadProfile(profile.getId());
                 hasValidPhoto = profile != null && profile.isValidCapturedPhoto();
-                qList = registrationService.getCandidatesBySession(examSessionId);
+                qList = registrationService.getCandidatesByExam(examId);
                 session.setAttribute("candidateQueue", qList);
                 request.setAttribute("profileUpdatedAlert", "true");
             } else {
@@ -149,12 +150,12 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         if ("saveCapturedPhoto".equals(pAction)) {
-            handleSaveCapturedPhoto(request, response, session, sbdParam, examSessionId);
+            handleSaveCapturedPhoto(request, response, session, sbdParam, examId);
             return;
         }
 
         if ("confirmPayment".equals(pAction) && profile != null) {
-            processPayment(request, response, session, profile, examSessionId);
+            processPayment(request, response, session, profile, examId);
             return;
         }
 
@@ -162,14 +163,14 @@ public class ProcedureServlet extends HttpServlet {
         // candidate already marked paid is never charged twice.
         String paymentSuccessParam = request.getParameter("paymentSuccess");
         if ("true".equals(paymentSuccessParam) && profile != null) {
-            processPayment(request, response, session, profile, examSessionId);
+            processPayment(request, response, session, profile, examId);
             return;
         }
 
         if (profile != null) {
             request.setAttribute("profile", profile);
         }
-        request.setAttribute("currentSession", sessionService.getSessionById(examSessionId));
+        request.setAttribute("currentExam", examService.getById(examId));
         request.getRequestDispatcher("/views/staff/examstaff/procedure.jsp").forward(request, response);
     }
 
@@ -179,9 +180,9 @@ public class ProcedureServlet extends HttpServlet {
         String action = request.getParameter("action");
         if ("saveCapturedPhoto".equals(action)) {
             HttpSession session = request.getSession();
-            int examSessionId = resolveSessionId(session);
+            int examId = resolveExamId(session);
             String sbdParam = resolveSbd(request, session);
-            handleSaveCapturedPhoto(request, response, session, sbdParam, examSessionId);
+            handleSaveCapturedPhoto(request, response, session, sbdParam, examId);
             return;
         }
         if ("confirmPayment".equals(action)) {
@@ -192,7 +193,7 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, EnrollmentDTO profile, int examSessionId) throws IOException {
+            HttpSession session, EnrollmentDTO profile, int examId) throws IOException {
         profile = reloadProfile(profile.getId());
         if (profile == null) {
             response.sendRedirect("candidate-call");
@@ -206,7 +207,7 @@ public class ProcedureServlet extends HttpServlet {
                 session.setAttribute("procedureStep", "2");
                 request.setAttribute("hasValidPhoto", false);
                 request.setAttribute("profile", profile);
-                request.setAttribute("currentSession", sessionService.getSessionById(examSessionId));
+                request.setAttribute("currentExam", examService.getById(examId));
                 request.getRequestDispatcher("/views/staff/examstaff/procedure.jsp").forward(request, response);
             } catch (ServletException e) {
                 throw new IOException(e);
@@ -214,7 +215,7 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
         if (profile.isPaymentCompleted()) {
-            advanceToNextCandidate(session, examSessionId);
+            advanceToNextCandidate(session, examId);
             response.sendRedirect("candidate-call");
             return;
         }
@@ -241,7 +242,7 @@ public class ProcedureServlet extends HttpServlet {
                 request.setAttribute("step", "3");
                 request.setAttribute("profile", profile);
                 request.setAttribute("hasValidPhoto", profile.isValidCapturedPhoto());
-                request.setAttribute("currentSession", sessionService.getSessionById(examSessionId));
+                request.setAttribute("currentExam", examService.getById(examId));
                 request.getRequestDispatcher("/views/staff/examstaff/procedure.jsp").forward(request, response);
             } catch (ServletException e) {
                 throw new IOException(e);
@@ -260,20 +261,20 @@ public class ProcedureServlet extends HttpServlet {
         // which has no main-branch equivalent in the ported exam-staff flow; allocation is
         // handled separately by the examiner allocation screens, so it is intentionally omitted.
 
-        List<EnrollmentDTO> fresh = registrationService.getCandidatesBySession(examSessionId);
+        List<EnrollmentDTO> fresh = registrationService.getCandidatesByExam(examId);
         session.setAttribute("candidateQueue", fresh);
-        session.setAttribute("lastLoadedSessionId", examSessionId);
-        session.setAttribute("selectedSessionId", examSessionId);
+        session.setAttribute("lastLoadedExamId", examId);
+        session.setAttribute("selectedExamId", examId);
         session.setAttribute("procedureJustPaid", "true");
-        advanceToNextCandidate(session, examSessionId);
+        advanceToNextCandidate(session, examId);
         response.sendRedirect("candidate-call");
     }
 
     private void handleSaveCapturedPhoto(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, String sbdParam, int examSessionId) throws IOException {
+            HttpSession session, String sbdParam, int examId) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
 
-        EnrollmentDTO profile = loadProfile(examSessionId, sbdParam, null);
+        EnrollmentDTO profile = loadProfile(examId, sbdParam, null);
         if (profile == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("{\"success\":false,\"message\":\"Không tìm thấy thí sinh.\"}");
@@ -323,10 +324,10 @@ public class ProcedureServlet extends HttpServlet {
             if (profile != null) {
                 profile.setValidCapturedPhoto(true);
             }
-            List<EnrollmentDTO> fresh = registrationService.getCandidatesBySession(examSessionId);
+            List<EnrollmentDTO> fresh = registrationService.getCandidatesByExam(examId);
             session.setAttribute("candidateQueue", fresh);
             session.setAttribute("procedureStep", "2");
-            session.setAttribute("lastLoadedSessionId", examSessionId);
+            session.setAttribute("lastLoadedExamId", examId);
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write("{\"success\":true,\"photoUrl\":\"" + photoPath + "\"}");
@@ -337,7 +338,7 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
 
-    private EnrollmentDTO loadProfile(int examSessionId, String sbdParam, List<EnrollmentDTO> qList) {
+    private EnrollmentDTO loadProfile(int examId, String sbdParam, List<EnrollmentDTO> qList) {
         if (sbdParam == null || sbdParam.trim().isEmpty()) {
             return null;
         }
@@ -345,7 +346,7 @@ public class ProcedureServlet extends HttpServlet {
         if (sbd <= 0) {
             return null;
         }
-        EnrollmentDTO profile = registrationService.getBySessionAndSbd(examSessionId, sbd);
+        EnrollmentDTO profile = registrationService.getByExamAndSbd(examId, sbd);
         if (profile == null && qList != null) {
             for (EnrollmentDTO c : qList) {
                 if (c.getCandidateNumber() == sbd) {
@@ -361,15 +362,15 @@ public class ProcedureServlet extends HttpServlet {
         return registrationService.getById(candidateId);
     }
 
-    private void advanceToNextCandidate(HttpSession session, int examSessionId) {
+    private void advanceToNextCandidate(HttpSession session, int examId) {
         session.setAttribute("lastSelectedSbd", null);
         session.setAttribute("procedureStep", "1");
         session.removeAttribute("procedureJustPaid");
 
-        List<EnrollmentDTO> fresh = registrationService.getCandidatesBySession(examSessionId);
+        List<EnrollmentDTO> fresh = registrationService.getCandidatesByExam(examId);
         session.setAttribute("candidateQueue", fresh);
-        session.setAttribute("lastLoadedSessionId", examSessionId);
-        session.setAttribute("selectedSessionId", examSessionId);
+        session.setAttribute("lastLoadedExamId", examId);
+        session.setAttribute("selectedExamId", examId);
 
         String nextSbd = null;
         for (EnrollmentDTO c : fresh) {
@@ -382,8 +383,8 @@ public class ProcedureServlet extends HttpServlet {
         // Branch synced the call board (CandidateCallBoard) here; main has no equivalent, so omitted.
     }
 
-    private int resolveSessionId(HttpSession session) {
-        Integer selected = (Integer) session.getAttribute("selectedSessionId");
+    private int resolveExamId(HttpSession session) {
+        Integer selected = (Integer) session.getAttribute("selectedExamId");
         if (selected != null) {
             return selected;
         }

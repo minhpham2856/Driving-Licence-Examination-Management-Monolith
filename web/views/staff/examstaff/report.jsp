@@ -44,15 +44,15 @@
         <!-- Page Header Section -->
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Báo cáo tổng hợp: <c:out value="${currentSession.sessionLabel}"/></h1>
+                <h1 class="page-title">Báo cáo tổng hợp: <c:out value="${currentExam.examLabel}"/></h1>
                 <p class="page-subtitle">Tổng hợp số liệu kết quả thi sát hạch trong ngày thi, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
             </div>
 
             <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày ca thi:</span>
+                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày kỳ thi:</span>
                     <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
-                        <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
+                        <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy" />
                     </span>
                 </div>
             </div>

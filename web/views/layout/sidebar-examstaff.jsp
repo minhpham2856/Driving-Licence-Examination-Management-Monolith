@@ -112,59 +112,59 @@
 
     </c:if>
 
-    <c:set var="pickerSessionId" value="${param.sessionId}" />
+    <c:set var="pickerExamId" value="${param.examId}" />
 
-    <c:if test="${empty pickerSessionId}">
+    <c:if test="${empty pickerExamId}">
 
-        <c:set var="pickerSessionId" value="${requestScope.selectedSessionId}" />
+        <c:set var="pickerExamId" value="${requestScope.selectedExamId}" />
 
     </c:if>
 
-    <c:if test="${empty pickerSessionId}">
+    <c:if test="${empty pickerExamId}">
 
-        <c:set var="pickerSessionId" value="${sessionScope.selectedSessionId}" />
+        <c:set var="pickerExamId" value="${sessionScope.selectedExamId}" />
 
     </c:if>
 
     <c:set var="pickerExamId" value="${requestScope.selectedExamId}" />
 
-    <c:set var="navSessionId" value="${requestScope.selectedSessionId}" />
+    <c:set var="navExamId" value="${requestScope.selectedExamId}" />
 
-    <c:if test="${empty navSessionId}">
+    <c:if test="${empty navExamId}">
 
-        <c:set var="navSessionId" value="${pickerSessionId}" />
+        <c:set var="navExamId" value="${pickerExamId}" />
 
     </c:if>
 
-    <c:if test="${empty navSessionId}">
+    <c:if test="${empty navExamId}">
 
-        <c:set var="navSessionId" value="${sessionScope.selectedSessionId}" />
+        <c:set var="navExamId" value="${sessionScope.selectedExamId}" />
 
     </c:if>
 
     <c:set var="sessionQuery" value="" />
 
-    <c:if test="${not empty navSessionId}">
+    <c:if test="${not empty navExamId}">
 
-        <c:set var="sessionQuery" value="?sessionId=${navSessionId}" />
+        <c:set var="sessionQuery" value="?examId=${navExamId}" />
 
     </c:if>
 
     <div class="side-nav-bar__session-picker">
 
-        <form method="GET" action="${ctx}/views/staff/examstaff/select-session" class="side-nav-bar__session-form">
+        <form method="GET" action="${ctx}/views/staff/examstaff/select-exam" class="side-nav-bar__exam-form">
 
             <input type="hidden" name="redirect" value="<c:out value='${sidebarRedirect}' />" />
 
-            <label class="side-nav-bar__session-label" for="sessionId">Kỳ thi</label>
+            <label class="side-nav-bar__session-label" for="examId">Kỳ thi</label>
 
-            <select id="sessionId" name="sessionId" class="side-nav-bar__session-select"
+            <select id="examId" name="examId" class="side-nav-bar__session-select"
 
                     aria-label="Chọn kỳ thi" data-exam-picker="true"
 
                     data-selected-exam-id="${pickerExamId}"
 
-                    data-committed-session-id="${not empty requestScope.pickerCommittedSessionId ? requestScope.pickerCommittedSessionId : navSessionId}"
+                    data-committed-exam-id="${not empty requestScope.pickerCommittedExamId ? requestScope.pickerCommittedExamId : navExamId}"
 
                     data-committed-exam-id="${not empty requestScope.pickerCommittedExamId ? requestScope.pickerCommittedExamId : pickerExamId}"
 
@@ -184,11 +184,11 @@
                                 <c:when test="${not empty requestScope.pickerCommittedExamId}">
                                     <c:if test="${exam.examId == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
                                 </c:when>
-                                <c:when test="${not empty requestScope.pickerCommittedSessionId}">
-                                    <c:if test="${exam.id == requestScope.pickerCommittedSessionId}">selected="selected"</c:if>
+                                <c:when test="${not empty requestScope.pickerCommittedExamId}">
+                                    <c:if test="${exam.id == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
                                 </c:when>
-                                <c:when test="${not empty pickerSessionId or not empty pickerExamId}">
-                                    <c:if test="${pickerSessionId == exam.id or pickerExamId == exam.examId}">selected="selected"</c:if>
+                                <c:when test="${not empty pickerExamId or not empty pickerExamId}">
+                                    <c:if test="${pickerExamId == exam.id or pickerExamId == exam.examId}">selected="selected"</c:if>
                                 </c:when>
                                 <c:otherwise>
                                     <c:if test="${optSt.first}">selected="selected"</c:if>
@@ -207,7 +207,7 @@
 
             </select>
 
-            <button type="submit" class="side-nav-bar__session-apply" data-session-apply="true"
+            <button type="submit" class="side-nav-bar__session-apply" data-exam-apply="true"
 
                     data-loading-label="Đang tải..."
 
@@ -229,7 +229,7 @@
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">grid_view</span>
 
-            <span class="side-nav-bar__label">Tổng quan ca thi</span>
+            <span class="side-nav-bar__label">Tổng quan kỳ thi</span>
 
         </a>
 
@@ -348,7 +348,7 @@
 
         <div class="side-nav-bar__section-label">Màn hình công cộng</div>
 
-        <a href="${ctx}/views/public/public-call<c:if test="${not empty sessionScope.selectedSessionId}">?sessionId=${sessionScope.selectedSessionId}</c:if>"
+        <a href="${ctx}/views/public/public-call<c:if test="${not empty sessionScope.selectedExamId}">?examId=${sessionScope.selectedExamId}</c:if>"
 
            class="side-nav-bar__link${activeSidebar eq 'public-call' ? ' is-active' : ''}"
 
