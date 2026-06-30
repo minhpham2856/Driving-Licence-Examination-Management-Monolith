@@ -84,7 +84,7 @@ public class ExamFlowServlet extends HttpServlet {
         }
         TheoryEntranceDTO data = result.getData();
         HttpSession session = request.getSession(true);
-        session.setAttribute("examSessionId", data.getSessionId());
+        session.setAttribute("examId", data.getExamId());
         session.setAttribute("examSbd", data.getCandidateNumber());
         response.sendRedirect(buildUrl(request, "/exam/info"));
     }
@@ -115,7 +115,7 @@ public class ExamFlowServlet extends HttpServlet {
 
     private void forwardFace(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!requireExamSession(request, response)) {
+        if (!requireExam(request, response)) {
             return;
         }
         request.getRequestDispatcher("/views/exam/exam-face.jsp").forward(request, response);
@@ -127,9 +127,9 @@ public class ExamFlowServlet extends HttpServlet {
             response.sendRedirect(buildUrl(request, "/exam/entrance"));
             return;
         }
-        int sessionId = (Integer) session.getAttribute("examSessionId");
+        int examId = (Integer) session.getAttribute("examId");
         int sbd = (Integer) session.getAttribute("examSbd");
-        double rate = theoryService.scanFace(sessionId, sbd);
+        double rate = theoryService.scanFace(examId, sbd);
         response.sendRedirect(buildUrl(request, "/exam/questions") + "?faceMatch=" + urlEncode(String.valueOf(rate)));
     }
 
@@ -140,9 +140,9 @@ public class ExamFlowServlet extends HttpServlet {
             response.sendRedirect(buildUrl(request, "/exam/entrance"));
             return;
         }
-        int sessionId = (Integer) session.getAttribute("examSessionId");
+        int examId = (Integer) session.getAttribute("examId");
         int sbd = (Integer) session.getAttribute("examSbd");
-        List<Question> questions = theoryService.loadExamQuestions(sessionId, sbd);
+        List<Question> questions = theoryService.loadExamQuestions(examId, sbd);
         request.setAttribute("questions", questions);
         request.setAttribute("totalQuestions", questions.size());
         request.setAttribute("faceMatchRate", request.getParameter("faceMatch"));
@@ -164,10 +164,10 @@ public class ExamFlowServlet extends HttpServlet {
             response.sendRedirect(buildUrl(request, "/exam/entrance"));
             return;
         }
-        int sessionId = (Integer) session.getAttribute("examSessionId");
+        int examId = (Integer) session.getAttribute("examId");
         int sbd = (Integer) session.getAttribute("examSbd");
         Map<Integer, String> answers = parseAnswers(request);
-        theoryService.saveDraftAnswers(sessionId, sbd, answers);
+        theoryService.saveDraftAnswers(examId, sbd, answers);
         response.sendRedirect(buildUrl(request, "/exam/questions") + "?saved=1");
     }
 
@@ -177,10 +177,10 @@ public class ExamFlowServlet extends HttpServlet {
             response.sendRedirect(buildUrl(request, "/exam/entrance"));
             return;
         }
-        int sessionId = (Integer) session.getAttribute("examSessionId");
+        int examId = (Integer) session.getAttribute("examId");
         int sbd = (Integer) session.getAttribute("examSbd");
         Map<Integer, String> answers = parseAnswers(request);
-        ServiceResult<TheorySubmitDTO> result = theoryService.submitExam(sessionId, sbd, answers);
+        ServiceResult<TheorySubmitDTO> result = theoryService.submitExam(examId, sbd, answers);
         if (!result.isSuccess()) {
             String errorCode = result.getData() != null ? result.getData().getErrorCode() : "error";
             response.sendRedirect(buildUrl(request, "/exam/entrance") + "?error=" + urlEncode(errorCode));
@@ -224,7 +224,7 @@ public class ExamFlowServlet extends HttpServlet {
         return answers;
     }
 
-    private boolean requireExamSession(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private boolean requireExam(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("examSbd") == null) {
             response.sendRedirect(buildUrl(request, "/exam/entrance"));
