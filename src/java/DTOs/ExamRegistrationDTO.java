@@ -175,6 +175,10 @@ public class ExamRegistrationDTO {
         return fullName;
     }
 
+    public String getName() {
+        return fullName;
+    }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
@@ -297,6 +301,16 @@ public class ExamRegistrationDTO {
 
     public void setLicenseCode(String licenseCode) {
         this.licenseCode = licenseCode;
+    }
+
+    public boolean isRequiresRoadTest() {
+        if (licenseCode == null) {
+            return false;
+        }
+        String normalized = licenseCode.trim().toUpperCase();
+        return normalized.equals("B1") || normalized.equals("B2")
+                || normalized.equals("C") || normalized.equals("D")
+                || normalized.equals("E") || normalized.equals("F");
     }
 
     public Integer getAllocatedAreaId() {

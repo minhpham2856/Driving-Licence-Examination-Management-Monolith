@@ -4,13 +4,14 @@
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 <%
     // Retrieve the candidate queue from the session
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<DTOs.ExamRegistrationDTO> qList =
+            (java.util.List<DTOs.ExamRegistrationDTO>) session.getAttribute("candidateQueue");
     if (qList == null) {
         Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
         int sessId = (sessIdObj != null) ? sessIdObj : 2;
         DAOs.ExamRegistrationDAO regDAO = new DAOs.Impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAOs.getCandidatesBySession(sessId);
+            qList = regDAO.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -27,7 +28,7 @@
     if (request.getAttribute("activeTheoryRooms") == null) {
         DAOs.ExamAreaDAO areaDAO = new DAOs.Impl.ExamAreaDAOImpl();
         try {
-            request.setAttribute("activeTheoryRooms", areaDAOs.getActiveTheoryRooms());
+            request.setAttribute("activeTheoryRooms", areaDAO.getActiveTheoryRooms());
         } catch (Exception e) { e.printStackTrace(); }
     }
 %>

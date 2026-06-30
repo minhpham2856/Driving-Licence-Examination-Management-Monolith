@@ -7,3 +7,5 @@ nbproject/private/private.properties
 /dist/
 .env
 web/WEB-INF/.env
+**/.env
+/web/uploads/

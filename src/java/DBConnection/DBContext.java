@@ -25,4 +25,14 @@ public class DBContext {
             Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public static void main(String[] args) {
+        DBContext db = new DBContext();
+
+        if (db.getConnection() != null) {
+            System.out.println("KET NOI DB THANH CONG");
+        } else {
+            System.out.println("KET NOI DB THAT BAI");
+        }
+    }
 }

@@ -62,7 +62,7 @@
                     </svg>
                     Đăng ký đợt thi
                 </a>
-                <a href="${pageContext.request.contextPath}/views/registrant/profile.jsp" class="welcome-banner__btn welcome-banner__btn--outline" id="btn-view-profile">
+                <a href="${pageContext.request.contextPath}/registrant/dossier?view=profile" class="welcome-banner__btn welcome-banner__btn--outline" id="btn-view-profile">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"></circle>
                         <path d="M4 20C4 16.686 7.582 14 12 14C16.418 14 20 16.686 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
@@ -323,7 +323,7 @@
                     </div>
                     <div class="r-panel__body">
                         <div class="quick-links-grid">
-                            <a href="${pageContext.request.contextPath}/views/registrant/profile.jsp" class="quick-link-card" id="ql-profile">
+                            <a href="${pageContext.request.contextPath}/registrant/dossier?view=profile" class="quick-link-card" id="ql-profile">
                                 <div class="quick-link-card__icon" aria-hidden="true">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"></circle>

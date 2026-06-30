@@ -29,7 +29,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                    u.Username,
                    u.Email,
                    u.PasswordHash,
-                   r.RoleName AS [Role],
+                   u.[Role],
                    u.[Status],
                    p.ProfileId,
                    p.FullName,
@@ -39,9 +39,8 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                    p.GovernmentIdNumber,
                    p.Address
             FROM [User] u
-            JOIN [Role] r ON r.RoleId = u.RoleId
             LEFT JOIN Profile p ON p.UserId = u.UserId
-            WHERE r.RoleName = 'Examiner' AND u.[Status] = 1
+            WHERE u.[Role] = 'Examiner' AND u.[Status] = 1
             ORDER BY p.FullName, u.Username
             """;
 

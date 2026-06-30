@@ -62,7 +62,7 @@
     margin: 0;
 }
 
-.examiner-flash-container:not(:has(.examiner-flash-bar)) {
+.examiner-flash-container:empty {
     display: none;
 }
 
