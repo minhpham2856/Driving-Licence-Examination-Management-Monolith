@@ -8,9 +8,9 @@
     <c:set var="selectedClassCode" value="B2" />
 </c:if>
 
-<c:set var="selectedSessionCode" value="${param.sessionSelect}" />
-<c:if test="${empty selectedSessionCode}">
-    <c:set var="selectedSessionCode" value="SH-2025-06-B2" />
+<c:set var="selectedExamCode" value="${param.examSelect}" />
+<c:if test="${empty selectedExamCode}">
+    <c:set var="selectedExamCode" value="SH-2025-06-B2" />
 </c:if>
 
 <c:choose>
@@ -101,7 +101,7 @@
             
             <%-- Hidden selection parameters to be submitted cleanly by the form POST --%>
             <input type="hidden" name="licenceSelect" value="${selectedClassCode}">
-            <input type="hidden" name="sessionSelect" value="${selectedSessionCode}">
+            <input type="hidden" name="examSelect" value="${selectedExamCode}">
 
             <%-- Selection Layout Grid --%>
             <div class="profile-layout-grid">
@@ -126,7 +126,7 @@
                                 <c:if test="${not empty licenceClassesList}">
                                     <%-- Dynamic licence list loop from database --%>
                                     <c:forEach var="licence" items="${licenceClassesList}">
-                                        <a href="?licenceSelect=${licence.code}&sessionSelect=${selectedSessionCode}" class="licence-card-link">
+                                        <a href="?licenceSelect=${licence.code}&examSelect=${selectedExamCode}" class="licence-card-link">
                                             <div class="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}">
                                                 <div class="licence-card__icon">
                                                     <c:choose>
@@ -161,7 +161,7 @@
                                 <c:if test="${empty licenceClassesList}">
                                     <%-- Fallback high-fidelity selections for standalone preview --%>
                                     <%-- Hạng A1 --%>
-                                    <a href="?licenceSelect=A1&sessionSelect=${selectedSessionCode}" class="licence-card-link">
+                                    <a href="?licenceSelect=A1&examSelect=${selectedExamCode}" class="licence-card-link">
                                         <div class="licence-card ${selectedClassCode eq 'A1' ? 'licence-card--active' : ''}">
                                             <div class="licence-card__icon">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -178,7 +178,7 @@
                                     </a>
 
                                     <%-- Hạng A2 --%>
-                                    <a href="?licenceSelect=A2&sessionSelect=${selectedSessionCode}" class="licence-card-link">
+                                    <a href="?licenceSelect=A2&examSelect=${selectedExamCode}" class="licence-card-link">
                                         <div class="licence-card ${selectedClassCode eq 'A2' ? 'licence-card--active' : ''}">
                                             <div class="licence-card__icon">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -195,7 +195,7 @@
                                     </a>
 
                                     <%-- Hạng B1 --%>
-                                    <a href="?licenceSelect=B1&sessionSelect=${selectedSessionCode}" class="licence-card-link">
+                                    <a href="?licenceSelect=B1&examSelect=${selectedExamCode}" class="licence-card-link">
                                         <div class="licence-card ${selectedClassCode eq 'B1' ? 'licence-card--active' : ''}">
                                             <div class="licence-card__icon">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -211,7 +211,7 @@
                                     </a>
 
                                     <%-- Hạng B2 --%>
-                                    <a href="?licenceSelect=B2&sessionSelect=${selectedSessionCode}" class="licence-card-link">
+                                    <a href="?licenceSelect=B2&examSelect=${selectedExamCode}" class="licence-card-link">
                                         <div class="licence-card ${selectedClassCode eq 'B2' ? 'licence-card--active' : ''}">
                                             <div class="licence-card__icon">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -244,95 +244,95 @@
                             </h2>
                         </div>
                         <div class="p-form-body p-form-body--compact">
-                            <div class="session-selector-list">
+                            <div class="exam-selector-list">
                                 
-                                <c:if test="${not empty examSessionsList}">
+                                <c:if test="${not empty examList}">
                                     <%-- Dynamic sessions loop from database --%>
-                                    <c:forEach var="session" items="${examSessionsList}">
-                                        <a href="?licenceSelect=${selectedClassCode}&sessionSelect=${session.id}" class="licence-card-link">
-                                            <div class="session-card ${selectedSessionCode eq session.id ? 'session-card--active' : ''}">
-                                                <div class="session-card__title-wrap">
-                                                    <span class="session-card__title">${session.examName}</span>
-                                                    <span class="session-card__subtitle">Mã: ${session.examCode} - Hạng ${session.licenceClass}</span>
+                                    <c:forEach var="exam" items="${examList}">
+                                        <a href="?licenceSelect=${selectedClassCode}&examSelect=${session.id}" class="licence-card-link">
+                                            <div class="exam-card ${selectedExamCode eq session.id ? 'exam-card--active' : ''}">
+                                                <div class="exam-card__title-wrap">
+                                                    <span class="exam-card__title">${session.examName}</span>
+                                                    <span class="exam-card__subtitle">Mã: ${session.examCode} - Hạng ${session.licenceClass}</span>
                                                 </div>
-                                                <div class="session-card__info-item session-card__hide-sm">
+                                                <div class="exam-card__info-item exam-card__hide-sm">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
                                                         <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                                                     </svg>
                                                     <span><fmt:formatDate value="${session.examDate}" pattern="dd/MM/yyyy"/></span>
                                                 </div>
-                                                <div class="session-card__info-item session-card__hide-md">
+                                                <div class="exam-card__info-item exam-card__hide-md">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
                                                         <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"></circle>
                                                     </svg>
                                                     <span>${session.location}</span>
                                                 </div>
-                                                <div class="session-card__info-item">
+                                                <div class="exam-card__info-item">
                                                     <span class="r-stat-card__badge r-stat-card__badge--success">Còn ${session.slotsRemaining} chỗ</span>
                                                 </div>
-                                                <div class="session-card__radio-indicator"></div>
+                                                <div class="exam-card__radio-indicator"></div>
                                             </div>
                                         </a>
                                     </c:forEach>
                                 </c:if>
                                 
-                                <c:if test="${empty examSessionsList}">
+                                <c:if test="${empty examList}">
                                     <%-- Fallback standard rows for standalone preview --%>
-                                    <%-- Session 1 --%>
-                                    <a href="?licenceSelect=${selectedClassCode}&sessionSelect=SH-2025-06-B2" class="licence-card-link">
-                                        <div class="session-card ${selectedSessionCode eq 'SH-2025-06-B2' ? 'session-card--active' : ''}">
-                                            <div class="session-card__title-wrap">
-                                                <span class="session-card__title">Đợt thi tháng 06/2025</span>
-                                                <span class="session-card__subtitle">Mã: SH-2025-06-B2 - Hạng B2</span>
+                                    <%-- Exam 1 --%>
+                                    <a href="?licenceSelect=${selectedClassCode}&examSelect=SH-2025-06-B2" class="licence-card-link">
+                                        <div class="exam-card ${selectedExamCode eq 'SH-2025-06-B2' ? 'exam-card--active' : ''}">
+                                            <div class="exam-card__title-wrap">
+                                                <span class="exam-card__title">Đợt thi tháng 06/2025</span>
+                                                <span class="exam-card__subtitle">Mã: SH-2025-06-B2 - Hạng B2</span>
                                             </div>
-                                            <div class="session-card__info-item session-card__hide-sm">
+                                            <div class="exam-card__info-item exam-card__hide-sm">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
                                                     <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                                                 </svg>
                                                 <span>15/06/2025</span>
                                             </div>
-                                            <div class="session-card__info-item session-card__hide-md">
+                                            <div class="exam-card__info-item exam-card__hide-md">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
                                                     <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"></circle>
                                                 </svg>
                                                 <span>Sân sát hạch HN</span>
                                             </div>
-                                            <div class="session-card__info-item">
+                                            <div class="exam-card__info-item">
                                                 <span class="r-stat-card__badge r-stat-card__badge--success">Còn 12 chỗ</span>
                                             </div>
-                                            <div class="session-card__radio-indicator"></div>
+                                            <div class="exam-card__radio-indicator"></div>
                                         </div>
                                     </a>
 
-                                    <%-- Session 2 --%>
-                                    <a href="?licenceSelect=${selectedClassCode}&sessionSelect=SH-2025-07-B2" class="licence-card-link">
-                                        <div class="session-card ${selectedSessionCode eq 'SH-2025-07-B2' ? 'session-card--active' : ''}">
-                                            <div class="session-card__title-wrap">
-                                                <span class="session-card__title">Đợt thi tháng 07/2025</span>
-                                                <span class="session-card__subtitle">Mã: SH-2025-07-B2 - Hạng B2</span>
+                                    <%-- Exam 2 --%>
+                                    <a href="?licenceSelect=${selectedClassCode}&examSelect=SH-2025-07-B2" class="licence-card-link">
+                                        <div class="exam-card ${selectedExamCode eq 'SH-2025-07-B2' ? 'exam-card--active' : ''}">
+                                            <div class="exam-card__title-wrap">
+                                                <span class="exam-card__title">Đợt thi tháng 07/2025</span>
+                                                <span class="exam-card__subtitle">Mã: SH-2025-07-B2 - Hạng B2</span>
                                             </div>
-                                            <div class="session-card__info-item session-card__hide-sm">
+                                            <div class="exam-card__info-item exam-card__hide-sm">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
                                                     <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                                                 </svg>
                                                 <span>13/07/2025</span>
                                             </div>
-                                            <div class="session-card__info-item session-card__hide-md">
+                                            <div class="exam-card__info-item exam-card__hide-md">
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
                                                     <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"></circle>
                                                 </svg>
                                                 <span>Sân sát hạch HN</span>
                                             </div>
-                                            <div class="session-card__info-item">
+                                            <div class="exam-card__info-item">
                                                 <span class="r-stat-card__badge r-stat-card__badge--info">Còn 56 chỗ</span>
                                             </div>
-                                            <div class="session-card__radio-indicator"></div>
+                                            <div class="exam-card__radio-indicator"></div>
                                         </div>
                                     </a>
                                 </c:if>
