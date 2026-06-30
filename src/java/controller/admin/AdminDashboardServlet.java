@@ -22,7 +22,7 @@ public class AdminDashboardServlet extends HttpServlet {
         int totalAreas = dashboardService.getTotalExamCenters();
         req.setAttribute("totalExamCenters", totalAreas);
         req.setAttribute("totalUsers", dashboardService.getTotalUsers());
-        req.setAttribute("totalExamSessions", dashboardService.getTotalExamSessions());
+        req.setAttribute("totalExams", dashboardService.getTotalExams());
         req.setAttribute("totalComputers", dashboardService.getTotalComputers());
         req.setAttribute("auditLogs", dashboardService.getRecentActivities(8));
         req.getRequestDispatcher("/views/admin/dashboard.jsp").forward(req, resp);

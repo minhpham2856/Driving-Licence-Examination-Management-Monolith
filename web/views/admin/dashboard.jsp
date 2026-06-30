@@ -95,7 +95,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${empty totalExamSessions ? 0 : totalExamSessions}</span>
+                    <span class="stat-number">${empty totalExams ? 0 : totalExams}</span>
                     <span class="stat-label">Kỳ thi đã mở</span>
                     <span class="stat-trend stat-trend--up">Số lượng kỳ thi</span>
                 </div>
