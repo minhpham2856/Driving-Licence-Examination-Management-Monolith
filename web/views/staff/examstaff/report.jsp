@@ -2,259 +2,393 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:if test="${requestScope.candidateList == null}">
+    <c:redirect url="/views/staff/examstaff/report"/>
+</c:if>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo cuối ngày - Ban Sát Hạch</title>
+<c:set var="rateNum" value="${passRate}" />
+<fmt:formatNumber var="rateStr" value="${passRate}" maxFractionDigits="1"/>%
+<c:set var="totalEx" value="${totalCandidates}" />
+<c:set var="completedEx" value="${examCompletedCount}" />
+<c:set var="passEx" value="${passedCount}" />
+<c:set var="failEx" value="${failedCount}" />
+<c:set var="absentEx" value="${absentCount}" />
+<c:set var="suspendedEx" value="${suspendedCount}" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="bao-cao" />
+    <jsp:param name="pageTitle" value="Báo cáo" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-<div class="dashboard-shell">
-    <main class="main-content">
+        <header class="page-header page-header--toolbar">
+            <p class="examiner-page-desc">Tổng hợp số liệu kết quả thi sát hạch trong ngày, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
+            <div class="page-actions">
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportExcel=true"
+                   class="btn-filter"
+                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất Excel'}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M14 2v6h6M8 13h8M8 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Xuất Excel
+                </a>
 
-        <!-- Breadcrumbs Navigation -->
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${ctx}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Báo cáo cuối ngày</span>
-        </nav>
-
-        <jsp:include page="/views/layout/header-examstaff.jsp">
-            <jsp:param name="pageTitle" value="Báo cáo cuối ngày" />
-            <jsp:param name="sectionTitle" value="Ban Sát Hạch" />
-        </jsp:include>
-
-        <!-- Page Header Section -->
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Báo cáo tổng hợp: <c:out value="${currentExam.examLabel}"/></h1>
-                <p class="page-subtitle">Tổng hợp số liệu kết quả thi sát hạch trong ngày thi, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
-            </div>
-
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày kỳ thi:</span>
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
-                        <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy" />
-                    </span>
-                </div>
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportPdf=true"
+                   target="_blank"
+                   class="btn-export"
+                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid; ${missingPhotoCount > 0 ? 'background-color: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; pointer-events: none; opacity: 0.65;' : 'background-color: #ffffff; color: #0052cc; border-color: #0052cc; box-shadow: 0 2px 8px rgba(0, 82, 204, 0.08);'}"
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Mở bản in để lưu PDF'}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M6 9V2h12v7" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Xuất PDF
+                </a>
             </div>
         </header>
 
-        <!-- Headline KPI Row -->
-        <section class="metrics-row" aria-label="Số liệu tổng hợp">
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number">${report.totalCandidates}</span>
-                    <span class="stat-label">Tổng thí sinh</span>
+        <c:if test="${procedurePendingCount > 0}">
+            <div class="allocation-alert allocation-alert--warn" style="margin-bottom: 1rem;">
+                <span>
+                    <strong>${procedurePendingCount}</strong> thí sinh chưa hoàn thành thủ tục tại bàn
+                    <c:if test="${missingPhotoCount > 0}">
+                        — trong đó <strong>${missingPhotoCount}</strong> chưa có ảnh chân dung (không thể xuất Excel/PDF).
+                    </c:if>
+                </span>
+            </div>
+
+            <div class="allocation-stage-panel allocation-stage-panel--waiting report-procedure-pending-panel">
+                <div class="allocation-stage-panel__head">
+                    <div class="allocation-stage-panel__title-wrap">
+                        <h4 class="allocation-stage-panel__title">Thí sinh chưa hoàn thành thủ tục</h4>
+                        <p class="allocation-stage-panel__meta">Chưa đối chiếu hồ sơ, chụp ảnh hoặc thu lệ phí — cần xử lý tại bàn thủ tục trước khi xuất báo cáo.</p>
+                    </div>
+                    <span class="allocation-stage-panel__count">${procedurePendingCount} thí sinh</span>
+                </div>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-stage-table allocation-table--fill">
+                        <thead>
+                            <tr>
+                                <th class="examiner-table__center" style="width: 56px;">STT</th>
+                                <th>SBD</th>
+                                <th>Họ tên</th>
+                                <th>Hạng</th>
+                                <th>Trạng thái</th>
+                                <th class="examiner-table__center" style="width: 140px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="c" items="${procedurePendingCandidates}" varStatus="st">
+                                <c:set var="hasPhoto" value="${c.validCapturedPhoto or (not empty c.photoUrl)}" />
+                                <tr>
+                                    <td class="examiner-table__center">${st.count}</td>
+                                    <td><strong>${c.sbd}</strong></td>
+                                    <td>${c.name}</td>
+                                    <td>${c.clazz}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not c.paymentCompleted}">
+                                                <span class="allocation-stage-status allocation-stage-status--waiting">Chưa thu lệ phí</span>
+                                            </c:when>
+                                            <c:when test="${not hasPhoto}">
+                                                <span class="allocation-stage-status allocation-stage-status--waiting">Thiếu ảnh chân dung</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="allocation-stage-status allocation-stage-status--waiting">Chờ thủ tục</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td class="examiner-table__center">
+                                        <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedExamId}">&amp;examId=${requestScope.selectedExamId}</c:if>#procedure-desk"
+                                           class="allocation-table-action allocation-table-action--theory">Làm thủ tục</a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number" style="color: #2563eb;">${report.completedCount}</span>
-                    <span class="stat-label">Đã thi xong</span>
+        </c:if>
+
+        <c:if test="${not empty requestScope.exportBlocked}">
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; display: flex; gap: 10px; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h4 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #991b1b;">Không thể xuất báo cáo</h4>
+                    <p style="margin: 4px 0 0; font-size: 0.8rem; color: #b91c1c;">
+                        Còn ${missingPhotoCount} thí sinh chưa chụp ảnh. Hoàn tất Bước 2 tại bàn thủ tục trước khi xuất Excel/PDF.
+                    </p>
                 </div>
             </div>
+        </c:if>
+
+        <section class="metrics-row" aria-label="Chỉ số báo cáo ngày thi">
             <div class="stat-card">
+                <div class="stat-icon stat-icon--amber" style="background-color: rgba(126, 34, 206, 0.06); color: #7e22ce;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
                 <div class="stat-info">
-                    <span class="stat-number" style="color: #f59e0b;">${report.testingCount}</span>
-                    <span class="stat-label">Đang thi</span>
+                    <span class="stat-number" style="color: #7e22ce;">${procedureCompleteCount}</span>
+                    <span class="stat-label">Đã xong thủ tục tại bàn</span>
                 </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number" style="color: #94a3b8;">${report.pendingCount}</span>
-                    <span class="stat-label">Chưa thi</span>
+                <div class="stat-icon stat-icon--green">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-info">
-                    <span class="stat-number" style="color: #10b981;">${report.passedCount}</span>
-                    <span class="stat-label">Đạt</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number" style="color: #ef4444;">${report.failedCount}</span>
-                    <span class="stat-label">Trượt</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-number" style="color: #0052cc;">
-                        <fmt:formatNumber value="${report.passRate}" maxFractionDigits="1" />%
-                    </span>
+                    <span class="stat-number">${rateStr}</span>
                     <span class="stat-label">Tỷ lệ đạt</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--blue">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${completedEx}</span>
+                    <span class="stat-label">Thí sinh đã thi xong</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--blue" style="background-color: rgba(16, 185, 129, 0.06); color: #10b981;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${passEx}</span>
+                    <span class="stat-label">Hồ sơ ĐẠT</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--red">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${failEx}</span>
+                    <span class="stat-label">Hồ sơ TRƯỢT</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--amber" style="background-color: rgba(245, 158, 11, 0.08); color: #b45309;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${absentEx}</span>
+                    <span class="stat-label">Thí sinh VẮNG</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--amber" style="background-color: rgba(239, 68, 68, 0.08); color: #b91c1c;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${suspendedEx}</span>
+                    <span class="stat-label">Thí sinh ĐÌNH CHỈ</span>
                 </div>
             </div>
         </section>
 
-        <!-- Per-licence breakdown -->
-        <div class="report-pane" style="margin-top: 1.5rem; border-radius: 16px; padding: 1.5rem; border: 1px solid #cbd5e1; background: #ffffff;">
-            <h3 style="font-size: 1rem; font-weight: 800; color: #2563eb; margin: 0 0 1rem; display: flex; align-items: center; gap: 6px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
-                </svg>
-                Thống kê theo hạng bằng
-            </h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-                <div style="flex: 1; min-width: 240px;">
-                    <span style="font-size: 0.78rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Hạng A1 / A2</span>
-                    <div style="margin-top: 0.5rem; display: flex; gap: 1rem;">
-                        <div><span style="font-size: 1.3rem; font-weight: 800; color: #0f172a;">${report.a1Count}</span><span style="display:block; font-size: 0.72rem; color: #64748b;">Đăng ký</span></div>
-                        <div><span style="font-size: 1.3rem; font-weight: 800; color: #10b981;">${report.a1Passed}</span><span style="display:block; font-size: 0.72rem; color: #64748b;">Đạt</span></div>
-                        <div><span style="font-size: 1.3rem; font-weight: 800; color: #ef4444;">${report.a1Failed}</span><span style="display:block; font-size: 0.72rem; color: #64748b;">Trượt</span></div>
-                    </div>
-                </div>
-                <div style="flex: 1; min-width: 240px;">
-                    <span style="font-size: 0.78rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Hạng B2</span>
-                    <div style="margin-top: 0.5rem; display: flex; gap: 1rem;">
-                        <div><span style="font-size: 1.3rem; font-weight: 800; color: #0f172a;">${report.b2Count}</span><span style="display:block; font-size: 0.72rem; color: #64748b;">Đăng ký</span></div>
-                        <div><span style="font-size: 1.3rem; font-weight: 800; color: #10b981;">${report.b2Passed}</span><span style="display:block; font-size: 0.72rem; color: #64748b;">Đạt</span></div>
-                        <div><span style="font-size: 1.3rem; font-weight: 800; color: #ef4444;">${report.b2Failed}</span><span style="display:block; font-size: 0.72rem; color: #64748b;">Trượt</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="report-grid">
 
-        <!-- Top infractions -->
-        <div class="report-pane" style="margin-top: 1.5rem; border-radius: 16px; padding: 1.5rem; border: 1px solid #cbd5e1; background: #ffffff;">
-            <h3 style="font-size: 1rem; font-weight: 800; color: #ea580c; margin: 0 0 1rem; display: flex; align-items: center; gap: 6px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-                Lỗi phổ biến (top 3)
-            </h3>
-            <c:choose>
-                <c:when test="${not empty report.topInfractions}">
-                    <div class="table-responsive">
-                        <table class="audit-table" style="font-size: 0.88rem; width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th scope="col" style="width: 60px;" class="col-id">#</th>
-                                    <th scope="col">Lý do khấu điểm</th>
-                                    <th scope="col" style="width: 120px; text-align: center;">Số lần</th>
-                                    <th scope="col" style="width: 200px;">Tỷ lệ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach var="inf" items="${report.topInfractions}" varStatus="status">
-                                    <tr>
-                                        <td class="col-id">${status.index + 1}</td>
-                                        <td><c:out value="${inf.reason}"/></td>
-                                        <td style="text-align: center;">${inf.count}</td>
-                                        <td>
-                                            <div style="background: #f1f5f9; border-radius: 6px; height: 10px; width: 100%;">
-                                                <div style="background: #ea580c; height: 10px; border-radius: 6px; width: <fmt:formatNumber value="${inf.percentage}" maxFractionDigits="0" />%;"></div>
-                                            </div>
-                                            <span style="font-size: 0.72rem; color: #64748b;">
-                                                <fmt:formatNumber value="${inf.percentage}" maxFractionDigits="1" />%
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 1rem;">
-                        Không có dữ liệu khấu điểm nào được ghi nhận.
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
+            <div class="report-pane">
+                <header class="report-pane__header">
+                    <h2 class="report-pane__title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        Thống kê chi tiết phần thi sát hạch hôm nay
+                    </h2>
+                </header>
 
-        <!-- Candidate detail table -->
-        <div class="report-pane" style="margin-top: 1.5rem; border-radius: 16px; padding: 1.5rem; border: 1px solid #cbd5e1; background: #ffffff;">
-            <h3 style="font-size: 1rem; font-weight: 800; color: #2563eb; margin: 0 0 1rem; display: flex; align-items: center; gap: 6px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                </svg>
-                Danh sách thí sinh trong ca
-            </h3>
-            <div class="table-responsive">
-                <table class="audit-table" style="font-size: 0.88rem; width: 100%;">
-                    <thead>
-                        <tr>
-                            <th scope="col" style="width: 110px;">SBD</th>
-                            <th scope="col">Họ và tên</th>
-                            <th scope="col" style="width: 90px;">Hạng</th>
-                            <th scope="col" style="width: 140px;">Trạng thái</th>
-                            <th scope="col" style="width: 140px;">Kết quả</th>
-                            <th scope="col" style="width: 90px; text-align: center;">Điểm</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty report.candidateRows}">
-                                <c:forEach var="row" items="${report.candidateRows}">
-                                    <tr>
-                                        <td style="font-family: monospace; font-weight: 700; color: #0f172a;">${row.candidateNumber}</td>
-                                        <td style="font-weight: 600; color: #0f172a;">${row.fullName}</td>
-                                        <td>${row.licenceClass}</td>
-                                        <td>
-                                            <span class="action-badge action-badge--info" style="font-size: 0.75rem;">
-                                                <c:out value="${row.sectionStatus.value}" default="—" />
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${row.passed}">
-                                                    <span class="action-badge action-badge--pass" style="font-size: 0.75rem;">Đạt</span>
-                                                </c:when>
-                                                <c:when test="${row.resultLabel != null && row.resultLabel != '-'}">
-                                                    <span class="action-badge action-badge--fail" style="font-size: 0.75rem;">Trượt</span>
-                                                </c:when>
-                                                <c:otherwise>—</c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td style="text-align: center; font-weight: 700;">
-                                            <c:choose>
-                                                <c:when test="${row.examScore != null}">${row.examScore}</c:when>
-                                                <c:otherwise>—</c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 0; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">1. Thống kê theo hạng bằng sát hạch</h3>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill">
+                        <thead>
+                            <tr>
+                                <th scope="col">Hạng bằng</th>
+                                <th scope="col" style="text-align: center;">Đăng ký</th>
+                                <th scope="col" style="text-align: center;">Đã thi</th>
+                                <th scope="col" style="text-align: center; color: #059669;">Đạt (Đỗ)</th>
+                                <th scope="col" style="text-align: center; color: #dc2626;">Chưa đạt</th>
+                                <th scope="col" style="text-align: right;">Tỷ lệ Đạt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="lic" items="${licenseStats}">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 2rem 1rem; color: #64748b;">
-                                        Chưa có thí sinh nào trong ca sát hạch này.
+                                    <td style="font-weight: 700; color: #0f172a;">
+                                        <span class="role-badge role-badge--coi">Hạng ${lic.code}</span>
+                                    </td>
+                                    <td style="text-align: center; font-weight: 600;">${lic.registered}</td>
+                                    <td style="text-align: center; font-weight: 600;">${lic.completed}</td>
+                                    <td style="text-align: center; color: #059669; font-weight: 700;">${lic.passed}</td>
+                                    <td style="text-align: center; color: #dc2626; font-weight: 700;">${lic.failed}</td>
+                                    <td style="text-align: right; font-weight: 700; color: #0052cc;">
+                                        <c:choose>
+                                            <c:when test="${lic.completed > 0}">
+                                                <fmt:formatNumber value="${lic.passed * 100.0 / lic.completed}" maxFractionDigits="1"/>%
+                                            </c:when>
+                                            <c:otherwise>0%</c:otherwise>
+                                        </c:choose>
                                     </td>
                                 </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
+                            </c:forEach>
+                            <c:if test="${empty licenseStats}">
+                                <tr>
+                                    <td colspan="6" class="allocation-results-table__empty">
+                                        Chưa có thí sinh đăng ký trong kỳ thi này.
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">2. Thống kê tỷ lệ loại theo từng phần thi</h3>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th scope="col">Phần thi sát hạch</th>
+                                <th scope="col" style="text-align: center;">Tổng số thi</th>
+                                <th scope="col" style="text-align: center; color: #059669;">Đạt điều kiện</th>
+                                <th scope="col" style="text-align: center; color: #dc2626;">Bị loại trực tiếp</th>
+                                <th scope="col" style="text-align: right;">Tỷ lệ loại</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: 600; color: #0f172a;">Lý thuyết sát hạch</td>
+                                <td style="text-align: center; font-weight: 600;">${theoryCount}</td>
+                                <td style="text-align: center; color: #059669; font-weight: 600;">${theoryPassed}</td>
+                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${theoryFailed}</td>
+                                <td style="text-align: right; font-weight: 700; color: #ef4444;">
+                                    <c:choose>
+                                        <c:when test="${theoryCount > 0}">
+                                            <fmt:formatNumber value="${theoryFailed * 100.0 / theoryCount}" maxFractionDigits="1"/>%
+                                        </c:when>
+                                        <c:otherwise>0%</c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600; color: #0f172a;">Thực hành</td>
+                                <td style="text-align: center; font-weight: 600;">${practicalCount}</td>
+                                <td style="text-align: center; color: #059669; font-weight: 600;">${practicalPassed}</td>
+                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${practicalFailed}</td>
+                                <td style="text-align: right; font-weight: 700; color: #ef4444;">
+                                    <c:choose>
+                                        <c:when test="${practicalCount > 0}">
+                                            <fmt:formatNumber value="${practicalFailed * 100.0 / practicalCount}" maxFractionDigits="1"/>%
+                                        </c:when>
+                                        <c:otherwise>0%</c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <div class="report-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
+
+                <div style="margin-bottom: 2rem;">
+                    <header class="report-pane__header" style="margin-bottom: 1rem;">
+                        <h2 class="report-pane__title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981;">
+                                <path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Phân tích tỷ lệ Đạt / Trượt hôm nay
+                        </h2>
+                    </header>
+
+                    <div class="chart-donut" style="background: conic-gradient(#10b981 0% ${rateNum}%, #ef4444 ${rateNum}% 100%);">
+                        <div class="chart-donut__inner">
+                            <span class="chart-donut__value">${rateStr}</span>
+                            <span class="chart-donut__label">Đạt sát hạch</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-legend">
+                        <div class="chart-legend__item">
+                            <div class="chart-legend__color" style="background-color: #10b981;"></div>
+                            <span>Đạt (${passEx} học viên)</span>
+                        </div>
+                        <div class="chart-legend__item">
+                            <div class="chart-legend__color" style="background-color: #ef4444;"></div>
+                            <span>Trượt (${failEx} học viên)</span>
+                        </div>
+                        <div class="chart-legend__item">
+                            <div class="chart-legend__color" style="background-color: #f59e0b;"></div>
+                            <span>Vắng (${absentEx} học viên)</span>
+                        </div>
+                        <div class="chart-legend__item">
+                            <div class="chart-legend__color" style="background-color: #b91c1c;"></div>
+                            <span>Đình chỉ (${suspendedEx} học viên)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <header class="report-pane__header" style="margin-bottom: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+                        <h2 class="report-pane__title" style="color: #ef4444;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #ef4444;">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Lỗi vi phạm thực hành phổ biến nhất
+                        </h2>
+                    </header>
+
+                    <div class="violation-list">
+                        <c:forEach var="inf" items="${infractions}" varStatus="status">
+                            <div class="violation-item">
+                                <div class="violation-meta">
+                                    <span class="violation-name">${inf.reason}</span>
+                                    <span class="violation-count">${inf.count} lỗi (<fmt:formatNumber value="${inf.percentage}" maxFractionDigits="0"/>%)</span>
+                                </div>
+                                <div class="violation-progress-wrap">
+                                    <div class="violation-progress-fill" style="width: ${inf.percentage}%; background-color: ${status.index eq 0 ? '#ef4444' : (status.index eq 1 ? '#ea580c' : '#f59e0b')};"></div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                        <c:if test="${empty infractions}">
+                            <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 1.5rem 0;">
+                                Chưa ghi nhận lỗi vi phạm thực hành nào trong ngày thi này.
+                            </div>
+                        </c:if>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
-    </main>
 
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
-</div>
-
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

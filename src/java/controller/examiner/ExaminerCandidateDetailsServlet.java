@@ -23,9 +23,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 @WebServlet(urlPatterns = {
-    "/views/examiner/candidate-details",
-    "/views/examiner/candidate-details-edit",
-    "/views/examiner/candidate-paper"
+    "/old_views/examiner/candidate-details",
+    "/old_views/examiner/candidate-details-edit",
+    "/old_views/examiner/candidate-paper"
 })
 public class ExaminerCandidateDetailsServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
@@ -65,7 +65,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
                     request.setAttribute("candidate", candidate);
                 }
                 
-                if ("/views/examiner/candidate-paper".equals(path)) {
+                if ("/old_views/examiner/candidate-paper".equals(path)) {
                     Map<String, Object> ansData = viewDataService.getPaperAnswersData(activeExamId, sbd, request.getContextPath());
                     if (ansData != null) {
                         for (Map.Entry<String, Object> mapEntry : ansData.entrySet()) {
@@ -77,10 +77,10 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/views/examiner/candidate-details" -> "/views/examiner/candidate-details.jsp";
-            case "/views/examiner/candidate-details-edit" -> "/views/examiner/candidate-details-edit.jsp";
-            case "/views/examiner/candidate-paper" -> "/views/examiner/candidate-paper.jsp";
-            default -> "/views/examiner/candidate-details.jsp";
+            case "/old_views/examiner/candidate-details" -> "/old_views/examiner/candidate-details.jsp";
+            case "/old_views/examiner/candidate-details-edit" -> "/old_views/examiner/candidate-details-edit.jsp";
+            case "/old_views/examiner/candidate-paper" -> "/old_views/examiner/candidate-paper.jsp";
+            default -> "/old_views/examiner/candidate-details.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
     }
@@ -100,7 +100,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         }
 
         String path = stripContextPath(request);
-        if ("/views/examiner/candidate-details-edit".equals(path)) {
+        if ("/old_views/examiner/candidate-details-edit".equals(path)) {
             Integer sbd = null;
             try {
                 if (request.getParameter("sbd") != null) {
@@ -109,7 +109,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             } catch (NumberFormatException e) {}
 
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details?error=noSbd");
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/candidate-details?error=noSbd");
                 return;
             }
 
@@ -137,7 +137,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             );
 
             if (result.isSuccess()) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details-edit?sbd="
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/candidate-details-edit?sbd="
                         + urlEncode(sbd) + "&saved=1");
                 return;
             }
@@ -153,7 +153,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             }
 
             request.setAttribute("profileError", "Không lưu được thông tin: " + result.getMessage());
-            request.getRequestDispatcher("/views/examiner/candidate-details-edit.jsp").forward(request, response);
+            request.getRequestDispatcher("/old_views/examiner/candidate-details-edit.jsp").forward(request, response);
             return;
         }
         doGet(request, response);

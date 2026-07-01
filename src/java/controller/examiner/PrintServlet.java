@@ -20,8 +20,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @WebServlet(urlPatterns = {
-    "/examiner/print",
-    "/examiner/print/docx"
+    "/old_examiner/print",
+    "/old_examiner/print/docx"
 })
 public class PrintServlet extends HttpServlet {
 

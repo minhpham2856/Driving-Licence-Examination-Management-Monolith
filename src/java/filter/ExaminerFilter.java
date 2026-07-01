@@ -29,7 +29,7 @@ import service.impl.ExamSectionServiceImpl;
 import service.impl.RoleServiceImpl;
 import service.impl.ScheduleServiceImpl;
 
-@WebFilter(urlPatterns = {"/views/examiner/*", "/examiner/*"})
+@WebFilter(urlPatterns = {"/old_views/examiner/*", "/old_examiner/*"})
 public class ExaminerFilter extends HttpFilter {
 
     // Session attributes shared between examiner pages
@@ -40,7 +40,7 @@ public class ExaminerFilter extends HttpFilter {
     public static final String ATTR_MESSAGE = "examinerExamMessage";
 
     // Session selection page
-    private static final String SESSION_SELECT_PATH = "/views/examiner/exam";
+    private static final String SESSION_SELECT_PATH = "/old_views/examiner/exam";
 
     // Business services
     private final RoleService roleService = new RoleServiceImpl();
@@ -183,7 +183,7 @@ public class ExaminerFilter extends HttpFilter {
 
     // Check whether the request targets an export endpoint
     private boolean isExportPath(HttpServletRequest request) {
-        return requestPath(request).startsWith("/examiner/");
+        return requestPath(request).startsWith("/old_examiner/");
     }
 
     // Get the request path without the context path

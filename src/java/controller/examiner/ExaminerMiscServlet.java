@@ -17,9 +17,9 @@ import java.io.IOException;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-    "/views/examiner/audit",
-    "/views/examiner/export",
-    "/views/examiner/print-documents"
+    "/old_views/examiner/audit",
+    "/old_views/examiner/export",
+    "/old_views/examiner/print-documents"
 })
 public class ExaminerMiscServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
@@ -46,14 +46,14 @@ public class ExaminerMiscServlet extends HttpServlet {
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
-            if ("/views/examiner/audit".equals(path)) {
+            if ("/old_views/examiner/audit".equals(path)) {
                 Map<String, Object> data = viewDataService.getAuditLogsData(activeExamId, request.getParameter("page"), search);
                 if (data != null) {
                     for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                         request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     }
                 }
-            } else if ("/views/examiner/print-documents".equals(path)) {
+            } else if ("/old_views/examiner/print-documents".equals(path)) {
                 boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
                 String sectionName = resolveSectionName(session);
                 
@@ -67,10 +67,10 @@ public class ExaminerMiscServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/views/examiner/audit" -> "/views/examiner/audit.jsp";
-            case "/views/examiner/export" -> "/views/examiner/export.jsp";
-            case "/views/examiner/print-documents" -> "/views/examiner/print-documents.jsp";
-            default -> "/views/examiner/audit.jsp";
+            case "/old_views/examiner/audit" -> "/old_views/examiner/audit.jsp";
+            case "/old_views/examiner/export" -> "/old_views/examiner/export.jsp";
+            case "/old_views/examiner/print-documents" -> "/old_views/examiner/print-documents.jsp";
+            default -> "/old_views/examiner/audit.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
     }

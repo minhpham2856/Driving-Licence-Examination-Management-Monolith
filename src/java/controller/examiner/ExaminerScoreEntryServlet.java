@@ -18,7 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-@WebServlet("/views/examiner/score-entry")
+@WebServlet("/old_views/examiner/score-entry")
 public class ExaminerScoreEntryServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
     protected final CallService callService = new CallServiceImpl();
@@ -47,14 +47,14 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
 
         if (activeExamId != null && activeExamId > 0) {
             if (isTheory && request.getParameter("error") == null) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoScoreEntry");
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/candidate-call?error=theoryNoScoreEntry");
                 return;
             }
 
             if (action != null) {
                 if ("adjustDeduction".equals(action)) {
                     if (sbd == null) {
-                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
+                        response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?error=noSbd");
                         return;
                     }
                     int deductionId;
@@ -63,17 +63,17 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                         deductionId = Integer.parseInt(request.getParameter("deductionId"));
                         delta = Integer.parseInt(request.getParameter("delta"));
                     } catch (Exception e) {
-                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                        response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?sbd="
                                 + urlEncode(sbd) + "&error=invalidDeduction");
                         return;
                     }
                     
                     if (!callService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, user.getUserId()).isSuccess()) {
-                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                        response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?sbd="
                                 + urlEncode(sbd) + "&error=deductionFailed");
                         return;
                     }
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?sbd="
                             + urlEncode(sbd));
                     return;
                 }
@@ -93,7 +93,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
             }
         }
 
-        request.getRequestDispatcher("/views/examiner/score-entry.jsp").forward(request, response);
+        request.getRequestDispatcher("/old_views/examiner/score-entry.jsp").forward(request, response);
     }
 
     @Override
@@ -120,17 +120,17 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
             } catch (NumberFormatException e) {}
             
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?error=noSbd");
                 return;
             }
 
             if (!callService.finalizeScoreEntry(activeExamId, sbd, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?sbd="
                         + urlEncode(sbd) + "&error=finalizeFailed");
                 return;
             }
             
-            response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?finalized=1");
+            response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?finalized=1");
             return;
         }
 
@@ -147,30 +147,30 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
         switch (action) {
             case "call" -> {
                 if (sbd == null) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noCandidate");
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?error=noCandidate");
                     return true;
                 }
                 
                 if (!callService.callScoreEntryCandidate(activeExamId, sbd, user, user.getUserId(),
                         examSection, isTheory, sectionName, destination, true).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=callFailed&sbd="
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?error=callFailed&sbd="
                             + urlEncode(sbd));
                     return true;
                 }
                 
-                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?sbd="
                         + urlEncode(sbd) + "&scoreCalled=1");
                 return true;
             }
             case "deferAbsent" -> {
                 if (sbd == null) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?error=noSbd");
                     return true;
                 }
                 
                 callService.undoPresent(activeExamId, sbd, user.getUserId());
                 
-                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?deferred="
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/score-entry?deferred="
                         + urlEncode(sbd));
                 return true;
             }
