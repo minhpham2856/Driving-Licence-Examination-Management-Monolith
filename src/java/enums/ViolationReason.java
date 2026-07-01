@@ -1,25 +1,53 @@
 package enums;
-
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 public enum ViolationReason {
-    QUY_CHE("quy-che", "Vi phạm quy chế phòng thi"),
-    GIAN_LAN("gian-lan", "Gian lận / sao chép"),
-    DEVICES("devices", "Sử dụng thiết bị cấm"),
-    RA_VAO("ra-vao", "Ra vào phòng thi trái quy định"),
-    KHAC("khac", "Lý do khác");
-
-    private final String code;
-    private final String label;
-
-    ViolationReason(String code, String label) {
-        this.code = code;
-        this.label = label;
+    VI_PHAM_QUY_CHE("Vi phạm quy chế phòng thi"),
+    GIAN_LAN("Gian lận / sao chép"),
+    THIET_BI_CAM("Sử dụng thiết bị cấm"),
+    RA_VAO_TRAI_QUY_DINH("Ra vào phòng thi trái quy định"),
+    LY_DO_KHAC("Lý do khác");
+    private final String displayName;
+    ViolationReason(String displayName) {
+        this.displayName = displayName;
     }
-
-    public String getCode() {
-        return code;
+    public String getDisplayName() {
+        return displayName;
     }
-
-    public String getLabel() {
-        return label;
+    public boolean matches(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        return displayName.equalsIgnoreCase(value.trim());
+    }
+    public static ViolationReason fromValue(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        for (ViolationReason reason : values()) {
+            if (reason.matches(value)) {
+                return reason;
+            }
+        }
+        return null;
+    }
+    public static String resolveLabel(String value) {
+        if (value == null || value.isBlank()) {
+            return "Chưa chọn lý do";
+        }
+        ViolationReason reason = fromValue(value);
+        return reason != null ? reason.getDisplayName() : value.trim();
+    }
+    public static List<Map<String, String>> optionList() {
+        List<Map<String, String>> list = new ArrayList<>();
+        for (ViolationReason reason : values()) {
+            Map<String, String> row = new LinkedHashMap<>();
+            row.put("code", reason.getDisplayName());
+            row.put("label", reason.getDisplayName());
+            list.add(row);
+        }
+        return list;
     }
 }

@@ -1,21 +1,14 @@
 package service.impl;
-
 import dto.*;
 import model.*;
-
 import java.text.*;
-
 import dao.*;
 import dao.impl.*;
 import enums.*;
 import model.*;
 import service.*;
 import service.impl.*;
-
-import enums.SectionType;
-
 import dto.ExaminerSlotDTO;
-
 import dao.AuditDAO;
 import dao.ExamEnrollmentDAO;
 import dao.ExamDeviceDAO;
@@ -26,45 +19,37 @@ import dao.impl.ExamEnrollmentDAOImpl;
 import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.CandidateDAOImpl;
 import dao.impl.SessionDAOImpl;
-
 import dto.CandidateEnrollmentDTO;
-
 import model.User;
 import service.ExaminerActionsService;
+import service.ExaminerDataService;
 import util.ExamQueue;
 import util.ExamQueue.Lane;
-
 import service.AuditLogService;
-
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import service.EnumMappingService;
-import service.ExaminerDataService;
-
+import enums.Gender;
+import enums.SectionStatus;
+import enums.ViolationReason;
 public class ExaminerActionsServiceImpl implements ExaminerActionsService {
-
     private final AuditLogService auditLogService = new AuditLogServiceImpl();
-
-    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
-
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
-
+    private final CandidateEnrollmentViewSupport enrollmentViewSupport = new CandidateEnrollmentViewSupport();
     private final AuditDAO auditDAO = new AuditDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExamEnrollmentDAO vehicleDAO = new ExamEnrollmentDAOImpl();
     private final SessionDAO sessionDAO = new SessionDAOImpl();
+    private final SessionViewSupport sessionViewSupport = new SessionViewSupport();
     private final ExamScoreDAO examScoreDAO = new ExamScoreDAOImpl();
     private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
     private final ScoreDeductionDAO scoreDeductionDAO = new ScoreDeductionDAOImpl();
     private final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
-
     @Override
     public CandidateEnrollmentDTO findCandidate(int sessionId, int sbd) {
         return viewDataService.findRegistration(sessionId, sbd);
     }
-
     @Override
     public boolean updateCandidateProfile(int sessionId, int sbd, String fullName, String dobStr,
             String govIdNo, String email, String phoneNo, String address, String sex, String reasonForTaking,
@@ -77,12 +62,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (dob == null) {
             return false;
         }
-        String sexDb;
-        if ("Nữ".equalsIgnoreCase(sex) || "1".equals(sex)) {
-            sexDb = "Nữ";
-        } else {
-            sexDb = "Nam";
-        }
+        String sexDb = Gender.isFemale(sex) ? Gender.NU.getDisplayName() : Gender.NAM.getDisplayName();
         SimpleDateFormat dobFmt = new SimpleDateFormat("dd/MM/yyyy");
         StringBuilder changes = new StringBuilder();
         appendChange(changes, "Họ và tên", reg.getFullName(), fullName.trim());
@@ -109,7 +89,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     private static void appendChange(StringBuilder changes, String field, String oldValue, String newValue) {
         String oldNorm = oldValue == null ? "" : oldValue.trim();
         String newNorm = newValue == null ? "" : newValue.trim();
@@ -123,7 +102,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
                     .append(newNorm.isEmpty() ? "-" : newNorm);
         }
     }
-
     @Override
     public boolean markAbsent(int sessionId, int sbd, Integer actionUserId) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
@@ -141,7 +119,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public boolean undoAbsent(int sessionId, int sbd, Integer actionUserId) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
@@ -155,39 +132,37 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
-    public boolean callCandidate(int sessionId, int sbd, User user, Integer actionUserId, SectionType sectionType,
+    public boolean callCandidate(int sessionId, int sbd, User user, Integer actionUserId, boolean isTheory,
             String sectionName, String callDestination) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return false;
         }
-        if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
+        if (!viewDataService.isCallEligible(sessionId, reg, isTheory, sectionName)) {
             return false;
         }
         boolean called = insertCall(sessionId, reg, user, actionUserId, callDestination);
         if (called) {
-            Lane lane = ExamQueue.resolveLane(sectionType, sectionName);
+            Lane lane = ExamQueue.resolveLane(isTheory, sectionName);
             ExamQueue.setCalledSbd(lane, reg.getSbd());
             ExamQueue.setActiveSbd(lane, reg.getSbd());
         }
         return called;
     }
-
     @Override
-    public Integer callNextCandidate(int sessionId, User user, Integer actionUserId, SectionType sectionType,
+    public Integer callNextCandidate(int sessionId, User user, Integer actionUserId, boolean isTheory,
             String sectionName, String callDestination) {
-        Lane lane = ExamQueue.resolveLane(sectionType, sectionName);
+        Lane lane = ExamQueue.resolveLane(isTheory, sectionName);
         Integer queued = ExamQueue.peekFirst(lane);
         if (queued != null && queued > 0) {
-            if (callCandidate(sessionId, queued, user, actionUserId, sectionType, sectionName, callDestination)) {
+            if (callCandidate(sessionId, queued, user, actionUserId, isTheory, sectionName, callDestination)) {
                 return queued;
             }
         }
-        List<CandidateEnrollmentDTO> all = enrollmentDAO.getCandidatesBySession(sessionId);
+        List<CandidateEnrollmentDTO> all = enrollmentViewSupport.getCandidatesBySession(sessionId);
         for (CandidateEnrollmentDTO reg : all) {
-            if (!viewDataService.isCallEligible(sessionId, reg, sectionType, sectionName)) {
+            if (!viewDataService.isCallEligible(sessionId, reg, isTheory, sectionName)) {
                 continue;
             }
             if (insertCall(sessionId, reg, user, actionUserId, callDestination)) {
@@ -198,10 +173,9 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return null;
     }
-
     @Override
     public int callSelectedCandidates(int sessionId, int[] sbds, User user, Integer actionUserId,
-            SectionType sectionType, String sectionName, String callDestination) {
+            boolean isTheory, String sectionName, String callDestination) {
         if (sbds == null || sbds.length == 0) {
             return 0;
         }
@@ -210,33 +184,30 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             if (sbd <= 0) {
                 continue;
             }
-            if (callCandidate(sessionId, sbd, user, actionUserId, sectionType, sectionName, callDestination)) {
+            if (callCandidate(sessionId, sbd, user, actionUserId, isTheory, sectionName, callDestination)) {
                 count++;
             }
         }
         return count;
     }
-
     @Override
     public boolean callScoreEntryCandidate(int sessionId, int sbd, User user, Integer actionUserId,
-            SectionType sectionType, String sectionName, String callDestination) {
+            boolean isTheory, String sectionName, String callDestination) {
         if (sbd <= 0) {
             return false;
         }
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
-        if (!viewDataService.isScoreQueueEligible(sessionId, reg, sectionType, sectionName)) {
+        if (!viewDataService.isScoreQueueEligible(sessionId, reg, isTheory, sectionName)) {
             return false;
         }
-
         boolean called = insertScoreEntryCall(sessionId, reg, user, actionUserId, callDestination);
         if (called) {
-            Lane lane = ExamQueue.resolveLane(sectionType, sectionName);
+            Lane lane = ExamQueue.resolveLane(isTheory, sectionName);
             ExamQueue.setCalledSbd(lane, reg.getSbd());
             ExamQueue.setActiveSbd(lane, reg.getSbd());
         }
         return called;
     }
-
     @Override
     public boolean setDeviceMaintenance(int deviceId, Integer actionUserId) {
         if (deviceId <= 0) {
@@ -249,7 +220,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public boolean setDeviceAvailable(int deviceId, Integer actionUserId) {
         if (deviceId <= 0) {
@@ -262,7 +232,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public boolean changeCandidateVehicle(int sessionId, int sbd, int deviceId, Integer actionUserId) {
         if (sessionId <= 0 || sbd <= 0 || deviceId <= 0) {
@@ -283,7 +252,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     private boolean isDeviceInSession(int sessionId, int deviceId) {
         List<Integer> areaIds = sessionDAO.getExamAreaIds(sessionId);
         for (ExamDevice device : deviceDAO.getAllByAreaIds(areaIds)) {
@@ -293,7 +261,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return false;
     }
-
     private boolean insertCall(int sessionId, CandidateEnrollmentDTO reg, User user, Integer actionUserId,
             String callDestination) {
         Audit audit = new Audit();
@@ -312,7 +279,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return insertedId > 0;
     }
-
     private boolean insertScoreEntryCall(int sessionId, CandidateEnrollmentDTO reg, User user, Integer actionUserId,
             String callDestination) {
         Audit audit = new Audit();
@@ -331,7 +297,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return insertedId > 0;
     }
-
     @Override
     public boolean updateTheoryScore(int sessionId, int sbd, int newScore, String reasonCode,
             String reasonDetail, User user, String password, Integer actionUserId) {
@@ -365,7 +330,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public boolean logPracticalScoreEditReason(int sessionId, int sbd, String reasonCode,
             String reasonDetail, User user, String password, Integer actionUserId) {
@@ -389,10 +353,9 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return true;
     }
-
     @Override
     public boolean recordViolation(int sessionId, int sbd, String reasonCode, String reasonDetail,
-            String evidencePath, int[] deductionIds, Integer actionUserId, SectionType sectionType,
+            String evidencePath, int[] deductionIds, Integer actionUserId, boolean isTheory,
             String sectionName) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null || reg.isSuspended()) {
@@ -401,19 +364,15 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reasonCode == null || reasonCode.isBlank()) {
             return false;
         }
-
-        String reasonLabel = enumMappingService.violationLabel(reasonCode);
+        String reasonLabel = ViolationReason.resolveLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, evidencePath);
         boolean hasDeductions = deductionIds != null && deductionIds.length > 0;
-
         auditLogService.logWarning(actionUserId,
                 "Vi phạm SBD " + reg.getSbd() + ": " + auditText, auditText, reg.getId());
-
-        if (sectionType == SectionType.SCORE_BASED && hasDeductions) {
+        if (!isTheory && hasDeductions) {
             // applyScoreDeductions removed
         }
-
         Candidate c = candidateDAO.getById(reg.getId());
         if (c != null) {
             c.setSuspended(true);
@@ -421,7 +380,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return false;
     }
-
     @Override
     public boolean undoSuspension(int sessionId, int sbd, String reasonCode, String reasonDetail,
             Integer actionUserId) {
@@ -432,8 +390,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reasonCode == null || reasonCode.isBlank()) {
             return false;
         }
-
-        String reasonLabel = enumMappingService.violationLabel(reasonCode);
+        String reasonLabel = ViolationReason.resolveLabel(reasonCode);
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, null);
         Candidate c = candidateDAO.getById(reg.getId());
@@ -450,7 +407,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return undone;
     }
-
     @Override
     public boolean adjustScoreDeduction(int sessionId, int sbd, int deductionId, int delta, Integer actionUserId) {
         if (sbd <= 0 || deductionId <= 0 || delta == 0) {
@@ -471,7 +427,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public boolean finalizeScoreEntry(int sessionId, int sbd, Integer actionUserId, String sectionKeyword) {
         if (sbd <= 0) {
@@ -484,7 +439,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
         boolean updated = false;
         if (e != null) {
-            e.setSectionStatus("AwaitingSignature");
+            e.setSectionStatus(SectionStatus.CHO_KY.getDisplayName());
             updated = enrollmentDAO.update(e);
         }
         if (updated && actionUserId != null) {
@@ -493,17 +448,15 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public boolean verifyPassword(User user, String password) {
         return user != null && password != null && !password.isBlank()
                 && AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash());
     }
-
     @Override
     public boolean printSignatureForm(int sessionId, int sbd, Integer actionUserId) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
-        if (reg == null || !enumMappingService.isCandidateAwaitingSignature(reg.getSectionStatus())) {
+        if (reg == null || !SectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
             return false;
         }
         ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
@@ -518,14 +471,13 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return updated;
     }
-
     @Override
     public String completeCandidateSection(int sessionId, int sbd, Integer actionUserId) {
         CandidateEnrollmentDTO reg = findCandidate(sessionId, sbd);
         if (reg == null) {
             return "notFound";
         }
-        if (!enumMappingService.isCandidateAwaitingSignature(reg.getSectionStatus())) {
+        if (!SectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
             return "notAwaiting";
         }
         if (!reg.isSignaturePrinted()) {
@@ -534,7 +486,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
         boolean completed = false;
         if (e != null) {
-            e.setSectionStatus("Done");
+            e.setSectionStatus(SectionStatus.DA_THI.getDisplayName());
             completed = enrollmentDAO.update(e);
         }
         if (!completed) {
@@ -547,36 +499,32 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         enqueueNextSection(sessionId, reg);
         return null;
     }
-
     private void enqueueNextSection(int sessionId, CandidateEnrollmentDTO reg) {
         int sbd = reg.getSbd();
-        SessionDTO session = sessionDAO.getDtoById(sessionId);
+        SessionDTO session = sessionViewSupport.toDto(sessionId);
         String sectionName = session != null ? session.getExamTypeName() : null;
-        SectionType sectionType = enumMappingService.resolveSectionType(sectionName);
-        Lane current = ExamQueue.resolveLane(sectionType, sectionName);
+        boolean isTheory = enums.ExamSection.isTheory(sectionName);
+        Lane current = ExamQueue.resolveLane(isTheory, sectionName);
         ExamQueue.remove(current, sbd);
-
         Candidate candidate = candidateDAO.getById(reg.getId());
         if (candidate == null) {
             return;
         }
-        if (current == Lane.THEORY) {
-            if (Boolean.TRUE.equals(candidate.getTakePractical())) {
-                ExamQueue.offer(Lane.LAYOUT, sbd);
-            } else if (Boolean.TRUE.equals(candidate.getTakeRoadLayout())) {
-                ExamQueue.offer(Lane.ROAD, sbd);
+        if (current == Lane.LY_THUYET) {
+            if (Boolean.TRUE.equals(candidate.getTakeLayout())) {
+                ExamQueue.offer(Lane.THUC_HANH_TRONG_HINH, sbd);
+            } else if (Boolean.TRUE.equals(candidate.getTakeRoad())) {
+                ExamQueue.offer(Lane.THUC_HANH_TREN_DUONG, sbd);
             }
-        } else if (current == Lane.LAYOUT && Boolean.TRUE.equals(candidate.getTakeRoadLayout())) {
-            ExamQueue.offer(Lane.ROAD, sbd);
+        } else if (current == Lane.THUC_HANH_TRONG_HINH && Boolean.TRUE.equals(candidate.getTakeRoad())) {
+            ExamQueue.offer(Lane.THUC_HANH_TREN_DUONG, sbd);
         }
     }
-
     private static void removeFromAllQueues(int sbd) {
         for (Lane lane : Lane.values()) {
             ExamQueue.remove(lane, sbd);
         }
     }
-
     private static Date parseDate(String dobStr) {
         if (dobStr == null || dobStr.isBlank()) {
             return null;
@@ -593,7 +541,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
             return null;
         }
     }
-
     private static String buildViolationAuditText(String reasonLabel, String reasonDetail, String evidencePath) {
         StringBuilder text = new StringBuilder();
         if (reasonLabel != null && !reasonLabel.isBlank()) {
@@ -613,7 +560,6 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         return text.toString();
     }
-
     private static String buildReasonText(String reasonCode, String reasonDetail) {
         String label = switch (reasonCode != null ? reasonCode : "") {
             case "cham-sai" ->

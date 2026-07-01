@@ -1,21 +1,17 @@
 package dao.impl;
-
 import dao.ScoreDeductionDAO;
 import dbconnection.DBContext;
+import enums.ExamSection;
 import model.ScoreDeduction;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-
 public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDAO {
-
     private static final String BASE_SELECT =
-            "SELECT ScoreDeductionId, Reason, Points, IsCritical, ExamSectionId, SortOrder FROM ScoreDeduction";
-
+            "SELECT ScoreDeductionId, LicenceId, Reason, Points, IsCritical, ExamSectionId FROM ScoreDeduction";
     @Override
     public ScoreDeduction findById(int scoreDeductionId) {
         String sql = BASE_SELECT + " WHERE ScoreDeductionId = ?";
@@ -31,20 +27,15 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return null;
     }
-
     @Override
     public int insert(ScoreDeduction deduction) {
-        String sql = "INSERT INTO ScoreDeduction (Reason, Points, IsCritical, ExamSectionId, SortOrder) VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO ScoreDeduction (LicenceId, Reason, Points, IsCritical, ExamSectionId) VALUES (?,?,?,?,?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, deduction.getReason());
-            ps.setDouble(2, deduction.getPoints());
-            ps.setBoolean(3, deduction.isCritical());
-            if (deduction.getExamSectionId() != null) {
-                ps.setInt(4, deduction.getExamSectionId());
-            } else {
-                ps.setNull(4, java.sql.Types.INTEGER);
-            }
-            ps.setInt(5, deduction.getSortOrder());
+            ps.setInt(1, deduction.getLicenceId());
+            ps.setString(2, deduction.getReason());
+            ps.setDouble(3, deduction.getPoints());
+            ps.setBoolean(4, deduction.isCritical());
+            ps.setInt(5, deduction.getExamSectionId());
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) {
@@ -57,21 +48,16 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return 0;
     }
-
     @Override
     public boolean update(ScoreDeduction deduction) {
-        String sql = "UPDATE ScoreDeduction SET Reason=?, Points=?, IsCritical=?, ExamSectionId=?, SortOrder=? "
+        String sql = "UPDATE ScoreDeduction SET LicenceId=?, Reason=?, Points=?, IsCritical=?, ExamSectionId=? "
                 + "WHERE ScoreDeductionId=?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, deduction.getReason());
-            ps.setDouble(2, deduction.getPoints());
-            ps.setBoolean(3, deduction.isCritical());
-            if (deduction.getExamSectionId() != null) {
-                ps.setInt(4, deduction.getExamSectionId());
-            } else {
-                ps.setNull(4, java.sql.Types.INTEGER);
-            }
-            ps.setInt(5, deduction.getSortOrder());
+            ps.setInt(1, deduction.getLicenceId());
+            ps.setString(2, deduction.getReason());
+            ps.setDouble(3, deduction.getPoints());
+            ps.setBoolean(4, deduction.isCritical());
+            ps.setInt(5, deduction.getExamSectionId());
             ps.setInt(6, deduction.getScoreDeductionId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -79,7 +65,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return false;
     }
-
     @Override
     public boolean delete(int scoreDeductionId) {
         String sql = "DELETE FROM ScoreDeduction WHERE ScoreDeductionId = ?";
@@ -91,7 +76,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return false;
     }
-
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM ScoreDeduction";
@@ -105,7 +89,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return 0;
     }
-
     @Override
     public boolean adjustScoreDeductionOccurrence(int candidateId, int sessionId, int scoreDeductionId, int delta) {
         if (candidateId <= 0 || sessionId <= 0 || scoreDeductionId <= 0 || delta == 0) {
@@ -148,7 +131,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
             return false;
         }
     }
-
     private static int resolveExamEnrollmentId(Connection conn, int candidateId, int sessionId) throws SQLException {
         String sql = "SELECT ExamEnrollmentId FROM ExamEnrollment WHERE CandidateId = ? AND SessionId = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -162,7 +144,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return 0;
     }
-
     private static int resolveOrCreateExamResult(Connection conn, int examEnrollmentId) throws SQLException {
         String selectSql = "SELECT ExamResultId FROM ExamResult WHERE ExamEnrollmentId = ?";
         try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
@@ -186,7 +167,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return 0;
     }
-
     private static int resolveSessionSectionId(Connection conn, int sessionId) throws SQLException {
         String sql = "SELECT TOP 1 ExamSectionId FROM Session_ExamSection WHERE SessionId = ? ORDER BY ExamSectionId";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -197,16 +177,17 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
                 }
             }
         }
-        String fallback = "SELECT TOP 1 ExamSectionId FROM ExamSection WHERE SectionName = N'Sa hình'";
-        try (PreparedStatement ps = conn.prepareStatement(fallback);
-                ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt("ExamSectionId");
+        String fallback = "SELECT TOP 1 ExamSectionId FROM ExamSection WHERE SectionName = ?";
+        try (PreparedStatement ps = conn.prepareStatement(fallback)) {
+            ps.setString(1, ExamSection.THUC_HANH_TRONG_HINH.getDisplayName());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamSectionId");
+                }
             }
         }
         return 0;
     }
-
     private static int resolveOrCreateExamScore(Connection conn, int examResultId, int sectionId) throws SQLException {
         String selectSql = "SELECT ExamScoreId FROM ExamScore WHERE ExamResultId = ? AND ExamSectionId = ?";
         try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
@@ -232,7 +213,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return 0;
     }
-
     private static boolean applyDelta(Connection conn, int examScoreId, int scoreDeductionId, int delta)
             throws SQLException {
         String selectSql = "SELECT OccurrenceCount FROM DeductionRecord WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
@@ -279,7 +259,6 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         }
         return false;
     }
-
     private static void recalculateScore(Connection conn, int examScoreId) throws SQLException {
         String sql = "SELECT SUM(sd.Points * dr.OccurrenceCount) AS totalDeduction, "
                 + "MAX(CASE WHEN sd.IsCritical = 1 AND dr.OccurrenceCount > 0 THEN 1 ELSE 0 END) AS hasCritical "
@@ -305,18 +284,14 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
             ps.executeUpdate();
         }
     }
-
     private static ScoreDeduction map(ResultSet rs) throws SQLException {
         ScoreDeduction deduction = new ScoreDeduction();
         deduction.setScoreDeductionId(rs.getInt("ScoreDeductionId"));
+        deduction.setLicenceId(rs.getInt("LicenceId"));
         deduction.setReason(rs.getString("Reason"));
         deduction.setPoints(rs.getDouble("Points"));
         deduction.setCritical(rs.getBoolean("IsCritical"));
-        int sectionId = rs.getInt("ExamSectionId");
-        if (!rs.wasNull()) {
-            deduction.setExamSectionId(sectionId);
-        }
-        deduction.setSortOrder(rs.getInt("SortOrder"));
+        deduction.setExamSectionId(rs.getInt("ExamSectionId"));
         return deduction;
     }
 }

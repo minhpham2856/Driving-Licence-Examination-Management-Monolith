@@ -1,21 +1,16 @@
 package dao.impl;
-
 import dbconnection.DBContext;
 import dao.ExamDeviceDAO;
 import model.ExamDevice;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
-
     private static final String BASE_SELECT =
             "SELECT ExamDeviceId, DeviceName, DeviceType, IsActive, ExamAreaId FROM ExamDevice";
-
     @Override
     public ExamDevice findById(int examDeviceId) {
         String sql = BASE_SELECT + " WHERE ExamDeviceId = ?";
@@ -31,7 +26,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return null;
     }
-
     @Override
     public int insert(ExamDevice d) {
         String sql = "INSERT INTO ExamDevice (DeviceName, DeviceType, IsActive, ExamAreaId) VALUES (?,?,?,?)";
@@ -53,7 +47,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return 0;
     }
-
     @Override
     public boolean update(ExamDevice d) {
         String sql = "UPDATE ExamDevice SET DeviceName=?, DeviceType=?, IsActive=?, ExamAreaId=? WHERE ExamDeviceId=?";
@@ -69,7 +62,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return false;
     }
-
     @Override
     public boolean delete(int examDeviceId) {
         String sql = "DELETE FROM ExamDevice WHERE ExamDeviceId = ?";
@@ -81,7 +73,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return false;
     }
-
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM ExamDevice";
@@ -96,7 +87,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return 0;
     }
-
     @Override
     public boolean updateStatus(int examDeviceId, boolean isActive) {
         String sql = "UPDATE ExamDevice SET IsActive = ? WHERE ExamDeviceId = ?";
@@ -109,7 +99,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return false;
     }
-
     @Override
     public List<ExamDevice> getDevicesByAreaId(int examAreaId) {
         List<ExamDevice> list = new ArrayList<>();
@@ -126,7 +115,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return list;
     }
-
     @Override
     public List<ExamDevice> getAllByAreaIds(List<Integer> areaIds) {
         List<ExamDevice> list = new ArrayList<>();
@@ -152,7 +140,6 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return list;
     }
-
     private static ExamDevice map(ResultSet rs) throws SQLException {
         ExamDevice d = new ExamDevice();
         d.setExamDeviceId(rs.getInt("ExamDeviceId"));
@@ -162,11 +149,9 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         d.setExamAreaId(rs.getInt("ExamAreaId"));
         return d;
     }
-
     public int countByStatus(boolean isActive) {
         return 0;
     }
-
     public List<ExamDevice> search(String keyword, boolean isActive) {
         return new ArrayList<>();
     }

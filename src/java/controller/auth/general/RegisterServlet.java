@@ -1,11 +1,7 @@
 package controller.auth.general;
-
-
 import dto.RegisterResultDTO;
-
 import service.AuthService;
 import service.impl.AuthServiceImpl;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,18 +9,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
-
     private final AuthService authService = new AuthServiceImpl();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);
     }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -37,7 +29,6 @@ public class RegisterServlet extends HttpServlet {
         String email = request.getParameter("email");
         String sexParam = request.getParameter("sex");
         String terms = request.getParameter("terms");
-
         // blank inputs
         if (isBlank(govIdNo) || isBlank(fullName) || isBlank(phoneNo)
                 || isBlank(dateOfBirth) || isBlank(address) || isBlank(email)) {
@@ -45,16 +36,13 @@ public class RegisterServlet extends HttpServlet {
             forwardRegister(request, response);
             return;
         }
-
         // terms and condition validation
         if (terms == null) {
             request.setAttribute("error", "Bạn phải đồng ý với Điều khoản và Chính sách bảo mật.");
             forwardRegister(request, response);
             return;
         }
-
         boolean sex = "1".equals(sexParam);
-
         RegisterResultDTO result = authService.register(
                 govIdNo.trim(),
                 fullName.trim(),
@@ -64,14 +52,12 @@ public class RegisterServlet extends HttpServlet {
                 email.trim(),
                 sex
         );
-
         // case 1: registration failed
         if (!result.isSuccess()) {
             request.setAttribute("error", result.getErrorMessage());
             forwardRegister(request, response);
             return;
         }
-
         // case 2: registration succeeded
         HttpSession session = request.getSession();
         if (result.isEmailSent()) {
@@ -85,11 +71,9 @@ public class RegisterServlet extends HttpServlet {
         }
         response.sendRedirect(request.getContextPath() + "/login");
     }
-
     private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
+        return value == null || value.isBlank();
     }
-
     private void forwardRegister(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);

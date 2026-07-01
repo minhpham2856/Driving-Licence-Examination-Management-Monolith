@@ -17,7 +17,7 @@
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/layout/sidebar-managing.jsp">
+<jsp:include page="/views/layout/sidebar-managingstaff.jsp">
     <jsp:param name="activeSidebar" value="tao-tai-khoan" />
 </jsp:include>
 
@@ -80,7 +80,9 @@
                     </div>
                 </c:if>
 
-                <form action="${pageContext.request.contextPath}/manager/create-user" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <form action="${pageContext.request.contextPath}/manager/create-user" method="POST"
+                      enctype="multipart/form-data"
+                      style="display: flex; flex-direction: column; gap: 1.25rem;">
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
                         <div class="input-group">
@@ -145,10 +147,58 @@
                                 <option value="A2" ${param.licenseClass eq 'A2' ? 'selected' : ''}>Hạng A2 (Xe phân khối lớn từ 175cc)</option>
                                 <option value="B1" ${param.licenseClass eq 'B1' ? 'selected' : ''}>Hạng B1 (Ô tô số tự động)</option>
                                 <option value="B2" ${param.licenseClass eq 'B2' ? 'selected' : ''}>Hạng B2 (Ô tô số sàn)</option>
+                                <option value="C1" ${param.licenseClass eq 'C1' ? 'selected' : ''}>Hạng C1 (Ô tô tải trung)</option>
                                 <option value="C" ${param.licenseClass eq 'C' ? 'selected' : ''}>Hạng C (Ô tô tải lớn)</option>
+                                <option value="D1" ${param.licenseClass eq 'D1' ? 'selected' : ''}>Hạng D1 (Xe khách 16–30 chỗ)</option>
+                                <option value="D2" ${param.licenseClass eq 'D2' ? 'selected' : ''}>Hạng D2 (Xe khách trên 30 chỗ)</option>
+                                <option value="D" ${param.licenseClass eq 'D' ? 'selected' : ''}>Hạng D (Xe khách giường nằm)</option>
                             </select>
                         </div>
                     </div>
+
+                    <section style="border: 1px solid #bfdbfe; border-radius: 12px; padding: 1.25rem; background: #f8fbff;">
+                        <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="margin: 0 0 4px; color: #0f172a; font-size: 1rem;">Hồ sơ Managing Staff tiếp nhận</h3>
+                                <p style="margin: 0; color: #64748b; font-size: 0.82rem; line-height: 1.5;">
+                                    Tải đủ giấy tờ đã đối chiếu tại quầy. Tài khoản tạo thành công sẽ có hồ sơ được xác minh.
+                                </p>
+                            </div>
+                            <span style="white-space: nowrap; padding: 5px 9px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-size: 0.72rem; font-weight: 700;">TIẾP NHẬN TRỰC TIẾP</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="input-group">
+                                <label for="portrait" class="input-label">Ảnh chân dung 3x4 <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="portrait" name="portrait" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="healthCertificate" class="input-label">Giấy khám sức khỏe <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="healthCertificate" name="healthCertificate" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="idFront" class="input-label">CCCD mặt trước <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="idFront" name="idFront" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="idBack" class="input-label">CCCD mặt sau <span style="color: #ef4444;">*</span></label>
+                                <input type="file" id="idBack" name="idBack" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" required>
+                            </div>
+                            <div class="input-group" id="graduationCertificateGroup" style="display:none;">
+                                <label for="graduationCertificate" class="input-label">
+                                    Giấy tốt nghiệp / chứng chỉ đào tạo
+                                    <span id="graduationRequiredMark" style="color: #ef4444;">*</span>
+                                </label>
+                                <input type="file" id="graduationCertificate" name="graduationCertificate" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf">
+                                <small id="graduationHint" style="display:block;margin-top:4px;color:#64748b;">
+                                    Bắt buộc với hạng ô tô; không bắt buộc với A1/A2.
+                                </small>
+                            </div>
+                        </div>
+                        <p style="margin: 0.85rem 0 0; color: #64748b; font-size: 0.78rem;">
+                            Chấp nhận JPG, PNG hoặc PDF; tối đa 5 MB cho mỗi tệp.
+                        </p>
+                    </section>
 
                     <div class="input-group" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
                         <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Thông tin tài khoản đăng nhập mặc định:</span>
@@ -162,7 +212,7 @@
 
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
                         <a href="users.jsp" class="btn-reset" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 42px; width: 120px; font-size: 0.9rem; font-weight: 600; color: #475569; background-color: #ffffff;">Hủy bỏ</a>
-                        <button type="submit" class="btn-filter" style="height: 42px; width: 180px; border-radius: 8px; background-color: #0052cc; border-color: #0052cc; justify-content: center; font-weight: 700;">Tạo tài khoản</button>
+                        <button type="submit" class="btn-filter" style="height: 42px; min-width: 230px; border-radius: 8px; background-color: #0052cc; border-color: #0052cc; justify-content: center; font-weight: 700;">Tạo tài khoản &amp; hoàn tất hồ sơ</button>
                     </div>
                 </form>
             </div>
@@ -213,7 +263,7 @@
                         </h2>
                     </div>
 
-                    <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">Sau khi tài khoản được tạo thành công, học viên sẽ phải đăng nhập để tải lên các giấy tờ pháp lý sau đây lên hệ thống:</p>
+                    <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 0.75rem;">Managing Staff đối chiếu bản giấy và tải đủ các tài liệu dưới đây ngay khi tạo tài khoản:</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.82rem; color: #64748b;">
                         <div style="display: flex; align-items: center; gap: 6px;">
@@ -228,6 +278,9 @@
                             <span style="color: #10b981; font-weight: 900;">✓</span>
                             <span>Giấy khám sức khỏe lái xe còn thời hạn dưới 6 tháng</span>
                         </div>
+                        <div style="margin-top: 0.35rem; padding: 0.75rem; border-radius: 7px; background: #ecfdf5; color: #047857; line-height: 1.45; font-weight: 600;">
+                            Hồ sơ sẽ được đánh dấu đã xác minh. Thí sinh không phải tải lại và có thể chuyển sang chọn phiên thi phù hợp.
+                        </div>
                     </div>
                 </div>
 
@@ -237,6 +290,34 @@
 
     </main>
 </div>
+
+<script>
+    (function () {
+        const licenseSelect = document.getElementById('licenseClass');
+        const graduationGroup = document.getElementById('graduationCertificateGroup');
+        const graduationInput = document.getElementById('graduationCertificate');
+        const requiredMark = document.getElementById('graduationRequiredMark');
+        const hint = document.getElementById('graduationHint');
+        function updateGraduationRequirement() {
+            if (!licenseSelect || !graduationInput) return;
+            const value = (licenseSelect.value || '').toUpperCase();
+            const required = value !== '' && value !== 'A1' && value !== 'A2';
+            graduationInput.required = required;
+            if (graduationGroup) graduationGroup.style.display = required ? 'block' : 'none';
+            if (!required) graduationInput.value = '';
+            if (requiredMark) requiredMark.style.display = required ? 'inline' : 'none';
+            if (hint) {
+                hint.textContent = required
+                    ? 'Bắt buộc với hồ sơ hạng ô tô.'
+                    : 'Không bắt buộc với A1/A2; có thể tải lên nếu trung tâm yêu cầu.';
+            }
+        }
+        if (licenseSelect) {
+            licenseSelect.addEventListener('change', updateGraduationRequirement);
+            updateGraduationRequirement();
+        }
+    })();
+</script>
 
 </body>
 </html>

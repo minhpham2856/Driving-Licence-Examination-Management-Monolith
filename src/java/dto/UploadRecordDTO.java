@@ -1,7 +1,5 @@
 package dto;
-
 import java.sql.*;
-
 public class UploadRecordDTO {
     private int id;
     private int personId;
@@ -16,11 +14,9 @@ public class UploadRecordDTO {
     private boolean isPresent;
     private Date dateOfBirth;
     private int candidateNo;
-    
     private boolean isDuplicate;
     private boolean isInvalid;
     private String validationMessage;
-
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public int getPersonId() { return personId; }
@@ -47,7 +43,6 @@ public class UploadRecordDTO {
     public void setDateOfBirth(Date dateOfBirth) { this.dateOfBirth = dateOfBirth; }
     public int getCandidateNo() { return candidateNo; }
     public void setCandidateNo(int candidateNo) { this.candidateNo = candidateNo; }
-
     public boolean isDuplicate() { return isDuplicate; }
     public void setDuplicate(boolean duplicate) { isDuplicate = duplicate; }
     public boolean isInvalid() { return isInvalid; }

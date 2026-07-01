@@ -1,12 +1,7 @@
 package dao.impl;
-
 import java.sql.*;
-
-
 import dao.LicenceDAO;
-
 import dbconnection.DBContext;
-
 import model.Licence;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,15 +10,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-
 public class LicenceDAOImpl implements LicenceDAO {
-
     private static final String BASE_SELECT =
-        "SELECT l.*, p.LicenceClass AS UpgradeFromClass "
-      + "FROM Licence l LEFT JOIN Licence p ON l.UpgradeFromLicenceId = p.LicenceId ";
-
-    
+        "SELECT l.LicenceId, l.LicenceClass, l.Description, l.MinimumAge, l.ValidForYears, l.UpgradeFromLicenceId "
+      + "FROM Licence l ";
     private Licence map(ResultSet rs) throws SQLException {
         Licence l = new Licence();
         l.setLicenceId(rs.getInt("LicenceId"));
@@ -33,21 +23,16 @@ public class LicenceDAOImpl implements LicenceDAO {
         l.setValidForYears(rs.getInt("ValidForYears"));
         int up = rs.getInt("UpgradeFromLicenceId");
         l.setUpgradeFromLicenceId(rs.wasNull() ? null : up);
-        l.setUpgradeFromClass(rs.getString("UpgradeFromClass"));
         return l;
     }
-
-    
     @Override
     public List<Licence> findAll() {
         return search(null);
     }
-
-    
     @Override
     public List<Licence> search(String keyword) {
         List<Licence> list = new ArrayList<>();
-        boolean hasKw = keyword != null && !keyword.trim().isEmpty();
+        boolean hasKw = keyword != null && !keyword.isBlank();
         String sql = BASE_SELECT + (hasKw ? "WHERE l.LicenceClass LIKE ? OR l.Description LIKE ? " : "")
                    + "ORDER BY l.LicenceId";
         try (Connection c = new DBContext().getConnection();
@@ -65,8 +50,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         }
         return list;
     }
-
-    
     @Override
     public Licence getById(int licenceId) {
         String sql = BASE_SELECT + "WHERE l.LicenceId = ?";
@@ -81,8 +64,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         }
         return null;
     }
-
-    
     @Override
     public boolean existsByClass(String licenceClass, int excludeId) {
         String sql = "SELECT COUNT(*) FROM Licence WHERE LicenceClass = ? AND LicenceId <> ?";
@@ -98,8 +79,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         }
         return false;
     }
-
-    
     @Override
     public int insert(Licence l) {
         String sql = "INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, UpgradeFromLicenceId) "
@@ -122,8 +101,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         }
         return -1;
     }
-
-    
     @Override
     public boolean update(Licence l) {
         String sql = "UPDATE Licence SET LicenceClass = ?, Description = ?, MinimumAge = ?, ValidForYears = ?, "
@@ -142,8 +119,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         }
         return false;
     }
-
-    
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM Licence";
@@ -156,8 +131,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         }
         return 0;
     }
-
-    
     private void setIntOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
         if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }

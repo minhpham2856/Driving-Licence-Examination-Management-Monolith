@@ -119,7 +119,7 @@ GO
 -- 3. (Thực hành) trên đường
 CREATE TABLE ExamSection (
     ExamSectionId INT PRIMARY KEY IDENTITY(1,1),
-	SectionName NVARCHAR(100) NOT NULL UNIQUE, -- Theory, Layout, Road
+	SectionName NVARCHAR(100) NOT NULL UNIQUE
 );
 GO
 
@@ -129,7 +129,7 @@ CREATE TABLE Licence_ExamSection (
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
     ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
     DurationMinutes INT NULL, -- 0 -> không có thời gian (phần thi trong hình của A, A1 không tính thời gian)
-    UNIQUE (LicenceId, ExamSectionId),
+    UNIQUE (LicenceId, ExamSectionId)
 );
 GO
 
@@ -182,7 +182,7 @@ GO
 -- Thiết bị thi: bao gồm cả máy thi, và xe thi
 CREATE TABLE ExamDevice (
     ExamDeviceId INT PRIMARY KEY IDENTITY(1,1),
-    DeviceName NVARCHAR(100) NOT NULL, -- ví dụ: A1-01, B-02, B-03, PC-101, PC-211, A1-DP-01 (DP là dự phòng)
+    DeviceName NVARCHAR(100) NOT NULL, -- ví dụ: A1-01, B-02, B-03, PC-101, PC-211,
     DeviceType NVARCHAR(50) NOT NULL, -- máy tính, xe máy, oto con, oto tải,... 
     IsActive BIT NOT NULL,
     ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId)
@@ -224,7 +224,7 @@ CREATE TABLE ExamEnrollment (
 	ExamEnrollmentId INT PRIMARY KEY IDENTITY(1,1),
     CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
     SessionId INT NOT NULL REFERENCES [Session](SessionId),
-    SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
+    SectionStatus NVARCHAR(50) NOT NULL,
     SignaturePrinted BIT NOT NULL DEFAULT 0,
     ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
     UNIQUE (CandidateId, SessionId)
@@ -237,17 +237,15 @@ CREATE TABLE Fee (
     FeeId INT PRIMARY KEY IDENTITY(1,1),
     FeeName NVARCHAR(100) NOT NULL,
     FeeType NVARCHAR(50) NOT NULL,
-    Amount DECIMAL(18,2) NOT NULL,
     IsActive BIT NOT NULL DEFAULT 1,
-    CHECK (Amount >= 0)
 );
 GO
 
 -- Payment table
 CREATE TABLE Payment (
     PaymentId INT PRIMARY KEY IDENTITY(1,1),
-    PaymentStatus NVARCHAR(50) NOT NULL,      -- Pending / Paid / Failed / Refunded
-    PaymentMethod NVARCHAR(50) NOT NULL,      -- Cash / QR
+    PaymentStatus NVARCHAR(50) NOT NULL,    
+    PaymentMethod NVARCHAR(50) NOT NULL,     
     TransactionReference NVARCHAR(255) UNIQUE,
     TotalAmount DECIMAL(18,2) NOT NULL,
     PaidAt DATETIME NULL,
@@ -264,6 +262,16 @@ CREATE TABLE Payment_Fee (
     UNIQUE (PaymentId, FeeId)
 );
 GO
+
+-- Licence_Fee junction table
+CREATE TABLE Licence_Fee (
+    LicenceFeeId INT PRIMARY KEY IDENTITY(1,1),
+    LicenceId INT NULL REFERENCES Licence(LicenceId),  -- NULL = phí chung, không theo hạng
+    FeeId INT NOT NULL REFERENCES Fee(FeeId),
+    Amount DECIMAL(18,2), 
+	CHECK (Amount >= 0),
+    UNIQUE (LicenceId, FeeId)
+);
 
 -- ============================== QUESTION ==============================
 -- QuestionCategory table
@@ -343,11 +351,11 @@ GO
 -- bảng lỗi để trừ điểm (theo hạng gplx)
 CREATE TABLE ScoreDeduction (
     ScoreDeductionId INT PRIMARY KEY IDENTITY(1,1),
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
     [Reason] NVARCHAR(500) NOT NULL,
     Points DECIMAL(5,2) NOT NULL,
     IsCritical BIT NOT NULL DEFAULT 0,
-    ExamSectionId INT NULL REFERENCES ExamSection(ExamSectionId),
-    SortOrder INT NOT NULL DEFAULT 0,
+    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
     CHECK (Points > 0)
 );
 GO

@@ -1,5 +1,4 @@
 package dao.impl;
-
 import dao.RoleDAO;
 import dbconnection.DBContext;
 import model.Role;
@@ -8,11 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 public class RoleDAOImpl extends DBContext implements RoleDAO {
-
     private static final Logger LOG = Logger.getLogger(RoleDAOImpl.class.getName());
-
     @Override
     public Role getById(int id) {
         String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleId = ?";
@@ -28,7 +24,6 @@ public class RoleDAOImpl extends DBContext implements RoleDAO {
         }
         return null;
     }
-
     @Override
     public Role getByName(String roleName) {
         String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleName = ?";

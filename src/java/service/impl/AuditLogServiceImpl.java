@@ -7,14 +7,12 @@ import dao.impl.AuditDAOImpl;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
 import model.Audit;
-import model.AuditRecordModel;
 import model.Profile;
 import model.User;
 import service.AuditLogService;
-import service.EnumMappingService;
-
+import enums.AuditAction;
+import enums.AuditEntity;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +22,9 @@ import java.util.stream.Collectors;
 
 public class AuditLogServiceImpl implements AuditLogService {
 
-    private final EnumMappingService enumMappingService = new EnumMappingServiceImpl();
     private final AuditDAO DAO = new AuditDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
-
     private static final Pattern SBD_PATTERN = Pattern.compile("SBD\\s+([A-Za-z0-9]+-\\d+)",
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
@@ -44,16 +40,15 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public void logWarning(Integer userId, String message, String reason, int recordId) {
-        insertLog(userId, "WARNING", message, null, message, reason, recordId);
+        insertLog(userId, AuditAction.CANH_BAO.name(), message, null, message, reason, recordId);
     }
 
     private void insertLog(Integer actionUserId, String action, String contextDetails,
             String oldValue, String newValue, String reason, int recordId) {
         try {
             int userId = (actionUserId != null && actionUserId > 0) ? actionUserId : 3;
-
             Audit log = new Audit();
-            log.setEntityName(enumMappingService.auditLabel(resolveEntityName(action, contextDetails)));
+            log.setEntityName(AuditEntity.resolveLabel(resolveEntityName(action, contextDetails)));
             log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction(normalizeAction(action));
             log.setOldValue(oldValue);
@@ -70,7 +65,6 @@ public class AuditLogServiceImpl implements AuditLogService {
     private String resolveEntityName(String action, String details) {
         String upper = action != null ? action.toUpperCase() : "";
         String detailUpper = details != null ? details.toUpperCase() : "";
-
         if (upper.contains("SCOREENTRY") || detailUpper.contains("HẠNG ĐIỂM")) {
             return "ScoreEntryQueue";
         }
@@ -104,49 +98,28 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     private String normalizeAction(String rawAct) {
-        if (rawAct == null) {
-            return "UPDATE";
-        }
-        String upper = rawAct.toUpperCase();
-        if (upper.contains("IMPORT")) {
-            return "IMPORT";
-        }
-        if (upper.contains("INSERT")) {
-            return "INSERT";
-        }
-        if (upper.contains("DELETE") || upper.contains("REMOVE")) {
-            return "DELETE";
-        }
-        if (upper.contains("EXPORT")) {
-            return "EXPORT";
-        }
-        if (upper.contains("ASSIGN")) {
-            return "ASSIGN";
-        }
-        return "UPDATE";
+        return AuditAction.normalize(rawAct).getDisplayName();
     }
 
     @Override
-    public List<Map<String, Object>> toViewRows(AuditRecordModel log, Map<Integer, String> sbdByRecordId) {
-        return List.of(toViewRow(log, sbdByRecordId));
+    public List<Map<String, Object>> toViewRows(Audit log, String changerName, Map<Integer, String> sbdByRecordId) {
+        return List.of(toViewRow(log, changerName, sbdByRecordId));
     }
 
     @Override
-    public Map<String, Object> toViewRow(AuditRecordModel log, Map<Integer, String> sbdByRecordId) {
+    public Map<String, Object> toViewRow(Audit log, String changerName, Map<Integer, String> sbdByRecordId) {
         Map<String, Object> row = new LinkedHashMap<>();
         String action = log.getAction() != null ? log.getAction() : "UPDATE";
         String sbd = resolveSbd(log, sbdByRecordId);
         String message = firstNonBlank(log.getNewValue(), log.getDetails());
         String reason = normalizeReason(log);
-
-        row.put("username", nullToDash(log.getChangerName()));
+        row.put("username", nullToDash(changerName));
         row.put("actionLabel", mapActionLabel(action));
         row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", enumMappingService.auditLabel(log.getTableName()));
+        row.put("entityName", AuditEntity.resolveLabel(log.getEntityName()));
         row.put("sbd", sbd);
         row.put("newValueClass", mapNewValueClass(action));
         row.put("multiline", message != null && message.contains("\n"));
-
         if (log.getOldValue() != null && !log.getOldValue().isBlank()) {
             row.put("info", buildChangeInfo(log, sbd));
             row.put("oldValue", log.getOldValue());
@@ -162,20 +135,32 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public String resolveSbd(AuditRecordModel log, Map<Integer, String> sbdByRecordId) {
+    public String resolveSbd(Audit log, Map<Integer, String> sbdByRecordId) {
         for (String text : new String[]{log.getNewValue(), log.getOldValue(), log.getReason(), log.getDetails()}) {
             String extracted = extractSbdFromText(text);
             if (extracted != null) {
                 return extracted;
             }
         }
-        if (log.getRecordId() != null && log.getRecordId() > 0 && sbdByRecordId != null) {
-            String mapped = sbdByRecordId.get(log.getRecordId());
+        Integer recordId = parseEntityId(log.getEntityId());
+        if (recordId != null && recordId > 0 && sbdByRecordId != null) {
+            String mapped = sbdByRecordId.get(recordId);
             if (mapped != null && !mapped.isBlank()) {
                 return mapped;
             }
         }
         return "-";
+    }
+
+    private static Integer parseEntityId(String entityId) {
+        if (entityId == null || entityId.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(entityId.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private String extractSbdFromText(String text) {
@@ -189,7 +174,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         return null;
     }
 
-    private String normalizeReason(AuditRecordModel log) {
+    private String normalizeReason(Audit log) {
         String reason = log.getReason();
         if (reason == null || reason.isBlank()) {
             return null;
@@ -202,48 +187,52 @@ public class AuditLogServiceImpl implements AuditLogService {
         return reason;
     }
 
-    private String buildChangeInfo(AuditRecordModel log, String sbd) {
-        String entity = enumMappingService.auditLabel(log.getTableName());
-        String action = log.getAction() != null ? log.getAction().toUpperCase() : "UPDATE";
+    private String buildChangeInfo(Audit log, String sbd) {
+        String entity = AuditEntity.resolveLabel(log.getEntityName());
+        String action = log.getAction() != null ? log.getAction() : AuditAction.CAP_NHAT.getDisplayName();
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
-            case "WARNING" -> "Cảnh báo" + sbdSuffix;
-            case "INSERT" -> "Thêm " + entity.toLowerCase() + sbdSuffix;
-            case "DELETE" -> "Xóa " + entity.toLowerCase() + sbdSuffix;
-            default -> "Cập nhật " + entity.toLowerCase() + sbdSuffix;
+            case "Cảnh báo" ->
+                "Cảnh báo" + sbdSuffix;
+            case "Thêm" ->
+                "Thêm " + entity.toLowerCase() + sbdSuffix;
+            case "Xóa" ->
+                "Xóa " + entity.toLowerCase() + sbdSuffix;
+            default ->
+                "Cập nhật " + entity.toLowerCase() + sbdSuffix;
         };
     }
 
     private String mapActionLabel(String action) {
-        return switch (action.toUpperCase()) {
-            case "INSERT" -> "Thêm";
-            case "DELETE" -> "Xóa";
-            case "EXPORT" -> "Xuất";
-            case "ASSIGN" -> "Phân công";
-            case "IMPORT" -> "Nhập";
-            case "WARNING" -> "Cảnh báo";
-            case "SYSTEM" -> "Hệ thống";
-            case "APPROVE" -> "Duyệt";
-            default -> "Cập nhật";
-        };
+        return AuditAction.normalize(action).getDisplayName();
     }
 
     private String mapActionBadge(String action) {
-        return switch (action.toUpperCase()) {
-            case "INSERT" -> "audit-badge--insert";
-            case "DELETE" -> "audit-badge--delete";
-            case "EXPORT" -> "audit-badge--export";
-            case "ASSIGN" -> "audit-badge--assign";
-            case "IMPORT" -> "audit-badge--import";
-            case "WARNING" -> "audit-badge--warning";
-            case "SYSTEM" -> "audit-badge--system";
-            case "APPROVE" -> "audit-badge--approve";
-            default -> "audit-badge--update";
+        AuditAction normalized = AuditAction.normalize(action);
+        return switch (normalized) {
+            case THEM ->
+                "audit-badge--insert";
+            case XOA ->
+                "audit-badge--delete";
+            case XUAT ->
+                "audit-badge--export";
+            case PHAN_CONG ->
+                "audit-badge--assign";
+            case NHAP ->
+                "audit-badge--import";
+            case CANH_BAO ->
+                "audit-badge--warning";
+            case HE_THONG ->
+                "audit-badge--system";
+            case DUYET ->
+                "audit-badge--approve";
+            default ->
+                "audit-badge--update";
         };
     }
 
     private String mapNewValueClass(String action) {
-        if ("DELETE".equalsIgnoreCase(action)) {
+        if (AuditAction.normalize(action) == AuditAction.XOA) {
             return "audit-td--old";
         }
         return "audit-td--new";
@@ -266,9 +255,8 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public List<AuditRecordModel> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
-        List<Audit> audits = DAO.getLogsForSessionPaginated(sessionId, page, pageSize, searchQuery);
-        return mapAuditRecords(audits);
+    public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
+        return DAO.getLogsForSessionPaginated(sessionId, page, pageSize, searchQuery);
     }
 
     @Override
@@ -277,58 +265,37 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public List<AuditRecordModel> getViolationLogsForSession(int sessionId, int limit) {
-        List<Audit> audits = DAO.getViolationLogsForSession(sessionId, limit);
-        return mapAuditRecords(audits);
+    public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
+        return DAO.getViolationLogsForSession(sessionId, limit);
     }
 
-    private List<AuditRecordModel> mapAuditRecords(List<Audit> audits) {
+    @Override
+    public Map<Long, String> loadChangerNames(List<Audit> audits) {
+        Map<Long, String> names = new LinkedHashMap<>();
         if (audits == null || audits.isEmpty()) {
-            return new ArrayList<>();
+            return names;
         }
-
         List<Integer> userIds = audits.stream()
                 .map(Audit::getUserId)
+                .filter(id -> id != null && id > 0)
                 .distinct()
                 .collect(Collectors.toList());
-
         Map<Integer, User> userMap = userDAO.getAllByIds(userIds).stream()
                 .collect(Collectors.toMap(User::getUserId, u -> u));
-
         Map<Integer, Profile> profileMap = profileDAO.getAllByUserIds(userIds).stream()
                 .collect(Collectors.toMap(Profile::getUserId, p -> p));
-
-        List<AuditRecordModel> result = new ArrayList<>();
-        for (Audit a : audits) {
-            AuditRecordModel rm = new AuditRecordModel();
-            rm.setId(a.getAuditId());
-            rm.setTableName(a.getEntityName());
-            try {
-                rm.setRecordId(Integer.parseInt(a.getEntityId()));
-            } catch (NumberFormatException e) {
-                rm.setRecordId(null);
-            }
-            rm.setAction(a.getAction());
-            rm.setOldValue(a.getOldValue());
-            rm.setNewValue(a.getNewValue());
-            rm.setDetails(a.getDetails());
-            rm.setReason(a.getReason());
-            rm.setChangedBy(a.getUserId());
-            rm.setChangedAt(a.getCreatedAt());
-
-            User u = userMap.get(a.getUserId());
-            Profile p = profileMap.get(a.getUserId());
-
-            if (u != null && u.getUsername() != null) {
-                rm.setChangerName(u.getUsername());
-            } else if (p != null && p.getFullName() != null) {
-                rm.setChangerName(p.getFullName());
+        for (Audit audit : audits) {
+            Integer userId = audit.getUserId();
+            User user = userId == null ? null : userMap.get(userId);
+            Profile profile = userId == null ? null : profileMap.get(userId);
+            if (user != null && user.getUsername() != null) {
+                names.put(audit.getAuditId(), user.getUsername());
+            } else if (profile != null && profile.getFullName() != null) {
+                names.put(audit.getAuditId(), profile.getFullName());
             } else {
-                rm.setChangerName("Unknown");
+                names.put(audit.getAuditId(), "Unknown");
             }
-
-            result.add(rm);
         }
-        return result;
+        return names;
     }
 }

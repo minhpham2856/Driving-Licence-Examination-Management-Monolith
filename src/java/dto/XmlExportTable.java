@@ -1,7 +1,5 @@
 package dto;
-
 import java.util.List;
-
  // Immutable record representing a single table in an XML export document.
 public record XmlExportTable(
         // XML wrapper element name enclosing all items (e.g. "danhSachThiSinh")
@@ -15,4 +13,3 @@ public record XmlExportTable(
         // Data rows — each inner list contains cell values aligned with fieldElements/headers
         List<List<Object>> rows) {
 }
-

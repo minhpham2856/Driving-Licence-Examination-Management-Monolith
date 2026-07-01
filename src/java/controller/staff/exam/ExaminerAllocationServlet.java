@@ -1,11 +1,9 @@
 package controller.staff.exam;
 import dto.*;
 import model.*;
-
 import model.*;
 import service.*;
 import service.impl.*;
-
 import dto.ExaminerSlotDTO;
 import service.ExaminerAllocationService;
 import service.impl.ExaminerAllocationServiceImpl;
@@ -27,20 +25,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 @WebServlet("/views/staff/exam/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
     private final AuditLogService auditLogService = new AuditLogServiceImpl();
     private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         HttpSession session = request.getSession();
         request.removeAttribute("errorMsg");
         request.removeAttribute("alertMsg");
-        
         String sessionControlMsg = (String) session.getAttribute("sessionControlMsg");
         String sessionControlError = (String) session.getAttribute("sessionControlError");
         if (sessionControlMsg != null) {
@@ -51,10 +45,8 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("errorMsg", sessionControlError);
             session.removeAttribute("sessionControlError");
         }
-
         List<SessionDTO> allSessions = allocationService.getAllSessions();
         request.setAttribute("allSessions", allSessions);
-
         String sessIdParam = request.getParameter("sessionId");
         int sessionId = 2;
         if (sessIdParam != null && !sessIdParam.isEmpty()) {
@@ -65,29 +57,22 @@ public class ExaminerAllocationServlet extends HttpServlet {
             sessionId = (Integer) session.getAttribute("selectedSessionId");
         }
         session.setAttribute("selectedSessionId", sessionId);
-
         SessionDTO currentSession = allocationService.getSessionById(sessionId);
         request.setAttribute("currentSession", currentSession);
-
         Map<Integer, Date> sessionDates = buildSessionDateMap(allSessions);
         Map<Integer, UserDTO> examinerMap = buildExaminerMap();
-
         String action = request.getParameter("action");
         if (action != null && currentSession != null) {
             handleAction(request, session, action, examinerMap);
         }
-
         if (currentSession != null) {
             List<SessionDTO> daySessions = allocationService.getSessionsByExamDate(currentSession.getExamDate());
             request.setAttribute("daySessions", daySessions);
-
             List<ExaminerSlotDTO> dayAssignments = allocationService.getAssignmentsByExamDate(
                     currentSession.getExamDate(), sessionDates);
             request.setAttribute("dayAssignments", dayAssignments);
-
             List<ExaminerSlotDTO> sessionAssignments = allocationService.getAssignmentsBySessionId(sessionId);
             request.setAttribute("sessionAssignments", sessionAssignments);
-
             Set<Integer> busyIds = allocationService.getBusyExaminerIds(
                     currentSession.getExamDate(), sessionDates);
             List<UserDTO> allExaminers = allocationService.getActiveExaminers();
@@ -100,30 +85,24 @@ public class ExaminerAllocationServlet extends HttpServlet {
                     availableExaminers.add(ex);
                 }
             }
-
             request.setAttribute("allExaminers", allExaminers);
             request.setAttribute("availableExaminers", availableExaminers);
             request.setAttribute("busyExaminers", busyExaminers);
-
             List<ExamArea> sessionAreas = allocationService.getAreasBySessionId(sessionId);
             request.setAttribute("sessionAreas", sessionAreas);
-
             Map<Integer, List<ExamDevice>> devicesByArea = new HashMap<>();
             for (ExamArea area : sessionAreas) {
                 devicesByArea.put(area.getId(), allocationService.getDevicesByAreaId(area.getId()));
             }
             request.setAttribute("devicesByArea", devicesByArea);
-
             Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
             for (SessionDTO ds : daySessions) {
                 areasBySession.put(ds.getId(), allocationService.getAreasBySessionId(ds.getId()));
             }
             request.setAttribute("areasBySession", areasBySession);
         }
-
         request.getRequestDispatcher("/views/staff/exam/examiner-allocation.jsp").forward(request, response);
     }
-
     private void handleAction(HttpServletRequest request, HttpSession session, String action,
             Map<Integer, UserDTO> examinerMap) {
         try {
@@ -131,7 +110,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 int targetSessionId = Integer.parseInt(request.getParameter("targetSessionId"));
                 int areaId = Integer.parseInt(request.getParameter("areaId"));
                 int examinerUserId = Integer.parseInt(request.getParameter("examinerUserId"));
-
                 SessionDTO targetSession = allocationService.getSessionById(targetSessionId);
                 ExamArea area = allocationService.getAreaById(areaId);
                 UserDTO examiner = examinerMap.get(examinerUserId);
@@ -143,7 +121,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
                     request.setAttribute("errorMsg", "Phong thi khong thuoc ca thi da chon (Session_ExamArea).");
                     return;
                 }
-
                 ExaminerSlotDTO slot = new ExaminerSlotDTO();
                 slot.setExamSessionId(targetSessionId);
                 slot.setAreaId(areaId);
@@ -156,7 +133,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 slot.setSessionName(targetSession.getSessionName());
                 slot.setExaminerName(resolveExaminerName(examiner));
                 slot.setExaminerUsername(examiner.getUsername());
-
                 boolean ok = allocationService.assignExaminer(slot);
                 if (ok) {
                     request.setAttribute("alertMsg", "Da phan cong giam khao vao phong " + area.getAreaName() + ".");
@@ -183,7 +159,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("errorMsg", "Du lieu khong hop le.");
         }
     }
-
     private Map<Integer, Date> buildSessionDateMap(List<SessionDTO> sessions) {
         Map<Integer, Date> map = new HashMap<>();
         for (SessionDTO s : sessions) {
@@ -191,7 +166,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
         return map;
     }
-
     private Map<Integer, UserDTO> buildExaminerMap() {
         Map<Integer, UserDTO> map = new HashMap<>();
         for (UserDTO u : allocationService.getActiveExaminers()) {
@@ -199,7 +173,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
         return map;
     }
-
     private String resolveExaminerName(UserDTO examiner) {
         if (examiner.getProfile() != null && examiner.getProfile().getFullName() != null
                 && !examiner.getProfile().getFullName().isBlank()) {
@@ -207,24 +180,16 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
         return examiner.getUsername();
     }
-
     private int resolveStaffId(HttpSession session) {
         User user = (User) session.getAttribute("user");
         return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
     }
-
     private void addAuditLog(HttpSession session, String action, String details) {
         auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details);
     }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
     }
 }
-
-
-
-
-

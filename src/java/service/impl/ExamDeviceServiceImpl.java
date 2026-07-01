@@ -1,7 +1,6 @@
 package service.impl;
 import dto.*;
 import model.*;
-
 import dao.ExamDeviceDAO;
 import dao.impl.ExamDeviceDAOImpl;
 import dao.AuditDAO;
@@ -13,29 +12,25 @@ import model.Audit;
 import model.ExamArea;
 import model.ExamDevice;
 import service.ExamDeviceService;
-
+import enums.DeviceStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 public class ExamDeviceServiceImpl implements ExamDeviceService {
-
     private final ExamDeviceDAO dao = new ExamDeviceDAOImpl();
     private final ExamAreaDAO areaDao = new ExamAreaDAOImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
-
     @Override
     public List<ExamDeviceViewDTO> search(String keyword, String status) {
-        List<ExamDevice> devices = dao.search(keyword, "active".equalsIgnoreCase(status));
+        boolean isActive = status == null || status.isBlank() || DeviceStatus.isActive(status);
+        List<ExamDevice> devices = dao.search(keyword, isActive);
         if (devices.isEmpty()) {
             return new ArrayList<>();
         }
-
         List<ExamArea> areas = areaDao.search(null, null);
         Map<Integer, String> areaMap = areas.stream()
                 .collect(Collectors.toMap(ExamArea::getExamAreaId, ExamArea::getAreaName));
-
         List<ExamDeviceViewDTO> dtos = new ArrayList<>();
         for (ExamDevice d : devices) {
             ExamDeviceViewDTO dto = mapToDTO(d);
@@ -44,39 +39,34 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         }
         return dtos;
     }
-
     @Override
     public int countAll() {
         return dao.countAll();
     }
-
     @Override
     public int countByStatus(String status) {
-        return dao.countByStatus("active".equalsIgnoreCase(status));
+        return dao.countByStatus(DeviceStatus.isActive(status));
     }
-
     @Override
     public SaveResult save(ExamDeviceViewDTO dev, Integer adminUserId) {
-        if (dev.getDeviceName() == null || dev.getDeviceName().trim().isEmpty()) {
+        if (dev.getDeviceName() == null || dev.getDeviceName().isBlank()) {
             return new SaveResult(false, "Vui lòng nhập tên máy thi.", dev.getExamDeviceId());
         }
-        if (dev.getDeviceType() == null || dev.getDeviceType().trim().isEmpty()) {
+        if (dev.getDeviceType() == null || dev.getDeviceType().isBlank()) {
             return new SaveResult(false, "Vui lòng nhập loại thiết bị.", dev.getExamDeviceId());
         }
-        if (dev.getStatus() == null || dev.getStatus().trim().isEmpty()) {
+        if (dev.getStatus() == null || dev.getStatus().isBlank()) {
             return new SaveResult(false, "Vui lòng chọn tình trạng máy.", dev.getExamDeviceId());
         }
         if (dev.getExamAreaId() <= 0) {
             return new SaveResult(false, "Vui lòng chọn khu vực thi.", dev.getExamDeviceId());
         }
-
         ExamDevice model = new ExamDevice();
         model.setExamDeviceId(dev.getExamDeviceId());
         model.setDeviceName(dev.getDeviceName());
         model.setDeviceType(dev.getDeviceType());
-        model.setActive("active".equalsIgnoreCase(dev.getStatus()));
+        model.setActive(DeviceStatus.isActive(dev.getStatus()));
         model.setExamAreaId(dev.getExamAreaId());
-
         boolean isEdit = dev.getExamDeviceId() > 0;
         if (isEdit) {
             boolean ok = dao.update(model);
@@ -97,7 +87,6 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
             }
         }
     }
-
     @Override
     public DeleteResult delete(int id, Integer adminUserId) {
         ExamDevice dev = dao.findById(id);
@@ -112,17 +101,15 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
             return new DeleteResult(false, "Xóa máy thi thất bại.");
         }
     }
-
     private ExamDeviceViewDTO mapToDTO(ExamDevice model) {
         ExamDeviceViewDTO dto = new ExamDeviceViewDTO();
         dto.setExamDeviceId(model.getExamDeviceId());
         dto.setDeviceName(model.getDeviceName());
         dto.setDeviceType(model.getDeviceType());
-        dto.setStatus(model.isActive() ? "active" : "inactive");
+        dto.setStatus(DeviceStatus.fromActive(model.isActive()));
         dto.setExamAreaId(model.getExamAreaId());
         return dto;
     }
-
     private void logAudit(Integer userId, String action, String entityName, String entityId, String reason) {
         Audit audit = new Audit();
         audit.setUserId(userId != null ? userId : 3);
@@ -133,5 +120,3 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         auditDAO.insert(audit);
     }
 }
-
-

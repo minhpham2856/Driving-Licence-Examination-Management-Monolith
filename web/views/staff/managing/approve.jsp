@@ -17,7 +17,7 @@
     </head>
     <body class="has-side-nav-bar">
 
-        <jsp:include page="/views/layout/sidebar-managing.jsp">
+        <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
             <jsp:param name="activeSidebar" value="duyet-ho-so" />
         </jsp:include>
 
