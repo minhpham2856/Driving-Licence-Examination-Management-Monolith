@@ -60,7 +60,7 @@
     </div>
 
     <!--menu-->
-    <nav class="side-nav-bar__menu${empty examinerHasActiveSession or not examinerHasActiveSession ? ' side-nav-bar__menu--locked' : ''}">
+    <nav class="side-nav-bar__menu${empty examinerHasActiveExam or not examinerHasActiveExam ? ' side-nav-bar__menu--locked' : ''}">
         <a href="${ctx}/views/examiner/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">grid_view</span>

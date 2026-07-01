@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import filter.ExaminerFilter;
 import model.User;
 import service.CallService;
 import service.ExamViewService;
@@ -50,7 +51,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String path = stripContextPath(request);
         Integer sbd = null;
         try {
@@ -62,12 +63,12 @@ public class ExaminerViolationsServlet extends HttpServlet {
 
         String search = request.getParameter("q");
 
-        if (sessionId != null && sessionId > 0) {
+        if (activeExamId != null && activeExamId > 0) {
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
 
             if ("/views/examiner/violations".equals(path)) {
-                List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+                List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
                 if (search != null && !search.isBlank()) {
                     String q = search.trim().toLowerCase();
                     List<CandidateRowDTO> filtered = new java.util.ArrayList<>();
@@ -89,7 +90,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 request.setAttribute("candidateQueue", candidates);
 
                 if (sbd != null && sbd > 0) {
-                    Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+                    Map<String, Object> data = viewDataService.getViolationData(activeExamId, sbd);
                     if (data != null) {
                         for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                             request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
@@ -98,7 +99,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 }
             } else if ("/views/examiner/violation-confirm".equals(path) || "/views/examiner/violation-undo".equals(path)) {
                 if (sbd != null && sbd > 0) {
-                    Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
+                    Map<String, Object> data = viewDataService.getViolationData(activeExamId, sbd);
                     if (data != null) {
                         for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                             request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
@@ -130,8 +131,8 @@ public class ExaminerViolationsServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
-        if (sessionId == null || sessionId <= 0) {
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -164,7 +165,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 }
 
                 String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                String fileName = datePrefix + "_" + sessionId + "_" + sbd + "_" + System.currentTimeMillis() + "_" + getSubmittedFileName(filePart);
+                String fileName = datePrefix + "_" + activeExamId + "_" + sbd + "_" + System.currentTimeMillis() + "_" + getSubmittedFileName(filePart);
                 Path destination = new File(uploadDir, fileName).toPath();
                 try (InputStream input = filePart.getInputStream()) {
                     Files.copy(input, destination, StandardCopyOption.REPLACE_EXISTING);
@@ -176,7 +177,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 }
             }
 
-            dto.ServiceResult<Void> result = callService.recordViolation(sessionId, sbd,
+            dto.ServiceResult<Void> result = callService.recordViolation(activeExamId, sbd,
                     ((User) session.getAttribute("user")).getUserId(),
                     reasonCode,
                     reasonDetail,

@@ -28,7 +28,7 @@
             <jsp:param name="pageCss" value="score-entry.css,devices.css" />
         </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">

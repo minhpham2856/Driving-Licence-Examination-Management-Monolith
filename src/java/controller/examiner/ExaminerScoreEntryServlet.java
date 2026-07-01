@@ -1,6 +1,7 @@
 package controller.examiner;
 
 import enums.SectionType;
+import filter.ExaminerFilter;
 import model.User;
 import service.CallService;
 import service.ExamViewService;
@@ -31,7 +32,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         Integer sbd = null;
         try {
             if (request.getParameter("sbd") != null) {
@@ -44,7 +45,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
         boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
         String sectionName = resolveSectionName(session);
 
-        if (sessionId != null && sessionId > 0) {
+        if (activeExamId != null && activeExamId > 0) {
             if (isTheory && request.getParameter("error") == null) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoScoreEntry");
                 return;
@@ -67,7 +68,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                         return;
                     }
                     
-                    if (!callService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, user.getUserId()).isSuccess()) {
+                    if (!callService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, user.getUserId()).isSuccess()) {
                         response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
                                 + urlEncode(sbd) + "&error=deductionFailed");
                         return;
@@ -77,13 +78,13 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                     return;
                 }
                 
-                if (handleScoreEntryAction(request, response, session, sessionId, action, sbd, user, isTheory, sectionName)) {
+                if (handleScoreEntryAction(request, response, session, activeExamId, action, sbd, user, isTheory, sectionName)) {
                     return;
                 }
             }
 
             if (sbd != null) {
-                Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, sbd, sectionName);
+                Map<String, Object> data = viewDataService.getScoreEntryData(activeExamId, sbd, sectionName);
                 if (data != null) {
                     for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                         request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
@@ -104,8 +105,8 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
-        if (sessionId == null || sessionId <= 0) {
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -123,7 +124,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                 return;
             }
 
-            if (!callService.finalizeScoreEntry(sessionId, sbd, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
+            if (!callService.finalizeScoreEntry(activeExamId, sbd, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
                         + urlEncode(sbd) + "&error=finalizeFailed");
                 return;
@@ -137,7 +138,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
     }
 
     private boolean handleScoreEntryAction(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, int sessionId, String action, Integer sbd, User user,
+            HttpSession session, int activeExamId, String action, Integer sbd, User user,
             boolean isTheory, String sectionName) throws IOException {
         
         SectionType examSection = SectionType.fromValue(sectionName);
@@ -150,7 +151,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                     return true;
                 }
                 
-                if (!callService.callScoreEntryCandidate(sessionId, sbd, user, user.getUserId(),
+                if (!callService.callScoreEntryCandidate(activeExamId, sbd, user, user.getUserId(),
                         examSection, isTheory, sectionName, destination, true).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=callFailed&sbd="
                             + urlEncode(sbd));
@@ -167,7 +168,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                     return true;
                 }
                 
-                callService.undoPresent(sessionId, sbd, user.getUserId());
+                callService.undoPresent(activeExamId, sbd, user.getUserId());
                 
                 response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?deferred="
                         + urlEncode(sbd));

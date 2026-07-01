@@ -23,7 +23,7 @@
             <jsp:param name="pageCss" value="result-edit.css,confirmation.css" />
         </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
@@ -83,7 +83,7 @@
                             <div class="exr-warning__body">
                                 <p class="exr-warning__title">CẢNH BÁO</p>
                                 <p class="exr-warning__text">
-                                    Thí sinh sẽ được đánh dấu <strong>vắng thi</strong> và không thể tham gia ca thi hiện tại.
+                                    Thí sinh sẽ được đánh dấu <strong>vắng thi</strong> và không thể tham gia kỳ thi hiện tại.
                                     Thao tác này được ghi nhận vào nhật ký hệ thống.
                                 </p>
                             </div>

@@ -25,7 +25,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
         <jsp:include page="/views/examiner/components/examiner-styles.jsp" />
     </head>
-    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
+    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">

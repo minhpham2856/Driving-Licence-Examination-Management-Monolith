@@ -9,13 +9,13 @@
     </div>
     <div class="examiner-header__meta">
         <c:choose>
-            <c:when test="${examinerHasActiveSession}">
+            <c:when test="${examinerHasActiveExam}">
                 <span class="examiner-header__meta-label">Phần thi</span>
                 <span class="examiner-tag examiner-tag--done">${examSectionName}</span>
             </c:when>
             <c:otherwise>
                 <span class="examiner-tag examiner-tag--pending">Chưa có ca</span>
-                <span class="examiner-header__meta-hint" title="${examinerSessionMessage}">${examinerSessionMessage}</span>
+                <span class="examiner-header__meta-hint" title="${examinerExamMessage}">${examinerExamMessage}</span>
             </c:otherwise>
         </c:choose>
     </div>

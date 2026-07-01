@@ -1,16 +1,16 @@
-/* Examiner session selection — Figma GPLX node 125:5 */
+/* Examiner exam selection — Figma GPLX node 125:5 */
 
 :root {
-    --session-bg: #f9f9ff;
-    --session-text: #111c2d;
-    --session-muted: #737785;
-    --session-border: #c3c6d6;
-    --session-brand: #0040a1;
-    --session-cta: #0056d2;
-    --session-dot-live: #22c55e;
-    --session-dot-idle: #ba1a1a;
-    --session-badge-live-bg: #dcfce7;
-    --session-badge-live-text: #15803d;
+    --exam-bg: #f9f9ff;
+    --exam-text: #111c2d;
+    --exam-muted: #737785;
+    --exam-border: #c3c6d6;
+    --exam-brand: #0040a1;
+    --exam-cta: #0056d2;
+    --exam-dot-live: #22c55e;
+    --exam-dot-idle: #ba1a1a;
+    --exam-badge-live-bg: #dcfce7;
+    --exam-badge-live-text: #15803d;
     --session-badge-idle-bg: #ffdad6;
     --session-badge-idle-text: #93000a;
     --session-btn-disabled: #94a3b8;
@@ -25,8 +25,8 @@
 body.examiner-session-select {
     margin: 0;
     min-height: 100vh;
-    background: var(--session-bg);
-    color: var(--session-text);
+    background: var(--exam-bg);
+    color: var(--exam-text);
     font-family: 'Hanken Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 14px;
     line-height: 1.5;
@@ -34,7 +34,7 @@ body.examiner-session-select {
 
 .examiner-session-select__header {
     background: #fff;
-    border-bottom: 1px solid var(--session-border);
+    border-bottom: 1px solid var(--exam-border);
 }
 
 .examiner-session-select__header-inner {
@@ -55,7 +55,7 @@ body.examiner-session-select {
 
 .examiner-session-select__brand-icon {
     font-size: 20px;
-    color: var(--session-brand);
+    color: var(--exam-brand);
 }
 
 .examiner-session-select__title {
@@ -64,29 +64,29 @@ body.examiner-session-select {
     line-height: 32px;
     font-weight: 700;
     letter-spacing: -0.24px;
-    color: var(--session-text);
+    color: var(--exam-text);
 }
 
-.examiner-session-select__logout {
+.examiner-session-select__header-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 13px 17px;
-    border: 1px solid var(--session-brand);
+    border: 1px solid var(--exam-brand);
     border-radius: 8px;
     background: #fff;
-    color: var(--session-brand);
+    color: var(--exam-brand);
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
     line-height: 16px;
 }
 
-.examiner-session-select__logout .material-symbols-outlined {
+.examiner-session-select__header-btn .material-symbols-outlined {
     font-size: 18px;
 }
 
-.examiner-session-select__logout:hover {
+.examiner-session-select__header-btn:hover {
     background: rgba(0, 64, 161, 0.04);
 }
 
@@ -109,7 +109,7 @@ body.examiner-session-select {
 .examiner-session-select__empty {
     text-align: center;
     padding: 64px 24px;
-    color: var(--session-muted);
+    color: var(--exam-muted);
 }
 
 .examiner-session-select__empty .material-symbols-outlined {
@@ -127,24 +127,24 @@ body.examiner-session-select {
     padding-right: 4px;
 }
 
-.examiner-session-card {
+.examiner-exam-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
     padding: 25px;
     background: #fff;
-    border: 1px solid var(--session-border);
+    border: 1px solid var(--exam-border);
     border-radius: 12px;
 }
 
-.examiner-session-card--active {
-    border: 2px solid var(--session-cta);
+.examiner-exam-card--active {
+    border: 2px solid var(--exam-cta);
     box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
     padding: 26px;
 }
 
-.examiner-session-card__content {
+.examiner-exam-card__content {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -152,39 +152,39 @@ body.examiner-session-select {
     gap: 16px;
 }
 
-.examiner-session-card__top {
+.examiner-exam-card__top {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
 }
 
-.examiner-session-card__dot {
+.examiner-exam-card__dot {
     width: 12px;
     height: 12px;
     border-radius: 9999px;
-    background: var(--session-dot-idle);
+    background: var(--exam-dot-idle);
     flex-shrink: 0;
 }
 
-.examiner-session-card__dot--live {
-    background: var(--session-dot-live);
+.examiner-exam-card__dot--live {
+    background: var(--exam-dot-live);
     box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
-.examiner-session-card__code {
+.examiner-exam-card__code {
     font-size: 14px;
     font-weight: 600;
     line-height: 16px;
-    color: var(--session-text);
+    color: var(--exam-text);
 }
 
-.examiner-session-card--active .examiner-session-card__code {
+.examiner-exam-card--active .examiner-exam-card__code {
     font-weight: 700;
-    color: var(--session-brand);
+    color: var(--exam-brand);
 }
 
-.examiner-session-card__badge {
+.examiner-exam-card__badge {
     padding: 4px 12px;
     border-radius: 9999px;
     font-size: 12px;
@@ -192,23 +192,23 @@ body.examiner-session-select {
     line-height: 16px;
 }
 
-.examiner-session-card__badge--idle {
+.examiner-exam-card__badge--idle {
     background: var(--session-badge-idle-bg);
     color: var(--session-badge-idle-text);
 }
 
-.examiner-session-card__badge--live {
-    background: var(--session-badge-live-bg);
-    color: var(--session-badge-live-text);
+.examiner-exam-card__badge--live {
+    background: var(--exam-badge-live-bg);
+    color: var(--exam-badge-live-text);
 }
 
-.examiner-session-card__fields {
+.examiner-exam-card__fields {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
 }
 
-.examiner-session-card__field {
+.examiner-exam-card__field {
     flex: 1 1 180px;
     max-width: 200px;
     display: flex;
@@ -216,40 +216,40 @@ body.examiner-session-select {
     gap: 4px;
 }
 
-.examiner-session-card__label {
+.examiner-exam-card__label {
     font-size: 12px;
     font-weight: 700;
     line-height: 16px;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    color: var(--session-muted);
+    color: var(--exam-muted);
 }
 
-.examiner-session-card__value {
+.examiner-exam-card__value {
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
-    color: var(--session-text);
+    color: var(--exam-text);
 }
 
-.examiner-session-card__value .material-symbols-outlined {
+.examiner-exam-card__value .material-symbols-outlined {
     font-size: 14px;
-    color: var(--session-muted);
+    color: var(--exam-muted);
     flex-shrink: 0;
 }
 
-.examiner-session-card__action {
+.examiner-exam-card__action {
     flex-shrink: 0;
 }
 
-.examiner-session-card__enter {
+.examiner-exam-card__enter {
     padding: 16px 32px;
     border: none;
     border-radius: 8px;
-    background: var(--session-cta);
+    background: var(--exam-cta);
     color: #fff;
     font-family: inherit;
     font-size: 14px;
@@ -260,11 +260,11 @@ body.examiner-session-select {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-.examiner-session-card__enter:hover:not(:disabled) {
+.examiner-exam-card__enter:hover:not(:disabled) {
     background: #0040a1;
 }
 
-.examiner-session-card__enter--disabled {
+.examiner-exam-card__enter--disabled {
     background: var(--session-btn-disabled);
     opacity: 0.6;
     cursor: not-allowed;
@@ -272,20 +272,20 @@ body.examiner-session-select {
 }
 
 @media (max-width: 900px) {
-    .examiner-session-card {
+    .examiner-exam-card {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .examiner-session-card__action {
+    .examiner-exam-card__action {
         width: 100%;
     }
 
-    .examiner-session-card__enter {
+    .examiner-exam-card__enter {
         width: 100%;
     }
 
-    .examiner-session-card__field {
+    .examiner-exam-card__field {
         max-width: none;
     }
 }

@@ -2,7 +2,7 @@ package filter;
 
 import enums.SectionType;
 import static enums.SectionType.THEORY;
-import enums.ExamSessionStatus;
+import enums.ExamStatus;
 import enums.RoleType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,38 +12,42 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import model.Exam;
 import model.ExamArea;
+import model.ExamSection;
 import model.ExaminerSchedule;
 import model.Role;
-import model.Session;
 import model.User;
 import service.ExamAreaService;
+import service.ExamSectionService;
+import service.ExamService;
 import service.RoleService;
 import service.ScheduleService;
-import service.SessionService;
 import service.impl.ExamAreaServiceImpl;
+import service.impl.ExamServiceImpl;
+import service.impl.ExamSectionServiceImpl;
 import service.impl.RoleServiceImpl;
 import service.impl.ScheduleServiceImpl;
-import service.impl.SessionServiceImpl;
 
 @WebFilter(urlPatterns = {"/views/examiner/*", "/examiner/*"})
 public class ExaminerFilter extends HttpFilter {
 
     // Session attributes shared between examiner pages
     public static final String ATTR_EXAMINER_SCHEDULE = "examinerSchedule";
-    public static final String ATTR_ACTIVE_SESSION_ID = "activeSessionId";
+    public static final String ATTR_ACTIVE_EXAM_ID = "activeExamId";
     public static final String ATTR_EXAM_SECTION = "examSection";
-    public static final String ATTR_HAS_ACTIVE = "examinerHasActiveSession";
-    public static final String ATTR_MESSAGE = "examinerSessionMessage";
+    public static final String ATTR_HAS_ACTIVE = "examinerHasActiveExam";
+    public static final String ATTR_MESSAGE = "examinerExamMessage";
 
     // Session selection page
-    private static final String SESSION_SELECT_PATH = "/views/examiner/session";
+    private static final String SESSION_SELECT_PATH = "/views/examiner/exam";
 
     // Business services
     private final RoleService roleService = new RoleServiceImpl();
     private final ScheduleService scheduleService = new ScheduleServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
+    private final ExamService examService = new ExamServiceImpl();
     private final ExamAreaService examAreaService = new ExamAreaServiceImpl();
+    private final ExamSectionService examSectionService = new ExamSectionServiceImpl();
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -118,10 +122,10 @@ public class ExaminerFilter extends HttpFilter {
         }
 
         // case 3: Verify that the examination session is still active
-        Session examSession = sessionService.getById(schedule.getSessionId());
-        if (examSession == null || ExamSessionStatus.fromValue(examSession.getStatus()) != ExamSessionStatus.IN_PROGRESS) {
+        Exam exam = examService.getById(schedule.getExamId());
+        if (exam == null || ExamStatus.fromValue(exam.getStatus()) != ExamStatus.IN_PROGRESS) {
             clearContext(session);
-            session.setAttribute(ATTR_MESSAGE, "Ca thi đang không diễn ra");
+            session.setAttribute(ATTR_MESSAGE, "Kỳ thi đang không diễn ra");
             return false;
         }
 
@@ -132,15 +136,17 @@ public class ExaminerFilter extends HttpFilter {
         }
 
         // Populate information
-        schedule.setSession(examSession);
-        schedule.setExamSection(sessionService.getExamSectionModel(schedule, examSession));
+        schedule.setExam(exam);
+        ExamSection section = (schedule.getExamSectionId() != null && schedule.getExamSectionId() > 0)
+                ? examSectionService.getById(schedule.getExamSectionId()) : null;
+        schedule.setExamSection(section);
 
         // Determine whether the examiner is supervising a theory exam
-        SectionType examSection = sessionService.getExamSection(schedule, examSession);
+        SectionType examSection = (section != null) ? SectionType.fromValue(section.getSectionType()) : null;
 
         // Update the session with the latest examination context
         session.setAttribute(ATTR_EXAMINER_SCHEDULE, schedule);
-        session.setAttribute(ATTR_ACTIVE_SESSION_ID, examSession.getSessionId());
+        session.setAttribute(ATTR_ACTIVE_EXAM_ID, exam.getExamId());
         session.setAttribute(ATTR_EXAM_SECTION, examSection);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.TRUE);
         session.setAttribute(ATTR_MESSAGE, null);
@@ -151,7 +157,7 @@ public class ExaminerFilter extends HttpFilter {
     // Remove the current examination context
     private void clearContext(HttpSession session) {
         session.removeAttribute(ATTR_EXAMINER_SCHEDULE);
-        session.removeAttribute(ATTR_ACTIVE_SESSION_ID);
+        session.removeAttribute(ATTR_ACTIVE_EXAM_ID);
         session.removeAttribute(ATTR_EXAM_SECTION);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.FALSE);
     }
@@ -160,7 +166,7 @@ public class ExaminerFilter extends HttpFilter {
     private void updateRequest(HttpSession session, HttpServletRequest request) {
         copySessionToRequest(session, request, ATTR_HAS_ACTIVE);
         copySessionToRequest(session, request, ATTR_EXAMINER_SCHEDULE);
-        copySessionToRequest(session, request, ATTR_ACTIVE_SESSION_ID);
+        copySessionToRequest(session, request, ATTR_ACTIVE_EXAM_ID);
         copySessionToRequest(session, request, ATTR_EXAM_SECTION);
         copySessionToRequest(session, request, ATTR_MESSAGE);
     }
@@ -175,7 +181,7 @@ public class ExaminerFilter extends HttpFilter {
         return session != null && Boolean.TRUE.equals(session.getAttribute(ATTR_HAS_ACTIVE));
     }
 
-    // Check whether the request targetS an export endpoint
+    // Check whether the request targets an export endpoint
     private boolean isExportPath(HttpServletRequest request) {
         return requestPath(request).startsWith("/examiner/");
     }

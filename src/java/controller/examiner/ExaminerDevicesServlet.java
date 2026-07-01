@@ -1,6 +1,7 @@
 package controller.examiner;
 
 import model.User;
+import filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,11 +29,11 @@ public class ExaminerDevicesServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String search = request.getParameter("q");
         String action = request.getParameter("action");
 
-        if (sessionId != null && sessionId > 0) {
+        if (activeExamId != null && activeExamId > 0) {
             if (action != null && ("maintenance".equals(action) || "operational".equals(action))) {
                 int deviceId;
                 try {
@@ -56,7 +57,7 @@ public class ExaminerDevicesServlet extends HttpServlet {
             }
 
             Integer preferredAreaId = null;
-            Map<String, Object> data = viewDataService.getDevicesData(sessionId, search, preferredAreaId);
+            Map<String, Object> data = viewDataService.getDevicesData(activeExamId, search, preferredAreaId);
             if (data != null) {
                 for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                     request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
