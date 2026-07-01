@@ -3,78 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<%
-    // Setup rich fallbacks if the controller has not populated the request attributes (for standalone frontend preview)
-    if (request.getAttribute("accounts") == null && session.getAttribute("accounts") == null) {
-        java.util.List<java.util.HashMap<String, Object>> mockList = new java.util.ArrayList<>();
-        
-        java.util.HashMap<String, Object> u1 = new java.util.HashMap<>();
-        u1.put("id", "1");
-        u1.put("username", "admin.haiqh");
-        u1.put("fullName", "Quách Hoàng Hải");
-        u1.put("email", "haiqh.admin@laivui.gov.vn");
-        u1.put("phone", "0987.654.321");
-        u1.put("role", "admin");
-        u1.put("department", "Phòng Quản lý Sát hạch");
-        u1.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*90)); // 90 days ago
-        u1.put("status", "active");
-        mockList.add(u1);
-        
-        java.util.HashMap<String, Object> u2 = new java.util.HashMap<>();
-        u2.put("id", "2");
-        u2.put("username", "proctor.nguyenan");
-        u2.put("fullName", "Nguyễn Văn An");
-        u2.put("email", "annv.coithi@laivui.gov.vn");
-        u2.put("phone", "0912.345.678");
-        u2.put("role", "coi_thi");
-        u2.put("department", "Trung tâm Sát hạch Miền Bắc");
-        u2.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*45)); // 45 days ago
-        u2.put("status", "active");
-        mockList.add(u2);
-        
-        java.util.HashMap<String, Object> u3 = new java.util.HashMap<>();
-        u3.put("id", "3");
-        u3.put("username", "examiner.lehang");
-        u3.put("fullName", "Lê Thị Hằng");
-        u3.put("email", "hanglt.chamthi@laivui.gov.vn");
-        u3.put("phone", "0904.888.999");
-        u3.put("role", "cham_thi");
-        u3.put("department", "Hội đồng Sát hạch Sở GTVT");
-        u3.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*30)); // 30 days ago
-        u3.put("status", "locked");
-        mockList.add(u3);
-
-        java.util.HashMap<String, Object> u4 = new java.util.HashMap<>();
-        u4.put("id", "4");
-        u4.put("username", "proctor.hoangnam");
-        u4.put("fullName", "Trần Hoàng Nam");
-        u4.put("email", "namth.coithi@laivui.gov.vn");
-        u4.put("phone", "0977.123.456");
-        u4.put("role", "coi_thi");
-        u4.put("department", "Trung tâm Sát hạch Miền Nam");
-        u4.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*15)); // 15 days ago
-        u4.put("status", "active");
-        mockList.add(u4);
-
-        java.util.HashMap<String, Object> u5 = new java.util.HashMap<>();
-        u5.put("id", "5");
-        u5.put("username", "candidate.thuytrang");
-        u5.put("fullName", "Nguyễn Thủy Trang");
-        u5.put("email", "trangnt.candidate@gmail.com");
-        u5.put("phone", "0868.999.888");
-        u5.put("role", "candidate");
-        u5.put("department", "Thí sinh Tự do");
-        u5.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*5)); // 5 days ago
-        u5.put("status", "inactive");
-        mockList.add(u5);
-        
-        request.setAttribute("accounts", mockList);
-        request.setAttribute("totalAccounts", 5);
-        request.setAttribute("adminCount", 1);
-        request.setAttribute("coiThiCount", 2);
-        request.setAttribute("chamThiCount", 1);
-    }
-%>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -82,19 +11,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Tài khoản - Lái Vui</title>
-
-    <!-- Google Fonts: Inter & Be Vietnam Pro -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- External Layout Stylesheets -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<%-- Inject the admin sidebar template --%>
 <jsp:include page="/views/layout/sidebar-admin.jsp">
     <jsp:param name="activeSidebar" value="tai-khoan" />
 </jsp:include>
@@ -102,29 +26,32 @@
 <div class="dashboard-shell">
     <main class="main-content">
 
-        <!-- Breadcrumbs Navigation -->
         <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
+            <a href="${ctx}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="${pageContext.request.contextPath}/views/admin/dashboard.jsp">Quản trị</a>
+            <a href="${ctx}/admin/dashboard">Quản trị</a>
             <span class="breadcrumbs__separator" aria-hidden="true">/</span>
             <span class="breadcrumbs__current" aria-current="page">Tài khoản</span>
         </nav>
 
-        <!-- Page Header -->
+        <c:if test="${not empty sessionScope.flashMessage}">
+            <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+                        background: ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};
+                        border: 1px solid ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'};
+                        color: ${sessionScope.flashType eq 'success' ? '#047857' : '#b91c1c'};">
+                ${sessionScope.flashMessage}
+            </div>
+            <c:remove var="flashMessage" scope="session" />
+            <c:remove var="flashType" scope="session" />
+        </c:if>
+
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Quản lý Tài khoản hệ thống</h1>
-                <p class="page-subtitle">Cấp phát tài khoản mới, quản lý thông tin cá nhân, phân quyền truy cập và kiểm soát trạng thái hoạt động của các nhóm người dùng trong hệ thống sát hạch.</p>
+                <p class="page-subtitle">Cấp phát tài khoản mới, quản lý thông tin cá nhân, phân quyền truy cập và kiểm soát trạng thái hoạt động của người dùng.</p>
             </div>
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Xuất Excel
-                </button>
-                <button class="btn-filter" id="btn-add-account" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none;">
+                <button type="button" class="btn-filter" id="btn-add-account" onclick="openAccModal()" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -133,8 +60,7 @@
             </div>
         </header>
 
-        <!-- Stats Metrics Row -->
-        <section class="metrics-row" aria-label="Thống kê tài khoản hệ thống">
+        <section class="metrics-row" aria-label="Thống kê tài khoản">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -142,7 +68,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${empty totalAccounts ? (empty totalUsers ? 0 : totalUsers) : totalAccounts}</span>
+                    <span class="stat-number">${empty totalAccounts ? 0 : totalAccounts}</span>
                     <span class="stat-label">Tổng số tài khoản</span>
                     <span class="stat-trend stat-trend--up">Toàn hệ thống</span>
                 </div>
@@ -175,7 +101,6 @@
                 <div class="stat-icon stat-icon--blue" style="background-color: rgba(124, 58, 237, 0.08); color: #7c3aed;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8M3 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M7 14h.01M7 7h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <div class="stat-info">
@@ -186,7 +111,6 @@
             </div>
         </section>
 
-        <!-- Filter & Search Panel -->
         <section class="filter-panel" aria-label="Bộ lọc tài khoản">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -194,12 +118,12 @@
                 </svg>
                 Bộ lọc tìm kiếm
             </h2>
-            <form action="" method="GET">
+            <form action="${ctx}/admin/accounts" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.25fr 1.5fr;">
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Tìm kiếm tài khoản</label>
                         <input type="text" id="searchKeyword" name="searchKeyword" class="input-field"
-                               placeholder="Nhập tên đăng nhập, họ tên, email, sđt..." value="${param.searchKeyword}">
+                               placeholder="Tên đăng nhập, họ tên, email, sđt..." value="${param.searchKeyword}">
                     </div>
                     <div class="input-group">
                         <label for="filterRole" class="input-label">Vai trò phân quyền</label>
@@ -208,7 +132,8 @@
                             <option value="admin" ${param.filterRole eq 'admin' ? 'selected' : ''}>Quản trị viên (Admin)</option>
                             <option value="coi_thi" ${param.filterRole eq 'coi_thi' ? 'selected' : ''}>Cán bộ coi thi</option>
                             <option value="cham_thi" ${param.filterRole eq 'cham_thi' ? 'selected' : ''}>Giám khảo chấm thi</option>
-                            <option value="candidate" ${param.filterRole eq 'candidate' ? 'selected' : ''}>Thí sinh tự do</option>
+                            <option value="managing" ${param.filterRole eq 'managing' ? 'selected' : ''}>Cán bộ quản lý</option>
+                            <option value="candidate" ${param.filterRole eq 'candidate' ? 'selected' : ''}>Thí sinh</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -216,8 +141,7 @@
                         <select id="filterStatus" name="filterStatus" class="input-field">
                             <option value="">Tất cả trạng thái</option>
                             <option value="active" ${param.filterStatus eq 'active' ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="locked" ${param.filterStatus eq 'locked' ? 'selected' : ''}>Đang bị khóa</option>
-                            <option value="inactive" ${param.filterStatus eq 'inactive' ? 'selected' : ''}>Vô hiệu hóa</option>
+                            <option value="inactive" ${param.filterStatus eq 'inactive' ? 'selected' : ''}>Khóa / Vô hiệu</option>
                         </select>
                     </div>
                     <div class="input-group filter-grid__btn-col">
@@ -228,15 +152,14 @@
                                 </svg>
                                 Lọc
                             </button>
-                            <a href="${pageContext.request.contextPath}/views/admin/accounts.jsp" class="btn-reset">Đặt lại</a>
+                            <a href="${ctx}/admin/accounts" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>
             </form>
         </section>
 
-        <!-- Accounts Data Table Section -->
-        <section class="log-card" aria-label="Danh sách tài khoản hệ thống">
+        <section class="log-card" aria-label="Danh sách tài khoản">
             <header class="log-card-header">
                 <h2 class="log-card-title">
                     <svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
@@ -250,14 +173,6 @@
                         </span>
                     </c:if>
                 </h2>
-                <div class="log-card-actions">
-                    <button class="btn-export">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        </svg>
-                        In danh sách
-                    </button>
-                </div>
             </header>
 
             <div class="table-responsive">
@@ -268,7 +183,6 @@
                             <th scope="col" style="min-width: 200px;">Tên tài khoản</th>
                             <th scope="col" style="min-width: 180px;">Email & SĐT</th>
                             <th scope="col" style="width: 150px; text-align: center;">Vai trò</th>
-                            <th scope="col" style="min-width: 180px;">Trung tâm / Đơn vị</th>
                             <th scope="col" style="width: 140px; text-align: center;">Ngày tạo</th>
                             <th scope="col" style="width: 130px; text-align: center;">Trạng thái</th>
                             <th scope="col" style="text-align: center; width: 220px;">Thao tác</th>
@@ -283,26 +197,10 @@
                                         <td>
                                             <div class="user-cell">
                                                 <c:choose>
-                                                    <c:when test="${acc.role eq 'admin'}">
-                                                        <div class="user-avatar" title="Quản trị viên">
-                                                            ${fn:substring(acc.fullName, 0, 1)}
-                                                        </div>
-                                                    </c:when>
-                                                    <c:when test="${acc.role eq 'coi_thi'}">
-                                                        <div class="user-avatar user-avatar--teal" title="Cán bộ coi thi">
-                                                            ${fn:substring(acc.fullName, 0, 1)}
-                                                        </div>
-                                                    </c:when>
-                                                    <c:when test="${acc.role eq 'cham_thi'}">
-                                                        <div class="user-avatar user-avatar--purple" title="Giám khảo chấm thi">
-                                                            ${fn:substring(acc.fullName, 0, 1)}
-                                                        </div>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <div class="user-avatar user-avatar--orange" title="Thí sinh">
-                                                            ${fn:substring(acc.fullName, 0, 1)}
-                                                        </div>
-                                                    </c:otherwise>
+                                                    <c:when test="${acc.roleCode eq 'admin'}"><div class="user-avatar" title="Quản trị viên">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
+                                                    <c:when test="${acc.roleCode eq 'coi_thi'}"><div class="user-avatar user-avatar--teal" title="Cán bộ coi thi">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
+                                                    <c:when test="${acc.roleCode eq 'cham_thi'}"><div class="user-avatar user-avatar--purple" title="Giám khảo chấm thi">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
+                                                    <c:otherwise><div class="user-avatar user-avatar--orange" title="Người dùng">${fn:substring(acc.fullName, 0, 1)}</div></c:otherwise>
                                                 </c:choose>
                                                 <div class="user-info">
                                                     <span class="user-name" style="font-weight: 600; color: #0f172a;">${acc.fullName}</span>
@@ -312,73 +210,56 @@
                                         </td>
                                         <td>
                                             <div style="font-weight: 500; color: #334155; font-size: 0.88rem;">${acc.email}</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle; margin-right: 3px;">
-                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>${acc.phone}
-                                            </div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">${acc.phone}</div>
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
-                                                <c:when test="${acc.role eq 'admin'}">
-                                                    <span class="role-badge role-badge--admin">Admin</span>
-                                                </c:when>
-                                                <c:when test="${acc.role eq 'coi_thi'}">
-                                                    <span class="role-badge role-badge--coi">Cán bộ coi thi</span>
-                                                </c:when>
-                                                <c:when test="${acc.role eq 'cham_thi'}">
-                                                    <span class="role-badge role-badge--cham">Giám khảo</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="role-badge role-badge--other">Thí sinh</span>
-                                                </c:otherwise>
+                                                <c:when test="${acc.roleCode eq 'admin'}"><span class="role-badge role-badge--admin">Admin</span></c:when>
+                                                <c:when test="${acc.roleCode eq 'coi_thi'}"><span class="role-badge role-badge--coi">Cán bộ coi thi</span></c:when>
+                                                <c:when test="${acc.roleCode eq 'cham_thi'}"><span class="role-badge role-badge--cham">Giám khảo</span></c:when>
+                                                <c:when test="${acc.roleCode eq 'managing'}"><span class="role-badge role-badge--admin">Cán bộ quản lý</span></c:when>
+                                                <c:otherwise><span class="role-badge role-badge--other">Thí sinh</span></c:otherwise>
                                             </c:choose>
-                                        </td>
-                                        <td>
-                                            <span style="font-weight: 500; color: #475569; font-size: 0.88rem;">${acc.department}</span>
                                         </td>
                                         <td style="text-align: center; font-size: 0.82rem; color: #64748b; font-weight: 500;">
                                             <fmt:formatDate value="${acc.createdAt}" pattern="dd/MM/yyyy"/>
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
-                                                <c:when test="${acc.status eq 'active'}">
-                                                    <span class="action-badge action-badge--success">Hoạt động</span>
-                                                </c:when>
-                                                <c:when test="${acc.status eq 'locked'}">
-                                                    <span class="action-badge action-badge--warning">Bị khóa</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="action-badge action-badge--danger">Vô hiệu</span>
-                                                </c:otherwise>
+                                                <c:when test="${acc.status eq 'active'}"><span class="action-badge action-badge--success">Hoạt động</span></c:when>
+                                                <c:otherwise><span class="action-badge action-badge--danger">Khóa / Vô hiệu</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td>
-                                            <div style="display: flex; gap: 6px; justify-content: center;">
-                                                <button class="btn-export"
-                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706;"
-                                                        onclick="editAccount('${acc.id}', '${acc.fullName}')">
+                                            <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                                                <button type="button" class="btn-export"
+                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706; cursor:pointer;"
+                                                        data-id="${acc.id}" data-username="${fn:escapeXml(acc.username)}" data-email="${fn:escapeXml(acc.email)}"
+                                                        data-role="${acc.role}" data-fullname="${fn:escapeXml(acc.fullName)}" data-phone="${fn:escapeXml(acc.phone)}"
+                                                        data-sex="${fn:escapeXml(acc.sex)}" data-govid="${fn:escapeXml(acc.govId)}" data-address="${fn:escapeXml(acc.address)}"
+                                                        data-dob="<fmt:formatDate value='${acc.dateOfBirth}' pattern='yyyy-MM-dd'/>" data-status="${acc.status}"
+                                                        onclick="openAccModalEdit(this)">
                                                     Sửa
                                                 </button>
                                                 <c:choose>
-                                                    <c:when test="${acc.status eq 'locked'}">
-                                                        <button class="btn-export"
-                                                                style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16,185,129,0.25); color: #059669;"
-                                                                onclick="toggleLockAccount('${acc.id}', '${acc.fullName}', false)">
-                                                            Mở khóa
+                                                    <c:when test="${acc.status eq 'active'}">
+                                                        <button type="button" class="btn-export"
+                                                                style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239,68,68,0.25); color: #dc2626; cursor:pointer;"
+                                                                onclick="lockAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}', true)">
+                                                            Khóa
                                                         </button>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <button class="btn-export"
-                                                                style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239,68,68,0.25); color: #dc2626;"
-                                                                onclick="toggleLockAccount('${acc.id}', '${acc.fullName}', true)">
-                                                            Khóa
+                                                        <button type="button" class="btn-export"
+                                                                style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16,185,129,0.25); color: #059669; cursor:pointer;"
+                                                                onclick="lockAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}', false)">
+                                                            Mở khóa
                                                         </button>
                                                     </c:otherwise>
                                                 </c:choose>
-                                                <button class="btn-export"
-                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(100,116,139,0.25); color: #475569;"
-                                                        onclick="deleteAccount('${acc.id}', '${acc.fullName}')">
+                                                <button type="button" class="btn-export"
+                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(100,116,139,0.25); color: #475569; cursor:pointer;"
+                                                        onclick="deleteAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}')">
                                                     Xóa
                                                 </button>
                                             </div>
@@ -388,15 +269,14 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
-                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                             style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;">
+                                    <td colspan="7" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;">
                                             <circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="2"/>
                                             <path d="M1 16C1 12.69 4.13 10 8 10C11.87 10 15 12.69 15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
-                                        Chưa có tài khoản nào được khai báo trong hệ thống.
+                                        Chưa có tài khoản nào trong hệ thống.
                                         <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 440px; margin-left: auto; margin-right: auto;">
-                                            Nhấn nút <strong>Tạo tài khoản mới</strong> để cấp phát thông tin đăng nhập và phân quyền cho người dùng hệ thống đầu tiên.
+                                            Nhấn <strong>Tạo tài khoản mới</strong> để cấp phát thông tin đăng nhập và phân quyền cho người dùng.
                                         </p>
                                     </td>
                                 </tr>
@@ -406,20 +286,10 @@
                 </table>
             </div>
 
-            <!-- Table Pagination controls -->
             <footer class="pagination-footer">
                 <div class="pagination-info">
-                    Hiển thị
-                    <c:choose>
-                        <c:when test="${not empty accounts}">1 - ${fn:length(accounts)}</c:when>
-                        <c:otherwise>0</c:otherwise>
-                    </c:choose>
-                    trong tổng số
-                    <c:choose>
-                        <c:when test="${not empty totalAccounts}">${totalAccounts}</c:when>
-                        <c:otherwise>0</c:otherwise>
-                    </c:choose>
-                    tài khoản người dùng
+                    Hiển thị <c:choose><c:when test="${not empty accounts}">1 - ${fn:length(accounts)}</c:when><c:otherwise>0</c:otherwise></c:choose>
+                    trong tổng số ${empty totalAccounts ? 0 : totalAccounts} tài khoản
                 </div>
                 <div class="pagination-nav">
                     <button class="page-btn page-btn--wide disabled" disabled>Trước</button>
@@ -431,43 +301,167 @@
 
     </main>
 
-    <%-- Inject the footer template --%>
     <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>
 </div>
 
-<!-- Interactive Interactions Script -->
+<form id="lockForm" action="${ctx}/admin/accounts" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="lock">
+    <input type="hidden" name="id" id="lockId">
+    <input type="hidden" name="lock" id="lockVal">
+</form>
+<form id="delAccForm" action="${ctx}/admin/accounts" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="id" id="delAccId">
+</form>
+
+<style>
+    .modal-overlay { display:none; position:fixed; inset:0; z-index:1000; background:rgba(15,23,42,0.45); align-items:flex-start; justify-content:center; padding:4vh 1rem; overflow-y:auto; }
+    .modal-overlay.is-open { display:flex; }
+    .modal-card { width:100%; max-width:680px; background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(15,23,42,0.25); font-family:'Be Vietnam Pro','Inter',sans-serif; }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; }
+    .modal-head h3 { margin:0; font-size:1.1rem; font-weight:800; color:#0f172a; }
+    .modal-close { border:none; background:transparent; font-size:1.5rem; line-height:1; color:#94a3b8; cursor:pointer; padding:0 4px; }
+    .modal-body { padding:1.5rem; }
+    .modal-foot { display:flex; gap:12px; justify-content:flex-end; padding:1rem 1.5rem; border-top:1px solid #e2e8f0; }
+</style>
+
+<div id="accModal" class="modal-overlay" onclick="if(event.target===this)closeAccModal()">
+    <div class="modal-card" role="dialog" aria-modal="true">
+        <form action="${ctx}/admin/accounts?action=save" method="POST">
+            <div class="modal-head">
+                <h3 id="accModalTitle">Tạo tài khoản mới</h3>
+                <button type="button" class="modal-close" onclick="closeAccModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="userId" id="a_id" value="">
+                <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+                    <div class="input-group">
+                        <label for="a_username" class="input-label">Tên đăng nhập <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="a_username" name="username" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="a_role" class="input-label">Vai trò <span style="color:#dc2626;">*</span></label>
+                        <select id="a_role" name="role" class="input-field" required>
+                            <option value="">-- Chọn vai trò --</option>
+                            <option value="Admin">Quản trị viên (Admin)</option>
+                            <option value="ExamStaff">Cán bộ coi thi</option>
+                            <option value="Examiner">Giám khảo chấm thi</option>
+                            <option value="ManagingStaff">Cán bộ quản lý</option>
+                            <option value="Registrant">Thí sinh</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+                    <div class="input-group">
+                        <label for="a_email" class="input-label">Email <span style="color:#dc2626;">*</span></label>
+                        <input type="email" id="a_email" name="email" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="a_password" class="input-label">Mật khẩu <span id="a_pw_req" style="color:#dc2626;">*</span></label>
+                        <input type="text" id="a_password" name="password" class="input-field" placeholder="Tối thiểu 6 ký tự">
+                        <small id="a_pw_hint" style="display:none; color:#94a3b8; font-size:0.72rem;">Để trống nếu không đổi mật khẩu</small>
+                    </div>
+                </div>
+                <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+                    <div class="input-group">
+                        <label for="a_fullName" class="input-label">Họ và tên <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="a_fullName" name="fullName" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="a_phone" class="input-label">Số điện thoại <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="a_phone" name="phone" class="input-field" required>
+                    </div>
+                </div>
+                <div class="filter-grid" style="grid-template-columns:1fr 1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+                    <div class="input-group">
+                        <label for="a_dob" class="input-label">Ngày sinh <span style="color:#dc2626;">*</span></label>
+                        <input type="date" id="a_dob" name="dateOfBirth" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="a_sex" class="input-label">Giới tính <span style="color:#dc2626;">*</span></label>
+                        <select id="a_sex" name="sex" class="input-field" required>
+                            <option value="">--</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="a_status" class="input-label">Trạng thái</label>
+                        <select id="a_status" name="status" class="input-field">
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Khóa / Vô hiệu</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-grid" style="grid-template-columns:1fr 1.4fr; gap:1.25rem;">
+                    <div class="input-group">
+                        <label for="a_govId" class="input-label">Số CCCD/CMND <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="a_govId" name="govId" class="input-field" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="a_address" class="input-label">Địa chỉ</label>
+                        <input type="text" id="a_address" name="address" class="input-field">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn-reset" onclick="closeAccModal()" style="height:44px; padding:0 1.5rem; display:inline-flex; align-items:center;">Hủy bỏ</button>
+                <button type="submit" class="btn-filter" style="height:44px; padding:0 1.5rem;">Lưu tài khoản</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    function editAccount(accId, fullName) {
-        console.log('Edit account:', accId, fullName);
-        alert('Đang mở form chỉnh sửa thông tin cho tài khoản: ' + fullName + '\n(Tính năng liên kết với servlet cập nhật thông tin)');
+    function openAccModal() {
+        document.getElementById('accModalTitle').textContent = 'Tạo tài khoản mới';
+        ['a_id','a_username','a_email','a_password','a_role','a_fullName','a_phone','a_dob','a_sex','a_govId','a_address'].forEach(function(k){document.getElementById(k).value='';});
+        document.getElementById('a_status').value = 'active';
+        document.getElementById('a_username').readOnly = false;
+        document.getElementById('a_pw_req').style.display = 'inline';
+        document.getElementById('a_pw_hint').style.display = 'none';
+        document.getElementById('accModal').classList.add('is-open');
     }
+    function openAccModalEdit(b) {
+        document.getElementById('accModalTitle').textContent = 'Chỉnh sửa tài khoản';
+        document.getElementById('a_id').value = b.dataset.id;
+        document.getElementById('a_username').value = b.dataset.username;
+        document.getElementById('a_username').readOnly = true;
+        document.getElementById('a_email').value = b.dataset.email;
+        document.getElementById('a_password').value = '';
+        document.getElementById('a_role').value = b.dataset.role;
+        document.getElementById('a_fullName').value = b.dataset.fullname;
+        document.getElementById('a_phone').value = b.dataset.phone;
+        document.getElementById('a_dob').value = b.dataset.dob;
+        document.getElementById('a_sex').value = b.dataset.sex;
+        document.getElementById('a_govId').value = b.dataset.govid;
+        document.getElementById('a_address').value = b.dataset.address || '';
+        document.getElementById('a_status').value = b.dataset.status;
+        document.getElementById('a_pw_req').style.display = 'none';
+        document.getElementById('a_pw_hint').style.display = 'block';
+        document.getElementById('accModal').classList.add('is-open');
+    }
+    function closeAccModal() { document.getElementById('accModal').classList.remove('is-open'); }
 
-    function toggleLockAccount(accId, fullName, shouldLock) {
-        const actionText = shouldLock ? 'khóa' : 'mở khóa';
-        const confirmMsg = 'Bạn có chắc chắn muốn ' + actionText + ' tài khoản của "' + fullName + '"?\n' + 
-            (shouldLock ? 'Người dùng này sẽ không thể đăng nhập vào hệ thống cho đến khi được mở lại.' : 'Người dùng sẽ có thể đăng nhập bình thường.');
-        
-        if (confirm(confirmMsg)) {
-            console.log('Toggle lock account:', accId, shouldLock);
-            alert('Đã thực hiện ' + actionText + ' tài khoản "' + fullName + '" thành công!');
-            window.location.reload();
+    function lockAccount(id, name, lock) {
+        var msg = lock ? ('Khóa tài khoản "' + name + '"? Người dùng sẽ không đăng nhập được.')
+                       : ('Mở khóa tài khoản "' + name + '"?');
+        if (confirm(msg)) {
+            document.getElementById('lockId').value = id;
+            document.getElementById('lockVal').value = lock ? 'true' : 'false';
+            document.getElementById('lockForm').submit();
         }
     }
-
-    function deleteAccount(accId, fullName) {
-        if (confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của "' + fullName + '" khỏi hệ thống?\nHành động này không thể phục hồi và sẽ làm mất lịch sử thi/giám sát liên quan.')) {
-            console.log('Deleted account:', accId);
-            alert('Đã xóa tài khoản "' + fullName + '" thành công!');
-            window.location.reload();
+    function deleteAccount(id, name) {
+        if (confirm('Xóa vĩnh viễn tài khoản "' + name + '"?\nNếu tài khoản đã phát sinh dữ liệu, hệ thống sẽ không cho xóa — hãy dùng Khóa.')) {
+            document.getElementById('delAccId').value = id;
+            document.getElementById('delAccForm').submit();
         }
     }
-    
-    // Add account interaction
-    document.getElementById('btn-add-account').addEventListener('click', function() {
-        alert('Đang chuyển hướng đến biểu mẫu tạo tài khoản hệ thống mới...\n(Tính năng liên kết với Servlet tạo tài khoản)');
-    });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAccModal(); });
 </script>
 
 </body>
