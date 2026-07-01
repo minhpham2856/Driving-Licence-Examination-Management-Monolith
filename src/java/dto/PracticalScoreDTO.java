@@ -1,8 +1,5 @@
 package dto;
-
-
 import java.sql.Timestamp;
-
 public class PracticalScoreDTO {
     private int id;
     private int examRegistrationId;
@@ -12,14 +9,12 @@ public class PracticalScoreDTO {
     private int finalScore;
     private int evaluatedBy;
     private Timestamp evaluatedAt;
-
     public PracticalScoreDTO() {}
     public PracticalScoreDTO(int id, int examRegistrationId, int examSectionId, int baseScore, int totalDeductions, int finalScore, int evaluatedBy, Timestamp evaluatedAt) {
         this.id = id; this.examRegistrationId = examRegistrationId; this.examSectionId = examSectionId;
         this.baseScore = baseScore; this.totalDeductions = totalDeductions; this.finalScore = finalScore;
         this.evaluatedBy = evaluatedBy; this.evaluatedAt = evaluatedAt;
     }
-
     public int getId() { return id; }
     public void setId(int v) { this.id = v; }
     public int getExamRegistrationId() { return examRegistrationId; }

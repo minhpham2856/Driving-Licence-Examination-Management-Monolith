@@ -1,32 +1,16 @@
 package controller.staff.exam;
 import dto.*;
 import model.*;
-
-import service.CandidateCallBoardService;
-import service.impl.CandidateCallBoardServiceImpl;
-
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
-
 import dto.CandidateCallBoardStateDTO;
-
-
 import service.ExamRegistrationService;
-
 import service.ExamSessionControlService;
 import service.impl.ExamRegistrationServiceImpl;
-
 import service.impl.ExamSessionControlServiceImpl;
-
 import dto.CandidateEnrollmentDTO;
-
 import dto.SessionDTO;
-
-import service.CandidateCallBoardService;
-
 import service.CandidatePhotoService;
-
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -34,23 +18,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 @WebServlet("/views/public/public-call")
 public class PublicCallServlet extends HttpServlet {
-
+    private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-    private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         int sessionId = 2; // Default
         String sessionIdStr = request.getParameter("sessionId");
-        if (sessionIdStr != null && !sessionIdStr.trim().isEmpty()) {
+        if (sessionIdStr != null && !sessionIdStr.isBlank()) {
             try {
                 sessionId = Integer.parseInt(sessionIdStr.trim());
             } catch (Exception e) {}
@@ -61,7 +43,6 @@ public class PublicCallServlet extends HttpServlet {
                 sessionId = (Integer) httpSession.getAttribute("selectedSessionId");
             }
         }
-
         List<CandidateEnrollmentDTO> qList;
         try {
             qList = regService.getCandidatesBySession(sessionId);
@@ -70,15 +51,12 @@ public class PublicCallServlet extends HttpServlet {
             qList = new ArrayList<>();
         }
         photoService.normalizeQueue(getServletContext().getRealPath("/"), qList);
-
-        CandidateCallBoardStateDTO board = callBoardService.getState(getServletContext(), sessionId);
-        
+        CandidateCallBoardStateDTO board = getCallBoardState(sessionId);
         String callingSbd = board != null ? board.getCallingSbd() : null;
         boolean shiftEnded = board != null && board.isShiftEnded();
         String nextSbd = null;
-
         if (!shiftEnded) {
-            if (callingSbd == null || callingSbd.trim().isEmpty()) {
+            if (callingSbd == null || callingSbd.isBlank()) {
                 for (CandidateEnrollmentDTO c : qList) {
                     if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                         nextSbd = String.valueOf(c.getSbd());
@@ -100,7 +78,6 @@ public class PublicCallServlet extends HttpServlet {
                 }
             }
         }
-
         CandidateEnrollmentDTO callingCandidate = null;
         if (callingSbd != null) {
             for (CandidateEnrollmentDTO c : qList) {
@@ -110,7 +87,6 @@ public class PublicCallServlet extends HttpServlet {
                 }
             }
         }
-        
         CandidateEnrollmentDTO nextCandidate = null;
         if (nextSbd != null) {
             for (CandidateEnrollmentDTO c : qList) {
@@ -120,31 +96,37 @@ public class PublicCallServlet extends HttpServlet {
                 }
             }
         }
-
         SessionDTO currentSession = null;
         try {
             currentSession = sessionService.getSessionById(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         request.setAttribute("currentSession", currentSession);
         request.setAttribute("callingCandidate", callingCandidate);
         request.setAttribute("nextCandidate", nextCandidate);
         request.setAttribute("isCallingActive", callingCandidate != null && !shiftEnded);
         request.setAttribute("shiftEnded", shiftEnded);
         request.setAttribute("sessionId", sessionId);
-
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);
     }
+    @SuppressWarnings("unchecked")
+    private CandidateCallBoardStateDTO getCallBoardState(int examSessionId) {
+        if (examSessionId <= 0) {
+            return null;
+        }
+        jakarta.servlet.ServletContext ctx = getServletContext();
+        Map<Integer, CandidateCallBoardStateDTO> boards =
+                (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+        if (boards == null) {
+            synchronized (ctx) {
+                boards = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+                if (boards == null) {
+                    boards = new HashMap<>();
+                    ctx.setAttribute(CALL_BOARD_CONTEXT_KEY, boards);
+                }
+            }
+        }
+        return boards.computeIfAbsent(examSessionId, id -> new CandidateCallBoardStateDTO());
+    }
 }
-
-
-
-
-
-
-
-
-
-

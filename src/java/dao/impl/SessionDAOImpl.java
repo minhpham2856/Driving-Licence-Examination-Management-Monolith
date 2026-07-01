@@ -1,38 +1,23 @@
 package dao.impl;
-
-import java.util.*;
-
-
-import dbconnection.DBContext;
-
 import dao.SessionDAO;
-
-import dto.SessionDTO;
-
+import dbconnection.DBContext;
+import enums.ExamSessionStatus;
 import model.Session;
-import java.sql.*;
-
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-
 public class SessionDAOImpl extends DBContext implements SessionDAO {
-
-    
+    @Override
     public Session getById(int id) {
         String sql = "SELECT * FROM [Session] WHERE SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Session s = new Session();
-                    s.setId(rs.getInt("SessionId"));
-                    s.setSessionName(rs.getString("SessionName"));
-                    s.setStartTime(rs.getTimestamp("StartTime"));
-                    s.setEndTime(rs.getTimestamp("EndTime"));
-                    s.setStatus(rs.getString("Status"));
-                    s.setExamId(rs.getInt("ExamId"));
-                    return s;
+                    return mapSession(rs);
                 }
             }
         } catch (SQLException e) {
@@ -40,120 +25,22 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
         }
         return null;
     }
-
-    private static final String SESSION_SELECT = """
-            SELECT s.SessionId AS id,
-                   s.SessionName AS sessionName,
-                   e.LicenceId AS licenseTypeId,
-                   ISNULL(sect.examTypeId, 1) AS examTypeId,
-                   CAST(s.StartTime AS DATE) AS examDate,
-                   CAST(s.StartTime AS TIME) AS shiftStartTime,
-                   CAST(s.EndTime AS TIME) AS shiftEndTime,
-                   ISNULL(sea.ExamAreaId, 0) AS areaId,
-                   s.[Status] AS status,
-                   ISNULL(ea.Capacity, 100) AS maxCandidates,
-                   (SELECT COUNT(*) FROM ExamEnrollment ec2 WHERE ec2.SessionId = s.SessionId) AS registeredCount,
-                   s.StartTime AS createdAt,
-                   l.LicenceClass AS licenseCode,
-                   sect.examTypeName,
-                   ea.AreaName AS areaName
-            FROM [Session] s
-            JOIN Exam e ON e.ExamId = s.ExamId
-            JOIN Licence l ON l.LicenceId = e.LicenceId
-            LEFT JOIN (
-                SELECT ses.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId
-                FROM Session_ExamArea sea2
-                JOIN [Session] ses ON ses.SessionId = sea2.SessionId
-                GROUP BY ses.SessionId
-            ) sea ON sea.SessionId = s.SessionId
-            LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId
-            LEFT JOIN (
-                SELECT ses.SessionId,
-                       MIN(es.ExamSectionId) AS examSectionId,
-                       CASE
-                           WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1
-                           WHEN MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2
-                           WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4
-                           ELSE 1
-                       END AS examTypeId,
-                       MIN(es.SectionName) AS examTypeName
-                FROM Session_ExamSection ses
-                JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
-                GROUP BY ses.SessionId
-            ) sect ON sect.SessionId = s.SessionId
-            """;
-
-    
     @Override
-    public SessionDTO getDtoById(int id) {
-        String sql = SESSION_SELECT + " WHERE s.SessionId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToExamSession(rs);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public List<Session> findActive() {
+        return findByWhere(
+                " WHERE s.[Status] IN (?, ?, ?) ORDER BY s.StartTime",
+                ExamSessionStatus.CHUA_DIEN_RA.getDisplayName(),
+                "Mở",
+                ExamSessionStatus.DANG_DIEN_RA.getDisplayName());
     }
-
-    
     @Override
-    public List<SessionDTO> getActiveSessions() {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT
-                + " WHERE s.[Status] IN ('Scheduled', 'Open', 'InProgress')"
-                + " ORDER BY CAST(s.StartTime AS DATE), CAST(s.StartTime AS TIME)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToExamSession(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+    public List<Session> findAllOrdered() {
+        return findByWhere(" ORDER BY s.StartTime DESC");
     }
-
-    
     @Override
-    public List<SessionDTO> getAllSessions() {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT
-                + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToExamSession(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+    public List<Session> findByExamDate(Date examDate) {
+        return findByWhere(" WHERE CAST(s.StartTime AS DATE) = ? ORDER BY s.StartTime", examDate);
     }
-
-    
-    @Override
-    public List<SessionDTO> getSessionsByExamDate(java.sql.Date examDate) {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT + " WHERE CAST(s.StartTime AS DATE) = ? ORDER BY CAST(s.StartTime AS TIME)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setDate(1, examDate);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToExamSession(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    
     @Override
     public boolean updateStatus(int sessionId, String status) {
         String sql = "UPDATE [Session] SET [Status] = ? WHERE SessionId = ?";
@@ -166,7 +53,6 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
         }
         return false;
     }
-
     @Override
     public List<Integer> getExamAreaIds(int sessionId) {
         List<Integer> list = new ArrayList<>();
@@ -183,40 +69,69 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
         }
         return list;
     }
-
     @Override
     public Integer getExamSectionId(int sessionId) {
-        if (sessionId <= 0) return null;
+        if (sessionId <= 0) {
+            return null;
+        }
         String sql = "SELECT TOP 1 ExamSectionId FROM Session_ExamSection WHERE SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, sessionId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("ExamSectionId");
+                if (rs.next()) {
+                    return rs.getInt("ExamSectionId");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
-
-    private SessionDTO mapResultSetToExamSession(ResultSet rs) throws SQLException {
-        SessionDTO es = new SessionDTO();
-        es.setId(rs.getInt("id"));
-        es.setSessionName(rs.getString("sessionName"));
-        es.setLicenseTypeId(rs.getInt("licenseTypeId"));
-        es.setExamTypeId(rs.getInt("examTypeId"));
-        es.setExamDate(rs.getDate("examDate"));
-        es.setShiftStartTime(rs.getTime("shiftStartTime"));
-        es.setShiftEndTime(rs.getTime("shiftEndTime"));
-        es.setAreaId(rs.getInt("areaId"));
-        es.setStatus(rs.getString("status"));
-        es.setMaxCandidates(rs.getInt("maxCandidates"));
-        es.setRegisteredCount(rs.getInt("registeredCount"));
-        Timestamp created = rs.getTimestamp("createdAt");
-        es.setCreatedAt(rs.wasNull() ? null : created);
-        es.setLicenseCode(rs.getString("licenseCode"));
-        es.setExamTypeName(rs.getString("examTypeName"));
-        es.setAreaName(rs.getString("areaName"));
-        return es;
+    @Override
+    public int countEnrollments(int sessionId) {
+        String sql = "SELECT COUNT(*) FROM ExamEnrollment WHERE SessionId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    private List<Session> findByWhere(String suffix, Object... params) {
+        List<Session> list = new ArrayList<>();
+        String sql = "SELECT s.* FROM [Session] s" + suffix;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) {
+                Object param = params[i];
+                if (param instanceof Date) {
+                    ps.setDate(i + 1, (Date) param);
+                } else {
+                    ps.setString(i + 1, String.valueOf(param));
+                }
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapSession(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    private static Session mapSession(ResultSet rs) throws SQLException {
+        Session session = new Session();
+        session.setId(rs.getInt("SessionId"));
+        session.setSessionName(rs.getString("SessionName"));
+        session.setStartTime(rs.getTimestamp("StartTime"));
+        session.setEndTime(rs.getTimestamp("EndTime"));
+        session.setStatus(rs.getString("Status"));
+        session.setExamId(rs.getInt("ExamId"));
+        return session;
     }
 }

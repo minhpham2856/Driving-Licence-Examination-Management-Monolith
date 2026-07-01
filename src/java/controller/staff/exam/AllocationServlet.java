@@ -1,5 +1,4 @@
 package controller.staff.exam;
-
 import dto.AutoAllocateResultDTO;
 import dto.CandidateCallBoardStateDTO;
 import dto.CandidateEnrollmentDTO;
@@ -11,49 +10,42 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.ExamArea;
 import model.User;
 import service.AuditLogService;
-import service.CandidateCallBoardService;
 import service.CandidatePhotoService;
 import service.ExamAreaService;
 import service.ExamRegistrationService;
 import service.ExamSessionControlService;
 import service.ExaminerAllocationService;
 import service.impl.AuditLogServiceImpl;
-import service.impl.CandidateCallBoardServiceImpl;
 import service.impl.CandidatePhotoServiceImpl;
 import service.impl.ExamAreaServiceImpl;
 import service.impl.ExamRegistrationServiceImpl;
 import service.impl.ExamSessionControlServiceImpl;
 import service.impl.ExaminerAllocationServiceImpl;
-
 @WebServlet("/views/staff/exam/allocation")
 public class AllocationServlet extends HttpServlet {
-
+    private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
     private final AuditLogService auditLogService = new AuditLogServiceImpl();
-
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final ExamAreaService areaService = new ExamAreaServiceImpl();
     private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
     private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-    private final CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         HttpSession session = request.getSession();
         request.removeAttribute("errorMsg");
         request.removeAttribute("warningMsg");
         request.removeAttribute("alertMsg");
-
         // 0. Load all sessions for session dropdown
         List<SessionDTO> allSessions = sessionService.getAllSessions();
         request.setAttribute("allSessions", allSessions);
-
         // 1. Retrieve or load selected sessionId
         String sessIdParam = request.getParameter("sessionId");
         int sessionId = 2; // Default session
@@ -66,7 +58,6 @@ public class AllocationServlet extends HttpServlet {
             sessionId = (Integer) session.getAttribute("selectedSessionId");
         }
         session.setAttribute("selectedSessionId", sessionId);
-
         // Retrieve the current session details
         SessionDTO currentSession = null;
         for (SessionDTO s : allSessions) {
@@ -76,7 +67,6 @@ public class AllocationServlet extends HttpServlet {
             }
         }
         request.setAttribute("currentSession", currentSession);
-
         // Load queue for this session if session changed or first time
         List<CandidateEnrollmentDTO> qList = (List<CandidateEnrollmentDTO>) session.getAttribute("candidateQueue");
         Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
@@ -85,11 +75,9 @@ public class AllocationServlet extends HttpServlet {
             session.setAttribute("candidateQueue", qList);
             session.setAttribute("lastLoadedSessionId", sessionId);
         }
-
         // 3. Handle pipeline action triggers
         String action = request.getParameter("action");
         String regIdStr = request.getParameter("id");
-
         if (action != null) {
             try {
                 if ("autoAllocate".equals(action)) {
@@ -108,10 +96,8 @@ public class AllocationServlet extends HttpServlet {
                     } else if (allocResult.errorMsg == null) {
                         request.setAttribute("warningMsg", "");
                     }
-
                 } else if (regIdStr != null) {
                     int regId = Integer.parseInt(regIdStr);
-
                     // Find matching profile in session
                     CandidateEnrollmentDTO profile = null;
                     for (CandidateEnrollmentDTO c : qList) {
@@ -120,7 +106,6 @@ public class AllocationServlet extends HttpServlet {
                             break;
                         }
                     }
-
                     if (profile != null) {
                         if ("checkin".equals(action)) {
                             boolean ok = regService.updatePresent(regId, true);
@@ -129,7 +114,7 @@ public class AllocationServlet extends HttpServlet {
                             }
                         } else if ("callCandidate".equals(action)) {
                             session.setAttribute("callingSbd", String.valueOf(profile.getSbd()));
-                            CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), sessionId);
+                            CandidateCallBoardStateDTO state = getCallBoardState(sessionId);
                             if (state != null) {
                                 state.setCallingSbd(String.valueOf(profile.getSbd()));
                                 state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
@@ -148,7 +133,6 @@ public class AllocationServlet extends HttpServlet {
                                             regId);
                                 }
                             }
-
                         } else if ("submitTheoryScore".equals(action)) {
                             int score = Integer.parseInt(request.getParameter("score"));
                             String passed = score >= 80 ? "passed" : "failed";
@@ -203,7 +187,6 @@ public class AllocationServlet extends HttpServlet {
                             regService.updatePhoto(regId, photoPath);
                             regService.updatePayment(regId, true);
                             regService.updatePresent(regId, true);
-
                             profile.setPhotoUrl(photoPath);
                             profile.setIsPaymentCompleted(true);
                             profile.setIsPresent(true);
@@ -215,14 +198,12 @@ public class AllocationServlet extends HttpServlet {
                 e.printStackTrace();
             }
         }
-
         // 4. Reload all database state after actions to ensure 100% request/response synchronization
         qList = regService.getCandidatesBySession(sessionId);
         photoService.normalizeQueue(request.getServletContext().getRealPath("/"), qList);
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", sessionId);
-
-        CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), sessionId);
+        CandidateCallBoardStateDTO state = getCallBoardState(sessionId);
         if (state != null) {
             String callingSbd = (String) session.getAttribute("callingSbd");
             if (callingSbd != null) {
@@ -230,16 +211,12 @@ public class AllocationServlet extends HttpServlet {
             }
             state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
         }
-
         request.setAttribute("activeTheoryRooms", areaService.getActiveTheoryRooms());
-
         request.getRequestDispatcher("/views/staff/exam/allocation.jsp").forward(request, response);
     }
-
     private void addAuditLog(HttpSession session, String action, String details) {
         addAuditLog(session, action, details, 0);
     }
-
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
         try {
             auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details, recordId);
@@ -247,10 +224,28 @@ public class AllocationServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+    @SuppressWarnings("unchecked")
+    private CandidateCallBoardStateDTO getCallBoardState(int examSessionId) {
+        if (examSessionId <= 0) {
+            return null;
+        }
+        jakarta.servlet.ServletContext ctx = getServletContext();
+        Map<Integer, CandidateCallBoardStateDTO> boards =
+                (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+        if (boards == null) {
+            synchronized (ctx) {
+                boards = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+                if (boards == null) {
+                    boards = new HashMap<>();
+                    ctx.setAttribute(CALL_BOARD_CONTEXT_KEY, boards);
+                }
+            }
+        }
+        return boards.computeIfAbsent(examSessionId, id -> new CandidateCallBoardStateDTO());
     }
 }

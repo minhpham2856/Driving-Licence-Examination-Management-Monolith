@@ -1,40 +1,40 @@
-package controller.examiner;
-
+package util;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 public final class ExaminerCandidateSort {
-
     public static final String DEFAULT_COLUMN = "sbd";
     public static final String DEFAULT_DIRECTION = "asc";
-
     private static final Set<String> ALLOWED_COLUMNS = Set.of(
             "fullName", "sbd", "dob", "address", "status", "governmentId",
             "correct", "wrong", "unanswered", "result", "examDate", "examScore");
-
     private ExaminerCandidateSort() {
     }
-
     public static final class Spec {
         private final String column;
         private final boolean ascending;
-
         public Spec(String column, boolean ascending) {
             this.column = column;
             this.ascending = ascending;
         }
-
         public String getColumn() {
             return column;
         }
-
         public boolean isAscending() {
             return ascending;
         }
     }
-
+    public static void applyCandidateSort(HttpServletRequest request, List<Map<String, Object>> candidates) {
+        if (candidates == null) {
+            return;
+        }
+        Spec spec = parse(request.getParameter("sort"), request.getParameter("dir"));
+        sort(candidates, spec);
+        request.setAttribute("sortBy", spec.getColumn());
+        request.setAttribute("sortDir", spec.isAscending() ? "asc" : "desc");
+    }
     public static Spec parse(String sort, String dir) {
         String column = sort != null ? sort.trim() : DEFAULT_COLUMN;
         if (!ALLOWED_COLUMNS.contains(column)) {
@@ -43,7 +43,6 @@ public final class ExaminerCandidateSort {
         boolean ascending = !"desc".equalsIgnoreCase(dir);
         return new Spec(column, ascending);
     }
-
     public static void sort(List<Map<String, Object>> rows, Spec spec) {
         if (rows == null || rows.size() < 2 || spec == null) {
             return;
@@ -54,7 +53,6 @@ public final class ExaminerCandidateSort {
         }
         rows.sort(comparator);
     }
-
     private static Comparator<Map<String, Object>> comparatorFor(String column) {
         return switch (column) {
             case "fullName", "address", "governmentId" -> stringComparator(column);
@@ -67,19 +65,15 @@ public final class ExaminerCandidateSort {
             default -> stringComparator("sbd");
         };
     }
-
     private static Comparator<Map<String, Object>> stringComparator(String key) {
         return Comparator.comparing(row -> normalizeString(row.get(key)));
     }
-
     private static Comparator<Map<String, Object>> dateComparator(String key) {
         return Comparator.comparing(row -> normalizeString(row.get(key)));
     }
-
     private static Comparator<Map<String, Object>> numericComparator(String key) {
         return Comparator.comparingInt(row -> parseNumeric(row.get(key)));
     }
-
     private static String normalizeString(Object value) {
         if (value == null) {
             return "";
@@ -87,7 +81,6 @@ public final class ExaminerCandidateSort {
         String text = String.valueOf(value).trim();
         return "-".equals(text) ? "" : text.toLowerCase();
     }
-
     private static int parseNumeric(Object value) {
         if (value == null) {
             return -1;
@@ -105,7 +98,6 @@ public final class ExaminerCandidateSort {
             return -1;
         }
     }
-
     private static int statusOrder(Map<String, Object> row) {
         String status = row.get("status") != null ? String.valueOf(row.get("status")) : "";
         return switch (status) {
@@ -116,7 +108,6 @@ public final class ExaminerCandidateSort {
             default -> 4;
         };
     }
-
     private static int resultOrder(Map<String, Object> row) {
         if (Boolean.TRUE.equals(row.get("passed"))) {
             return 2;

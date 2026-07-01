@@ -61,10 +61,10 @@
                         <div>
                             <strong>Trạng thái ca:</strong>
                             <c:choose>
-                                <c:when test="${currentSession.status eq 'InProgress'}">
+                                <c:when test="${currentSession.status eq 'Đang diễn ra'}">
                                     <span class="role-badge role-badge--admin" style="margin-left: 6px;">Đang diễn ra - sát hạch viên có thể đăng nhập</span>
                                 </c:when>
-                                <c:when test="${currentSession.status eq 'Completed'}">
+                                <c:when test="${currentSession.status eq 'Hoàn tất'}">
                                     <span class="role-badge" style="margin-left: 6px;">Đã kết thúc</span>
                                 </c:when>
                                 <c:otherwise>
@@ -72,7 +72,7 @@
                                 </c:otherwise>
                             </c:choose>
                         </div>
-                        <c:if test="${currentSession.status ne 'InProgress' and currentSession.status ne 'Completed'}">
+                        <c:if test="${currentSession.status ne 'Đang diễn ra' and currentSession.status ne 'Hoàn tất'}">
                             <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Bắt đầu ca thi sau khi đã phân đủ sát hạch viên?');">
                                 <input type="hidden" name="action" value="startSession">
                                 <input type="hidden" name="sessionId" value="${currentSession.id}">
@@ -80,7 +80,7 @@
                                 <button type="submit" class="btn-filter" style="height: 36px; padding: 0 1rem; border-radius: 8px; font-weight: 700;">Bắt đầu ca thi</button>
                             </form>
                         </c:if>
-                        <c:if test="${currentSession.status eq 'InProgress'}">
+                        <c:if test="${currentSession.status eq 'Đang diễn ra'}">
                             <form action="session-control" method="POST" style="margin: 0;" onsubmit="return confirm('Kết thúc ca thi?');">
                                 <input type="hidden" name="action" value="endSession">
                                 <input type="hidden" name="sessionId" value="${currentSession.id}">

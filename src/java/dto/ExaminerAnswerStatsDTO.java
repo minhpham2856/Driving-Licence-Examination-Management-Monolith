@@ -1,18 +1,12 @@
 package dto;
-
-
  // DTO carrying the answer statistics for a candidate's theory paper.
 public class ExaminerAnswerStatsDTO {
-
     // Number of questions answered correctly.
     private int correct;
-
     // Number of questions answered incorrectly.
     private int wrong;
-
     // Number of questions left unanswered (blank or null).
     private int unanswered;
-
     // Getter: returns the number of correct answers
     public int getCorrect() { return correct; }
     // Setter: assigns the correct answer count from the DB query result

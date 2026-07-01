@@ -1,8 +1,6 @@
 package dao.impl;
-
 import dao.DeductionRecordDAO;
 import dbconnection.DBContext;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,9 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 public class DeductionRecordDAOImpl extends DBContext implements DeductionRecordDAO {
-
     @Override
     public List<Map<String, Object>> getViolationRowsForSession(int sessionId) {
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -52,7 +48,6 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         }
         return rows;
     }
-
     @Override
     public List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId) {
         List<Map<String, Object>> rows = new ArrayList<>();

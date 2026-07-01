@@ -1,12 +1,8 @@
 package dao.impl;
-
 import java.sql.*;
-
-
 import dbconnection.DBContext;
-
 import dao.ExamAreaDAO;
-
+import enums.ExamSection;
 import model.ExamArea;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,11 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-
 public class ExamAreaDAOImpl implements ExamAreaDAO {
-
-    
     private ExamArea map(ResultSet rs) throws SQLException {
         ExamArea a = new ExamArea();
         a.setExamAreaId(rs.getInt("ExamAreaId"));
@@ -29,18 +21,15 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         a.setLocation(rs.getString("Location"));
         return a;
     }
-
-    
     @Override
     public List<ExamArea> search(String keyword, String areaType) {
         List<ExamArea> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM ExamArea WHERE 1=1");
-        boolean hasKw = keyword != null && !keyword.trim().isEmpty();
-        boolean hasType = areaType != null && !areaType.trim().isEmpty();
+        boolean hasKw = keyword != null && !keyword.isBlank();
+        boolean hasType = areaType != null && !areaType.isBlank();
         if (hasKw)   sql.append(" AND (AreaName LIKE ? OR Location LIKE ? OR AreaType LIKE ?)");
         if (hasType) sql.append(" AND AreaType = ?");
         sql.append(" ORDER BY ExamAreaId DESC");
-
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql.toString())) {
             int i = 1;
@@ -59,8 +48,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return list;
     }
-
-    
     @Override
     public ExamArea getById(int examAreaId) {
         String sql = "SELECT * FROM ExamArea WHERE ExamAreaId = ?";
@@ -75,8 +62,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return null;
     }
-
-    
     @Override
     public int insert(ExamArea a) {
         String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES (?, ?, ?, ?)";
@@ -97,8 +82,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return -1;
     }
-
-    
     @Override
     public boolean update(ExamArea a) {
         String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, [Location] = ? WHERE ExamAreaId = ?";
@@ -115,8 +98,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return false;
     }
-
-    
     @Override
     public boolean delete(int examAreaId) {
         String sql = "DELETE FROM ExamArea WHERE ExamAreaId = ?";
@@ -125,15 +106,12 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
             ps.setInt(1, examAreaId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
-
-    
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM ExamArea";
@@ -146,23 +124,21 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return 0;
     }
-
-    
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
         List<ExamArea> list = new ArrayList<>();
-        String sql = "SELECT * FROM ExamArea WHERE AreaType = N'Lý thuyết' ORDER BY AreaName";
+        String sql = "SELECT * FROM ExamArea WHERE AreaType = ? ORDER BY AreaName";
         try (Connection c = new DBContext().getConnection();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) list.add(map(rs));
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, ExamSection.LY_THUYET.getDisplayName());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(map(rs));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
-
-    
     @Override
     public List<ExamArea> getAreasBySessionId(int sessionId) {
         List<ExamArea> list = new ArrayList<>();
@@ -180,8 +156,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return list;
     }
-
-    
     @Override
     public boolean isAreaInSession(int sessionId, int examAreaId) {
         String sql = "SELECT COUNT(*) FROM Session_ExamArea WHERE SessionId = ? AND ExamAreaId = ?";
@@ -197,10 +171,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         return false;
     }
-
-    
     private void setIntOrNull(PreparedStatement ps, int idx, Integer val) throws SQLException {
         if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }
 }
-

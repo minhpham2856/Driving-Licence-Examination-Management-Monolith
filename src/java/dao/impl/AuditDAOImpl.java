@@ -1,9 +1,7 @@
 package dao.impl;
-
 import dao.AuditDAO;
 import dbconnection.DBContext;
 import model.Audit;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,19 +9,15 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-
 public class AuditDAOImpl extends DBContext implements AuditDAO {
-
     private static final String BASE_SELECT =
             "SELECT AuditId, UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt "
             + "FROM Audit";
-
     @Override
     public List<Audit> getByUserId(int userId) {
         String sql = BASE_SELECT + " WHERE UserId = ? ORDER BY CreatedAt DESC";
         return queryList(sql, ps -> ps.setInt(1, userId));
     }
-
     @Override
     public int insert(Audit audit) {
         if (audit == null) {
@@ -59,20 +53,17 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         }
         return 0;
     }
-
     @Override
     public List<Audit> findAll() {
         return queryList(BASE_SELECT + " ORDER BY CreatedAt DESC", ps -> {
         });
     }
-
     @Override
     public List<Audit> getRecentLogs(int limit) {
         int safeLimit = limit > 0 ? limit : 50;
         String sql = BASE_SELECT + " ORDER BY CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> ps.setInt(1, safeLimit));
     }
-
     @Override
     public List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery) {
         int safePage = Math.max(page, 1);
@@ -81,14 +72,14 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         StringBuilder sql = new StringBuilder(BASE_SELECT)
                 .append(" WHERE EntityId LIKE ?");
         String pattern = "%" + sessionId + "-%";
-        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+        if (searchQuery != null && !searchQuery.isBlank()) {
             sql.append(" AND (Reason LIKE ? OR NewValue LIKE ? OR Details LIKE ?)");
         }
         sql.append(" ORDER BY CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         return queryList(sql.toString(), ps -> {
             int idx = 1;
             ps.setString(idx++, pattern);
-            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            if (searchQuery != null && !searchQuery.isBlank()) {
                 String q = "%" + searchQuery.trim() + "%";
                 ps.setString(idx++, q);
                 ps.setString(idx++, q);
@@ -98,18 +89,17 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
             ps.setInt(idx, safeSize);
         });
     }
-
     @Override
     public int getLogsCountForSession(int sessionId, String searchQuery) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Audit WHERE EntityId LIKE ?");
         String pattern = "%" + sessionId + "-%";
-        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+        if (searchQuery != null && !searchQuery.isBlank()) {
             sql.append(" AND (Reason LIKE ? OR NewValue LIKE ? OR Details LIKE ?)");
         }
         try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
             int idx = 1;
             ps.setString(idx++, pattern);
-            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            if (searchQuery != null && !searchQuery.isBlank()) {
                 String q = "%" + searchQuery.trim() + "%";
                 ps.setString(idx++, q);
                 ps.setString(idx++, q);
@@ -125,7 +115,6 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         }
         return 0;
     }
-
     @Override
     public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
         int safeLimit = limit > 0 ? limit : 20;
@@ -136,7 +125,6 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
             ps.setInt(2, safeLimit);
         });
     }
-
     private List<Audit> queryList(String sql, StatementBinder binder) {
         List<Audit> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -151,7 +139,6 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         }
         return list;
     }
-
     private static Audit map(ResultSet rs) throws SQLException {
         Audit audit = new Audit();
         audit.setAuditId(rs.getLong("AuditId"));
@@ -169,7 +156,6 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         audit.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return audit;
     }
-
     @FunctionalInterface
     private interface StatementBinder {
         void bind(PreparedStatement ps) throws SQLException;

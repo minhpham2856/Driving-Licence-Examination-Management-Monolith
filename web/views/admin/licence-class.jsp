@@ -156,8 +156,8 @@
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
-                                                <c:when test="${not empty grade.upgradeFromClass}">
-                                                    <span class="role-badge role-badge--coi" style="font-weight: 700;">${grade.upgradeFromClass}</span>
+                                                <c:when test="${not empty grade.upgradeFromLicenceId and not empty licenceClassById[grade.upgradeFromLicenceId]}">
+                                                    <span class="role-badge role-badge--coi" style="font-weight: 700;">${licenceClassById[grade.upgradeFromLicenceId]}</span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span style="color: #94a3b8; font-size: 0.85rem;">—</span>

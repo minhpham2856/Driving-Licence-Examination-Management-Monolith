@@ -1,11 +1,8 @@
 package dao.impl;
-
 import java.sql.*;
-
 import dao.ExamDAO;
 import dbconnection.DBContext;
 import model.Exam;
-
 public class ExamDAOImpl extends DBContext implements ExamDAO {
     @Override
     public int countAll() {
@@ -18,7 +15,6 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         }
         return 0;
     }
-
     @Override
     public Exam getById(int examId) {
         String sql = "SELECT * FROM Exam WHERE ExamId = ?";

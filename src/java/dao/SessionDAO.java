@@ -1,36 +1,14 @@
 package dao;
-
-
-import dto.SessionDTO;
-
 import model.Session;
 import java.sql.Date;
 import java.util.List;
-
-
 public interface SessionDAO {
-
-    
-    SessionDTO getDtoById(int id);
-
-    
     Session getById(int id);
-
-    
-    List<SessionDTO> getActiveSessions();
-
-    
-    List<SessionDTO> getAllSessions();
-
-    
-    List<SessionDTO> getSessionsByExamDate(Date examDate);
-
-    
+    List<Session> findActive();
+    List<Session> findAllOrdered();
+    List<Session> findByExamDate(Date examDate);
     boolean updateStatus(int sessionId, String status);
-
-    
     List<Integer> getExamAreaIds(int sessionId);
-
-    
     Integer getExamSectionId(int sessionId);
+    int countEnrollments(int sessionId);
 }

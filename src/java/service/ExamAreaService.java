@@ -1,8 +1,6 @@
 package service;
-
 import model.ExamArea;
 import java.util.List;
-
 public interface ExamAreaService {
     ExamArea getById(int id);
     List<ExamArea> search(String keyword, String type);
@@ -10,7 +8,6 @@ public interface ExamAreaService {
     List<ExamArea> getActiveTheoryRooms();
     SaveResult save(ExamArea area, int adminUserId);
     DeleteResult delete(int id, int adminUserId);
-
     public static class SaveResult {
         public final boolean success;
         public final String message;
@@ -21,7 +18,6 @@ public interface ExamAreaService {
             this.id = id;
         }
     }
-
     public static class DeleteResult {
         public final boolean success;
         public final String message;

@@ -84,7 +84,7 @@
                                     <span class="device-grid-card__status">${device.statusLabel}</span>
                                     <div class="device-grid-card__actions">
                                         <c:choose>
-                                            <c:when test="${device.status eq 'Maintenance'}">
+                                            <c:when test="${device.status eq 'Bảo trì'}">
                                                 <c:url var="operationalUrl" value="${gridPath}">
                                                     <c:param name="action" value="operational" />
                                                     <c:param name="deviceId" value="${device.id}" />

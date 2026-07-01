@@ -1,7 +1,6 @@
 package util;
 
-import enums.SectionType;
-
+import enums.ExamSection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -20,13 +19,11 @@ public final class ExamQueue {
     public static final Queue<Integer> queueRoad = new ConcurrentLinkedQueue<>();
 
     public enum Lane {
-        THEORY, LAYOUT, ROAD
+        LY_THUYET, THUC_HANH_TRONG_HINH, THUC_HANH_TREN_DUONG
     }
-
     private static final Object LOCK_THEORY = new Object();
     private static final Object LOCK_LAYOUT = new Object();
     private static final Object LOCK_ROAD = new Object();
-
     private static final Map<Lane, AtomicReference<Integer>> ACTIVE = new EnumMap<>(Lane.class);
     private static final Map<Lane, AtomicReference<Integer>> CALLED = new EnumMap<>(Lane.class);
 
@@ -41,26 +38,24 @@ public final class ExamQueue {
     }
 
     public static Queue<Integer> queueFor(Lane lane) {
-        if (lane == Lane.LAYOUT) {
+        if (lane == Lane.THUC_HANH_TRONG_HINH) {
             return queueLayout;
         }
-        if (lane == Lane.ROAD) {
+        if (lane == Lane.THUC_HANH_TREN_DUONG) {
             return queueRoad;
         }
         return queueTheory;
     }
 
-    public static Lane resolveLane(SectionType sectionType, String sectionName) {
-        if (sectionType == SectionType.THEORY) {
-            return Lane.THEORY;
+    public static Lane resolveLane(boolean isTheory, String sectionName) {
+        if (isTheory) {
+            return Lane.LY_THUYET;
         }
-        if (sectionName != null) {
-            String normalized = sectionName.trim().toLowerCase();
-            if (normalized.contains("đường") || normalized.contains("duong") || normalized.contains("road")) {
-                return Lane.ROAD;
-            }
+        ExamSection section = ExamSection.fromSectionName(sectionName);
+        if (section == ExamSection.THUC_HANH_TREN_DUONG) {
+            return Lane.THUC_HANH_TREN_DUONG;
         }
-        return Lane.LAYOUT;
+        return Lane.THUC_HANH_TRONG_HINH;
     }
 
     public static List<Integer> asList(Lane lane) {
@@ -200,10 +195,10 @@ public final class ExamQueue {
     }
 
     private static Object lockFor(Lane lane) {
-        if (lane == Lane.LAYOUT) {
+        if (lane == Lane.THUC_HANH_TRONG_HINH) {
             return LOCK_LAYOUT;
         }
-        if (lane == Lane.ROAD) {
+        if (lane == Lane.THUC_HANH_TREN_DUONG) {
             return LOCK_ROAD;
         }
         return LOCK_THEORY;

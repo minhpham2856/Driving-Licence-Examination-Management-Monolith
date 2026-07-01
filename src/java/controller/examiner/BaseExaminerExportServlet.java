@@ -1,11 +1,8 @@
 package controller.examiner;
 
-import enums.SectionType;
-
 import dto.ExaminerSlotDTO;
-
 import dto.ExaminerExportContext;
-import service.ExaminerSessionContextService;
+import filter.ExaminerPortalFilter;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,31 +19,22 @@ abstract class BaseExaminerExportServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession(false);
-
         if (session == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
 
-        Integer activeSessionId = (Integer) session.getAttribute(ExaminerSessionContextService.ATTR_ACTIVE_SESSION_ID);
-
+        Integer activeSessionId = (Integer) session.getAttribute(ExaminerPortalFilter.ATTR_ACTIVE_SESSION_ID);
         if (activeSessionId == null || activeSessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
 
-        ExaminerSlotDTO slot = (ExaminerSlotDTO) session.getAttribute(ExaminerSessionContextService.ATTR_SLOT);
+        ExaminerSlotDTO slot = (ExaminerSlotDTO) session.getAttribute(ExaminerPortalFilter.ATTR_SLOT);
+        boolean isTheory = ExaminerPortalFilter.isTheorySession(session);
+        String sectionName = (String) session.getAttribute(ExaminerPortalFilter.ATTR_EXAM_SECTION_NAME);
 
-        SectionType sectionType = SectionType.THEORY;
-        Object sectionTypeObj = session.getAttribute(ExaminerSessionContextService.ATTR_SECTION_TYPE);
-
-        if (sectionTypeObj instanceof SectionType) {
-            sectionType = (SectionType) sectionTypeObj;
-        }
-
-        String sectionName = (String) session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
-
-        return new ExaminerExportContext(activeSessionId, slot, sectionType, sectionName);
+        return new ExaminerExportContext(activeSessionId, slot, isTheory, sectionName);
     }
 
     protected void prepareExcelDownload(HttpServletResponse response, String filename) {

@@ -1,7 +1,6 @@
 package service;
 
 import dto.CandidateEnrollmentDTO;
-import enums.SectionType;
 import model.User;
 
 public interface ExaminerActionsService {
@@ -16,16 +15,16 @@ public interface ExaminerActionsService {
 
     boolean undoAbsent(int sessionId, int sbd, Integer actionUserId);
 
-    boolean callCandidate(int sessionId, int sbd, User user, Integer actionUserId, SectionType sectionType,
+    boolean callCandidate(int sessionId, int sbd, User user, Integer actionUserId, boolean isTheory,
             String sectionName, String callDestination);
 
-    Integer callNextCandidate(int sessionId, User user, Integer actionUserId, SectionType sectionType,
+    Integer callNextCandidate(int sessionId, User user, Integer actionUserId, boolean isTheory,
             String sectionName, String callDestination);
 
-    int callSelectedCandidates(int sessionId, int[] sbds, User user, Integer actionUserId, SectionType sectionType,
+    int callSelectedCandidates(int sessionId, int[] sbds, User user, Integer actionUserId, boolean isTheory,
             String sectionName, String callDestination);
 
-    boolean callScoreEntryCandidate(int sessionId, int sbd, User user, Integer actionUserId, SectionType sectionType,
+    boolean callScoreEntryCandidate(int sessionId, int sbd, User user, Integer actionUserId, boolean isTheory,
             String sectionName, String callDestination);
 
     boolean adjustScoreDeduction(int sessionId, int sbd, int deductionId, int delta, Integer actionUserId);
@@ -45,7 +44,7 @@ public interface ExaminerActionsService {
             String reasonDetail, User user, String password, Integer actionUserId);
 
     boolean recordViolation(int sessionId, int sbd, String reasonCode, String reasonDetail,
-            String evidencePath, int[] deductionIds, Integer actionUserId, SectionType sectionType, String sectionName);
+            String evidencePath, int[] deductionIds, Integer actionUserId, boolean isTheory, String sectionName);
 
     boolean undoSuspension(int sessionId, int sbd, String reasonCode, String reasonDetail,
             Integer actionUserId);

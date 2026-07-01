@@ -1,11 +1,11 @@
 package dto;
 
-
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
 public class SessionDTO {
+
     private int id;
     private String sessionName;
     private int licenseTypeId;

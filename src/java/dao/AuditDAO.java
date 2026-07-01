@@ -1,8 +1,6 @@
 package dao;
-
 import model.Audit;
 import java.util.List;
-
 public interface AuditDAO {
     List<Audit> getByUserId(int userId);
     int insert(Audit audit);

@@ -1,18 +1,13 @@
 package dao.impl;
-
 import java.util.*;
-
 import dao.TheoryPaperDAO;
 import dbconnection.DBContext;
 import model.TheoryPaper;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-
 public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
-
     @Override
     public TheoryPaper getByExamEnrollmentId(int examEnrollmentId) {
         String sql = "SELECT * FROM TheoryPaper WHERE ExamEnrollmentId = ?";
@@ -34,20 +29,17 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         }
         return null;
     }
-
     @Override
     public List<TheoryPaper> getAllByExamEnrollmentIds(List<Integer> examEnrollmentIds) {
         List<TheoryPaper> list = new ArrayList<>();
         if (examEnrollmentIds == null || examEnrollmentIds.isEmpty()) {
             return list;
         }
-
         StringBuilder sb = new StringBuilder("SELECT * FROM TheoryPaper WHERE ExamEnrollmentId IN (");
         for (int i = 0; i < examEnrollmentIds.size(); i++) {
             sb.append(i == 0 ? "?" : ", ?");
         }
         sb.append(")");
-
         try (PreparedStatement ps = getConnection().prepareStatement(sb.toString())) {
             for (int i = 0; i < examEnrollmentIds.size(); i++) {
                 ps.setInt(i + 1, examEnrollmentIds.get(i));

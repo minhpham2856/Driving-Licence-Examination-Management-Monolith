@@ -1,13 +1,10 @@
 package dto;
-
-
 public class TheoryPaperAnswerDTO {
     private int questionNo;
     private String imageUrl;
     private String correctAnswer;
     private String studentAnswer;
     private boolean correct;
-
     public int getQuestionNo() { return questionNo; }
     public void setQuestionNo(int v) { this.questionNo = v; }
     public String getImageUrl() { return imageUrl; }

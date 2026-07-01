@@ -1,9 +1,6 @@
 package dto;
-
-
  // Data object representing an examiner's assigned slot within an exam session.
 public class ExaminerSlotDTO {
-
     // PK of the ExaminerSchedule record in the database
     private int sessionExaminerId;
     // FK to the Session table — identifies which exam session this slot belongs to
@@ -28,14 +25,11 @@ public class ExaminerSlotDTO {
     private String examTypeName;
     // Display name of the exam session (e.g. "Ca 1 - Sang")
     private String sessionName;
-
          // Returns a unique key for this slot in the format {@code examSessionId:areaId:examinerUserId}.
     public String getSlotKey() {
         return examSessionId + ":" + areaId + ":" + examinerUserId;
     }
-
     // --- Getter/setter pairs for all fields ---
-
     // Returns the ExaminerSchedule primary key
     public int getSessionExaminerId() { return sessionExaminerId; }
     // Sets the ExaminerSchedule primary key (populated from DB result set)

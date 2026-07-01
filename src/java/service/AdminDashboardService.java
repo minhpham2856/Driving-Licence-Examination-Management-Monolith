@@ -1,17 +1,10 @@
 package service;
-
-import model.RecentActivityModel;
+import dto.RecentActivityDTO;
 import java.util.List;
-
 public interface AdminDashboardService {
-
     int getTotalExamCenters();
-
     int getTotalUsers();
-
     int getTotalExamSessions();
-
     int getTotalComputers();
-
-    List<RecentActivityModel> getRecentActivities(int limit);
+    List<RecentActivityDTO> getRecentActivities(int limit);
 }

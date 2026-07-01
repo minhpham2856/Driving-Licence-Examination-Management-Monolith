@@ -133,10 +133,8 @@
                         <label for="filterStatus" class="input-label">Tình trạng máy</label>
                         <select id="filterStatus" name="filterStatus" class="input-field">
                             <option value="">Tất cả tình trạng</option>
-                            <option value="Operational" ${param.filterStatus eq 'Operational' ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="Available" ${param.filterStatus eq 'Available' ? 'selected' : ''}>Sẵn sàng</option>
-                            <option value="Maintenance" ${param.filterStatus eq 'Maintenance' ? 'selected' : ''}>Đang bảo trì</option>
-                            <option value="Broken" ${param.filterStatus eq 'Broken' ? 'selected' : ''}>Hỏng / Khóa</option>
+                            <option value="Hoạt động" ${param.filterStatus eq 'Hoạt động' ? 'selected' : ''}>Đang hoạt động</option>
+                            <option value="Bảo trì" ${param.filterStatus eq 'Bảo trì' ? 'selected' : ''}>Đang bảo trì</option>
                         </select>
                     </div>
                     <div class="input-group filter-grid__btn-col">
@@ -209,8 +207,8 @@
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
-                                                <c:when test="${dev.status eq 'Operational' or dev.status eq 'Available'}"><span class="action-badge action-badge--success">Hoạt động</span></c:when>
-                                                <c:when test="${dev.status eq 'Maintenance'}"><span class="action-badge action-badge--warning">Bảo trì</span></c:when>
+                                                <c:when test="${dev.status eq 'Hoạt động'}"><span class="action-badge action-badge--success">Hoạt động</span></c:when>
+                                                <c:when test="${dev.status eq 'Bảo trì'}"><span class="action-badge action-badge--warning">Bảo trì</span></c:when>
                                                 <c:otherwise><span class="action-badge action-badge--danger">Khóa / Hỏng</span></c:otherwise>
                                             </c:choose>
                                         </td>
@@ -326,10 +324,8 @@
                         <label for="m_status" class="input-label">Tình trạng máy <span style="color:#dc2626;">*</span></label>
                         <select id="m_status" name="status" class="input-field" required>
                             <option value="">-- Chọn tình trạng --</option>
-                            <option value="Operational">Đang hoạt động</option>
-                            <option value="Available">Sẵn sàng</option>
-                            <option value="Maintenance">Đang bảo trì</option>
-                            <option value="Broken">Hỏng / Khóa</option>
+                            <option value="Hoạt động">Đang hoạt động</option>
+                            <option value="Bảo trì">Đang bảo trì</option>
                         </select>
                     </div>
                 </div>
@@ -394,8 +390,8 @@
         document.getElementById('dd_type').textContent = b.dataset.type && b.dataset.type !== '' ? b.dataset.type : '—';
         document.getElementById('dd_room').textContent = b.dataset.areaname && b.dataset.areaname !== '' ? b.dataset.areaname : '—';
         var st = b.dataset.status;
-        var stLabel = (st === 'Operational' || st === 'Available') ? 'Đang hoạt động'
-                    : (st === 'Maintenance' ? 'Đang bảo trì' : 'Hỏng / Khóa');
+        var stLabel = (st === 'Hoạt động') ? 'Đang hoạt động'
+                    : (st === 'Bảo trì' ? 'Đang bảo trì' : 'Hỏng / Khóa');
         document.getElementById('dd_status').textContent = stLabel;
         document.getElementById('devDetail').classList.add('is-open');
     }
