@@ -1,12 +1,12 @@
-function filterSessionAreas() {
-    const sessionSelect = document.getElementById('targetSessionId');
+function filterExamAreas() {
+    const examSelect = document.getElementById('targetExamId');
     const areaSelect = document.getElementById('areaId');
-    if (!sessionSelect || !areaSelect) return;
+    if (!examSelect || !areaSelect) return;
 
-    const sessionId = sessionSelect.value;
+    const examId = examSelect.value;
     for (let i = 0; i < areaSelect.options.length; i++) {
         const opt = areaSelect.options[i];
-        const match = opt.getAttribute('data-session') === sessionId;
+        const match = opt.getAttribute('data-exam') === examId;
         opt.hidden = !match;
         opt.disabled = !match;
     }
@@ -20,14 +20,14 @@ function filterSessionAreas() {
 var CONFIRM_REMOVE_EXAMINER = 'G\u1ee1 ph\u00e2n c\u00f4ng gi\u00e1m kh\u1ea3o n\u00e0y?';
 
 document.addEventListener('DOMContentLoaded', function () {
-    filterSessionAreas();
-    const sessionSelect = document.getElementById('sessionId');
-    if (sessionSelect) {
-        sessionSelect.addEventListener('change', function () { this.form.submit(); });
+    filterExamAreas();
+    const examSelect = document.getElementById('examId');
+    if (examSelect) {
+        examSelect.addEventListener('change', function () { this.form.submit(); });
     }
-    const targetSessionSelect = document.getElementById('targetSessionId');
-    if (targetSessionSelect) {
-        targetSessionSelect.addEventListener('change', filterSessionAreas);
+    const targetExamSelect = document.getElementById('targetExamId');
+    if (targetExamSelect) {
+        targetExamSelect.addEventListener('change', filterExamAreas);
     }
 
     document.querySelectorAll('[data-confirm-remove]').forEach(function (link) {

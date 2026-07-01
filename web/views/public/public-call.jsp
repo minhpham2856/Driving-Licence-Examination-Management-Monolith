@@ -6,15 +6,15 @@
 
 
 
-<c:set var="hasSession" value="${not empty requestScope.sessionId and requestScope.sessionId gt 0}" />
+<c:set var="hasExam" value="${not empty requestScope.examId and requestScope.examId gt 0}" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <c:choose>
 
-    <c:when test="${hasSession}">
+    <c:when test="${hasExam}">
 
-        <c:set var="backUrl" value="${ctx}/views/staff/examstaff/candidatecall?sessionId=${sessionId}" />
+        <c:set var="backUrl" value="${ctx}/views/staff/examstaff/candidatecall?examId=${examId}" />
 
     </c:when>
 
@@ -52,21 +52,21 @@
 
 </head>
 
-<body class="public-call-mode${not hasSession ? ' public-call-mode--no-session' : ''}"
+<body class="public-call-mode${not hasExam ? ' public-call-mode--no-session' : ''}"
 
       data-call-ctx="${ctx}"
 
-      data-call-session-id="${hasSession ? sessionId : 0}"
+      data-call-exam-id="${hasExam ? examId : 0}"
 
-      data-msg-no-session-label="Chưa chọn ca thi"
+      data-msg-no-exam-label="Chưa chọn kỳ thi"
 
-      data-msg-no-session-queue="Chưa có ca thi — không hiển thị danh sách chờ"
+      data-msg-no-exam-queue="Chưa có kỳ thi — không hiển thị danh sách chờ"
 
-      data-msg-no-session-sync="Chưa kết nối ca thi"
+      data-msg-no-exam-sync="Chưa kết nối kỳ thi"
 
       data-msg-queue-empty="Không còn thí sinh chờ gọi"
 
-      data-msg-shift-ended="Ca thi đã kết thúc"
+      data-msg-shift-ended="Kỳ thi đã kết thúc"
 
       data-msg-class-prefix="Hạng "
 
@@ -82,7 +82,7 @@
 
       data-msg-queue-prepare-badge="Chuẩn bị"
 
-      data-msg-session-prefix="Phòng chờ chính — Ca thi "
+      data-msg-exam-prefix="Phòng chờ chính — Kỳ thi "
 
       data-msg-sync-connecting="Đang kết nối..."
 
@@ -128,19 +128,19 @@
 
         </a>
 
-        <span class="tv-session-badge" id="sessionBadge">
+        <span class="tv-session-badge" id="examBadge">
 
             <c:choose>
 
-                <c:when test="${hasSession and not empty currentSession}">
+                <c:when test="${hasExam and not empty currentExam}">
 
-                    Phòng chờ chính — Ca thi <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
+                    Phòng chờ chính — Kỳ thi <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy" />
 
                 </c:when>
 
-                <c:when test="${hasSession}">Phòng chờ chính</c:when>
+                <c:when test="${hasExam}">Phòng chờ chính</c:when>
 
-                <c:otherwise>Chưa chọn ca thi</c:otherwise>
+                <c:otherwise>Chưa chọn kỳ thi</c:otherwise>
 
             </c:choose>
 
@@ -162,9 +162,9 @@
 
                 <c:choose>
 
-                    <c:when test="${not hasSession}">
+                    <c:when test="${not hasExam}">
 
-                        <li class="tv-queue-empty">Chưa có ca thi — không hiển thị danh sách chờ</li>
+                        <li class="tv-queue-empty">Chưa có kỳ thi — không hiển thị danh sách chờ</li>
 
                     </c:when>
 

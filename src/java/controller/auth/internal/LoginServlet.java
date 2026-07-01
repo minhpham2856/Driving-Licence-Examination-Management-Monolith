@@ -74,7 +74,7 @@ public class LoginServlet extends HttpServlet {
                     case EXAM_STAFF ->
                         response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard");
                     case EXAMINER ->
-                        response.sendRedirect(request.getContextPath() + "/views/examiner/session");
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/exam");
                     case ADMIN ->
                         response.sendRedirect(request.getContextPath() + "/admin/dashboard");
                     default -> {
