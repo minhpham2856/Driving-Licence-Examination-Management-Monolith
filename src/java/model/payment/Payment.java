@@ -71,6 +71,11 @@ public class Payment {
         return paidAt;
     }
 
+    /** Alias cho JSP (candidate-dossier.jsp dùng paymentDate). */
+    public Timestamp getPaymentDate() {
+        return paidAt;
+    }
+
     public void setPaidAt(Timestamp paidAt) {
         this.paidAt = paidAt;
     }
