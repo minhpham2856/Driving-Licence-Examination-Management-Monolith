@@ -1,4 +1,4 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
 import java.util.Locale;
 
@@ -7,9 +7,11 @@ public final class DossierFormHelper {
     private DossierFormHelper() {
     }
 
+    // Xac dinh title
     public static String resolveTitle(String licenseCode) {
         return "PHIẾU XÁC NHẬN THÔNG TIN VÀ LỆ PHÍ THỦ TỤC";
     }
+    // Xac dinh subtitle
 
     public static String resolveSubtitle(String licenseCode) {
         if (isMotorcycleGroup(licenseCode)) {
@@ -17,6 +19,7 @@ public final class DossierFormHelper {
         }
         return "(Thí sinh hạng " + (licenseCode != null ? licenseCode.trim() : "")
                 + " — sau khi hoàn tất thủ tục tại bàn quầy)";
+    // Kiem tra motorcycle group
     }
 
     private static boolean isMotorcycleGroup(String licenseCode) {

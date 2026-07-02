@@ -1,7 +1,5 @@
 package controller.staff.exam;
 
-
-
 import service.ExamRegistrationService;
 
 import service.impl.ExamRegistrationServiceImpl;
@@ -20,15 +18,9 @@ import dto.exam.ExamRegistrationDTO;
 
 import dto.candidate.CandidateCallDTO;
 
-
+import controller.staff.exam.CandidateCallBoard;
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
-
-import service.CandidateCallBoardService;
-import service.impl.CandidateCallBoardServiceImpl;
-
-import dto.candidate.CandidateCallBoardStateDTO;
-
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,10 +29,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.DriverManager;
 
 @WebServlet("/views/staff/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
@@ -49,10 +39,11 @@ public class CandidateCallServlet extends HttpServlet {
     private final CandidateCallDAO callDAO = new CandidateCallDAOImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
 
+    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession();
 
         if ("desk".equals(request.getParameter("view"))) {
@@ -67,105 +58,57 @@ public class CandidateCallServlet extends HttpServlet {
             }
             return;
         }
-        
-        // 1. Luôn tải hàng đợi từ DB (đồng bộ với bàn thủ tục)
-        int examSessionId = 2;
-        Integer selectedSessionId = (Integer) session.getAttribute("selectedSessionId");
-        if (selectedSessionId != null) {
-            examSessionId = selectedSessionId;
-        }
 
-        String shiftEndedVal = (String) session.getAttribute("shiftEnded");
-        boolean isShiftEnded = "true".equals(shiftEndedVal);
-        SessionDTO SessionDTO = sessionDAO.getById(examSessionId);
-        if (SessionDTO != null && enums.ExamSessionStatus.isSessionEnded(SessionDTO.getStatus())) {
-            isShiftEnded = true;
-            session.setAttribute("shiftEnded", "true");
-        }
-        
-        List<ExamRegistrationDTO> candidateQueue = null;
         String webRoot = request.getServletContext().getRealPath("/");
-        if (!isShiftEnded) {
-            candidateQueue = regDAO.getCandidatesBySession(examSessionId);
-            CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-            photoService.normalizeQueue(webRoot, candidateQueue);
-            session.setAttribute("candidateQueue", candidateQueue);
-            session.setAttribute("lastLoadedSessionId", examSessionId);
-        }
-        
-        // 2. Handle operations
+        ExamStaffViewHelper.applyNoCacheHeaders(response);
+        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+                request, session, sessionDAO, webRoot);
+        int examId = pageCtx.getExamId();
+        int boardSessionId = pageCtx.getSessionId();
+        List<SessionDTO> allSessions = pageCtx.getAllSessions();
+
+        boolean isShiftEnded = ExamStaffViewHelper.isCallShiftEnded(session);
+
+        List<ExamRegistrationDTO> fullQueue = loadFullQueue(session, webRoot, examId, isShiftEnded, request);
+        List<ExamRegistrationDTO> activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
+
         String qAction = request.getParameter("action");
         String qSbd = request.getParameter("sbd");
-        
+        String returnView = request.getParameter("returnView");
+
         List<ExamRegistrationDTO> permanentAbsents = (List<ExamRegistrationDTO>) session.getAttribute("permanentAbsents");
         if (permanentAbsents == null) {
-            permanentAbsents = new java.util.ArrayList<>();
+            permanentAbsents = new ArrayList<>();
             session.setAttribute("permanentAbsents", permanentAbsents);
         }
-        
+
         if ("startCall".equals(qAction)) {
-            if (candidateQueue != null) {
-                for (ExamRegistrationDTO c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
-                    if (!isDone) {
-                        session.setAttribute("callingSbd", c.getSbd());
-                        
-                        // Insert call record in database
-                        CandidateCallDTO call = new CandidateCallDTO();
-                        call.setExamSessionId(c.getExamSessionId());
-                        call.setCandidateNo(c.getCandidateNo());
-                        call.setCalledTo("Bàn làm thủ tục số 2");
-                        call.setCalledBy(3); // Default staff
-                        call.setResult("Calling");
-                        callDAO.insert(call);
-                        break;
-                    }
-                }
+            if (activeQueue != null) {
+                // promote caller
+                String startSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, null);
+                promoteCaller(session, activeQueue, startSbd);
             }
         } else if ("moveToBottom".equals(qAction) || "absent".equals(qAction) || "autoAbsent".equals(qAction)) {
-            // UC-03 Normal Flow 3.0: Move candidate to bottom of the wait queue
-            if (candidateQueue != null && qSbd != null) {
-                int foundIdx = -1;
-                for (int i = 0; i < candidateQueue.size(); i++) {
-                    if (qSbd.equals(candidateQueue.get(i).getSbd())) {
-                        foundIdx = i;
-                        break;
-                    }
-                }
-                if (foundIdx != -1) {
-                    ExamRegistrationDTO removed = candidateQueue.remove(foundIdx);
-                    candidateQueue.add(removed); // Move to the end of the queue
-                    
-                    // Insert Call Record as Absent in DB
+            if (fullQueue != null && qSbd != null) {
+                ExamRegistrationDTO moved = ExamStaffViewHelper.findBySbd(fullQueue, qSbd);
+                if (moved != null
+                        && ExamStaffViewHelper.moveCallableCandidateToBottom(fullQueue, qSbd)) {
+                    ExamStaffViewHelper.syncCallQueueOrderFromQueue(session, boardSessionId, fullQueue);
+                    activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
+
                     CandidateCallDTO call = new CandidateCallDTO();
-                    call.setExamSessionId(removed.getExamSessionId());
-                    call.setCandidateNo(removed.getCandidateNo());
+                    call.setExamSessionId(moved.getExamSessionId());
+                    call.setCandidateNo(moved.getCandidateNo());
                     call.setCalledTo("Bàn làm thủ tục số 2");
                     call.setCalledBy(3);
                     call.setResult("Absent");
                     callDAO.insert(call);
                 }
-                
-                // Find next candidate who is not done
-                String nextSbd = null;
-                for (ExamRegistrationDTO c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
-                    if (!isDone && !c.getSbd().equals(qSbd)) {
-                        nextSbd = c.getSbd();
-                        
-                        // Register a calling log for next person
-                        CandidateCallDTO call = new CandidateCallDTO();
-                        call.setExamSessionId(c.getExamSessionId());
-                        call.setCandidateNo(c.getCandidateNo());
-                        call.setCalledTo("Bàn làm thủ tục số 2");
-                        call.setCalledBy(3);
-                        call.setResult("Calling");
-                        callDAO.insert(call);
-                        break;
-                    }
-                }
-                session.setAttribute("callingSbd", nextSbd);
-                
+                // promote caller
+
+                String nextSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, null);
+                promoteCaller(session, activeQueue, nextSbd);
+
                 if ("autoAbsent".equals(qAction)) {
                     request.setAttribute("autoAbsentAlert", qSbd);
                 } else {
@@ -173,76 +116,60 @@ public class CandidateCallServlet extends HttpServlet {
                 }
             }
         } else if ("permanentAbsent".equals(qAction)) {
-            // UC-03 Alternative Flow 3.1: Confirm permanent absence (No-Show)
-            if (candidateQueue != null && qSbd != null) {
-                int foundIdx = -1;
-                for (int i = 0; i < candidateQueue.size(); i++) {
-                    if (qSbd.equals(candidateQueue.get(i).getSbd())) {
-                        foundIdx = i;
-                        break;
-                    }
-                }
-                if (foundIdx != -1) {
-                    ExamRegistrationDTO removed = candidateQueue.remove(foundIdx);
-                    permanentAbsents.add(removed);
-                    
-                    regDAO.updateScores(removed.getId(), 0, "failed", 0, "failed");
-                    regDAO.markAbsent(removed.getId());
-                    
-                    removed.setAbsent(true);
-                    removed.setTheoryPassed("failed");
-                    removed.setPracticalPassed("failed");
-                    removed.setTheoryScore(0);
-                    removed.setPracticalScore(0);
-                }
-                
-                // Find next candidate who is not done
-                String nextSbd = null;
-                for (ExamRegistrationDTO c : candidateQueue) {
-                    boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
-                    if (!isDone && !c.getSbd().equals(qSbd)) {
-                        nextSbd = c.getSbd();
-                        break;
-                    }
-                }
-                session.setAttribute("callingSbd", nextSbd);
+            ExamRegistrationDTO removed = ExamStaffViewHelper.findBySbd(fullQueue, qSbd);
+            if (removed != null) {
+                regDAO.updateScores(removed.getId(), 0, "failed", 0, "failed");
+                regDAO.markSuspended(removed.getId());
+                regDAO.markAbsent(removed.getId());
+
+                fullQueue = loadFullQueue(session, webRoot, examId, isShiftEnded, request);
+                // promote caller
+                activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
+
+                String nextSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, qSbd);
+                promoteCaller(session, activeQueue, nextSbd);
                 request.setAttribute("permanentAbsentAlert", qSbd);
+            } else {
+                fullQueue = loadFullQueue(session, webRoot, examId, isShiftEnded, request);
+                activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
             }
         } else if ("undoAbsent".equals(qAction)) {
-            // UC-03 Undo / Exception Safety action
-            if (qSbd != null && permanentAbsents != null) {
-                int foundIdx = -1;
+            ExamRegistrationDTO restored = ExamStaffViewHelper.findBySbd(fullQueue, qSbd);
+            if (restored == null && permanentAbsents != null) {
                 for (int i = 0; i < permanentAbsents.size(); i++) {
                     if (qSbd.equals(permanentAbsents.get(i).getSbd())) {
-                        foundIdx = i;
+                        restored = permanentAbsents.remove(i);
                         break;
                     }
                 }
-                if (foundIdx != -1) {
-                    ExamRegistrationDTO restored = permanentAbsents.remove(foundIdx);
-                    
-                    // Reset fields
-                    restored.setAbsent(false);
-                    restored.setTheoryPassed("none");
-                    restored.setPracticalPassed("none");
-                    restored.setTheoryScore(null);
-                    restored.setPracticalScore(null);
-                    
-                    regDAO.clearAbsentMarking(restored.getId());
-                    
-                    // Put back to queue
-                    if (candidateQueue != null) {
-                        candidateQueue.add(0, restored); // Put at the beginning so they can be called next!
-                    }
-                    
-                    session.setAttribute("callingSbd", restored.getSbd()); // Set as active call immediately
-                    request.setAttribute("undoAlert", qSbd);
+            }
+            if (restored != null && (restored.isSuspended() || restored.isAbsent())) {
+                regDAO.undoSuspension(restored.getId());
+                regDAO.clearAbsentMarking(restored.getId());
+
+                restored.setSuspended(false);
+                restored.setAbsent(false);
+                restored.setTheoryPassed("none");
+                restored.setPracticalPassed("none");
+                restored.setTheoryScore(null);
+                restored.setPracticalScore(null);
+
+                fullQueue = loadFullQueue(session, webRoot, examId, isShiftEnded, request);
+                activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
+                ExamRegistrationDTO fresh = ExamStaffViewHelper.findBySbd(fullQueue, qSbd);
+                if (fresh != null) {
+                    ExamStaffViewHelper.moveCallableCandidateToFront(fullQueue, qSbd);
+                    ExamStaffViewHelper.syncCallQueueOrderFromQueue(session, boardSessionId, fullQueue);
+                    activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
                 }
+
+                session.setAttribute("callingSbd", qSbd);
+                request.setAttribute("undoAlert", qSbd);
             }
         } else if ("endShift".equals(qAction)) {
-            if (candidateQueue != null) {
-                java.util.List<ExamRegistrationDTO> toRemove = new java.util.ArrayList<>();
-                for (ExamRegistrationDTO c : candidateQueue) {
+            if (activeQueue != null) {
+                List<ExamRegistrationDTO> toRemove = new ArrayList<>();
+                for (ExamRegistrationDTO c : activeQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
                         c.setAbsent(true);
@@ -259,68 +186,86 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (!toRemove.isEmpty()) {
-                    candidateQueue.removeAll(toRemove);
+                    activeQueue.removeAll(toRemove);
                 }
             }
             session.setAttribute("callingSbd", null);
             session.setAttribute("shiftEnded", "true");
+            fullQueue = loadFullQueue(session, webRoot, examId, true, request);
+            activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
         } else if ("startShift".equals(qAction)) {
-            session.removeAttribute("shiftEnded");
-            session.removeAttribute("candidateQueue");
-            session.removeAttribute("permanentAbsents");
-            response.sendRedirect("candidatecall");
+            ExamStaffViewHelper.resumeCallShift(getServletContext(), session, boardSessionId);
+        // advance calling if done
+            response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
             return;
         }
 
-        advanceCallingIfDone(session, candidateQueue);
-        CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
-        CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), examSessionId);
-        if (state != null) {
-            String callingSbd = (String) session.getAttribute("callingSbd");
-            if (callingSbd != null) {
-                state.setCallingSbd(callingSbd);
-            }
-            state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
+        advanceCallingIfDone(session, activeQueue);
+        boolean shiftEndedNow = "true".equals(session.getAttribute("shiftEnded"));
+        String callingSbdForBoard = ExamStaffViewHelper.syncCallingSbd(
+                session, getServletContext(), boardSessionId, activeQueue, shiftEndedNow);
+        CandidateCallBoard.sync(getServletContext(), boardSessionId, callingSbdForBoard, activeQueue, shiftEndedNow);
+
+        ExamStaffViewHelper.bindCandidateCallPageAttributes(request, sessionDAO, session, examId, fullQueue);
+        ExamStaffViewHelper.publishCandidateQueue(request, session, fullQueue, examId, boardSessionId);
+
+        if ("suspended".equals(request.getParameter("view")) || "suspended".equals(returnView)) {
+            request.setAttribute("suspendedList", ExamStaffViewHelper.listSuspendedInSession(fullQueue));
+            request.getRequestDispatcher("/views/staff/examstaff/candidate-suspended.jsp").forward(request, response);
+            return;
         }
-        
-        String callingSbd = (String) session.getAttribute("callingSbd");
-        String nextSbd = null;
-        if (candidateQueue != null) {
-            if (callingSbd == null || callingSbd.trim().isEmpty()) {
-                for (ExamRegistrationDTO c : candidateQueue) {
-                    if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
-                        nextSbd = c.getSbd();
-                        break;
-                    }
-                }
-            } else {
-                boolean foundCurrent = false;
-                for (ExamRegistrationDTO c : candidateQueue) {
-                    if (foundCurrent) {
-                        if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
-                            nextSbd = c.getSbd();
-                            break;
-                        }
-                    }
-                    if (callingSbd.equals(c.getSbd())) {
-                        foundCurrent = true;
-                    }
-                }
-            }
-        }
-        
-        ExamRegistrationDTO nextCallingCandidate = null;
-        if (nextSbd != null && candidateQueue != null) {
-            for (ExamRegistrationDTO c : candidateQueue) {
-                if (nextSbd.equals(c.getSbd())) {
-                    nextCallingCandidate = c;
-                    break;
-                }
-            }
-        }
+
+        String callingSbd = callingSbdForBoard;
+        String nextSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, callingSbd);
+
+        ExamRegistrationDTO nextCallingCandidate = ExamStaffViewHelper.findBySbd(activeQueue, nextSbd);
+    // promote caller
         request.setAttribute("nextCallingCandidate", nextCallingCandidate);
 
         request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
+    }
+
+    private void promoteCaller(HttpSession session, List<ExamRegistrationDTO> activeQueue, String nextSbd) {
+        if (nextSbd != null && !nextSbd.isBlank()) {
+            session.setAttribute("callingSbd", nextSbd);
+            ExamRegistrationDTO next = ExamStaffViewHelper.findBySbd(activeQueue, nextSbd);
+            if (next != null) {
+                CandidateCallDTO call = new CandidateCallDTO();
+                call.setExamSessionId(next.getExamSessionId());
+                call.setCandidateNo(next.getCandidateNo());
+                call.setCalledTo("Bàn làm thủ tục số 2");
+                call.setCalledBy(3);
+                call.setResult("Calling");
+                callDAO.insert(call);
+    // Tai full queue
+            }
+        } else {
+            session.removeAttribute("callingSbd");
+        }
+    }
+
+    private List<ExamRegistrationDTO> loadFullQueue(HttpSession session, String webRoot,
+            int examId, boolean shiftEnded, HttpServletRequest request) {
+        if (shiftEnded) {
+            Integer lastLoadedExam = (Integer) session.getAttribute("lastLoadedExamId");
+            if (lastLoadedExam != null && lastLoadedExam == examId) {
+                @SuppressWarnings("unchecked")
+                List<ExamRegistrationDTO> cached = (List<ExamRegistrationDTO>) session.getAttribute("candidateQueue");
+                if (cached != null && !cached.isEmpty()) {
+                    return cached;
+                }
+            }
+        }
+        List<SessionDTO> allSessions = sessionDAO.getAllSessions();
+        List<ExamRegistrationDTO> queue = ExamStaffViewHelper.refreshCandidateQueue(session, examId, webRoot, allSessions);
+    // Xu ly yeu cau POST
+        ExamStaffViewHelper.publishCandidateQueue(request, session, queue, examId,
+                ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId));
+        // Xu ly yeu cau GET
+        session.setAttribute("lastLoadedSessionId",
+                ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId));
+    // advance calling if done
+        return queue;
     }
 
     @Override
@@ -332,37 +277,17 @@ public class CandidateCallServlet extends HttpServlet {
     private void advanceCallingIfDone(HttpSession session, List<ExamRegistrationDTO> candidateQueue) {
         if (candidateQueue == null) {
             return;
+        // promote caller
         }
         String callingSbd = (String) session.getAttribute("callingSbd");
         if (callingSbd == null || callingSbd.trim().isEmpty()) {
             return;
         }
-        ExamRegistrationDTO current = null;
-        for (ExamRegistrationDTO c : candidateQueue) {
-            if (callingSbd.equals(c.getSbd())) {
-                current = c;
-                break;
-            }
-        }
-        if (current == null || !(current.isPaymentCompleted() && current.isValidCapturedPhoto())) {
+        ExamRegistrationDTO current = ExamStaffViewHelper.findBySbd(candidateQueue, callingSbd);
+        if (current == null || current.isSuspended() || !current.isProcedureComplete()) {
             return;
         }
-        String nextSbd = null;
-        for (ExamRegistrationDTO c : candidateQueue) {
-            if (c.isPaymentCompleted() && c.isValidCapturedPhoto()) {
-                continue;
-            }
-            nextSbd = c.getSbd();
-            break;
-        }
-        session.setAttribute("callingSbd", nextSbd);
+        String nextSbd = ExamStaffViewHelper.findNextPendingSbd(candidateQueue, callingSbd);
+        promoteCaller(session, candidateQueue, nextSbd);
     }
 }
-
-
-
-
-
-
-
-

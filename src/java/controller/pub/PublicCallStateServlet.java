@@ -1,11 +1,13 @@
-package Controllers.Public;
+package controller.pub;
 
-import Utils.JsonUtil;
+import util.JsonUtil;
+import util.Utf8EncodingHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
@@ -17,8 +19,7 @@ public class PublicCallStateServlet extends HttpServlet {
             throws ServletException, IOException {
         PublicCallHelper.Snapshot snapshot = PublicCallHelper.loadSnapshot(request);
 
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
+        Utf8EncodingHelper.applyJson(response);
         response.setHeader("Cache-Control", "no-store");
 
         StringBuilder json = new StringBuilder(512);
@@ -41,6 +42,9 @@ public class PublicCallStateServlet extends HttpServlet {
         json.append(',');
         json.append("\"next\":");
         JsonUtil.appendCandidateJson(json, snapshot.getNextCandidate());
+        json.append(',');
+        json.append("\"waitingQueue\":");
+        JsonUtil.appendCandidateArrayJson(json, snapshot.getWaitingQueue());
         json.append('}');
 
         response.getWriter().write(json.toString());

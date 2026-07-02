@@ -1,145 +1,37 @@
 package controller.staff.exam;
 
-import service.CandidateCallBoardService;
-import service.impl.CandidateCallBoardServiceImpl;
-
-import service.CandidatePhotoService;
-import service.impl.CandidatePhotoServiceImpl;
-
-import dto.candidate.CandidateCallBoardStateDTO;
-
-
-import service.ExamRegistrationService;
-
-import dao.ExamSessionDAO;
-
-import service.impl.ExamRegistrationServiceImpl;
-
-import dao.impl.ExamSessionDAOImpl;
-
-import dto.exam.ExamRegistrationDTO;
-
-import dto.exam.SessionDTO;
-
-import service.CandidateCallBoardService;
-
-import service.CandidatePhotoService;
-
-
+import controller.pub.PublicCallHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import util.Utf8EncodingHelper;
 
 @WebServlet("/views/public/public-call")
 public class PublicCallServlet extends HttpServlet {
 
-    private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
-
+    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int sessionId = 2; // Default
-        String sessionIdStr = request.getParameter("sessionId");
-        if (sessionIdStr != null && !sessionIdStr.trim().isEmpty()) {
-            try {
-                sessionId = Integer.parseInt(sessionIdStr.trim());
-            } catch (Exception e) {}
-        } else {
-            // Also check session
-            jakarta.servlet.http.HttpSession httpSession = request.getSession(false);
-            if (httpSession != null && httpSession.getAttribute("selectedSessionId") != null) {
-                sessionId = (Integer) httpSession.getAttribute("selectedSessionId");
-            }
-        }
+        Utf8EncodingHelper.apply(request, response);
 
-        List<ExamRegistrationDTO> qList;
-        try {
-            qList = regDAO.getCandidatesBySession(sessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new ArrayList<>();
-        }
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-        photoService.normalizeQueue(getServletContext().getRealPath("/"), qList);
+        PublicCallHelper.Snapshot snapshot = PublicCallHelper.loadSnapshot(request);
+        int sessionId = snapshot.getSessionId();
+        boolean hasSession = sessionId > 0;
 
-        CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
-        CandidateCallBoardStateDTO board = callBoardService.getState(getServletContext(), sessionId);
-        
-        String callingSbd = board != null ? board.getCallingSbd() : null;
-        boolean shiftEnded = board != null && board.isShiftEnded();
-        String nextSbd = null;
-
-        if (!shiftEnded) {
-            if (callingSbd == null || callingSbd.trim().isEmpty()) {
-                for (ExamRegistrationDTO c : qList) {
-                    if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
-                        nextSbd = c.getSbd();
-                        break;
-                    }
-                }
-            } else {
-                boolean foundCurrent = false;
-                for (ExamRegistrationDTO c : qList) {
-                    if (foundCurrent) {
-                        if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
-                            nextSbd = c.getSbd();
-                            break;
-                        }
-                    }
-                    if (callingSbd.equals(c.getSbd())) {
-                        foundCurrent = true;
-                    }
-                }
-            }
-        }
-
-        ExamRegistrationDTO callingCandidate = null;
-        if (callingSbd != null) {
-            for (ExamRegistrationDTO c : qList) {
-                if (callingSbd.equals(c.getSbd())) {
-                    callingCandidate = c;
-                    break;
-                }
-            }
-        }
-        
-        ExamRegistrationDTO nextCandidate = null;
-        if (nextSbd != null) {
-            for (ExamRegistrationDTO c : qList) {
-                if (nextSbd.equals(c.getSbd())) {
-                    nextCandidate = c;
-                    break;
-                }
-            }
-        }
-
-        SessionDTO currentSession = null;
-        try {
-            currentSession = sessionDAO.getById(sessionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        request.setAttribute("currentSession", currentSession);
-        request.setAttribute("callingCandidate", callingCandidate);
-        request.setAttribute("nextCandidate", nextCandidate);
-        request.setAttribute("isCallingActive", callingCandidate != null && !shiftEnded);
-        request.setAttribute("shiftEnded", shiftEnded);
-        request.setAttribute("sessionId", sessionId);
+        request.setAttribute("noActiveSession", !hasSession);
+        request.setAttribute("sessionId", hasSession ? sessionId : null);
+        request.setAttribute("currentSession", snapshot.getCurrentSession());
+        request.setAttribute("callingCandidate", snapshot.getCallingCandidate());
+        request.setAttribute("nextCandidate", snapshot.getNextCandidate());
+        request.setAttribute("isCallingActive", snapshot.isCallingActive());
+        request.setAttribute("shiftEnded", snapshot.isShiftEnded());
+        request.setAttribute("waitingQueue", snapshot.getWaitingQueue());
 
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);
     }
 }
-
-
-
-
-
-
