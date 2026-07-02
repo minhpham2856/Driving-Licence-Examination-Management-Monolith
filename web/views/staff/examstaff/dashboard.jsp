@@ -2,130 +2,86 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<c:if test="${empty requestScope.examOptions}">
-    <c:redirect url="/views/staff/examstaff/dashboard"/>
-</c:if>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tổng Quan Ngày Thi - Ban Sát Hạch</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="dashboard" />
+    <jsp:param name="pageTitle" value="Tổng quan ngày thi" />
+    <jsp:param name="noCache" value="true" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-<div class="dashboard-shell">
-
-    <main class="main-content">
-        
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Tổng quan ngày thi</span>
-        </nav>
-        
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Tổng quan ngày thi sát hạch</h1>
-                <p class="page-subtitle">Một kỳ thi gồm các ca lý thuyết → sa hình → đường trường. Giám sát toàn bộ thí sinh và tiến độ thủ tục trên cùng một màn hình.</p>
-            </div>
-            
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <form action="${pageContext.request.contextPath}/views/staff/examstaff/dashboard" method="GET" style="margin: 0; display: inline-flex; align-items: center;">
-                    <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 8px; padding: 4px 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); height: 42px;">
-                        <span style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;">Kỳ thi:</span>
-                        <select id="sessionId" name="sessionId" class="es-session-selector__select">
-                            <c:forEach var="exam" items="${examOptions}">
-                                <option value="${exam.id}" ${selectedExamId eq exam.examId ? 'selected' : ''}>
-                                    Hạng ${exam.licenseCode} — <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/>
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                </form>
-            </div>
-        </header>
+        <c:if test="${not empty requestScope.sessionSelectMsg}">
+            <div class="examstaff-flash examstaff-flash--success">${requestScope.sessionSelectMsg}</div>
+        </c:if>
+        <c:if test="${not empty requestScope.sessionSelectError}">
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.sessionSelectError}</div>
+        </c:if>
 
         <c:if test="${not empty requestScope.sessionControlMsg}">
-            <div style="background-color: #ecfdf5; border: 1.5px solid #10b981; border-radius: 12px; padding: 0.88rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
-                <span style="font-size: 0.85rem; font-weight: 700; color: #047857;">${requestScope.sessionControlMsg}</span>
-            </div>
+            <div class="examstaff-flash examstaff-flash--success">${requestScope.sessionControlMsg}</div>
         </c:if>
         <c:if test="${not empty requestScope.sessionControlError}">
-            <div style="background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 12px; padding: 0.88rem 1.25rem; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
-                <span style="font-size: 0.85rem; font-weight: 700; color: #b91c1c;">${requestScope.sessionControlError}</span>
-            </div>
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.sessionControlError}</div>
         </c:if>
 
         <c:if test="${not empty currentSession}">
-        <section class="report-pane" style="margin-top: 1rem; border-radius: 16px; padding: 1.25rem 1.5rem; border: 1px solid #cbd5e1; background: #ffffff;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-                <div>
-                    <h2 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">Các ca trong ngày thi</h2>
-                    <p style="font-size: 0.82rem; color: #64748b; margin: 0 0 10px 0;">
-                        Kỳ thi hạng <strong>${currentSession.licenseCode}</strong> —
-                        <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>.
-                        <strong>${assignedExaminerCount}</strong> phân công giám khảo
-                        (<a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}" style="color: #0052cc; font-weight: 700;">Phân bổ giám khảo</a>).
-                    </p>
-                    <c:forEach var="ds" items="${examSessions}">
-                        <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 8px 4px 0; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.78rem;">
-                            <span>
-                                <strong>${ds.sessionName}</strong>
-                                (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
-                                — <c:choose>
-                                    <c:when test="${fn:contains(ds.examTypeName, 'Lý thuyết') or ds.examTypeName eq 'Theory'}">Lý thuyết</c:when>
-                                    <c:when test="${fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành') or ds.examTypeName eq 'Practical'}">Sa hình</c:when>
-                                    <c:when test="${fn:contains(ds.examTypeName, 'Đường') or ds.examTypeName eq 'OnRoad'}">Đường trường</c:when>
-                                    <c:otherwise>${ds.examTypeName}</c:otherwise>
-                                </c:choose>
-                                — <em>${ds.status}</em>
-                            </span>
-                            <c:if test="${ds.status ne 'InProgress' and ds.status ne 'Completed' and ds.status ne 'Cancelled'}">
-                                <form action="session-control" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Bắt đầu ca ${ds.sessionName}?');">
-                                    <input type="hidden" name="action" value="startSession">
-                                    <input type="hidden" name="sessionId" value="${ds.id}">
-                                    <input type="hidden" name="redirect" value="dashboard">
-                                    <button type="submit" class="btn-filter" style="height: 26px; padding: 0 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700;">Bắt đầu</button>
-                                </form>
-                            </c:if>
-                            <c:if test="${ds.status eq 'InProgress'}">
-                                <form action="session-control" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Kết thúc ca ${ds.sessionName}?');">
-                                    <input type="hidden" name="action" value="endSession">
-                                    <input type="hidden" name="sessionId" value="${ds.id}">
-                                    <input type="hidden" name="redirect" value="dashboard">
-                                    <button type="submit" class="btn-export" style="height: 26px; padding: 0 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #b91c1c; border-color: #fecaca;">Kết thúc</button>
-                                </form>
-                            </c:if>
-                        </div>
-                    </c:forEach>
-                </div>
+        <section class="report-pane dashboard-sessions-panel" aria-label="Các ca trong ngày thi">
+            <div class="report-pane__header dashboard-sessions-panel__header">
+                <h2 class="report-pane__title dashboard-sessions-panel__title">Các ca trong ngày thi</h2>
+            </div>
+            <p class="dashboard-sessions-panel__desc">
+                Kỳ thi hạng <strong>${currentSession.licenseCode}</strong> —
+                <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>.
+                <strong>${assignedExaminerUniqueCount}/${totalActiveExaminerCount}</strong> giám khảo đã phân công
+                — <a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}">Phân bổ giám khảo</a>.
+            </p>
+            <div class="dashboard-sessions-panel__chips">
+                <c:forEach var="ds" items="${examSessions}">
+                    <div class="session-shift-chip">
+                        <span class="session-shift-chip__meta">
+                            <strong>${ds.sessionName}</strong>
+                            (<c:if test="${not empty ds.shiftStartTime}"><fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/></c:if><c:if test="${empty ds.shiftStartTime}">--</c:if>–<c:if test="${not empty ds.shiftEndTime}"><fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/></c:if><c:if test="${empty ds.shiftEndTime}">--</c:if>)
+                            — <c:choose>
+                                <c:when test="${fn:contains(ds.examTypeName, 'Lý thuyết') or ds.examTypeName eq 'Theory'}">Lý thuyết</c:when>
+                                <c:when test="${fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành') or ds.examTypeName eq 'Practical'}">Sa hình</c:when>
+                                <c:when test="${fn:contains(ds.examTypeName, 'Đường') or ds.examTypeName eq 'OnRoad'}">Đường trường</c:when>
+                                <c:otherwise>${ds.examTypeName}</c:otherwise>
+                            </c:choose>
+                            — <em>${ds.status}</em>
+                        </span>
+                        <c:if test="${ds.status ne 'InProgress' and ds.status ne 'Completed' and ds.status ne 'Cancelled'}">
+                            <form action="session-control" method="POST" class="session-shift-chip__form" onsubmit="return confirm('Bắt đầu ca ${ds.sessionName}?');">
+                                <input type="hidden" name="action" value="startSession">
+                                <input type="hidden" name="sessionId" value="${ds.id}">
+                                <input type="hidden" name="redirect" value="dashboard">
+                                <button type="submit" class="btn-filter session-shift-chip__btn">Bắt đầu</button>
+                            </form>
+                        </c:if>
+                        <c:if test="${ds.status eq 'InProgress'}">
+                            <form action="session-control" method="POST" class="session-shift-chip__form" onsubmit="return confirm('Kết thúc ca ${ds.sessionName}?');">
+                                <input type="hidden" name="action" value="endSession">
+                                <input type="hidden" name="sessionId" value="${ds.id}">
+                                <input type="hidden" name="redirect" value="dashboard">
+                                <button type="submit" class="btn-export session-shift-chip__btn session-shift-chip__btn--end">Kết thúc</button>
+                            </form>
+                        </c:if>
+                    </div>
+                </c:forEach>
+                <c:if test="${empty examSessions}">
+                    <p class="dashboard-sessions-panel__empty">Chưa có ca thi nào được lên lịch cho kỳ thi này.</p>
+                </c:if>
             </div>
         </section>
         </c:if>
 
-        <c:set var="totalCandidatesCount" value="${fn:length(sessionScope.candidateQueue)}" />
+        <c:set var="totalCandidatesCount" value="${fn:length(candidateQueue)}" />
         <c:set var="procedureDoneCount" value="0" />
         <c:set var="processingCount" value="0" />
         <c:set var="waitingCount" value="0" />
         <c:set var="examFinishedCount" value="0" />
         <c:set var="examPassedCount" value="0" />
 
-        <c:forEach var="c" items="${sessionScope.candidateQueue}">
+        <c:forEach var="c" items="${candidateQueue}">
             <c:set var="isExamFinished" value="${c.examFinished}" />
             <c:if test="${isExamFinished}">
                 <c:set var="examFinishedCount" value="${examFinishedCount + 1}" />
@@ -141,42 +97,47 @@
             <c:if test="${not procedureComplete and sessionScope.callingSbd eq c.sbd}">
                 <c:set var="processingCount" value="${processingCount + 1}" />
             </c:if>
-            <c:if test="${c.isPresent and sessionScope.callingSbd ne c.sbd and not isExamFinished and not procedureComplete and not c.absent}">
+            <c:if test="${not procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not isExamFinished and not c.absent}">
                 <c:set var="waitingCount" value="${waitingCount + 1}" />
             </c:if>
         </c:forEach>
 
         <c:set var="completedCount" value="${procedureDoneCount}" />
         <c:set var="pendingCount" value="${waitingCount}" />
-        
+
         <c:set var="completedPercent" value="${totalCandidatesCount gt 0 ? (completedCount * 100.0) / totalCandidatesCount : 0.0}" />
         <c:set var="processingPercent" value="${totalCandidatesCount gt 0 ? (processingCount * 100.0) / totalCandidatesCount : 0.0}" />
         <c:set var="pendingPercent" value="${totalCandidatesCount gt 0 ? (pendingCount * 100.0) / totalCandidatesCount : 0.0}" />
 
-        <section class="metrics-row" aria-label="Chỉ số ngày thi">
+        <c:if test="${not empty currentSession and totalCandidatesCount == 0}">
+            <div class="examstaff-flash examstaff-flash--warning">
+                Kỳ thi đang chọn chưa có thí sinh đăng ký. Chọn kỳ thi khác ở sidebar hoặc tải danh sách tại «Tải danh sách thi».
+            </div>
+        </c:if>
+
+        <section class="metrics-row dashboard-metrics-row" aria-label="Chỉ số ngày thi">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <span class="material-symbols-outlined" aria-hidden="true">event</span>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">
                         Kỳ thi hạng ${not empty currentSession ? currentSession.licenseCode : '—'}
                     </span>
                     <span class="stat-label">
-                        <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>
+                        <c:if test="${not empty currentSession and not empty currentSession.examDate}">
+                            <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>
+                        </c:if>
+                        <c:if test="${empty currentSession or empty currentSession.examDate}">—</c:if>
                         — ${fn:length(examSessions)} ca thi
                     </span>
                     <span class="stat-trend stat-trend--up">Lý thuyết → Sa hình → Đường trường</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
-                <div class="stat-icon stat-icon--blue" style="background-color: rgba(59, 130, 246, 0.06); color: #2563eb;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                <div class="stat-icon stat-icon--blue">
+                    <span class="material-symbols-outlined" aria-hidden="true">groups</span>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${totalCandidatesCount}</span>
@@ -184,13 +145,10 @@
                     <span class="stat-trend stat-trend--up">Hàng đợi động</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="color: #10b981;">${completedCount}</span>
@@ -198,13 +156,10 @@
                     <span class="stat-trend stat-trend--up"><fmt:formatNumber value="${completedPercent}" maxFractionDigits="1"/>% hoàn thành</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--amber">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <span class="material-symbols-outlined" aria-hidden="true">hourglass_top</span>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="color: #d97706;">${waitingCount}</span>
@@ -214,11 +169,8 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon stat-icon--green" style="background-color: rgba(16, 185, 129, 0.08);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2"/>
-                        <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                <div class="stat-icon stat-icon--green">
+                    <span class="material-symbols-outlined" aria-hidden="true">emoji_events</span>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="color: #10b981;">${examPassedCount}<span style="font-size: 0.85rem; color: #64748b;"> / ${examFinishedCount}</span></span>
@@ -236,18 +188,14 @@
                     </svg>
                     Tiến độ thủ tục &amp; kết quả thi
                 </h2>
-                <p style="font-size: 0.78rem; color: #64748b; margin: 4px 0 0 0;">
-                    Thanh xanh = đã thu phí + ảnh. Vàng = đang ở phòng chờ. Xanh dương = đang tại quầy.
-                    Kết quả thi chỉ tính khi xong <strong>toàn bộ</strong> phần thi (hạng B: lý thuyết + sa hình + đường trường).
-                </p>
             </div>
-            
+
             <div class="progress-indicator-bar">
                 <div class="progress-indicator-segment progress-indicator-segment--success" style="width: ${completedPercent}%" title="Xong thủ tục: ${procedureDoneCount}"></div>
                 <div class="progress-indicator-segment progress-indicator-segment--info" style="width: ${processingPercent}%" title="Đang thủ tục: ${processingCount}"></div>
                 <div class="progress-indicator-segment progress-indicator-segment--pending" style="width: ${pendingPercent}%" title="Phòng chờ: ${waitingCount}"></div>
             </div>
-            
+
             <div class="progress-legend">
                 <div class="progress-legend-item">
                     <span class="progress-legend-dot" style="background-color: #10b981;"></span>
@@ -269,7 +217,7 @@
         </div>
 
         <div class="room-monitor-grid">
-            
+
             <div class="room-monitor-card">
                 <div class="room-header">
                     <h3 class="room-title">
@@ -281,11 +229,11 @@
                     </h3>
                     <span class="room-badge room-badge--orange">Chờ gọi (${waitingCount})</span>
                 </div>
-                
+
                 <div class="room-candidate-list">
                     <c:set var="waitRenderCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                        <c:if test="${c.isPresent and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.procedureComplete and not c.absent and waitRenderCount lt 6}">
+                    <c:forEach var="c" items="${candidateQueue}">
+                        <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent and waitRenderCount lt 6}">
                             <c:set var="waitRenderCount" value="${waitRenderCount + 1}" />
                             <div class="room-candidate-item">
                                 <div class="candidate-meta">
@@ -300,19 +248,19 @@
                             </div>
                         </c:if>
                     </c:forEach>
-                    
+
                     <c:if test="${waitRenderCount eq 0}">
                         <div class="empty-room-state">
                             Không có thí sinh nào đang chờ ở phòng chờ.
                         </div>
                     </c:if>
                 </div>
-                
+
                 <a href="candidatecall" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
                     Xem phòng điều hành gọi thi &rarr;
                 </a>
             </div>
-            
+
             <div class="room-monitor-card">
                 <div class="room-header">
                     <h3 class="room-title">
@@ -324,10 +272,10 @@
                     </h3>
                     <span class="room-badge room-badge--blue">Đang xử lý</span>
                 </div>
-                
+
                 <div class="room-candidate-list">
                     <c:set var="activeCalledCount" value="0" />
-                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                    <c:forEach var="c" items="${candidateQueue}">
                         <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete and activeCalledCount lt 3}">
                             <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
                             <div class="room-candidate-item" style="border-left: 3px solid #2563eb;">
@@ -342,19 +290,19 @@
                             </div>
                         </c:if>
                     </c:forEach>
-                    
+
                     <c:if test="${activeCalledCount eq 0}">
                         <div class="empty-room-state">
                             Bàn làm thủ tục đang trống.
                         </div>
                     </c:if>
                 </div>
-                
+
                 <a href="procedure" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
                     Vào quầy làm thủ tục &rarr;
                 </a>
             </div>
-            
+
             <div class="room-monitor-card">
                 <div class="room-header">
                     <h3 class="room-title">
@@ -366,7 +314,7 @@
                     </h3>
                     <span class="room-badge room-badge--green">${examFinishedCount} thí sinh</span>
                 </div>
-                
+
                 <div style="max-height: 280px; overflow-y: auto;">
                     <table style="width: 100%; font-size: 0.78rem; border-collapse: collapse;">
                         <thead>
@@ -378,7 +326,7 @@
                         </thead>
                         <tbody>
                             <c:set var="resultRenderCount" value="0" />
-                            <c:forEach var="c" items="${sessionScope.candidateQueue}">
+                            <c:forEach var="c" items="${candidateQueue}">
                                 <c:if test="${c.examFinished}">
                                     <c:set var="resultRenderCount" value="${resultRenderCount + 1}" />
                                     <c:set var="finalPass" value="${c.finalPass}" />
@@ -411,21 +359,14 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s; margin-top: 8px; display: block;" class="hover-elevate">
                     Xem báo cáo chi tiết &rarr;
                 </a>
             </div>
-            
+
         </div>
 
-    </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
-</div>
-
-<script src="${pageContext.request.contextPath}/assets/js/dashboard.js"></script>
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
+    <jsp:param name="extraScript" value="/assets/js/dashboard.js" />
+</jsp:include>

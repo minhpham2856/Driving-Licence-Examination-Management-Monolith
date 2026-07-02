@@ -2,7 +2,9 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<div id="procedure-desk" class="procedure-desk-section">
+<div id="procedure-desk" class="procedure-desk-section"
+     data-ctx="${pageContext.request.contextPath}"
+     <c:if test="${not empty requestScope.openDossierPrint}">data-open-dossier-print="${requestScope.openDossierPrint}"</c:if>>
     <header class="procedure-desk-header">
         <h2 class="procedure-desk-title">Bàn làm thủ tục</h2>
         <p class="procedure-desk-subtitle">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh xác minh danh tính &rarr; Thu lệ phí. Import CSV không cần ảnh; ảnh lưu DB để bộ phận khác in hồ sơ sau khi thi xong.</p>
@@ -19,48 +21,50 @@
 
         <c:choose>
             <c:when test="${not empty requestScope.profile}">
-                
+
                 <c:set var="currentSbd" value="${profile.sbd}" />
                 <c:set var="cName" value="${profile.name}" />
-                <c:set var="cDob" value="${profile.dob}" />
+                <c:set var="cDob">
+                    <fmt:formatDate value="${profile.dob}" pattern="dd/MM/yyyy"/>
+                </c:set>
                 <c:set var="cCccd" value="${profile.cccd}" />
                 <c:set var="cClass" value="${profile.clazz}" />
-                
+
                 <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
                 <c:if test="${empty currentStep}">
                     <c:set var="currentStep" value="1" />
                 </c:if>
 
                 <div class="procedure-steps-bar">
-                    <div class="procedure-step-item ${currentStep eq '1' ? 'procedure-step-item--active' : (currentStep > 1 ? 'procedure-step-item--done' : '')}">
+                    <div class="procedure-step-item ${currentStep eq '1' ? 'procedure-step-item--active' : ''} ${currentStep eq '2' or currentStep eq '3' ? 'procedure-step-item--done' : ''}">
                         <div class="step-number-badge">1</div>
                         <span>Xác minh & Sửa lỗi</span>
                     </div>
-                    
+
                     <div class="procedure-step-divider"></div>
-                    
-                    <div class="procedure-step-item ${currentStep eq '2' ? 'procedure-step-item--active' : (currentStep > 2 ? 'procedure-step-item--done' : '')}">
+
+                    <div class="procedure-step-item ${currentStep eq '2' ? 'procedure-step-item--active' : ''} ${currentStep eq '3' ? 'procedure-step-item--done' : ''}">
                         <div class="step-number-badge">2</div>
                         <span>Chụp ảnh chân dung</span>
                     </div>
-                    
+
                     <div class="procedure-step-divider"></div>
-                    
-                    <div class="procedure-step-item ${currentStep eq '3' ? 'procedure-step-item--active' : (currentStep > 3 ? 'procedure-step-item--done' : '')}">
+
+                    <div class="procedure-step-item ${currentStep eq '3' ? 'procedure-step-item--active' : ''}">
                         <div class="step-number-badge">3</div>
                         <span>Lệ phí &amp; QR chuyển khoản</span>
                     </div>
                 </div>
 
                 <div class="report-grid" style="grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
-                    
+
                     <div class="report-pane">
-                        
+
                         <c:if test="${currentStep eq '1'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 1: Tra cứu, đối chiếu và sửa đổi hồ sơ học viên</h3>
                             </div>
-                            
+
                             <c:if test="${requestScope.profileUpdatedAlert eq 'true'}">
                                 <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 1rem; font-size: 0.8rem; color: #b45309; display: flex; gap: 8px; align-items: center;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #f59e0b; flex-shrink: 0;">
@@ -77,7 +81,7 @@
                                 <input type="hidden" name="sbd" value="${currentSbd}">
                                 <input type="hidden" name="step" value="2">
                                 <input type="hidden" name="action" id="formAction" value="">
-                                
+
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                     <div class="input-group">
                                         <label class="input-label">Họ và tên thí sinh:</label>
@@ -88,7 +92,7 @@
                                         <input type="text" class="input-field" value="${currentSbd}" readonly style="background-color: #f1f5f9; font-weight: 800; color: #0052cc; font-family: monospace;">
                                     </div>
                                 </div>
-                                
+
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                     <div class="input-group">
                                         <label class="input-label">Ngày tháng năm sinh:</label>
@@ -107,21 +111,21 @@
                                     </div>
                                     <div class="input-group">
                                         <label class="input-label">Số điện thoại:</label>
-                                        <input type="text" name="phoneNo" class="input-field" value="${profile.phone}">
+                                        <input type="text" name="phoneNo" class="input-field" value="${profile.phoneNo}">
                                     </div>
                                 </div>
-                                
+
                                 <div class="input-group">
                                     <label class="input-label">Hạng bằng sát hạch:</label>
                                     <input type="text" class="input-field" value="Hạng ${cClass}" readonly style="background-color: #f1f5f9; font-weight: 700; color: #334155;">
                                 </div>
-                                
+
                                 <button type="submit" id="submitBtn" class="btn-filter" style="height: 42px; border-radius: 8px; justify-content: center; font-weight: 700; margin-top: 1rem; transition: all 0.3s; background: linear-gradient(135deg, #0052cc, #003d9b); border-color: #003d9b;">
                                     Xác nhận & Sang Bước 2 (Chụp ảnh) &rarr;
                                 </button>
                             </form>
                         </c:if>
-                        
+
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung xác minh danh tính</h3>
@@ -133,7 +137,7 @@
                                     ${requestScope.photoRequiredMsg}
                                 </div>
                             </c:if>
-                            
+
                             <c:choose>
                                 <c:when test="${requestScope.hasValidPhoto}">
                                     <div class="camera-live-frame camera-live-frame--captured">
@@ -184,7 +188,7 @@
                                 </c:otherwise>
                             </c:choose>
                         </c:if>
-                        
+
                         <c:if test="${currentStep eq '3'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 3: Lệ phí sát hạch &amp; Thanh toán QR Code ngân hàng</h3>
@@ -202,7 +206,14 @@
                                 </div>
                             </c:if>
 
-                            <c:if test="${profile.paymentCompleted}">
+                            <c:if test="${requestScope.paymentJustCompleted}">
+                                <div class="procedure-payment-success">
+                                    <strong>Đã thu lệ phí thành công.</strong>
+                                    Chọn <strong>In hồ sơ</strong> để in phiếu xác nhận, hoặc <strong>Chuyển thí sinh tiếp theo</strong> nếu không cần in.
+                                </div>
+                            </c:if>
+
+                            <c:if test="${profile.paymentCompleted and not requestScope.paymentJustCompleted}">
                                 <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 10px 12px; margin-bottom: 1rem; font-size: 0.82rem; color: #047857;">
                                     Thí sinh này đã có bản ghi thanh toán trong hệ thống. Bấm <strong>Chuyển học viên tiếp theo</strong> để tiếp tục hàng đợi.
                                 </div>
@@ -252,25 +263,37 @@
                                         </tbody>
                                     </table>
 
-                                    <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 1.5rem;">
                                         <c:choose>
                                             <c:when test="${profile.paymentCompleted}">
-                                                <a href="procedure?action=nextCandidate&amp;sbd=${currentSbd}" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #0052cc; border-color: #0052cc;">
-                                                    Chuyển học viên tiếp theo &rarr;
-                                                </a>
+                                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                                    <a href="candidate-dossier?sbd=${currentSbd}&amp;print=true" target="_blank" rel="noopener"
+                                                       class="procedure-btn procedure-btn--print"
+                                                       title="Mở trang in hồ sơ thí sinh">
+                                                        In hồ sơ
+                                                    </a>
+                                                    <a href="procedure?action=nextCandidate&amp;sbd=${currentSbd}"
+                                                       class="procedure-btn procedure-btn--next">
+                                                        Chuyển thí sinh tiếp theo &rarr;
+                                                    </a>
+                                                </div>
                                             </c:when>
                                             <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines}">
-                                                <form action="procedure" method="POST" style="flex: 1; margin: 0;">
+                                                <form action="procedure" method="POST" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
                                                     <input type="hidden" name="action" value="confirmPayment">
                                                     <input type="hidden" name="sbd" value="${currentSbd}">
                                                     <input type="hidden" name="step" value="3">
-                                                    <button type="submit" class="btn-filter" style="width: 100%; height: 42px; border-radius: 8px; background-color: #10b981; border-color: #10b981; cursor: pointer;">
+                                                    <label class="procedure-print-option">
+                                                        <input type="checkbox" name="printAfterPayment" value="true" checked>
+                                                        Mở in hồ sơ ngay sau khi đóng tiền
+                                                    </label>
+                                                    <button type="submit" class="procedure-btn procedure-btn--pay" style="width: 100%;">
                                                         Đóng Tiền Mặt
                                                     </button>
                                                 </form>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="btn-filter" style="height: 42px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #94a3b8; border-color: #94a3b8; cursor: not-allowed; opacity: 0.7;">
+                                                <span class="procedure-btn procedure-btn--disabled">
                                                     Cần chụp ảnh trước khi thu phí
                                                 </span>
                                             </c:otherwise>
@@ -297,14 +320,14 @@
                                 </div>
                             </div>
                         </c:if>
-                        
+
                     </div>
-                    
+
                     <div class="report-pane" style="height: fit-content;">
                         <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
                             <h3 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0;">Sơ đồ tóm tắt học viên</h3>
                         </div>
-                        
+
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 1rem 0;">
                             <c:choose>
                                 <c:when test="${requestScope.hasValidPhoto}">
@@ -318,10 +341,10 @@
                                     </div>
                                 </c:otherwise>
                             </c:choose>
-                            
+
                             <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: #0f172a;">${cName}</h4>
                             <span style="font-family: monospace; font-weight: 800; color: #0052cc; font-size: 0.9rem;">SBD: ${currentSbd}</span>
-                            
+
                             <div style="width: 100%; border-top: 1px solid #f1f5f9; margin-top: 8px; padding-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem;">
                                 <div style="display: flex; justify-content: space-between;">
                                     <span style="color: #64748b;">Hạng sát hạch:</span>
@@ -338,7 +361,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
             </c:when>
             <c:otherwise>
@@ -348,7 +371,7 @@
                         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span style="font-weight: 700; font-size: 1rem; color: #334155; display: block; margin-bottom: 0.5rem;">Bàn làm thủ tục trống</span>
-                    Chưa có học viên nào được chọn làm thủ tục. 
+                    Chưa có học viên nào được chọn làm thủ tục.
                     <p style="font-size: 0.82rem; color: #94a3b8; max-width: 420px; margin: 0.5rem auto 1.5rem;">Chọn thí sinh từ danh sách bên dưới, hoặc bấm <strong>Tiến hành lập hồ sơ</strong> / <strong>Hồ sơ</strong> ở hàng đợi phía trên.</p>
 
                     <div style="max-width: 520px; margin: 1.5rem auto 0; padding: 1.5rem; background: rgba(255, 255, 255, 0.9); border: 1.5px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); backdrop-filter: blur(8px);">
@@ -365,12 +388,10 @@
                             <div style="position: relative; display: flex; width: 100%;">
                                 <select id="emptySbdInput" name="sbd" data-auto-submit class="procedure-empty-sbd-select">
                                     <option value="">-- Click để chọn học viên đã được gọi --</option>
-                                    <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                                        <c:if test="${not c.procedureComplete}">
-                                            <option value="${c.sbd}">
+                                    <c:forEach var="c" items="${activeCallQueue}">
+                                        <option value="${c.sbd}">
                                                 ${c.sbd} - ${c.name} (Hạng ${c.clazz})
                                             </option>
-                                        </c:if>
                                     </c:forEach>
                                 </select>
                                 <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #0052cc; display: flex; align-items: center;">

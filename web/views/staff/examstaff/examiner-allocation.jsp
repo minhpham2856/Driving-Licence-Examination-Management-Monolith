@@ -3,43 +3,19 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân bổ Giám khảo - Ban Sát Hạch</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="phan-bo-giam-khao" />
+    <jsp:param name="pageTitle" value="Phân bổ giám khảo" />
+    <jsp:param name="noCache" value="true" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-<div class="dashboard-shell">
-    <main class="main-content">
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Phân bổ giám khảo</span>
-        </nav>
-
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Phân bổ giám khảo theo kỳ thi</h1>
-                <p class="page-subtitle">Đồng bộ với <strong>Quy trình phân bổ</strong>: một kỳ thi gồm lý thuyết → sa hình → đường trường (hạng B). Phòng từ <strong>Session_ExamArea</strong>, giám khảo <strong>Session_Examiner</strong>.</p>
-            </div>
+        <header class="page-header page-header--toolbar">
+            <p class="examiner-page-desc">Đồng bộ với quy trình phân bổ: một kỳ thi gồm lý thuyết → sa hình → đường trường. Phòng từ <strong>Session_ExamArea</strong>, giám khảo <strong>Session_Examiner</strong>.</p>
             <div class="page-actions">
                 <form method="get" action="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation" class="examiner-session-form">
-                    <label for="sessionId" class="examiner-session-form__label">Kỳ thi (hạng / ngày):</label>
-                    <select name="sessionId" id="sessionId" class="examiner-session-form__select">
+                    <label for="headerSessionPicker" class="examiner-session-form__label">Kỳ thi (hạng / ngày):</label>
+                    <select name="sessionId" id="headerSessionPicker" class="examiner-session-form__select">
                         <c:forEach var="exam" items="${examOptions}">
                             <option value="${exam.id}" ${selectedExamId eq exam.examId ? 'selected' : ''}>
                                 Kỳ thi hạng ${exam.licenseCode} — <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/> (${exam.status})
@@ -50,6 +26,9 @@
             </div>
         </header>
 
+        <c:if test="${not empty requestScope.sessionSelectMsg}">
+            <div class="examiner-alert examiner-alert--success">${requestScope.sessionSelectMsg}</div>
+        </c:if>
         <c:if test="${not empty alertMsg}">
             <div class="examiner-alert examiner-alert--success">${alertMsg}</div>
         </c:if>
@@ -104,7 +83,7 @@
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${availableExaminers}">
-                                <span class="examiner-chip chip-available">${ex.person.fullName} (@${ex.username})</span>
+                                <span class="examiner-chip chip-available">${not empty ex.profile ? ex.profile.fullName : ex.username} (@${ex.username})</span>
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
@@ -117,7 +96,7 @@
                         </c:when>
                         <c:otherwise>
                             <c:forEach var="ex" items="${busyExaminers}">
-                                <span class="examiner-chip chip-busy">${ex.person.fullName} (@${ex.username})</span>
+                                <span class="examiner-chip chip-busy">${not empty ex.profile ? ex.profile.fullName : ex.username} (@${ex.username})</span>
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
@@ -145,21 +124,33 @@
                     <div>
                         <label for="areaId">Phòng thi (Session_ExamArea)</label>
                         <select name="areaId" id="areaId" required>
-                            <c:forEach var="ds" items="${examSessions}">
-                                <c:forEach var="ar" items="${areasBySession[ds.id]}">
-                                    <option value="${ar.id}" data-session="${ds.id}" data-type="${ar.areaType}">
-                                        ${ar.areaName} (${ar.areaType}) — ${ds.sessionName}
-                                    </option>
-                                </c:forEach>
-                            </c:forEach>
+                            <c:choose>
+                                <c:when test="${empty areaAssignOptions}">
+                                    <option value="">— Chưa có phòng thi (Session_ExamArea) —</option>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:forEach var="opt" items="${areaAssignOptions}">
+                                        <option value="${opt.areaId}" data-session="${opt.sessionId}" data-type="${opt.areaType}">
+                                            ${opt.areaName} (${opt.areaType}) — ${opt.sessionName}
+                                        </option>
+                                    </c:forEach>
+                                </c:otherwise>
+                            </c:choose>
                         </select>
                     </div>
                     <div>
                         <label for="examinerUserId">Giám khảo</label>
                         <select name="examinerUserId" id="examinerUserId" required>
-                            <c:forEach var="ex" items="${allExaminers}">
-                                <option value="${ex.id}">${ex.person.fullName}</option>
-                            </c:forEach>
+                            <c:choose>
+                                <c:when test="${empty allExaminers}">
+                                    <option value="">— Chưa có giám khảo (Role=Examiner) —</option>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:forEach var="ex" items="${allExaminers}">
+                                        <option value="${ex.id}">${not empty ex.profile ? ex.profile.fullName : ex.username}</option>
+                                    </c:forEach>
+                                </c:otherwise>
+                            </c:choose>
                         </select>
                     </div>
                     <div>
@@ -214,9 +205,7 @@
                 </table>
             </div>
         </c:if>
-    </main>
-</div>
 
-<script src="${pageContext.request.contextPath}/assets/js/examiner-allocation.js" charset="UTF-8"></script>
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
+    <jsp:param name="extraScript" value="/assets/js/examiner-allocation.js" />
+</jsp:include>

@@ -6,45 +6,19 @@
     <c:redirect url="/views/staff/examstaff/audit"/>
 </c:if>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhật Ký Cá Nhân - Ban Sát Hạch</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar" data-audit-base="${pageContext.request.contextPath}/views/staff/examstaff/audit" data-audit-export-base="${pageContext.request.contextPath}/views/staff/examstaff/audit-export">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
-    <jsp:param name="activeSidebar" value="nhat-ky" />
-</jsp:include>
-
 <jsp:useBean id="now" class="java.util.Date" />
 <fmt:formatDate var="todayFormatted" value="${now}" pattern="dd/MM/yyyy" />
 
-<div class="dashboard-shell">
-    <main class="main-content">
-        
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Nhật ký cá nhân</span>
-        </nav>
-        
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Nhật ký hoạt động cá nhân</h1>
-                <p class="page-subtitle">Xem lại lịch sử thao tác nghiệp vụ, đối chiếu hồ sơ học viên do chính bạn thực hiện trong ngày trực.</p>
-            </div>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
+    <jsp:param name="activeSidebar" value="nhat-ky" />
+    <jsp:param name="pageTitle" value="Nhật ký cá nhân" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
+    <jsp:param name="dataAuditBase" value="/views/staff/examstaff/audit" />
+    <jsp:param name="dataAuditExportBase" value="/views/staff/examstaff/audit-export" />
+</jsp:include>
+
+        <header class="page-header page-header--toolbar">
+            <p class="examiner-page-desc">Xem lại lịch sử thao tác nghiệp vụ, đối chiếu hồ sơ học viên do chính bạn thực hiện trong ngày trực.</p>
         </header>
 
         <c:if test="${param.exportError eq '1'}">
@@ -55,17 +29,22 @@
             </div>
         </c:if>
 
+        <c:set var="staffName" value="${sessionScope.user.username}" />
+        <c:if test="${not empty sessionScope.userProfile}">
+            <c:set var="staffName" value="${sessionScope.userProfile.fullName}" />
+        </c:if>
+
         <div class="staff-profile-card">
             <div class="profile-info-group">
                 <div class="profile-avatar-circle">
-                    ${fn:substring(sessionScope.user.person.fullName, 0, 2)}
+                    ${fn:substring(staffName, 0, 2)}
                 </div>
                 <div class="profile-meta-text">
-                    <span style="font-size: 1.15rem; font-weight: 800;">${sessionScope.user.person.fullName}</span>
-                    <span style="font-size: 0.82rem; opacity: 0.85; font-family: monospace;">Tài khoản: @${sessionScope.user.username} | Mã cán bộ: CBSH-00${sessionScope.user.id}</span>
+                    <span style="font-size: 1.15rem; font-weight: 800;">${staffName}</span>
+                    <span style="font-size: 0.82rem; opacity: 0.85; font-family: monospace;">Tài khoản: @${sessionScope.user.username} | Mã cán bộ: CBSH-00${sessionScope.user.userId}</span>
                 </div>
             </div>
-            
+
             <div style="text-align: right; font-size: 0.82rem; opacity: 0.9;">
                 <span style="display: block; font-weight: 700; text-transform: uppercase;">Phạm vi nhật ký</span>
                 <span id="auditScopeText" style="font-size: 1.0rem; font-weight: 800;">
@@ -91,14 +70,17 @@
                 </svg>
                 <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">Bộ lọc thời gian nhật ký:</span>
             </div>
-            
+
             <form id="auditFilterForm" action="${pageContext.request.contextPath}/views/staff/examstaff/audit" method="GET" style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                <c:if test="${not empty param.sessionId}">
+                    <input type="hidden" name="sessionId" value="${param.sessionId}" />
+                </c:if>
                 <input type="date" id="dateFilter" name="filterDate" value="${param.filterDate}" style="height: 38px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #334155; outline: none; background-color: #ffffff; cursor: pointer;">
                 <button type="submit" class="btn-filter" style="height: 38px; padding: 0 1.25rem; font-size: 0.82rem; border-radius: 8px; font-weight: 700; background: linear-gradient(135deg, #0052cc, #003d9b); border: none; color: #ffffff; cursor: pointer; transition: all 0.2s;">
                     Lọc kết quả
                 </button>
                 <c:if test="${not empty param.filterDate}">
-                    <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
+                    <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit<c:if test='${not empty param.sessionId}'>?sessionId=${param.sessionId}</c:if>" data-audit-clear-filter="true" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
                 </c:if>
             </form>
         </div>
@@ -112,7 +94,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number">${fn:length(personalLogs)}</span>
+                    <span class="stat-number">${examStaffPageSlice.totalItems}</span>
                     <span class="stat-label">Tổng thao tác cá nhân</span>
                     <span class="stat-trend stat-trend--up">
                         <c:choose>
@@ -122,7 +104,7 @@
                     </span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--amber" style="background-color: rgba(126, 34, 206, 0.06); color: #7e22ce;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -136,7 +118,7 @@
                     <span class="stat-trend stat-trend--up">Theo log thu phí (INSERT Payment) do bạn ghi nhận</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -145,7 +127,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="color: #10b981;">
-                        <fmt:formatNumber value="${myTotalFees}" type="number" /> đ
+                        <fmt:formatNumber value="${requestScope.myTotalFees}" type="number" /> đ
                     </span>
                     <span class="stat-label">Lệ phí đã xác nhận thu</span>
                     <span class="stat-trend stat-trend--up">Tổng từ Payment_Fee (hoặc TotalAmount) của các lần thu bạn ghi log</span>
@@ -153,69 +135,70 @@
             </div>
         </section>
 
-        <section class="log-card" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
-            <header class="log-card-header" style="justify-content: space-between; display: flex;">
-                <h2 class="log-card-title" style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
-                        <path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M3 10V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M7 8h10M7 14h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <c:choose>
-                        <c:when test="${not empty param.filterDate}">
-                            Nhật ký hoạt động cá nhân ngày ${param.filterDate}
-                        </c:when>
-                        <c:otherwise>
-                            Bảng kiểm toán tất cả hoạt động cá nhân
-                        </c:otherwise>
-                    </c:choose>
-                </h2>
-                
-                <div class="log-card-actions">
+        <c:set var="pg" value="${examStaffPageSlice}" />
+        <c:set var="rowStart" value="${empty pg ? 0 : pg.rowOffset}" />
+
+        <jsp:include page="/views/staff/examstaff/includes/examstaff-pagination.jsp" />
+
+        <div id="auditPanel" class="allocation-stage-panel examstaff-audit-panel">
+            <div class="allocation-stage-panel__head">
+                <div class="allocation-stage-panel__title-wrap">
+                    <h4 id="auditPanelTitle" class="allocation-stage-panel__title log-card-title">
+                        <c:choose>
+                            <c:when test="${not empty param.filterDate}">
+                                Nhật ký hoạt động cá nhân ngày ${param.filterDate}
+                            </c:when>
+                            <c:otherwise>
+                                Bảng kiểm toán tất cả hoạt động cá nhân
+                            </c:otherwise>
+                        </c:choose>
+                    </h4>
+                </div>
+                <div class="allocation-panel-head-actions log-card-actions">
+                    <span class="allocation-stage-panel__count">${pg.totalItems} thao tác</span>
                     <a id="auditExportLink"
                        href="${pageContext.request.contextPath}/views/staff/examstaff/audit-export<c:if test='${not empty param.filterDate}'>?filterDate=${param.filterDate}</c:if>"
-                       class="btn-export"
-                       style="height: 36px; padding: 0 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">
+                       class="btn-export allocation-table-action">
                         Xuất Excel
                     </a>
                 </div>
-            </header>
-            
-            <div class="table-responsive" style="margin-top: 1rem;">
-                <table class="audit-table" style="font-size: 0.88rem; width: 100%;">
+            </div>
+            <div class="examiner-table-wrap examstaff-list-wrap">
+                <table class="examiner-table examstaff-audit-table audit-table allocation-results-table allocation-table--fill">
                     <thead>
                         <tr>
-                            <th scope="col" style="width: 80px;" class="col-id">STT</th>
-                            <th scope="col" style="width: 140px;">Thời gian</th>
-                            <th scope="col" style="width: 150px;">Nghiệp vụ</th>
-                            <th scope="col">Chi tiết thao tác ghi nhận kiểm toán</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Trạng thái</th>
+                            <th scope="col" class="examiner-table__center">STT</th>
+                            <th scope="col">Thời gian</th>
+                            <th scope="col">Nghiệp vụ</th>
+                            <th scope="col">Chi tiết thao tác</th>
+                            <th scope="col" class="examiner-table__center">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:forEach var="log" items="${requestScope.personalLogs}" varStatus="status">
                             <tr>
-                                <td class="col-id">${status.index + 1}</td>
-                                <td class="col-time">
-                                    <fmt:formatDate value="${log.changedAt}" pattern="dd/MM HH:mm" />
+                                <td class="examiner-table__center">${rowStart + status.count}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${not empty log.changedAt}">
+                                            <fmt:formatDate value="${log.changedAt}" pattern="dd/MM/yyyy HH:mm" />
+                                        </c:when>
+                                        <c:otherwise>—</c:otherwise>
+                                    </c:choose>
                                 </td>
                                 <td>
-                                    <span class="role-badge role-badge--coi" style="font-size: 0.72rem; padding: 2px 6px;">
-                                        ${log.tableName}
-                                    </span>
-                                    <span style="display:block; font-size:0.68rem; color:#64748b; margin-top:2px;">${log.action}</span>
+                                    <span class="role-badge role-badge--coi examstaff-audit-entity">${log.entityLabelVi}</span>
+                                    <span class="examstaff-audit-action">${log.actionLabelVi}</span>
                                 </td>
-                                <td class="details-cell">
-                                    ${log.details}
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="action-badge action-badge--success" style="font-weight: 700;">Ghi nhận log</span>
+                                <td class="examstaff-audit-details">${log.displayDetails}</td>
+                                <td class="examiner-table__center">
+                                    <span class="allocation-stage-status allocation-stage-status--logged">Ghi nhận</span>
                                 </td>
                             </tr>
                         </c:forEach>
-                        
                         <c:if test="${empty requestScope.personalLogs}">
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">
+                                <td colspan="5" class="allocation-stage-table__empty">
                                     <c:choose>
                                         <c:when test="${not empty param.filterDate}">
                                             Không có hoạt động thao tác nào được ghi nhận trong ngày ${param.filterDate}.
@@ -230,15 +213,8 @@
                     </tbody>
                 </table>
             </div>
-        </section>
+        </div>
 
-    </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
-</div>
-
-<script src="${pageContext.request.contextPath}/assets/js/audit.js"></script>
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
+    <jsp:param name="extraScript" value="/assets/js/audit.js" />
+</jsp:include>

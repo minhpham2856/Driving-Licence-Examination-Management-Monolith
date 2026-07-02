@@ -3,58 +3,26 @@
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gọi Làm Thủ Tục - Ban Sát Hạch</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/examstaff.css">
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="goi-thi" />
+    <jsp:param name="pageTitle" value="${requestScope.deskMode ? 'Bàn làm thủ tục' : 'Gọi làm thủ tục'}" />
+    <jsp:param name="sectionTitle" value="Gọi làm thủ tục" />
+    <jsp:param name="sectionUrl" value="${pageContext.request.contextPath}/views/staff/examstaff/candidatecall" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-<div class="dashboard-shell">
-    <main class="main-content">
-        
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <c:choose>
-                <c:when test="${requestScope.deskMode}">
-                    <span class="breadcrumbs__current">Gọi làm thủ tục</span>
-                    <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-                    <span class="breadcrumbs__current" aria-current="page">Bàn làm thủ tục</span>
-                </c:when>
-                <c:otherwise>
-                    <span class="breadcrumbs__current" aria-current="page">Gọi làm thủ tục</span>
-                </c:otherwise>
-            </c:choose>
-        </nav>
-        
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Gọi thí sinh vào làm thủ tục</h1>
-                <p class="page-subtitle">Điều hành hàng đợi gọi thủ tục; phát loa qua màn hình TV riêng.</p>
-            </div>
-
+        <header class="page-header page-header--toolbar">
+            <p class="examiner-page-desc">Điều hành hàng đợi gọi thủ tục; phát loa qua màn hình TV riêng.</p>
             <div class="call-page-actions">
                 <div class="call-session-chip">
-                    <span class="call-session-chip__label">Ca thi:</span>
+                    <span class="call-session-chip__label">Ngày thi:</span>
                     <span class="call-session-chip__value">
-                        <c:out value="${currentSession.sessionName}" /> (<c:out value="${currentSession.licenseCode}" />)
+                        <c:if test="${not empty currentSession.examDate}">
+                            <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
+                        </c:if>
+                        <c:if test="${not empty currentSession.licenseCode}">
+                            (Hạng <c:out value="${currentSession.licenseCode}" />)
+                        </c:if>
                     </span>
                 </div>
                 <c:if test="${sessionScope.shiftEnded ne 'true'}">
@@ -91,7 +59,7 @@
                 </span>
             </div>
         </c:if>
-        
+
         <c:if test="${not empty requestScope.autoAbsentAlert}">
             <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #d97706; flex-shrink: 0;">
@@ -132,11 +100,11 @@
                 Đã xóa hồ sơ thủ tục của <strong>${param.procedureReset}</strong>. Thí sinh có thể làm lại thủ tục từ bước 1.
             </div>
         </c:if>
-        
+
         <div class="report-grid" style="grid-template-columns: 1.32fr 1.68fr; gap: 1.5rem; display: grid;">
-            
+
             <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                
+
                 <c:choose>
                     <c:when test="${sessionScope.shiftEnded eq 'true'}">
                         <div class="waiting-list-pane" style="text-align: center; padding: 3rem 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
@@ -147,13 +115,13 @@
                             </div>
                             <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #991b1b;">Ca làm việc đã kết thúc</h3>
                             <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 290px; line-height: 1.5;">Hàng đợi điều hành phòng chờ chính đã được dọn dẹp sạch sẽ. Tất cả thí sinh còn lại đã được giải phóng.</p>
-                            
+
                             <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #0052cc, #003d9b); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
                                 Khởi động ca làm việc mới
                             </a>
                         </div>
                     </c:when>
-                    
+
                     <c:otherwise>
                         <div class="waiting-list-pane">
                             <h3 class="called-status-title">
@@ -163,7 +131,7 @@
                                 </svg>
                                 Bảng điều hành loa gọi thi
                             </h3>
-                            
+
                             <c:choose>
                                 <c:when test="${empty sessionScope.callingSbd}">
                                     <div style="text-align: center; padding: 2rem 1rem; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; margin-bottom: 1.25rem;">
@@ -173,9 +141,9 @@
                                         <span style="font-weight: 700; font-size: 0.85rem; color: #475569; display: block; text-transform: uppercase; margin-bottom: 4px;">Hàng đợi đang dừng gọi</span>
                                         <span style="font-size: 0.78rem; color: #64748b;">Nhấn Bắt đầu gọi bên dưới để tự động gọi người đứng đầu hàng đợi.</span>
                                     </div>
-                                    
+
                                     <c:choose>
-                                        <c:when test="${empty sessionScope.candidateQueue}">
+                                        <c:when test="${empty candidateQueue}">
                                             <button class="btn-batch" style="background-color: #e2e8f0; border-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; font-size: 0.9rem;" disabled>
                                                 Hàng đợi trống - Không thể gọi
                                             </button>
@@ -190,7 +158,7 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </c:when>
-                                
+
                                 <c:otherwise>
                                     <div class="active-calling-card">
                                         <span style="font-size: 0.72rem; font-weight: 800; color: #0052cc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Học viên đang gọi lên bàn:</span>
@@ -207,9 +175,16 @@
 
                                         <p style="margin: 0.75rem 0 0; font-size: 0.78rem; color: #64748b; line-height: 1.45;">
                                             Loa gọi tên phát trên
-                                            <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId != null ? sessionScope.selectedSessionId : 2}"
-                                               target="_blank" rel="noopener"
-                                               style="font-weight: 700; color: #0052cc; text-decoration: none;">màn hình TV</a>.
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.selectedSessionId}">
+                                                    <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId}"
+                                                       target="_blank" rel="noopener"
+                                                       style="font-weight: 700; color: #0052cc; text-decoration: none;">màn hình TV</a>.
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span style="font-weight: 700; color: #94a3b8;">màn hình TV (chưa chọn ca)</span>.
+                                                </c:otherwise>
+                                            </c:choose>
                                         </p>
 
                                         <c:if test="${not empty requestScope.nextCallingCandidate}">
@@ -219,7 +194,7 @@
                                                 <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">${requestScope.nextCallingCandidate.name} &mdash; Hạng ${requestScope.nextCallingCandidate.clazz}</div>
                                             </div>
                                         </c:if>
-                                        
+
                                         <div style="margin-top: 1.25rem; text-align: left; width: 100%;">
                                             <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 4px;">
                                                 <span>GIỚI HẠN THỦ TỤC TRÌNH DIỆN</span>
@@ -232,12 +207,12 @@
                                                 Hệ thống sẽ tự chuyển người sau 3 phút nếu thí sinh này không có mặt.
                                             </span>
                                         </div>
-                                        
+
                                         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
                                             <a href="procedure?sbd=${callingCandidate.sbd}#procedure-desk" class="btn-batch" style="background-color: #0052cc; border-color: #0052cc; height: 40px; font-size: 0.85rem;">
                                                 Tiến hành lập hồ sơ &rarr;
                                             </a>
-                                            
+
                                             <div style="display: flex; gap: 8px; width: 100%;">
                                                 <a href="candidatecall?action=absent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(245, 158, 11, 0.3); color: #d97706; background: rgba(245, 158, 11, 0.01); font-size: 0.8rem;" title="Đẩy xuống cuối hàng đợi">
                                                     Vắng
@@ -254,9 +229,9 @@
                         </div>
                     </c:otherwise>
                 </c:choose>
-                
+
             </div>
-            
+
             <div class="waiting-list-pane">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem;">
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -268,19 +243,13 @@
                             Hàng đợi thí sinh đang chờ sát hạch
                         </h3>
                         <c:if test="${sessionScope.shiftEnded ne 'true'}">
-                            <c:set var="pendingCount" value="0" />
-                            <c:forEach var="c" items="${sessionScope.candidateQueue}">
-                                <c:set var="isCdone" value="${c.procedureComplete}" />
-                                <c:if test="${not isCdone}">
-                                    <c:set var="pendingCount" value="${pendingCount + 1}" />
-                                </c:if>
-                            </c:forEach>
+                            <c:set var="pendingCount" value="${fn:length(activeCallQueue)}" />
                             <span style="background: rgba(16, 185, 129, 0.1); color: #047857; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
                                 ${pendingCount} Người
                             </span>
                         </c:if>
                     </div>
-                    
+
                     <c:if test="${sessionScope.shiftEnded ne 'true'}">
                         <div style="display: flex; gap: 6px; align-items: center;">
                             <span style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; animation: pulse-green 2s infinite;">Tự refresh (10s)</span>
@@ -292,7 +261,7 @@
                         </div>
                     </c:if>
                 </div>
-                
+
                 <c:choose>
                     <c:when test="${sessionScope.shiftEnded eq 'true' or pendingCount eq 0}">
                         <div style="text-align: center; padding: 5rem 1rem; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 8px;">
@@ -304,7 +273,7 @@
                             <span style="font-size: 0.78rem; max-width: 250px;">Không có thí sinh nào trong hàng đợi của ca thi này.</span>
                         </div>
                     </c:when>
-                    
+
                     <c:otherwise>
                         <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
                             <table class="audit-table" style="font-size: 0.85rem; width: 100%;">
@@ -318,9 +287,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="candidate" items="${sessionScope.candidateQueue}" varStatus="status">
-                                        <c:set var="cDone" value="${candidate.procedureComplete}" />
-                                        <c:if test="${not cDone}">
+                                    <c:forEach var="candidate" items="${activeCallQueue}" varStatus="status">
                                             <c:set var="isCurrentCalling" value="${candidate.sbd eq sessionScope.callingSbd}" />
                                             <tr style="${isCurrentCalling ? 'background-color: rgba(0, 82, 204, 0.04); border-left: 3px solid #0052cc;' : ''}">
                                                 <td style="font-weight: 800; color: #0052cc; font-family: monospace; padding-left: ${isCurrentCalling ? '8px' : '0px'};">
@@ -341,7 +308,6 @@
                                                     </div>
                                                 </td>
                                             </tr>
-                                        </c:if>
                                     </c:forEach>
                                 </tbody>
                             </table>
@@ -349,7 +315,7 @@
                     </c:otherwise>
                 </c:choose>
 
-                <c:set var="doneCount" value="${fn:length(procedureDoneCandidates)}" />
+                <c:set var="doneCount" value="${fn:length(requestScope.procedureDoneCandidates)}" />
                 <c:if test="${doneCount > 0}">
                     <div class="procedure-done-panel">
                         <div class="procedure-done-panel__header">
@@ -374,7 +340,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="candidate" items="${procedureDoneCandidates}">
+                                    <c:forEach var="candidate" items="${requestScope.procedureDoneCandidates}">
                                             <tr class="procedure-done-row"
                                                 data-sbd="${fn:toLowerCase(candidate.sbd)}"
                                                 data-name="${fn:toLowerCase(candidate.name)}">
@@ -410,43 +376,37 @@
                     </div>
                 </c:if>
             </div>
-            
+
         </div>
 
         <c:if test="${requestScope.deskMode}">
             <jsp:include page="/views/staff/examstaff/procedure.jsp"/>
         </c:if>
 
-    </main>
+        <div id="candidateCallConfig"
+             data-sbd="${not empty callingCandidate ? callingCandidate.sbd : ''}"
+             hidden></div>
+        <c:if test="${requestScope.deskMode}">
+            <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
+            <c:if test="${empty currentStep}"><c:set var="currentStep" value="1" /></c:if>
+            <div id="procedureCameraConfig"
+                 data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"
+                 data-ctx-path="${pageContext.request.contextPath}"
+                 data-sbd="${not empty requestScope.profile ? requestScope.profile.sbd : ''}"
+                 data-msg-live="LIVE — Camera sẵn sàng"
+                 data-msg-starting="Đang khởi động camera..."
+                 data-msg-unavailable="Camera không khả dụng"
+                 data-msg-no-api="Trình duyệt không hỗ trợ camera. Dùng Chrome/Edge/Firefox trên localhost hoặc HTTPS."
+                 data-msg-denied="Quyền camera bị từ chối. Cho phép camera trong trình duyệt rồi tải lại trang."
+                 data-msg-not-found="Không tìm thấy camera trên thiết bị."
+                 data-msg-open-fail="Không thể mở camera."
+                 data-msg-not-ready="Camera chưa sẵn sàng. Đợi vài giây rồi thử lại."
+                 data-msg-frame-fail="Không đọc được khung hình từ camera."
+                 data-msg-save-fail="Lưu ảnh thất bại: "
+                 hidden></div>
+            <script src="${pageContext.request.contextPath}/assets/js/procedure.js" charset="UTF-8"></script>
+        </c:if>
 
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
-</div>
-
-<div id="candidateCallConfig"
-     data-sbd="${not empty callingCandidate ? callingCandidate.sbd : ''}"
-     hidden></div>
-<c:if test="${requestScope.deskMode}">
-    <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
-    <c:if test="${empty currentStep}"><c:set var="currentStep" value="1" /></c:if>
-    <div id="procedureCameraConfig"
-         data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"
-         data-ctx-path="${pageContext.request.contextPath}"
-         data-sbd="${not empty requestScope.profile ? requestScope.profile.sbd : ''}"
-         data-msg-live="LIVE — Camera sẵn sàng"
-         data-msg-starting="Đang khởi động camera..."
-         data-msg-unavailable="Camera không khả dụng"
-         data-msg-no-api="Trình duyệt không hỗ trợ camera. Dùng Chrome/Edge/Firefox trên localhost hoặc HTTPS."
-         data-msg-denied="Quyền camera bị từ chối. Cho phép camera trong trình duyệt rồi tải lại trang."
-         data-msg-not-found="Không tìm thấy camera trên thiết bị."
-         data-msg-open-fail="Không thể mở camera."
-         data-msg-not-ready="Camera chưa sẵn sàng. Đợi vài giây rồi thử lại."
-         data-msg-frame-fail="Không đọc được khung hình từ camera."
-         data-msg-save-fail="Lưu ảnh thất bại: "
-         hidden></div>
-    <script src="${pageContext.request.contextPath}/assets/js/procedure.js" charset="UTF-8"></script>
-</c:if>
-<script src="${pageContext.request.contextPath}/assets/js/candidatecall.js" charset="UTF-8"></script>
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
+    <jsp:param name="extraScript" value="/assets/js/candidatecall.js" />
+</jsp:include>

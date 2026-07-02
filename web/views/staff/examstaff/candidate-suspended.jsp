@@ -1,49 +1,28 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đình chỉ thi - Ban Sát Hạch</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/examstaff.css">
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="goi-thi" />
+    <jsp:param name="pageTitle" value="Đình chỉ thi" />
+    <jsp:param name="sectionTitle" value="Gọi làm thủ tục" />
+    <jsp:param name="sectionUrl" value="${pageContext.request.contextPath}/views/staff/examstaff/candidatecall" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-<div class="dashboard-shell">
-    <main class="main-content">
-
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <a href="candidatecall">Gọi làm thủ tục</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Đình chỉ thi</span>
-        </nav>
-
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">Danh sách thí sinh bị đình chỉ</h1>
-                <p class="page-subtitle">Thí sinh đình chỉ được ghi TRƯỢT và không được gọi lại trong ca thi này.</p>
-            </div>
+        <header class="page-header page-header--toolbar">
+            <p class="examiner-page-desc">Thí sinh đình chỉ được ghi TRƯỢT và không được gọi lại trong ca thi này.</p>
             <div class="call-page-actions">
                 <div class="call-session-chip">
-                    <span class="call-session-chip__label">Ca thi:</span>
+                    <span class="call-session-chip__label">Ngày thi:</span>
                     <span class="call-session-chip__value">
-                        <c:out value="${currentSession.sessionName}" /> (<c:out value="${currentSession.licenseCode}" />)
+                        <c:if test="${not empty currentSession.examDate}">
+                            <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
+                        </c:if>
+                        <c:if test="${not empty currentSession.licenseCode}">
+                            (Hạng <c:out value="${currentSession.licenseCode}" />)
+                        </c:if>
                     </span>
                 </div>
                 <a href="candidatecall" class="call-toolbar-btn">Quay lại gọi thủ tục</a>
@@ -152,12 +131,4 @@
             </c:choose>
         </div>
 
-    </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
-</div>
-
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

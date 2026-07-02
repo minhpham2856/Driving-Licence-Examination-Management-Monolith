@@ -2,7 +2,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<c:if test="${empty requestScope.candidateList}">
+<c:if test="${requestScope.candidateList == null}">
     <c:redirect url="/views/staff/examstaff/report"/>
 </c:if>
 
@@ -13,53 +13,22 @@
 <c:set var="passEx" value="${passedCount}" />
 <c:set var="failEx" value="${failedCount}" />
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo cuối ngày - Ban Sát Hạch</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
-</head>
-<body class="has-side-nav-bar">
-
-<jsp:include page="/views/layout/sidebar-examstaff.jsp">
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="bao-cao" />
+    <jsp:param name="pageTitle" value="Báo cáo cuối ngày" />
+    <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-<div class="dashboard-shell">
-    <main class="main-content">
-        
-        <nav class="breadcrumbs" aria-label="Breadcrumb">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current">Ban Sát Hạch</span>
-            <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-            <span class="breadcrumbs__current" aria-current="page">Báo cáo cuối ngày</span>
-        </nav>
-        
-        <header class="page-header">
-            <div class="page-title-wrap">
-                <h1 class="page-title">
-                    Báo cáo tổng hợp ngày thi<c:if test="${not empty currentSession.examDate}"> <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></c:if><c:if test="${not empty currentSession.licenseCode}"><span style="font-size: 0.85em; font-weight: 700; color: #475569;"> — Hạng ${currentSession.licenseCode}</span></c:if>
-                </h1>
-                <p class="page-subtitle">Tổng hợp số liệu kết quả thi sát hạch trong ngày thi hôm nay, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
-            </div>
-            
-            <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
+        <header class="page-header page-header--toolbar">
+            <p class="examiner-page-desc">Tổng hợp số liệu kết quả thi sát hạch trong ngày, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
+            <div class="page-actions">
                 <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
                     <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày thi:</span>
                     <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
                         <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
                     </span>
                 </div>
-                
+
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportExcel=true"
                    class="btn-filter"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
@@ -70,7 +39,7 @@
                     </svg>
                     Xuất Excel
                 </a>
-                
+
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportPdf=true"
                    target="_blank"
                    class="btn-export"
@@ -86,24 +55,66 @@
             </div>
         </header>
 
-        <c:if test="${missingPhotoCount > 0}">
-            <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 8px; font-size: 0.9rem; font-weight: 700; color: #92400e;">
-                    ${missingPhotoCount} thí sinh chưa hoàn thành thủ tục / chưa có ảnh chân dung
-                </h4>
-                <p style="margin: 0 0 10px; font-size: 0.8rem; color: #b45309;">
-                    Không thể xuất Excel/PDF cho đến khi các thí sinh dưới đây làm xong bàn thủ tục (chụp ảnh + thu phí).
-                </p>
-                <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.85rem; color: #78350f; line-height: 1.6;">
-                    <c:forEach var="c" items="${missingPhotoCandidates}">
-                        <li>
-                            <strong>${c.sbd}</strong> — ${c.name}
-                            <span style="color: #a16207;">(Hạng ${c.clazz}<c:if test="${c.paymentCompleted}"> · đã thu phí, thiếu ảnh</c:if><c:if test="${not c.paymentCompleted}"> · chưa xong thủ tục</c:if>)</span>
-                            <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1#procedure-desk"
-                               style="margin-left: 6px; font-weight: 700; color: #0052cc; text-decoration: none;">→ Làm thủ tục</a>
-                        </li>
-                    </c:forEach>
-                </ul>
+        <c:if test="${procedurePendingCount > 0}">
+            <div class="allocation-alert allocation-alert--warn" style="margin-bottom: 1rem;">
+                <span>
+                    <strong>${procedurePendingCount}</strong> thí sinh chưa hoàn thành thủ tục tại bàn
+                    <c:if test="${missingPhotoCount > 0}">
+                        — trong đó <strong>${missingPhotoCount}</strong> chưa có ảnh chân dung (không thể xuất Excel/PDF).
+                    </c:if>
+                </span>
+            </div>
+
+            <div class="allocation-stage-panel allocation-stage-panel--waiting report-procedure-pending-panel">
+                <div class="allocation-stage-panel__head">
+                    <div class="allocation-stage-panel__title-wrap">
+                        <h4 class="allocation-stage-panel__title">Thí sinh chưa hoàn thành thủ tục</h4>
+                        <p class="allocation-stage-panel__meta">Chưa đối chiếu hồ sơ, chụp ảnh hoặc thu lệ phí — cần xử lý tại bàn thủ tục trước khi xuất báo cáo.</p>
+                    </div>
+                    <span class="allocation-stage-panel__count">${procedurePendingCount} thí sinh</span>
+                </div>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-stage-table allocation-table--fill">
+                        <thead>
+                            <tr>
+                                <th class="examiner-table__center" style="width: 56px;">STT</th>
+                                <th>SBD</th>
+                                <th>Họ tên</th>
+                                <th>Hạng</th>
+                                <th>Trạng thái</th>
+                                <th class="examiner-table__center" style="width: 140px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="c" items="${procedurePendingCandidates}" varStatus="st">
+                                <c:set var="hasPhoto" value="${c.validCapturedPhoto or (not empty c.photoUrl)}" />
+                                <tr>
+                                    <td class="examiner-table__center">${st.count}</td>
+                                    <td><strong>${c.sbd}</strong></td>
+                                    <td>${c.name}</td>
+                                    <td>${c.clazz}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not c.paymentCompleted}">
+                                                <span class="allocation-stage-status allocation-stage-status--waiting">Chưa thu lệ phí</span>
+                                            </c:when>
+                                            <c:when test="${not hasPhoto}">
+                                                <span class="allocation-stage-status allocation-stage-status--waiting">Thiếu ảnh chân dung</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="allocation-stage-status allocation-stage-status--waiting">Chờ thủ tục</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td class="examiner-table__center">
+                                        <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedSessionId}">&amp;sessionId=${requestScope.selectedSessionId}</c:if>#procedure-desk"
+                                           class="allocation-table-action allocation-table-action--theory">Làm thủ tục</a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </c:if>
 
@@ -137,7 +148,7 @@
                     </span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--green">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -151,7 +162,7 @@
                     <span class="stat-trend stat-trend--up">${passEx} đạt / ${completedEx} đã thi xong</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -164,7 +175,7 @@
                     <span class="stat-trend stat-trend--up">${totalEx} đăng ký · còn lại chưa thi</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue" style="background-color: rgba(16, 185, 129, 0.06); color: #10b981;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -177,7 +188,7 @@
                     <span class="stat-trend stat-trend--up" style="color: #10b981;">Đủ điều kiện cấp bằng</span>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="stat-icon stat-icon--red">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -193,7 +204,7 @@
         </section>
 
         <div class="report-grid">
-            
+
             <div class="report-pane">
                 <header class="report-pane__header">
                     <h2 class="report-pane__title">
@@ -204,7 +215,7 @@
                         Thống kê chi tiết phần thi sát hạch hôm nay
                     </h2>
                 </header>
-                
+
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 0; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">1. Thống kê theo hạng bằng sát hạch</h3>
                 <table class="report-table">
                     <thead>
@@ -246,7 +257,7 @@
                         </c:if>
                     </tbody>
                 </table>
-                
+
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">2. Thống kê tỷ lệ loại theo từng phần thi</h3>
                 <table class="report-table" style="margin-bottom: 0;">
                     <thead>
@@ -301,9 +312,9 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="report-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
-                
+
                 <div style="margin-bottom: 2rem;">
                     <header class="report-pane__header" style="margin-bottom: 1rem;">
                         <h2 class="report-pane__title">
@@ -313,14 +324,14 @@
                             Phân tích tỷ lệ Đạt / Trượt hôm nay
                         </h2>
                     </header>
-                    
+
                     <div class="chart-donut" style="background: conic-gradient(#10b981 0% ${rateNum}%, #ef4444 ${rateNum}% 100%);">
                         <div class="chart-donut__inner">
                             <span class="chart-donut__value">${rateStr}</span>
                             <span class="chart-donut__label">Đạt sát hạch</span>
                         </div>
                     </div>
-                    
+
                     <div class="chart-legend">
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #10b981;"></div>
@@ -332,7 +343,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div>
                     <header class="report-pane__header" style="margin-bottom: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
                         <h2 class="report-pane__title" style="color: #ef4444;">
@@ -343,7 +354,7 @@
                             Lỗi vi phạm thực hành phổ biến nhất
                         </h2>
                     </header>
-                    
+
                     <div class="violation-list">
                         <c:forEach var="inf" items="${infractions}" varStatus="status">
                             <div class="violation-item">
@@ -363,17 +374,9 @@
                         </c:if>
                     </div>
                 </div>
-                
+
             </div>
-            
+
         </div>
 
-    </main>
-
-    <jsp:include page="/views/layout/footer.jsp">
-        <jsp:param name="standalone" value="false" />
-    </jsp:include>
-</div>
-
-</body>
-</html>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

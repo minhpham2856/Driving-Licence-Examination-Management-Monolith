@@ -6,7 +6,7 @@
     function markProcedureDeskScroll() {
         try {
             sessionStorage.setItem(SCROLL_KEY, '1');
-        } catch (e) { /* ignore */ }
+        } catch (e) {  }
     }
 
     function scrollToProcedureDesk() {
@@ -29,7 +29,7 @@
             try {
                 shouldScroll = sessionStorage.getItem(SCROLL_KEY) === '1';
                 sessionStorage.removeItem(SCROLL_KEY);
-            } catch (e) { /* ignore */ }
+            } catch (e) {  }
         }
         if (!shouldScroll && document.getElementById('procedureCameraConfig')) {
             shouldScroll = true;
@@ -62,7 +62,26 @@
         initFormChangeChecking();
         initWebcamCapture();
         scrollToProcedureDeskIfNeeded();
+        maybeOpenDossierPrint();
     });
+
+    function maybeOpenDossierPrint() {
+        var desk = document.getElementById('procedure-desk');
+        if (!desk) {
+            return;
+        }
+        var sbd = desk.getAttribute('data-open-dossier-print');
+        if (!sbd) {
+            return;
+        }
+        desk.removeAttribute('data-open-dossier-print');
+        var ctx = desk.getAttribute('data-ctx') || '';
+        window.open(
+            ctx + '/views/staff/examstaff/candidate-dossier?sbd=' + encodeURIComponent(sbd) + '&print=true',
+            '_blank',
+            'noopener'
+        );
+    }
 
     function initFormChangeChecking() {
         var form = document.querySelector('#procedureForm');

@@ -172,6 +172,6 @@
     </section>
 </article>
 
-<script src="${pageContext.request.contextPath}/assets/js/report-print.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/report-print.js" charset="UTF-8"></script>
 </body>
 </html>

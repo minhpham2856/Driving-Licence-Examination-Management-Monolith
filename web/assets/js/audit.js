@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    const mainContent = document.querySelector('.main-content');
+    const mainContent = document.querySelector('.examstaff-main') || document.querySelector('.main-content');
 
     if (!mainContent) return;
-
-
 
     const spinner = document.createElement('div');
 
@@ -14,9 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     spinner.innerHTML = '<div class="audit-ajax-spinner__ring"></div>';
 
-
-
-    const logCard = document.querySelector('.log-card');
+    const logCard = document.querySelector('.examstaff-audit-panel') || document.querySelector('.log-card');
 
     if (logCard) {
 
@@ -25,8 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
         logCard.appendChild(spinner);
 
     }
-
-
 
     function showLoading() {
 
@@ -38,8 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-
-
     function hideLoading() {
 
         if (!spinner) return;
@@ -49,8 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(function () { spinner.style.display = 'none'; }, 200);
 
     }
-
-
 
     function normalizeAuditUrl(inputUrl) {
 
@@ -76,8 +66,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-
-
     function buildExportUrl() {
 
         const exportBase = document.body.dataset.auditExportBase;
@@ -91,8 +79,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const url = new URL(exportBase, window.location.origin);
 
         url.searchParams.set('v', String(Date.now()));
-
-
 
         const dateInput = document.getElementById('dateFilter');
 
@@ -108,8 +94,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-
-
     function syncAuditExportLink() {
 
         const link = document.getElementById('auditExportLink');
@@ -123,8 +107,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     }
-
-
 
     async function loadAuditData(url, pushToHistory) {
 
@@ -142,13 +124,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const html = await response.text();
 
-
-
             const parser = new DOMParser();
 
             const doc = parser.parseFromString(html, 'text/html');
-
-
 
             const oldScope = document.getElementById('auditScopeText');
 
@@ -160,8 +138,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
 
-
-
             const oldFilterForm = document.getElementById('auditFilterForm');
 
             const newFilterForm = doc.getElementById('auditFilterForm');
@@ -171,8 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 oldFilterForm.innerHTML = newFilterForm.innerHTML;
 
             }
-
-
 
             const oldMetrics = document.querySelector('.metrics-row');
 
@@ -184,11 +158,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
 
+            const oldTitle = document.getElementById('auditPanelTitle') || document.querySelector('.log-card-title');
 
-
-            const oldTitle = document.querySelector('.log-card-title');
-
-            const newTitle = doc.querySelector('.log-card-title');
+            const newTitle = doc.getElementById('auditPanelTitle') || doc.querySelector('.log-card-title');
 
             if (oldTitle && newTitle) {
 
@@ -196,11 +168,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
 
+            const oldActions = document.querySelector('#auditPanel .allocation-panel-head-actions')
+                || document.querySelector('.log-card-actions');
 
-
-            const oldActions = document.querySelector('.log-card-actions');
-
-            const newActions = doc.querySelector('.log-card-actions');
+            const newActions = doc.querySelector('#auditPanel .allocation-panel-head-actions')
+                || doc.querySelector('.log-card-actions');
 
             if (oldActions && newActions) {
 
@@ -208,11 +180,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
 
+            const oldCount = document.querySelector('#auditPanel .allocation-stage-panel__count');
 
+            const newCount = doc.querySelector('#auditPanel .allocation-stage-panel__count');
 
-            const oldTableBody = document.querySelector('.audit-table tbody');
+            if (oldCount && newCount) {
 
-            const newTableBody = doc.querySelector('.audit-table tbody');
+                oldCount.textContent = newCount.textContent;
+
+            }
+
+            const oldTableBody = document.querySelector('.examstaff-audit-table tbody, .audit-table tbody');
+
+            const newTableBody = doc.querySelector('.examstaff-audit-table tbody, .audit-table tbody');
 
             if (oldTableBody && newTableBody) {
 
@@ -220,27 +200,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
 
+            const oldPagination = document.querySelector('.examstaff-pagination, .allocation-pagination');
 
-
-            const oldPagination = document.querySelector('.pagination-container-outer');
-
-            const newPagination = doc.querySelector('.pagination-container-outer');
+            const newPagination = doc.querySelector('.examstaff-pagination, .allocation-pagination');
 
             if (oldPagination && newPagination) {
 
-                oldPagination.innerHTML = newPagination.innerHTML;
+                oldPagination.outerHTML = newPagination.outerHTML;
 
             }
-
-
 
             if (pushToHistory) {
 
                 history.pushState(null, '', normalizedUrl);
 
             }
-
-
 
             syncAuditExportLink();
 
@@ -258,11 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-
-
     syncAuditExportLink();
-
-
 
     mainContent.addEventListener('change', function (e) {
 
@@ -280,6 +250,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 url.searchParams.set('filterDate', e.target.value);
 
+                url.searchParams.delete('page');
+
                 loadAuditData(url.toString());
 
             } catch (err) {
@@ -293,8 +265,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     });
-
-
 
     mainContent.addEventListener('click', function (e) {
 
@@ -310,11 +280,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }
 
-
-
         const clearFilterLink = e.target.closest('a[href*="examstaff/audit"]');
 
-        if (clearFilterLink && clearFilterLink.textContent.trim() === 'Xóa bộ lọc') {
+        if (clearFilterLink && clearFilterLink.hasAttribute('data-audit-clear-filter')) {
 
             e.preventDefault();
 
@@ -324,9 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }
 
-
-
-        const pageLink = e.target.closest('.pagination-link');
+        const pageLink = e.target.closest('.examstaff-pagination__btn, .allocation-pagination__btn');
 
         if (pageLink && pageLink.tagName === 'A') {
 
@@ -338,8 +304,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     });
 
-
-
     window.addEventListener('popstate', function () {
 
         loadAuditData(window.location.href, false);
@@ -347,4 +311,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
-
