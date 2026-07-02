@@ -1,7 +1,7 @@
 package dao;
 
 import dto.exam.ExamRegistrationDTO;
-import model.exam.ExamRegistration;
+import model.ExamRegistration;
 import java.util.List;
 
 public interface ExamRegistrationDAO {

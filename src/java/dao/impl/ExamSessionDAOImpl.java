@@ -5,9 +5,9 @@ import dbconnection.DBContext;
 
 import dao.ExamSessionDAO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import model.exam.Session;
+import model.Session;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

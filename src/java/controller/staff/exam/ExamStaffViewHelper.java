@@ -9,13 +9,13 @@ import dao.impl.ExamSessionDAOImpl;
 import dao.impl.FeeDAOImpl;
 import dao.impl.PaymentDAOImpl;
 import dto.exam.ExamRegistrationDTO;
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.payment.Fee;
-import model.payment.Payment;
+import model.Fee;
+import model.Payment;
 import util.ProcedureFeeTotals;
 import util.SessionUserHelper;
 
@@ -761,8 +761,8 @@ public final class ExamStaffViewHelper {
         Payment payment = payDAO.getByCandidateId(profile.getId());
         List<Fee> feeLines = new ArrayList<>();
         boolean feesFromPayment = false;
-        if (payment != null && payment.getId() > 0) {
-            feeLines = feeDAO.getFeesByPaymentId(payment.getId());
+        if (payment != null && payment.getPaymentId() > 0) {
+            feeLines = feeDAO.getFeesByPaymentId(payment.getPaymentId());
             feesFromPayment = feeLines != null && !feeLines.isEmpty();
         }
         if (feeLines == null || feeLines.isEmpty()) {

@@ -10,7 +10,7 @@ import dao.impl.ExamSessionDAOImpl;
 
 import dto.exam.ExamRegistrationDTO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
 import util.CandidateDstsCsvSamples;
 import util.CandidateDstsImportParser;

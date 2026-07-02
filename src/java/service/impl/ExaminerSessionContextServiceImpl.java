@@ -5,7 +5,7 @@ package service.impl;
 
 import enums.SectionType;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
 import service.ExamSessionControlService;
 

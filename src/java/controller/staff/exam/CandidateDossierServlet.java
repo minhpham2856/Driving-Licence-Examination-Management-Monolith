@@ -14,11 +14,11 @@ import dao.impl.PaymentDAOImpl;
 
 import dto.exam.ExamRegistrationDTO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import model.payment.Fee;
+import model.Fee;
 
-import model.payment.Payment;
+import model.Payment;
 
 import util.ProcedureFeeTotals;
 
@@ -105,9 +105,9 @@ public class CandidateDossierServlet extends HttpServlet {
 
         boolean feesFromPayment = false;
 
-        if (payment != null && payment.getId() > 0) {
+        if (payment != null && payment.getPaymentId() > 0) {
 
-            feeLines = feeDAO.getFeesByPaymentId(payment.getId());
+            feeLines = feeDAO.getFeesByPaymentId(payment.getPaymentId());
 
             feesFromPayment = !feeLines.isEmpty();
 

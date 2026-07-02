@@ -3,7 +3,7 @@ package service;
 
 import enums.SectionType;
 
-import dto.candidate.CandidateDTO;
+import dto.exam.ExamRegistrationDTO;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -44,7 +44,7 @@ public interface ExaminerViewDataService {
     int theoryMaxQuestions();
 
     // Finds a candidate registration by session and SBD (returns null if not found)
-    CandidateDTO findRegistration(int sessionId, String sbd);
+    ExamRegistrationDTO findRegistration(int sessionId, String sbd);
 
     // Loads score-entry view data (deductions, devices, queue) and attaches to the request
     void attachScoreEntry(HttpServletRequest request, int sessionId, String sbdParam);
@@ -53,7 +53,7 @@ public interface ExaminerViewDataService {
     void attachResultDetailsEdit(HttpServletRequest request, int sessionId, String sbdParam);
 
     // Checks whether a candidate is eligible to enter the score-entry queue for the given section
-    boolean isScoreQueueEligible(int sessionId, CandidateDTO reg,
+    boolean isScoreQueueEligible(int sessionId, ExamRegistrationDTO reg,
             SectionType sectionType, String sectionName);
 
     // Loads violation entry data (deduction rules, candidate info) and attaches to the request
@@ -63,7 +63,7 @@ public interface ExaminerViewDataService {
     void attachDevices(HttpServletRequest request, int sessionId, String searchQuery);
 
     // Checks whether a candidate is eligible to be called for the given section
-    boolean isCallEligible(int sessionId, CandidateDTO reg, SectionType sectionType, String sectionName);
+    boolean isCallEligible(int sessionId, ExamRegistrationDTO reg, SectionType sectionType, String sectionName);
 }
 
 

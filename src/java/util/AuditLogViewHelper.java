@@ -46,7 +46,7 @@ public final class AuditLogViewHelper {
         row.put("username", nullToDash(log.getChangerName()));
         row.put("actionLabel", mapActionLabel(action));
         row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", enums.AuditEntity.auditLabel(log.getTableName()));
+        row.put("entityName", enums.AuditEntity.resolveLabel(log.getTableName()));
         row.put("sbd", sbd);
         row.put("newValueClass", mapNewValueClass(action));
         row.put("multiline", columns.multiline());
@@ -81,7 +81,7 @@ public final class AuditLogViewHelper {
         row.put("username", nullToDash(log.getChangerName()));
         row.put("actionLabel", mapActionLabel(action));
         row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", enums.AuditEntity.auditLabel(log.getTableName()));
+        row.put("entityName", enums.AuditEntity.resolveLabel(log.getTableName()));
         row.put("sbd", sbd);
         row.put("newValueClass", mapNewValueClass(action));
         row.put("multiline", false);
@@ -135,7 +135,7 @@ public final class AuditLogViewHelper {
     }
 
     private static String buildChangeInfo(AuditDTO log, String sbd) {
-        String entity = enums.AuditEntity.auditLabel(log.getTableName());
+        String entity = enums.AuditEntity.resolveLabel(log.getTableName());
         String action = log.getAction() != null ? log.getAction().toUpperCase() : "UPDATE";
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {

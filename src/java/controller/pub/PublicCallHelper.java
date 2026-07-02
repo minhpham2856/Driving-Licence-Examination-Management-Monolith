@@ -8,7 +8,7 @@ import dao.ExamSessionDAO;
 import dao.impl.ExamRegistrationDAOImpl;
 import dao.impl.ExamSessionDAOImpl;
 import dto.exam.ExamRegistrationDTO;
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 

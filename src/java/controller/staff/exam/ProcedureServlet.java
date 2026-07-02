@@ -14,9 +14,9 @@ import dao.impl.ExamSessionDAOImpl;
 import dao.impl.PaymentDAOImpl;
 
 import dto.exam.ExamRegistrationDTO;
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import model.payment.Payment;
+import model.Payment;
 
 import service.ExaminerAllocationService;
 import service.impl.ExaminerAllocationServiceImpl;
@@ -24,7 +24,7 @@ import service.impl.ExaminerAllocationServiceImpl;
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
 
-import dto.examiner.AutoAllocateResultDTO;
+import dto.AutoAllocateResultDTO;
 
 import util.Utf8EncodingHelper;
 
@@ -228,7 +228,11 @@ public class ProcedureServlet extends HttpServlet {
                 return;
             }
             Payment payment = new Payment();
-            payment.setCandidateId(profile.getId());
+            int enrollmentId = profile.getExamEnrollmentId();
+            if (enrollmentId <= 0) {
+                enrollmentId = payDAO.resolveEnrollmentId(profile.getId());
+            }
+            payment.setExamEnrollmentId(enrollmentId);
             payment.setTotalAmount(200000.00);
             payment.setPaymentStatus("Completed");
             payment.setPaymentMethod("Cash");
@@ -376,7 +380,11 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
         Payment payment = new Payment();
-        payment.setCandidateId(profile.getId());
+        int enrollmentId = profile.getExamEnrollmentId();
+        if (enrollmentId <= 0) {
+            enrollmentId = payDAO.resolveEnrollmentId(profile.getId());
+        }
+        payment.setExamEnrollmentId(enrollmentId);
         payment.setTotalAmount(200000.00);
         payment.setPaymentStatus("Completed");
         payment.setPaymentMethod("Cash");

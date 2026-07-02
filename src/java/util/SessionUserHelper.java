@@ -1,6 +1,6 @@
 package util;
 
-import model.user.User;
+import model.User;
 import jakarta.servlet.http.HttpSession;
 
 public final class SessionUserHelper {

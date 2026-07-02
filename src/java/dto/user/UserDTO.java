@@ -1,9 +1,9 @@
 package dto.user;
 
 
-import model.user.User;
-import model.user.Profile;
-import model.user.Role;
+import model.User;
+import model.Profile;
+import model.Role;
 
 public class UserDTO extends User {
     private Profile profile;

@@ -1,6 +1,6 @@
 package service;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;

@@ -3,9 +3,9 @@ package controller.examiner;
 
 import enums.SectionType;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import dto.examiner.ExaminerExportContext;
+import dto.ExaminerExportContext;
 import service.ExaminerSessionContextService;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +51,7 @@ abstract class ExaminerExportServlet extends HttpServlet {
         // Read the human-readable section name (e.g. "Ly thuyet", "Thuc hanh")
         String sectionName = (String) session.getAttribute(ExaminerSessionContextService.ATTR_EXAM_SECTION_NAME);
         // Bundle all context parameters into an immutable record
-        return new ExaminerExportContext(activeSessionId, slot, sectionType, sectionName);
+        return new ExaminerExportContext(activeSessionId, slot, sectionType == SectionType.THEORY, sectionName);
     }
 
          // Sets response headers for an Excel (XLSX) download.

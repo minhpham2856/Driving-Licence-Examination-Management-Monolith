@@ -8,7 +8,7 @@ import dao.ExamRegistrationDAO;
 
 import dto.exam.ExamRegistrationDTO;
 
-import model.exam.ExamRegistration;
+import model.ExamRegistration;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

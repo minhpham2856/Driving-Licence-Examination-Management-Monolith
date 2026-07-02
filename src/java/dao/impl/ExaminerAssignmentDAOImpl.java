@@ -5,10 +5,13 @@ package dao.impl;
 import dbconnection.DBContext;
 
 import dao.ExaminerAssignmentDAO;
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import model.user.Profile;
-import dto.user.UserDTO;
+import model.Profile;
+import dto.UserDTO;
+
+import service.RoleService;
+import service.impl.RoleServiceImpl;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -22,6 +25,8 @@ import java.util.Set;
 
 // JDBC implementation of {@link ExaminerAssignmentDAO}.
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
+
+    private static final RoleService ROLE_SERVICE = new RoleServiceImpl();
 
     // Entity name used in the Audit table for examiner-area mappings.
     private static final String ROOM_MAPPING_ENTITY = "Session_ExaminerArea";
@@ -383,11 +388,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     static String examTypeFromId(int examTypeId) {
         return switch (examTypeId) {
             case 2 ->
-                enums.ExamSection.LAYOUT.name();  // Practical exam type
+                enums.ExamSection.THUC_HANH_TRONG_HINH.getDisplayName();
             case 4 ->
-                enums.ExamSection.ROAD.name();    // On-road exam type
+                enums.ExamSection.THUC_HANH_TREN_DUONG.getDisplayName();
             default ->
-                enums.ExamSection.THEORY.name();    // Theory exam type (default)
+                enums.ExamSection.LY_THUYET.getDisplayName();
         };
     }
 
@@ -430,7 +435,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         if (!rs.wasNull()) {
             user.setRoleId(roleId);
         } else {
-            user.setRoleId(enums.UserRole.roleIdFromName(rs.getString("RoleName")));
+            user.setRoleId(ROLE_SERVICE.getRoleIdByName(rs.getString("RoleName")));
         }
 
         // Check if a Profile record exists for this user (LEFT JOIN may return null)
@@ -447,7 +452,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             profile.setPhoneNumber(rs.getString("PhoneNumber"));
             profile.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
             profile.setAddress(rs.getString("Address"));
-            profile.setSex(rs.getString("Sex"));
+            profile.setSex(rs.getBoolean("Sex"));
             // Attach the profile to the user DTO
             user.setProfile(profile);
         }

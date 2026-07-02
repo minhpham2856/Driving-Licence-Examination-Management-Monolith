@@ -1,7 +1,7 @@
 package util;
 
-import model.payment.Fee;
-import model.payment.Payment;
+import model.Fee;
+import model.Payment;
 
 import java.util.List;
 

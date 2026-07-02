@@ -5,7 +5,7 @@ import dbconnection.DBContext;
 
 import dao.ExamDeviceManageDAO;
 
-import dto.exam.ExamDeviceViewDTO;
+import dto.ExamDeviceViewDTO;
 
 
 import java.sql.PreparedStatement;

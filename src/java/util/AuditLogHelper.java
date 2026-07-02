@@ -7,8 +7,8 @@ import dao.AuditLogDAO;
 
 import dao.impl.AuditLogDAOImpl;
 
-import model.user.Audit;
-import model.user.User;
+import model.Audit;
+import model.User;
 import jakarta.servlet.http.HttpSession;
 
 import java.sql.Timestamp;
@@ -56,7 +56,7 @@ public final class AuditLogHelper {
             int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
 
             Audit log = new Audit();
-            log.setEntityName(enums.AuditEntity.auditLabel(resolveEntityName(action, contextDetails)));
+            log.setEntityName(enums.AuditEntity.resolveLabel(resolveEntityName(action, contextDetails)));
             log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction(normalizeAction(action));
             log.setOldValue(oldValue);
@@ -86,7 +86,7 @@ public final class AuditLogHelper {
             int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
 
             Audit log = new Audit();
-            log.setEntityName(enums.AuditEntity.auditLabel("Candidate"));
+            log.setEntityName(enums.AuditEntity.resolveLabel("Candidate"));
             log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction("WARNING");
             log.setNewValue(details);

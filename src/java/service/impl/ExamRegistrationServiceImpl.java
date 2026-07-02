@@ -5,7 +5,7 @@ import dao.ExamRegistrationDAO;
 import dao.impl.ExamRegistrationDAOImpl;
 import service.ExamRegistrationService;
 import dto.exam.ExamRegistrationDTO;
-import model.exam.ExamRegistration;
+import model.ExamRegistration;
 import java.util.List;
 
 public class ExamRegistrationServiceImpl implements ExamRegistrationService {

@@ -1,7 +1,7 @@
 package service.impl;
 
 import controller.staff.exam.CandidateCallBoard;
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 import dto.exam.ExamRegistrationDTO;
 import service.CandidateCallBoardService;
 import jakarta.servlet.ServletContext;

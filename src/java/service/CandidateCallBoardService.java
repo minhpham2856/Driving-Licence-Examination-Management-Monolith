@@ -1,6 +1,6 @@
 package service;
 
-import dto.candidate.CandidateCallBoardStateDTO;
+import dto.CandidateCallBoardStateDTO;
 import dto.exam.ExamRegistrationDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;

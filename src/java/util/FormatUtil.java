@@ -42,11 +42,13 @@ public final class FormatUtil {
         if (row == null) return;
         String type = row.get("type") != null ? String.valueOf(row.get("type")) : "";
         row.put("icon", DeviceType.iconFor(type));
-        row.put("typeLabel", DeviceType.typeLabelVi(type));
-        row.put("statusLabel", DeviceStatus.statusLabelVi(row.get("status") != null ? String.valueOf(row.get("status")) : null));
-        row.put("statusClass", DeviceStatus.statusCssClass(row.get("status") != null ? String.valueOf(row.get("status")) : null));
+        DeviceType typeEnum = DeviceType.fromValue(type);
+        row.put("typeLabel", typeEnum != null ? typeEnum.getDisplayName() : type);
+        DeviceStatus statusEnum = DeviceStatus.normalize(row.get("status") != null ? String.valueOf(row.get("status")) : null);
+        row.put("statusLabel", statusEnum.getDisplayName());
+        row.put("statusClass", statusEnum.getCssClass());
         row.put("vehicle", DeviceType.isVehicle(type));
         row.put("computer", DeviceType.isComputer(type));
-        row.put("licenceMatch", DeviceType.isComputer(type) || DeviceType.matchesLicence(licenceClass, type));
+        row.put("licenceMatch", DeviceType.isComputer(type) || DeviceType.matchesLicenceClass(licenceClass, type));
     }
 }

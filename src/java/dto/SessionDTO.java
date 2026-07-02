@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 public class SessionDTO {
 
     private int id;
+    private int examId;
     private String sessionName;
     private int licenseTypeId;
     private int examTypeId;
@@ -31,6 +32,14 @@ public class SessionDTO {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getExamId() {
+        return examId;
+    }
+
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public String getSessionName() {

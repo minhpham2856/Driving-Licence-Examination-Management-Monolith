@@ -2,7 +2,7 @@ package controller.staff.exam;
 
 import dao.ExamSessionDAO;
 import dao.impl.ExamSessionDAOImpl;
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;

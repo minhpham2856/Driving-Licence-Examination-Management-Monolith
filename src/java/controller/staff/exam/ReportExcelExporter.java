@@ -5,9 +5,9 @@ import dao.PaymentDAO;
 import dao.impl.FeeDAOImpl;
 import dao.impl.PaymentDAOImpl;
 import dto.exam.ExamRegistrationDTO;
-import dto.exam.SessionDTO;
-import model.payment.Fee;
-import model.payment.Payment;
+import dto.SessionDTO;
+import model.Fee;
+import model.Payment;
 import util.ProcedureFeeTotals;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -252,10 +252,10 @@ public final class ReportExcelExporter {
                 continue;
             }
             Payment payment = PAY_DAO.getByCandidateId(reg.getId());
-            if (payment == null || payment.getId() <= 0 || !isActiveProcedurePayment(payment)) {
+            if (payment == null || payment.getPaymentId() <= 0 || !isActiveProcedurePayment(payment)) {
                 continue;
             }
-            List<Fee> feeLines = FEE_DAO.getFeesByPaymentId(payment.getId());
+            List<Fee> feeLines = FEE_DAO.getFeesByPaymentId(payment.getPaymentId());
             double lineTotal = ProcedureFeeTotals.resolvePaidAmount(payment, feeLines);
             grandTotal += lineTotal;
 

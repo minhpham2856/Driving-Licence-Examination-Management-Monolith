@@ -7,13 +7,11 @@ import enums.SectionType;
 
 import controller.examiner.ExaminerScoreEntryQueue;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
 import dao.AuditLogDAO;
 
 import dao.ExamCandidateVehicleDAO;
-
-import dao.CandidateDAO;
 
 import dao.ExaminerSessionDataDAO;
 
@@ -23,27 +21,28 @@ import dao.impl.AuditLogDAOImpl;
 
 import dao.impl.ExamCandidateVehicleDAOImpl;
 
-import dao.impl.CandidateDAOImpl;
-
 import dao.impl.ExaminerSessionDataDAOImpl;
 
 import dao.impl.TheoryPaperDAOImpl;
 
 import dto.user.AuditDTO;
 
-import dto.candidate.CandidateDTO;
+import dto.exam.ExamRegistrationDTO;
 
-import dto.examiner.ExaminerAnswerStatsDTO;
+import dto.ExaminerAnswerStatsDTO;
 
-import dto.examiner.ExaminerPaperStateDTO;
+import dto.ExaminerPaperStateDTO;
 
 import dto.score.TheoryPaperAnswerDTO;
 
+import service.ExamRegistrationService;
 import service.ExaminerSessionContextService;
 import service.ExaminerViewDataService;
+import service.impl.ExamRegistrationServiceImpl;
 import util.AuditLogViewHelper;
 
 import util.ExaminerCandidateSort;
+import util.FormatUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -71,7 +70,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     private static final int THEORY_MAX_QUESTIONS = 35;
 
     // DAO dependencies for fetching raw data
-    private final CandidateDAO candidateDAO = new CandidateDAOImpl();
+    private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
     private final ExaminerSessionDataDAO sessionDataDAO = new ExaminerSessionDataDAOImpl();
@@ -87,10 +86,10 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     @Override
     public void attachToRequest(HttpServletRequest request, int sessionId, String sbdParam, String searchQuery) {
         // Synchronise current section statuses from external systems
-        candidateDAO.syncSectionStatusesForSession(sessionId);
+        registrationService.syncSectionStatusesForSession(sessionId);
         
         // Fetch raw registrations and mapped state data
-        List<CandidateDTO> registrations = candidateDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> registrations = registrationService.getCandidatesBySession(sessionId);
         Map<Integer, ExaminerPaperStateDTO> paperStates = sessionDataDAO.findPaperStatesBySessionId(sessionId);
         Map<Integer, ExaminerAnswerStatsDTO> answerStats = sessionDataDAO.findAnswerStatsBySessionId(sessionId);
         String examCode = sessionDataDAO.findExamCodeBySessionId(sessionId);
@@ -123,7 +122,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         int failed = 0;
 
         // Iterate through each candidate to build their view row and aggregate stats
-        for (CandidateDTO reg : registrations) {
+        for (ExamRegistrationDTO reg : registrations) {
             // Apply search filter if active
             if (search != null && !matchesCandidateSearch(reg, search)) {
                 continue;
@@ -166,7 +165,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
                 
         // Fallback: If search excluded the selected candidate, force load them
         if (selected == null && sbdParam != null && !sbdParam.isBlank()) {
-            CandidateDTO reg = findRegistration(sessionId, sbdParam);
+            ExamRegistrationDTO reg = findRegistration(sessionId, sbdParam);
             if (reg != null) {
                 selected = toViewRow(reg, paperStates.get(reg.getId()), answerStats.get(reg.getId()),
                         sectionType, sectionName);
@@ -190,16 +189,16 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     public List<Map<String, Object>> loadCandidateRows(int sessionId, SectionType sectionType,
             String sectionName) {
         // Sync the latest status from upstream systems
-        candidateDAO.syncSectionStatusesForSession(sessionId);
+        registrationService.syncSectionStatusesForSession(sessionId);
         
         // Fetch registrations and their states
-        List<CandidateDTO> registrations = candidateDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> registrations = registrationService.getCandidatesBySession(sessionId);
         Map<Integer, ExaminerPaperStateDTO> paperStates = sessionDataDAO.findPaperStatesBySessionId(sessionId);
         Map<Integer, ExaminerAnswerStatsDTO> answerStats = sessionDataDAO.findAnswerStatsBySessionId(sessionId);
         
         // Map DTOs to UI-friendly maps
         List<Map<String, Object>> candidates = new ArrayList<>();
-        for (CandidateDTO reg : registrations) {
+        for (ExamRegistrationDTO reg : registrations) {
             candidates.add(toViewRow(reg, paperStates.get(reg.getId()), answerStats.get(reg.getId()),
                     sectionType, sectionName));
         }
@@ -307,16 +306,18 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         String sectionName = resolveSectionName(request);
 
         // Fetch raw state data
-        List<CandidateDTO> registrations = candidateDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> registrations = registrationService.getCandidatesBySession(sessionId);
         Map<Integer, ExaminerPaperStateDTO> paperStates = sessionDataDAO.findPaperStatesBySessionId(sessionId);
         Map<Integer, ExaminerAnswerStatsDTO> answerStats = sessionDataDAO.findAnswerStatsBySessionId(sessionId);
 
         List<String> eligibleSbds = new ArrayList<>();
+        List<Integer> eligibleSbdNos = new ArrayList<>();
         Map<String, Map<String, Object>> rowBySbd = new LinkedHashMap<>();
         Map<String, Map<String, Object>> absentRowBySbd = new LinkedHashMap<>();
+        boolean isTheory = sectionType == SectionType.THEORY;
 
         // Segregate candidates into eligible queue and absent subset
-        for (CandidateDTO reg : registrations) {
+        for (ExamRegistrationDTO reg : registrations) {
             // Exclude suspended candidates entirely
             if (reg.isSuspended()) {
                 continue;
@@ -336,31 +337,39 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             // Candidate is eligible for the queue
             Map<String, Object> row = toScoreQueueRow(reg, sectionName);
             eligibleSbds.add(reg.getSbd());
+            eligibleSbdNos.add(reg.getCandidateNo());
             rowBySbd.put(reg.getSbd(), row);
         }
 
-        // Synchronise the current set of eligible SBDs with the session queue manager
-        if (httpSession != null) {
-            ExaminerScoreEntryQueue.syncQueue(httpSession, sessionId, eligibleSbds);
-        }
+        ExaminerScoreEntryQueue.syncQueue(isTheory, sectionName, eligibleSbdNos);
 
-        // Fetch queue states
-        String activeSbd = httpSession != null ? ExaminerScoreEntryQueue.getActiveSbd(httpSession, sessionId) : null;
-        String calledSbd = httpSession != null ? ExaminerScoreEntryQueue.getCalledSbd(httpSession, sessionId) : null;
+        Integer activeSbdNo = ExaminerScoreEntryQueue.getActiveSbd(isTheory, sectionName);
+        Integer calledSbdNo = ExaminerScoreEntryQueue.getCalledSbd(isTheory, sectionName);
+        String activeSbd = activeSbdNo != null ? FormatUtil.formatSbd(activeSbdNo) : null;
+        String calledSbd = calledSbdNo != null ? FormatUtil.formatSbd(calledSbdNo) : null;
 
         // Force an override if an SBD was specifically requested via URL param
         if (sbdParam != null && !sbdParam.isBlank()) {
-            activeSbd = sbdParam.trim();
-            if (httpSession != null) {
-                ExaminerScoreEntryQueue.setActiveSbd(httpSession, sessionId, activeSbd);
+            ExamRegistrationDTO picked = findRegistration(sessionId, sbdParam.trim());
+            if (picked != null) {
+                activeSbdNo = picked.getCandidateNo();
+                activeSbd = picked.getSbd();
+                ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, activeSbdNo);
+            } else {
+                activeSbd = sbdParam.trim();
             }
         }
 
         // Reconstruct the ordered queue from the session
         List<Map<String, Object>> scoreQueue = new ArrayList<>();
-        List<String> queueOrder = httpSession != null
-                ? ExaminerScoreEntryQueue.getQueue(httpSession, sessionId)
-                : eligibleSbds;
+        List<Integer> queueOrderNos = ExaminerScoreEntryQueue.getQueue(isTheory, sectionName);
+        if (queueOrderNos.isEmpty()) {
+            queueOrderNos = eligibleSbdNos;
+        }
+        List<String> queueOrder = new ArrayList<>();
+        for (Integer sbdNo : queueOrderNos) {
+            queueOrder.add(FormatUtil.formatSbd(sbdNo));
+        }
                 
         // Add eligible candidates
         for (String sbd : queueOrder) {
@@ -401,7 +410,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
         // Distribute vehicles using round-robin assignment based on current queue order
         Map<String, Integer> sbdToCandidateId = new LinkedHashMap<>();
-        for (CandidateDTO reg : registrations) {
+        for (ExamRegistrationDTO reg : registrations) {
             sbdToCandidateId.put(reg.getSbd(), reg.getId());
         }
         List<Integer> candidateIdsInOrder = new ArrayList<>();
@@ -414,7 +423,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         
         Integer activeCandidateId = null;
         if (activeSbd != null) {
-            for (CandidateDTO reg : registrations) {
+            for (ExamRegistrationDTO reg : registrations) {
                 if (activeSbd.equals(reg.getSbd())) {
                     activeCandidateId = reg.getId();
                     break;
@@ -452,9 +461,9 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         request.setAttribute("examSectionId", examSectionId);
 
         // Calculate score and load applied deductions for the active candidate
-        CandidateDTO activeReg = null;
+        ExamRegistrationDTO activeReg = null;
         if (activeSbd != null) {
-            for (CandidateDTO reg : registrations) {
+            for (ExamRegistrationDTO reg : registrations) {
                 if (activeSbd.equals(reg.getSbd())) {
                     activeReg = reg;
                     break;
@@ -468,7 +477,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         
         if (activeReg != null && examSectionId != null) {
             // Find violations already applied
-            for (Map<String, Object> applied : candidateDAO.findAppliedScoreDeductions(
+            for (Map<String, Object> applied : registrationService.findAppliedScoreDeductions(
                     activeReg.getId(), sessionId)) {
                 Object idObj = applied.get("id");
                 if (idObj instanceof Integer) {
@@ -549,7 +558,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
                 request.setAttribute("candidate", selected);
                 request.setAttribute("candidateVehicleId", selected.get("vehicleId"));
             } else {
-                for (CandidateDTO reg : registrations) {
+                for (ExamRegistrationDTO reg : registrations) {
                     if (activeSbd.equals(reg.getSbd())) {
                         Map<String, Object> selected = toScoreQueueRow(reg, sectionName);
                         attachVehicleToQueueRow(selected, sbdToCandidateId, assignments);
@@ -567,7 +576,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     public void attachResultDetailsEdit(HttpServletRequest request, int sessionId, String sbdParam) {
         attachToRequest(request, sessionId, sbdParam, null);
 
-        CandidateDTO reg = findRegistration(sessionId, sbdParam);
+        ExamRegistrationDTO reg = findRegistration(sessionId, sbdParam);
         if (reg == null) {
             return;
         }
@@ -584,7 +593,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
         if (examSectionId != null) {
             // Determine active score or compute from deductions
-            for (Map<String, Object> applied : candidateDAO.findAppliedScoreDeductions(reg.getId(), sessionId)) {
+            for (Map<String, Object> applied : registrationService.findAppliedScoreDeductions(reg.getId(), sessionId)) {
                 Object idObj = applied.get("id");
                 if (idObj instanceof Integer) {
                     Integer id = (Integer) idObj;
@@ -647,13 +656,13 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     // Checks whether a candidate is eligible to appear in the score-entry queue.
     @Override
-    public boolean isScoreQueueEligible(int sessionId, CandidateDTO reg,
+    public boolean isScoreQueueEligible(int sessionId, ExamRegistrationDTO reg,
             SectionType sectionType, String sectionName) {
         return isScoreQueueEligibleInternal(sessionId, reg, sectionType, sectionName);
     }
 
     // Internal eligibility check: not absent/suspended, SCORE_BASED section, not done, prerequisite met.
-    private boolean isScoreQueueEligibleInternal(int sessionId, CandidateDTO reg,
+    private boolean isScoreQueueEligibleInternal(int sessionId, ExamRegistrationDTO reg,
             SectionType sectionType, String sectionName) {
         // Exclude suspended/absent
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
@@ -676,7 +685,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Checks if an absent candidate should be displayed in the score-entry queue (i.e., met prerequisites).
-    private static boolean isSectionMatchForDisplay(int sessionId, CandidateDTO reg,
+    private static boolean isSectionMatchForDisplay(int sessionId, ExamRegistrationDTO reg,
             SectionType sectionType, String sectionName) {
         if (reg == null || sectionType != SectionType.SCORE_BASED) {
             return false;
@@ -689,7 +698,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Builds a lightweight score-entry queue row for a candidate.
-    private static Map<String, Object> toScoreQueueRow(CandidateDTO reg, String sectionName) {
+    private static Map<String, Object> toScoreQueueRow(ExamRegistrationDTO reg, String sectionName) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("sbd", reg.getSbd());
         row.put("fullName", nullToDash(reg.getFullName()));
@@ -740,7 +749,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     public void attachViolation(HttpServletRequest request, int sessionId, String sbdParam) {
         attachToRequest(request, sessionId, sbdParam, null);
         request.setAttribute("scoreDeductions", sessionDataDAO.findScoreDeductions());
-        request.setAttribute("violationReasons", enums.ViolationReason.violationOptionList());
+        request.setAttribute("violationReasons", enums.ViolationReason.optionList());
         
         if (sbdParam == null || sbdParam.isBlank()) {
             request.setAttribute("candidateViolations", List.of());
@@ -764,7 +773,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         request.setAttribute("searchActive", search != null);
 
         SectionType sectionType = resolveSectionType(request);
-        String licenceClass = resolveLicenceClass(candidateDAO.getCandidatesBySession(sessionId));
+        String licenceClass = resolveLicenceClass(registrationService.getCandidatesBySession(sessionId));
         request.setAttribute("licenceClass", licenceClass);
         
         boolean scoreBased = sectionType == SectionType.SCORE_BASED;
@@ -800,7 +809,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             // Filter by device type (car vs computer) and licence classification
             boolean include = vehiclesOnly
                     ? enums.DeviceType.isVehicle(type)
-                    && enums.DeviceType.matchesLicence(licenceClass, type)
+                    && enums.DeviceType.matchesLicenceClass(licenceClass, type)
                     : enums.DeviceType.isComputer(type);
             if (include) {
                 util.FormatUtil.enrichDeviceRow(device, licenceClass);
@@ -811,7 +820,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Resolves the licence class from the first registration, defaulting to "B".
-    private static String resolveLicenceClass(List<CandidateDTO> registrations) {
+    private static String resolveLicenceClass(List<ExamRegistrationDTO> registrations) {
         if (registrations == null || registrations.isEmpty()) {
             return "B";
         }
@@ -851,7 +860,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     // Checks whether a candidate is eligible to be called for their exam section. A candidate must not be absent or suspended, and their status must be "pending".
     @Override
-    public boolean isCallEligible(int sessionId, CandidateDTO reg, SectionType sectionType,
+    public boolean isCallEligible(int sessionId, ExamRegistrationDTO reg, SectionType sectionType,
             String sectionName) {
         if (reg == null || reg.isAbsent() || reg.isSuspended()) {
             return false;
@@ -994,19 +1003,19 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     // Finds a registration (candidate DTO) by session ID and SBD.
     @Override
-    public CandidateDTO findRegistration(int sessionId, String sbd) {
+    public ExamRegistrationDTO findRegistration(int sessionId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
             return null;
         }
         // Direct database lookup
-        CandidateDTO reg = candidateDAO.getBySessionAndSbd(sessionId, sbd.trim());
+        ExamRegistrationDTO reg = registrationService.getBySessionAndSbd(sessionId, sbd.trim());
         if (reg != null) {
             return reg;
         }
         // Fallback: search locally if case mismatch or missing prefix
-        List<CandidateDTO> all = candidateDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> all = registrationService.getCandidatesBySession(sessionId);
         String normalized = sbd.trim();
-        for (CandidateDTO candidate : all) {
+        for (ExamRegistrationDTO candidate : all) {
             if (normalized.equalsIgnoreCase(candidate.getSbd())) {
                 return candidate;
             }
@@ -1015,7 +1024,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         if (!normalized.contains("-") && !all.isEmpty()) {
             String license = all.get(0).getLicenseCode();
             if (license != null) {
-                return candidateDAO.getBySessionAndSbd(sessionId, license + "-" + normalized);
+                return registrationService.getBySessionAndSbd(sessionId, license + "-" + normalized);
             }
         }
         return null;
@@ -1024,7 +1033,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     // Builds a lookup map of candidate record ID to SBD string.
     private Map<Integer, String> buildSbdLookup(int sessionId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (CandidateDTO reg : candidateDAO.getCandidatesBySession(sessionId)) {
+        for (ExamRegistrationDTO reg : registrationService.getCandidatesBySession(sessionId)) {
             lookup.put(reg.getId(), reg.getSbd());
         }
         return lookup;
@@ -1061,7 +1070,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Converts a candidate DTO and its paper state/answer stats into a display-ready map for the examiner dashboard.
-    private Map<String, Object> toViewRow(CandidateDTO reg, ExaminerPaperStateDTO paper, ExaminerAnswerStatsDTO stats,
+    private Map<String, Object> toViewRow(ExamRegistrationDTO reg, ExaminerPaperStateDTO paper, ExaminerAnswerStatsDTO stats,
             SectionType sectionType, String sectionName) {
         Map<String, Object> row = new LinkedHashMap<>();
 
@@ -1189,7 +1198,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Updates the candidate DTO's sectionStatus based on paper state (started/submitted).
-    private static void applySectionStatus(CandidateDTO reg, ExaminerPaperStateDTO paper) {
+    private static void applySectionStatus(ExamRegistrationDTO reg, ExaminerPaperStateDTO paper) {
         String sectionStatus = reg.getSectionStatus();
         if (sectionStatus == null || sectionStatus.isBlank()) {
             reg.setSectionStatus(enums.CandidateStatus.PENDING.getStatus());
@@ -1218,7 +1227,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Resolves the numeric score for the section matching the given section name.
-    private static Integer resolveScoreForSection(CandidateDTO reg, String sectionName) {
+    private static Integer resolveScoreForSection(ExamRegistrationDTO reg, String sectionName) {
         if (sectionName == null) {
             return reg.getPracticalScore();
         }
@@ -1230,7 +1239,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Resolves the pass/fail status string for the section matching the given section name.
-    private static String resolvePassStatusForSection(CandidateDTO reg, String sectionName) {
+    private static String resolvePassStatusForSection(ExamRegistrationDTO reg, String sectionName) {
         if (sectionName == null) {
             return reg.getPracticalPassed();
         }
@@ -1282,7 +1291,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Checks if a candidate matches a search query by name, SBD, government ID, or number.
-    private static boolean matchesCandidateSearch(CandidateDTO reg, String search) {
+    private static boolean matchesCandidateSearch(ExamRegistrationDTO reg, String search) {
         String q = search.toLowerCase();
         return containsIgnoreCase(reg.getFullName(), q)
                 || containsIgnoreCase(reg.getSbd(), q)
@@ -1291,7 +1300,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
     }
 
     // Returns the theory correct count from the DTO or stats object.
-    private static Integer resolveTheoryCorrectScore(CandidateDTO reg, ExaminerAnswerStatsDTO stats) {
+    private static Integer resolveTheoryCorrectScore(ExamRegistrationDTO reg, ExaminerAnswerStatsDTO stats) {
         if (reg.getTheoryScore() != null && reg.getTheoryScore() <= THEORY_MAX_QUESTIONS) {
             return reg.getTheoryScore();
         }
@@ -1308,7 +1317,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
 
     // Resolves the selected candidate from the candidate list or by DAO lookup.
     private Map<String, Object> resolveCandidate(List<Map<String, Object>> candidates,
-            List<CandidateDTO> registrations, int sessionId, String sbdParam,
+            List<ExamRegistrationDTO> registrations, int sessionId, String sbdParam,
             Map<Integer, ExaminerPaperStateDTO> paperStates, Map<Integer, ExaminerAnswerStatsDTO> answerStats,
             SectionType sectionType, String sectionName) {
         if (sbdParam == null || sbdParam.isBlank()) {
@@ -1322,11 +1331,11 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
             }
         }
         // Fallback to direct DB fetch if not matched (e.g. filtered out by search)
-        CandidateDTO reg = candidateDAO.getBySessionAndSbd(sessionId, normalized);
+        ExamRegistrationDTO reg = registrationService.getBySessionAndSbd(sessionId, normalized);
         if (reg == null && !normalized.contains("-") && !registrations.isEmpty()) {
             String license = registrations.get(0).getLicenseCode();
             if (license != null) {
-                reg = candidateDAO.getBySessionAndSbd(sessionId, license + "-" + normalized);
+                reg = registrationService.getBySessionAndSbd(sessionId, license + "-" + normalized);
             }
         }
         if (reg == null) {

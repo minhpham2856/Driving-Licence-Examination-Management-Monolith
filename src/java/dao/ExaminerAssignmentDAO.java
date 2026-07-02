@@ -1,8 +1,8 @@
 package dao;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import dto.user.UserDTO;
+import dto.UserDTO;
 
 import java.sql.Date;
 import java.util.List;

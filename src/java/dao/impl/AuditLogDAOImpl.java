@@ -5,7 +5,7 @@ import dbconnection.DBContext;
 
 import dao.AuditLogDAO;
 
-import model.user.Audit;
+import model.Audit;
 import dto.user.AuditDTO;
 
 import dto.staff.StaffProcedureKpiDTO;

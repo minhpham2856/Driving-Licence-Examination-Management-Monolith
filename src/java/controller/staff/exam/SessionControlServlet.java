@@ -1,6 +1,6 @@
 package controller.staff.exam;
 
-import model.user.User;
+import model.User;
 import service.ExamSessionControlService;
 import util.AuditLogHelper;
 

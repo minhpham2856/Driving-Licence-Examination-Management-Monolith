@@ -10,9 +10,9 @@ import dao.impl.ExamSessionDAOImpl;
 
 import dto.exam.ExamRegistrationDTO;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
 import service.ExaminerAllocationService;
 

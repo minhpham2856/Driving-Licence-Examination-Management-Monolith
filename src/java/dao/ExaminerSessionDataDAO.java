@@ -1,9 +1,9 @@
 package dao;
 
 
-import dto.examiner.ExaminerAnswerStatsDTO;
+import dto.ExaminerAnswerStatsDTO;
 
-import dto.examiner.ExaminerPaperStateDTO;
+import dto.ExaminerPaperStateDTO;
 
 
 import java.util.List;

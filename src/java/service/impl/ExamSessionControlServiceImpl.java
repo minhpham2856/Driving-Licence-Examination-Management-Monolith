@@ -4,12 +4,12 @@ package service.impl;
 import controller.staff.exam.CandidateCallBoard;
 import service.ExamSessionControlService;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 import dao.ExamSessionDAO;
 import dao.ExaminerAssignmentDAO;
 import dao.impl.ExamSessionDAOImpl;
 import dao.impl.ExaminerAssignmentDAOImpl;
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
@@ -27,8 +27,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (examSession == null) {
             return StartResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
         }
-        if (!enums.ExamSessionStatus.canStartSession(examSession.getStatus())) {
-            if (enums.ExamSessionStatus.isSessionInProgress(examSession.getStatus())) {
+        if (!enums.ExamSessionStatus.canStart(examSession.getStatus())) {
+            if (enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
                 return StartResult.fail("Ca thi \"" + examSession.getSessionName() + "\" đã được bắt đầu.");
             }
             return StartResult.fail("Ca thi \"" + examSession.getSessionName()
@@ -42,7 +42,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
                     + "Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu ca.");
         }
 
-        if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.IN_PROGRESS.getStatus())) {
+        if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.DANG_DIEN_RA.getDisplayName())) {
             return StartResult.fail("Không cập nhật được trạng thái ca thi trên cơ sở dữ liệu.");
         }
 
@@ -55,11 +55,11 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (examSession == null) {
             return EndResult.fail("Không tìm thấy ca thi (SessionId=" + sessionId + ").");
         }
-        if (!enums.ExamSessionStatus.isSessionInProgress(examSession.getStatus())) {
+        if (!enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
             return EndResult.fail("Ca thi \"" + examSession.getSessionName()
                     + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
         }
-        if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.COMPLETED.getStatus())) {
+        if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.HOAN_TAT.getDisplayName())) {
             return EndResult.fail("Không cập nhật được trạng thái kết thúc ca thi.");
         }
         return EndResult.ok(examSession.getSessionName());

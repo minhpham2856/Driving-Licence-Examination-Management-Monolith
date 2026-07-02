@@ -1,8 +1,8 @@
 package dao;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import model.exam.Session;
+import model.Session;
 import java.sql.Date;
 import java.util.List;
 

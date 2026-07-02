@@ -1,24 +1,24 @@
 package controller.staff.exam;
 
-import dto.examiner.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
 import service.ExaminerAllocationService;
 
 import service.impl.ExaminerAllocationServiceImpl;
 
-import model.exam.ExamArea;
+import model.ExamArea;
 
-import model.exam.ExamDevice;
+import model.ExamDevice;
 
-import dto.exam.SessionDTO;
+import dto.SessionDTO;
 
-import dto.user.UserDTO;
+import dto.UserDTO;
 
 import dao.ExamSessionDAO;
 
 import dao.impl.ExamSessionDAOImpl;
 
-import model.user.User;
+import model.User;
 
 import jakarta.servlet.ServletException;
 

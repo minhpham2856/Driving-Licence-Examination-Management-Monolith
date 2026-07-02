@@ -13,7 +13,7 @@ import dao.impl.ExamDAOImpl;
 import dao.DeductionRecordDAO;
 import dao.impl.DeductionRecordDAOImpl;
 import model.Audit;
-import dto.CandidateEnrollmentDTO;
+import dto.exam.ExamRegistrationDTO;
 import dao.CandidateDAO;
 import dao.impl.CandidateDAOImpl;
 import service.ExamRegistrationService;
@@ -409,7 +409,7 @@ public class ExaminerExportServiceImpl implements ExaminerExportService {
     }
     private Map<Integer, String> buildSbdLookup(int sessionId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (CandidateEnrollmentDTO reg : registrationService.getCandidatesBySession(sessionId)) {
+        for (ExamRegistrationDTO reg : registrationService.getCandidatesBySession(sessionId)) {
             lookup.put(reg.getId(), String.valueOf(reg.getSbd()));
         }
         return lookup;

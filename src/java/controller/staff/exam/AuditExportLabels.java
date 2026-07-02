@@ -203,7 +203,7 @@ public final class AuditExportLabels {
 
         }
 
-        String fromEnum = AuditEntity.auditLabel(trimmed);
+        String fromEnum = AuditEntity.resolveLabel(trimmed);
 
         if (fromEnum != null && !fromEnum.isBlank() && !fromEnum.equals(trimmed)) {
 
