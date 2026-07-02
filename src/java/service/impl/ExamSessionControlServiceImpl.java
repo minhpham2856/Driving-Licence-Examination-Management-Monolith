@@ -1,6 +1,7 @@
 // Forced recompilation trigger
 package service.impl;
 
+import controller.staff.exam.CandidateCallBoard;
 import service.ExamSessionControlService;
 
 import dto.examiner.ExaminerSlotDTO;
@@ -83,13 +84,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
             if (active != null && active == sessionId) {
                 ctx.removeAttribute(CTX_ACTIVE_SESSION_ID);
             }
-            service.CandidateCallBoardService boardService = new service.impl.CandidateCallBoardServiceImpl();
-            dto.candidate.CandidateCallBoardStateDTO board = boardService.getState(ctx, sessionId);
-            if (board != null) {
-                board.setShiftEnded(true);
-                board.setCallingSbd(null);
-                
-            }
+            CandidateCallBoard.sync(ctx, sessionId, null, null, true);
         }
         if (httpSession != null) {
             Integer selected = (Integer) httpSession.getAttribute("selectedSessionId");

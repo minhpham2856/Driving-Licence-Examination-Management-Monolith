@@ -3,10 +3,12 @@ package dto.exam;
 
 import java.sql.Timestamp;
 import java.sql.Date;
+import java.util.Locale;
 
 public class ExamRegistrationDTO {
     private int id;
     private int examSessionId;
+    private int examEnrollmentId;
     private int personId;
     private int candidateNo;
     private String registrationType;
@@ -42,7 +44,13 @@ public class ExamRegistrationDTO {
     private boolean isCalled;
     private boolean validCapturedPhoto;
     private String address;
+    private String sex;
+    private int takeNo = 1;
     private String reasonForTaking;
+    /** NULL = thi phần đó; false = bảo lưu, không thi lại. */
+    private Boolean takeTheory;
+    private Boolean takePractical;
+    private Boolean takeOnRoad;
     private Date examDate;
     private String sectionStatus = "Pending";
     private boolean signaturePrinted;
@@ -90,6 +98,14 @@ public class ExamRegistrationDTO {
 
     public void setExamSessionId(int examSessionId) {
         this.examSessionId = examSessionId;
+    }
+
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
+    }
+
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 
     public int getPersonId() {
@@ -340,12 +356,62 @@ public class ExamRegistrationDTO {
         this.address = address;
     }
 
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public int getTakeNo() {
+        return takeNo;
+    }
+
+    public void setTakeNo(int takeNo) {
+        this.takeNo = takeNo;
+    }
+
     public String getReasonForTaking() {
         return reasonForTaking;
     }
 
     public void setReasonForTaking(String reasonForTaking) {
         this.reasonForTaking = reasonForTaking;
+    }
+
+    public Boolean getTakeTheory() {
+        return takeTheory;
+    }
+
+    public void setTakeTheory(Boolean takeTheory) {
+        this.takeTheory = takeTheory;
+    }
+
+    public Boolean getTakePractical() {
+        return takePractical;
+    }
+
+    public void setTakePractical(Boolean takePractical) {
+        this.takePractical = takePractical;
+    }
+
+    public Boolean getTakeOnRoad() {
+        return takeOnRoad;
+    }
+
+    public void setTakeOnRoad(Boolean takeOnRoad) {
+        this.takeOnRoad = takeOnRoad;
+    }
+
+    /** Chỉ thi lại lý thuyết — bảo lưu thực hành/sa hình. */
+    public boolean skipsPractical() {
+        return Boolean.FALSE.equals(takePractical);
+    }
+
+    /** Bảo lưu đường trường (hoặc kèm theo khi chỉ thi lại lý thuyết). */
+    public boolean skipsRoad() {
+        return Boolean.FALSE.equals(takeOnRoad) || skipsPractical();
     }
 
     public Date getExamDate() {
@@ -394,5 +460,109 @@ public class ExamRegistrationDTO {
 
     public void setDuplicate(boolean duplicate) {
         this.duplicate = duplicate;
+    }
+
+    /** Alias for JSP / legacy ExamStaff views. */
+    public String getName() {
+        return fullName;
+    }
+
+    /** Alias for JSP / legacy ExamStaff views. */
+    public String getClazz() {
+        return licenseCode;
+    }
+
+    public java.sql.Date getDob() {
+        return dateOfBirth;
+    }
+
+    public String getCccd() {
+        return govIdNo;
+    }
+
+    /** Thủ tục hoàn tất: đối chiếu hồ sơ + chụp ảnh + thu lệ phí. Không tính vắng/đình chỉ. */
+    public boolean isProcedureComplete() {
+        if (isAbsent() || isSuspended()) {
+            return false;
+        }
+        if (!isPaymentCompleted) {
+            return false;
+        }
+        boolean hasPhoto = validCapturedPhoto
+                || (photoUrl != null && !photoUrl.trim().isEmpty());
+        return hasPhoto;
+    }
+
+    /** Đã xong toàn bộ kỳ thi (đủ phần thi theo hạng bằng). */
+    public boolean isExamFinished() {
+        if (isAbsent()) {
+            return true;
+        }
+        if (!isPaymentCompleted) {
+            return false;
+        }
+        if ("failed".equalsIgnoreCase(theoryPassed)) {
+            return true;
+        }
+        if (skipsPractical() && "passed".equalsIgnoreCase(theoryPassed)) {
+            return true;
+        }
+        if ("failed".equalsIgnoreCase(practicalPassed) && !skipsPractical()) {
+            return true;
+        }
+        if ("failed".equalsIgnoreCase(roadTestPassed) && !skipsRoad() && isRequiresRoadTest()) {
+            return true;
+        }
+        String practical = effectivePracticalPassed();
+        if ("passed".equalsIgnoreCase(theoryPassed) && "passed".equalsIgnoreCase(practical)
+                && !isRequiresRoadTest()) {
+            return true;
+        }
+        return isRequiresRoadTest()
+                && "passed".equalsIgnoreCase(theoryPassed)
+                && "passed".equalsIgnoreCase(practical)
+                && !effectiveRoadTestPassed().isBlank()
+                && !"none".equalsIgnoreCase(effectiveRoadTestPassed());
+    }
+
+    public boolean isFinalPass() {
+        if (isAbsent()) {
+            return false;
+        }
+        if (!"passed".equalsIgnoreCase(theoryPassed)) {
+            return false;
+        }
+        if (skipsPractical()) {
+            return true;
+        }
+        if (isRequiresRoadTest()) {
+            return "passed".equalsIgnoreCase(effectivePracticalPassed())
+                    && "passed".equalsIgnoreCase(effectiveRoadTestPassed());
+        }
+        return "passed".equalsIgnoreCase(effectivePracticalPassed());
+    }
+
+    private String effectivePracticalPassed() {
+        if (skipsPractical() && "passed".equalsIgnoreCase(theoryPassed)) {
+            return "passed";
+        }
+        return practicalPassed == null || practicalPassed.isBlank() ? "none" : practicalPassed.trim();
+    }
+
+    private String effectiveRoadTestPassed() {
+        if (skipsRoad() && "passed".equalsIgnoreCase(effectivePracticalPassed())) {
+            return "passed";
+        }
+        return roadTestPassed == null || roadTestPassed.isBlank() ? "none" : roadTestPassed.trim();
+    }
+
+    public boolean isRequiresRoadTest() {
+        if (licenseCode == null) {
+            return false;
+        }
+        String lc = licenseCode.toUpperCase(Locale.ROOT).trim();
+        return lc.equals("B") || lc.equals("B1") || lc.equals("B2") || lc.equals("C")
+                || lc.equals("D") || lc.equals("E") || lc.equals("F")
+                || lc.equals("C1") || lc.equals("D1") || lc.equals("D2");
     }
 }

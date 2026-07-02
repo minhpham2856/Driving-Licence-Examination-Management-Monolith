@@ -1,30 +1,34 @@
 package dao;
 
-
 import dto.exam.SessionDTO;
 
 import model.exam.Session;
 import java.sql.Date;
 import java.util.List;
 
-// DAO cho thao tác với kỳ thi (Session).
 public interface ExamSessionDAO {
 
-    // Lấy thông tin kỳ thi theo mã, trả về DTO.
+    // Lay dang ky theo id
     SessionDTO getById(int id);
+    // Lay model dang ky theo id
 
-    // Lấy thông tin kỳ thi theo mã, trả về Model.
+    // Lay active sessions
     Session findById(int id);
+    // Lay tat ca sessions
 
-    // Lấy danh sách các kỳ thi đang hoạt động.
+    // Lay tat ca sessions basic
     List<SessionDTO> getActiveSessions();
+    // Lay exam day picker options
 
-    // Lấy danh sách tất cả kỳ thi.
+    // Lay sessions by exam date
     List<SessionDTO> getAllSessions();
+    // Cap nhat status
 
-    // Lấy danh sách kỳ thi theo ngày thi.
+    List<SessionDTO> getAllSessionsBasic();
+
+    List<SessionDTO> getExamDayPickerOptions();
+
     List<SessionDTO> getSessionsByExamDate(Date examDate);
 
-    // Cập nhật trạng thái kỳ thi.
     boolean updateStatus(int sessionId, String status);
 }

@@ -47,6 +47,10 @@ public interface ExamRegistrationService {
      */
     List<ExamRegistrationDTO> getCandidatesBySession(int sessionId);
 
+    List<ExamRegistrationDTO> getCandidatesByExam(int examId);
+
+    ExamRegistrationDTO getByExamAndSbd(int examId, String sbd);
+
     /**
      * Cập nhật trạng thái điểm danh cho đăng ký thi.
      *
@@ -148,6 +152,8 @@ public interface ExamRegistrationService {
      */
     boolean updatePhoto(int id, String photoUrl);
 
+    boolean clearCompletedPayments(int candidateId);
+
     /**
      * Thêm mới một đăng ký thi.
      *
@@ -155,6 +161,14 @@ public interface ExamRegistrationService {
      * @return true nếu thêm thành công
      */
     boolean insert(ExamRegistrationDTO reg);
+
+    /**
+     * Thêm thí sinh import DSTS trực tiếp vào Candidate + ExamEnrollment.
+     *
+     * @param reg đối tượng ExamRegistrationDTO đã validate
+     * @return true nếu thêm thành công
+     */
+    boolean insertFromDstsImport(ExamRegistrationDTO reg);
 
     /**
      * Lấy danh sách tất cả đăng ký thi.
@@ -187,6 +201,15 @@ public interface ExamRegistrationService {
      * @return Integer mã đăng ký thi, hoặc null nếu không tìm thấy
      */
     Integer findCandidateIdByProfileAndSession(int profileId, int sessionId);
+
+    /**
+     * Tìm CandidateId theo CCCD và ca thi.
+     *
+     * @param govId     số CCCD
+     * @param sessionId mã ca thi
+     * @return CandidateId hoặc null
+     */
+    Integer findCandidateIdByGovIdAndSession(String govId, int sessionId);
 
     /**
      * Áp dụng các khoản trừ điểm cho một phần thi và tính lại ExamScore.

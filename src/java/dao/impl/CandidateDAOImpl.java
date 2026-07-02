@@ -173,7 +173,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
     public List<CandidateDTO> getCandidatesBySession(int sessionId) {
         List<CandidateDTO> list = new ArrayList<>();
         String sql = Db2CandidateSql.CANDIDATE_SELECT
-                + " WHERE ec.SessionId = ? ORDER BY candidateNo";
+                + " WHERE ee.SessionId = ? ORDER BY candidateNo";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, sessionId);
             try (ResultSet rs = ps.executeQuery()) {

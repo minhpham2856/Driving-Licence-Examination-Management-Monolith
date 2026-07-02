@@ -226,10 +226,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
     private boolean isReadyForAllocation(ExamRegistrationDTO c) {
         if (c.isAbsent()) return false;
-        boolean procedureDone = c.isPresent()
-                && c.getPhotoUrl() != null && !c.getPhotoUrl().isEmpty()
-                && c.isPaymentCompleted();
-        return procedureDone && "none".equals(c.getTheoryPassed());
+        return c.isProcedureComplete() && "none".equals(c.getTheoryPassed());
     }
 
     private boolean isAlreadyAllocated(ExamRegistrationDTO c) {

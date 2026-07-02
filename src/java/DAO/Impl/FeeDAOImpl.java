@@ -1,8 +1,8 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.FeeDAO;
-import Models.Fee;
+import dbconnection.DBContext;
+import dao.FeeDAO;
+import model.payment.Fee;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +21,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 WHERE IsActive = 1
                 ORDER BY FeeType, FeeName
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 fees.add(mapRow(rs));
@@ -61,7 +61,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 WHERE pf.PaymentId = ?
                 ORDER BY f.FeeType, f.FeeName
                 """;
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, paymentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -106,11 +106,11 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     private Fee mapRow(ResultSet rs) throws SQLException {
         Fee fee = new Fee();
-        fee.setId(rs.getInt("FeeId"));
+        fee.setFeeId(rs.getInt("FeeId"));
         fee.setFeeName(rs.getString("FeeName"));
         fee.setFeeType(rs.getString("FeeType"));
         fee.setAmount(rs.getDouble("Amount"));
-        fee.setActive(rs.getBoolean("IsActive"));
+        fee.setIsActive(rs.getBoolean("IsActive"));
         return fee;
     }
 }

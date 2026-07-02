@@ -1,19 +1,12 @@
 package dao;
 
-
 import model.payment.Payment;
 
-/**
- * DAO cho thao tác với thanh toán (Payment) trong hệ thống.
- * Cung cấp phương thức ghi nhận giao dịch thanh toán của thí sinh.
- */
 public interface PaymentDAO {
 
-    /**
-     * Thêm mới một bản ghi thanh toán.
-     *
-     * @param payment đối tượng Payment chứa thông tin thanh toán
-     * @return true nếu thêm thành công
-     */
+    // Them dang ky thi (qua Profile)
     boolean insert(Payment payment);
+    // Lay theo candidate id
+
+    Payment getByCandidateId(int candidateId);
 }

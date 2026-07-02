@@ -10,13 +10,21 @@ import model.user.Profile;
  */
 public interface ProfileDAO {
 
-    /**
+  /**
      * Lấy thông tin hồ sơ theo mã.
      *
      * @param id mã hồ sơ
      * @return Profile model, hoặc null nếu không tìm thấy
      */
     Profile getById(int id);
+
+    /**
+     * Lấy thông tin hồ sơ theo mã người dùng.
+     *
+     * @param userId mã người dùng
+     * @return Profile model, hoặc null nếu không tìm thấy
+     */
+    Profile getByUserId(int userId);
 
     /**
      * Lấy thông tin hồ sơ theo số CMND/CCCD.

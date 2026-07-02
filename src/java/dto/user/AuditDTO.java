@@ -18,6 +18,12 @@ public class AuditDTO {
     private String changerName;
     private String ipAddress;
     private String sessionId;
+    /** Nhãn nghiệp vụ tiếng Việt cho hiển thị UI (không ghi DB). */
+    private String entityLabelVi;
+    /** Nhãn loại thao tác tiếng Việt cho hiển thị UI. */
+    private String actionLabelVi;
+    /** Chi tiết đã chuẩn hóa cho hiển thị UI. */
+    private String displayDetails;
 
     public AuditDTO() {
     }
@@ -124,5 +130,29 @@ public class AuditDTO {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public String getEntityLabelVi() {
+        return entityLabelVi;
+    }
+
+    public void setEntityLabelVi(String entityLabelVi) {
+        this.entityLabelVi = entityLabelVi;
+    }
+
+    public String getActionLabelVi() {
+        return actionLabelVi;
+    }
+
+    public void setActionLabelVi(String actionLabelVi) {
+        this.actionLabelVi = actionLabelVi;
+    }
+
+    public String getDisplayDetails() {
+        return displayDetails;
+    }
+
+    public void setDisplayDetails(String displayDetails) {
+        this.displayDetails = displayDetails;
     }
 }

@@ -28,7 +28,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                    a.Action AS action,
                    a.OldValue AS oldValue,
                    a.NewValue AS newValue,
-                   a.Details AS details,
+                   ISNULL(a.Details, a.Reason) AS details,
                    a.Reason AS reason,
                    a.UserId AS changedBy,
                    a.CreatedAt AS changedAt,
@@ -43,9 +43,9 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     private static final String SESSION_AUDIT_WHERE = """
             WHERE EXISTS (
                 SELECT 1
-                FROM Exam_Candidate ec
-                INNER JOIN Candidate c ON c.CandidateId = ec.CandidateId
-                WHERE ec.SessionId = ?
+                FROM ExamEnrollment ee
+                INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
+                WHERE ee.SessionId = ?
                   AND (
                         TRY_CAST(a.EntityId AS INT) = c.CandidateId
                         OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'
@@ -197,14 +197,14 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                         ps.setString(2, dateStr);
                         ps.setInt(3, offset);
                         ps.setInt(4, pageSize);
-                    }, true);
+                    }, false);
         }
         return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
                 ps -> {
                     ps.setInt(1, userId);
                     ps.setInt(2, offset);
                     ps.setInt(3, pageSize);
-                }, true);
+                }, false);
     }
 
     /**
@@ -318,16 +318,15 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 FROM (
                     SELECT DISTINCT p.PaymentId, p.TotalAmount
                     FROM Payment p
-                    INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
-                    WHERE p.PaymentStatus IN ('Completed', 'Paid')
-                      AND c.PhotoImageUrl IS NOT NULL
-                      AND LEN(LTRIM(RTRIM(c.PhotoImageUrl))) > 0
+                    INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
+                    INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
+                    WHERE p.PaymentStatus IN (N'Completed', N'Paid')
                       AND EXISTS (
                           SELECT 1
                           FROM Audit a
                           WHERE a.UserId = ?
-                            AND a.EntityName = 'Payment'
-                            AND a.Action = 'INSERT'
+                            AND a.EntityName IN (N'Thanh toán', N'Payment')
+                            AND a.Action = N'INSERT'
                             AND (
                                 TRY_CAST(a.EntityId AS INT) = c.CandidateId
                                 OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'

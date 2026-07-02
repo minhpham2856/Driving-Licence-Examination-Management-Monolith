@@ -51,7 +51,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                    ISNULL(sea.ExamAreaId, 0) AS areaId,
                    s.[Status] AS status,
                    ISNULL(ea.Capacity, 100) AS maxCandidates,
-                   (SELECT COUNT(*) FROM Exam_Candidate ec2 WHERE ec2.SessionId = s.SessionId) AS registeredCount,
+                   (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount,
                    s.StartTime AS createdAt,
                    l.LicenceClass AS licenseCode,
                    sect.examTypeName,
@@ -82,10 +82,68 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             ) sect ON sect.SessionId = s.SessionId
             """;
 
+    private static final String SESSION_SELECT_BASIC = """
+            SELECT s.SessionId AS id,
+                   s.ExamId AS examId,
+                   s.SessionName AS sessionName,
+                   e.LicenceId AS licenseTypeId,
+                   1 AS examTypeId,
+                   CAST(s.StartTime AS DATE) AS examDate,
+                   CAST(s.StartTime AS TIME) AS shiftStartTime,
+                   CAST(s.EndTime AS TIME) AS shiftEndTime,
+                   0 AS areaId,
+                   s.[Status] AS status,
+                   100 AS maxCandidates,
+                   (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount,
+                   s.StartTime AS createdAt,
+                   l.LicenceClass AS licenseCode,
+                   CAST(NULL AS NVARCHAR(200)) AS examTypeName,
+                   CAST(NULL AS NVARCHAR(200)) AS areaName
+            FROM [Session] s
+            JOIN Exam e ON e.ExamId = s.ExamId
+            JOIN Licence l ON l.LicenceId = e.LicenceId
+            """;
+
+    /** Một ca đại diện mỗi ExamId — query tối giản cho dropdown. */
+    private static final String EXAM_DAY_PICKER_SELECT = """
+            SELECT s.SessionId AS id,
+                   s.ExamId AS examId,
+                   s.SessionName AS sessionName,
+                   e.LicenceId AS licenseTypeId,
+                   1 AS examTypeId,
+                   CAST(s.StartTime AS DATE) AS examDate,
+                   CAST(s.StartTime AS TIME) AS shiftStartTime,
+                   CAST(s.EndTime AS TIME) AS shiftEndTime,
+                   0 AS areaId,
+                   s.[Status] AS status,
+                   100 AS maxCandidates,
+                   (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount,
+                   s.StartTime AS createdAt,
+                   l.LicenceClass AS licenseCode,
+                   CAST(NULL AS NVARCHAR(200)) AS examTypeName,
+                   CAST(NULL AS NVARCHAR(200)) AS areaName
+            FROM [Session] s
+            INNER JOIN (
+                SELECT ExamId, MIN(SessionId) AS SessionId
+                FROM [Session]
+                GROUP BY ExamId
+            ) pick ON pick.SessionId = s.SessionId
+            JOIN Exam e ON e.ExamId = s.ExamId
+            JOIN Licence l ON l.LicenceId = e.LicenceId
+            """;
+
     // Retrieves a rich SessionDTO by primary key with all joined fields.
     @Override
     public SessionDTO getById(int id) {
-        String sql = SESSION_SELECT + " WHERE s.SessionId = ?";
+        SessionDTO session = fetchSessionById(SESSION_SELECT, id);
+        if (session != null) {
+            return session;
+        }
+        return fetchSessionById(SESSION_SELECT_BASIC, id);
+    }
+
+    private SessionDTO fetchSessionById(String selectSql, int id) {
+        String sql = selectSql + " WHERE s.SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -131,6 +189,41 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (list.isEmpty()) {
+            list.addAll(getAllSessionsBasic());
+        }
+        return list;
+    }
+
+    @Override
+    public List<SessionDTO> getAllSessionsBasic() {
+        List<SessionDTO> list = new ArrayList<>();
+        String sql = SESSION_SELECT_BASIC
+                + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSetToExamSession(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public List<SessionDTO> getExamDayPickerOptions() {
+        List<SessionDTO> list = new ArrayList<>();
+        String sql = EXAM_DAY_PICKER_SELECT
+                + " ORDER BY CAST(s.StartTime AS DATE) DESC, l.LicenceClass";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSetToExamSession(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return list;
     }
 
@@ -141,24 +234,6 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         String sql = SESSION_SELECT + " WHERE CAST(s.StartTime AS DATE) = ? ORDER BY CAST(s.StartTime AS TIME)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setDate(1, examDate);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToExamSession(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    // Updates the status of a session.
-    @Override
-    public List<ExamSession> getSessionsByExamId(int examId) {
-        List<ExamSession> list = new ArrayList<>();
-        String sql = SESSION_SELECT + " WHERE s.ExamId = ? ORDER BY CAST(s.StartTime AS TIME)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToExamSession(rs));

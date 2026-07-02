@@ -33,6 +33,16 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
+    public List<ExamRegistrationDTO> getCandidatesByExam(int examId) {
+        return dao.getCandidatesByExam(examId);
+    }
+
+    @Override
+    public ExamRegistrationDTO getByExamAndSbd(int examId, String sbd) {
+        return dao.getByExamAndSbd(examId, sbd);
+    }
+
+    @Override
     public boolean updatePresent(int id, boolean isPresent) {
         return dao.updatePresent(id, isPresent);
     }
@@ -83,8 +93,18 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
+    public boolean clearCompletedPayments(int candidateId) {
+        return dao.clearCompletedPayments(candidateId);
+    }
+
+    @Override
     public boolean insert(ExamRegistrationDTO reg) {
         return dao.insert(reg);
+    }
+
+    @Override
+    public boolean insertFromDstsImport(ExamRegistrationDTO reg) {
+        return dao.insertFromDstsImport(reg);
     }
 
     @Override
@@ -105,6 +125,11 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     @Override
     public Integer findCandidateIdByProfileAndSession(int profileId, int sessionId) {
         return dao.findCandidateIdByProfileAndSession(profileId, sessionId);
+    }
+
+    @Override
+    public Integer findCandidateIdByGovIdAndSession(String govId, int sessionId) {
+        return dao.findCandidateIdByGovIdAndSession(govId, sessionId);
     }
 
     @Override

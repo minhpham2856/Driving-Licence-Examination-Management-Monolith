@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.Fee;
+import model.payment.Fee;
 import java.util.List;
 
 public interface FeeDAO {

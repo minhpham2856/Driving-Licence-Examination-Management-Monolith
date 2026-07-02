@@ -1,51 +1,27 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.RoleDAO;
-import Models.Role;
-import java.sql.*;
+import dao.RoleDAO;
+import enums.UserRole;
+import model.user.Role;
 
-public class RoleDAOImpl extends DBContext implements RoleDAO {
+public class RoleDAOImpl implements RoleDAO {
 
     @Override
     public Role getById(int id) {
-        String sql = """
-                     select * from Role where id = ?
-                     """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Role(rs.getInt("id"), rs.getString("roleName"));
-                }
+        for (UserRole role : UserRole.values()) {
+            if (role.getId() == id) {
+                return new Role(id, role.getRoleName());
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-
         return null;
     }
 
     @Override
     public Role getByName(String roleName) {
-        String sql = """
-                     select * from Role where roleName = ?
-                     """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, roleName);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Role(rs.getInt("id"), rs.getString("roleName"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        int id = UserRole.roleIdFromName(roleName);
+        if (id == 0) {
+            return null;
         }
-
-        return null;
+        return new Role(id, roleName);
     }
 }

@@ -1,39 +1,47 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.UserDAO;
-import Models.Person;
-import Models.Role;
-import Models.User;
-import java.sql.*;
+import dbconnection.DBContext;
+import dao.UserDAO;
+import enums.UserRole;
+import model.user.User;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UserDAOImpl extends DBContext implements UserDAO {
 
+    private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
+
     private static final String USER_SELECT = """
-                     select u.UserId,
-                     	u.Username,
-                     	u.Email,
-                     	u.PasswordHash,
-                     	u.[Role],
-                     	u.[Status],
-                     	p.ProfileId,
-                     	p.FullName,
-                     	p.DateOfBirth,
-                     	p.PhoneNumber,
-                     	p.Sex,
-                     	p.GovernmentIdNumber,
-                     	p.Address
-                     from [User] u
-                     left join Profile p on p.UserId = u.UserId
-                     """;
+            SELECT u.UserId,
+                   u.Username,
+                   u.Email,
+                   u.PasswordHash,
+                   u.RoleId,
+                   u.[Status],
+                   r.RoleName,
+                   p.ProfileId,
+                   p.FullName,
+                   p.DateOfBirth,
+                   p.PhoneNumber,
+                   p.Sex,
+                   p.GovernmentIdNumber,
+                   p.Address
+            FROM [User] u
+            INNER JOIN [Role] r ON r.RoleId = u.RoleId
+            LEFT JOIN Profile p ON p.UserId = u.UserId
+            """;
 
     @Override
     public User getById(int id) {
-        String sql = USER_SELECT + " where u.UserId = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        String sql = USER_SELECT + " WHERE u.UserId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -42,17 +50,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
     @Override
     public User getByUsername(String username) {
-        String sql = USER_SELECT + " where u.Username = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        String sql = USER_SELECT + " WHERE u.Username = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -61,19 +66,22 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
     @Override
     public User getByIdentifier(String identifier) {
-        String sql = USER_SELECT + " where u.Username = ? or u.Email = ? or p.PhoneNumber = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        String sql = USER_SELECT + """
+                 WHERE u.Username = ?
+                    OR u.Email = ?
+                    OR p.PhoneNumber = ?
+                    OR p.GovernmentIdNumber = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
             ps.setString(3, identifier);
-
+            ps.setString(4, identifier);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -82,17 +90,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
     @Override
     public User getByEmail(String email) {
-        String sql = USER_SELECT + " where u.Email = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        String sql = USER_SELECT + " WHERE u.Email = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, email);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -101,40 +106,48 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
     @Override
     public boolean insert(User user) {
+        Connection conn = getConnection();
+        if (conn == null) {
+            LOG.severe("Cannot insert user: database connection is unavailable.");
+            return false;
+        }
+
         String sql = """
-                     insert into [User] (Username, Email, PasswordHash, [Role], [Status])
-                     values (?, ?, ?, ?, ?)
-                     """;
+                INSERT INTO [User] (Username, Email, PasswordHash, RoleId, [Status])
+                VALUES (?, ?, ?, ?, ?)
+                """;
 
-        String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Registrant";
+        int roleId = user.getRoleId();
+        if (roleId <= 0) {
+            roleId = UserRole.roleIdFromName("Registrant");
+        }
 
-        try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"UserId"})) {
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
-            ps.setString(4, roleName);
-            ps.setBoolean(5, user.isIsActive());
+            ps.setInt(4, roleId);
+            ps.setBoolean(5, user.isActive());
 
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows == 0) {
+            if (ps.executeUpdate() == 0) {
                 return false;
             }
 
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    user.setId(generatedKeys.getInt(1));
+                    user.setUserId(generatedKeys.getInt(1));
                 }
             }
 
-            return true;
+            return user.getUserId() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Failed to insert user {0}: {1}",
+                    new Object[]{user.getEmail(), e.getMessage()});
         }
 
         return false;
@@ -143,15 +156,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
-                     update [User]
-                     set PasswordHash = ?
-                     where UserId = ?
-                     """;
+                UPDATE [User]
+                SET PasswordHash = ?
+                WHERE UserId = ?
+                """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, passwordHash);
             ps.setInt(2, userId);
-
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -162,38 +174,19 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
-
-        user.setId(rs.getInt("UserId"));
+        user.setUserId(rs.getInt("UserId"));
         user.setUsername(rs.getString("Username"));
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
-        user.setIsActive(rs.getBoolean("Status"));
+        user.setActive(rs.getBoolean("Status"));
 
-        Integer profileId = (Integer) rs.getObject("ProfileId");
-        user.setPersonId(profileId);
-
-        Role role = new Role();
-        role.setRoleName(rs.getString("Role"));
-        user.setRole(role);
-
-        if (profileId != null) {
-            Person person = new Person();
-            person.setId(profileId);
-            person.setUserId(rs.getInt("UserId"));
-            person.setFullName(rs.getString("FullName"));
-            person.setDateOfBirth(rs.getDate("DateOfBirth"));
-            person.setPhoneNo(rs.getString("PhoneNumber"));
-            person.setGovIdNo(rs.getString("GovernmentIdNumber"));
-            person.setAddress(rs.getString("Address"));
-            person.setEmail(user.getEmail());
-            person.setGender(mapSexToGender(rs.getString("Sex")));
-            user.setPerson(person);
+        int roleId = rs.getInt("RoleId");
+        if (!rs.wasNull()) {
+            user.setRoleId(roleId);
+        } else {
+            user.setRoleId(UserRole.roleIdFromName(rs.getString("RoleName")));
         }
 
         return user;
-    }
-
-    private boolean mapSexToGender(String sex) {
-        return sex != null && "Nữ".equalsIgnoreCase(sex.trim());
     }
 }
