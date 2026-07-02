@@ -1,6 +1,6 @@
-package Utils;
+package util;
 
-import Models.User;
+import model.user.User;
 import jakarta.servlet.http.HttpSession;
 
 public final class SessionUserHelper {
@@ -16,6 +16,6 @@ public final class SessionUserHelper {
 
     public static int resolveUserId(HttpSession session, int defaultId) {
         User user = (User) session.getAttribute("user");
-        return (user != null && user.getId() > 0) ? user.getId() : defaultId;
+        return (user != null && user.getUserId() > 0) ? user.getUserId() : defaultId;
     }
 }

@@ -1,6 +1,6 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
-import Models.AuditLog;
+import dto.user.AuditDTO;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
@@ -21,7 +21,8 @@ public final class AuditExcelExporter {
     private AuditExcelExporter() {
     }
 
-    public static void export(OutputStream out, List<AuditLog> logs, int completedProcedures,
+    // export
+    public static void export(OutputStream out, List<AuditDTO> logs, int completedProcedures,
             double totalFees, String staffName, String filterDateLabel) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             CellStyle headerStyle = boldStyle(workbook);
@@ -68,7 +69,7 @@ public final class AuditExcelExporter {
             int r = 1;
             int stt = 1;
             if (logs != null) {
-                for (AuditLog log : logs) {
+                for (AuditDTO log : logs) {
                     Row data = sheet.createRow(r++);
                     int col = 0;
                     data.createCell(col++).setCellValue(stt++);
@@ -113,6 +114,7 @@ public final class AuditExcelExporter {
             workbook.write(out);
         }
     }
+    // kv
 
     private static int kv(Sheet sheet, int row, String key, Object value) {
         Row r = sheet.createRow(row++);
@@ -123,6 +125,7 @@ public final class AuditExcelExporter {
             r.createCell(1).setCellValue(value != null ? value.toString() : "");
         }
         return row;
+    // bold style
     }
 
     private static CellStyle boldStyle(Workbook wb) {
@@ -130,6 +133,7 @@ public final class AuditExcelExporter {
         Font font = wb.createFont();
         font.setBold(true);
         style.setFont(font);
+    // create date style
         return style;
     }
 

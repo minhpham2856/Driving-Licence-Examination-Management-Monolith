@@ -1,14 +1,14 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
-import DAO.FeeDAO;
-import DAO.Impl.FeeDAOImpl;
-import DAO.Impl.PaymentDAOImpl;
-import DAO.PaymentDAO;
-import Models.ExamRegistration;
-import Models.ExamSession;
-import Models.Fee;
-import Models.Payment;
-import Utils.ProcedureFeeTotals;
+import dao.FeeDAO;
+import dao.PaymentDAO;
+import dao.impl.FeeDAOImpl;
+import dao.impl.PaymentDAOImpl;
+import dto.exam.ExamRegistrationDTO;
+import dto.exam.SessionDTO;
+import model.payment.Fee;
+import model.payment.Payment;
+import util.ProcedureFeeTotals;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
@@ -35,19 +35,27 @@ public final class ReportExcelExporter {
     private ReportExcelExporter() {
     }
 
-    public static void exportExamReport(OutputStream out, ExamSession session,
-            List<ExamRegistration> candidates, ReportExportStats stats,
+    // export exam report
+    public static void exportExamReport(OutputStream out, SessionDTO session,
+            List<ExamRegistrationDTO> candidates, ReportExportStats stats,
             List<Map<String, Object>> infractions, String exporterName) throws IOException {
 
         try (Workbook workbook = new XSSFWorkbook()) {
             CellStyle headerStyle = boldStyle(workbook);
             CellStyle dateStyle = workbook.createCellStyle();
             dateStyle.setDataFormat(workbook.getCreationHelper().createDataFormat().getFormat("dd/MM/yyyy"));
+            // write overview sheet
+            // write license sheet
+            // write section sheet
+            // write candidate sheet
+            // write infraction sheet
+            // write fee sheet
 
             writeOverviewSheet(workbook, headerStyle, session, stats, exporterName);
             writeLicenseSheet(workbook, headerStyle, candidates);
             writeSectionSheet(workbook, headerStyle, stats);
             writeCandidateSheet(workbook, headerStyle, dateStyle, candidates);
+    // write overview sheet
             writeInfractionSheet(workbook, headerStyle, infractions);
             writeFeeSheet(workbook, headerStyle, candidates, session);
 
@@ -56,7 +64,7 @@ public final class ReportExcelExporter {
     }
 
     private static void writeOverviewSheet(Workbook wb, CellStyle headerStyle,
-            ExamSession session, ReportExportStats stats, String exporterName) {
+            SessionDTO session, ReportExportStats stats, String exporterName) {
         Sheet sheet = wb.createSheet("Tổng quan");
         int row = 0;
         row = writeTitleBlock(sheet, row, headerStyle, "BÁO CÁO TỔNG HỢP CA THI");
@@ -66,6 +74,7 @@ public final class ReportExcelExporter {
         row = writeKv(sheet, row, "Đã thi xong", stats.examCompletedCount);
         row = writeKv(sheet, row, "Đạt", stats.passedCount);
         row = writeKv(sheet, row, "Chưa đạt", stats.failedCount);
+    // write license sheet
         row = writeKv(sheet, row, "Vắng/đình chỉ", stats.absentCount);
         row = writeKv(sheet, row, "Tỷ lệ đạt (%)", round1(stats.passRate));
         row = writeKv(sheet, row, "Người xuất", exporterName != null ? exporterName : "");
@@ -74,7 +83,7 @@ public final class ReportExcelExporter {
         sheet.autoSizeColumn(1);
     }
 
-    private static void writeLicenseSheet(Workbook wb, CellStyle headerStyle, List<ExamRegistration> candidates) {
+    private static void writeLicenseSheet(Workbook wb, CellStyle headerStyle, List<ExamRegistrationDTO> candidates) {
         Sheet sheet = wb.createSheet("Theo hạng bằng");
         Row header = sheet.createRow(0);
         String[] cols = {"Hạng bằng", "Đăng ký", "Đã thi", "Đạt", "Chưa đạt", "Tỷ lệ đạt (%)"};
@@ -92,6 +101,7 @@ public final class ReportExcelExporter {
             r.createCell(1).setCellValue(a.registered);
             r.createCell(2).setCellValue(a.completed);
             r.createCell(3).setCellValue(a.passed);
+    // write section sheet
             r.createCell(4).setCellValue(a.failed);
             double rate = a.completed > 0 ? (a.passed * 100.0 / a.completed) : 0;
             r.createCell(5).setCellValue(round1(rate));
@@ -111,6 +121,7 @@ public final class ReportExcelExporter {
             c.setCellStyle(headerStyle);
         }
         int row = 1;
+    // write section row
         row = writeSectionRow(sheet, row, "Lý thuyết", stats.theoryCount, stats.theoryPassed, stats.theoryFailed);
         row = writeSectionRow(sheet, row, "Sa hình / Thực hành", stats.practicalCount, stats.practicalPassed, stats.practicalFailed);
         if (stats.roadCount > 0) {
@@ -121,6 +132,7 @@ public final class ReportExcelExporter {
         }
     }
 
+    // write candidate sheet
     private static int writeSectionRow(Sheet sheet, int row, String name, int total, int passed, int failed) {
         Row r = sheet.createRow(row);
         r.createCell(0).setCellValue(name);
@@ -133,7 +145,7 @@ public final class ReportExcelExporter {
     }
 
     private static void writeCandidateSheet(Workbook wb, CellStyle headerStyle, CellStyle dateStyle,
-            List<ExamRegistration> candidates) {
+            List<ExamRegistrationDTO> candidates) {
         Sheet sheet = wb.createSheet("Danh sách kết quả");
         Row header = sheet.createRow(0);
         String[] cols = {
@@ -151,7 +163,7 @@ public final class ReportExcelExporter {
         int passCount = 0;
         int failCount = 0;
         int absentCount = 0;
-        for (ExamRegistration reg : candidates) {
+        for (ExamRegistrationDTO reg : candidates) {
             Row r = sheet.createRow(row++);
             int col = 0;
             r.createCell(col++).setCellValue(stt++);
@@ -179,6 +191,7 @@ public final class ReportExcelExporter {
                 if (reg.isFinalPass()) {
                     passCount++;
                 } else {
+    // write infraction sheet
                     failCount++;
                 }
             }
@@ -204,6 +217,7 @@ public final class ReportExcelExporter {
         int row = 1;
         if (infractions != null) {
             int stt = 1;
+    // write fee sheet
             for (Map<String, Object> inf : infractions) {
                 Row r = sheet.createRow(row++);
                 r.createCell(0).setCellValue(stt++);
@@ -218,7 +232,7 @@ public final class ReportExcelExporter {
     }
 
     private static void writeFeeSheet(Workbook wb, CellStyle headerStyle,
-            List<ExamRegistration> candidates, ExamSession session) {
+            List<ExamRegistrationDTO> candidates, SessionDTO session) {
         Sheet sheet = wb.createSheet("Thu phí thủ tục");
         Row header = sheet.createRow(0);
         String[] cols = {
@@ -233,7 +247,7 @@ public final class ReportExcelExporter {
         int row = 1;
         int stt = 1;
         double grandTotal = 0;
-        for (ExamRegistration reg : candidates) {
+        for (ExamRegistrationDTO reg : candidates) {
             if (reg.isAbsent() || !reg.isIsPaymentCompleted()) {
                 continue;
             }
@@ -251,11 +265,12 @@ public final class ReportExcelExporter {
             r.createCell(col++).setCellValue(reg.getSbd());
             r.createCell(col++).setCellValue(nullToEmpty(reg.getName()));
             r.createCell(col++).setCellValue(nullToEmpty(reg.getClazz()));
-            if (payment.getPaymentDate() != null) {
+            if (payment.getPaidAt() != null) {
                 r.createCell(col++).setCellValue(new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.forLanguageTag("vi-VN"))
-                        .format(payment.getPaymentDate()));
+                        .format(payment.getPaidAt()));
             } else {
                 r.createCell(col++).setBlank();
+    // Kiem tra active procedure payment
             }
             r.createCell(col++).setCellValue(nullToEmpty(payment.getPaymentMethod()));
             r.createCell(col++).setCellValue(nullToEmpty(payment.getTransactionReference()));
@@ -263,6 +278,7 @@ public final class ReportExcelExporter {
             r.createCell(col++).setCellValue(lineTotal);
         }
         Row totalRow = sheet.createRow(row + 1);
+    // format fee detail
         totalRow.createCell(0).setCellValue("TỔNG CỘNG");
         totalRow.createCell(8).setCellValue(grandTotal);
         for (int i = 0; i < cols.length; i++) {
@@ -276,6 +292,7 @@ public final class ReportExcelExporter {
             return false;
         }
         return "Completed".equalsIgnoreCase(status) || "Paid".equalsIgnoreCase(status);
+    // aggregate by license
     }
 
     private static String formatFeeDetail(List<Fee> feeLines) {
@@ -292,16 +309,17 @@ public final class ReportExcelExporter {
         return sb.toString();
     }
 
-    private static Map<String, LicenseAgg> aggregateByLicense(List<ExamRegistration> candidates) {
+    private static Map<String, LicenseAgg> aggregateByLicense(List<ExamRegistrationDTO> candidates) {
         Map<String, LicenseAgg> map = new LinkedHashMap<>();
         if (candidates == null) {
             return map;
         }
-        for (ExamRegistration reg : candidates) {
+        for (ExamRegistrationDTO reg : candidates) {
             String lic = reg.getLicenseCode() != null ? reg.getLicenseCode().trim().toUpperCase(Locale.ROOT) : "N/A";
             LicenseAgg a = map.computeIfAbsent(lic, k -> new LicenseAgg());
             a.registered++;
             if (reg.isAbsent()) {
+    // write title block
                 a.completed++;
                 a.failed++;
                 continue;
@@ -309,6 +327,7 @@ public final class ReportExcelExporter {
             if (!reg.isExamFinished()) {
                 continue;
             }
+    // write kv
             a.completed++;
             if (reg.isFinalPass()) {
                 a.passed++;
@@ -319,6 +338,7 @@ public final class ReportExcelExporter {
         return map;
     }
 
+    // bold style
     private static int writeTitleBlock(Sheet sheet, int row, CellStyle headerStyle, String title) {
         Row r = sheet.createRow(row++);
         Cell c = r.createCell(0);
@@ -335,6 +355,7 @@ public final class ReportExcelExporter {
         } else {
             r.createCell(1).setCellValue(value != null ? value.toString() : "");
         }
+    // write score cell
         return row;
     }
 
@@ -349,6 +370,7 @@ public final class ReportExcelExporter {
     private static void writeDateCell(Cell cell, java.sql.Date date, CellStyle dateStyle) {
         if (date == null) {
             cell.setBlank();
+    // notes label
             return;
         }
         cell.setCellValue(new Date(date.getTime()));
@@ -359,18 +381,22 @@ public final class ReportExcelExporter {
         if (score == null) {
             cell.setBlank();
         } else {
+    // null to empty
             cell.setCellValue(score);
         }
     }
+    // round1
 
     private static String formatSqlDate(java.sql.Date date) {
         if (date == null) {
+    // to int
             return "";
         }
         return new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN")).format(date);
     }
 
-    private static String notesLabel(ExamRegistration reg) {
+    private static String notesLabel(ExamRegistrationDTO reg) {
+    // to double
         if (reg.isAbsent()) {
             return "Vắng/Đình chỉ";
         }

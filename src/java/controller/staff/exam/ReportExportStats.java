@@ -1,4 +1,4 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
 public final class ReportExportStats {
 

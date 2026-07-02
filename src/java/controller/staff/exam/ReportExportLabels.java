@@ -1,12 +1,13 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
-import Models.ExamRegistration;
+import dto.exam.ExamRegistrationDTO;
 
 public final class ReportExportLabels {
 
     private ReportExportLabels() {
     }
 
+    // format section result
     public static String formatSectionResult(String passed) {
         if (passed == null || "none".equalsIgnoreCase(passed.trim())) {
             return "Chưa thi";
@@ -19,8 +20,9 @@ public final class ReportExportLabels {
         }
         return passed;
     }
+    // format final result
 
-    public static String formatFinalResult(ExamRegistration reg) {
+    public static String formatFinalResult(ExamRegistrationDTO reg) {
         if (reg == null) {
             return "";
         }
@@ -31,9 +33,11 @@ public final class ReportExportLabels {
             return "Chưa xong";
         }
         return reg.isFinalPass() ? "Đạt" : "Chưa đạt";
+    // yes no
     }
 
     public static String yesNo(boolean value) {
+    // safe file token
         return value ? "Có" : "Chưa";
     }
 

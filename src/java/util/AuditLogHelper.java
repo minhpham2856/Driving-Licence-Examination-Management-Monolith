@@ -61,7 +61,16 @@ public final class AuditLogHelper {
             log.setAction(normalizeAction(action));
             log.setOldValue(oldValue);
             log.setNewValue(newValue);
-            log.setReason(reason);
+            String reasonText = reason;
+            if ((reasonText == null || reasonText.isBlank()) && detailsJson != null && !detailsJson.isBlank()) {
+                reasonText = detailsJson;
+            } else if (reasonText != null && detailsJson != null && !detailsJson.isBlank()) {
+                reasonText = reasonText + " | " + detailsJson;
+            }
+            if ((reasonText == null || reasonText.isBlank()) && contextDetails != null && !contextDetails.isBlank()) {
+                reasonText = contextDetails;
+            }
+            log.setReason(reasonText);
             log.setDetails(detailsJson);
             log.setUserId(userId);
             log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
@@ -112,7 +121,7 @@ public final class AuditLogHelper {
             return "Profile";
         }
         if (upper.contains("EXAMINER") || upper.contains("ASSIGN") || upper.contains("REMOVE")) {
-            return "Session_Examiner";
+            return "ExaminerSchedule";
         }
         if (detailUpper.contains("ĐIỂM") || detailUpper.contains("DIEM")
                 || upper.contains("EXAMSCORE") || detailUpper.contains("LÝ THUYẾT")

@@ -1,11 +1,11 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
-import DAO.AuditLogDAO;
-import DAO.Impl.AuditLogDAOImpl;
-import Models.AuditLog;
-import Models.User;
-import Utils.SessionUserHelper;
-
+import dao.AuditLogDAO;
+import dao.impl.AuditLogDAOImpl;
+import dto.user.AuditDTO;
+import model.user.Profile;
+import model.user.User;
+import util.SessionUserHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,14 +20,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Endpoint riêng tải Excel nhật ký — tránh nhầm với trang audit.jsp và cache trình duyệt.
- */
 @WebServlet("/views/staff/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
 
     private final AuditLogDAO logDAO = new AuditLogDAOImpl();
 
+    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -39,8 +37,7 @@ public class AuditExportServlet extends HttpServlet {
 
         int userId = SessionUserHelper.resolveUserId(session);
         String filterDate = resolveFilterDate(request);
-
-        List<AuditLog> personalLogs = loadLogs(userId, filterDate);
+        List<AuditDTO> personalLogs = loadLogs(userId, filterDate);
         var procedureKpi = logDAO.getStaffProcedureKpi(userId, filterDate);
 
         try {
@@ -60,7 +57,7 @@ public class AuditExportServlet extends HttpServlet {
     }
 
     static void streamExcel(HttpServletResponse response, HttpSession session,
-            List<AuditLog> logs, int completedProcedures, double totalFees, String filterDate)
+            List<AuditDTO> logs, int completedProcedures, double totalFees, String filterDate)
             throws IOException {
         response.reset();
         response.setBufferSize(128 * 1024);
@@ -79,9 +76,14 @@ public class AuditExportServlet extends HttpServlet {
         response.setDateHeader("Expires", 0);
 
         String staffName = "";
-        User user = (User) session.getAttribute("user");
-        if (user != null && user.getPerson() != null && user.getPerson().getFullName() != null) {
-            staffName = user.getPerson().getFullName();
+        Object profileObj = session.getAttribute("userProfile");
+        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
+            staffName = profile.getFullName();
+        } else {
+            User user = (User) session.getAttribute("user");
+            if (user != null) {
+                staffName = user.getUsername();
+            }
         }
         String scopeLabel = (filterDate != null && !filterDate.isBlank())
                 ? "Ngày " + filterDate
@@ -91,6 +93,7 @@ public class AuditExportServlet extends HttpServlet {
                 totalFees, staffName, scopeLabel);
         response.getOutputStream().flush();
     }
+    // Xac dinh filter date
 
     private static String resolveFilterDate(HttpServletRequest request) {
         String filterDate = request.getParameter("filterDate");
@@ -98,9 +101,10 @@ public class AuditExportServlet extends HttpServlet {
             filterDate = request.getParameter("date");
         }
         return filterDate;
+    // Tai logs
     }
 
-    private List<AuditLog> loadLogs(int userId, String filterDate) {
+    private List<AuditDTO> loadLogs(int userId, String filterDate) {
         try {
             if (filterDate != null && !filterDate.trim().isEmpty()) {
                 return logDAO.getLogsByUserAndDate(userId, filterDate);

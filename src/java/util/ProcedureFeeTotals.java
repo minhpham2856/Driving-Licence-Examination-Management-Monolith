@@ -1,21 +1,16 @@
-package Utils;
+package util;
 
-import Models.Fee;
-import Models.Payment;
+import model.payment.Fee;
+import model.payment.Payment;
 
 import java.util.List;
 
-/**
- * Cách tính tổng lệ phí thủ tục thống nhất giữa nhật ký (audit) và báo cáo cuối ngày.
- */
+/** Cách tính tổng lệ phí thủ tục thống nhất giữa nhật ký (audit) và báo cáo cuối ngày. */
 public final class ProcedureFeeTotals {
 
     private ProcedureFeeTotals() {
     }
 
-    /**
-     * Ưu tiên tổng các dòng Payment_Fee; nếu không có hoặc bằng 0 thì dùng TotalAmount của Payment.
-     */
     public static double resolvePaidAmount(List<Fee> feeLines, double paymentTotalAmount) {
         if (feeLines == null || feeLines.isEmpty()) {
             return paymentTotalAmount > 0 ? paymentTotalAmount : 0;
@@ -31,10 +26,9 @@ public final class ProcedureFeeTotals {
         if (payment == null) {
             return 0;
         }
-        return resolvePaidAmount(feeLines, payment.getAmount());
+        return resolvePaidAmount(feeLines, payment.getTotalAmount());
     }
 
-    /** Biểu thức SQL dùng chung cho audit KPI và tổng phí theo kỳ thi. */
     public static final String SQL_PAID_AMOUNT =
             "CASE WHEN fees.lineTotal IS NULL OR fees.lineTotal = 0 THEN p.TotalAmount ELSE fees.lineTotal END";
 

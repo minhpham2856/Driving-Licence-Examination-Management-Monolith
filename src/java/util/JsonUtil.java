@@ -1,4 +1,6 @@
-package Utils;
+package util;
+
+import dto.exam.ExamRegistrationDTO;
 
 public final class JsonUtil {
 
@@ -39,7 +41,7 @@ public final class JsonUtil {
         }
     }
 
-    public static void appendCandidateJson(StringBuilder json, Models.ExamRegistration candidate) {
+    public static void appendCandidateJson(StringBuilder json, ExamRegistrationDTO candidate) {
         if (candidate == null) {
             json.append("null");
             return;
@@ -49,5 +51,20 @@ public final class JsonUtil {
         appendJsonField(json, "name", candidate.getName(), true);
         appendJsonField(json, "clazz", candidate.getClazz(), false);
         json.append('}');
+    }
+
+    public static void appendCandidateArrayJson(StringBuilder json, java.util.List<ExamRegistrationDTO> candidates) {
+        if (candidates == null || candidates.isEmpty()) {
+            json.append("[]");
+            return;
+        }
+        json.append('[');
+        for (int i = 0; i < candidates.size(); i++) {
+            appendCandidateJson(json, candidates.get(i));
+            if (i < candidates.size() - 1) {
+                json.append(',');
+            }
+        }
+        json.append(']');
     }
 }

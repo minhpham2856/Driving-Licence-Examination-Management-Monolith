@@ -1,12 +1,13 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
-import DAO.ExamRegistrationDAO;
-import DAO.ExamSessionDAO;
-import DAO.Impl.ExamRegistrationDAOImpl;
-import DAO.Impl.ExamSessionDAOImpl;
-import Models.ExamRegistration;
-import Models.ExamSession;
-import Models.User;
+import dao.ExamRegistrationDAO;
+import dao.ExamSessionDAO;
+import dao.impl.ExamRegistrationDAOImpl;
+import dao.impl.ExamSessionDAOImpl;
+import dto.exam.ExamRegistrationDTO;
+import dto.exam.SessionDTO;
+import model.user.Profile;
+import model.user.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -28,43 +29,25 @@ public class ReportServlet extends HttpServlet {
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
     private final ExamRegistrationDAO regDAO = new ExamRegistrationDAOImpl();
 
+    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        int sessId = ExamStaffViewHelper.resolveSessionId(request, session, 2);
-
-        ExamSession currentSession;
-        try {
-            currentSession = sessionDAO.getById(sessId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            currentSession = null;
-        }
-        if (currentSession != null) {
-            request.setAttribute("currentSession", currentSession);
-        }
-
-        List<ExamRegistration> qList;
-        try {
-            qList = regDAO.getCandidatesBySession(sessId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new ArrayList<>();
-        }
-        if (qList == null) {
-            qList = new ArrayList<>();
-        }
-
         String webRoot = request.getServletContext().getRealPath("/");
+        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+                request, session, sessionDAO, webRoot);
+        int examId = pageCtx.getExamId();
+        List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
+        SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
         List<String> missingPhotoSbds = new ArrayList<>();
-        List<ExamRegistration> missingPhotoCandidates = new ArrayList<>();
+        List<ExamRegistrationDTO> missingPhotoCandidates = new ArrayList<>();
+        List<ExamRegistrationDTO> procedurePendingCandidates = new ArrayList<>();
         int missingPhotoCount = 0;
         int procedureCompleteCount = 0;
         int procedurePendingCount = 0;
-        for (ExamRegistration reg : qList) {
+        for (ExamRegistrationDTO reg : qList) {
             boolean valid = CandidatePhotoHelper.resolveCapturedPhoto(webRoot, reg);
-            reg.setValidCapturedPhoto(valid);
             if (reg.isAbsent()) {
                 continue;
             }
@@ -73,6 +56,7 @@ public class ReportServlet extends HttpServlet {
                 continue;
             }
             procedurePendingCount++;
+            procedurePendingCandidates.add(reg);
             if (!valid) {
                 missingPhotoCount++;
                 missingPhotoSbds.add(reg.getSbd() + " — " + reg.getName());
@@ -82,6 +66,7 @@ public class ReportServlet extends HttpServlet {
         request.setAttribute("missingPhotoCount", missingPhotoCount);
         request.setAttribute("missingPhotoSbds", missingPhotoSbds);
         request.setAttribute("missingPhotoCandidates", missingPhotoCandidates);
+        request.setAttribute("procedurePendingCandidates", procedurePendingCandidates);
         request.setAttribute("procedureCompleteCount", procedureCompleteCount);
         request.setAttribute("procedurePendingCount", procedurePendingCount);
 
@@ -95,6 +80,7 @@ public class ReportServlet extends HttpServlet {
         request.setAttribute("candidateList", qList);
         ReportStatsHelper.populateReportAttributes(request, qList);
 
+            // stream excel
         if (exportExcel && !exportBlocked) {
             streamExcel(response, request, currentSession, qList);
             return;
@@ -106,11 +92,12 @@ public class ReportServlet extends HttpServlet {
         }
 
         request.getRequestDispatcher("/views/staff/examstaff/report.jsp").forward(request, response);
+    // stream excel
     }
 
     @SuppressWarnings("unchecked")
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
-            ExamSession currentSession, List<ExamRegistration> qList) throws IOException {
+            SessionDTO currentSession, List<ExamRegistrationDTO> qList) throws IOException {
         String token = ReportExportLabels.safeFileToken(
                 currentSession != null ? currentSession.getSessionName() : "ca_thi");
         String datePart = new SimpleDateFormat("ddMMyyyy", Locale.forLanguageTag("vi-VN")).format(new Date());
@@ -130,14 +117,16 @@ public class ReportServlet extends HttpServlet {
                 stats,
                 infractions,
                 exporterName);
+    // Xac dinh exporter name
         response.getOutputStream().flush();
     }
 
     private String resolveExporterName(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user != null && user.getPerson() != null && user.getPerson().getFullName() != null) {
-            return user.getPerson().getFullName();
+        Object profileObj = session.getAttribute("userProfile");
+        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
+            return profile.getFullName();
         }
-        return "";
+        User user = (User) session.getAttribute("user");
+        return user != null ? user.getUsername() : "";
     }
 }

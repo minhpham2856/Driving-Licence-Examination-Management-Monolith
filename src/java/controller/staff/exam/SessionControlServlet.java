@@ -18,6 +18,7 @@ public class SessionControlServlet extends HttpServlet {
 
     private final ExamSessionControlService controlService = new service.impl.ExamSessionControlServiceImpl();
 
+    // Xu ly yeu cau POST
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -53,10 +54,13 @@ public class SessionControlServlet extends HttpServlet {
 
         response.sendRedirect(redirect);
     }
+    // Xu ly yeu cau GET
 
     @Override
+        // Xu ly yeu cau POST
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+    // parse session id
         doPost(request, response);
     }
 
@@ -68,10 +72,12 @@ public class SessionControlServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
+    // Xac dinh staff id
         Integer selected = (Integer) session.getAttribute("selectedSessionId");
         return selected != null ? selected : 2;
     }
 
+    // Tao redirect
     private int resolveStaffId(HttpSession session) {
         User user = (User) session.getAttribute("user");
         return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
@@ -83,8 +89,6 @@ public class SessionControlServlet extends HttpServlet {
         if ("examiner-allocation".equals(from)) {
             return ctx + "/views/staff/examstaff/examiner-allocation?sessionId=" + sessionId;
         }
-        return ctx + "/views/staff/examstaff/dashboard.jsp?sessionId=" + sessionId;
+        return ctx + "/views/staff/examstaff/dashboard?sessionId=" + sessionId;
     }
 }
-
-

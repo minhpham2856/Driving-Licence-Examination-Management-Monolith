@@ -1,16 +1,10 @@
-package Controllers.Staff.ExamStaff;
+package controller.staff.exam;
 
+import dbconnection.DBContext;
 
-
-import DBConnection.DBContext;
-
-import Models.ExamRegistration;
-
-
+import dto.exam.ExamRegistrationDTO;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-
 
 import java.sql.Connection;
 
@@ -30,19 +24,14 @@ import java.util.Locale;
 
 import java.util.Map;
 
-
-
 public final class ReportStatsHelper {
-
-
 
     private ReportStatsHelper() {
 
     }
 
-
-
-    public static void populateReportAttributes(HttpServletRequest request, List<ExamRegistration> qList) {
+    // populate report attributes
+    public static void populateReportAttributes(HttpServletRequest request, List<ExamRegistrationDTO> qList) {
 
         int totalCandidates = qList != null ? qList.size() : 0;
 
@@ -54,15 +43,11 @@ public final class ReportStatsHelper {
 
         int examCompletedCount = 0;
 
-
-
         int theoryCount = 0;
 
         int theoryPassed = 0;
 
         int theoryFailed = 0;
-
-
 
         int practicalCount = 0;
 
@@ -70,23 +55,17 @@ public final class ReportStatsHelper {
 
         int practicalFailed = 0;
 
-
-
         int roadCount = 0;
 
         int roadPassed = 0;
 
         int roadFailed = 0;
 
-
-
         Map<String, LicenseAgg> licenseMap = new LinkedHashMap<>();
-
-
 
         if (qList != null) {
 
-            for (ExamRegistration reg : qList) {
+            for (ExamRegistrationDTO reg : qList) {
 
                 String lic = normalizeLicense(reg.getLicenseCode());
 
@@ -94,15 +73,11 @@ public final class ReportStatsHelper {
 
                 agg.registered++;
 
-
-
                 if (reg.isAbsent()) {
 
                     absentCount++;
 
                 }
-
-
 
                 String tPass = reg.getTheoryPassed();
 
@@ -120,8 +95,6 @@ public final class ReportStatsHelper {
 
                 }
 
-
-
                 String pPass = reg.getPracticalPassed();
 
                 if ("passed".equalsIgnoreCase(pPass)) {
@@ -137,8 +110,6 @@ public final class ReportStatsHelper {
                     practicalFailed++;
 
                 }
-
-
 
                 String rPass = reg.getRoadTestPassed();
 
@@ -156,23 +127,15 @@ public final class ReportStatsHelper {
 
                 }
 
-
-
-                // Cùng logic với trang phân bổ: examFinished / finalPass
-
                 if (!reg.isExamFinished()) {
 
                     continue;
 
                 }
 
-
-
                 examCompletedCount++;
 
                 agg.completed++;
-
-
 
                 if (reg.isFinalPass()) {
 
@@ -192,15 +155,11 @@ public final class ReportStatsHelper {
 
         }
 
-
-
         double passRate = examCompletedCount > 0
 
                 ? ((double) passedCount / examCompletedCount) * 100.0
 
                 : 0.0;
-
-
 
         List<Map<String, Object>> licenseStats = new ArrayList<>();
 
@@ -222,8 +181,6 @@ public final class ReportStatsHelper {
 
         }
 
-
-
         request.setAttribute("totalCandidates", totalCandidates);
 
         request.setAttribute("examCompletedCount", examCompletedCount);
@@ -237,8 +194,6 @@ public final class ReportStatsHelper {
         request.setAttribute("passRate", passRate);
 
         request.setAttribute("licenseStats", licenseStats);
-
-
 
         LicenseAgg a1 = sumLicenseBucket(licenseMap, "A1", "A2");
 
@@ -260,15 +215,11 @@ public final class ReportStatsHelper {
 
         request.setAttribute("b2Failed", b2.failed);
 
-
-
         request.setAttribute("theoryCount", theoryCount);
 
         request.setAttribute("theoryPassed", theoryPassed);
 
         request.setAttribute("theoryFailed", theoryFailed);
-
-
 
         request.setAttribute("practicalCount", practicalCount);
 
@@ -276,21 +227,16 @@ public final class ReportStatsHelper {
 
         request.setAttribute("practicalFailed", practicalFailed);
 
-
-
         request.setAttribute("roadCount", roadCount);
 
         request.setAttribute("roadPassed", roadPassed);
 
         request.setAttribute("roadFailed", roadFailed);
 
-
-
         request.setAttribute("infractions", loadTopInfractions());
 
     }
-
-
+    // normalize license
 
     private static String normalizeLicense(String licenseCode) {
 
@@ -303,8 +249,6 @@ public final class ReportStatsHelper {
         return licenseCode.trim().toUpperCase(Locale.ROOT);
 
     }
-
-
 
     private static LicenseAgg sumLicenseBucket(Map<String, LicenseAgg> map, String... codes) {
 
@@ -332,9 +276,8 @@ public final class ReportStatsHelper {
 
         return total;
 
+    // Tai top infractions
     }
-
-
 
     private static List<Map<String, Object>> loadTopInfractions() {
 
@@ -396,8 +339,6 @@ public final class ReportStatsHelper {
 
     }
 
-
-
     private static final class LicenseAgg {
 
         final String code;
@@ -410,8 +351,6 @@ public final class ReportStatsHelper {
 
         int failed;
 
-
-
         LicenseAgg(String code) {
 
             this.code = code;
@@ -421,4 +360,3 @@ public final class ReportStatsHelper {
     }
 
 }
-
