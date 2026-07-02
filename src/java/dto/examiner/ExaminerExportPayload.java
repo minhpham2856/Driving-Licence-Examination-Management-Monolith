@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/examiner/ExaminerExportPayload.java
 package dto.examiner;
-========
-package service;
->>>>>>>> Stashed changes:src/java/service/ExaminerExportPayload.java
 
 import dto.xml.XmlExportDocument;
 import dto.xml.XmlExportTable;

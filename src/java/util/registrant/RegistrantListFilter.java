@@ -1,18 +1,9 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantListFilter.java
 package util.registrant;
 
 import dto.registrant.RegistrantDashboardActivity;
 import dto.registrant.RegistrantExamSessionOption;
 import dto.registrant.RegistrantMyExamRow;
 import dto.registrant.RegistrantRegisteredExamRow;
-========
-package util;
-
-import model.registrant.RegistrantDashboardActivity;
-import model.registrant.RegistrantExamSessionOption;
-import model.registrant.RegistrantMyExamRow;
-import model.registrant.RegistrantRegisteredExamRow;
->>>>>>>> Stashed changes:src/java/util/RegistrantListFilter.java
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;

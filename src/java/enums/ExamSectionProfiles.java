@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/enums/ExamSectionProfiles.java
 package enums;
-========
-package constant;
->>>>>>>> Stashed changes:src/java/constant/ExamSectionProfiles.java
 
 /**
  * Maps assigned exam section names to examiner portal behaviour.

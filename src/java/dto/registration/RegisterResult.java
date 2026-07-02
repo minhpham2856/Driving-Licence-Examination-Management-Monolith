@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/registration/RegisterResult.java
 package dto.registration;
-========
-package model.common;
->>>>>>>> Stashed changes:src/java/model/common/RegisterResult.java
 
 public class RegisterResult {
 

@@ -1,4 +1,3 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantFilterSupport.java
 package util.registrant;
 
 import dto.registrant.RegistrantExamSessionOption;
@@ -6,15 +5,6 @@ import dto.registrant.RegistrantFilterOption;
 import dto.registrant.RegistrantLicenceOption;
 import dto.registrant.RegistrantMyExamRow;
 import dto.registrant.RegistrantRegisteredExamRow;
-========
-package util;
-
-import model.registrant.RegistrantExamSessionOption;
-import model.registrant.RegistrantFilterOption;
-import model.registrant.RegistrantLicenceOption;
-import model.registrant.RegistrantMyExamRow;
-import model.registrant.RegistrantRegisteredExamRow;
->>>>>>>> Stashed changes:src/java/util/RegistrantFilterSupport.java
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;

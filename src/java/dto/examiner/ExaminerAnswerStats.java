@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/examiner/ExaminerAnswerStats.java
 package dto.examiner;
-========
-package model.exam;
->>>>>>>> Stashed changes:src/java/model/exam/ExaminerAnswerStats.java
 
 public class ExaminerAnswerStats {
     private int correct;

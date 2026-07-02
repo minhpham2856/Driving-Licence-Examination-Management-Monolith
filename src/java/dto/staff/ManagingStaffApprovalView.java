@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/staff/ManagingStaffApprovalView.java
 package dto.staff;
-========
-package model.staff;
->>>>>>>> Stashed changes:src/java/model/staff/ManagingStaffApprovalView.java
 
 import dto.registrant.RegistrantDocumentView;
 import java.util.List;

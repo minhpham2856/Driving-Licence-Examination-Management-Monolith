@@ -1,4 +1,3 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantProfileSupport.java
 package util.registrant;
 
 import enums.registrant.ProfileRegistrationStatus;
@@ -10,19 +9,6 @@ import model.user.Profile;
 import dto.registrant.ProfileRegistrationSyncResult;
 import dto.registrant.RegistrantDocumentView;
 import dto.registrant.RegistrantRegisteredExamRow;
-========
-package util;
-
-import constant.ProfileRegistrationStatus;
-import dao.DocumentDAO;
-import dao.ProfileDAO;
-import dao.RegistrantDAO;
-import model.registrant.RegistrantProfileContext;
-import model.user.Profile;
-import model.registrant.ProfileRegistrationSyncResult;
-import model.registrant.RegistrantDocumentView;
-import model.registrant.RegistrantRegisteredExamRow;
->>>>>>>> Stashed changes:src/java/util/RegistrantProfileSupport.java
 import model.user.User;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashSet;

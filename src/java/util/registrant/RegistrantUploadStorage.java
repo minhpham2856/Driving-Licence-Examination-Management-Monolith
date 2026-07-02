@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantUploadStorage.java
 package util.registrant;
-========
-package util;
->>>>>>>> Stashed changes:src/java/util/RegistrantUploadStorage.java
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;

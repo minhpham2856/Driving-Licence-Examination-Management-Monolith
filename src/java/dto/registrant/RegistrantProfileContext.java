@@ -1,13 +1,7 @@
-<<<<<<<< Updated upstream:src/java/dto/registrant/RegistrantProfileContext.java
 package dto.registrant;
 
 import enums.registrant.ProfileRegistrationStatus;
 import model.user.Profile;
-========
-package model.registrant;
-
-import constant.ProfileRegistrationStatus;
->>>>>>>> Stashed changes:src/java/model/registrant/RegistrantProfileContext.java
 import java.util.Collections;
 import java.util.List;
 

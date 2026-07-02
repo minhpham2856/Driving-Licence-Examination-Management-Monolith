@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/staff/StaffProcedureKpiDTO.java
 package dto.staff;
-========
-package model.staff;
->>>>>>>> Stashed changes:src/java/model/staff/StaffProcedureKpi.java
 
 public class StaffProcedureKpiDTO {
     private final int completedCount;

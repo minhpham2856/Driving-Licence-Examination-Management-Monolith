@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/enums/registrant/ProfileRegistrationStatus.java
 package enums.registrant;
-========
-package constant;
->>>>>>>> Stashed changes:src/java/constant/ProfileRegistrationStatus.java
 
 /**
  * Trạng thái hồ sơ tài liệu trên bảng ExamRegistration (giai đoạn trước / song song đăng ký ca thi).

@@ -1,4 +1,3 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantAuditHelper.java
 package util.registrant;
 
 import util.AuditLogHelper;
@@ -6,13 +5,6 @@ import util.AuditLogViewHelper;
 import enums.AuditEntityLabels;
 import model.user.AuditLog;
 import dto.registrant.RegistrantTrackingLog;
-========
-package util;
-
-import constant.AuditEntityLabels;
-import model.user.AuditLog;
-import model.registrant.RegistrantTrackingLog;
->>>>>>>> Stashed changes:src/java/util/RegistrantAuditHelper.java
 import jakarta.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/examiner/ExaminerPaperState.java
 package dto.examiner;
-========
-package model.exam;
->>>>>>>> Stashed changes:src/java/model/exam/ExaminerPaperState.java
 
 public class ExaminerPaperState {
     private boolean started;

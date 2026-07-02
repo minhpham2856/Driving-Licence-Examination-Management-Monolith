@@ -1,12 +1,6 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantExamResultEmailFormatter.java
 package util.registrant;
 
 import dto.registrant.RegistrantExamResultEmailData;
-========
-package util;
-
-import model.registrant.RegistrantExamResultEmailData;
->>>>>>>> Stashed changes:src/java/util/RegistrantExamResultEmailFormatter.java
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 

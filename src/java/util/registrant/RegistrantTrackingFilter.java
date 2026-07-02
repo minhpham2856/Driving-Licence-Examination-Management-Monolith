@@ -1,14 +1,7 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantTrackingFilter.java
 package util.registrant;
 
 import dto.registrant.RegistrantFilterOption;
 import dto.registrant.RegistrantTrackingLog;
-========
-package util;
-
-import model.registrant.RegistrantFilterOption;
-import model.registrant.RegistrantTrackingLog;
->>>>>>>> Stashed changes:src/java/util/RegistrantTrackingFilter.java
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDate;

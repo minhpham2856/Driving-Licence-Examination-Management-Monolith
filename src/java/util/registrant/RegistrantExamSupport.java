@@ -1,4 +1,3 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantExamSupport.java
 package util.registrant;
 
 import dao.ExamRegistrationDAO;
@@ -10,19 +9,6 @@ import dto.exam.SessionScheduleInfo;
 import enums.registrant.ExamRegistrationLifecycleStatus;
 import enums.ExamSessionStatus;
 import enums.registrant.ProfileRegistrationStatus;
-========
-package util;
-
-import dao.ExamRegistrationDAO;
-import model.registrant.RegistrantMyExamRow;
-import model.registrant.RegistrantRegisteredExamRow;
-import model.registrant.RegistrantSectionRegistrationBlock;
-import model.exam.SessionExamSectionInfo;
-import model.exam.SessionScheduleInfo;
-import constant.ExamRegistrationLifecycleStatus;
-import constant.ExamSessionStatus;
-import constant.ProfileRegistrationStatus;
->>>>>>>> Stashed changes:src/java/util/RegistrantExamSupport.java
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -51,11 +37,7 @@ public final class RegistrantExamSupport {
     }
 
     public static boolean isSbdPending(String candidateNumber) {
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantExamSupport.java
         return enums.Db2Mappings.isPendingCandidateNumber(candidateNumber);
-========
-        return constant.Db2Mappings.isPendingCandidateNumber(candidateNumber);
->>>>>>>> Stashed changes:src/java/util/RegistrantExamSupport.java
     }
 
     /** Thí sinh thấy SBD sau khi Ban sát hạch import danh sách chính thức. */

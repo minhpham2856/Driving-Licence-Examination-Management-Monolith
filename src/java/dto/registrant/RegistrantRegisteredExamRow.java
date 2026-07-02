@@ -1,8 +1,4 @@
-<<<<<<<< Updated upstream:src/java/dto/registrant/RegistrantRegisteredExamRow.java
 package dto.registrant;
-========
-package model.registrant;
->>>>>>>> Stashed changes:src/java/model/registrant/RegistrantRegisteredExamRow.java
 
 import java.util.Date;
 
@@ -17,11 +13,7 @@ public class RegistrantRegisteredExamRow {
     private String examName;
     private String examCode;
     private String licenceClass;
-<<<<<<<< Updated upstream:src/java/dto/registrant/RegistrantRegisteredExamRow.java
     /** Mô tả đầy đủ hạng GPLX — nạp từ {@link util.registrant.RegistrantExamSupport#licenceClassDescription}. */
-========
-    /** Mô tả đầy đủ hạng GPLX — nạp từ {@link util.RegistrantExamSupport#licenceClassDescription}. */
->>>>>>>> Stashed changes:src/java/model/registrant/RegistrantRegisteredExamRow.java
     private String licenceClassDescription;
     private Date examDate;
     private String location;

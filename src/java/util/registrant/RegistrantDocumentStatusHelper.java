@@ -1,4 +1,3 @@
-<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantDocumentStatusHelper.java
 package util.registrant;
 
 import enums.registrant.ProfileRegistrationStatus;
@@ -7,16 +6,6 @@ import dao.RegistrantDAO;
 import dto.registrant.RegistrantDocumentSummary;
 import dto.registrant.RegistrantDocumentView;
 import dto.registrant.RegistrantTrackingLog;
-========
-package util;
-
-import constant.ProfileRegistrationStatus;
-import dao.impl.DocumentDAOImpl;
-import dao.RegistrantDAO;
-import model.registrant.RegistrantDocumentSummary;
-import model.registrant.RegistrantDocumentView;
-import model.registrant.RegistrantTrackingLog;
->>>>>>>> Stashed changes:src/java/util/RegistrantDocumentStatusHelper.java
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
