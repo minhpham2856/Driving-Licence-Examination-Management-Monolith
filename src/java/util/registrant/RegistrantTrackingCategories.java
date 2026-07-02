@@ -1,6 +1,12 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantTrackingCategories.java
+package util.registrant;
 
-import Models.RegistrantTrackingLog;
+import dto.registrant.RegistrantTrackingLog;
+========
+package util;
+
+import model.registrant.RegistrantTrackingLog;
+>>>>>>>> Stashed changes:src/java/util/RegistrantTrackingCategories.java
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

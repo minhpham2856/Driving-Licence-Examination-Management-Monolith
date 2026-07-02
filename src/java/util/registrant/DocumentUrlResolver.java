@@ -1,7 +1,14 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/DocumentUrlResolver.java
+package util.registrant;
 
-import Models.ManagingStaffApprovalView;
-import Models.RegistrantDocumentView;
+import dto.staff.ManagingStaffApprovalView;
+import dto.registrant.RegistrantDocumentView;
+========
+package util;
+
+import model.staff.ManagingStaffApprovalView;
+import model.registrant.RegistrantDocumentView;
+>>>>>>>> Stashed changes:src/java/util/DocumentUrlResolver.java
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;

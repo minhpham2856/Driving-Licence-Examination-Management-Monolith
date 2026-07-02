@@ -1,12 +1,24 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantProfileProgressBuilder.java
+package util.registrant;
 
-import Constants.ExamRegistrationLifecycleStatus;
-import Constants.ProfileRegistrationStatus;
-import DAO.Impl.DocumentDAOImpl;
-import Models.RegistrantDocumentSummary;
-import Models.RegistrantProfileProgressStep;
-import Models.RegistrantRegisteredExamRow;
-import Models.RegistrantTrackingLog;
+import enums.registrant.ExamRegistrationLifecycleStatus;
+import enums.registrant.ProfileRegistrationStatus;
+import dao.impl.DocumentDAOImpl;
+import dto.registrant.RegistrantDocumentSummary;
+import dto.registrant.RegistrantProfileProgressStep;
+import dto.registrant.RegistrantRegisteredExamRow;
+import dto.registrant.RegistrantTrackingLog;
+========
+package util;
+
+import constant.ExamRegistrationLifecycleStatus;
+import constant.ProfileRegistrationStatus;
+import dao.impl.DocumentDAOImpl;
+import model.registrant.RegistrantDocumentSummary;
+import model.registrant.RegistrantProfileProgressStep;
+import model.registrant.RegistrantRegisteredExamRow;
+import model.registrant.RegistrantTrackingLog;
+>>>>>>>> Stashed changes:src/java/util/RegistrantProfileProgressBuilder.java
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;

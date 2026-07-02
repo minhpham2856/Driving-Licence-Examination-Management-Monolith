@@ -1,12 +1,22 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantFilterSupport.java
+package util.registrant;
 
-import Models.RegistrantExamSessionOption;
-import Models.RegistrantFilterOption;
-import Models.RegistrantMyExamRow;
-import Models.RegistrantRegisteredExamRow;
+import dto.registrant.RegistrantExamSessionOption;
+import dto.registrant.RegistrantFilterOption;
+import dto.registrant.RegistrantLicenceOption;
+import dto.registrant.RegistrantMyExamRow;
+import dto.registrant.RegistrantRegisteredExamRow;
+========
+package util;
+
+import model.registrant.RegistrantExamSessionOption;
+import model.registrant.RegistrantFilterOption;
+import model.registrant.RegistrantLicenceOption;
+import model.registrant.RegistrantMyExamRow;
+import model.registrant.RegistrantRegisteredExamRow;
+>>>>>>>> Stashed changes:src/java/util/RegistrantFilterSupport.java
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,16 +79,23 @@ public final class RegistrantFilterSupport {
         private final String locationFilter;
         private final String fromDate;
         private final String toDate;
+        private final LocalDate fromDateParsed;
+        private final LocalDate toDateParsed;
+        private final String filterDateError;
         private final List<RegistrantFilterOption> locationFilterOptions;
         private final boolean searchActive;
 
         public SessionListFilterState(String searchQuery, String locationFilter,
                 String fromDate, String toDate,
+                LocalDate fromDateParsed, LocalDate toDateParsed, String filterDateError,
                 List<RegistrantFilterOption> locationFilterOptions, boolean searchActive) {
             this.searchQuery = searchQuery;
             this.locationFilter = locationFilter;
             this.fromDate = fromDate;
             this.toDate = toDate;
+            this.fromDateParsed = fromDateParsed;
+            this.toDateParsed = toDateParsed;
+            this.filterDateError = filterDateError;
             this.locationFilterOptions = locationFilterOptions;
             this.searchActive = searchActive;
         }
@@ -99,6 +116,22 @@ public final class RegistrantFilterSupport {
             return toDate;
         }
 
+        public LocalDate getFromDateParsed() {
+            return fromDateParsed;
+        }
+
+        public LocalDate getToDateParsed() {
+            return toDateParsed;
+        }
+
+        public String getFilterDateError() {
+            return filterDateError;
+        }
+
+        public boolean hasFilterDateError() {
+            return filterDateError != null && !filterDateError.isBlank();
+        }
+
         public List<RegistrantFilterOption> getLocationFilterOptions() {
             return locationFilterOptions;
         }
@@ -113,17 +146,19 @@ public final class RegistrantFilterSupport {
         private final String actionFilter;
         private final String fromDate;
         private final String toDate;
+        private final String filterDateError;
         private final int page;
         private final List<RegistrantFilterOption> actionFilterOptions;
         private final boolean searchActive;
 
         public AuditFilterState(String searchQuery, String actionFilter,
-                String fromDate, String toDate, int page,
+                String fromDate, String toDate, String filterDateError, int page,
                 List<RegistrantFilterOption> actionFilterOptions, boolean searchActive) {
             this.searchQuery = searchQuery;
             this.actionFilter = actionFilter;
             this.fromDate = fromDate;
             this.toDate = toDate;
+            this.filterDateError = filterDateError;
             this.page = page;
             this.actionFilterOptions = actionFilterOptions;
             this.searchActive = searchActive;
@@ -143,6 +178,10 @@ public final class RegistrantFilterSupport {
 
         public String getToDate() {
             return toDate;
+        }
+
+        public String getFilterDateError() {
+            return filterDateError;
         }
 
         public int getPage() {
@@ -171,12 +210,13 @@ public final class RegistrantFilterSupport {
     private static final Map<String, StatusDefinition> MY_EXAMS_STATUS = linkedStatusMap(
             myExamStatus("pending", "Chờ xét duyệt",
                     exam -> exam.isSbdPending() || "Chờ xét duyệt".equals(exam.getStatusLabel())),
-            myExamStatus("approved_waiting", "Được xét duyệt chờ thi",
+            myExamStatus("approved_waiting", "Chờ đến ngày thi",
                     exam -> "Được xét duyệt".equals(exam.getStatusLabel())),
-            myExamStatus("exam_taken", "Đã thi",
-                    exam -> "Đã thi".equals(exam.getStatusLabel())),
-            myExamStatus("passed", "Đã đạt", exam -> "Đạt".equals(exam.getStatusLabel())),
-            myExamStatus("failed", "Không đạt",
+            myExamStatus("awaiting_result", "Chờ công bố kết quả",
+                    exam -> "Chờ công bố".equals(exam.getStatusLabel())
+                            || "Đã thi".equals(exam.getStatusLabel())),
+            myExamStatus("passed", "Đạt", exam -> "Đạt".equals(exam.getStatusLabel())),
+            myExamStatus("failed", "Trượt / Từ chối",
                     exam -> "Trượt".equals(exam.getStatusLabel())
                             || "Bị từ chối".equals(exam.getStatusLabel())
                             || "rejected".equals(exam.getStatusClass())
@@ -188,19 +228,23 @@ public final class RegistrantFilterSupport {
 
     public static ExamListFilterState parseRegisteredExamFilter(HttpServletRequest request,
             List<RegistrantRegisteredExamRow> allExams) {
+        return parseRegisteredExamFilter(request, allExams, List.of());
+    }
+
+    public static ExamListFilterState parseRegisteredExamFilter(HttpServletRequest request,
+            List<RegistrantRegisteredExamRow> allExams, List<String> allLicenceValues) {
         String searchQuery = RegistrantListFilter.trimParam(request.getParameter("q"));
-        List<String> licenceValues = collectLicenceValuesFromRegistered(allExams);
+        List<String> licenceValues = resolveLicenceFilterValues(allLicenceValues,
+                collectLicenceValuesFromRegistered(allExams));
         String licenceFilter = normalizeLicenceFilter(
                 RegistrantListFilter.trimParam(request.getParameter("licence")), licenceValues);
 
         List<String> availableStatusValues = examStatusKeys(DASHBOARD_STATUS);
         String rawStatus = RegistrantListFilter.trimParam(request.getParameter("status"));
         String statusFilter = normalizeExamStatusFilter(rawStatus, availableStatusValues, "all");
-        List<RegistrantFilterOption> statusOptions = buildRegisteredStatusOptions(allExams, null);
-
-        statusOptions = buildRegisteredStatusOptions(allExams, statusFilter);
+        List<RegistrantFilterOption> statusOptions = buildRegisteredStatusOptions(allExams, statusFilter);
         List<RegistrantFilterOption> licenceOptions = buildLicenceOptions(licenceValues, licenceFilter);
-        boolean searchActive = RegistrantListFilter.hasActiveFilters(searchQuery, statusFilter, licenceFilter);
+        boolean searchActive = RegistrantListFilter.hasActivefilter(searchQuery, statusFilter, licenceFilter);
 
         return new ExamListFilterState(searchQuery, statusFilter, licenceFilter,
                 statusOptions, licenceOptions, searchActive);
@@ -208,22 +252,45 @@ public final class RegistrantFilterSupport {
 
     public static ExamListFilterState parseMyExamFilter(HttpServletRequest request,
             List<RegistrantMyExamRow> allExams) {
+        return parseMyExamFilter(request, allExams, List.of());
+    }
+
+    public static ExamListFilterState parseMyExamFilter(HttpServletRequest request,
+            List<RegistrantMyExamRow> allExams, List<String> allLicenceValues) {
         String searchQuery = RegistrantListFilter.trimParam(request.getParameter("q"));
-        List<String> licenceValues = collectLicenceValuesFromMyExams(allExams);
+        List<String> licenceValues = resolveLicenceFilterValues(allLicenceValues,
+                collectLicenceValuesFromMyExams(allExams));
         String licenceFilter = normalizeLicenceFilter(
                 RegistrantListFilter.trimParam(request.getParameter("licence")), licenceValues);
 
         List<String> availableStatusValues = examStatusKeys(MY_EXAMS_STATUS);
         String rawStatus = RegistrantListFilter.trimParam(request.getParameter("status"));
         String statusFilter = normalizeExamStatusFilter(rawStatus, availableStatusValues, "all");
-        List<RegistrantFilterOption> statusOptions = buildMyExamStatusOptions(allExams, null);
-
-        statusOptions = buildMyExamStatusOptions(allExams, statusFilter);
+        List<RegistrantFilterOption> statusOptions = buildMyExamStatusOptions(statusFilter);
         List<RegistrantFilterOption> licenceOptions = buildLicenceOptions(licenceValues, licenceFilter);
-        boolean searchActive = RegistrantListFilter.hasActiveFilters(searchQuery, statusFilter, licenceFilter);
+        boolean searchActive = RegistrantListFilter.hasActivefilter(searchQuery, statusFilter, licenceFilter);
 
         return new ExamListFilterState(searchQuery, statusFilter, licenceFilter,
                 statusOptions, licenceOptions, searchActive);
+    }
+
+    public static List<String> collectLicenceCodesFromCatalogue(List<RegistrantLicenceOption> catalogue) {
+        TreeSet<String> codes = new TreeSet<>();
+        if (catalogue != null) {
+            for (RegistrantLicenceOption option : catalogue) {
+                if (option.getCode() != null && !option.getCode().isBlank()) {
+                    codes.add(option.getCode().trim());
+                }
+            }
+        }
+        return new ArrayList<>(codes);
+    }
+
+    private static List<String> resolveLicenceFilterValues(List<String> catalogue, List<String> fallback) {
+        if (catalogue != null && !catalogue.isEmpty()) {
+            return catalogue;
+        }
+        return fallback != null ? fallback : List.of();
     }
 
     public static SessionListFilterState parseSessionFilter(HttpServletRequest request,
@@ -232,30 +299,42 @@ public final class RegistrantFilterSupport {
         List<String> locationValues = RegistrantListFilter.collectSessionLocations(allSessions);
         String locationFilter = normalizeLocationFilter(
                 RegistrantListFilter.trimParam(request.getParameter("location")), locationValues);
-        String fromDate = normalizeDateParam(request.getParameter("fromDate"));
-        String toDate = normalizeDateParam(request.getParameter("toDate"));
+
+        String fromRaw = RegistrantListFilter.trimParam(request.getParameter("fromDate"));
+        String toRaw = RegistrantListFilter.trimParam(request.getParameter("toDate"));
+        String filterDateError = RegistrantDateSupport.validateDateRange(fromRaw, toRaw);
+
+        LocalDate fromParsed = filterDateError == null ? RegistrantDateSupport.parse(fromRaw) : null;
+        LocalDate toParsed = filterDateError == null ? RegistrantDateSupport.parse(toRaw) : null;
+
+        String fromDisplay = RegistrantDateSupport.displayValue(fromRaw);
+        String toDisplay = RegistrantDateSupport.displayValue(toRaw);
 
         List<RegistrantFilterOption> locationOptions = buildLocationOptions(locationValues, locationFilter);
-        boolean searchActive = RegistrantListFilter.hasSessionActiveFilters(
-                searchQuery, locationFilter, fromDate, toDate);
+        boolean searchActive = RegistrantListFilter.hasSessionActivefilter(
+                searchQuery, locationFilter, fromDisplay, toDisplay);
 
-        return new SessionListFilterState(searchQuery, locationFilter, fromDate, toDate,
-                locationOptions, searchActive);
+        return new SessionListFilterState(searchQuery, locationFilter, fromDisplay, toDisplay,
+                fromParsed, toParsed, filterDateError, locationOptions, searchActive);
     }
 
     public static AuditFilterState parseAuditFilter(HttpServletRequest request, List<String> validActions) {
         String searchQuery = RegistrantListFilter.trimParam(request.getParameter("q"));
-        String fromDate = normalizeDateParam(request.getParameter("fromDate"));
-        String toDate = normalizeDateParam(request.getParameter("toDate"));
+        String fromRaw = RegistrantListFilter.trimParam(request.getParameter("fromDate"));
+        String toRaw = RegistrantListFilter.trimParam(request.getParameter("toDate"));
+        String filterDateError = RegistrantDateSupport.validateDateRange(fromRaw, toRaw);
+
+        String fromDate = RegistrantDateSupport.displayValue(fromRaw);
+        String toDate = RegistrantDateSupport.displayValue(toRaw);
         int page = parsePage(request.getParameter("page"));
 
         List<String> actionValues = normalizeActionValues(validActions);
         String actionFilter = normalizeActionFilter(
                 RegistrantListFilter.trimParam(request.getParameter("action")), actionValues);
         List<RegistrantFilterOption> actionOptions = buildActionOptions(actionValues, actionFilter);
-        boolean searchActive = hasAuditActiveFilters(searchQuery, actionFilter, fromDate, toDate);
+        boolean searchActive = hasAuditActivefilter(searchQuery, actionFilter, fromDate, toDate);
 
-        return new AuditFilterState(searchQuery, actionFilter, fromDate, toDate, page,
+        return new AuditFilterState(searchQuery, actionFilter, fromDate, toDate, filterDateError, page,
                 actionOptions, searchActive);
     }
 
@@ -284,6 +363,9 @@ public final class RegistrantFilterSupport {
         request.setAttribute("locationFilterOptions", state.getLocationFilterOptions());
         request.setAttribute("fromDate", state.getFromDate());
         request.setAttribute("toDate", state.getToDate());
+        request.setAttribute("fromDateIso", RegistrantDateSupport.toIsoValue(state.getFromDateParsed()));
+        request.setAttribute("toDateIso", RegistrantDateSupport.toIsoValue(state.getToDateParsed()));
+        request.setAttribute("filterDateError", state.getFilterDateError());
         request.setAttribute("searchActive", state.isSearchActive());
     }
 
@@ -293,6 +375,12 @@ public final class RegistrantFilterSupport {
         request.setAttribute("actionFilterOptions", state.getActionFilterOptions());
         request.setAttribute("fromDate", state.getFromDate());
         request.setAttribute("toDate", state.getToDate());
+        String auditDateError = state.getFilterDateError();
+        LocalDate auditFrom = auditDateError == null ? RegistrantDateSupport.parse(state.getFromDate()) : null;
+        LocalDate auditTo = auditDateError == null ? RegistrantDateSupport.parse(state.getToDate()) : null;
+        request.setAttribute("fromDateIso", RegistrantDateSupport.toIsoValue(auditFrom));
+        request.setAttribute("toDateIso", RegistrantDateSupport.toIsoValue(auditTo));
+        request.setAttribute("filterDateError", auditDateError);
         request.setAttribute("auditPage", state.getPage());
         request.setAttribute("searchActive", state.isSearchActive());
     }
@@ -360,9 +448,19 @@ public final class RegistrantFilterSupport {
         return buildExamStatusOptions(DASHBOARD_STATUS, selectedStatus);
     }
 
-    private static List<RegistrantFilterOption> buildMyExamStatusOptions(
-            List<RegistrantMyExamRow> exams, String selectedStatus) {
-        return buildExamStatusOptions(MY_EXAMS_STATUS, selectedStatus);
+    private static List<RegistrantFilterOption> buildMyExamStatusOptions(String selectedStatus) {
+        return buildExamStatusOptions(MY_EXAMS_STATUS, normalizeMyExamStatusKey(selectedStatus));
+    }
+
+    private static String normalizeMyExamStatusKey(String raw) {
+        if (raw == null || raw.isBlank() || isAllChoice(raw)) {
+            return "all";
+        }
+        String trimmed = raw.trim();
+        if ("exam_taken".equalsIgnoreCase(trimmed)) {
+            return "awaiting_result";
+        }
+        return trimmed;
     }
 
     private static List<RegistrantFilterOption> buildExamStatusOptions(
@@ -388,15 +486,30 @@ public final class RegistrantFilterSupport {
         if ("upcoming".equalsIgnoreCase(trimmed)) {
             trimmed = "approved_waiting";
         }
+        if ("exam_taken".equalsIgnoreCase(trimmed)) {
+            trimmed = "awaiting_result";
+        }
         return normalizeChoice(trimmed, validValues, defaultValue);
     }
 
     private static List<RegistrantFilterOption> buildLicenceOptions(
             List<String> licenceValues, String selectedLicence) {
+        String selected = selectedLicence != null ? selectedLicence : "all";
+        TreeSet<String> values = new TreeSet<>();
+        if (licenceValues != null) {
+            for (String licence : licenceValues) {
+                if (licence != null && !licence.isBlank()) {
+                    values.add(licence.trim());
+                }
+            }
+        }
+        if (!isAllChoice(selected)) {
+            values.add(selected.trim());
+        }
         List<RegistrantFilterOption> options = new ArrayList<>();
-        options.add(new RegistrantFilterOption("all", "Tất cả", "all".equals(selectedLicence)));
-        for (String licence : licenceValues) {
-            options.add(new RegistrantFilterOption(licence, "Hạng " + licence, licence.equals(selectedLicence)));
+        options.add(new RegistrantFilterOption("all", "Tất cả", "all".equals(selected)));
+        for (String licence : values) {
+            options.add(new RegistrantFilterOption(licence, "Hạng " + licence, licence.equals(selected)));
         }
         return options;
     }
@@ -468,10 +581,9 @@ public final class RegistrantFilterSupport {
             return "";
         }
         try {
-            LocalDate.parse(trimmed);
+            return RegistrantDateSupport.format(RegistrantDateSupport.parse(trimmed));
+        } catch (Exception ex) {
             return trimmed;
-        } catch (DateTimeParseException ex) {
-            return "";
         }
     }
 
@@ -479,7 +591,7 @@ public final class RegistrantFilterSupport {
         return value == null || value.isBlank() || "all".equalsIgnoreCase(value.trim());
     }
 
-    private static boolean hasAuditActiveFilters(String q, String action, String from, String to) {
+    private static boolean hasAuditActivefilter(String q, String action, String from, String to) {
         return !RegistrantListFilter.trimParam(q).isEmpty()
                 || (!isAllChoice(action))
                 || !RegistrantListFilter.trimParam(from).isEmpty()

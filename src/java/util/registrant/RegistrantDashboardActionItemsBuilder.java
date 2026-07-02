@@ -1,11 +1,22 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantDashboardActionItemsBuilder.java
+package util.registrant;
 
-import Constants.ProfileRegistrationStatus;
-import Models.Profile;
-import Models.RegistrantDashboardActionItem;
-import Models.RegistrantDocumentView;
-import Models.RegistrantRegisteredExamRow;
-import Utils.RegistrantProfileSupport;
+import enums.registrant.ProfileRegistrationStatus;
+import model.user.Profile;
+import dto.registrant.RegistrantDashboardActionItem;
+import dto.registrant.RegistrantDocumentView;
+import dto.registrant.RegistrantRegisteredExamRow;
+import util.registrant.RegistrantProfileSupport;
+========
+package util;
+
+import constant.ProfileRegistrationStatus;
+import model.user.Profile;
+import model.registrant.RegistrantDashboardActionItem;
+import model.registrant.RegistrantDocumentView;
+import model.registrant.RegistrantRegisteredExamRow;
+import util.RegistrantProfileSupport;
+>>>>>>>> Stashed changes:src/java/util/RegistrantDashboardActionItemsBuilder.java
 import java.util.ArrayList;
 import java.util.List;
 

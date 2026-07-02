@@ -1,8 +1,19 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantAuditHelper.java
+package util.registrant;
 
-import Constants.AuditEntityLabels;
-import Models.AuditLog;
-import Models.RegistrantTrackingLog;
+import util.AuditLogHelper;
+import util.AuditLogViewHelper;
+import enums.AuditEntityLabels;
+import model.user.AuditLog;
+import dto.registrant.RegistrantTrackingLog;
+========
+package util;
+
+import constant.AuditEntityLabels;
+import model.user.AuditLog;
+import model.registrant.RegistrantTrackingLog;
+>>>>>>>> Stashed changes:src/java/util/RegistrantAuditHelper.java
+import jakarta.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,14 +23,71 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Chuyển bản ghi Audit sang dòng hiển thị trên màn theo dõi hồ sơ thí sinh.
+ * Audit cổng thí sinh: ghi log thao tác và map bản ghi Audit sang dòng theo dõi hồ sơ.
  */
-public final class RegistrantAuditMapper {
+public final class RegistrantAuditHelper {
 
     private static final SimpleDateFormat TIME_FMT =
             new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.forLanguageTag("vi-VN"));
 
-    private RegistrantAuditMapper() {
+    private RegistrantAuditHelper() {
+    }
+
+    public static void logDocumentUpload(HttpSession session, int profileId, String documentType, String fileName) {
+        String label = documentType != null ? documentType : "Document";
+        AuditLogHelper.persistForEntity(session, "Document", "UPLOAD",
+                "Tải lên tài liệu " + label + (fileName != null ? ": " + fileName : ""),
+                "Đã tải lên", profileId);
+    }
+
+    public static void logDocumentApprovalRequest(HttpSession session, int profileId, String note) {
+        AuditLogHelper.persistForEntity(session, "Document", "REQUEST",
+                "Thí sinh gửi yêu cầu duyệt hồ sơ tài liệu",
+                note != null && !note.isBlank() ? note.trim() : "Gửi duyệt", profileId);
+    }
+
+    public static void logDocumentDelete(HttpSession session, int profileId, String documentType, String fileName) {
+        String label = documentType != null ? documentType : "Document";
+        AuditLogHelper.persistForEntity(session, "Document", "DELETE",
+                "Xóa tài liệu " + label + (fileName != null && !fileName.isBlank() ? ": " + fileName : ""),
+                "Đã xóa", profileId);
+    }
+
+    public static void logProfileUpdate(HttpSession session, int profileId, String summary) {
+        AuditLogHelper.persistForEntity(session, "Profile", "UPDATE",
+                summary != null ? summary : "Cập nhật hồ sơ cá nhân",
+                "Đã cập nhật", profileId);
+    }
+
+    public static void logProfileCreate(HttpSession session, int profileId) {
+        AuditLogHelper.persistForEntity(session, "Profile", "INSERT",
+                "Tạo hồ sơ cá nhân trên hệ thống", "Đã tạo", profileId);
+    }
+
+    public static void logExamRegistration(HttpSession session, int profileId, String examLabel) {
+        AuditLogHelper.persistForEntity(session, "ExamRegistration", "INSERT",
+                "Đăng ký đợt thi: " + (examLabel != null ? examLabel : "—"),
+                "PreRegistered", profileId);
+    }
+
+    public static void logExamCancellationRequest(HttpSession session, int profileId,
+            String examLabel, String reason) {
+        String detail = "Yêu cầu hủy đăng ký: " + (examLabel != null ? examLabel : "—");
+        if (reason != null && !reason.isBlank()) {
+            detail += ". Lý do: " + reason.trim();
+        }
+        AuditLogHelper.persistForEntity(session, "ExamRegistration", "REQUEST", detail,
+                "CancelRequested", profileId);
+    }
+
+    public static void logPasswordChange(HttpSession session, int userId) {
+        AuditLogHelper.persistForEntity(session, "Profile", "UPDATE",
+                "Đổi mật khẩu tài khoản", "Đã đổi mật khẩu", userId);
+    }
+
+    public static void logAccountDeactivate(HttpSession session, int userId) {
+        AuditLogHelper.persistForEntity(session, "Profile", "UPDATE",
+                "Vô hiệu hoá tài khoản thí sinh", "Đã vô hiệu hoá", userId);
     }
 
     public static List<RegistrantTrackingLog> toTrackingLogs(List<AuditLog> auditLogs) {

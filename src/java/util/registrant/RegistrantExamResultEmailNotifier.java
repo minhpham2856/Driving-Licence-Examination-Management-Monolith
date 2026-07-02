@@ -1,7 +1,11 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantExamResultEmailNotifier.java
+package util.registrant;
+========
+package util;
+>>>>>>>> Stashed changes:src/java/util/RegistrantExamResultEmailNotifier.java
 
-import Services.RegistrantExamResultEmailService;
-import Services.Impl.RegistrantExamResultEmailServiceImpl;
+import service.RegistrantExamResultEmailService;
+import service.impl.RegistrantExamResultEmailServiceImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

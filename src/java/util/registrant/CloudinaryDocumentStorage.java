@@ -1,4 +1,4 @@
-package Utils;
+package util.registrant;
 
 import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.TreeMap;
 import java.util.UUID;
+import util.ConfigManager;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**

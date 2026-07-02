@@ -1,13 +1,33 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantExamSupport.java
+package util.registrant;
 
-import Models.RegistrantMyExamRow;
-import Models.RegistrantRegisteredExamRow;
-import Constants.ExamRegistrationLifecycleStatus;
-import Constants.ExamSessionStatus;
-import Constants.ProfileRegistrationStatus;
+import dao.ExamRegistrationDAO;
+import dto.registrant.RegistrantMyExamRow;
+import dto.registrant.RegistrantRegisteredExamRow;
+import dto.registrant.RegistrantSectionRegistrationBlock;
+import dto.exam.SessionExamSectionInfo;
+import dto.exam.SessionScheduleInfo;
+import enums.registrant.ExamRegistrationLifecycleStatus;
+import enums.ExamSessionStatus;
+import enums.registrant.ProfileRegistrationStatus;
+========
+package util;
+
+import dao.ExamRegistrationDAO;
+import model.registrant.RegistrantMyExamRow;
+import model.registrant.RegistrantRegisteredExamRow;
+import model.registrant.RegistrantSectionRegistrationBlock;
+import model.exam.SessionExamSectionInfo;
+import model.exam.SessionScheduleInfo;
+import constant.ExamRegistrationLifecycleStatus;
+import constant.ExamSessionStatus;
+import constant.ProfileRegistrationStatus;
+>>>>>>>> Stashed changes:src/java/util/RegistrantExamSupport.java
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -31,7 +51,11 @@ public final class RegistrantExamSupport {
     }
 
     public static boolean isSbdPending(String candidateNumber) {
-        return Constants.Db2Mappings.isPendingCandidateNumber(candidateNumber);
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantExamSupport.java
+        return enums.Db2Mappings.isPendingCandidateNumber(candidateNumber);
+========
+        return constant.Db2Mappings.isPendingCandidateNumber(candidateNumber);
+>>>>>>>> Stashed changes:src/java/util/RegistrantExamSupport.java
     }
 
     /** Thí sinh thấy SBD sau khi Ban sát hạch import danh sách chính thức. */
@@ -192,7 +216,7 @@ public final class RegistrantExamSupport {
             row.setOverallResultLabel("Chưa có SBD");
         } else if ("Completed".equalsIgnoreCase(sectionStatus)) {
             row.setStatusClass("info");
-            row.setStatusLabel("Đã thi");
+            row.setStatusLabel("Chờ công bố");
             row.setOverallResultLabel("Chờ công bố");
         } else {
             row.setStatusClass("info");
@@ -351,7 +375,7 @@ public final class RegistrantExamSupport {
 
     /** Giờ ca thi chỉ công bố sau khi cán bộ coi thi bấm "Bắt đầu ca thi". */
     public static boolean isSessionTimePublished(String sessionStatus) {
-        return ExamSessionStatus.isInProgress(sessionStatus) || ExamSessionStatus.isEnded(sessionStatus);
+        return ExamSessionStatus.isSessionInProgress(sessionStatus) || ExamSessionStatus.isSessionEnded(sessionStatus);
     }
 
     public static void applyPublishedSessionSchedule(RegistrantRegisteredExamRow row, String sessionStatus,
@@ -414,5 +438,80 @@ public final class RegistrantExamSupport {
     private static boolean isSameDay(Calendar a, Calendar b) {
         return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
                 && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
+    }
+
+    // --- Quy tắc đăng ký ca thi ---
+
+    public static String validateNewSessionRegistration(ExamRegistrationDAO examRegistrationdao,
+            int profileId, int sessionId, int licenceId, String uiLicenceCode) {
+        SessionExamSectionInfo section = examRegistrationdao.findPrimarySectionForSession(sessionId);
+        if (section == null) {
+            return "Không xác định được phần thi của ca thi này. Vui lòng chọn ca khác hoặc liên hệ Ban sát hạch.";
+        }
+
+        RegistrantSectionRegistrationBlock block = examRegistrationdao.findActiveSectionRegistration(
+                profileId, licenceId, section.getSectionId());
+        if (block != null) {
+            String statusLabel = ExamRegistrationLifecycleStatus.toDisplayLabel(block.getRegistrationStatus());
+            return String.format(
+                    "Bạn đã có đăng ký phần thi %s (Hạng %s) tại %s — trạng thái: %s. "
+                            + "Chỉ được đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.",
+                    section.getSectionName(),
+                    uiLicenceCode != null ? uiLicenceCode : "—",
+                    block.getSessionName() != null ? block.getSessionName() : "—",
+                    statusLabel);
+        }
+
+        SessionScheduleInfo newSchedule = examRegistrationdao.findSessionSchedule(sessionId);
+        if (newSchedule == null || newSchedule.getExamDate() == null) {
+            return null;
+        }
+
+        List<SessionScheduleInfo> activeSchedules =
+                examRegistrationdao.listActiveSessionSchedulesByProfileId(profileId);
+        for (SessionScheduleInfo existing : activeSchedules) {
+            if (existing.getLicenceId() == licenceId) {
+                continue;
+            }
+            if (existing.getSessionId() == sessionId) {
+                continue;
+            }
+            String scheduleConflict = validateCrossLicenceScheduleConflict(newSchedule, existing);
+            if (scheduleConflict != null) {
+                return scheduleConflict;
+            }
+        }
+        return null;
+    }
+
+    /** Giữa các hạng GPLX khác nhau: chỉ cho phép thi vào ngày khác nhau. */
+    static String validateCrossLicenceScheduleConflict(SessionScheduleInfo candidate,
+            SessionScheduleInfo existing) {
+        if (candidate.getExamDate() == null || existing.getExamDate() == null) {
+            return null;
+        }
+        if (!sameCalendarDay(candidate.getExamDate(), existing.getExamDate())) {
+            return null;
+        }
+
+        String dateLabel = formatExamDate(existing.getExamDate());
+        String licenceLabel = existing.getUiLicenceCode() != null ? existing.getUiLicenceCode() : "—";
+        String sessionLabel = existing.getSessionName() != null ? existing.getSessionName() : "—";
+        return String.format(
+                "Bạn đã có ca thi Hạng %s (%s) vào ngày %s. "
+                        + "Giữa các hạng GPLX khác nhau chỉ được thi vào ngày khác nhau — vui lòng chọn ca khác ngày.",
+                licenceLabel, sessionLabel, dateLabel);
+    }
+
+    static boolean sameCalendarDay(Date a, Date b) {
+        Calendar calA = Calendar.getInstance(Locale.getDefault());
+        calA.setTime(a);
+        Calendar calB = Calendar.getInstance(Locale.getDefault());
+        calB.setTime(b);
+        return isSameDay(calA, calB);
+    }
+
+    private static String formatExamDate(Date date) {
+        return new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN")).format(date);
     }
 }

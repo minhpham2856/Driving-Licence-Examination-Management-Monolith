@@ -1,12 +1,21 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantListFilter.java
+package util.registrant;
 
-import Models.RegistrantDashboardActivity;
-import Models.RegistrantExamSessionOption;
-import Models.RegistrantMyExamRow;
-import Models.RegistrantRegisteredExamRow;
+import dto.registrant.RegistrantDashboardActivity;
+import dto.registrant.RegistrantExamSessionOption;
+import dto.registrant.RegistrantMyExamRow;
+import dto.registrant.RegistrantRegisteredExamRow;
+========
+package util;
+
+import model.registrant.RegistrantDashboardActivity;
+import model.registrant.RegistrantExamSessionOption;
+import model.registrant.RegistrantMyExamRow;
+import model.registrant.RegistrantRegisteredExamRow;
+>>>>>>>> Stashed changes:src/java/util/RegistrantListFilter.java
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -94,7 +103,7 @@ public final class RegistrantListFilter {
         return RegistrantFilterSupport.collectLicenceValuesFromRegistered(exams);
     }
 
-    public static boolean hasActiveFilters(String q, String status, String licence) {
+    public static boolean hasActivefilter(String q, String status, String licence) {
         return normalizeQuery(q) != null
                 || (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status.trim()))
                 || (licence != null && !licence.isBlank() && !"all".equalsIgnoreCase(licence.trim()));
@@ -102,16 +111,14 @@ public final class RegistrantListFilter {
 
     public static List<RegistrantExamSessionOption> filterExamSessions(
             List<RegistrantExamSessionOption> sessions,
-            String searchQuery, String locationFilter, String fromDate, String toDate) {
+            String searchQuery, String locationFilter, LocalDate fromDate, LocalDate toDate) {
         if (sessions == null || sessions.isEmpty()) {
             return sessions != null ? sessions : List.of();
         }
         String q = normalizeQuery(searchQuery);
         String location = trimParam(locationFilter);
-        String from = trimParam(fromDate);
-        String to = trimParam(toDate);
         if (q == null && (location.isEmpty() || "all".equalsIgnoreCase(location))
-                && from.isEmpty() && to.isEmpty()) {
+                && fromDate == null && toDate == null) {
             return sessions;
         }
         List<RegistrantExamSessionOption> filtered = new ArrayList<>();
@@ -122,7 +129,7 @@ public final class RegistrantListFilter {
             if (!matchesSessionLocation(session.getLocation(), location)) {
                 continue;
             }
-            if (!matchesSessionDateRange(session.getExamDate(), from, to)) {
+            if (!matchesSessionDateRange(session.getExamDate(), fromDate, toDate)) {
                 continue;
             }
             filtered.add(session);
@@ -143,7 +150,7 @@ public final class RegistrantListFilter {
         return new ArrayList<>(locations);
     }
 
-    public static boolean hasSessionActiveFilters(
+    public static boolean hasSessionActivefilter(
             String searchQuery, String locationFilter, String fromDate, String toDate) {
         String location = trimParam(locationFilter);
         return normalizeQuery(searchQuery) != null
@@ -211,29 +218,23 @@ public final class RegistrantListFilter {
         return location != null && location.equalsIgnoreCase(locationFilter.trim());
     }
 
-    private static boolean matchesSessionDateRange(Date examDate, String fromDate, String toDate) {
+    private static boolean matchesSessionDateRange(Date examDate, LocalDate fromDate, LocalDate toDate) {
         if (examDate == null) {
-            return fromDate == null || fromDate.isBlank();
+            return fromDate == null;
         }
-        LocalDate exam = examDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        if (fromDate != null && !fromDate.isBlank()) {
-            try {
-                if (exam.isBefore(LocalDate.parse(fromDate.trim()))) {
-                    return false;
-                }
-            } catch (DateTimeParseException ignored) {
-                return true;
-            }
+        LocalDate exam = toLocalDate(examDate);
+        if (fromDate != null && exam.isBefore(fromDate)) {
+            return false;
         }
-        if (toDate != null && !toDate.isBlank()) {
-            try {
-                if (exam.isAfter(LocalDate.parse(toDate.trim()))) {
-                    return false;
-                }
-            } catch (DateTimeParseException ignored) {
-                return true;
-            }
+        if (toDate != null && exam.isAfter(toDate)) {
+            return false;
         }
         return true;
+    }
+
+    private static LocalDate toLocalDate(Date examDate) {
+        return Instant.ofEpochMilli(examDate.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 }

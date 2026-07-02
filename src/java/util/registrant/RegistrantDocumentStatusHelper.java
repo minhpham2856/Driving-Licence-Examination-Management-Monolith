@@ -1,15 +1,29 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantDocumentStatusHelper.java
+package util.registrant;
 
-import Constants.ProfileRegistrationStatus;
-import DAO.Impl.DocumentDAOImpl;
-import Models.RegistrantDocumentSummary;
-import Models.RegistrantDocumentView;
-import Models.RegistrantTrackingLog;
+import enums.registrant.ProfileRegistrationStatus;
+import dao.impl.DocumentDAOImpl;
+import dao.RegistrantDAO;
+import dto.registrant.RegistrantDocumentSummary;
+import dto.registrant.RegistrantDocumentView;
+import dto.registrant.RegistrantTrackingLog;
+========
+package util;
+
+import constant.ProfileRegistrationStatus;
+import dao.impl.DocumentDAOImpl;
+import dao.RegistrantDAO;
+import model.registrant.RegistrantDocumentSummary;
+import model.registrant.RegistrantDocumentView;
+import model.registrant.RegistrantTrackingLog;
+>>>>>>>> Stashed changes:src/java/util/RegistrantDocumentStatusHelper.java
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Hiển thị tài liệu theo {@code ExamRegistration.RegistrationStatus}.
@@ -21,13 +35,16 @@ public final class RegistrantDocumentStatusHelper {
             "Portrait", "IdFront", "IdBack", "HealthCertificate"
     };
 
+    /** Chỉ cần 4 giấy tờ bắt buộc (đã duyệt) là đủ để đăng ký các hạng này. */
+    public static final Set<String> BASIC_DOCS_ONLY_LICENCE_CODES = Set.of("A1", "A2");
+
     private RegistrantDocumentStatusHelper() {
     }
 
     public static RegistrantDocumentSummary summarize(List<RegistrantDocumentView> allDocs,
             Map<String, String> typeLabels, String registrationStatus) {
         applyDocumentLabelsFromRegistrationStatus(allDocs, registrationStatus);
-        Map<String, RegistrantDocumentView> slots = buildRequiredSlots(allDocs);
+        Map<String, RegistrantDocumentView> slots = RegistrantDocumentHelper.buildRequiredSlots(allDocs);
         RegistrantDocumentSummary summary = new RegistrantDocumentSummary();
         summary.setRequiredTotal(REQUIRED_TYPES.length);
 
@@ -63,7 +80,7 @@ public final class RegistrantDocumentStatusHelper {
         summary.setRejectedCount(0);
         summary.setAwaitingSubmitCount(0);
         summary.setChecklistItems(checklist);
-        applyOverallStatusFromRegistration(summary, registrationStatus);
+        applyOverallStatusFromRegistration(summary, registrationStatus, allDocs);
         return summary;
     }
 
@@ -85,18 +102,13 @@ public final class RegistrantDocumentStatusHelper {
         if (!ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(normalizeRegistrationStatus(registrationStatus))) {
             return false;
         }
-        Map<String, RegistrantDocumentView> slots = buildRequiredSlots(allDocs);
+        Map<String, RegistrantDocumentView> slots = RegistrantDocumentHelper.buildRequiredSlots(allDocs);
         for (String type : REQUIRED_TYPES) {
             if (!hasUploadedFile(slots.get(type))) {
                 return false;
             }
         }
         return true;
-    }
-
-    /** @deprecated Dùng {@link #isEligibleForExamRegistration(String, List)} */
-    public static boolean isEligibleForExamRegistration(List<RegistrantDocumentView> allDocs) {
-        return false;
     }
 
     /** Thông báo lý do chưa được đăng ký thi — null nếu đủ điều kiện. */
@@ -123,10 +135,167 @@ public final class RegistrantDocumentStatusHelper {
         return "Tài liệu chưa được phê duyệt. Hoàn tất duyệt hồ sơ trước khi đăng ký thi.";
     }
 
-    /** @deprecated */
-    public static String examRegistrationBlockMessage(List<RegistrantDocumentView> allDocs,
-            RegistrantDocumentSummary summary) {
-        return examRegistrationBlockMessage(ProfileRegistrationStatus.DRAFT, allDocs, summary);
+    public static boolean hasUploadedOtherDocuments(List<RegistrantDocumentView> allDocs) {
+        if (allDocs == null) {
+            return false;
+        }
+        for (RegistrantDocumentView doc : allDocs) {
+            if (DocumentDAOImpl.isOtherType(doc.getDocumentType()) && hasUploadedFile(doc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Có request bổ sung đang chờ: ưu tiên {@code ExamRegistration}, fallback marker legacy trên Notes. */
+    public static boolean hasAnySupplementPendingReview(RegistrantDAO registrantdao, int profileId,
+            List<RegistrantDocumentView> allDocs) {
+        if (profileId > 0 && registrantdao != null && registrantdao.hasOpenSupplementPending(profileId)) {
+            return true;
+        }
+        return hasSupplementPendingReview(allDocs);
+    }
+
+    /** Có ít nhất một tệp Hồ sơ khác đã gửi ban quản lý (marker #PENDING#) khi hồ sơ chính vẫn Approved. */
+    public static boolean hasSupplementPendingReview(List<RegistrantDocumentView> allDocs) {
+        if (allDocs == null) {
+            return false;
+        }
+        for (RegistrantDocumentView doc : allDocs) {
+            if (DocumentDAOImpl.isOtherType(doc.getDocumentType())
+                    && hasUploadedFile(doc)
+                    && DocumentDAOImpl.isPendingReview(doc.getNotes())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasSupplementAwaitingSubmit(List<RegistrantDocumentView> allDocs) {
+        if (allDocs == null) {
+            return false;
+        }
+        for (RegistrantDocumentView doc : allDocs) {
+            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
+                continue;
+            }
+            String notes = doc.getNotes();
+            if (!DocumentDAOImpl.isApproved(notes) && !DocumentDAOImpl.isPendingReview(notes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasApprovedOtherDocumentForLicence(String uiLicenceCode,
+            List<RegistrantDocumentView> allDocs) {
+        if (uiLicenceCode == null || uiLicenceCode.isBlank() || allDocs == null) {
+            return false;
+        }
+        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
+        for (RegistrantDocumentView doc : allDocs) {
+            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
+                continue;
+            }
+            if (!DocumentDAOImpl.isApproved(doc.getNotes())) {
+                continue;
+            }
+            String docLicence = doc.getSupplementLicenceCode();
+            if (docLicence == null || docLicence.isBlank()) {
+                docLicence = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
+            }
+            if (docLicence != null && !docLicence.isBlank()
+                    && target.equals(docLicence.trim().toUpperCase(Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasUploadedOtherDocumentForLicence(String uiLicenceCode,
+            List<RegistrantDocumentView> allDocs) {
+        if (uiLicenceCode == null || uiLicenceCode.isBlank() || allDocs == null) {
+            return false;
+        }
+        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
+        for (RegistrantDocumentView doc : allDocs) {
+            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
+                continue;
+            }
+            String docLicence = doc.getSupplementLicenceCode();
+            if (docLicence == null || docLicence.isBlank()) {
+                docLicence = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
+            }
+            if (docLicence != null && !docLicence.isBlank()
+                    && target.equals(docLicence.trim().toUpperCase(Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isBasicDocsOnlyLicence(String uiLicenceCode) {
+        if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
+            return false;
+        }
+        return BASIC_DOCS_ONLY_LICENCE_CODES.contains(uiLicenceCode.trim().toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Hạng A1/A2: chỉ cần 4 giấy tờ bắt buộc. Hạng khác: cần hồ sơ khác đã được staff duyệt đúng hạng.
+     */
+    public static boolean isLicenceAllowedWithDocuments(String uiLicenceCode,
+            List<RegistrantDocumentView> allDocs) {
+        if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
+            return false;
+        }
+        if (isBasicDocsOnlyLicence(uiLicenceCode)) {
+            return true;
+        }
+        return hasApprovedOtherDocumentForLicence(uiLicenceCode, allDocs);
+    }
+
+    public static String licenceClassBlockMessage(String uiLicenceCode, List<RegistrantDocumentView> allDocs) {
+        if (isLicenceAllowedWithDocuments(uiLicenceCode, allDocs)) {
+            return null;
+        }
+        String code = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
+        if (hasUploadedOtherDocumentForLicence(code, allDocs)
+                && !hasApprovedOtherDocumentForLicence(code, allDocs)) {
+            return "Hồ sơ bổ sung cho hạng " + code
+                    + " đang chờ ban quản lý duyệt. Bạn có thể đăng ký thi sau khi được phê duyệt.";
+        }
+        return "Hồ sơ của bạn mới có 4 giấy tờ bắt buộc nên chỉ được đăng ký thi hạng A1 hoặc A2. "
+                + "Để đăng ký hạng " + code + ", vui lòng bổ sung hồ sơ khác cho hạng này tại trang Quản lý tài liệu.";
+    }
+
+    public static Map<String, Boolean> buildLicenceDocumentAllowedMap(
+            List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
+        Map<String, Boolean> allowed = new LinkedHashMap<>();
+        if (licenceCodes != null) {
+            for (String code : licenceCodes) {
+                if (code != null && !code.isBlank()) {
+                    allowed.put(code.trim(), isLicenceAllowedWithDocuments(code, allDocs));
+                }
+            }
+        }
+        return allowed;
+    }
+
+    public static Map<String, String> buildLicenceDocumentBlockMessageMap(
+            List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
+        Map<String, String> messages = new LinkedHashMap<>();
+        if (licenceCodes != null) {
+            for (String code : licenceCodes) {
+                if (code != null && !code.isBlank()) {
+                    String block = licenceClassBlockMessage(code, allDocs);
+                    if (block != null) {
+                        messages.put(code.trim(), block);
+                    }
+                }
+            }
+        }
+        return messages;
     }
 
     public static List<RegistrantTrackingLog> buildDocumentTrackingLogs(List<RegistrantDocumentView> docs,
@@ -180,12 +349,6 @@ public final class RegistrantDocumentStatusHelper {
         return logs;
     }
 
-    /** @deprecated Dùng overload có registrationStatus */
-    public static List<RegistrantTrackingLog> buildDocumentTrackingLogs(List<RegistrantDocumentView> docs,
-            Map<String, String> typeLabels, Date profileCreatedAt) {
-        return buildDocumentTrackingLogs(docs, typeLabels, profileCreatedAt, ProfileRegistrationStatus.DRAFT);
-    }
-
     private static void applySingleDocumentLabel(RegistrantDocumentView doc, String registrationStatus) {
         if (!hasUploadedFile(doc)) {
             doc.setStatusClass("pending");
@@ -199,9 +362,13 @@ public final class RegistrantDocumentStatusHelper {
         }
         switch (registrationStatus) {
             case ProfileRegistrationStatus.APPROVED -> {
-                if (DocumentDAOImpl.isOtherType(doc.getDocumentType())
-                        && !DocumentDAOImpl.isApproved(doc.getNotes())
-                        && !DocumentDAOImpl.isPendingReview(doc.getNotes())) {
+                if (!DocumentDAOImpl.isOtherType(doc.getDocumentType())) {
+                    doc.setStatusClass("success");
+                    doc.setStatusLabel("Đã duyệt");
+                } else if (DocumentDAOImpl.isPendingReview(doc.getNotes())) {
+                    doc.setStatusClass("warning");
+                    doc.setStatusLabel("Chờ duyệt");
+                } else if (!DocumentDAOImpl.isApproved(doc.getNotes())) {
                     doc.setStatusClass("warning");
                     doc.setStatusLabel("Chưa gửi duyệt");
                 } else {
@@ -225,7 +392,7 @@ public final class RegistrantDocumentStatusHelper {
     }
 
     private static void applyOverallStatusFromRegistration(RegistrantDocumentSummary summary,
-            String registrationStatus) {
+            String registrationStatus, List<RegistrantDocumentView> allDocs) {
         String status = normalizeRegistrationStatus(registrationStatus);
         summary.setOverallStatusLabel(ProfileRegistrationStatus.toDisplayLabel(status));
         summary.setOverallStatusClass(mapOverallClass(status));
@@ -241,8 +408,9 @@ public final class RegistrantDocumentStatusHelper {
         }
 
         summary.setOverallMessage(switch (status) {
-            case ProfileRegistrationStatus.APPROVED ->
-                    "Tất cả giấy tờ bắt buộc đã được ban quản lý phê duyệt.";
+            case ProfileRegistrationStatus.APPROVED -> hasSupplementPendingReview(allDocs)
+                    ? "Giấy tờ bắt buộc đã được phê duyệt. Hồ sơ bổ sung đang chờ ban quản lý xem xét."
+                    : "Tất cả giấy tờ bắt buộc đã được ban quản lý phê duyệt.";
             case ProfileRegistrationStatus.PENDING ->
                     "Hồ sơ đã gửi ban quản lý — đang chờ phê duyệt.";
             case ProfileRegistrationStatus.REJECTED ->
@@ -268,26 +436,6 @@ public final class RegistrantDocumentStatusHelper {
             return ProfileRegistrationStatus.DRAFT;
         }
         return registrationStatus.trim();
-    }
-
-    private static Map<String, RegistrantDocumentView> buildRequiredSlots(List<RegistrantDocumentView> allDocs) {
-        Map<String, RegistrantDocumentView> slots = new LinkedHashMap<>();
-        for (String type : REQUIRED_TYPES) {
-            RegistrantDocumentView empty = new RegistrantDocumentView();
-            empty.setDocumentType(type);
-            empty.setStatusClass("pending");
-            empty.setStatusLabel("Chưa tải lên");
-            slots.put(type, empty);
-        }
-        for (RegistrantDocumentView doc : allDocs) {
-            if (DocumentDAOImpl.isOtherType(doc.getDocumentType())) {
-                continue;
-            }
-            if (slots.containsKey(doc.getDocumentType())) {
-                slots.put(doc.getDocumentType(), doc);
-            }
-        }
-        return slots;
     }
 
     private static boolean hasUploadedFile(RegistrantDocumentView doc) {

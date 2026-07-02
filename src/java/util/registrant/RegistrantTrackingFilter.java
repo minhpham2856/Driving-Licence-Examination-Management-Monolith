@@ -1,13 +1,21 @@
-package Utils;
+<<<<<<<< Updated upstream:src/java/util/registrant/RegistrantTrackingFilter.java
+package util.registrant;
 
-import Models.RegistrantFilterOption;
-import Models.RegistrantTrackingLog;
+import dto.registrant.RegistrantFilterOption;
+import dto.registrant.RegistrantTrackingLog;
+========
+package util;
+
+import model.registrant.RegistrantFilterOption;
+import model.registrant.RegistrantTrackingLog;
+>>>>>>>> Stashed changes:src/java/util/RegistrantTrackingFilter.java
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -24,13 +32,18 @@ public final class RegistrantTrackingFilter {
         private final String statusFilter;
         private final String fromDate;
         private final String toDate;
+        private final LocalDate fromDateParsed;
+        private final LocalDate toDateParsed;
+        private final String filterDateError;
         private final int page;
         private final List<RegistrantFilterOption> categoryFilterOptions;
         private final List<RegistrantFilterOption> statusFilterOptions;
         private final boolean searchActive;
 
         public TrackingFilterState(String searchQuery, String categoryFilter, String statusFilter,
-                String fromDate, String toDate, int page,
+                String fromDate, String toDate,
+                LocalDate fromDateParsed, LocalDate toDateParsed, String filterDateError,
+                int page,
                 List<RegistrantFilterOption> categoryFilterOptions,
                 List<RegistrantFilterOption> statusFilterOptions, boolean searchActive) {
             this.searchQuery = searchQuery;
@@ -38,6 +51,9 @@ public final class RegistrantTrackingFilter {
             this.statusFilter = statusFilter;
             this.fromDate = fromDate;
             this.toDate = toDate;
+            this.fromDateParsed = fromDateParsed;
+            this.toDateParsed = toDateParsed;
+            this.filterDateError = filterDateError;
             this.page = page;
             this.categoryFilterOptions = categoryFilterOptions;
             this.statusFilterOptions = statusFilterOptions;
@@ -64,6 +80,22 @@ public final class RegistrantTrackingFilter {
             return toDate;
         }
 
+        public LocalDate getFromDateParsed() {
+            return fromDateParsed;
+        }
+
+        public LocalDate getToDateParsed() {
+            return toDateParsed;
+        }
+
+        public String getFilterDateError() {
+            return filterDateError;
+        }
+
+        public boolean hasFilterDateError() {
+            return filterDateError != null && !filterDateError.isBlank();
+        }
+
         public int getPage() {
             return page;
         }
@@ -86,8 +118,15 @@ public final class RegistrantTrackingFilter {
 
     public static TrackingFilterState parse(HttpServletRequest request, List<RegistrantTrackingLog> allLogs) {
         String searchQuery = RegistrantListFilter.trimParam(request.getParameter("q"));
-        String fromDate = normalizeDateParam(request.getParameter("fromDate"));
-        String toDate = normalizeDateParam(request.getParameter("toDate"));
+        String fromRaw = RegistrantListFilter.trimParam(request.getParameter("fromDate"));
+        String toRaw = RegistrantListFilter.trimParam(request.getParameter("toDate"));
+        String filterDateError = RegistrantDateSupport.validateDateRange(fromRaw, toRaw);
+
+        LocalDate fromParsed = filterDateError == null ? RegistrantDateSupport.parse(fromRaw) : null;
+        LocalDate toParsed = filterDateError == null ? RegistrantDateSupport.parse(toRaw) : null;
+
+        String fromDate = RegistrantDateSupport.displayValue(fromRaw);
+        String toDate = RegistrantDateSupport.displayValue(toRaw);
         int page = parsePage(request.getParameter("page"));
 
         List<String> availableCategories = collectCategories(allLogs);
@@ -104,9 +143,10 @@ public final class RegistrantTrackingFilter {
                 buildCategoryOptions(availableCategories, categoryFilter);
         List<RegistrantFilterOption> statusOptions =
                 buildStatusOptions(availableStatuses, statusFilter);
-        boolean searchActive = hasActiveFilters(searchQuery, categoryFilter, statusFilter, fromDate, toDate);
+        boolean searchActive = hasActivefilter(searchQuery, categoryFilter, statusFilter, fromDate, toDate);
 
-        return new TrackingFilterState(searchQuery, categoryFilter, statusFilter, fromDate, toDate, page,
+        return new TrackingFilterState(searchQuery, categoryFilter, statusFilter, fromDate, toDate,
+                fromParsed, toParsed, filterDateError, page,
                 categoryOptions, statusOptions, searchActive);
     }
 
@@ -115,6 +155,8 @@ public final class RegistrantTrackingFilter {
             return List.of();
         }
         String q = normalizeQuery(state.getSearchQuery());
+        LocalDate fromDate = state.hasFilterDateError() ? null : state.getFromDateParsed();
+        LocalDate toDate = state.hasFilterDateError() ? null : state.getToDateParsed();
         List<RegistrantTrackingLog> filtered = new ArrayList<>();
         for (RegistrantTrackingLog log : logs) {
             if (!RegistrantTrackingCategories.matchesCategory(log, state.getCategoryFilter())) {
@@ -123,7 +165,7 @@ public final class RegistrantTrackingFilter {
             if (!RegistrantTrackingCategories.matchesStatusFilter(log, state.getStatusFilter())) {
                 continue;
             }
-            if (!matchesDateRange(log, state.getFromDate(), state.getToDate())) {
+            if (!matchesDateRange(log, fromDate, toDate)) {
                 continue;
             }
             if (q != null && !matchesSearch(log, q)) {
@@ -161,6 +203,9 @@ public final class RegistrantTrackingFilter {
         request.setAttribute("actionFilterOptions", state.getCategoryFilterOptions());
         request.setAttribute("fromDate", state.getFromDate());
         request.setAttribute("toDate", state.getToDate());
+        request.setAttribute("fromDateIso", RegistrantDateSupport.toIsoValue(state.getFromDateParsed()));
+        request.setAttribute("toDateIso", RegistrantDateSupport.toIsoValue(state.getToDateParsed()));
+        request.setAttribute("filterDateError", state.getFilterDateError());
         request.setAttribute("auditPage", state.getPage());
         request.setAttribute("auditTotalCount", filteredCount);
         request.setAttribute("trackingTotalCount", totalCount);
@@ -235,30 +280,27 @@ public final class RegistrantTrackingFilter {
                         RegistrantTrackingCategories.resolveCategory(log)), q);
     }
 
-    private static boolean matchesDateRange(RegistrantTrackingLog log, String fromDate, String toDate) {
+    private static boolean matchesDateRange(RegistrantTrackingLog log, LocalDate fromDate, LocalDate toDate) {
+        if (fromDate == null && toDate == null) {
+            return true;
+        }
         if (log.getTimestamp() == null) {
-            return fromDate == null || fromDate.isBlank();
+            return fromDate == null;
         }
-        LocalDate eventDate = log.getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        if (fromDate != null && !fromDate.isBlank()) {
-            try {
-                if (eventDate.isBefore(LocalDate.parse(fromDate.trim()))) {
-                    return false;
-                }
-            } catch (DateTimeParseException ignored) {
-                return true;
-            }
+        LocalDate eventDate = toLocalDate(log.getTimestamp());
+        if (fromDate != null && eventDate.isBefore(fromDate)) {
+            return false;
         }
-        if (toDate != null && !toDate.isBlank()) {
-            try {
-                if (eventDate.isAfter(LocalDate.parse(toDate.trim()))) {
-                    return false;
-                }
-            } catch (DateTimeParseException ignored) {
-                return true;
-            }
+        if (toDate != null && eventDate.isAfter(toDate)) {
+            return false;
         }
         return true;
+    }
+
+    private static LocalDate toLocalDate(Date value) {
+        return Instant.ofEpochMilli(value.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 
     private static String normalizeChoice(String raw, List<String> validValues, String defaultValue) {
@@ -274,19 +316,6 @@ public final class RegistrantTrackingFilter {
         return defaultValue;
     }
 
-    private static String normalizeDateParam(String raw) {
-        String trimmed = RegistrantListFilter.trimParam(raw);
-        if (trimmed.isEmpty()) {
-            return "";
-        }
-        try {
-            LocalDate.parse(trimmed);
-            return trimmed;
-        } catch (DateTimeParseException ex) {
-            return "";
-        }
-    }
-
     private static String normalizeQuery(String query) {
         if (query == null || query.isBlank()) {
             return null;
@@ -298,7 +327,7 @@ public final class RegistrantTrackingFilter {
         return value != null && value.toLowerCase(Locale.ROOT).contains(q.toLowerCase(Locale.ROOT));
     }
 
-    private static boolean hasActiveFilters(String q, String category, String status, String from, String to) {
+    private static boolean hasActivefilter(String q, String category, String status, String from, String to) {
         return !RegistrantListFilter.trimParam(q).isEmpty()
                 || (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category))
                 || (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status))
