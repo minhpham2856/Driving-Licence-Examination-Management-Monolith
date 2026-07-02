@@ -1,7 +1,7 @@
 package examstaff.service;
 
 import examstaff.dto.ProcedureFeeResultDTO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 
 public interface ProcedureFeeQueryService {
 

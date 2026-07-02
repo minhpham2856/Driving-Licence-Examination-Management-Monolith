@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.model.view.CallBoardState;
 
 import java.util.ArrayList;

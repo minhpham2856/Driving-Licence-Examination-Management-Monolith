@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import examstaff.service.StaffAuditPageService;
 import examstaff.service.ExamStaffServices;
-import util.SessionUserHelper;
+import examstaff.util.SessionUserHelper;
 import examstaff.util.AllocationStageHelper;
 
 import java.io.IOException;

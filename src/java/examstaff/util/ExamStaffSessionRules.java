@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import dto.ExamSummaryDTO;
+import examstaff.dto.ExamSummaryDTO;
 
 import java.util.ArrayList;
 import java.util.Comparator;

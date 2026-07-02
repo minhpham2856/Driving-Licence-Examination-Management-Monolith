@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
-import dto.ExamSummaryDTO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.PublicCallSnapshotDTO;
 import examstaff.model.view.CallBoardState;
 import examstaff.service.CallBoardSyncService;

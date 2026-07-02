@@ -6,7 +6,7 @@ import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dto.CandidateCallPageCommand;
@@ -15,7 +15,7 @@ import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffServices;
-import util.SessionUserHelper;
+import examstaff.util.SessionUserHelper;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -189,7 +189,7 @@ public class CandidateCallServlet extends HttpServlet {
         if (resolvedExamId <= 0) {
             resolvedExamId = examId;
         }
-        dto.ExamSummaryDTO current = selectionFacade.findExamById(
+        examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
                 selectionFacade.loadAllExams(), resolvedExamId);
         if (current == null && examId > 0) {
             current = selectionFacade.representativeSessionForExam(
@@ -216,7 +216,7 @@ public class CandidateCallServlet extends HttpServlet {
     private void publishCandidateQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> queue, int examId) {
         CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(queue, examId, examId);
-        dto.ExamSummaryDTO current = selectionFacade.findExamById(
+        examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
                 selectionFacade.loadAllExams(), examId);
         if (current == null && examId > 0) {
             current = selectionFacade.representativeSessionForExam(
