@@ -6,7 +6,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Nhập điểm" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/score-entry" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/score-entry" scope="request" />
 <c:set var="callUrl" value="${ctx}/views/examiner/candidate-call" />
 <c:set var="confirmUrl" value="${ctx}/views/examiner/confirmation" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
@@ -113,7 +113,7 @@
                             </div>
                             <c:if test="${not empty candidate}">
                                 <form method="post" action="${pageUrl}" class="score-entry-finalize-form">
-                                    <input type="hidden" name="action" value="finalizeScore">
+                                    <input type="hidden" name="action" value="finalize">
                                     <input type="hidden" name="sbd" value="${candidate.sbd}">
                                     <button type="submit" class="examiner-btn examiner-btn--primary score-entry-finalize-btn">
                                         Hoàn tất nhập điểm

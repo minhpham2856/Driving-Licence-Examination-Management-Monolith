@@ -130,5 +130,3 @@
         </div>
     </section>
 </main>
-
-<jsp:include page="/views/layout/footer.jsp" />

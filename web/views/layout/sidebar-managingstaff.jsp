@@ -47,7 +47,7 @@
     <nav class="side-nav-bar__menu" data-node-id="manager:7">
         
         <%-- SC-030: Dashboard quản lý --%>
-        <a href="${ctx}/views/staff/managingstaff/dashboard.jsp"
+        <a href="${ctx}/views/staff/managing/dashboard.jsp"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="manager:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -63,7 +63,7 @@
         </a>
 
         <%-- SC-031: Danh sách registered users --%>
-        <a href="${ctx}/views/staff/managingstaff/users.jsp"
+        <a href="${ctx}/views/staff/managing/users.jsp"
            class="side-nav-bar__link${activeSidebar eq 'hoc-vien' ? ' is-active' : ''}"
            data-node-id="manager:20"
            <c:if test="${activeSidebar eq 'hoc-vien'}">aria-current="page"</c:if>>
@@ -79,7 +79,7 @@
         </a>
 
         <%-- SC-033: Duyệt / Từ chối hồ sơ, giấy tờ --%>
-        <a href="${ctx}/views/staff/managingstaff/approve.jsp"
+        <a href="${ctx}/views/staff/managing/approve.jsp"
            class="side-nav-bar__link${activeSidebar eq 'duyet-ho-so' ? ' is-active' : ''}"
            data-node-id="manager:30"
            <c:if test="${activeSidebar eq 'duyet-ho-so'}">aria-current="page"</c:if>>
@@ -108,7 +108,7 @@
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>
-        <a href="${ctx}/views/staff/managingstaff/report.jsp"
+        <a href="${ctx}/views/staff/managing/report.jsp"
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
            data-node-id="manager:50"
            <c:if test="${activeSidebar eq 'bao-cao'}">aria-current="page"</c:if>>
@@ -122,7 +122,7 @@
         </a>
 
         <%-- SC-036: Nhật ký thao tác --%>
-        <a href="${ctx}/views/staff/managingstaff/audit.jsp"
+        <a href="${ctx}/views/staff/managing/audit.jsp"
            class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}"
            data-node-id="manager:60"
            <c:if test="${activeSidebar eq 'audit'}">aria-current="page"</c:if>>

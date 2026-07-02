@@ -1,6 +1,5 @@
 /DLEM/nbproject/private/
 /Driving-Licence-Examination-Management-Monolith/nbproject/private/
-/Driving-Licence-Examination-Management-Monolith/private/
 private/
 /build/
 /nbproject/private
@@ -11,4 +10,7 @@ AGENTS.md
 skills-lock.json
 sources.txt
 .agents/
+
+private/
+build/
 out/

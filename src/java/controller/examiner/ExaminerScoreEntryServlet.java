@@ -1,278 +1,173 @@
 package controller.examiner;
-
-
-import model.user.User;
+import dto.CandidateEnrollmentDTO;
+import dto.ExaminerSlotDTO;
+import filter.ExaminerPortalFilter;
+import model.User;
+import service.AuditLogService;
+import service.ExaminerActionsService;
+import service.ExaminerDataService;
+import service.impl.AuditLogServiceImpl;
+import service.impl.ExaminerActionsServiceImpl;
+import service.impl.ExaminerDataServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 import java.io.IOException;
-
-// Handles the main examiner score entry view and actions during an active exam section.
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 @WebServlet("/views/examiner/score-entry")
-public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
-
-    // Handles GET requests for score entry page rendering and interactive actions.
+public class ExaminerScoreEntryServlet extends HttpServlet {
+    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
+    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = requireSession(request, response);
-        if (session == null) return;
-
+        if (session == null) {
+            return;
+        }
         Integer sessionId = activeSessionId(session);
-        String sbd = request.getParameter("sbd");
+        Integer sbd = parseSbdParam(request.getParameter("sbd"));
         String action = request.getParameter("action");
         User user = (User) session.getAttribute("user");
-
+        boolean isTheory = ExaminerPortalFilter.isTheorySession(session);
+        String sectionName = resolveSectionName(session);
         if (sessionId != null && sessionId > 0) {
+            if (isTheorySection(request) && request.getParameter("error") == null) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoScoreEntry");
+                return;
+            }
             if (action != null) {
-                if (handleScoreEntryAction(request, response, session, sessionId, action, sbd, user)) {
+                if ("adjustDeduction".equals(action)) {
+                    if (sbd == null) {
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
+                        return;
+                    }
+                    int deductionId;
+                    int delta;
+                    try {
+                        deductionId = Integer.parseInt(request.getParameter("deductionId"));
+                        delta = Integer.parseInt(request.getParameter("delta"));
+                    } catch (Exception e) {
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                                + urlEncode(sbd) + "&error=invalidDeduction");
+                        return;
+                    }
+                    if (!examinerService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, user.getUserId())) {
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                                + urlEncode(sbd) + "&error=deductionFailed");
+                        return;
+                    }
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                            + urlEncode(sbd));
+                    return;
+                }
+                if (handleScoreEntryAction(request, response, session, sessionId, action, sbd, user, isTheory, sectionName)) {
                     return;
                 }
             }
-
-            // Auto-advance score entry logic if no active candidate is set
-            if (sbd == null || sbd.isBlank()) {
+            if (sbd == null) {
                 if (request.getAttribute("candidate") == null && action == null) {
-                    String called = examinerService.autoCallScoreEntryIfNeeded(sessionId, user, session);
+                    Integer called = autoCallScoreEntryIfNeeded(sessionId, user, session, isTheory, sectionName, user.getUserId());
                     if (called != null) {
-                        viewDataService.attachScoreEntry(request, sessionId, called);
+                        Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, called, sectionName);
+                        for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                            request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                        }
                     }
                 }
             } else {
-                viewDataService.attachScoreEntry(request, sessionId, sbd);
+                Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, sbd, sectionName);
+                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                }
             }
         }
-
-        forward(request, response, "/views/examiner/score-entry.jsp");
+        request.getRequestDispatcher("/views/examiner/score-entry.jsp").forward(request, response);
     }
-
-    // Handles POST requests (e.g., finalizeScore).
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = requireSession(request, response);
-        if (session == null) return;
-
+        if (session == null) {
+            return;
+        }
         Integer sessionId = activeSessionId(session);
         if (sessionId == null || sessionId <= 0) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Chưa có ca thi đang diễn ra.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-
-        if ("finalizeScore".equals(request.getParameter("action"))) {
-            String sbd = request.getParameter("sbd");
-            if (sbd == null || sbd.isBlank()) {
-                redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+        boolean isTheory = ExaminerPortalFilter.isTheorySession(session);
+        String sectionName = resolveSectionName(session);
+        if ("finalize".equals(request.getParameter("action"))) {
+            Integer sbd = parseSbdParam(request.getParameter("sbd"));
+            if (sbd == null) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
                 return;
             }
-            if (!examinerService.finalizeScoreEntry(sessionId, sbd, session)) {
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=finalizeFailed");
+            if (!examinerService.finalizeScoreEntry(sessionId, sbd,
+                    ((User) session.getAttribute("user")).getUserId(), sectionName)) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                        + urlEncode(sbd) + "&error=finalizeFailed");
                 return;
             }
-            String nextSbd = ExaminerScoreEntryQueue.nextInQueueAfter(session, sessionId, sbd);
-            if (nextSbd != null && !nextSbd.isBlank()) {
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(nextSbd) + "&finalized=1");
+            ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, null);
+            Integer nextSbd = ExaminerScoreEntryQueue.nextInQueueAfter(isTheory, sectionName, sbd);
+            if (nextSbd != null) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                        + urlEncode(nextSbd) + "&finalized=1");
             } else {
-                redirect(response, request, "/views/examiner/score-entry?finalized=1");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?finalized=1");
             }
             return;
         }
-
         doGet(request, response);
     }
-
-    // Handles various interactive actions within the score entry page.
     private boolean handleScoreEntryAction(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, int sessionId, String action, String sbd, User user) throws IOException {
+            HttpSession session, int sessionId, String action, Integer sbd, User user,
+            boolean isTheory, String sectionName) throws IOException {
         switch (action) {
             case "call" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    String called = examinerService.autoCallScoreEntryIfNeeded(sessionId, user, session);
+                if (sbd == null) {
+                    Integer called = autoCallScoreEntryIfNeeded(sessionId, user, session, isTheory, sectionName, user.getUserId());
                     if (called == null) {
-                        redirect(response, request, "/views/examiner/score-entry?error=noCandidate");
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noCandidate");
                         return true;
                     }
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(called) + "&scoreCalled=1");
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                            + urlEncode(called) + "&scoreCalled=1");
                     return true;
                 }
-                if (!examinerService.callScoreEntryCandidate(sessionId, sbd, user, session)) {
-                    redirect(response, request, "/views/examiner/score-entry?error=callFailed&sbd=" + urlEncode(sbd));
+                if (!examinerService.callScoreEntryCandidate(sessionId, sbd, user, user.getUserId(), isTheory,
+                        sectionName, resolveCallDestination(session))) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=callFailed&sbd="
+                            + urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&scoreCalled=1");
+                ExaminerScoreEntryQueue.setCalledSbd(isTheory, sectionName, sbd);
+                ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, sbd);
+                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                        + urlEncode(sbd) + "&scoreCalled=1");
                 return true;
             }
             case "deferAbsent" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
+                if (sbd == null) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
                     return true;
                 }
-                String next = examinerService.deferScoreEntryAbsent(sessionId, sbd, user, session);
+                Integer next = deferScoreEntryAbsent(sessionId, sbd, user, session, isTheory, sectionName, user.getUserId());
                 if (next == null) {
-                    redirect(response, request, "/views/examiner/score-entry?deferred=" + urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?deferred="
+                            + urlEncode(sbd));
                     return true;
                 }
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(next) + "&deferred=" + urlEncode(sbd));
-                return true;
-            }
-            case "select" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd));
-                return true;
-            }
-            case "changeVehicle" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                int deviceId;
-                try {
-                    deviceId = Integer.parseInt(request.getParameter("deviceId"));
-                } catch (Exception e) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=invalidDevice");
-                    return true;
-                }
-                if (!examinerService.changeCandidateVehicle(sessionId, sbd, deviceId, session)) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=changeVehicleFailed");
-                    return true;
-                }
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&vehicleChanged=1");
-                return true;
-            }
-            case "maintenance", "operational" -> {
-                int deviceId;
-                try {
-                    deviceId = Integer.parseInt(request.getParameter("deviceId"));
-                } catch (Exception e) {
-                    String base = "/views/examiner/score-entry?error=invalidDevice";
-                    if (sbd != null && !sbd.isBlank()) base += "&sbd=" + urlEncode(sbd);
-                    redirect(response, request, base);
-                    return true;
-                }
-
-                boolean updated;
-                String suffix;
-                if ("operational".equals(action)) {
-                    updated = examinerService.setDeviceAvailable(deviceId, session);
-                    suffix = updated ? "operationalDone=" + deviceId : "error=operationalFailed&deviceId=" + deviceId;
-                } else {
-                    updated = examinerService.setDeviceMaintenance(deviceId, session);
-                    suffix = updated ? "maintenanceDone=" + deviceId : "error=maintenanceFailed&deviceId=" + deviceId;
-                }
-
-                String redirectPath = "/views/examiner/score-entry?" + suffix;
-                if (sbd != null && !sbd.isBlank()) redirectPath += "&sbd=" + urlEncode(sbd);
-                redirect(response, request, redirectPath);
-                return true;
-            }
-            case "adjustDeduction" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                int deductionId;
-                int delta;
-                try {
-                    deductionId = Integer.parseInt(request.getParameter("deductionId"));
-                    delta = Integer.parseInt(request.getParameter("delta"));
-                } catch (Exception e) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
-                    return true;
-                }
-                if (!examinerService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, session)) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
-                    return true;
-                }
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd));
-                return true;
-            }
-              case "markAbsentScore" -> {
-                  if (sbd == null || sbd.isBlank()) {
-                      redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                      return true;
-                  }
-                  examinerService.markAbsent(sessionId, sbd, session);
-                  redirect(response, request, "/views/examiner/score-entry?absentDone=" + urlEncode(sbd));
-                  return true;
-              }
-            case "finalizeScore" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                if (!examinerService.finalizeScoreEntry(sessionId, sbd, session)) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=finalizeFailed");
-                    return true;
-                }
-                String nextSbd = ExaminerScoreEntryQueue.nextInQueueAfter(session, sessionId, sbd);
-                if (nextSbd != null && !nextSbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(nextSbd) + "&finalized=1");
-                } else {
-                    redirect(response, request, "/views/examiner/score-entry?finalized=1");
-                }
-                return true;
-            }
-            case "printSignature" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                if (!examinerService.printSignatureForm(sessionId, sbd, session)) {
-                    redirect(response, request, "/views/examiner/score-entry?error=signaturePrintFailed&sbd=" + urlEncode(sbd));
-                    return true;
-                }
-                redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&signatureMarked=1");
-                return true;
-            }
-            case "completeSectionScore" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                String completeError = examinerService.completeCandidateSection(sessionId, sbd, session);
-                if ("needSignaturePrint".equals(completeError)) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=needSignaturePrint");
-                    return true;
-                }
-                if (completeError != null) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=completeFailed");
-                    return true;
-                }
-                String nextAfterComplete = ExaminerScoreEntryQueue.nextInQueueAfter(session, sessionId, sbd);
-                if (nextAfterComplete != null && !nextAfterComplete.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(nextAfterComplete) + "&completeDone=" + urlEncode(sbd));
-                } else {
-                    redirect(response, request, "/views/examiner/score-entry?completeDone=" + urlEncode(sbd));
-                }
-                return true;
-            }
-            case "suspendInScoreEntry" -> {
-                if (sbd == null || sbd.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?error=noSbd");
-                    return true;
-                }
-                String reasonCode = request.getParameter("reasonCode");
-                String reasonDetail = request.getParameter("reasonDetail");
-                String[] deductionStrs = request.getParameterValues("deductionId");
-
-                int[] deductionIds = parseDeductionIds(deductionStrs);
-                if (!examinerService.recordViolation(sessionId, sbd, reasonCode, reasonDetail, null, deductionIds, session)) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(sbd) + "&error=suspendFailed");
-                    return true;
-                }
-                String nextAfterSuspend = ExaminerScoreEntryQueue.nextInQueueAfter(session, sessionId, sbd);
-                ExaminerScoreEntryQueue.setActiveSbd(session, sessionId, null);
-                if (nextAfterSuspend != null && !nextAfterSuspend.isBlank()) {
-                    redirect(response, request, "/views/examiner/score-entry?sbd=" + urlEncode(nextAfterSuspend) + "&suspended=" + urlEncode(sbd));
-                } else {
-                    redirect(response, request, "/views/examiner/score-entry?suspended=" + urlEncode(sbd));
-                }
+                response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
+                        + urlEncode(next) + "&deferred=" + urlEncode(sbd));
                 return true;
             }
             default -> {
@@ -280,7 +175,107 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
             }
         }
     }
+    private Integer autoCallScoreEntryIfNeeded(int sessionId, User user, HttpSession session, boolean isTheory,
+            String sectionName, Integer actionUserId) {
+        Integer active = ExaminerScoreEntryQueue.getActiveSbd(isTheory, sectionName);
+        Integer called = ExaminerScoreEntryQueue.getCalledSbd(isTheory, sectionName);
+        if (active != null) {
+            return active;
+        }
+        if (called != null) {
+            ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, called);
+            return called;
+        }
+        Integer first = ExaminerScoreEntryQueue.firstInQueue(isTheory, sectionName);
+        if (first == null) {
+            return null;
+        }
+        if (examinerService.callScoreEntryCandidate(sessionId, first, user, actionUserId, isTheory, sectionName,
+                resolveCallDestination(session))) {
+            ExaminerScoreEntryQueue.setCalledSbd(isTheory, sectionName, first);
+            ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, first);
+            return first;
+        }
+        return null;
+    }
+    private Integer deferScoreEntryAbsent(int sessionId, int sbd, User user, HttpSession session,
+            boolean isTheory, String sectionName, Integer actionUserId) {
+        CandidateEnrollmentDTO reg = examinerService.findCandidate(sessionId, sbd);
+        if (reg == null) {
+            return null;
+        }
+        Integer nextSbd = ExaminerScoreEntryQueue.moveToBottom(isTheory, sectionName, reg.getSbd());
+        auditLogService.logAction(actionUserId, "UPDATE ScoreEntryQueue",
+                "Chuyển SBD " + reg.getSbd() + " xuống cuối hàng nhập điểm",
+                reg.getId());
+        if (nextSbd != null) {
+            if (examinerService.callScoreEntryCandidate(sessionId, nextSbd, user, actionUserId, isTheory, sectionName,
+                    resolveCallDestination(session))) {
+                ExaminerScoreEntryQueue.setCalledSbd(isTheory, sectionName, nextSbd);
+                ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, nextSbd);
+            }
+        } else {
+            ExaminerScoreEntryQueue.setActiveSbd(isTheory, sectionName, null);
+        }
+        return nextSbd;
+    }
+    private HttpSession requireSession(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        }
+        return session;
+    }
+    private Integer activeSessionId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        return (Integer) session.getAttribute(ExaminerPortalFilter.ATTR_ACTIVE_SESSION_ID);
+    }
+    private Integer parseSbdParam(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            int sbd = Integer.parseInt(raw.trim());
+            return sbd > 0 ? sbd : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+    private String resolveSectionName(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object slotObj = session.getAttribute(ExaminerPortalFilter.ATTR_SLOT);
+        if (slotObj instanceof ExaminerSlotDTO) {
+            return ((ExaminerSlotDTO) slotObj).getExamTypeName();
+        }
+        Object name = session.getAttribute(ExaminerPortalFilter.ATTR_EXAM_SECTION_NAME);
+        return name != null ? String.valueOf(name) : null;
+    }
+    private boolean isTheorySection(HttpServletRequest request) {
+        return ExaminerPortalFilter.isTheorySession(request.getSession(false));
+    }
+    private String urlEncode(int value) {
+        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+    }
+    private String resolveCallDestination(HttpSession session) {
+        if (session == null) {
+            return "Khu vực thi";
+        }
+        Object slotObj = session.getAttribute(ExaminerPortalFilter.ATTR_SLOT);
+        if (slotObj instanceof ExaminerSlotDTO) {
+            ExaminerSlotDTO slot = (ExaminerSlotDTO) slotObj;
+            if (slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
+                return slot.getAreaName();
+            }
+        }
+        Object sectionName = session.getAttribute(ExaminerPortalFilter.ATTR_EXAM_SECTION_NAME);
+        if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
+            return String.valueOf(sectionName);
+        }
+        return "Khu vực thi thực hành";
+    }
 }
-
-
-

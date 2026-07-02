@@ -1,0 +1,53 @@
+package model;
+public class ExamArea {
+    private int examAreaId;
+    private String areaName;
+    private String areaType;
+    private Integer capacity;
+    private String location;
+    public ExamArea() {
+    }
+    public ExamArea(int examAreaId, String areaName, String areaType, Integer capacity, String location) {
+        this.examAreaId = examAreaId;
+        this.areaName = areaName;
+        this.areaType = areaType;
+        this.capacity = capacity;
+        this.location = location;
+    }
+    public int getExamAreaId() {
+        return examAreaId;
+    }
+    public void setExamAreaId(int examAreaId) {
+        this.examAreaId = examAreaId;
+    }
+    public int getId() {
+        return examAreaId;
+    }
+    public void setId(int examAreaId) {
+        this.examAreaId = examAreaId;
+    }
+    public String getAreaName() {
+        return areaName;
+    }
+    public void setAreaName(String areaName) {
+        this.areaName = areaName;
+    }
+    public String getAreaType() {
+        return areaType;
+    }
+    public void setAreaType(String areaType) {
+        this.areaType = areaType;
+    }
+    public Integer getCapacity() {
+        return capacity;
+    }
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
+    public String getLocation() {
+        return location;
+    }
+    public void setLocation(String location) {
+        this.location = location;
+    }
+}

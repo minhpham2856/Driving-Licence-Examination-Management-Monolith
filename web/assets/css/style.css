@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('examstaff.css');
+@import url('exam.css');
 
 /* ========================================================
    Global Reset & Base (Light Theme Standard)
@@ -384,86 +384,6 @@ p {
     line-height: 20px;
     font-weight: 400;
     white-space: nowrap;
-}
-
-.side-nav-bar__session-picker {
-    flex-shrink: 0;
-    width: 100%;
-    padding: 0 8px 12px;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 4px;
-    box-sizing: border-box;
-}
-
-.side-nav-bar__session-form {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.side-nav-bar__session-apply {
-    width: 100%;
-    min-height: 34px;
-    margin-top: 2px;
-    padding: 0 10px;
-    border-radius: 8px;
-    border: 1px solid #0052cc;
-    background: #0052cc;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s, border-color 0.2s, opacity 0.2s;
-}
-
-.side-nav-bar__session-apply:hover:not(:disabled) {
-    background: #0041a3;
-    border-color: #0041a3;
-}
-
-.side-nav-bar__session-apply:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    background: #94a3b8;
-    border-color: #94a3b8;
-}
-
-.side-nav-bar__session-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #64748b;
-    margin: 0;
-}
-
-.side-nav-bar__session-select {
-    width: 100%;
-    min-height: 34px;
-    padding: 6px 8px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    color: #1e293b;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.3;
-    cursor: pointer;
-}
-
-.side-nav-bar__session-select:focus {
-    outline: 2px solid #0052cc;
-    outline-offset: 1px;
-}
-
-.side-nav-bar__session-hint {
-    margin: 6px 0 0;
-    font-size: 11px;
-    color: #64748b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 
@@ -6063,7 +5983,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   audit.jsp - ExamStaff specific styles
+   audit.jsp - exam specific styles
    ======================================================== */
 
 .staff-profile-card {
@@ -6105,7 +6025,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   dashboard.jsp - ExamStaff specific styles
+   dashboard.jsp - exam specific styles
    ======================================================== */
 
 .progress-indicator-bar {
@@ -6264,7 +6184,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   upload.jsp - ExamStaff specific styles
+   upload.jsp - exam specific styles
    ======================================================== */
 
 .upload-dropzone-container {
@@ -6342,7 +6262,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   allocation.jsp - ExamStaff Pipeline (Horizontal Layout)
+   allocation.jsp - exam Pipeline (Horizontal Layout)
    ======================================================== */
 .pipeline-container {
     display: flex;
@@ -6566,7 +6486,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   candidatecall.jsp - ExamStaff specific styles
+   candidatecall.jsp - exam specific styles
    ======================================================== */
 .batch-btn-container {
     display: flex;
@@ -6698,7 +6618,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   procedure.jsp - ExamStaff specific styles
+   procedure.jsp - exam specific styles
    ======================================================== */
 .procedure-steps-bar {
     display: flex;

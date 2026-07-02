@@ -1,8 +1,6 @@
 package service;
-
-import dto.admin.RecentActivityDTO;
+import dto.RecentActivityDTO;
 import java.util.List;
-
 public interface AdminDashboardService {
     int getTotalExamCenters();
     int getTotalUsers();

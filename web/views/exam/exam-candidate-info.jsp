@@ -124,6 +124,5 @@
         <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="" />
             <jsp:param name="noticeText" value="" />
-        </jsp:include>
-    </body>
+</body>
 </html>

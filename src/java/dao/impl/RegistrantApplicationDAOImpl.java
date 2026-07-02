@@ -1,34 +1,13 @@
 package dao.impl;
-
-
 import dbconnection.DBContext;
-
+import enums.RegistrationStatus;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-/**
- * DAO for registrant self-service application creation.
- * Handles initial pending registration insertion and auto-creates
- * Licence records on-the-fly for unsupported licence classes.
- * Note: This class does not implement a formal DAO interface.
- */
 public class RegistrantApplicationDAOImpl extends DBContext {
-
     private static final Logger LOG = Logger.getLogger(RegistrantApplicationDAOImpl.class.getName());
-
-    /**
-     * Creates a pending exam registration for a registrant.
-     * Maps license class codes (A2->A, B2->B) to database values and
-     * sets Vietnamese notes based on user type (student vs independent).
-     *
-     * @param profileId    the ProfileId of the applicant
-     * @param licenseClass the requested licence class (e.g. "A1", "B2")
-     * @param userType     "student" for chính khoá, otherwise tự do
-     * @return true if the pending registration was created
-     */
     public boolean insertPending(int profileId, String licenseClass, String userType) {
         String databaseLicenseClass = switch (licenseClass) {
             case "A2" -> "A";
@@ -38,21 +17,20 @@ public class RegistrantApplicationDAOImpl extends DBContext {
         String notes = "student".equals(userType)
                 ? "Học viên chính khóa - chờ bổ sung và duyệt hồ sơ"
                 : "Thí sinh tự do - chờ bổ sung và duyệt hồ sơ";
-
         String insertSql = """
                 insert into ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
-                values ('Pending', ?, ?, ?)
+                values (?, ?, ?, ?)
                 """;
-
         try {
             int licenseId = findOrCreateLicense(databaseLicenseClass);
             if (licenseId <= 0) {
                 return false;
             }
             try (PreparedStatement insert = getConnection().prepareStatement(insertSql)) {
-                insert.setString(1, notes);
-                insert.setInt(2, profileId);
-                insert.setInt(3, licenseId);
+                insert.setString(1, RegistrationStatus.CHO_DUYET.getDisplayName());
+                insert.setString(2, notes);
+                insert.setInt(3, profileId);
+                insert.setInt(4, licenseId);
                 return insert.executeUpdate() > 0;
             }
         } catch (SQLException e) {
@@ -60,7 +38,6 @@ public class RegistrantApplicationDAOImpl extends DBContext {
             return false;
         }
     }
-
     private int findOrCreateLicense(String licenseClass) throws SQLException {
         String selectSql = "select LicenceId from Licence where LicenceClass = ?";
         try (PreparedStatement select = getConnection().prepareStatement(selectSql)) {
@@ -71,13 +48,11 @@ public class RegistrantApplicationDAOImpl extends DBContext {
                 }
             }
         }
-
         LicenseDefaults defaults = defaultsFor(licenseClass);
         if (defaults == null) {
             LOG.log(Level.WARNING, "Unsupported licence class: {0}", licenseClass);
             return 0;
         }
-
         String insertSql = """
                 if not exists (select 1 from Licence where LicenceClass = ?)
                     insert into Licence (LicenceClass, Description, MinimumAge, ValidForYears, UpgradeFromLicenceId)
@@ -91,7 +66,6 @@ public class RegistrantApplicationDAOImpl extends DBContext {
             insert.setInt(5, defaults.validForYears());
             insert.executeUpdate();
         }
-
         try (PreparedStatement select = getConnection().prepareStatement(selectSql)) {
             select.setString(1, licenseClass);
             try (ResultSet rs = select.executeQuery()) {
@@ -99,7 +73,6 @@ public class RegistrantApplicationDAOImpl extends DBContext {
             }
         }
     }
-
     private LicenseDefaults defaultsFor(String licenseClass) {
         return switch (licenseClass) {
             case "A1" -> new LicenseDefaults("Xe mô tô hai bánh đến 125 cm3", 18, 0);
@@ -110,7 +83,6 @@ public class RegistrantApplicationDAOImpl extends DBContext {
             default -> null;
         };
     }
-
     private record LicenseDefaults(String description, int minimumAge, int validForYears) {
     }
 }

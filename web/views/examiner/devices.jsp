@@ -50,6 +50,16 @@
                 </jsp:include>
 
                 <!--device list-->
+                <div class="device-grid-legend">
+                    <span class="device-grid-legend__item">
+                        <span class="device-grid-legend__swatch device-grid-legend__swatch--available"></span>
+                        Sẵn sàng
+                    </span>
+                    <span class="device-grid-legend__item">
+                        <span class="device-grid-legend__swatch device-grid-legend__swatch--maintenance"></span>
+                        Bảo trì
+                    </span>
+                </div>
                 <jsp:include page="/views/examiner/components/device-grid.jsp">
                     <jsp:param name="cardClass" value="examiner-card examiner-card--dashboard-table" />
                     <jsp:param name="title" value="${empty devicesTitle ? 'Máy thi' : devicesTitle}" />

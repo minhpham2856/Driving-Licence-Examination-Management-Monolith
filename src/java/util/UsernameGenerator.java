@@ -1,23 +1,16 @@
 package util;
 
-
 import java.text.Normalizer;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class UsernameGenerator {
 
-    private UsernameGenerator() {
-    }
-
-    /**
-     * e.g. "Nguyễn Văn Bình" -> "binhnv738274" (given name + other initials + 6 digits)
-     */
+    //e.g. "Nguyễn Văn Bình" -> "binhnv738274" (given name + other initials + 6 digits)
     public static String generateFromFullName(String fullName) {
         String[] parts = fullName.trim().split("\\s+");
         if (parts.length == 0 || parts[0].isEmpty()) {
             return "user" + randomDigits(6);
         }
-
         String givenName = removeAccents(parts[parts.length - 1]).toLowerCase();
         StringBuilder initials = new StringBuilder();
         for (int i = 0; i < parts.length - 1; i++) {
@@ -26,7 +19,6 @@ public final class UsernameGenerator {
                 initials.append(Character.toLowerCase(part.charAt(0)));
             }
         }
-
         return givenName + initials + randomDigits(6);
     }
 

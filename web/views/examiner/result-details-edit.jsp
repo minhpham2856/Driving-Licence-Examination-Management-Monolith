@@ -1,10 +1,10 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="Sß╗¡a kß║┐t quß║ú" />
+<c:set var="headerTitle" value="Sửa kết quả" />
 <c:set var="backUrl" value="${ctx}/views/examiner/result-details" scope="request" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
 <c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
@@ -21,7 +21,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>S├üT Hß║áCH</title>
+        <title>SÁT HẠCH</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -72,7 +72,7 @@
                             <!-- candidate info  -->
                             <jsp:include page="/views/examiner/components/candidate-list.jsp">
                                 <jsp:param name="cardClass" value="examiner-card examiner-card--dashboard-table exr-card--mt" />
-                                <jsp:param name="title" value="Th├┤ng tin th├¡ sinh" />
+                                <jsp:param name="title" value="Thông tin thí sinh" />
                                 <jsp:param name="itemsAttr" value="singleCandidateList" />
                                 <jsp:param name="showAddress" value="false" />
                                 <jsp:param name="showTheoryScores" value="false" />
@@ -83,11 +83,11 @@
 
                             <!-- Score -->
                             <section class="score-entry-score-card">
-                                <h3 class="score-entry-score-card__title">─Éiß╗âm hiß╗çn tß║íi</h3>
+                                <h3 class="score-entry-score-card__title">Điểm hiện tại</h3>
                                 <div class="score-entry-score-display">
                                     <c:choose>
                                         <c:when test="${scoreDisqualified}">
-                                            <span class="score-entry-score-value score-entry-score-value--fail">TR╞»ß╗óT</span>
+                                            <span class="score-entry-score-value score-entry-score-value--fail">TRƯỢT</span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="score-entry-score-value" id="currentScore">
@@ -104,34 +104,34 @@
                                 <div class="score-entry-card__head">
                                     <div class="score-entry-card__title">
                                         <span class="material-symbols-outlined">notes</span>
-                                        <h2>L├╜ do ─æiß╗üu chß╗ënh</h2>
+                                        <h2>Lý do điều chỉnh</h2>
                                     </div>
                                 </div>
                                 <div class="exr-card__body">
                                     <div class="exr-control">
-                                        <label class="exr-input-label" for="reason">CHß╗îN L├¥ DO <span class="exr-req">*</span></label>
+                                        <label class="exr-input-label" for="reason">CHỌN LÝ DO <span class="exr-req">*</span></label>
                                         <select id="reason" name="reason" class="exr-select" required>
-                                            <option value="">-- Lß╗▒a chß╗ìn l├╜ do quy ─æß╗ïnh --</option>
-                                            <option value="cham-sai" ${selectedReason eq 'cham-sai' ? 'selected' : ''}>Chß║Ñm sai</option>
-                                            <option value="khieu-nai" ${selectedReason eq 'khieu-nai' ? 'selected' : ''}>Th├¡ sinh khiß║┐u nß║íi</option>
-                                            <option value="khac" ${selectedReason eq 'khac' ? 'selected' : ''}>L├╜ do kh├íc</option>
+                                            <option value="">-- Lựa chọn lý do quy định --</option>
+                                            <option value="cham-sai" ${selectedReason eq 'cham-sai' ? 'selected' : ''}>Chấm sai</option>
+                                            <option value="khieu-nai" ${selectedReason eq 'khieu-nai' ? 'selected' : ''}>Thí sinh khiếu nại</option>
+                                            <option value="khac" ${selectedReason eq 'khac' ? 'selected' : ''}>Lý do khác</option>
                                         </select>
                                     </div>
                                     <div class="exr-control">
-                                        <label class="exr-input-label" for="reasonDetail">L├¥ DO CHI TIß║╛T (t├╣y chß╗ìn)</label>
-                                        <textarea id="reasonDetail" name="reasonDetail" class="exr-textarea" placeholder="Nhß║¡p m├┤ tß║ú chi tiß║┐t nguy├¬n nh├ón dß║½n ─æß║┐n viß╗çc thay ─æß╗òi ─æiß╗âm sß╗æ...">${formReasonDetail}</textarea>
+                                        <label class="exr-input-label" for="reasonDetail">LÝ DO CHI TIẾT (tùy chọn)</label>
+                                        <textarea id="reasonDetail" name="reasonDetail" class="exr-textarea" placeholder="Nhập mô tả chi tiết nguyên nhân dẫn đến việc thay đổi điểm số...">${formReasonDetail}</textarea>
                                     </div>
 
                                     <div class="exr-control">
-                                        <label class="exr-input-label" for="pwd">Mß║¼T KHß║¿U X├üC THß╗░C Bß║óO Mß║¼T <span class="exr-req">*</span></label>
-                                        <input type="password" id="pwd" name="password" class="exr-input" placeholder="Nhß║¡p mß║¡t khß║⌐u cß╗ºa bß║ín" required autocomplete="current-password">
+                                        <label class="exr-input-label" for="pwd">MẬT KHẨU XÁC THỰC BẢO MẬT <span class="exr-req">*</span></label>
+                                        <input type="password" id="pwd" name="password" class="exr-input" placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
                                     </div>
                                     <div class="exr-confirm-wrap">
                                         <button type="submit" class="examiner-btn examiner-btn--primary score-entry-finalize-btn exr-confirm-btn--full">
                                             <span class="material-symbols-outlined">verified_user</span>
-                                            X├üC NHß║¼N THAY ─Éß╗öI ─ÉIß╗éM
+                                            XÁC NHẬN THAY ĐỔI ĐIỂM
                                         </button>
-                                        <p class="exr-confirm-note exr-confirm-note--mt">Bß║»t buß╗Öc chß╗ìn l├╜ do v├á nhß║¡p mß║¡t khß║⌐u tr╞░ß╗¢c khi l╞░u.</p>
+                                        <p class="exr-confirm-note exr-confirm-note--mt">Bắt buộc chọn lý do và nhập mật khẩu trước khi lưu.</p>
                                     </div>
                                 </div>
                             </section>
@@ -146,8 +146,8 @@
                             <div class="exr-warning exr-warning--mt">
                                 <span class="exr-warning__icon material-symbols-outlined">warning</span>
                                 <div class="exr-warning__body">
-                                    <p class="exr-warning__title">Cß║óNH B├üO</p>
-                                    <p class="exr-warning__text">Mß╗ìi thao t├íc ─æß╗üu ─æ╞░ß╗úc l╞░u lß║íi trong hß╗ç thß╗æng.</p>
+                                    <p class="exr-warning__title">CẢNH BÁO</p>
+                                    <p class="exr-warning__text">Mọi thao tác đều được lưu lại trong hệ thống.</p>
                                 </div>
                             </div>
                         </aside>

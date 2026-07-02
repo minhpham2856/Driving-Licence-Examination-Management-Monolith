@@ -1,48 +1,47 @@
 package controller.admin;
-
+import dto.*;
+import model.*;
+import model.*;
+import service.*;
+import service.impl.*;
 import service.LicenceService;
 import service.impl.LicenceServiceImpl;
-import model.licence.Licence;
-import model.user.User;
-import util.AuditLogHelper;
-
+import model.Licence;
+import model.User;
+import service.AuditLogService;
 import util.Sanitize;
-import util.SessionUtil;
-
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
 @WebServlet(name = "LicenceServlet", urlPatterns = {"/admin/licence-class"})
 public class LicenceServlet extends HttpServlet {
-
+    private final AuditLogService auditLogService = new AuditLogServiceImpl();
     private LicenceService licenceService;
     private static final String LIST_VIEW = "/views/admin/licence-class.jsp";
     private static final String FORM_VIEW = "/views/admin/licence-class-form.jsp";
-
     @Override
     public void init() {
         licenceService = new LicenceServiceImpl();
     }
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
         String action = Sanitize.text(req.getParameter("action"));
-
         if ("new".equals(action)) {
             req.setAttribute("mode", "create");
             req.setAttribute("licences", licenceService.findAll());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else if ("edit".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            Licence licence = licenceService.findById(id);
+            Licence licence = licenceService.getById(id);
             if (licence == null) {
-                SessionUtil.flash(req, "danger", "Không tìm thấy hạng GPLX cần sửa.");
+                HttpSession flashSession = req.getSession(true);
+                flashSession.setAttribute("flashType", "danger");
+                flashSession.setAttribute("flashMessage", "Không tìm thấy hạng GPLX cần sửa.");
                 resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
                 return;
             }
@@ -52,18 +51,26 @@ public class LicenceServlet extends HttpServlet {
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else {
             String keyword = Sanitize.text(req.getParameter("searchKeyword"));
-            req.setAttribute("licenceClasses", licenceService.search(keyword));
+            java.util.List<Licence> licenceClasses = licenceService.search(keyword);
+            req.setAttribute("licenceClasses", licenceClasses);
+            req.setAttribute("licenceClassById", buildLicenceClassById(licenceClasses));
             req.setAttribute("totalClasses", licenceService.countAll());
             req.getRequestDispatcher(LIST_VIEW).forward(req, resp);
         }
     }
-
+    private java.util.Map<Integer, String> buildLicenceClassById(java.util.List<Licence> licences) {
+        java.util.Map<Integer, String> byId = new java.util.HashMap<>();
+        if (licences != null) {
+            for (Licence licence : licences) {
+                byId.put(licence.getLicenceId(), licence.getLicenceClass());
+            }
+        }
+        return byId;
+    }
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
-        User admin = SessionUtil.getCurrentUser(req);
-
+        User admin = (User) req.getSession().getAttribute("user");
         int id = Sanitize.toInt(req.getParameter("licenceId"), 0);
         String licenceClass = Sanitize.text(req.getParameter("licenceClass"));
         String description = Sanitize.text(req.getParameter("description"));
@@ -71,11 +78,8 @@ public class LicenceServlet extends HttpServlet {
         int validForYears = Sanitize.toInt(req.getParameter("validForYears"), 0);
         Integer upgradeFrom = Sanitize.toIntegerOrNull(req.getParameter("upgradeFromLicenceId"));
         boolean isEdit = id > 0;
-
         Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);
-        
         LicenceService.SaveResult result = licenceService.save(l, admin.getUserId());
-
         if (!result.success) {
             req.setAttribute("mode", isEdit ? "edit" : "create");
             req.setAttribute("licence", l);
@@ -84,14 +88,13 @@ public class LicenceServlet extends HttpServlet {
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
             return;
         }
-
-        AuditLogHelper.persist(req.getSession(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cập Nhật Hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, result.id);
-        SessionUtil.flash(req, "success", result.message);
-        
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
+                (isEdit ? "Cập nhật hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, result.id);
+        HttpSession flashSession = req.getSession(true);
+        flashSession.setAttribute("flashType", "success");
+        flashSession.setAttribute("flashMessage", result.message);
         resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
     }
-
     private Licence build(int id, String cls, String desc, int age, int years, Integer up) {
         Licence l = new Licence();
         l.setLicenceId(id);
@@ -103,4 +106,3 @@ public class LicenceServlet extends HttpServlet {
         return l;
     }
 }
-

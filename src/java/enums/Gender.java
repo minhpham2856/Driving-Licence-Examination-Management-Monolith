@@ -1,32 +1,35 @@
 package enums;
-
 public enum Gender {
-    MALE(true, "Nam"),
-    FEMALE(false, "Nữ");
-
-    private final boolean isMale;
-    private final String labelVi;
-
-    Gender(boolean isMale, String labelVi) {
-        this.isMale = isMale;
-        this.labelVi = labelVi;
+    NAM("Nam"),
+    NU("Nữ");
+    private final String displayName;
+    Gender(String displayName) {
+        this.displayName = displayName;
     }
-
-    public boolean isMale() {
-        return isMale;
+    public String getDisplayName() {
+        return displayName;
     }
-
-    public String getLabelVi() {
-        return labelVi;
+    public static String display(boolean male) {
+        return male ? NAM.getDisplayName() : NU.getDisplayName();
     }
-
-    public static String sexFromGender(boolean isMale) {
-        return isMale ? MALE.labelVi : FEMALE.labelVi;
+    public static boolean isFemale(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String trimmed = value.trim();
+        return NU.matches(trimmed) || "0".equals(trimmed);
     }
-
-    public static boolean genderFromSex(String sex) {
-        if (sex == null) return false;
-        String s = sex.trim();
-        return s.equalsIgnoreCase("Nam") || s.equalsIgnoreCase("Male") || s.equals("M") || s.equals("1");
+    public static boolean isMale(String value) {
+        if (value == null || value.isBlank()) {
+            return true;
+        }
+        String trimmed = value.trim();
+        return NAM.matches(trimmed) || "1".equals(trimmed);
+    }
+    public boolean matches(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        return displayName.equalsIgnoreCase(value.trim());
     }
 }
