@@ -17,15 +17,28 @@ public class DBContext {
     protected Connection connection;
 
     public Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                reconnect();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DBContext.class.getName()).log(Level.WARNING, "DB connection check failed", ex);
+            reconnect();
+        }
         return connection;
     }
 
-    public DBContext() {
+    private void reconnect() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
         } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, "DB reconnect failed", ex);
+            connection = null;
         }
+    }
+
+    public DBContext() {
+        reconnect();
     }
 }
