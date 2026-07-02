@@ -6,3 +6,5 @@ private/
 nbproject/private/private.properties
 /dist/
 .env
+nbproject/*.xml~
+nbproject/build-impl.xml~
