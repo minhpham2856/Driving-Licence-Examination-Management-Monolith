@@ -1,8 +1,8 @@
-package DAO.Impl;
+package dao.impl;
 
-import Constants.Db2Mappings;
-import DAO.RoleDAO;
-import Models.Role;
+import enums.Db2Mappings;
+import dao.RoleDAO;
+import model.user.Role;
 
 public class RoleDAOImpl implements RoleDAO {
 

@@ -1,9 +1,9 @@
-package DAO;
+package dao;
 
-import Models.ExamRegistration;
-import Models.RegistrantSectionRegistrationBlock;
-import Models.SessionExamSectionInfo;
-import Models.SessionScheduleInfo;
+import model.exam.ExamRegistration;
+import dto.registrant.RegistrantSectionRegistrationBlock;
+import dto.exam.SessionExamSectionInfo;
+import dto.exam.SessionScheduleInfo;
 import java.util.List;
 
 public interface ExamRegistrationDAO {

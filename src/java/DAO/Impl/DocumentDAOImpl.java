@@ -1,10 +1,12 @@
-package DAO.Impl;
+package dao.impl;
 
-import DAO.DocumentDAO;
-import DBConnection.DBContext;
-import Models.ManagingStaffApprovalView;
-import Models.RegistrantDocumentView;
-import Utils.RegistrantExamSupport;
+import util.registrant.RegistrantDocumentHelper;
+import enums.registrant.ProfileRegistrationStatus;
+import dao.DocumentDAO;
+import dbconnection.DBContext;
+import dto.staff.ManagingStaffApprovalView;
+import dto.registrant.RegistrantDocumentView;
+import util.registrant.RegistrantExamSupport;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,6 +30,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
     /** Marker ASCII — tránh lỗi LIKE/SQL và encoding khi lưu Notes. */
     public static final String MARK_PENDING = "#PENDING#";
     public static final String MARK_APPROVED = "#APPROVED#";
+    public static final String MARK_LICENCE_PREFIX = "#LICENCE#";
 
     private static final Map<String, String> TYPE_LABELS = buildTypeLabels();
 
@@ -264,15 +267,113 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
     }
 
     @Override
+    public boolean reviewSupplementDocuments(int profileId, int supplementExamRegistrationId,
+            boolean approved, String staffNote) {
+        if (profileId <= 0 || supplementExamRegistrationId <= 0) {
+            return false;
+        }
+        List<RegistrantDocumentView> docs = listByProfileId(profileId);
+        List<RegistrantDocumentView> targets = RegistrantDocumentHelper.collectSupplementReviewTargets(
+                docs, supplementExamRegistrationId);
+        if (targets.isEmpty()) {
+            return true;
+        }
+        boolean updated = false;
+        boolean hadPending = false;
+        for (RegistrantDocumentView doc : targets) {
+            if (!isPendingReview(doc.getNotes())) {
+                continue;
+            }
+            hadPending = true;
+            String newNotes = approved
+                    ? mergeApprovedNote(doc.getNotes())
+                    : buildRejectNote(staffNote);
+            if (updateDocumentNotes(profileId, doc.getDocumentType(), newNotes)) {
+                updated = true;
+            }
+        }
+        return updated || !hadPending;
+    }
+
+    @Override
+    public int reconcileOtherDocumentsWithSupplementEr(int profileId,
+            Map<Integer, String> supplementErStatuses) {
+        if (profileId <= 0 || supplementErStatuses == null || supplementErStatuses.isEmpty()) {
+            return 0;
+        }
+        List<RegistrantDocumentView> docs = listByProfileId(profileId);
+        int updated = 0;
+        boolean hasOpenPendingSupplement = supplementErStatuses.values().stream()
+                .anyMatch(st -> ProfileRegistrationStatus.PENDING.equalsIgnoreCase(st));
+        Integer latestClosedErId = findLatestClosedSupplementErId(supplementErStatuses);
+
+        for (RegistrantDocumentView doc : docs) {
+            if (!isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
+                continue;
+            }
+            if (!isPendingReview(doc.getNotes())) {
+                continue;
+            }
+            Integer linkedEr = RegistrantDocumentHelper.parseSupplementErId(doc.getNotes());
+            String erStatus = linkedEr != null ? supplementErStatuses.get(linkedEr) : null;
+            if (linkedEr != null && erStatus != null) {
+                if (applySupplementErStatusToDocument(profileId, doc, erStatus)) {
+                    updated++;
+                }
+                continue;
+            }
+            if (linkedEr == null && !hasOpenPendingSupplement && latestClosedErId != null) {
+                String closedStatus = supplementErStatuses.get(latestClosedErId);
+                if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(closedStatus)
+                        || ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(closedStatus)) {
+                    if (applySupplementErStatusToDocument(profileId, doc, closedStatus)) {
+                        updated++;
+                    }
+                }
+            }
+        }
+        return updated;
+    }
+
+    private boolean applySupplementErStatusToDocument(int profileId, RegistrantDocumentView doc,
+            String erStatus) {
+        if (!ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(erStatus)
+                && !ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(erStatus)) {
+            return false;
+        }
+        String newNotes = ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(erStatus)
+                ? mergeApprovedNote(doc.getNotes())
+                : buildRejectNote("Hồ sơ bổ sung không đạt yêu cầu.");
+        return updateDocumentNotes(profileId, doc.getDocumentType(), newNotes);
+    }
+
+    private static Integer findLatestClosedSupplementErId(Map<Integer, String> supplementErStatuses) {
+        Integer latest = null;
+        for (Map.Entry<Integer, String> entry : supplementErStatuses.entrySet()) {
+            String status = entry.getValue();
+            if (!ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status)
+                    && !ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(status)) {
+                continue;
+            }
+            int erId = entry.getKey();
+            if (latest == null || erId > latest) {
+                latest = erId;
+            }
+        }
+        return latest;
+    }
+
+    @Override
     public List<ManagingStaffApprovalView> listPendingApprovals() {
         String sql = """
-                SELECT DISTINCT p.ProfileId, p.UserId, p.FullName, p.GovernmentIdNumber,
+                SELECT er.ExamRegistrationId, er.Notes AS ErNotes,
+                       p.ProfileId, p.UserId, p.FullName, p.GovernmentIdNumber,
                        p.DateOfBirth, p.PhoneNumber, p.Sex, u.Username
                 FROM ExamRegistration er
                 INNER JOIN Profile p ON er.ProfileId = p.ProfileId
                 INNER JOIN [User] u ON p.UserId = u.UserId
                 WHERE er.RegistrationStatus = N'Pending'
-                ORDER BY p.ProfileId DESC
+                ORDER BY er.ExamRegistrationId DESC
                 """;
         List<ManagingStaffApprovalView> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -296,11 +397,52 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
     }
 
     public static String buildUploadNote(String documentType, String reason, long sizeBytes, String originalName) {
+        return buildUploadNote(documentType, reason, sizeBytes, originalName, null);
+    }
+
+    public static String buildUploadNote(String documentType, String reason, long sizeBytes, String originalName,
+            String supplementLicenceCode) {
         String meta = formatFileMeta(sizeBytes, originalName);
+        String body;
         if (isOtherType(documentType) && reason != null && !reason.isBlank()) {
-            return truncateNotes("Lý do: " + reason.trim() + meta);
+            body = truncateNotes("Lý do: " + reason.trim() + meta);
+        } else {
+            body = truncateNotes("Thí sinh tải lên " + documentType + meta);
         }
-        return truncateNotes("Thí sinh tải lên " + documentType + meta);
+        if (isOtherType(documentType) && supplementLicenceCode != null && !supplementLicenceCode.isBlank()) {
+            return encodeLicenceMarker(supplementLicenceCode) + body;
+        }
+        return body;
+    }
+
+    public static String encodeLicenceMarker(String uiLicenceCode) {
+        if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
+            return "";
+        }
+        return MARK_LICENCE_PREFIX + uiLicenceCode.trim().toUpperCase(java.util.Locale.ROOT) + "#";
+    }
+
+    public static String parseLicenceCode(String notes) {
+        if (notes == null || !notes.contains(MARK_LICENCE_PREFIX)) {
+            return null;
+        }
+        int start = notes.indexOf(MARK_LICENCE_PREFIX) + MARK_LICENCE_PREFIX.length();
+        int end = notes.indexOf('#', start);
+        if (end <= start) {
+            return null;
+        }
+        return notes.substring(start, end).trim();
+    }
+
+    public static String stripLicenceMarker(String notes) {
+        if (notes == null || notes.isBlank()) {
+            return notes;
+        }
+        String code = parseLicenceCode(notes);
+        if (code == null) {
+            return notes;
+        }
+        return notes.replace(encodeLicenceMarker(code), "").trim();
     }
 
     public static String formatFileMeta(long sizeBytes, String originalName) {
@@ -338,6 +480,17 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         view.setType("student");
         view.setTypeName("Thí sinh");
         view.setRegisterDate("—");
+        try {
+            view.setWorkflowExamRegistrationId(rs.getInt("ExamRegistrationId"));
+        } catch (SQLException ignored) {
+            view.setWorkflowExamRegistrationId(0);
+        }
+        try {
+            String erNotes = rs.getString("ErNotes");
+            view.setSupplementApproval(RegistrantDocumentHelper.isSupplementExamRegistrationNotes(erNotes));
+        } catch (SQLException ignored) {
+            view.setSupplementApproval(false);
+        }
         return view;
     }
 
@@ -351,8 +504,24 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         view.setDocumentUrl(rs.getString("DocumentUrl"));
         view.setNotes(rs.getString("Notes"));
         enrichFileMeta(view);
+        enrichSupplementLicence(view);
         applyStatusFromNotes(view);
         return view;
+    }
+
+    private static void enrichSupplementLicence(RegistrantDocumentView view) {
+        String notes = view.getNotes();
+        if (notes == null) {
+            return;
+        }
+        view.setSupplementLicenceCode(parseLicenceCode(notes));
+        String stripped = stripLicenceMarker(notes);
+        int metaIdx = stripped.indexOf(" · ");
+        String reasonLine = metaIdx >= 0 ? stripped.substring(0, metaIdx) : stripped;
+        if (reasonLine.startsWith("Lý do: ")) {
+            reasonLine = reasonLine.substring("Lý do: ".length());
+        }
+        view.setReasonSummary(reasonLine.trim());
     }
 
     private static void enrichFileMeta(RegistrantDocumentView view) {
@@ -365,11 +534,12 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         if (notes == null) {
             return;
         }
-        int metaIdx = notes.indexOf(" · ");
+        String metaSource = stripLicenceMarker(notes);
+        int metaIdx = metaSource.indexOf(" · ");
         if (metaIdx < 0) {
             return;
         }
-        String meta = notes.substring(metaIdx + 3);
+        String meta = metaSource.substring(metaIdx + 3);
         String[] parts = meta.split(" · ");
         if (parts.length >= 1 && !parts[0].isBlank()) {
             view.setFileSizeLabel(parts[0].trim());
@@ -398,10 +568,13 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
 
     private static String mergeApprovedNote(String existingNotes) {
         String base = existingNotes != null ? existingNotes.trim() : "";
-        base = base.replace(MARK_PENDING, "").replace("Gửi yêu cầu duyệt hồ sơ.", "").trim();
-        int pipe = base.indexOf('|');
-        if (pipe >= 0) {
-            base = base.substring(0, pipe).trim();
+        int pendingIdx = base.indexOf(MARK_PENDING);
+        if (pendingIdx >= 0) {
+            base = base.substring(0, pendingIdx).trim();
+        }
+        base = base.replace("Gửi yêu cầu duyệt hồ sơ.", "").trim();
+        while (base.endsWith("|")) {
+            base = base.substring(0, base.length() - 1).trim();
         }
         if (base.contains(MARK_APPROVED)) {
             return truncateNotes(base);

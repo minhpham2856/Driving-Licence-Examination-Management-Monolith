@@ -1,13 +1,13 @@
-package DAO.Impl;
+package dao.impl;
 
-import Constants.Db2Mappings;
-import Constants.ExamTypes;
-import Controllers.Staff.ExamStaff.ExaminerSlot;
-import DBConnection.DBContext;
-import DAO.ExaminerAssignmentDAO;
-import Models.Profile;
-import Models.Role;
-import Models.User;
+import enums.Db2Mappings;
+import enums.ExamTypes;
+import controller.staff.exam.ExaminerSlot;
+import dbconnection.DBContext;
+import dao.ExaminerAssignmentDAO;
+import model.user.Profile;
+import model.user.Role;
+import model.user.User;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

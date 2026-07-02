@@ -1,9 +1,9 @@
-package DAO.Impl;
+package dao.impl;
 
-import DAO.ExaminerSessionDataDAO;
-import DBConnection.DBContext;
-import Models.ExaminerAnswerStats;
-import Models.ExaminerPaperState;
+import dao.ExaminerSessionDataDAO;
+import dbconnection.DBContext;
+import dto.examiner.ExaminerAnswerStats;
+import dto.examiner.ExaminerPaperState;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

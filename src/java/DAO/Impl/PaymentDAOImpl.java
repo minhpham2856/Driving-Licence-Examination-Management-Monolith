@@ -1,8 +1,8 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.PaymentDAO;
-import Models.Payment;
+import dbconnection.DBContext;
+import dao.PaymentDAO;
+import model.payment.Payment;
 import java.sql.*;
 
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {

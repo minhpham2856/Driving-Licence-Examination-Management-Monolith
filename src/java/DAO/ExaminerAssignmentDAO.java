@@ -1,7 +1,7 @@
-package DAO;
+package dao;
 
-import Controllers.Staff.ExamStaff.ExaminerSlot;
-import Models.User;
+import controller.staff.exam.ExaminerSlot;
+import model.user.User;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;

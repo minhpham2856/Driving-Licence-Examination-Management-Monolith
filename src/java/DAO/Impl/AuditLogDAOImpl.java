@@ -1,9 +1,9 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.AuditLogDAO;
-import Models.AuditLog;
-import Models.StaffProcedureKpi;
+import dbconnection.DBContext;
+import dao.AuditLogDAO;
+import model.user.AuditLog;
+import dto.staff.StaffProcedureKpiDTO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -225,7 +225,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     }
 
     @Override
-    public StaffProcedureKpi getStaffProcedureKpi(int userId, String filterDate) {
+    public StaffProcedureKpiDTO getStaffProcedureKpiDTO(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
         String sql = """
                 SELECT COUNT(*) AS completedCount,
@@ -263,13 +263,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new StaffProcedureKpi(rs.getInt("completedCount"), rs.getDouble("totalFees"));
+                    return new StaffProcedureKpiDTO(rs.getInt("completedCount"), rs.getDouble("totalFees"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new StaffProcedureKpi(0, 0);
+        return new StaffProcedureKpiDTO(0, 0);
     }
 
     @Override

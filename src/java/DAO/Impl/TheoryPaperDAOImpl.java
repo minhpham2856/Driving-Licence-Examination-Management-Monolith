@@ -1,8 +1,8 @@
-package DAO.Impl;
+package dao.impl;
 
-import DAO.TheoryPaperDAO;
-import DBConnection.DBContext;
-import Models.TheoryPaperAnswer;
+import dao.TheoryPaperDAO;
+import dbconnection.DBContext;
+import dto.score.TheoryPaperAnswer;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

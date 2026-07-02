@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.Payment;
+import model.payment.Payment;
 
 public interface PaymentDAO {
     boolean insert(Payment payment);

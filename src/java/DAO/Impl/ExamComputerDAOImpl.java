@@ -1,8 +1,8 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.ExamComputerDAO;
-import Models.ExamComputer;
+import dbconnection.DBContext;
+import dao.ExamComputerDAO;
+import model.exam.ExamComputer;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

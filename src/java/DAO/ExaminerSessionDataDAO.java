@@ -1,7 +1,7 @@
-package DAO;
+package dao;
 
-import Models.ExaminerAnswerStats;
-import Models.ExaminerPaperState;
+import dto.examiner.ExaminerAnswerStats;
+import dto.examiner.ExaminerPaperState;
 
 import java.util.List;
 import java.util.Map;

@@ -1,19 +1,20 @@
-package DAO.Impl;
+package dao.impl;
 
-import DAO.DocumentDAO;
-import DAO.RegistrantDAO;
-import DAO.Impl.DocumentDAOImpl;
-import DBConnection.DBContext;
-import Models.RegistrantDashboardActivity;
-import Models.RegistrantExamSessionOption;
-import Models.RegistrantLicenceOption;
-import Models.RegistrantMyExamRow;
-import Models.RegistrantRegisteredExamRow;
-import Models.RegistrantTrackingLog;
-import Constants.ProfileRegistrationStatus;
-import Utils.RegistrantDocumentStatusHelper;
-import Utils.RegistrantExamSupport;
-import Utils.RegistrantTrackingCategories;
+import dao.DocumentDAO;
+import dao.RegistrantDAO;
+import dao.impl.DocumentDAOImpl;
+import dbconnection.DBContext;
+import dto.registrant.RegistrantDashboardActivity;
+import dto.registrant.RegistrantExamSessionOption;
+import dto.registrant.RegistrantLicenceOption;
+import dto.registrant.RegistrantMyExamRow;
+import dto.registrant.RegistrantRegisteredExamRow;
+import dto.registrant.RegistrantTrackingLog;
+import util.registrant.RegistrantDocumentHelper;
+import enums.registrant.ProfileRegistrationStatus;
+import util.registrant.RegistrantDocumentStatusHelper;
+import util.registrant.RegistrantExamSupport;
+import util.registrant.RegistrantTrackingCategories;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,13 +33,13 @@ import java.util.logging.Logger;
 /**
  * Triển khai truy vấn dữ liệu cho cổng thí sinh.
  * Các câu SQL JOIN nhiều bảng (Candidate, Exam, Payment, ExamResult...)
- * được gom tại đây để servlet/service chỉ gọi một lớp DAO.
+ * được gom tại đây để servlet/service chỉ gọi một lớp dao.
  */
 public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     private static final Logger LOG = Logger.getLogger(RegistrantDAOImpl.class.getName());
 
-    private final DocumentDAO documentDAO = new DocumentDAOImpl();
+    private final DocumentDAO documentdao = new DocumentDAOImpl();
 
     /** JOIN lấy một phòng thi đại diện mỗi ca — tránh nhân bản dòng khi ca có nhiều ExamArea. */
     private static final String SESSION_AREA_JOIN = """
@@ -723,6 +724,29 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 FROM ExamRegistration
                 WHERE ProfileId = ?
                   AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                  AND (Notes IS NULL OR Notes NOT LIKE N'%#SUPPLEMENT_DOC#%')
+                ORDER BY ExamRegistrationId ASC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("RegistrationStatus");
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không đọc RegistrationStatus hồ sơ gốc {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return fallbackLegacyProfileDocumentStatus(profileId);
+    }
+
+    private String fallbackLegacyProfileDocumentStatus(int profileId) {
+        String sql = """
+                SELECT TOP 1 RegistrationStatus
+                FROM ExamRegistration
+                WHERE ProfileId = ?
+                  AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
                 ORDER BY ExamRegistrationId DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -733,10 +757,131 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không đọc RegistrationStatus hồ sơ {0}: {1}",
+            LOG.log(Level.WARNING, "Không đọc RegistrationStatus legacy {0}: {1}",
                     new Object[] { profileId, e.getMessage() });
         }
         return ProfileRegistrationStatus.DRAFT;
+    }
+
+    @Override
+    public boolean hasOpenSupplementPending(int profileId) {
+        return findPendingSupplementExamRegistrationId(profileId) != null;
+    }
+
+    @Override
+    public Integer findPendingSupplementExamRegistrationId(int profileId) {
+        String sql = """
+                SELECT TOP 1 ExamRegistrationId
+                FROM ExamRegistration
+                WHERE ProfileId = ?
+                  AND RegistrationStatus = N'Pending'
+                  AND Notes LIKE N'%#SUPPLEMENT_DOC#%'
+                ORDER BY ExamRegistrationId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamRegistrationId");
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không tải request bổ sung chờ duyệt profile {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return null;
+    }
+
+    @Override
+    public int insertSupplementDocumentRegistration(int profileId, int licenceId, String status, String notes) {
+        if (profileId <= 0 || licenceId <= 0 || status == null || status.isBlank()) {
+            return 0;
+        }
+        String mergedNotes = RegistrantDocumentHelper.buildSupplementExamRegistrationNotes(
+                stripSupplementMarkerPrefix(notes));
+        if (notes != null && notes.contains(RegistrantDocumentHelper.MARK_SUPPLEMENT_DOC)) {
+            mergedNotes = notes.trim();
+        }
+        String ins = """
+                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
+                VALUES (?, ?, ?, ?)
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(ins, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, status.trim());
+            ps.setString(2, mergedNotes);
+            ps.setInt(3, profileId);
+            ps.setInt(4, licenceId);
+            if (ps.executeUpdate() <= 0) {
+                return 0;
+            }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không tạo ExamRegistration bổ sung profile {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return 0;
+    }
+
+    private static String stripSupplementMarkerPrefix(String notes) {
+        if (notes == null || notes.isBlank()) {
+            return null;
+        }
+        return notes.replace(RegistrantDocumentHelper.MARK_SUPPLEMENT_DOC, "").trim();
+    }
+
+    @Override
+    public Map<Integer, String> mapSupplementRegistrationStatuses(int profileId) {
+        Map<Integer, String> map = new java.util.LinkedHashMap<>();
+        if (profileId <= 0) {
+            return map;
+        }
+        String sql = """
+                SELECT ExamRegistrationId, RegistrationStatus
+                FROM ExamRegistration
+                WHERE ProfileId = ?
+                  AND Notes LIKE N'%#SUPPLEMENT_DOC#%'
+                  AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                ORDER BY ExamRegistrationId ASC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    map.put(rs.getInt("ExamRegistrationId"), rs.getString("RegistrationStatus"));
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không tải trạng thái request bổ sung profile {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return map;
+    }
+
+    @Override
+    public boolean syncSupplementDocumentRegistration(int examRegistrationId, String status, String notes) {
+        if (examRegistrationId <= 0 || status == null || status.isBlank()) {
+            return false;
+        }
+        String sql = """
+                UPDATE ExamRegistration
+                SET RegistrationStatus = ?, Notes = ?
+                WHERE ExamRegistrationId = ?
+                  AND Notes LIKE N'%#SUPPLEMENT_DOC#%'
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, status.trim());
+            ps.setString(2, notes != null ? notes : "");
+            ps.setInt(3, examRegistrationId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không cập nhật request bổ sung ER {0}: {1}",
+                    new Object[] { examRegistrationId, e.getMessage() });
+        }
+        return false;
     }
 
     @Override
@@ -749,7 +894,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             return false;
         }
         try {
-            int rows = updateAllWorkflowRegistrationRows(profileId, status.trim(), notes);
+            String markedNotes = RegistrantDocumentHelper.ensureProfileDocMarker(notes);
+            int rows = updatePrimaryWorkflowRegistrationRows(profileId, status.trim(), markedNotes);
             if (rows > 0) {
                 return true;
             }
@@ -757,7 +903,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             if (licenceId <= 0) {
                 return false;
             }
-            return insertRegistrationRow(profileId, licenceId, status.trim(), notes);
+            return insertPrimaryRegistrationRow(profileId, licenceId, status.trim(), markedNotes);
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Không đồng bộ RegistrationStatus profile {0}: {1}",
                     new Object[] { profileId, e.getMessage() });
@@ -765,18 +911,35 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return false;
     }
 
-    private int updateAllWorkflowRegistrationRows(int profileId, String status, String notes) throws SQLException {
+    private int updatePrimaryWorkflowRegistrationRows(int profileId, String status, String notes)
+            throws SQLException {
         String sql = """
                 UPDATE ExamRegistration
                 SET RegistrationStatus = ?, Notes = ?
                 WHERE ProfileId = ?
                   AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                  AND (Notes IS NULL OR Notes NOT LIKE N'%#SUPPLEMENT_DOC#%')
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setString(2, notes != null ? notes : "");
             ps.setInt(3, profileId);
             return ps.executeUpdate();
+        }
+    }
+
+    private boolean insertPrimaryRegistrationRow(int profileId, int licenceId, String status, String notes)
+            throws SQLException {
+        String ins = """
+                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
+                VALUES (?, ?, ?, ?)
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(ins)) {
+            ps.setString(1, status);
+            ps.setString(2, notes != null ? notes : "");
+            ps.setInt(3, profileId);
+            ps.setInt(4, licenceId);
+            return ps.executeUpdate() > 0;
         }
     }
 
@@ -796,21 +959,6 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             }
         }
         return resolveLicenceIdByUiCode("B2");
-    }
-
-    private boolean insertRegistrationRow(int profileId, int licenceId, String status, String notes)
-            throws SQLException {
-        String ins = """
-                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
-                VALUES (?, ?, ?, ?)
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(ins)) {
-            ps.setString(1, status);
-            ps.setString(2, notes != null ? notes : "");
-            ps.setInt(3, profileId);
-            ps.setInt(4, licenceId);
-            return ps.executeUpdate() > 0;
-        }
     }
 
     @Override
@@ -1124,9 +1272,9 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     private void loadDocumentTracking(int profileId, java.util.Date profileCreated,
             List<RegistrantTrackingLog> logs) {
-        var docs = documentDAO.listByProfileIdWithDocumentId(profileId);
+        var docs = documentdao.listByProfileIdWithDocumentId(profileId);
         String regStatus = findProfileDocumentRegistrationStatus(profileId);
         logs.addAll(RegistrantDocumentStatusHelper.buildDocumentTrackingLogs(
-                docs, documentDAO.typeLabels(), profileCreated, regStatus));
+                docs, documentdao.typeLabels(), profileCreated, regStatus));
     }
 }

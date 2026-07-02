@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.ExamDevice;
+import model.exam.ExamDevice;
 import java.util.List;
 
 public interface ExamDeviceDAO {

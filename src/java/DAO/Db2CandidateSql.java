@@ -1,4 +1,4 @@
-package DAO;
+package dao;
 
 /**
  * Truy vấn thí sinh 

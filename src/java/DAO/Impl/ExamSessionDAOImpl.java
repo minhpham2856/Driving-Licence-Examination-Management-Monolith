@@ -1,9 +1,9 @@
-package DAO.Impl;
+package dao.impl;
 
-import DBConnection.DBContext;
-import DAO.ExamSessionDAO;
-import Constants.ExamSessionStatus;
-import Models.ExamSession;
+import dbconnection.DBContext;
+import dao.ExamSessionDAO;
+import enums.ExamSessionStatus;
+import model.exam.ExamSession;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,10 +149,10 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                   AND [Status] IN (?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, ExamSessionStatus.IN_PROGRESS);
+            ps.setString(1, ExamSessionStatus.IN_PROGRESS.getStatus());
             ps.setInt(2, sessionId);
-            ps.setString(3, ExamSessionStatus.SCHEDULED);
-            ps.setString(4, ExamSessionStatus.OPEN);
+            ps.setString(3, ExamSessionStatus.SCHEDULED.getStatus());
+            ps.setString(4, ExamSessionStatus.OPEN.getStatus());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.ExamComputer;
+import model.exam.ExamComputer;
 import java.util.List;
 
 public interface ExamComputerDAO {

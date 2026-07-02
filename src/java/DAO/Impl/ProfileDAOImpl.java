@@ -1,9 +1,9 @@
-package DAO.Impl;
+package dao.impl;
 
-import Constants.Db2Mappings;
-import DBConnection.DBContext;
-import DAO.ProfileDAO;
-import Models.Profile;
+import enums.Db2Mappings;
+import dbconnection.DBContext;
+import dao.ProfileDAO;
+import model.user.Profile;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

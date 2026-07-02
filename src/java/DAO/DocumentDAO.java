@@ -1,7 +1,7 @@
-package DAO;
+package dao;
 
-import Models.ManagingStaffApprovalView;
-import Models.RegistrantDocumentView;
+import dto.staff.ManagingStaffApprovalView;
+import dto.registrant.RegistrantDocumentView;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +35,16 @@ public interface DocumentDAO {
 
     /** Duyệt hoặc từ chối toàn bộ tài liệu đang chờ duyệt của hồ sơ. */
     boolean reviewProfileDocuments(int profileId, boolean approved, String staffNote);
+
+    /** Duyệt / từ chối các tệp Other gắn với một request bổ sung ({@code ExamRegistrationId}). */
+    boolean reviewSupplementDocuments(int profileId, int supplementExamRegistrationId,
+            boolean approved, String staffNote);
+
+    /**
+     * Đồng bộ {@code Document.Notes} với trạng thái {@code ExamRegistration} bổ sung
+     * (sửa lệch khi chỉ cập nhật ER bằng SQL hoặc tệp legacy thiếu {@code #SUPPLEMENT_ER#}).
+     */
+    int reconcileOtherDocumentsWithSupplementEr(int profileId, Map<Integer, String> supplementErStatuses);
 
     /** Danh sách hồ sơ có ít nhất một tài liệu đang chờ duyệt. */
     List<ManagingStaffApprovalView> listPendingApprovals();

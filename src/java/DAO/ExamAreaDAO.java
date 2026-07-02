@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.ExamArea;
+import model.exam.ExamArea;
 import java.util.List;
 
 public interface ExamAreaDAO {

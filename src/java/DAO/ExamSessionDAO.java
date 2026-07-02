@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.ExamSession;
+import model.exam.ExamSession;
 import java.sql.Date;
 import java.util.List;
 

@@ -1,6 +1,6 @@
-package DAO;
+package dao;
 
-import Models.Profile;
+import model.user.Profile;
 
 public interface ProfileDAO {
 

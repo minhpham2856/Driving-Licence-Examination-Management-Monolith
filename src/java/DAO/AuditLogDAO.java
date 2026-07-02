@@ -1,7 +1,7 @@
-package DAO;
+package dao;
 
-import Models.AuditLog;
-import Models.StaffProcedureKpi;
+import model.user.AuditLog;
+import dto.staff.StaffProcedureKpiDTO;
 import java.util.List;
 
 public interface AuditLogDAO {
@@ -21,7 +21,7 @@ public interface AuditLogDAO {
     int getAllLogsCountByDate(String dateStr);
 
     /** Học viên đã ảnh + thanh toán, do cán bộ userId thu (qua Audit). filterDate: yyyy-MM-dd hoặc null. */
-    StaffProcedureKpi getStaffProcedureKpi(int userId, String filterDate);
+    StaffProcedureKpiDTO getStaffProcedureKpiDTO(int userId, String filterDate);
 
     List<AuditLog> getLogsForSessionPaginated(int sessionId, int page, int pageSize);
 
