@@ -49,14 +49,6 @@
             </section>
         </c:if>
 
-        <c:if test="${not empty registrationUserNotice}">
-            <section class="p-alert-banner p-alert-banner--compact" aria-label="Thông báo đồng bộ">
-                <div class="p-alert-banner__content">
-                    <span>${registrationUserNotice}</span>
-                </div>
-            </section>
-        </c:if>
-
         <c:if test="${param.success eq 'upload'}">
             <section class="p-alert-banner p-alert-banner--compact" aria-label="Thông báo thành công">
                 <div class="p-alert-banner__content">
@@ -64,10 +56,10 @@
                     <span>
                         <c:choose>
                             <c:when test="${profileApproved}">
-                                Hồ sơ bổ sung đã được lưu. Trạng thái hồ sơ vẫn là «Đã duyệt» cho đến khi bạn bấm «Gửi yêu cầu duyệt».
+                                Hồ sơ bổ sung đã được lưu. Trạng thái hồ sơ vẫn là <strong>Đã duyệt</strong> cho đến khi bạn bấm <strong>Gửi yêu cầu duyệt</strong>.
                             </c:when>
                             <c:otherwise>
-                                Tài liệu đã được lưu. Bấm «Gửi yêu cầu duyệt» khi đã đủ hồ sơ.
+                                Tài liệu đã được lưu. Bấm <strong>Gửi yêu cầu duyệt</strong> khi đã đủ hồ sơ.
                             </c:otherwise>
                         </c:choose>
                     </span>
@@ -87,8 +79,16 @@
         <c:if test="${param.success eq 'request'}">
             <section class="p-alert-banner p-alert-banner--compact" aria-label="Thông báo thành công">
                 <div class="p-alert-banner__content">
-                    <span class="p-alert-banner__title">Đã gửi yêu cầu duyệt</span>
-                    <span>Ban quản lý sẽ kiểm tra và phản hồi trạng thái hồ sơ của bạn.</span>
+                    <c:choose>
+                        <c:when test="${profileApproved}">
+                            <span class="p-alert-banner__title">Đã gửi duyệt hồ sơ bổ sung</span>
+                            <span>Chỉ các tệp tại mục <strong>Hồ sơ khác</strong> được gửi ban quản lý. Trạng thái hồ sơ chính vẫn là <strong>Đã duyệt</strong>.</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="p-alert-banner__title">Đã gửi yêu cầu duyệt</span>
+                            <span>Ban quản lý sẽ kiểm tra và phản hồi trạng thái hồ sơ của bạn.</span>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </section>
         </c:if>
@@ -107,12 +107,29 @@
                 <p class="upload-empty-msg">Chưa có hồ sơ cá nhân. Vui lòng hoàn tất đăng ký tài khoản trước khi upload tài liệu.</p>
             </c:when>
             <c:otherwise>
-                <c:set var="mandatoryLocked" value="${profileApproved or hasPendingReview}" />
+                <c:set var="mandatoryReviewLock" value="${primaryPendingReview}" />
                 <c:if test="${profileApproved}">
                     <section class="p-alert-banner register-exam-notice register-exam-notice--approved" style="margin-bottom:1.25rem;" aria-label="Hướng dẫn bổ sung hồ sơ">
                         <div class="p-alert-banner__content">
                             <span class="p-alert-banner__title">Hồ sơ đã được duyệt</span>
-                            <span>Để bổ sung giấy tờ, hãy dùng mục <strong>Hồ sơ khác</strong> bên dưới.</span>
+                            <span>
+                                <c:choose>
+                                    <c:when test="${hasSupplementPendingReview}">
+                                        Hồ sơ bổ sung đang chờ ban quản lý xem xét. Trạng thái hồ sơ chính vẫn là <strong>Đã duyệt</strong> — bạn vẫn có thể đăng ký thi hạng A1/A2.
+                                    </c:when>
+                                    <c:otherwise>
+                                        Để bổ sung giấy tờ, hãy dùng mục <strong>Hồ sơ khác</strong> bên dưới.
+                                    </c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+                    </section>
+                </c:if>
+                <c:if test="${profileRejected}">
+                    <section class="p-alert-banner" style="margin-bottom:1.25rem;background:#fff7ed;border-color:#fdba74;" aria-label="Hồ sơ bị từ chối">
+                        <div class="p-alert-banner__content">
+                            <span class="p-alert-banner__title">Hồ sơ bị từ chối</span>
+                            <span>Vui lòng sửa lại giấy tờ tại 4 mục bên dưới (tải lên thay thế) rồi bấm <strong>Gửi yêu cầu duyệt</strong> lại.</span>
                         </div>
                     </section>
                 </c:if>
@@ -124,14 +141,22 @@
                             <c:set var="inputId" value="file-${docType}" />
                             <c:set var="docTitle" value="${docType eq 'Portrait' ? '1. Ảnh chân dung 3x4' : docType eq 'IdFront' ? '2. Mặt trước CCCD / CMND' : docType eq 'IdBack' ? '3. Mặt sau CCCD / CMND' : '4. Giấy khám sức khỏe lái xe'}" />
 
-                            <div class="upload-card upload-card--${doc.statusClass}">
+                            <c:set var="mandatoryApproved" value="${profileApproved and not empty doc.documentUrl}" />
+                            <c:set var="mandatoryReplaceBlocked" value="${mandatoryApproved or mandatoryReviewLock}" />
+
+                            <div class="upload-card upload-card--${mandatoryApproved ? 'success' : doc.statusClass}${mandatoryApproved ? ' upload-card--mandatory-approved' : ''}">
                                 <div class="upload-card__header">
                                     <h2 class="upload-card__title">${docTitle}</h2>
-                                    <span class="r-stat-card__badge r-stat-card__badge--${doc.statusClass}">${doc.statusLabel}</span>
+                                    <span class="r-stat-card__badge r-stat-card__badge--${mandatoryApproved ? 'success' : doc.statusClass}">
+                                        ${mandatoryApproved ? 'Đã duyệt' : doc.statusLabel}
+                                    </span>
                                 </div>
 
-                                <c:if test="${mandatoryLocked and not empty doc.documentUrl}">
-                                    <p class="upload-card__locked-hint">Giấy tờ đã duyệt — không thể thay thế trực tiếp. Bổ sung qua mục «Hồ sơ khác».</p>
+                                <c:if test="${mandatoryApproved}">
+                                    <p class="upload-card__locked-hint upload-card__locked-hint--approved">Giấy tờ đã duyệt — không thể thay thế trực tiếp. Bổ sung qua mục <strong>Hồ sơ khác</strong>.</p>
+                                </c:if>
+                                <c:if test="${mandatoryReviewLock and not empty doc.documentUrl}">
+                                    <p class="upload-card__locked-hint">Hồ sơ đang chờ duyệt — không thể thay đổi giấy tờ lúc này.</p>
                                 </c:if>
 
                                 <c:if test="${not empty doc.notes and doc.statusClass eq 'danger'}">
@@ -146,7 +171,7 @@
                                     <input type="hidden" name="documentType" value="${docType}">
 
                                     <div class="upload-slot-wrap">
-                                        <c:if test="${not empty doc.documentUrl and doc.documentId gt 0 and not mandatoryLocked}">
+                                        <c:if test="${not empty doc.documentUrl and doc.documentId gt 0 and not mandatoryReplaceBlocked}">
                                             <button type="submit"
                                                     form="delete-doc-${docType}"
                                                     class="upload-slot__delete"
@@ -155,7 +180,7 @@
                                                     onclick="return confirm('Xóa tệp đã tải cho ${docTitle}?');">×</button>
                                         </c:if>
 
-                                    <label class="upload-slot" for="${inputId}" data-upload-slot data-has-file="${not empty doc.documentUrl ? '1' : '0'}">
+                                    <label class="upload-slot${mandatoryReplaceBlocked ? ' upload-slot--locked' : ''}${mandatoryApproved ? ' upload-slot--locked-approved' : ''}" for="${mandatoryReplaceBlocked ? '' : inputId}" data-upload-slot data-has-file="${not empty doc.documentUrl ? '1' : '0'}">
                                         <c:choose>
                                             <c:when test="${not empty doc.documentUrl}">
                                                 <div class="upload-slot__face upload-slot__face--ready" data-slot-ready>
@@ -165,7 +190,17 @@
                                                         <strong>Tệp không còn trên máy chủ</strong> (thường do redeploy). Vui lòng tải lên lại.
                                                     </p>
                                                     <p class="upload-slot__message">
-                                                        <strong>Đã tải lên</strong><c:if test="${not empty doc.fileSizeLabel}"> · ${doc.fileSizeLabel}</c:if> · Bấm để thay tệp
+                                                        <c:choose>
+                                                            <c:when test="${mandatoryApproved}">
+                                                                <strong>Đã được phê duyệt</strong><c:if test="${not empty doc.fileSizeLabel}"> · ${doc.fileSizeLabel}</c:if>
+                                                            </c:when>
+                                                            <c:when test="${mandatoryReviewLock}">
+                                                                <strong>Đã tải lên</strong><c:if test="${not empty doc.fileSizeLabel}"> · ${doc.fileSizeLabel}</c:if> · Chờ ban quản lý duyệt
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <strong>Đã tải lên</strong><c:if test="${not empty doc.fileSizeLabel}"> · ${doc.fileSizeLabel}</c:if> · Bấm để thay tệp
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </p>
                                                 </div>
                                             </c:when>
@@ -180,16 +215,17 @@
                                         </div>
                                         <input type="file" id="${inputId}" name="documentFile" accept="image/png,image/jpeg"
                                                class="upload-slot__input" data-file-input
-                                               ${mandatoryLocked ? 'disabled' : ''}>
+                                               ${mandatoryReplaceBlocked ? 'disabled' : ''}>
                                     </label>
                                     </div>
 
+                                    <c:if test="${not mandatoryReplaceBlocked}">
                                     <div class="upload-card__actions">
-                                        <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary upload-card__submit"
-                                                ${mandatoryLocked ? 'disabled' : ''}>Tải lên</button>
+                                        <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary upload-card__submit">Tải lên</button>
                                     </div>
+                                    </c:if>
                                 </form>
-                                <c:if test="${not empty doc.documentUrl and doc.documentId gt 0 and not mandatoryLocked}">
+                                <c:if test="${not empty doc.documentUrl and doc.documentId gt 0 and not mandatoryReplaceBlocked}">
                                     <form method="post" id="delete-doc-${docType}"
                                           action="${pageContext.request.contextPath}/registrant/upload-documents"
                                           class="upload-card__delete-form">
@@ -206,7 +242,7 @@
                         <div class="upload-other-section__header">
                             <div>
                                 <h2 class="upload-other-section__title">5. Hồ sơ khác</h2>
-                                <p class="upload-other-section__desc">Nộp nhiều giấy tờ bổ sung (cam kết, xác nhận cư trú, v.v.). Mỗi tệp cần ghi rõ lý do.</p>
+                                <p class="upload-other-section__desc">Nộp giấy tờ bổ sung theo từng hạng GPLX (cam kết, xác nhận cư trú, v.v.). Mỗi tệp cần chọn hạng bằng và ghi rõ lý do.</p>
                             </div>
                             <span class="upload-other-section__count">${otherDocumentCount} tệp đã nộp</span>
                         </div>
@@ -228,6 +264,9 @@
                                         <div class="upload-other-item__body">
                                             <div class="upload-other-item__meta">
                                                 <span class="r-stat-card__badge r-stat-card__badge--${other.statusClass}">${other.statusLabel}</span>
+                                                <c:if test="${not empty other.supplementLicenceCode}">
+                                                    <span class="upload-other-item__licence">Bổ sung hạng ${other.supplementLicenceCode}</span>
+                                                </c:if>
                                                 <span class="upload-other-item__size">
                                                     <c:choose>
                                                         <c:when test="${not empty other.fileSizeLabel}">${other.fileSizeLabel}</c:when>
@@ -236,7 +275,12 @@
                                                     · Tối đa 5MB
                                                 </span>
                                             </div>
-                                            <p class="upload-other-item__note">${fn:substringBefore(other.notes, ' · ')}</p>
+                                            <p class="upload-other-item__note">
+                                                <c:choose>
+                                                    <c:when test="${not empty other.reasonSummary}">${other.reasonSummary}</c:when>
+                                                    <c:otherwise>${fn:substringBefore(other.notes, ' · ')}</c:otherwise>
+                                                </c:choose>
+                                            </p>
                                             <div class="upload-other-item__actions">
                                                 <a href="${other.documentUrl}" target="_blank" rel="noopener" class="upload-other-item__link">Xem tệp</a>
                                                 <c:if test="${other.documentId gt 0 and not hasPendingReview and (not profileApproved or other.statusLabel eq 'Chưa gửi duyệt')}">
@@ -259,7 +303,39 @@
                               class="upload-other-form" data-upload-form>
                             <input type="hidden" name="documentType" value="Other">
 
-                            <label class="p-input-label" for="other-reason">Lý do / ghi chú <span class="profile-edit-required">*</span></label>
+                            <div class="upload-licence-picker">
+                                <div class="upload-licence-picker__head">
+                                    <span class="upload-licence-picker__badge" aria-hidden="true">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M7 9h4M7 13h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </span>
+                                    <label class="upload-licence-picker__label" for="supplement-licence">
+                                        Hạng bằng bổ sung <span class="profile-edit-required">*</span>
+                                    </label>
+                                </div>
+                                <div class="p-input-wrapper upload-licence-picker__field">
+                                    <span class="p-input-icon" aria-hidden="true">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                            <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
+                                        </svg>
+                                    </span>
+                                    <select id="supplement-licence" name="supplementLicenceCode"
+                                            class="p-input-field p-input-field--select upload-licence-picker__select" required>
+                                        <option value="" disabled selected>Chọn hạng GPLX...</option>
+                                        <c:forEach var="licence" items="${supplementLicenceOptions}">
+                                            <option value="${licence.code}" title="${licence.name}">
+                                                Hạng ${licence.code} — ${licence.name}
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <p class="upload-licence-picker__hint">Hạng A1/A2 chỉ cần 4 giấy tờ bắt buộc, không cần hồ sơ bổ sung.</p>
+                            </div>
+
+                            <label class="upload-other-form__label" for="other-reason">Lý do / ghi chú <span class="profile-edit-required">*</span></label>
                             <textarea id="other-reason" name="reasonNote" class="upload-card__reason" rows="2"
                                       placeholder="Ví dụ: Giấy cam kết bổ sung hồ sơ, giấy xác nhận cư trú..." required></textarea>
 
@@ -282,11 +358,16 @@
 
                     <section class="upload-request-card upload-request-card--compact">
                         <div class="upload-request-card__content">
-                            <h2 class="upload-request-card__title">Gửi yêu cầu duyệt hồ sơ</h2>
+                            <h2 class="upload-request-card__title">
+                                <c:choose>
+                                    <c:when test="${profileApproved}">Gửi duyệt hồ sơ bổ sung</c:when>
+                                    <c:otherwise>Gửi yêu cầu duyệt hồ sơ</c:otherwise>
+                                </c:choose>
+                            </h2>
                             <p class="upload-request-card__desc">
                                 <c:choose>
                                     <c:when test="${profileApproved}">
-                                        Chỉ gửi khi đã thêm hồ sơ bổ sung tại mục «Hồ sơ khác». Bấm gửi sẽ chuyển trạng thái hồ sơ sang «Chờ duyệt».
+                                        Chỉ gửi các tệp tại mục <strong>Hồ sơ khác</strong> chưa gửi duyệt. Bốn giấy tờ bắt buộc giữ nguyên trạng thái <strong>Đã duyệt</strong>.
                                     </c:when>
                                     <c:otherwise>
                                         Sau khi tải đủ tài liệu, gửi yêu cầu để ban quản lý kiểm tra và phê duyệt.
@@ -294,17 +375,29 @@
                                 </c:choose>
                             </p>
                             <c:if test="${hasPendingReview}">
-                                <p class="upload-request-card__hint">Hồ sơ của bạn đang trong trạng thái chờ duyệt.</p>
+                                <p class="upload-request-card__hint">
+                                    <c:choose>
+                                        <c:when test="${profileApproved and hasSupplementPendingReview}">
+                                            Hồ sơ bổ sung đang chờ ban quản lý xem xét.
+                                        </c:when>
+                                        <c:otherwise>
+                                            Hồ sơ của bạn đang trong trạng thái chờ duyệt.
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
                             </c:if>
                         </div>
                         <form method="post" action="${pageContext.request.contextPath}/registrant/upload-documents" class="upload-request-card__form">
                             <input type="hidden" name="action" value="requestApproval">
                             <label class="p-input-label" for="request-note">Ghi chú gửi ban quản lý (tùy chọn)</label>
                             <textarea id="request-note" name="requestNote" class="upload-card__reason" rows="2"
-                                      placeholder="Ví dụ: Đã bổ sung giấy khám sức khỏe mới, nhờ ban quản lý xem xét."></textarea>
+                                      placeholder="${profileApproved ? 'Ví dụ: Đã bổ sung hồ sơ cho hạng B2, nhờ ban quản lý xem xét.' : 'Ví dụ: Đã bổ sung giấy khám sức khỏe mới, nhờ ban quản lý xem xét.'}"></textarea>
                             <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary"
                                     ${canRequestApproval ? '' : 'disabled'}>
-                                Gửi yêu cầu duyệt
+                                <c:choose>
+                                    <c:when test="${profileApproved}">Gửi duyệt hồ sơ bổ sung</c:when>
+                                    <c:otherwise>Gửi yêu cầu duyệt</c:otherwise>
+                                </c:choose>
                             </button>
                         </form>
                     </section>

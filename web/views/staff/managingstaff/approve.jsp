@@ -57,7 +57,7 @@
 
                 <header class="page-header">
                     <div class="page-title-wrap">
-                        <h1 class="page-title">Thẩm Định Hồ Sơ: ${user.fullName}</h1>
+                        <h1 class="page-title">Thẩm Định Hồ Sơ: ${user.fullName}<c:if test="${user.supplementApproval}"> <span style="font-size:0.85rem;color:#d97706;">(Hồ sơ bổ sung)</span></c:if></h1>
                         <p class="page-subtitle">Kiểm tra thông tin đối chiếu với giấy tờ đã tải lên để phê duyệt hoặc từ chối.</p>
                     </div>
                     
@@ -156,6 +156,7 @@
                                         <div>
                                             <span class="quick-info-label" style="display: block; margin-bottom: 6px;">
                                                 5.${st.index + 1} Hồ sơ khác
+                                                <c:if test="${not empty other.supplementLicenceCode}"> — Bổ sung hạng ${other.supplementLicenceCode}</c:if>
                                                 — <span class="r-stat-card__badge r-stat-card__badge--${other.statusClass}" style="display:inline-flex;">${other.statusLabel}</span>
                                                 <c:if test="${not empty other.fileSizeLabel}"> · ${other.fileSizeLabel}</c:if>
                                             </span>
@@ -169,8 +170,13 @@
                                                     </a>
                                                 </c:otherwise>
                                             </c:choose>
-                                            <c:if test="${not empty other.notes}">
-                                                <p style="margin:0.5rem 0 0;font-size:0.85rem;color:#64748b;"><strong>Ghi chú:</strong> ${fn:substringBefore(other.notes, ' · ')}</p>
+                                            <c:if test="${not empty other.reasonSummary or not empty other.notes}">
+                                                <p style="margin:0.5rem 0 0;font-size:0.85rem;color:#64748b;"><strong>Ghi chú:</strong>
+                                                    <c:choose>
+                                                        <c:when test="${not empty other.reasonSummary}">${other.reasonSummary}</c:when>
+                                                        <c:otherwise>${fn:substringBefore(other.notes, ' · ')}</c:otherwise>
+                                                    </c:choose>
+                                                </p>
                                             </c:if>
                                         </div>
                                     </c:if>
@@ -193,6 +199,9 @@
                             
                             <form action="${pageContext.request.contextPath}/manager/approve" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 1.25rem;">
                                 <input type="hidden" name="id" value="${user.id}">
+                                <c:if test="${user.workflowExamRegistrationId gt 0}">
+                                    <input type="hidden" name="erId" value="${user.workflowExamRegistrationId}">
+                                </c:if>
                                 
                                 <div class="input-group">
                                     <label class="input-label" style="margin-bottom: 8px;">Quyết định duyệt:</label>
@@ -289,14 +298,17 @@
                                                     <span class="role-badge role-badge--coi" style="padding: 2px 8px; font-size: 0.75rem; font-weight: 700;">Hạng ${user.licenseClass}</span>
                                                 </td>
                                                 <td style="text-align: center; font-weight: 600; color: #475569;">
-                                                    ${user.type eq 'student' ? 'Học viên chính khóa' : 'Thí sinh tự do'}
+                                                    <c:choose>
+                                                        <c:when test="${user.supplementApproval}">Hồ sơ bổ sung</c:when>
+                                                        <c:otherwise>Hồ sơ gốc (4 giấy tờ)</c:otherwise>
+                                                    </c:choose>
                                                 </td>
                                                 <td style="color: #64748b; font-size: 0.85rem;">${user.registerDate}</td>
                                                 <td style="text-align: center;">
                                                     <span class="action-badge action-badge--warning">Chờ duyệt</span>
                                                 </td>
                                                 <td style="text-align: center;">
-                                                    <a href="${pageContext.request.contextPath}/manager/approve?id=${user.id}" class="btn-filter" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; background-color: #d97706; border-color: #d97706;">Xem &amp; Duyệt</a>
+                                                    <a href="${pageContext.request.contextPath}/manager/approve?id=${user.id}<c:if test='${user.workflowExamRegistrationId gt 0}'>&amp;erId=${user.workflowExamRegistrationId}</c:if>" class="btn-filter" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; background-color: #d97706; border-color: #d97706;">Xem &amp; Duyệt</a>
                                                 </td>
                                             </tr>
                                         </c:forEach>
