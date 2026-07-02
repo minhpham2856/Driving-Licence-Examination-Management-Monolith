@@ -1,8 +1,11 @@
 package controller.auth.landing;
 
+import dao.ProfileDAO;
+import dao.impl.ProfileDAOImpl;
+import model.user.Profile;
+import model.user.User;
 import service.AuthService;
 import service.ExaminerSessionContextService;
-import model.user.User;
 import service.impl.AuthServiceImpl;
 import service.impl.ExaminerSessionContextServiceImpl;
 
@@ -18,6 +21,7 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();
+    private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final ExaminerSessionContextService examinerSessionContext = new ExaminerSessionContextServiceImpl();
 
     @Override
@@ -72,6 +76,12 @@ public class LoginServlet extends HttpServlet {
         } else {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
+            Profile profile = profileDAO.getByUserId(user.getUserId());
+            if (profile != null) {
+                session.setAttribute("userProfile", profile);
+            } else {
+                session.removeAttribute("userProfile");
+            }
 
             String roleName = enums.UserRole.roleNameFromId(user.getRoleId());
             if ("ManagingStaff".equalsIgnoreCase(roleName)) {
