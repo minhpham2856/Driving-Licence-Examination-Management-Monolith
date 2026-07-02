@@ -1,45 +1,37 @@
 package dao.impl;
-
+import java.sql.*;
+import java.util.*;
+import service.*;
 import dbconnection.DBContext;
 import dao.UserDAO;
-import enums.UserRole;
-import model.user.User;
-
+import model.Profile;
+import model.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.List;
+import java.util.Collections;
+import java.util.ArrayList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import enums.UserRole;
+import service.impl.RoleServiceImpl;
 public class UserDAOImpl extends DBContext implements UserDAO {
-
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
-
     private static final String USER_SELECT = """
-            SELECT u.UserId,
-                   u.Username,
-                   u.Email,
-                   u.PasswordHash,
-                   u.RoleId,
-                   u.[Status],
-                   r.RoleName,
-                   p.ProfileId,
-                   p.FullName,
-                   p.DateOfBirth,
-                   p.PhoneNumber,
-                   p.Sex,
-                   p.GovernmentIdNumber,
-                   p.Address
-            FROM [User] u
-            INNER JOIN [Role] r ON r.RoleId = u.RoleId
-            LEFT JOIN Profile p ON p.UserId = u.UserId
-            """;
-
+                     select UserId,
+                     	Username,
+                     	Email,
+                     	PasswordHash,
+                     	RoleId,
+                     	IsActive
+                     from [User]
+                     """;
     @Override
     public User getById(int id) {
-        String sql = USER_SELECT + " WHERE u.UserId = ?";
+        String sql = USER_SELECT + " where UserId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -52,10 +44,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
-
     @Override
     public User getByUsername(String username) {
-        String sql = USER_SELECT + " WHERE u.Username = ?";
+        String sql = USER_SELECT + " where Username = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
@@ -68,20 +59,16 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
-
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
-                 WHERE u.Username = ?
-                    OR u.Email = ?
-                    OR p.PhoneNumber = ?
-                    OR p.GovernmentIdNumber = ?
+                 where Username = ?
+                    or Email = ?
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
-            ps.setString(3, identifier);
-            ps.setString(4, identifier);
+            ps.setString(2, identifier);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -92,10 +79,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
-
     @Override
     public User getByEmail(String email) {
-        String sql = USER_SELECT + " WHERE u.Email = ?";
+        String sql = USER_SELECT + " where Email = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
@@ -108,7 +94,6 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
-
     @Override
     public boolean insert(User user) {
         Connection conn = getConnection();
@@ -116,51 +101,43 @@ public class UserDAOImpl extends DBContext implements UserDAO {
             LOG.severe("Cannot insert user: database connection is unavailable.");
             return false;
         }
-
         String sql = """
-                INSERT INTO [User] (Username, Email, PasswordHash, RoleId, [Status])
-                VALUES (?, ?, ?, ?, ?)
-                """;
-
+                     insert into [User] (Username, Email, PasswordHash, RoleId, IsActive)
+                     values (?, ?, ?, ?, ?)
+                     """;
         int roleId = user.getRoleId();
         if (roleId <= 0) {
-            roleId = UserRole.roleIdFromName("Registrant");
+            RoleService roleService = new RoleServiceImpl();
+            roleId = roleService.getRoleIdByName(UserRole.NGUOI_DANG_KY_THI.getDisplayName());
         }
-
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
             ps.setInt(4, roleId);
             ps.setBoolean(5, user.isActive());
-
             if (ps.executeUpdate() == 0) {
                 return false;
             }
-
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     user.setUserId(generatedKeys.getInt(1));
                 }
             }
-
             return user.getUserId() > 0;
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Failed to insert user {0}: {1}",
                     new Object[]{user.getEmail(), e.getMessage()});
         }
-
         return false;
     }
-
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
-                UPDATE [User]
-                SET PasswordHash = ?
-                WHERE UserId = ?
-                """;
-
+                     update [User]
+                     set PasswordHash = ?
+                     where UserId = ?
+                     """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, passwordHash);
             ps.setInt(2, userId);
@@ -168,25 +145,75 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return false;
     }
-
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("UserId"));
         user.setUsername(rs.getString("Username"));
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
-        user.setActive(rs.getBoolean("Status"));
-
-        int roleId = rs.getInt("RoleId");
-        if (!rs.wasNull()) {
-            user.setRoleId(roleId);
-        } else {
-            user.setRoleId(UserRole.roleIdFromName(rs.getString("RoleName")));
-        }
-
+        user.setActive(rs.getBoolean("IsActive"));
+        user.setRoleId(rs.getInt("RoleId"));
         return user;
+    }
+    @Override
+    public List<User> getAllByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            placeholders.append("?");
+            if (i < ids.size() - 1) {
+                placeholders.append(",");
+            }
+        }
+        String sql = USER_SELECT + " WHERE UserId IN (" + placeholders.toString() + ")";
+        List<User> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < ids.size(); i++) {
+                ps.setInt(i + 1, ids.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    @Override
+    public List<User> findActiveExaminers() {
+        String sql = "SELECT u.UserId, u.Username, u.Email, u.PasswordHash, u.RoleId, u.IsActive "
+                + "FROM [User] u "
+                + "INNER JOIN Role r ON r.RoleId = u.RoleId "
+                + "WHERE r.RoleName = ? AND u.IsActive = 1 "
+                + "ORDER BY u.Username";
+        List<User> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, UserRole.SAT_HACH_VIEN.getDisplayName());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    @Override
+    public int countAll() {
+        String sql = "SELECT COUNT(*) FROM [User]";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
