@@ -1,4 +1,4 @@
-package Utils;
+package util;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

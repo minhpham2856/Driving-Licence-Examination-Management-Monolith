@@ -1,4 +1,4 @@
-package Utils;
+package util;
 
 import java.text.Normalizer;
 import java.util.concurrent.ThreadLocalRandom;

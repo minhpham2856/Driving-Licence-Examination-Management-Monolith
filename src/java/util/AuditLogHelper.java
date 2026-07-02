@@ -1,10 +1,10 @@
-package Utils;
+package util;
 
-import Constants.AuditEntityLabels;
-import DAO.AuditLogDAO;
-import DAO.Impl.AuditLogDAOImpl;
-import Models.AuditLog;
-import Models.User;
+import enums.AuditEntityLabels;
+import dao.AuditLogDAO;
+import dao.impl.AuditLogDAOImpl;
+import model.user.AuditLog;
+import model.user.User;
 import jakarta.servlet.http.HttpSession;
 
 import java.sql.Timestamp;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public final class AuditLogHelper {
 
-    private static final AuditLogDAO DAO = new AuditLogDAOImpl();
+    private static final AuditLogDAO dao = new AuditLogDAOImpl();
 
     private AuditLogHelper() {
     }
@@ -76,7 +76,7 @@ public final class AuditLogHelper {
             log.setDetails(detailsJson);
             log.setChangedBy(userId);
             log.setChangedAt(new Timestamp(System.currentTimeMillis()));
-            DAO.insert(log);
+            dao.insert(log);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -97,7 +97,7 @@ public final class AuditLogHelper {
                     new AuditChangeDetails.FieldChange("Trạng thái", "Hoạt động bình thường", "Đình chỉ"))));
             log.setChangedBy(userId);
             log.setChangedAt(new Timestamp(System.currentTimeMillis()));
-            DAO.insert(log);
+            dao.insert(log);
         } catch (Exception e) {
             e.printStackTrace();
         }

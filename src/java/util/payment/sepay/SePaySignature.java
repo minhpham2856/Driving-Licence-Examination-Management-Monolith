@@ -1,4 +1,4 @@
-package Utils.payment.sepay;
+package util.payment.sepay;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;

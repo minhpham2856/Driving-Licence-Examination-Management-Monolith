@@ -1,4 +1,4 @@
-package Utils.payment.sepay;
+package util.payment.sepay;
 
 /** Hằng số SePay Payment Gateway — tham chiếu developer.sepay.vn */
 public final class SePayConstants {

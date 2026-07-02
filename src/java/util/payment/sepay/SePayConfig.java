@@ -1,6 +1,6 @@
-package Utils.payment.sepay;
+package util.payment.sepay;
 
-import Utils.ConfigManager;
+import util.ConfigManager;
 
 /**
  * Cấu hình SePay đọc từ {@code web/WEB-INF/.env} hoặc biến môi trường.

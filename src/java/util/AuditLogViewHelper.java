@@ -1,7 +1,7 @@
-package Utils;
+package util;
 
-import Constants.AuditEntityLabels;
-import Models.AuditLog;
+import enums.AuditEntityLabels;
+import model.user.AuditLog;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

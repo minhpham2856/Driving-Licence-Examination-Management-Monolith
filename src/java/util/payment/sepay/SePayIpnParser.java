@@ -1,6 +1,6 @@
-package Utils.payment.sepay;
+package util.payment.sepay;
 
-import Models.payment.sepay.SePayIpnEvent;
+import model.payment.sepay.SePayIpnEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
