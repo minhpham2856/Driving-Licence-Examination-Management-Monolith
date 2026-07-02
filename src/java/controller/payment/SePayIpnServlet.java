@@ -1,0 +1,39 @@
+package controller.payment;
+
+import model.payment.sepay.SePayIpnResult;
+import service.impl.SePayPaymentServiceImpl;
+import service.SePayPaymentService;
+import util.payment.sepay.SePayConstants;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * Endpoint IPN mẫu cho SePay — đăng ký URL này trên my.sepay.vn.
+ * Module nghiệp vụ mở rộng: sau {@link SePayIpnResult#getEvent()} cập nhật Payment / đơn hàng.
+ */
+@WebServlet("/payment/sepay/ipn")
+public class SePayIpnServlet extends HttpServlet {
+
+    private final SePayPaymentService sePayService = new SePayPaymentServiceImpl();
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String rawBody = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String secret = request.getHeader(SePayConstants.HEADER_SECRET_KEY);
+        String signature = request.getHeader(SePayConstants.HEADER_SIGNATURE);
+        String timestamp = request.getHeader(SePayConstants.HEADER_TIMESTAMP);
+
+        SePayIpnResult result = sePayService.handleIpn(rawBody, secret, signature, timestamp);
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(result.isAccepted() ? HttpServletResponse.SC_OK : HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write(result.responseJson());
+
+        // TODO (module thanh toán): if (result.isAccepted() && result.getEvent().isPaid()) { ... }
+    }
+}
