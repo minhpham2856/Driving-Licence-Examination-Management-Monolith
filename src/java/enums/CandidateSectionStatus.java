@@ -1,4 +1,4 @@
-package Constants;
+package enums;
 
 /**
  * Trạng thái thí sinh theo phần thi (Exam_Candidate.SectionStatus).

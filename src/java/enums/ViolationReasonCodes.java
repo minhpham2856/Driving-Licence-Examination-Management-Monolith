@@ -1,4 +1,4 @@
-package Constants;
+package enums;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

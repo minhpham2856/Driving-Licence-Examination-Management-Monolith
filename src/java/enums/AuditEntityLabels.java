@@ -1,4 +1,4 @@
-package Constants;
+package enums;
 
 import java.util.Locale;
 import java.util.Map;

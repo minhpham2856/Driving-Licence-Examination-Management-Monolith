@@ -1,6 +1,6 @@
-package Constants;
+package enums;
 
-import Models.Role;
+import model.user.Role;
 import java.util.Map;
 
 /**

@@ -1,4 +1,8 @@
-package Constants;
+<<<<<<<< Updated upstream:src/java/enums/registrant/ExamRegistrationLifecycleStatus.java
+package enums.registrant;
+========
+package constant;
+>>>>>>>> Stashed changes:src/java/constant/ExamRegistrationLifecycleStatus.java
 
 /**
  * Trạng thái {@code ExamRegistration} cho luồng đăng ký ca thi (tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected).

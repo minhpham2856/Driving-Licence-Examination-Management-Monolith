@@ -1,4 +1,8 @@
-package Constants;
+<<<<<<<< Updated upstream:src/java/enums/ExamSectionProfiles.java
+package enums;
+========
+package constant;
+>>>>>>>> Stashed changes:src/java/constant/ExamSectionProfiles.java
 
 /**
  * Maps assigned exam section names to examiner portal behaviour.
@@ -8,21 +12,21 @@ public final class ExamSectionProfiles {
     private ExamSectionProfiles() {
     }
 
-    public static ExamSectionType resolveType(String sectionName) {
+    public static SectionType resolveType(String sectionName) {
         if (sectionName == null || sectionName.isBlank()) {
-            return ExamSectionType.THEORY;
+            return SectionType.THEORY;
         }
         String normalized = sectionName.trim().toLowerCase();
         if (normalized.contains("lý thuyết")
                 || normalized.contains("ly thuyet")
                 || normalized.contains("theory")) {
-            return ExamSectionType.THEORY;
+            return SectionType.THEORY;
         }
-        return ExamSectionType.SCORE_BASED;
+        return SectionType.SCORE_BASED;
     }
 
-    public static boolean isSidebarMenuDisabled(ExamSectionType type, String menuKey) {
-        if (type != ExamSectionType.THEORY || menuKey == null) {
+    public static boolean isSidebarMenuDisabled(SectionType type, String menuKey) {
+        if (type != SectionType.THEORY || menuKey == null) {
             return false;
         }
         return "nhap-diem".equals(menuKey) || "sua-ket-qua".equals(menuKey);
