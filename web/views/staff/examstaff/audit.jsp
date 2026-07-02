@@ -9,11 +9,11 @@
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default B2 session
 
     // Ensure candidate queue is initialized
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<model.exam.ExamRegistration> qList = (java.util.List<model.exam.ExamRegistration>) session.getAttribute("candidateQueue");
     if (qList == null) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+        dao.ExamRegistrationDAO regdao = new dao.impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessId);
+            qList = regdao.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -22,18 +22,18 @@
     }
 
     // Load dynamic audit logs for the current logged-in user from DB SQL Server AuditLog
-    Models.User user = (Models.User) session.getAttribute("user");
+    model.user.User user = (model.user.User) session.getAttribute("user");
     int uId = (user != null) ? user.getId() : 3; // Default staff Trần Thị Thủ Tục (ID = 3)
     
-    DAO.AuditLogDAO logDAO = new DAO.Impl.AuditLogDAOImpl();
-    java.util.List<Models.AuditLog> personalLogs = null;
+    dao.AuditLogDAO logdao = new dao.impl.AuditLogDAOImpl();
+    java.util.List<model.user.AuditLog> personalLogs = null;
     String filterDate = request.getParameter("filterDate");
     try {
         if (filterDate != null && !filterDate.trim().isEmpty()) {
-            personalLogs = logDAO.getLogsByUserAndDate(uId, filterDate);
+            personalLogs = logdao.getLogsByUserAndDate(uId, filterDate);
         } else {
             // Retrieve all logs from the beginning if no date filter is specified
-            personalLogs = logDAO.getLogsByUserAndDate(uId, null);
+            personalLogs = logdao.getLogsByUserAndDate(uId, null);
         }
     } catch (Exception e) {
         e.printStackTrace();
@@ -43,7 +43,7 @@
     }
     request.setAttribute("personalLogs", personalLogs);
 
-    Models.StaffProcedureKpi procedureKpi = logDAO.getStaffProcedureKpi(uId, filterDate);
+    dto.staff.StaffProcedureKpiDTO procedureKpi = logdao.getStaffProcedureKpi(uId, filterDate);
     request.setAttribute("myCompletedProcedures", procedureKpi.getCompletedCount());
     request.setAttribute("myTotalFees", procedureKpi.getTotalFees());
 %>

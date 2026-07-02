@@ -8,10 +8,10 @@
     Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to ca thi B2 sáng (ID = 2)
     
-    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
-    Models.ExamSession currentSession = null;
+    dao.ExamSessionDAO sessdao = new dao.impl.ExamSessionDAOImpl();
+    model.exam.ExamSession currentSession = null;
     try {
-        currentSession = sessDAO.getById(sessId);
+        currentSession = sessdao.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -19,10 +19,10 @@
         request.setAttribute("currentSession", currentSession);
     }
 
-    DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-    java.util.List<Models.ExamRegistration> qList = null;
+    dao.ExamRegistrationDAO regdao = new dao.impl.ExamRegistrationDAOImpl();
+    java.util.List<model.exam.ExamRegistration> qList = null;
     try {
-        qList = regDAO.getCandidatesBySession(sessId);
+        qList = regdao.getCandidatesBySession(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -32,11 +32,11 @@
     String webRoot = application.getRealPath("/");
     java.util.List<String> missingPhotoSbds = new java.util.ArrayList<>();
     int missingPhotoCount = 0;
-    for (Models.ExamRegistration reg : qList) {
-        boolean valid = Controllers.Staff.ExamStaff.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
+    for (model.exam.ExamRegistration reg : qList) {
+        boolean valid = controller.staff.exam.CandidatePhotoHelper.hasCapturedPhoto(webRoot, reg);
         reg.setValidCapturedPhoto(valid);
         if (!valid && reg.getPhotoUrl() != null && !reg.getPhotoUrl().isEmpty()) {
-            regDAO.updatePhoto(reg.getId(), null);
+            regdao.updatePhoto(reg.getId(), null);
             reg.setPhotoUrl("");
         }
         if (!valid && !"Absent".equalsIgnoreCase(reg.getNotes())) {
@@ -84,7 +84,7 @@
     // examCompletedCount = số thí sinh đã có kết quả thi cuối cùng
     int examCompletedCount = 0;
 
-    for (Models.ExamRegistration reg : qList) {
+    for (model.exam.ExamRegistration reg : qList) {
         String licCode = reg.getLicenseCode();
         boolean isA1 = "A1".equalsIgnoreCase(licCode) || "A2".equalsIgnoreCase(licCode);
         boolean isB2 = "B2".equalsIgnoreCase(licCode);
@@ -213,7 +213,7 @@
 
     // Fetch real infractions from database
     java.util.List<java.util.Map<String, Object>> infractions = new java.util.ArrayList<>();
-    try (java.sql.Connection conn = DBConnection.DBConfig.getConnection();
+    try (java.sql.Connection conn = (new dbconnection.DBContext()).getConnection();
          java.sql.PreparedStatement ps = conn.prepareStatement(
              "select top 3 sd.[Reason] as deductionReason, count(*) as countVal " +
              "from Score_Deduction sdd " +

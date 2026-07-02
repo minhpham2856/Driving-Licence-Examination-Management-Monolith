@@ -102,7 +102,32 @@
                 <span>
                     Bạn đã nộp đủ giấy tờ bắt buộc và được ban quản lý phê duyệt
                     (<c:out value="${profileRegistrationStatusLabel}"/>).
-                    Vui lòng chọn hạng GPLX và đợt thi, sau đó xác nhận đăng ký bên dưới.
+                    <c:choose>
+                        <c:when test="${not hasOtherDocuments}">
+                            Với 4 giấy tờ bắt buộc, bạn chỉ có thể đăng ký thi hạng A1 hoặc A2.
+                            Để đăng ký hạng khác, vui lòng bổ sung hồ sơ khác đúng hạng tại
+                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Quản lý tài liệu</a>.
+                        </c:when>
+                        <c:otherwise>
+                            Vui lòng chọn hạng GPLX và đợt thi, sau đó xác nhận đăng ký bên dưới.
+                        </c:otherwise>
+                    </c:choose>
+                </span>
+            </div>
+        </section>
+        </c:if>
+
+        <c:if test="${not empty licenceGateMessage}">
+        <section id="register-exam-licence-notice" class="p-alert-banner register-exam-notice register-exam-notice--licence" aria-label="Hạn chế hạng GPLX" style="margin-bottom:1.25rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+                <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div class="p-alert-banner__content">
+                <span class="p-alert-banner__title">Không đủ điều kiện cho hạng đã chọn</span>
+                <span>
+                    <c:out value="${licenceGateMessage}"/>
+                    <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link"> Quản lý tài liệu →</a>
                 </span>
             </div>
         </section>
@@ -130,15 +155,21 @@
 
                                 <c:if test="${not empty licenceClassesList}">
                                     <c:forEach var="licence" items="${licenceClassesList}">
+                                        <c:set var="licenceDocsAllowed" value="${licenceDocumentAllowed[licence.code]}" />
                                         <c:url var="licencePickUrl" value="/registrant/register-exam">
                                             <c:param name="licenceSelect" value="${licence.code}"/>
                                             <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if>
                                             <c:if test="${locationFilter ne 'all'}"><c:param name="location" value="${locationFilter}"/></c:if>
-                                            <c:if test="${not empty fromDate}"><c:param name="fromDate" value="${fromDate}"/></c:if>
-                                            <c:if test="${not empty toDate}"><c:param name="toDate" value="${toDate}"/></c:if>
+                                            <c:if test="${not empty fromDateIso}"><c:param name="fromDate" value="${fromDateIso}"/></c:if>
+                                            <c:if test="${not empty toDateIso}"><c:param name="toDate" value="${toDateIso}"/></c:if>
                                         </c:url>
-                                        <a href="${licencePickUrl}#register-exam-session" class="licence-card-link">
-                                            <div class="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}">                                                <div class="licence-card__icon">
+                                        <c:set var="licencePickFragment" value="${canRegisterExam and licenceDocsAllowed eq false ? '#register-exam-licence-notice' : '#register-exam-session'}" />
+                                        <c:set var="licenceCardClasses" value="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}${canRegisterExam and licenceDocsAllowed eq false ? ' licence-card--restricted' : ''}" />
+                                        <a href="${licencePickUrl}${licencePickFragment}"
+                                           class="licence-card-link${canRegisterExam and licenceDocsAllowed eq false ? ' licence-card-link--blocked' : ''}"
+                                           <c:if test="${canRegisterExam and licenceDocsAllowed eq false}">title="${licenceDocumentBlockMessages[licence.code]}"</c:if>>
+                                            <div class="${licenceCardClasses}">
+                                                <div class="licence-card__icon">
                                                     <c:choose>
                                                         <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'moto')}">
                                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -169,6 +200,9 @@
                                                 <span class="licence-card__fee">
                                                     <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
                                                 </span>
+                                                <c:if test="${canRegisterExam and licenceDocsAllowed eq false}">
+                                                <span class="licence-card__hint">Chưa có hồ sơ bổ sung cho hạng này</span>
+                                                </c:if>
                                             </div>
                                         </a>
                                     </c:forEach>
@@ -196,7 +230,7 @@
                         <div class="p-form-body p-form-body--compact">
                             <div class="session-selector-list">
                                 
-                                <c:if test="${not empty examSessionsList}">
+                                <c:if test="${not empty examSessionsList and (not canRegisterExam or selectedLicenceDocumentAllowed)}">
                                     <%-- Dynamic sessions loop from database --%>
                                     <c:forEach var="session" items="${examSessionsList}">
                                         <c:url var="sessionPickUrl" value="/registrant/register-exam">
@@ -204,8 +238,8 @@
                                             <c:param name="sessionSelect" value="${session.id}"/>
                                             <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if>
                                             <c:if test="${locationFilter ne 'all'}"><c:param name="location" value="${locationFilter}"/></c:if>
-                                            <c:if test="${not empty fromDate}"><c:param name="fromDate" value="${fromDate}"/></c:if>
-                                            <c:if test="${not empty toDate}"><c:param name="toDate" value="${toDate}"/></c:if>
+                                            <c:if test="${not empty fromDateIso}"><c:param name="fromDate" value="${fromDateIso}"/></c:if>
+                                            <c:if test="${not empty toDateIso}"><c:param name="toDate" value="${toDateIso}"/></c:if>
                                         </c:url>
                                         <a href="${sessionPickUrl}#register-exam-summary" class="licence-card-link">
                                             <div class="session-card ${sessionChosen and selectedSessionCode eq session.id ? 'session-card--active' : ''}">                                                <div class="session-card__title-wrap">
@@ -235,9 +269,12 @@
                                     </c:forEach>
                                 </c:if>
                                 
-                                <c:if test="${empty examSessionsList}">
+                                <c:if test="${empty examSessionsList or (canRegisterExam and not selectedLicenceDocumentAllowed and not empty selectedClassCode)}">
                                     <p style="color:#64748b;margin:0;">
                                         <c:choose>
+                                            <c:when test="${canRegisterExam and not selectedLicenceDocumentAllowed and not empty selectedClassCode}">
+                                                Không thể chọn đợt thi — vui lòng bổ sung hồ sơ khác cho hạng ${selectedClassCode} hoặc chọn hạng A1/A2.
+                                            </c:when>
                                             <c:when test="${searchActive}">Không có đợt thi phù hợp với bộ lọc.</c:when>
                                             <c:otherwise>
                                                 Không có đợt thi mở cho hạng ${not empty selectedClassCode ? selectedClassCode : 'đã chọn'}.
@@ -261,8 +298,8 @@
                         <input type="hidden" name="confirmRegistration" value="1">
                         <c:if test="${not empty searchQuery}"><input type="hidden" name="q" value="${searchQuery}"></c:if>
                         <c:if test="${locationFilter ne 'all'}"><input type="hidden" name="location" value="${locationFilter}"></c:if>
-                        <c:if test="${not empty fromDate}"><input type="hidden" name="fromDate" value="${fromDate}"></c:if>
-                        <c:if test="${not empty toDate}"><input type="hidden" name="toDate" value="${toDate}"></c:if>
+                        <c:if test="${not empty fromDateIso}"><input type="hidden" name="fromDate" value="${fromDateIso}"></c:if>
+                        <c:if test="${not empty toDateIso}"><input type="hidden" name="toDate" value="${toDateIso}"></c:if>
 
                     <div class="payment-summary-card">
                         <h3 class="payment-summary-title">Tóm tắt đăng ký</h3>
@@ -329,6 +366,12 @@
                             Chỉ đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.
                         </div>
 
+                        <c:if test="${not empty licenceGateMessage}">
+                        <div class="p-alert-banner" role="alert" style="margin-top:12px;background:#fff7ed;border-color:#fdba74;color:#9a3412;padding:0.75rem 1rem;border-radius:8px;font-size:0.875rem;">
+                            <c:out value="${licenceGateMessage}"/>
+                        </div>
+                        </c:if>
+
                         <c:if test="${not empty registrationConflictMessage}">
                         <div class="p-alert-banner" role="alert" style="margin-top:12px;background:#fff7ed;border-color:#fdba74;color:#9a3412;padding:0.75rem 1rem;border-radius:8px;font-size:0.875rem;">
                             <c:out value="${registrationConflictMessage}"/>
@@ -336,7 +379,7 @@
                         </c:if>
 
                         <button type="submit" class="payment-submit-btn" id="btn-submit-registration"
-                                ${not sessionChosen or not canRegisterExam or empty canConfirmRegistration or not canConfirmRegistration ? 'disabled' : ''}>
+                                ${not sessionChosen or not canRegisterExam or not selectedLicenceDocumentAllowed or empty canConfirmRegistration or not canConfirmRegistration ? 'disabled' : ''}>
                             Xác nhận đăng ký
                         </button>
 

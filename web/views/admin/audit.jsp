@@ -221,7 +221,7 @@
             </div>
         </section>
 
-        <!-- Filters & Search Form Section -->
+        <!-- filter & Search Form Section -->
         <section class="filter-panel" aria-label="Bộ lọc tìm kiếm">
             <h2 class="filter-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

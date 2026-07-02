@@ -736,6 +736,10 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     min-width: 0;
 }
 
+.registrant-filter__field--date .registrant-filter__control[type="date"] {
+    cursor: pointer;
+}
+
 .registrant-filter__field {
     display: flex;
     flex-direction: column;
@@ -809,6 +813,13 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     padding-left: 0.15rem;
 }
 
+.registrant-filter__error {
+    font-size: 0.8125rem;
+    color: #b91c1c;
+    margin: 0.5rem 0 0;
+    padding-left: 0.15rem;
+}
+
 .r-panel__filter-wrap {
     padding: 0 0 0.25rem;
     margin-bottom: 0.5rem;
@@ -872,6 +883,12 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     background: #f0fdf4;
     border-color: #86efac;
     color: #166534;
+}
+
+.register-exam-notice--licence {
+    background: #fffbeb;
+    border-color: #fcd34d;
+    color: #92400e;
 }
 
 .register-exam-sbd-pending {

@@ -62,7 +62,7 @@
 
                 <input type="date" id="session-filter-from" name="fromDate" class="registrant-filter__control"
 
-                       value="${fromDate}">
+                       value="${fromDateIso}" title="Chọn từ ngày">
 
             </div>
 
@@ -72,7 +72,7 @@
 
                 <input type="date" id="session-filter-to" name="toDate" class="registrant-filter__control"
 
-                       value="${toDate}">
+                       value="${toDateIso}" title="Chọn đến ngày">
 
             </div>
 
@@ -87,6 +87,12 @@
         </div>
 
     </form>
+
+    <c:if test="${not empty filterDateError}">
+
+        <p class="registrant-filter__error" role="alert">${filterDateError}</p>
+
+    </c:if>
 
     <c:if test="${searchActive}">
 

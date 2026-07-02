@@ -5,7 +5,7 @@
 
 <%
     // Retrieve the candidate queue from the session dynamically
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<model.exam.ExamRegistration> qList = (java.util.List<model.exam.ExamRegistration>) session.getAttribute("candidateQueue");
     
     // Check if shift is ended
     String shiftEndedVal = (String) session.getAttribute("shiftEnded");
@@ -15,10 +15,10 @@
     Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
     int sessId = (sessIdObj != null) ? sessIdObj : 2; // Default to B2 session
 
-    DAO.ExamSessionDAO sessDAO = new DAO.Impl.ExamSessionDAOImpl();
-    Models.ExamSession currentSession = null;
+    dao.ExamSessionDAO sessdao = new dao.impl.ExamSessionDAOImpl();
+    model.exam.ExamSession currentSession = null;
     try {
-        currentSession = sessDAO.getById(sessId);
+        currentSession = sessdao.getById(sessId);
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -27,9 +27,9 @@
     }
 
     if (qList == null && !isShiftEnded) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+        dao.ExamRegistrationDAO regdao = new dao.impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessId);
+            qList = regdao.getCandidatesBySession(sessId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -38,22 +38,22 @@
         session.setAttribute("callingSbd", null);
     }
     if (qList != null) {
-        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+        controller.staff.exam.CandidatePhotoHelper.normalizeQueue(
+            application.getRealPath("/"), qList, new dao.impl.ExamRegistrationDAOImpl());
     }
     
     // Find active candidate (bỏ qua thí sinh đã hoàn tất thủ tục)
     String sbdParam = (String) session.getAttribute("callingSbd");
-    Models.ExamRegistration callingCandidate = null;
+    model.exam.ExamRegistration callingCandidate = null;
     if (sbdParam != null && !sbdParam.trim().isEmpty() && qList != null) {
-        for (Models.ExamRegistration c : qList) {
+        for (model.exam.ExamRegistration c : qList) {
             if (sbdParam.equals(c.getSbd())) {
                 boolean procedureDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                 if (!procedureDone) {
                     callingCandidate = c;
                 } else {
                     String nextSbd = null;
-                    for (Models.ExamRegistration pending : qList) {
+                    for (model.exam.ExamRegistration pending : qList) {
                         if (!(pending.isPaymentCompleted() && pending.isValidCapturedPhoto())) {
                             nextSbd = pending.getSbd();
                             break;
@@ -62,7 +62,7 @@
                     session.setAttribute("callingSbd", nextSbd);
                     sbdParam = nextSbd;
                     if (nextSbd != null) {
-                        for (Models.ExamRegistration pending : qList) {
+                        for (model.exam.ExamRegistration pending : qList) {
                             if (nextSbd.equals(pending.getSbd())) {
                                 callingCandidate = pending;
                                 break;

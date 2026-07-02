@@ -4,10 +4,10 @@
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 
 <%
-    DAO.ExamSessionDAO sessionDAO = new DAO.Impl.ExamSessionDAOImpl();
-    java.util.List<Models.ExamSession> allSessions = null;
+    dao.ExamSessionDAO sessiondao = new dao.impl.ExamSessionDAOImpl();
+    java.util.List<model.exam.ExamSession> allSessions = null;
     try {
-        allSessions = sessionDAO.getAllSessions();
+        allSessions = sessiondao.getAllSessions();
     } catch (Exception e) {
         e.printStackTrace();
         allSessions = new java.util.ArrayList<>();
@@ -27,8 +27,8 @@
     session.setAttribute("selectedSessionId", sessionId);
 
     // Retrieve current session details for display
-    Models.ExamSession currentSession = null;
-    for (Models.ExamSession s : allSessions) {
+    model.exam.ExamSession currentSession = null;
+    for (model.exam.ExamSession s : allSessions) {
         if (s.getId() == sessionId) {
             currentSession = s;
             break;
@@ -37,12 +37,12 @@
     pageContext.setAttribute("currentSession", currentSession);
 
     // Load queue for this session if session changed or first time
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
+    java.util.List<model.exam.ExamRegistration> qList = (java.util.List<model.exam.ExamRegistration>) session.getAttribute("candidateQueue");
     Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
     if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
+        dao.ExamRegistrationDAO regdao = new dao.impl.ExamRegistrationDAOImpl();
         try {
-            qList = regDAO.getCandidatesBySession(sessionId);
+            qList = regdao.getCandidatesBySession(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
             qList = new java.util.ArrayList<>();
@@ -51,15 +51,15 @@
         session.setAttribute("lastLoadedSessionId", sessionId);
     }
     if (qList != null) {
-        Controllers.Staff.ExamStaff.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
+        controller.staff.exam.CandidatePhotoHelper.normalizeQueue(
+            application.getRealPath("/"), qList, new dao.impl.ExamRegistrationDAOImpl());
     }
 
-    java.util.List<Controllers.Staff.ExamStaff.ExaminerSlot> assignedExaminers =
-            Controllers.Staff.ExamStaff.ExaminerAssignmentStore.getBySessionId(session, sessionId);
+    java.util.List<controller.staff.exam.ExaminerSlot> assignedExaminers =
+            controller.staff.exam.ExaminerAssignmentStore.getBySessionId(session, sessionId);
     int assignedWithArea = 0;
     if (assignedExaminers != null) {
-        for (Controllers.Staff.ExamStaff.ExaminerSlot slot : assignedExaminers) {
+        for (controller.staff.exam.ExaminerSlot slot : assignedExaminers) {
             if (slot.getAreaId() > 0) assignedWithArea++;
         }
     }
