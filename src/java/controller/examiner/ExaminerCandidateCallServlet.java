@@ -1,6 +1,7 @@
 package controller.examiner;
-import dto.ExaminerSlotDTO;
-import filter.ExaminerPortalFilter;
+import filter.ExaminerFilter;
+import dto.ServiceResult;
+import enums.ExamSection;
 import model.User;
 import service.ExaminerActionsService;
 import service.ExaminerDataService;
@@ -9,21 +10,19 @@ import service.impl.ExaminerDataServiceImpl;
 import util.ExamQueue;
 import util.ExamQueue.Lane;
 import util.ExaminerCandidateSort;
+import util.ExamSessionState;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 @WebServlet("/views/examiner/candidate-call")
-public class ExaminerCandidateCallServlet extends HttpServlet {
+public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
     @Override
@@ -33,26 +32,21 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         if (session == null) {
             return;
         }
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = getActiveSessionId(session);
         Integer sbd = parseSbdParam(request.getParameter("sbd"));
         String search = request.getParameter("q");
         String action = request.getParameter("action");
         if (sessionId != null && sessionId > 0) {
-            if ("1".equals(request.getParameter("absenceConfirmed")) && sbd != null) {
-                examinerService.markAbsent(sessionId, sbd, ((User) session.getAttribute("user")).getUserId());
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?absentDone="
-                        + urlEncode(sbd));
-                return;
-            }
             if (action != null) {
                 if (handleCallAction(request, response, session, sessionId, action, sbd)) {
                     return;
                 }
             }
-            boolean isTheory = ExaminerPortalFilter.isTheorySession(session);
-            String sectionName = resolveSectionName(session);
+            boolean isTheory = ExaminerFilter.isTheorySession(session);
+            ExamSection examSection = getExamSection(session);
+            String sectionName = examSection.getValue();
             List<Map<String, Object>> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
-            Lane lane = ExamQueue.resolveLane(isTheory, sectionName);
+            Lane lane = ExamQueue.laneFor(examSection);
             List<Integer> eligibleSbds = new ArrayList<>();
             for (Map<String, Object> row : candidates) {
                 if (Boolean.TRUE.equals(row.get("callEligible"))) {
@@ -63,7 +57,8 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
                 }
             }
             ExamQueue.sync(lane, eligibleSbds);
-            candidates = viewDataService.orderCandidateRowsByQueue(candidates, isTheory, sectionName);
+            candidates = viewDataService.orderCandidateRowsByQueue(candidates, examSection);
+            enrichDeskState(candidates, sessionId, lane);
             ExaminerCandidateSort.applyCandidateSort(request, candidates);
             if (search != null && !search.isBlank()) {
                 String q = search.trim().toLowerCase(Locale.ROOT);
@@ -104,7 +99,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         if (session == null) {
             return;
         }
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = getActiveSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -112,16 +107,13 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         if ("callSelected".equals(request.getParameter("action"))) {
             User user = (User) session.getAttribute("user");
             int[] sbds = parseSbdParams(request.getParameterValues("sbd"));
-            int count = examinerService.callSelectedCandidates(sessionId, sbds, user,
-                    user.getUserId(),
-                    ExaminerPortalFilter.isTheorySession(session),
-                    resolveSectionName(session),
-                    resolveCallDestination(session));
-            if (count <= 0) {
+            ServiceResult<Integer> selectedResult = examinerService.callSelectedCandidates(
+                    buildCallCommand(session, user, sessionId, null, sbds, false));
+            if (!selectedResult.isSuccess() || selectedResult.getData() == null || selectedResult.getData() <= 0) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=callSelectedFailed");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?calledBatch=" + count);
+            response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?calledBatch=" + selectedResult.getData());
             return;
         }
         doGet(request, response);
@@ -130,57 +122,72 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
             HttpSession session, int sessionId, String action, Integer sbd) throws IOException {
         User user = (User) session.getAttribute("user");
         int userId = user.getUserId();
-        boolean isTheory = ExaminerPortalFilter.isTheorySession(session);
-        String sectionName = resolveSectionName(session);
-        String destination = resolveCallDestination(session);
         switch (action) {
             case "call" -> {
                 if (sbd == null) {
-                    Integer calledSbd = examinerService.callNextCandidate(sessionId, user, userId,
-                            isTheory, sectionName, destination);
-                    if (calledSbd == null) {
+                    ServiceResult<Integer> nextResult = examinerService.callNextCandidate(
+                            buildCallCommand(session, user, sessionId, null, null, false));
+                    if (!nextResult.isSuccess() || nextResult.getData() == null) {
                         response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noCandidate");
                         return true;
                     }
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?called="
-                            + urlEncode(calledSbd));
+                            + encodeSbd(nextResult.getData()));
                     return true;
                 }
-                if (!examinerService.callCandidate(sessionId, sbd, user, userId, isTheory, sectionName, destination)) {
+                if (!examinerService.callCandidate(
+                        buildCallCommand(session, user, sessionId, sbd, null, false)).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=callFailed&sbd="
-                            + urlEncode(sbd));
+                            + encodeSbd(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?called="
-                        + urlEncode(sbd));
+                        + encodeSbd(sbd));
                 return true;
             }
-            case "undoAbsent" -> {
+            case "undoPresent" -> {
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.undoAbsent(sessionId, sbd, userId)) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=undoAbsentFailed&sbd="
-                            + urlEncode(sbd));
+                if (!examinerService.undoPresent(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=undoPresentFailed&sbd="
+                            + encodeSbd(sbd));
                     return true;
                 }
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?undoAbsent="
-                        + urlEncode(sbd));
+                ExamSessionState.clearPresent(getServletContext(), sessionId, sbd);
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?undoPresent="
+                        + encodeSbd(sbd));
                 return true;
             }
-            case "markAbsent" -> {
+            case "markPresent" -> {
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.markAbsent(sessionId, sbd, userId)) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=absentFailed&sbd="
-                            + urlEncode(sbd));
+                if (!examinerService.markPresent(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=presentFailed&sbd="
+                            + encodeSbd(sbd));
                     return true;
                 }
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?absentDone="
-                        + urlEncode(sbd));
+                ExamSessionState.markPresent(getServletContext(), sessionId, sbd);
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?presentDone="
+                        + encodeSbd(sbd));
+                return true;
+            }
+            case "wrongInfo" -> {
+                if (sbd == null) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
+                    return true;
+                }
+                if (!examinerService.sendWrongInfoToProcedure(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=wrongInfoFailed&sbd="
+                            + encodeSbd(sbd));
+                    return true;
+                }
+                ExamSessionState.sendToProcedure(getServletContext(), sessionId, sbd);
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?wrongInfoDone="
+                        + encodeSbd(sbd));
                 return true;
             }
             case "printSignature" -> {
@@ -188,13 +195,13 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.printSignatureForm(sessionId, sbd, userId)) {
+                if (!examinerService.printSignatureForm(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=signaturePrintFailed&sbd="
-                            + urlEncode(sbd));
+                            + encodeSbd(sbd));
                     return true;
                 }
-                response.sendRedirect(request.getContextPath() + "/views/examiner/print-documents?sbd="
-                        + urlEncode(sbd) + "&signatureMarked=1");
+                response.sendRedirect(request.getContextPath() + "/examiner/print/docx?type=BB1&sbd="
+                        + encodeSbd(sbd));
                 return true;
             }
             case "completeSection" -> {
@@ -202,19 +209,21 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                String completeError = examinerService.completeCandidateSection(sessionId, sbd, userId);
-                if ("needSignaturePrint".equals(completeError)) {
+                ServiceResult<Void> completeResult = examinerService.completeCandidateSection(
+                        buildSessionCommand(sessionId, sbd, userId,
+                                ExamSessionState.getSectionPassed(getServletContext(), sessionId, sbd)));
+                if (!completeResult.isSuccess() && "needSignaturePrint".equals(completeResult.getMessage())) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=needSignaturePrint&sbd="
-                            + urlEncode(sbd));
+                            + encodeSbd(sbd));
                     return true;
                 }
-                if (completeError != null) {
+                if (!completeResult.isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=completeFailed&sbd="
-                            + urlEncode(sbd));
+                            + encodeSbd(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?completeDone="
-                        + urlEncode(sbd));
+                        + encodeSbd(sbd));
                 return true;
             }
             default -> {
@@ -222,77 +231,35 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
             }
         }
     }
-    private HttpSession requireSession(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        }
-        return session;
-    }
-    private Integer activeSessionId(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        return (Integer) session.getAttribute(ExaminerPortalFilter.ATTR_ACTIVE_SESSION_ID);
-    }
-    private Integer parseSbdParam(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        try {
-            int sbd = Integer.parseInt(raw.trim());
-            return sbd > 0 ? sbd : null;
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-    private int[] parseSbdParams(String[] values) {
-        if (values == null || values.length == 0) {
-            return new int[0];
-        }
-        List<Integer> parsed = new ArrayList<>();
-        for (String value : values) {
-            Integer sbd = parseSbdParam(value);
-            if (sbd != null) {
-                parsed.add(sbd);
+
+    private void enrichDeskState(List<Map<String, Object>> candidates, int sessionId, Lane lane) {
+        Integer activeSbd = ExamQueue.getActiveSbd(lane);
+        Integer calledSbd = ExamQueue.getCalledSbd(lane);
+        for (Map<String, Object> row : candidates) {
+            Object sbdObj = row.get("sbd");
+            if (!(sbdObj instanceof Number)) {
+                continue;
             }
+            int sbd = ((Number) sbdObj).intValue();
+            boolean present = ExamSessionState.isPresent(getServletContext(), sessionId, sbd);
+            boolean inProcedure = ExamSessionState.isInProcedureQueue(getServletContext(), sessionId, sbd);
+            boolean called = (activeSbd != null && activeSbd == sbd)
+                    || (calledSbd != null && calledSbd == sbd);
+            row.put("present", present);
+            row.put("inProcedure", inProcedure);
+            row.put("markPresentEligible", called && !present && !inProcedure
+                    && !Boolean.TRUE.equals(row.get("suspended"))
+                    && !"awaiting".equals(row.get("status"))
+                    && !"done".equals(row.get("status")));
+            row.put("undoPresentEligible", present && !inProcedure
+                    && !Boolean.TRUE.equals(row.get("suspended"))
+                    && !"awaiting".equals(row.get("status"))
+                    && !"done".equals(row.get("status")));
+            row.put("wrongInfoEligible", called && !inProcedure
+                    && !Boolean.TRUE.equals(row.get("suspended"))
+                    && !"done".equals(row.get("status")));
+            row.put("violationEligible", !Boolean.TRUE.equals(row.get("suspended"))
+                    && !"done".equals(row.get("status")));
         }
-        int[] result = new int[parsed.size()];
-        for (int i = 0; i < parsed.size(); i++) {
-            result[i] = parsed.get(i);
-        }
-        return result;
-    }
-    private String urlEncode(int value) {
-        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
-    }
-    private String resolveSectionName(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        Object slotObj = session.getAttribute(ExaminerPortalFilter.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO) {
-            return ((ExaminerSlotDTO) slotObj).getExamTypeName();
-        }
-        Object name = session.getAttribute(ExaminerPortalFilter.ATTR_EXAM_SECTION_NAME);
-        return name != null ? String.valueOf(name) : null;
-    }
-    private String resolveCallDestination(HttpSession session) {
-        if (session == null) {
-            return "Khu vực thi";
-        }
-        Object slotObj = session.getAttribute(ExaminerPortalFilter.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO) {
-            ExaminerSlotDTO slot = (ExaminerSlotDTO) slotObj;
-            if (slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
-                return slot.getAreaName();
-            }
-        }
-        Object sectionName = session.getAttribute(ExaminerPortalFilter.ATTR_EXAM_SECTION_NAME);
-        if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
-            return String.valueOf(sectionName);
-        }
-        return "Khu vực thi thực hành";
     }
 }
