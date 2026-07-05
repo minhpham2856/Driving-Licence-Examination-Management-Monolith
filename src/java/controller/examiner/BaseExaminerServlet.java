@@ -100,7 +100,7 @@ abstract class BaseExaminerServlet extends HttpServlet {
         return ExamSection.THEORY;
     }
 
-    protected String resolveSectionName(HttpSession session) {
+    protected String getSectionDisplayName(HttpSession session) {
         if (session == null) {
             return null;
         }
@@ -112,7 +112,7 @@ abstract class BaseExaminerServlet extends HttpServlet {
         return name != null ? String.valueOf(name) : null;
     }
 
-    protected String resolveCallDestination(HttpSession session) {
+    protected String getCallDestination(HttpSession session) {
         if (session == null) {
             return "Khu vực thi";
         }
@@ -151,7 +151,7 @@ abstract class BaseExaminerServlet extends HttpServlet {
         command.setExamSection(examSection);
         command.setTheory(examSection == ExamSection.THEORY);
         command.setSectionName(examSection.getValue());
-        command.setCallDestination(resolveCallDestination(session));
+        command.setCallDestination(getCallDestination(session));
         command.setScoreEntry(scoreEntry);
         return command;
     }
