@@ -9,8 +9,8 @@
 </c:if>
 <c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
-<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" scope="request" />
-<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" scope="request" />
+<c:set var="paperExportUrl" value="${ctx}/examiner/export/docx?type=BB1&amp;sbd=${candidate.sbd}" scope="request" />
+<c:set var="paperPrintUrl" value="${ctx}/examiner/print/docx?type=BB1&amp;sbd=${candidate.sbd}" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -50,6 +50,8 @@
                     <jsp:param name="rightClass" value="examiner-toolbar__actions" />
                     <jsp:param name="backClass" value="exr-back" />
                     <jsp:param name="btnBack" value="left" />
+                    <jsp:param name="btnPaperExport" value="left" />
+                    <jsp:param name="btnPaperPrint" value="left" />
                     <jsp:param name="btnPaperFilter" value="right" />
                     <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>

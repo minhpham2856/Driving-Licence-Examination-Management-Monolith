@@ -18,7 +18,7 @@ public interface AuditLogService {
 
     Map<String, Object> toViewRow(Audit log, String changerName, Map<Integer, String> sbdByRecordId);
 
-    String resolveSbd(Audit log, Map<Integer, String> sbdByRecordId);
+    String extractSbdForDisplay(Audit log, Map<Integer, String> sbdByRecordId);
 
     List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
 

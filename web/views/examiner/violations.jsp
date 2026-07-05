@@ -6,8 +6,7 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Vi phạm" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/violations" scope="request" />
-<c:set var="violationConfirmUrl" value="${ctx}/views/examiner/violation-confirm" scope="request" />
-<c:set var="violationUndoUrl" value="${ctx}/views/examiner/violation-undo" scope="request" />
+<c:set var="violationDetailUrl" value="${ctx}/views/examiner/violation-detail" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -53,7 +52,8 @@
                     <jsp:param name="title" value="Danh sách thí sinh" />
                     <jsp:param name="badgeText" value="Tổng: ${fn:length(candidates)} thí sinh" />
                     <jsp:param name="showStatus" value="true" />
-                    <jsp:param name="actionSuspend" value="true" />
+                    <jsp:param name="showAddress" value="false" />
+                    <jsp:param name="actionViewViolation" value="true" />
                 </jsp:include>
             </main>
         </div>

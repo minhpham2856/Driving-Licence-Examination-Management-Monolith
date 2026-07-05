@@ -1,20 +1,22 @@
 package controller.examiner;
+
 import dto.ExaminerExportContext;
-import dto.ExaminerExportPayload;
-import service.ExaminerExportService;
-import service.XmlService;
-import service.impl.ExaminerExportServiceImpl;
-import service.impl.XmlServiceImpl;
+import enums.DocumentFormat;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import service.ExaminerDocumentService;
+import service.impl.ExaminerDocumentServiceImpl;
+
 import java.io.IOException;
 import java.io.OutputStream;
+
 @WebServlet("/examiner/export/audit/xml")
 public class ExportAuditXmlServlet extends BaseExaminerExportServlet {
-    private final XmlService fileService = new XmlServiceImpl();
-    private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
+
+    private final ExaminerDocumentService documentService = new ExaminerDocumentServiceImpl();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -22,10 +24,9 @@ public class ExportAuditXmlServlet extends BaseExaminerExportServlet {
         if (ctx == null) {
             return;
         }
-        ExaminerExportPayload payload = exportService.buildAuditExport(ctx, request.getParameter("q"));
-        prepareXmlDownload(response, "audit.xml");
+        prepareXmlDownload(response, "nhat-ky.xml");
         OutputStream out = response.getOutputStream();
-        fileService.exportToXml(payload.toXmlDocument(), out);
+        documentService.export(ctx, "audit", DocumentFormat.XML, request.getParameter("q"), out);
         flush(out);
     }
 }

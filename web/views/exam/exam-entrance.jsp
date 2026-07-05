@@ -25,6 +25,9 @@
         </jsp:include>
 
         <main class="entrance-shell">
+            <c:if test="${not empty param.msg}">
+                <div class="entrance-error" role="alert">${param.msg}</div>
+            </c:if>
             <section class="entrance-panel" aria-label="Nhập số báo danh">
                 <form class="sbd-card" action="${pageContext.request.contextPath}/exam/entrance" method="post">
                     <label class="sbd-label" for="sbdInput">SỐ BÁO DANH (SBD)</label>

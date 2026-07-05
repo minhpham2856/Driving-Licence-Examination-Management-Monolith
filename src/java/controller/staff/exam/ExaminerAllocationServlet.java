@@ -128,12 +128,12 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 slot.setAreaId(areaId);
                 slot.setExamSection(targetSession.getExamSection());
                 slot.setExaminerUserId(examinerUserId);
-                slot.setAssignedBy(resolveStaffId(session));
+                slot.setAssignedBy(getCurrentStaffUserId(session));
                 slot.setAreaName(area.getAreaName());
                 slot.setAreaType(area.getAreaType());
                 slot.setExamTypeName(targetSession.getExamTypeName());
                 slot.setSessionName(targetSession.getSessionName());
-                slot.setExaminerName(resolveExaminerName(examiner));
+                slot.setExaminerName(getExaminerDisplayName(examiner));
                 slot.setExaminerUsername(examiner.getUsername());
                 boolean ok = allocationService.assignExaminer(slot);
                 if (ok) {
@@ -177,14 +177,14 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
         return map;
     }
-    private String resolveExaminerName(UserDTO examiner) {
+    private String getExaminerDisplayName(UserDTO examiner) {
         if (examiner.getProfile() != null && examiner.getProfile().getFullName() != null
                 && !examiner.getProfile().getFullName().isBlank()) {
             return examiner.getProfile().getFullName();
         }
         return examiner.getUsername();
     }
-    private int resolveStaffId(HttpSession session) {
+    private int getCurrentStaffUserId(HttpSession session) {
         User user = (User) session.getAttribute("user");
         return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
     }

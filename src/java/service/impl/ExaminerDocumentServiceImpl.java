@@ -1,6 +1,8 @@
 package service.impl;
 
 import dto.*;
+import dto.ExaminerCandidateRowDTO;
+import dto.payload.CandidateSummaryDTO;
 import model.*;
 import dto.ExaminerSlotDTO;
 import dao.SessionDAO;
@@ -69,33 +71,33 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
     private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
 
     public ExaminerExportPayload buildCandidatesExport(ExaminerExportContext ctx) {
-        List<Map<String, Object>> candidates = viewDataService.loadCandidateRows(
+        List<ExaminerCandidateRowDTO> candidates = viewDataService.loadCandidateRows(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
         List<List<Object>> rows = new ArrayList<>();
         int index = 1;
-        for (Map<String, Object> c : candidates) {
+        for (ExaminerCandidateRowDTO c : candidates) {
             rows.add(Arrays.asList(
                     index++,
-                    c.get("sbd"),
-                    c.get("fullName"),
-                    c.get("dob"),
-                    c.get("sex"),
-                    c.get("governmentId"),
-                    c.get("email"),
-                    c.get("phoneNo"),
-                    c.get("address"),
-                    c.get("licenceClass"),
-                    c.get("reasonForTaking"),
-                    c.get("examDate"),
-                    Boolean.TRUE.equals(c.get("absent")) ? "Có" : "Không",
-                    c.get("statusLabel"),
-                    c.get("correct"),
-                    c.get("wrong"),
-                    c.get("unanswered"),
-                    c.get("scoreTheory"),
-                    c.get("resultLabel"),
-                    c.get("scorePractical"),
-                    c.get("scoreOnRoad")));
+                    c.getSbd(),
+                    c.getFullName(),
+                    c.getDob(),
+                    c.getSex(),
+                    c.getGovernmentId(),
+                    c.getEmail(),
+                    c.getPhoneNo(),
+                    c.getAddress(),
+                    c.getLicenceClass(),
+                    c.getReasonForTaking(),
+                    c.getExamDate(),
+                    c.isAbsent() ? "Có" : "Không",
+                    c.getStatusLabel(),
+                    c.getCorrect(),
+                    c.getWrong(),
+                    c.getUnanswered(),
+                    c.getScoreTheory(),
+                    c.getResultLabel(),
+                    c.getScorePractical(),
+                    c.getScoreOnRoad()));
         }
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
@@ -104,7 +106,7 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
     }
 
     public ExaminerExportPayload buildResultsExport(ExaminerExportContext ctx) {
-        List<Map<String, Object>> candidates = viewDataService.loadCandidateRows(
+        List<ExaminerCandidateRowDTO> candidates = viewDataService.loadCandidateRows(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
         List<String> fields;
         List<String> headers;
@@ -113,31 +115,31 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
         if (ctx.isTheory() == false) {
             fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
             headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
-            for (Map<String, Object> c : candidates) {
+            for (ExaminerCandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         index++,
-                        c.get("sbd"),
-                        c.get("fullName"),
-                        c.get("examScore"),
-                        c.get("resultLabel"),
-                        c.get("statusLabel"),
-                        Boolean.TRUE.equals(c.get("absent")) ? "Có" : "Không"));
+                        c.getSbd(),
+                        c.getFullName(),
+                        c.getExamScore(),
+                        c.getResultLabel(),
+                        c.getStatusLabel(),
+                        c.isAbsent() ? "Có" : "Không"));
             }
         } else {
             fields = List.of("stt", "sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
             headers = List.of("STT", "SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
                     "Vắng thi");
-            for (Map<String, Object> c : candidates) {
+            for (ExaminerCandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         index++,
-                        c.get("sbd"),
-                        c.get("fullName"),
-                        c.get("correct"),
-                        c.get("wrong"),
-                        c.get("unanswered"),
-                        c.get("resultLabel"),
-                        c.get("statusLabel"),
-                        Boolean.TRUE.equals(c.get("absent")) ? "Có" : "Không"));
+                        c.getSbd(),
+                        c.getFullName(),
+                        c.getCorrect(),
+                        c.getWrong(),
+                        c.getUnanswered(),
+                        c.getResultLabel(),
+                        c.getStatusLabel(),
+                        c.isAbsent() ? "Có" : "Không"));
             }
         }
         XmlExportTable table = new XmlExportTable("ketQuaThi", "ketQua", fields, headers, rows);
@@ -146,9 +148,9 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
 
     public ExaminerExportPayload buildMinutesExport(ExaminerExportContext ctx) {
         Map<String, Object> meta = getSessionExportMeta(ctx.sessionId());
-        Map<String, Object> summary = viewDataService.buildCandidateSummary(
+        CandidateSummaryDTO summary = viewDataService.buildCandidateSummary(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
-        List<Map<String, Object>> candidates = viewDataService.loadCandidateRows(
+        List<ExaminerCandidateRowDTO> candidates = viewDataService.loadCandidateRows(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
         Map<String, Object> metadata = buildMinutesMetadata(meta, summary, ctx.slot(), ctx.isTheory(),
                 ctx.sectionName());
@@ -192,7 +194,7 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
             Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.sessionId());
             List<Audit> filteredAudits = new ArrayList<>();
             for (Audit log : auditViolations) {
-                if (sbdText.equals(auditLogService.resolveSbd(log, sbdByRecordId))) {
+                if (sbdText.equals(auditLogService.extractSbdForDisplay(log, sbdByRecordId))) {
                     filteredAudits.add(log);
                 }
             }
@@ -281,7 +283,7 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
         return new ExaminerExportPayload("Nhật ký", "nhatKyHeThong", metadata, List.of(table), null);
     }
 
-    private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, Map<String, Object> summary,
+    private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, CandidateSummaryDTO summary,
             ExaminerSlotDTO slot, boolean isTheory, String sectionName) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
@@ -297,17 +299,17 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
         metadata.put("phanThi",
                 !isTheory ? nullToDash(sectionName) : "Lý thuyết");
         Map<String, Object> thongKe = new LinkedHashMap<>();
-        thongKe.put("tongThiSinh", summary.get("total"));
-        thongKe.put("daThi", summary.get("done"));
-        thongKe.put("dangThi", summary.get("testing"));
-        thongKe.put("chuaThi", summary.get("pending"));
-        thongKe.put("dat", summary.get("passed"));
-        thongKe.put("truot", summary.get("failed"));
+        thongKe.put("tongThiSinh", summary.getTotal());
+        thongKe.put("daThi", summary.getDone());
+        thongKe.put("dangThi", summary.getTesting());
+        thongKe.put("chuaThi", summary.getPending());
+        thongKe.put("dat", summary.getPassed());
+        thongKe.put("truot", summary.getFailed());
         metadata.put("thongKe", thongKe);
         return metadata;
     }
 
-    private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, Map<String, Object> summary,
+    private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, CandidateSummaryDTO summary,
             ExaminerSlotDTO slot, boolean isTheory, String sectionName) {
         List<List<Object>> preamble = new ArrayList<>();
         preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
@@ -323,41 +325,41 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
         preamble.add(Arrays.asList("Phần thi",
                 !isTheory ? nullToDash(sectionName) : "Lý thuyết"));
         preamble.add(Arrays.asList());
-        preamble.add(Arrays.asList("Tổng thí sinh", summary.get("total")));
-        preamble.add(Arrays.asList("Đã thi", summary.get("done")));
-        preamble.add(Arrays.asList("Đang thi", summary.get("testing")));
-        preamble.add(Arrays.asList("Chưa thi", summary.get("pending")));
-        preamble.add(Arrays.asList("Đạt", summary.get("passed")));
-        preamble.add(Arrays.asList("Trượt", summary.get("failed")));
+        preamble.add(Arrays.asList("Tổng thí sinh", summary.getTotal()));
+        preamble.add(Arrays.asList("Đã thi", summary.getDone()));
+        preamble.add(Arrays.asList("Đang thi", summary.getTesting()));
+        preamble.add(Arrays.asList("Chưa thi", summary.getPending()));
+        preamble.add(Arrays.asList("Đạt", summary.getPassed()));
+        preamble.add(Arrays.asList("Trượt", summary.getFailed()));
         preamble.add(Arrays.asList());
         return preamble;
     }
 
-    private static List<List<Object>> buildMinutesRows(List<Map<String, Object>> candidates,
+    private static List<List<Object>> buildMinutesRows(List<ExaminerCandidateRowDTO> candidates,
             boolean isTheory) {
         List<List<Object>> rows = new ArrayList<>();
         int index = 1;
-        for (Map<String, Object> c : candidates) {
+        for (ExaminerCandidateRowDTO c : candidates) {
             if (!isTheory) {
                 rows.add(Arrays.asList(
                         index++,
-                        c.get("sbd"),
-                        c.get("fullName"),
-                        c.get("examScore"),
-                        c.get("resultLabel"),
-                        c.get("statusLabel"),
-                        Boolean.TRUE.equals(c.get("absent")) ? "Có" : "Không"));
+                        c.getSbd(),
+                        c.getFullName(),
+                        c.getExamScore(),
+                        c.getResultLabel(),
+                        c.getStatusLabel(),
+                        c.isAbsent() ? "Có" : "Không"));
             } else {
                 rows.add(Arrays.asList(
                         index++,
-                        c.get("sbd"),
-                        c.get("fullName"),
-                        c.get("correct"),
-                        c.get("wrong"),
-                        c.get("unanswered"),
-                        c.get("resultLabel"),
-                        c.get("statusLabel"),
-                        Boolean.TRUE.equals(c.get("absent")) ? "Có" : "Không"));
+                        c.getSbd(),
+                        c.getFullName(),
+                        c.getCorrect(),
+                        c.getWrong(),
+                        c.getUnanswered(),
+                        c.getResultLabel(),
+                        c.getStatusLabel(),
+                        c.isAbsent() ? "Có" : "Không"));
             }
         }
         return rows;

@@ -38,6 +38,9 @@
                 </div>
 
                 <aside class="question-sidebar" data-node-id="115:889" data-name="Aside - Right Panel: Question Navigator Sidebar (approx 25%)">
+                    <c:if test="${not empty faceMatchRate}">
+                        <p class="face-match-result">Kết quả quét mặt: ${faceMatchRate}% khớp hồ sơ</p>
+                    </c:if>
                     <form class="question-sidebar-form" action="${pageContext.request.contextPath}/exam/submit" method="post">
                         <div class="question-grid-area" data-node-id="115:898" data-name="Question Grid Area">
                             <table class="question-table">
@@ -83,6 +86,7 @@
                         </div>
 
                         <div class="submit-panel" data-node-id="115:1565" data-name="CTA Footer">
+                            <button type="submit" formaction="${pageContext.request.contextPath}/exam/save" formmethod="post" class="submit-panel__button submit-panel__button--secondary">LƯU BÀI</button>
                             <button type="submit" class="submit-panel__button" data-node-id="115:1566">NỘP BÀI</button>
                         </div>
                     </form>

@@ -31,7 +31,7 @@ public class SessionControlServlet extends HttpServlet {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         int sessionId = parseSessionId(request, session);
-        int staffId = resolveStaffId(session);
+        int staffId = getCurrentStaffUserId(session);
         String redirect = buildRedirect(request, sessionId);
         if ("startSession".equals(action)) {
             ServiceResult<SessionControlData> result = controlService.startSession(sessionId, staffId);
@@ -93,7 +93,7 @@ public class SessionControlServlet extends HttpServlet {
         Integer selected = (Integer) session.getAttribute("selectedSessionId");
         return selected != null ? selected : 2;
     }
-    private int resolveStaffId(HttpSession session) {
+    private int getCurrentStaffUserId(HttpSession session) {
         User user = (User) session.getAttribute("user");
         return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
     }

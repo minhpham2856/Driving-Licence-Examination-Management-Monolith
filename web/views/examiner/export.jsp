@@ -69,7 +69,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=candidates" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -94,7 +94,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=results" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -119,7 +119,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=minutes" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -144,7 +144,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=violations" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -169,7 +169,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">XML</span>
                             </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=audit" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>

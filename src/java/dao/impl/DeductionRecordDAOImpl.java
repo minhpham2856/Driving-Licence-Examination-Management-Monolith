@@ -1,76 +1,74 @@
 package dao.impl;
+
 import dao.DeductionRecordDAO;
 import dbconnection.DBContext;
+import model.DeductionRecord;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Timestamp;
+
 public class DeductionRecordDAOImpl extends DBContext implements DeductionRecordDAO {
+
     @Override
-    public List<Map<String, Object>> getViolationRowsForSession(int sessionId) {
-        List<Map<String, Object>> rows = new ArrayList<>();
-        String sql = "SELECT c.CandidateNumber AS sbd, " +
-                     "       c.FullName AS fullName, " +
-                     "       sec.SectionName AS sectionName, " +
-                     "       sd.Reason AS violationReason, " +
-                     "       sd.Points AS deductionPoints, " +
-                     "       sd.IsCritical AS critical, " +
-                     "       es.Score AS currentScore " +
-                     "FROM ExamEnrollment ec " +
-                     "JOIN Candidate c ON c.CandidateId = ec.CandidateId " +
-                     "JOIN ExamResult er ON er.ExamEnrollmentId = ec.ExamEnrollmentId " +
-                     "JOIN ExamScore es ON es.ExamResultId = er.ExamResultId " +
-                     "JOIN DeductionRecord sded ON sded.ExamScoreId = es.ExamScoreId " +
-                     "JOIN ScoreDeduction sd ON sd.ScoreDeductionId = sded.ScoreDeductionId " +
-                     "JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId " +
-                     "WHERE ec.SessionId = ? " +
-                     "ORDER BY c.CandidateNumber, sd.ScoreDeductionId";
+    public int getOccurrenceCount(int examScoreId, int scoreDeductionId) {
+        String sql = "SELECT OccurrenceCount FROM DeductionRecord WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examScoreId);
+            ps.setInt(2, scoreDeductionId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("sbd", rs.getString("sbd"));
-                    row.put("fullName", rs.getString("fullName"));
-                    row.put("sectionName", rs.getString("sectionName"));
-                    row.put("violationReason", rs.getString("violationReason"));
-                    row.put("deductionPoints", rs.getDouble("deductionPoints"));
-                    row.put("critical", rs.getBoolean("critical"));
-                    row.put("currentScore", rs.getDouble("currentScore"));
-                    rows.add(row);
+                if (rs.next()) {
+                    return rs.getInt("OccurrenceCount");
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return rows;
+        return 0;
     }
+
     @Override
-    public List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId) {
-        List<Map<String, Object>> rows = new ArrayList<>();
-        String sql = "SELECT sd.ScoreDeductionId AS id " +
-                     "FROM ExamEnrollment ec " +
-                     "JOIN ExamResult er ON er.ExamEnrollmentId = ec.ExamEnrollmentId " +
-                     "JOIN ExamScore es ON es.ExamResultId = er.ExamResultId " +
-                     "JOIN DeductionRecord sded ON sded.ExamScoreId = es.ExamScoreId " +
-                     "JOIN ScoreDeduction sd ON sd.ScoreDeductionId = sded.ScoreDeductionId " +
-                     "WHERE ec.CandidateId = ? AND ec.SessionId = ?";
+    public boolean add(DeductionRecord record) {
+        String sql = "INSERT INTO DeductionRecord (ExamScoreId, ScoreDeductionId, OccurrenceCount, RecordedAt) "
+                + "VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, candidateId);
-            ps.setInt(2, sessionId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("id", rs.getInt("id"));
-                    rows.add(row);
-                }
-            }
+            ps.setInt(1, record.getExamScoreId());
+            ps.setInt(2, record.getScoreDeductionId());
+            ps.setInt(3, record.getOccurrenceCount());
+            ps.setTimestamp(4, record.getRecordedAt());
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return rows;
+        return false;
+    }
+
+    @Override
+    public boolean updateOccurrence(int examScoreId, int scoreDeductionId, int occurrenceCount, Timestamp recordedAt) {
+        String sql = "UPDATE DeductionRecord SET OccurrenceCount = ?, RecordedAt = ? "
+                + "WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, occurrenceCount);
+            ps.setTimestamp(2, recordedAt);
+            ps.setInt(3, examScoreId);
+            ps.setInt(4, scoreDeductionId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean deleteByExamScoreAndRule(int examScoreId, int scoreDeductionId) {
+        String sql = "DELETE FROM DeductionRecord WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examScoreId);
+            ps.setInt(2, scoreDeductionId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

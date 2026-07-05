@@ -1,7 +1,7 @@
 package dto;
 import java.sql.*;
 import model.ExamEnrollment;
-import enums.SectionStatus;
+import enums.CandidateStatus;
 public class CandidateEnrollmentDTO {
     private CandidateProfileDTO candidate;
     private ExamEnrollment enrollment;
@@ -31,7 +31,7 @@ public class CandidateEnrollmentDTO {
     public void setAbsent(boolean absent) { if (candidate != null) candidate.setAbsent(absent); }
     public boolean isSuspended() { return candidate != null && candidate.isSuspended(); }
     public String getSectionStatus() {
-        return enrollment != null ? enrollment.getSectionStatus() : SectionStatus.CHUA_THI.getDisplayName();
+        return enrollment != null ? enrollment.getSectionStatus() : CandidateStatus.NOT_STARTED.getValue();
     }
     public void setSectionStatus(String status) { if (enrollment != null) enrollment.setSectionStatus(status); }
     public boolean isSignaturePrinted() { return enrollment != null && enrollment.isSignaturePrinted(); }

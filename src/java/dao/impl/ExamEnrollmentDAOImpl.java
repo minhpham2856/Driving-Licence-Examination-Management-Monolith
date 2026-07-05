@@ -1,64 +1,26 @@
 package dao.impl;
+
 import dao.CandidateDAO;
 import dao.ExamEnrollmentDAO;
 import dbconnection.DBContext;
-import enums.SectionStatus;
-import model.Candidate;
+import enums.CandidateStatus;
+import enums.Sex;
 import model.ExamEnrollment;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
 public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDAO {
-    private static final String ENROLLMENT_COLUMNS = """
-            ExamEnrollmentId, CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId
-            """;
+
+    private static final String ENROLLMENT_COLUMNS =
+            "ExamEnrollmentId, CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId";
+
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
-    @Override
-    public ExamEnrollment getById(int examEnrollmentId) {
-        String sql = "SELECT " + ENROLLMENT_COLUMNS + " FROM ExamEnrollment WHERE ExamEnrollmentId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examEnrollmentId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapEnrollment(rs);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    @Override
-    public int insert(ExamEnrollment enrollment) {
-        String sql = "INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId) "
-                + "VALUES (?,?,?,?,?)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, enrollment.getCandidateId());
-            ps.setInt(2, enrollment.getSessionId());
-            ps.setString(3, enrollment.getSectionStatus() != null ? enrollment.getSectionStatus()
-                    : SectionStatus.CHUA_THI.getDisplayName());
-            ps.setBoolean(4, enrollment.isSignaturePrinted());
-            if (enrollment.getExamDeviceId() != null) {
-                ps.setInt(5, enrollment.getExamDeviceId());
-            } else {
-                ps.setNull(5, java.sql.Types.INTEGER);
-            }
-            if (ps.executeUpdate() > 0) {
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        return keys.getInt(1);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
+
     @Override
     public boolean update(ExamEnrollment enrollment) {
         String sql = "UPDATE ExamEnrollment SET SectionStatus = ?, SignaturePrinted = ?, ExamDeviceId = ? "
@@ -78,30 +40,35 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         }
         return false;
     }
+
     @Override
-    public boolean delete(int examEnrollmentId) {
-        String sql = "DELETE FROM ExamEnrollment WHERE ExamEnrollmentId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examEnrollmentId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    @Override
-    public int countAll() {
-        String sql = "SELECT COUNT(*) FROM ExamEnrollment";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
+    public int insert(ExamEnrollment enrollment) {
+        String sql = "INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId) "
+                + "VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, enrollment.getCandidateId());
+            ps.setInt(2, enrollment.getSessionId());
+            ps.setString(3, enrollment.getSectionStatus() != null
+                    ? enrollment.getSectionStatus() : CandidateStatus.NOT_STARTED.getValue());
+            ps.setBoolean(4, enrollment.isSignaturePrinted());
+            if (enrollment.getExamDeviceId() != null) {
+                ps.setInt(5, enrollment.getExamDeviceId());
+            } else {
+                ps.setNull(5, java.sql.Types.INTEGER);
+            }
+            if (ps.executeUpdate() > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        return keys.getInt(1);
+                    }
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return 0;
     }
+
     @Override
     public List<ExamEnrollment> getBySessionId(int sessionId) {
         List<ExamEnrollment> list = new ArrayList<>();
@@ -119,57 +86,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         }
         return list;
     }
-    @Override
-    public boolean updateExaminerProfile(int candidateId, String fullName, Date dob, String govIdNo,
-            String email, String phoneNo, String address, String sexDb, String reasonForTaking) {
-        Candidate candidate = candidateDAO.getById(candidateId);
-        if (candidate == null || fullName == null || fullName.isBlank()) {
-            return false;
-        }
-        candidate.setFullName(fullName.trim());
-        if (dob != null) {
-            candidate.setDateOfBirth(new Timestamp(dob.getTime()));
-        }
-        candidate.setGovernmentIdNumber(govIdNo != null ? govIdNo.trim() : null);
-        if (phoneNo != null) {
-            candidate.setPhoneNumber(phoneNo);
-        }
-        if (address != null) {
-            candidate.setAddress(address);
-        }
-        if (reasonForTaking != null) {
-            candidate.setReasonForTaking(reasonForTaking);
-        }
-        candidate.setSex("Nữ".equalsIgnoreCase(sexDb) || "1".equals(sexDb));
-        return candidateDAO.update(candidate);
-    }
-    @Override
-    public boolean markAbsent(int candidateId) {
-        Candidate candidate = candidateDAO.getById(candidateId);
-        if (candidate == null) {
-            return false;
-        }
-        candidate.setAbsent(true);
-        return candidateDAO.update(candidate);
-    }
-    @Override
-    public boolean clearAbsentMarking(int candidateId) {
-        Candidate candidate = candidateDAO.getById(candidateId);
-        if (candidate == null) {
-            return false;
-        }
-        candidate.setAbsent(false);
-        return candidateDAO.update(candidate);
-    }
-    @Override
-    public boolean assignExamDevice(int regId, int sessionId, int deviceId) {
-        ExamEnrollment enrollment = getById(regId);
-        if (enrollment == null || enrollment.getSessionId() != sessionId) {
-            return false;
-        }
-        enrollment.setExamDeviceId(deviceId);
-        return update(enrollment);
-    }
+
     @Override
     public ExamEnrollment getBySessionAndCandidate(int sessionId, int candidateId) {
         String sql = "SELECT " + ENROLLMENT_COLUMNS
@@ -187,7 +104,80 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         }
         return null;
     }
-    private static ExamEnrollment mapEnrollment(ResultSet rs) throws SQLException {
+
+    @Override
+    public ExamEnrollment getLatestByCandidateId(int candidateId) {
+        String sql = "SELECT TOP 1 " + ENROLLMENT_COLUMNS
+                + " FROM ExamEnrollment WHERE CandidateId = ? ORDER BY ExamEnrollmentId DESC";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapEnrollment(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public Integer findCandidateIdByGovIdAndSession(String governmentIdNumber, int sessionId) {
+        if (governmentIdNumber == null || governmentIdNumber.isBlank() || sessionId <= 0) {
+            return null;
+        }
+        String sql = "SELECT TOP 1 e.CandidateId FROM ExamEnrollment e "
+                + "JOIN Candidate c ON c.CandidateId = e.CandidateId "
+                + "WHERE e.SessionId = ? AND c.GovernmentIdNumber = ? "
+                + "ORDER BY e.ExamEnrollmentId DESC";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            ps.setString(2, governmentIdNumber.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("CandidateId");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean updateExaminerProfile(int candidateId, String fullName, Date dateOfBirth, String govIdNo,
+            String phoneNo, String address, String sexDb, String reasonForTaking) {
+        if (candidateId <= 0 || fullName == null || fullName.isBlank()) {
+            return false;
+        }
+        Sex sex = Sex.fromValue(sexDb);
+        boolean female = sex != null ? sex.toDbBit() : false;
+        return candidateDAO.updateExaminerProfile(candidateId, fullName.trim(), dateOfBirth, govIdNo, phoneNo,
+                address, female, reasonForTaking);
+    }
+
+    @Override
+    public boolean markAbsent(int candidateId) {
+        return candidateDAO.updateAbsent(candidateId, true);
+    }
+
+    @Override
+    public boolean clearAbsentMarking(int candidateId) {
+        return candidateDAO.updateAbsent(candidateId, false);
+    }
+
+    @Override
+    public boolean assignExamDevice(int candidateId, int sessionId, int deviceId) {
+        ExamEnrollment enrollment = getBySessionAndCandidate(sessionId, candidateId);
+        if (enrollment == null) {
+            return false;
+        }
+        enrollment.setExamDeviceId(deviceId);
+        return update(enrollment);
+    }
+
+    private ExamEnrollment mapEnrollment(ResultSet rs) throws SQLException {
         ExamEnrollment enrollment = new ExamEnrollment();
         enrollment.setExamEnrollmentId(rs.getInt("ExamEnrollmentId"));
         enrollment.setCandidateId(rs.getInt("CandidateId"));

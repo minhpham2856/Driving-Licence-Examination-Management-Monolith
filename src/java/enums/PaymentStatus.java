@@ -1,33 +1,29 @@
 package enums;
+
 public enum PaymentStatus {
-    HOAN_TAT("Hoàn tất"),
-    CHO_THANH_TOAN("Chờ thanh toán");
-    private final String displayName;
-    PaymentStatus(String displayName) {
-        this.displayName = displayName;
+    COMPLETED("Hoàn tất"),
+    FAILED("Thất bại"),
+    PENDING("Chờ thanh toán");
+
+    private final String value;
+
+    private PaymentStatus(String value) {
+        this.value = value;
     }
-    public String getDisplayName() {
-        return displayName;
+
+    public String getValue() {
+        return value;
     }
-    public boolean matches(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
+
+    public static PaymentStatus fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        return displayName.equalsIgnoreCase(value.trim());
-    }
-    public static PaymentStatus normalize(String value) {
-        if (value == null || value.isBlank()) {
-            return CHO_THANH_TOAN;
-        }
-        String trimmed = value.trim();
         for (PaymentStatus status : values()) {
-            if (status.matches(trimmed)) {
+            if (status.getValue().equals(value)) {
                 return status;
             }
         }
-        return CHO_THANH_TOAN;
-    }
-    public static boolean isCompleted(String value) {
-        return normalize(value) == HOAN_TAT;
+        return null;
     }
 }

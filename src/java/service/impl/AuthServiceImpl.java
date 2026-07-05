@@ -1,37 +1,38 @@
 package service.impl;
-import dto.*;
-import model.*;
-import java.sql.*;
-import service.*;
+
 import dao.ProfileDAO;
 import dao.UserDAO;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
-import dto.ChangePasswordResultDTO;
+import dto.ServiceResult;
+import dto.payload.ChangePasswordCommand;
+import dto.payload.RegisterData;
+import enums.ErrorType;
 import model.Profile;
-import dto.RegisterResultDTO;
+import model.User;
 import service.AuthService;
 import service.EmailService;
-import model.User;
+import service.RoleService;
 import util.UsernameGenerator;
-import java.sql.Date;
+
 public class AuthServiceImpl implements AuthService {
+
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final EmailService emailService = new EmailServiceImpl();
+
     @Override
-    public RegisterResultDTO register(String govIdNo, String fullName, String phoneNo,
-            String dateOfBirth, String address, String email, boolean sex) {
+    public ServiceResult<RegisterData> register(Profile profile, String email) {
         if (userDAO.getByEmail(email) != null) {
-            return RegisterResultDTO.failed("Email đã được sử dụng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Email đã được sử dụng.");
         }
-        if (profileDAO.getByGovIdNo(govIdNo) != null) {
-            return RegisterResultDTO.failed("Số căn cước đã được sử dụng.");
+        if (profileDAO.getByGovIdNo(profile.getGovernmentIdNumber()) != null) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số căn cước đã được sử dụng.");
         }
-        if (profileDAO.getByPhoneNo(phoneNo) != null) {
-            return RegisterResultDTO.failed("Số điện thoại đã được sử dụng.");
+        if (profileDAO.getByPhoneNo(profile.getPhoneNumber()) != null) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số điện thoại đã được sử dụng.");
         }
-        String username = generateUniqueUsername(fullName);
+        String username = generateUniqueUsername(profile.getFullName());
         String password = UsernameGenerator.randomPassword(10);
         User user = new User();
         user.setUsername(username);
@@ -39,22 +40,15 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(password);
         user.setActive(true);
         RoleService roleService = new RoleServiceImpl();
-        user.setRoleId(roleService.getRoleIdByName(enums.UserRole.NGUOI_DANG_KY_THI.getDisplayName()));
+        user.setRoleId(roleService.getRoleIdByName(enums.UserRole.REGISTRANT.getValue()));
         if (!userDAO.insert(user)) {
-            return RegisterResultDTO.failed("Không thể đăng ký tài khoản. Vui lòng thử lại.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
+                    "Không thể đăng ký tài khoản. Vui lòng thử lại.");
         }
-        Profile profile = new Profile();
         profile.setUserId(user.getUserId());
-        profile.setGovIdNo(govIdNo);
-        profile.setFullName(fullName);
-        profile.setDateOfBirth(new Timestamp(Date.valueOf(dateOfBirth).getTime()));
-        profile.setSex(sex);
-        profile.setPhoneNo(phoneNo);
-        profile.setAddress(address);
         if (!profileDAO.insert(profile)) {
-            return RegisterResultDTO.failed("Lỗi hệ thống. Vui lòng thử lại.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Lỗi hệ thống. Vui lòng thử lại.");
         }
-        profile.setUserId(user.getUserId());
         String subject = "[Lái Vui] Thông tin tài khoản";
         String content = """
                 Xin chào %s,
@@ -62,10 +56,12 @@ public class AuthServiceImpl implements AuthService {
                 Tên đăng nhập: %s
                 Mật khẩu: %s
                 Vui lòng đăng nhập và đổi mật khẩu trong phần cài đặt tài khoản.
-                """.formatted(fullName, username, password);
+                """.formatted(profile.getFullName(), username, password);
         boolean emailSent = emailService.sendTextEmail(email, subject, content);
-        return RegisterResultDTO.succeeded(username, password, emailSent);
+        RegisterData data = new RegisterData(username, password, emailSent, user.getUserId());
+        return ServiceResult.ok(data);
     }
+
     @Override
     public User login(String identifier, String password) {
         if (identifier == null || password == null) {
@@ -82,6 +78,7 @@ public class AuthServiceImpl implements AuthService {
         }
         return passwordsMatch(trimmedPassword, user.getPasswordHash()) ? user : null;
     }
+
     @Override
     public String forgotPassword(String email) {
         if (email == null || email.isBlank()) {
@@ -115,12 +112,14 @@ public class AuthServiceImpl implements AuthService {
         }
         return null;
     }
+
     protected static boolean passwordsMatch(String rawPassword, String storedPasswordHash) {
         if (rawPassword == null || storedPasswordHash == null) {
             return false;
         }
         return rawPassword.equals(storedPasswordHash.trim());
     }
+
     private String generateUniqueUsername(String fullName) {
         for (int attempt = 0; attempt < 10; attempt++) {
             String username = UsernameGenerator.generateFromFullName(fullName);
@@ -130,27 +129,32 @@ public class AuthServiceImpl implements AuthService {
         }
         return UsernameGenerator.generateFromFullName(fullName) + System.currentTimeMillis() % 1000;
     }
+
     @Override
-    public ChangePasswordResultDTO changePassword(int userId, String currentPwd, String newPwd, String confirmPwd) {
-        User fresh = userDAO.getById(userId);
+    public ServiceResult<Void> changePassword(ChangePasswordCommand command) {
+        User fresh = userDAO.getById(command.getUserId());
         if (fresh == null) {
-            return new ChangePasswordResultDTO(false, "Có lỗi xảy ra, vui lòng thử lại.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Có lỗi xảy ra, vui lòng thử lại.");
         }
-        if (currentPwd == null || !currentPwd.equals(fresh.getPasswordHash())) {
-            return new ChangePasswordResultDTO(false, "Mật khẩu hiện tại không chính xác.");
+        if (command.getCurrentPassword() == null
+                || !command.getCurrentPassword().equals(fresh.getPasswordHash())) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Mật khẩu hiện tại không chính xác.");
         }
-        if (newPwd == null || newPwd.length() < 6) {
-            return new ChangePasswordResultDTO(false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
+        if (command.getNewPassword() == null || command.getNewPassword().length() < 6) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
+                    "Mật khẩu mới phải có ít nhất 6 ký tự.");
         }
-        if (!newPwd.equals(confirmPwd)) {
-            return new ChangePasswordResultDTO(false, "Mật khẩu mới và xác nhận không khớp.");
+        if (!command.getNewPassword().equals(command.getConfirmPassword())) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
+                    "Mật khẩu mới và xác nhận không khớp.");
         }
-        if (newPwd.equals(fresh.getPasswordHash())) {
-            return new ChangePasswordResultDTO(false, "Mật khẩu mới không được trùng mật khẩu cũ.");
+        if (command.getNewPassword().equals(fresh.getPasswordHash())) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
+                    "Mật khẩu mới không được trùng mật khẩu cũ.");
         }
-        if (userDAO.updatePassword(fresh.getUserId(), newPwd)) {
-            return new ChangePasswordResultDTO(true, "Đổi mật khẩu thành công.");
+        if (userDAO.updatePassword(fresh.getUserId(), command.getNewPassword())) {
+            return ServiceResult.ok(null, "Đổi mật khẩu thành công.");
         }
-        return new ChangePasswordResultDTO(false, "Có lỗi xảy ra, vui lòng thử lại.");
+        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Có lỗi xảy ra, vui lòng thử lại.");
     }
 }

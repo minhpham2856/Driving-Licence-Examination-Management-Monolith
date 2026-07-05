@@ -14,11 +14,6 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
             "SELECT AuditId, UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt "
             + "FROM Audit";
     @Override
-    public List<Audit> getByUserId(int userId) {
-        String sql = BASE_SELECT + " WHERE UserId = ? ORDER BY CreatedAt DESC";
-        return queryList(sql, ps -> ps.setInt(1, userId));
-    }
-    @Override
     public int insert(Audit audit) {
         if (audit == null) {
             return 0;
@@ -52,11 +47,6 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
             e.printStackTrace();
         }
         return 0;
-    }
-    @Override
-    public List<Audit> findAll() {
-        return queryList(BASE_SELECT + " ORDER BY CreatedAt DESC", ps -> {
-        });
     }
     @Override
     public List<Audit> getRecentLogs(int limit) {
@@ -118,10 +108,15 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
     @Override
     public List<Audit> getViolationLogsForSession(int sessionId, int limit) {
         int safeLimit = limit > 0 ? limit : 20;
-        String sql = BASE_SELECT
-                + " WHERE Action = 'WARNING' AND EntityId LIKE ? ORDER BY CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = "SELECT a.AuditId, a.UserId, a.Action, a.Reason, a.EntityName, a.EntityId, "
+                + "a.OldValue, a.NewValue, a.Details, a.CreatedAt "
+                + "FROM Audit a "
+                + "INNER JOIN ExamEnrollment e ON TRY_CAST(a.EntityId AS INT) = e.CandidateId "
+                + "WHERE e.SessionId = ? "
+                + "AND (a.Action = N'Cảnh báo' OR a.NewValue LIKE N'%Vi phạm%' OR a.NewValue LIKE N'%đình chỉ%') "
+                + "ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> {
-            ps.setString(1, "%" + sessionId + "%");
+            ps.setInt(1, sessionId);
             ps.setInt(2, safeLimit);
         });
     }

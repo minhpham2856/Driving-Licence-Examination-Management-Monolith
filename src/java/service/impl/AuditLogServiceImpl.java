@@ -75,7 +75,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     public Map<String, Object> toViewRow(Audit log, String changerName, Map<Integer, String> sbdByRecordId) {
         Map<String, Object> row = new LinkedHashMap<>();
         AuditAction action = actionFromDb(log.getAction());
-        String sbd = resolveSbd(log, sbdByRecordId);
+        String sbd = extractSbdForDisplay(log, sbdByRecordId);
         String message = firstNonBlank(log.getNewValue(), log.getDetails());
         String reason = normalizeReason(log);
         row.put("username", nullToDash(changerName));
@@ -112,7 +112,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public String resolveSbd(Audit log, Map<Integer, String> sbdByRecordId) {
+    public String extractSbdForDisplay(Audit log, Map<Integer, String> sbdByRecordId) {
         for (String text : new String[]{log.getNewValue(), log.getOldValue(), log.getReason(), log.getDetails()}) {
             String extracted = extractSbdFromText(text);
             if (extracted != null) {

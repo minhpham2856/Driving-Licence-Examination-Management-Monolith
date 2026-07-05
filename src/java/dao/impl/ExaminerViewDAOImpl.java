@@ -1,5 +1,5 @@
 package dao.impl;
-import dao.ExaminerDataDAO;
+
 import dbconnection.DBContext;
 import enums.ExamSection;
 import java.sql.Connection;
@@ -12,7 +12,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
+import dao.ExaminerViewDAO;
+
+public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
+
     @Override
     public String findLicenceClassByExamId(int examId) {
         String sql = """
@@ -33,6 +36,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return "-";
     }
+
     @Override
     public Integer findPrimarySessionAreaId(int sessionId) {
         String sql = "SELECT TOP 1 ExamAreaId FROM Session_ExamArea WHERE SessionId = ? ORDER BY ExamAreaId";
@@ -48,6 +52,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return null;
     }
+
     @Override
     public Map<Integer, int[]> loadTheoryStatsBySession(int sessionId) {
         Map<Integer, int[]> stats = new HashMap<>();
@@ -79,6 +84,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return stats;
     }
+
     @Override
     public Map<Integer, Double> loadSectionScoresBySession(int sessionId, String sectionName) {
         Map<Integer, Double> scores = new HashMap<>();
@@ -108,6 +114,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return scores;
     }
+
     @Override
     public Map<Integer, Boolean> loadPassFlagsBySession(int sessionId) {
         Map<Integer, Boolean> flags = new HashMap<>();
@@ -129,6 +136,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return flags;
     }
+
     @Override
     public Map<Integer, String> loadDeviceNamesBySession(int sessionId) {
         Map<Integer, String> names = new HashMap<>();
@@ -150,6 +158,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return names;
     }
+
     @Override
     public List<Map<String, Object>> loadScoreDeductionRules(String sectionName, int sessionId) {
         List<Map<String, Object>> list = new ArrayList<>();
@@ -166,7 +175,8 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
                 ORDER BY sd.ScoreDeductionId
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, resolveSectionName(sectionName));
+            ps.setString(1, sectionName != null && !sectionName.isBlank()
+                    ? sectionName.trim() : ExamSection.LAYOUT.getValue());
             ps.setInt(2, sessionId);
             ps.setInt(3, sessionId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -186,6 +196,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return list;
     }
+
     @Override
     public Map<Integer, int[]> loadDeductionOccurrences(int candidateId, int sessionId) {
         Map<Integer, int[]> occurrences = new HashMap<>();
@@ -211,6 +222,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return occurrences;
     }
+
     @Override
     public Map<Integer, java.util.Date> loadDeductionRecordedAt(int candidateId, int sessionId) {
         Map<Integer, java.util.Date> recordedAt = new HashMap<>();
@@ -238,6 +250,7 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         }
         return recordedAt;
     }
+
     @Override
     public Map<String, Object> loadScoreSummary(int candidateId, int sessionId, String sectionName) {
         Map<String, Object> summary = new LinkedHashMap<>();
@@ -267,7 +280,8 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             ps.setInt(2, sessionId);
-            ps.setString(3, resolveSectionName(sectionName));
+            ps.setString(3, sectionName != null && !sectionName.isBlank()
+                    ? sectionName.trim() : ExamSection.LAYOUT.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     summary.put("currentScore", (int) Math.round(rs.getDouble("Score")));
@@ -278,11 +292,5 @@ public class ExaminerDataDAOImpl extends DBContext implements ExaminerDataDAO {
             e.printStackTrace();
         }
         return summary;
-    }
-    private static String resolveSectionName(String sectionName) {
-        if (sectionName == null || sectionName.isBlank()) {
-            return ExamSection.THUC_HANH_TRONG_HINH.getDisplayName();
-        }
-        return sectionName.trim();
     }
 }

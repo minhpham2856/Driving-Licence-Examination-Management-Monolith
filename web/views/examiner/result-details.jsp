@@ -10,7 +10,7 @@
 <c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
 <c:set var="exportCandidatesXmlUrl" value="${ctx}/examiner/export/candidates/xml" />
-<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=results" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>

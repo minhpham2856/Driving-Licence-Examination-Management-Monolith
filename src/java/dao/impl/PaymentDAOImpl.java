@@ -19,7 +19,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, payment.getPaymentStatus() != null ? payment.getPaymentStatus()
-                    : PaymentStatus.HOAN_TAT.getDisplayName());
+                    : PaymentStatus.COMPLETED.getValue());
             ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "Cash");
             if (payment.getTransactionReference() == null) {
                 ps.setNull(3, Types.NVARCHAR);
@@ -36,6 +36,26 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                         payment.setExamEnrollmentId(enrollmentId);
                         return true;
                     }
+                }
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(PaymentDAOImpl.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean hasCompletedPayment(int examEnrollmentId) {
+        if (examEnrollmentId <= 0) {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM Payment WHERE ExamEnrollmentId = ? AND PaymentStatus = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examEnrollmentId);
+            ps.setString(2, PaymentStatus.COMPLETED.getValue());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
                 }
             }
         } catch (SQLException e) {

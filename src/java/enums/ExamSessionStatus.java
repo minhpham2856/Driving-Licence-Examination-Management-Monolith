@@ -1,44 +1,30 @@
 package enums;
+
 public enum ExamSessionStatus {
-    CHUA_DIEN_RA("Chưa diễn ra"),
-    MO("Mở"),
-    DANG_DIEN_RA("Đang diễn ra"),
-    HOAN_TAT("Hoàn tất"),
-    DA_HUY("Đã hủy");
-    private final String displayName;
-    ExamSessionStatus(String displayName) {
-        this.displayName = displayName;
+    NOT_STARTED("Chưa diễn ra"),
+    IN_PROGRESS("Đang diễn ra"),
+    COMPLETED("Hoàn tất"),
+    CANCELLED("Đã hủy");
+
+    private final String value;
+
+    private ExamSessionStatus(String value) {
+        this.value = value;
     }
-    public String getDisplayName() {
-        return displayName;
+
+    public String getValue() {
+        return value;
     }
-    public boolean matches(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
+
+    public static ExamSessionStatus fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        return displayName.equalsIgnoreCase(value.trim());
-    }
-    public static ExamSessionStatus normalize(String value) {
-        if (value == null || value.isBlank()) {
-            return CHUA_DIEN_RA;
-        }
-        String trimmed = value.trim();
         for (ExamSessionStatus status : values()) {
-            if (status.matches(trimmed)) {
+            if (status.getValue().equals(value)) {
                 return status;
             }
         }
-        return CHUA_DIEN_RA;
-    }
-    public static boolean canStart(String status) {
-        ExamSessionStatus normalized = normalize(status);
-        return normalized == CHUA_DIEN_RA || normalized == MO;
-    }
-    public static boolean isInProgress(String status) {
-        return normalize(status) == DANG_DIEN_RA;
-    }
-    public static boolean isEnded(String status) {
-        ExamSessionStatus normalized = normalize(status);
-        return normalized == HOAN_TAT || normalized == DA_HUY;
+        return null;
     }
 }

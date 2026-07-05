@@ -10,7 +10,7 @@
 <c:set var="callUrl" value="${ctx}/views/examiner/candidate-call" />
 <c:set var="confirmUrl" value="${ctx}/views/examiner/confirmation" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
-<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=results" scope="request" />
 <c:set var="baseScore" value="100" />
 
 <!--page-->
@@ -53,7 +53,6 @@
                     <jsp:param name="leftClass" value="score-entry-toolbar__left" />
                     <jsp:param name="rightClass" value="score-entry-toolbar__right" />
                     <jsp:param name="btnVehicle" value="left" />
-                    <jsp:param name="btnAbsent" value="left" />
                     <jsp:param name="btnViolation" value="left" />
                     <jsp:param name="btnPrintSignature" value="left" />
                     <jsp:param name="btnComplete" value="left" />

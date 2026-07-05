@@ -65,6 +65,22 @@ public class LicenceDAOImpl implements LicenceDAO {
         return null;
     }
     @Override
+    public Licence getByLicenceClass(String licenceClass) {
+        String sql = BASE_SELECT + "WHERE l.LicenceClass = ?";
+        try (Connection c = new DBContext().getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, licenceClass);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    @Override
     public boolean existsByClass(String licenceClass, int excludeId) {
         String sql = "SELECT COUNT(*) FROM Licence WHERE LicenceClass = ? AND LicenceId <> ?";
         try (Connection c = new DBContext().getConnection();

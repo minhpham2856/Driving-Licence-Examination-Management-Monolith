@@ -1,11 +1,13 @@
 package service;
-import dto.CreateUserResultDTO;
-import java.util.Map;
+
+import dto.ServiceResult;
+import dto.payload.CreateManagedUserCommand;
+import dto.payload.CreateUserData;
+import dto.payload.ManagedDossierCommand;
+
 public interface UserManagementService {
-    CreateUserResultDTO createUser(
-            String fullName, String cccd, String phone, String email,
-            String dob, String sex, String address, String userType, String licenseClass);
-    CreateUserResultDTO saveManagedDossier(
-            int profileId, String licenseClass, String applicantType,
-            Map<String, String> documentsByType, int actorUserId);
+
+    ServiceResult<CreateUserData> createUser(CreateManagedUserCommand command);
+
+    ServiceResult<Void> saveManagedDossier(ManagedDossierCommand command);
 }

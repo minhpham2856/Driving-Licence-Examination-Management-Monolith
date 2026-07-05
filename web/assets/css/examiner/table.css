@@ -369,3 +369,14 @@
     pointer-events: none;
     cursor: not-allowed;
 }
+
+.examiner-table-link {
+    color: #003d9b;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.examiner-table-link:hover {
+    color: #0052cc;
+    text-decoration: none;
+}

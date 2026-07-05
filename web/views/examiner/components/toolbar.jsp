@@ -96,25 +96,18 @@
             </c:if>
         </c:if>
 
-        <c:if test="${param.btnAbsent eq 'left'}">
-            <c:choose>
-                <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}?action=markAbsentScore&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--danger">Vắng</a>
-                </c:when>
-                <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled>Vắng</button>
-                </c:otherwise>
-            </c:choose>
-        </c:if>
-
         <c:if test="${param.btnViolation eq 'left'}">
             <c:choose>
+                <c:when test="${not empty requestScope.candidate and requestScope.candidate.suspended}">
+                    <a href="${pageContext.request.contextPath}/views/examiner/violation-detail?sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--white">
+                        <span class="material-symbols-outlined">gavel</span>Chi tiết vi phạm</a>
+                </c:when>
                 <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}/../violation-confirm?sbd=${requestScope.candidate.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger">
-                        <span class="material-symbols-outlined">gavel</span>Vi phạm</a>
-                    </c:when>
-                    <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Vi phạm</button>
+                    <a href="${pageContext.request.contextPath}/views/examiner/violation-confirm?sbd=${requestScope.candidate.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger">
+                        <span class="material-symbols-outlined">gavel</span>Đình chỉ</a>
+                </c:when>
+                <c:otherwise>
+                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Đình chỉ</button>
                 </c:otherwise>
             </c:choose>
         </c:if>
@@ -154,6 +147,22 @@
             <c:if test="${requestScope.examinerSectionTheory}">
                 <a href="${requestScope.paperUrl}" class="examiner-btn examiner-btn--white">
                     <span class="material-symbols-outlined">visibility</span>Xem đề thi
+                </a>
+            </c:if>
+        </c:if>
+
+        <c:if test="${param.btnPaperExport eq 'left'}">
+            <c:if test="${not empty requestScope.candidate}">
+                <a href="${requestScope.paperExportUrl}" class="examiner-btn examiner-btn--white">
+                    <span class="material-symbols-outlined">download</span>Xuất file
+                </a>
+            </c:if>
+        </c:if>
+
+        <c:if test="${param.btnPaperPrint eq 'left'}">
+            <c:if test="${not empty requestScope.candidate}">
+                <a href="${requestScope.paperPrintUrl}" class="examiner-btn examiner-btn--white" target="_blank" rel="noopener">
+                    <span class="material-symbols-outlined">print</span>In file
                 </a>
             </c:if>
         </c:if>
@@ -312,25 +321,18 @@
             </c:if>
         </c:if>
 
-        <c:if test="${param.btnAbsent eq 'right'}">
-            <c:choose>
-                <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}?action=markAbsentScore&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--danger">Vắng</a>
-                </c:when>
-                <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled>Vắng</button>
-                </c:otherwise>
-            </c:choose>
-        </c:if>
-
         <c:if test="${param.btnViolation eq 'right'}">
             <c:choose>
+                <c:when test="${not empty requestScope.candidate and requestScope.candidate.suspended}">
+                    <a href="${pageContext.request.contextPath}/views/examiner/violation-detail?sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--white">
+                        <span class="material-symbols-outlined">gavel</span>Chi tiết vi phạm</a>
+                </c:when>
                 <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}/../violation-confirm?sbd=${requestScope.candidate.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger">
-                        <span class="material-symbols-outlined">gavel</span>Vi phạm</a>
-                    </c:when>
-                    <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Vi phạm</button>
+                    <a href="${pageContext.request.contextPath}/views/examiner/violation-confirm?sbd=${requestScope.candidate.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger">
+                        <span class="material-symbols-outlined">gavel</span>Đình chỉ</a>
+                </c:when>
+                <c:otherwise>
+                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Đình chỉ</button>
                 </c:otherwise>
             </c:choose>
         </c:if>
@@ -372,6 +374,22 @@
                     <span class="material-symbols-outlined">visibility</span>Xem đề thi</a>
                 </c:if>
             </c:if>
+
+        <c:if test="${param.btnPaperExport eq 'right'}">
+            <c:if test="${not empty requestScope.candidate}">
+                <a href="${requestScope.paperExportUrl}" class="examiner-btn examiner-btn--white">
+                    <span class="material-symbols-outlined">download</span>Xuất file
+                </a>
+            </c:if>
+        </c:if>
+
+        <c:if test="${param.btnPaperPrint eq 'right'}">
+            <c:if test="${not empty requestScope.candidate}">
+                <a href="${requestScope.paperPrintUrl}" class="examiner-btn examiner-btn--white" target="_blank" rel="noopener">
+                    <span class="material-symbols-outlined">print</span>In file
+                </a>
+            </c:if>
+        </c:if>
 
         <c:if test="${param.btnEditResult eq 'right'}">
             <c:if test="${not requestScope.examinerSectionTheory}">

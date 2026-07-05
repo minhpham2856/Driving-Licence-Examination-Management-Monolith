@@ -19,21 +19,6 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
                      from Profile
                      """;
     @Override
-    public Profile getById(int id) {
-        String sql = PROFILE_SELECT + " where ProfileId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSet(rs);
-                }
-            }
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Failed to load profile {0}: {1}", new Object[]{id, e.getMessage()});
-        }
-        return null;
-    }
-    @Override
     public Profile getByGovIdNo(String govIdNo) {
         String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -77,9 +62,9 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
-            ps.setString(3, profile.getPhoneNo());
+            ps.setString(3, profile.getPhoneNumber());
             ps.setBoolean(4, profile.isSex());
-            ps.setString(5, profile.getGovIdNo());
+            ps.setString(5, profile.getGovernmentIdNumber());
             if (profile.getAddress() == null) {
                 ps.setNull(6, Types.NVARCHAR);
             } else {
@@ -91,10 +76,10 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
             }
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    profile.setId(generatedKeys.getInt(1));
+                    profile.setProfileId(generatedKeys.getInt(1));
                 }
             }
-            return profile.getId() > 0;
+            return profile.getProfileId() > 0;
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Failed to insert profile for user {0}: {1}",
                     new Object[]{profile.getUserId(), e.getMessage()});
@@ -112,30 +97,30 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, profile.getFullName());
             ps.setTimestamp(2, profile.getDateOfBirth());
-            ps.setString(3, profile.getPhoneNo());
+            ps.setString(3, profile.getPhoneNumber());
             ps.setBoolean(4, profile.isSex());
-            ps.setString(5, profile.getGovIdNo());
+            ps.setString(5, profile.getGovernmentIdNumber());
             if (profile.getAddress() == null) {
                 ps.setNull(6, Types.NVARCHAR);
             } else {
                 ps.setString(6, profile.getAddress());
             }
-            ps.setInt(7, profile.getId());
+            ps.setInt(7, profile.getProfileId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Failed to update profile {0}: {1}",
-                    new Object[]{profile.getId(), e.getMessage()});
+                    new Object[]{profile.getProfileId(), e.getMessage()});
         }
         return false;
     }
     private Profile mapResultSet(ResultSet rs) throws SQLException {
         Profile profile = new Profile();
-        profile.setId(rs.getInt("ProfileId"));
+        profile.setProfileId(rs.getInt("ProfileId"));
         profile.setUserId(rs.getInt("UserId"));
         profile.setFullName(rs.getString("FullName"));
         profile.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
-        profile.setPhoneNo(rs.getString("PhoneNumber"));
-        profile.setGovIdNo(rs.getString("GovernmentIdNumber"));
+        profile.setPhoneNumber(rs.getString("PhoneNumber"));
+        profile.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
         profile.setAddress(rs.getString("Address"));
         profile.setSex(rs.getBoolean("Sex"));
         return profile;

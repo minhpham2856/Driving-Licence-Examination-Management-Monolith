@@ -47,7 +47,7 @@
                         <form action="${pageContext.request.contextPath}/exam/face" method="post">
                             <button type="submit" class="capture-btn">
                                 <img class="capture-btn-icon" src="${pageContext.request.contextPath}/assets/imgs/exam-face-capture-icon.svg" alt="" aria-hidden="true">
-                                <span>CHỤP ẢNH</span>
+                                <span>QUÉT MẶT</span>
                             </button>
                         </form>
                     </div>
