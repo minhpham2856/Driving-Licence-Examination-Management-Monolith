@@ -7,9 +7,15 @@ import service.impl.*;
 import service.ExamDeviceService;
 import service.impl.ExamDeviceServiceImpl;
 import dto.ExamDeviceViewDTO;
+import dto.ServiceResult;
+import dto.payload.DeleteExamDeviceCommand;
+import dto.payload.SaveExamDeviceCommand;
+import dto.payload.SaveExamDeviceData;
 import model.User;
 import service.AuditLogService;
 import util.Sanitize;
+import enums.AuditAction;
+import enums.AuditEntity;
 import enums.DeviceStatus;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
@@ -34,8 +40,8 @@ public class ExamDeviceServlet extends HttpServlet {
         String status = Sanitize.text(req.getParameter("filterStatus"));
         req.setAttribute("examDevices", examDeviceService.search(keyword, status));
         req.setAttribute("totalDevices", examDeviceService.countAll());
-        req.setAttribute("activeDevices", examDeviceService.countByStatus(DeviceStatus.HOAT_DONG.getDisplayName()));
-        req.setAttribute("maintenanceDevices", examDeviceService.countByStatus(DeviceStatus.BAO_TRI.getDisplayName()));
+        req.setAttribute("activeDevices", examDeviceService.countByStatus(DeviceStatus.ACTIVE.getValue()));
+        req.setAttribute("maintenanceDevices", examDeviceService.countByStatus(DeviceStatus.MAINTENANCE.getValue()));
         req.setAttribute("brokenDevices", 0);
         req.getRequestDispatcher(LIST_VIEW).forward(req, resp);
     }
@@ -47,16 +53,20 @@ public class ExamDeviceServlet extends HttpServlet {
         Integer adminId = (admin != null) ? admin.getUserId() : null;
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            ExamDeviceService.DeleteResult result = examDeviceService.delete(id, adminId);
-            if (result.success) {
-                auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "Xóa máy thi id: " + id, id);
+            DeleteExamDeviceCommand deleteCommand = new DeleteExamDeviceCommand();
+            deleteCommand.setDeviceId(id);
+            deleteCommand.setAdminUserId(adminId);
+            ServiceResult<Void> result = examDeviceService.delete(deleteCommand);
+            if (result.isSuccess()) {
+                auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+                        AuditAction.DELETE, AuditEntity.EXAM_DEVICE, "Xóa máy thi id: " + id, id);
                 HttpSession flashSession = req.getSession(true);
                 flashSession.setAttribute("flashType", "success");
-                flashSession.setAttribute("flashMessage", result.message);
+                flashSession.setAttribute("flashMessage", result.getMessage());
             } else {
                 HttpSession flashSession = req.getSession(true);
                 flashSession.setAttribute("flashType", "danger");
-                flashSession.setAttribute("flashMessage", result.message);
+                flashSession.setAttribute("flashMessage", result.getMessage());
             }
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
@@ -73,19 +83,24 @@ public class ExamDeviceServlet extends HttpServlet {
         dev.setDeviceType(type);
         dev.setStatus(status);
         dev.setExamAreaId(areaId);
-        ExamDeviceService.SaveResult result = examDeviceService.save(dev, adminId);
-        if (!result.success) {
+        SaveExamDeviceCommand saveCommand = new SaveExamDeviceCommand();
+        saveCommand.setDevice(dev);
+        saveCommand.setAdminUserId(adminId);
+        ServiceResult<SaveExamDeviceData> result = examDeviceService.save(saveCommand);
+        if (!result.isSuccess()) {
             HttpSession flashSession = req.getSession(true);
             flashSession.setAttribute("flashType", "danger");
-            flashSession.setAttribute("flashMessage", result.message);
+            flashSession.setAttribute("flashMessage", result.getMessage());
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
         }
-        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cập nhật máy thi: " : "Tạo máy thi: ") + name, result.id);
+        int savedId = result.getData() != null ? result.getData().getDeviceId() : dev.getExamDeviceId();
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+                isEdit ? AuditAction.UPDATE : AuditAction.CREATE, AuditEntity.EXAM_DEVICE,
+                (isEdit ? "Cập nhật máy thi: " : "Tạo máy thi: ") + name, savedId);
         HttpSession flashSession = req.getSession(true);
         flashSession.setAttribute("flashType", "success");
-        flashSession.setAttribute("flashMessage", result.message);
+        flashSession.setAttribute("flashMessage", result.getMessage());
         resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
     }
 }

@@ -1,9 +1,13 @@
 package controller.staff.exam;
-import dto.*;
+import dto.CandidateCallBoardStateDTO;
+import dto.ServiceResult;
+import dto.payload.SessionControlData;
 import model.*;
 import service.*;
 import service.impl.*;
 import model.User;
+import enums.AuditAction;
+import enums.AuditEntity;
 import service.ExamSessionControlService;
 import service.impl.ExamSessionControlServiceImpl;
 import service.AuditLogService;
@@ -30,22 +34,24 @@ public class SessionControlServlet extends HttpServlet {
         int staffId = resolveStaffId(session);
         String redirect = buildRedirect(request, sessionId);
         if ("startSession".equals(action)) {
-            ExamSessionControlService.StartResult result = controlService.startSession(sessionId, staffId);
+            ServiceResult<SessionControlData> result = controlService.startSession(sessionId, staffId);
             if (result.isSuccess()) {
+                SessionControlData data = result.getData();
                 getServletContext().setAttribute("examActiveSessionId", sessionId);
                 session.setAttribute("selectedSessionId", sessionId);
                 session.removeAttribute("shiftEnded");
                 session.removeAttribute("callingSbd");
-                auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
-                        "BAAA,AA,A_t A?zA,EoAAA,AA,A u ca thi SessionId=" + sessionId + " - " + result.getSessionName()
-                                + " (" + result.getExaminerCount() + " sA'A,At hAAA,AA,Ach viA'A,An)",
+                auditLogService.logAction(((User) session.getAttribute("user")).getUserId(),
+                        AuditAction.UPDATE, AuditEntity.EXAM_SESSION,
+                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + data.getSessionName()
+                                + " (" + data.getExaminerCount() + " sát hạch viên)",
                         sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
                 session.setAttribute("sessionControlError", result.getMessage());
             }
         } else if ("endSession".equals(action)) {
-            ExamSessionControlService.EndResult result = controlService.endSession(sessionId);
+            ServiceResult<SessionControlData> result = controlService.endSession(sessionId);
             if (result.isSuccess()) {
                 Integer active = (Integer) getServletContext().getAttribute("examActiveSessionId");
                 if (active != null && active == sessionId) {
@@ -61,8 +67,9 @@ public class SessionControlServlet extends HttpServlet {
                     session.setAttribute("shiftEnded", "true");
                     session.removeAttribute("callingSbd");
                 }
-                auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), "UPDATE Session",
-                        "KAAA,AA,At thA'A,Ac ca thi SessionId=" + sessionId, sessionId);
+                auditLogService.logAction(((User) session.getAttribute("user")).getUserId(),
+                        AuditAction.UPDATE, AuditEntity.EXAM_SESSION,
+                        "Kết thúc ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
                 session.setAttribute("sessionControlError", result.getMessage());

@@ -6,13 +6,14 @@ import dao.UserDAO;
 import dao.impl.AuditDAOImpl;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
+import enums.AuditAction;
+import enums.AuditEntity;
 import model.Audit;
 import model.Profile;
 import model.User;
 import service.AuditLogService;
-import enums.AuditAction;
-import enums.AuditEntity;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,32 +28,35 @@ public class AuditLogServiceImpl implements AuditLogService {
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private static final Pattern SBD_PATTERN = Pattern.compile("SBD\\s+([A-Za-z0-9]+-\\d+)",
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    private static final SimpleDateFormat AUDIT_TIME_FMT = new SimpleDateFormat("HH:mm:ss");
+    private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
 
     @Override
-    public void logAction(Integer userId, String action, String message) {
-        logAction(userId, action, message, 0);
+    public void logAction(Integer userId, AuditAction action, AuditEntity entity, String message) {
+        logAction(userId, action, entity, message, 0);
     }
 
     @Override
-    public void logAction(Integer userId, String action, String message, int recordId) {
-        insertLog(userId, action, message, null, message, null, recordId);
+    public void logAction(Integer userId, AuditAction action, AuditEntity entity, String message, int recordId) {
+        logAction(userId, action, entity, message, recordId, null);
     }
 
     @Override
-    public void logWarning(Integer userId, String message, String reason, int recordId) {
-        insertLog(userId, AuditAction.CANH_BAO.name(), message, null, message, reason, recordId);
+    public void logAction(Integer userId, AuditAction action, AuditEntity entity, String message,
+            int recordId, String reason) {
+        insertLog(userId, action, entity, message, recordId, reason);
     }
 
-    private void insertLog(Integer actionUserId, String action, String contextDetails,
-            String oldValue, String newValue, String reason, int recordId) {
+    private void insertLog(Integer actionUserId, AuditAction action, AuditEntity entity, String details,
+            int recordId, String reason) {
         try {
             int userId = (actionUserId != null && actionUserId > 0) ? actionUserId : 3;
             Audit log = new Audit();
-            log.setEntityName(AuditEntity.resolveLabel(resolveEntityName(action, contextDetails)));
+            log.setEntityName(entity.getValue());
             log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
-            log.setAction(normalizeAction(action));
-            log.setOldValue(oldValue);
-            log.setNewValue(newValue);
+            log.setAction(action.getValue());
+            log.setOldValue(null);
+            log.setNewValue(details);
             log.setReason(reason);
             log.setUserId(userId);
             log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
@@ -60,45 +64,6 @@ public class AuditLogServiceImpl implements AuditLogService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private String resolveEntityName(String action, String details) {
-        String upper = action != null ? action.toUpperCase() : "";
-        String detailUpper = details != null ? details.toUpperCase() : "";
-        if (upper.contains("SCOREENTRY") || detailUpper.contains("HẠNG ĐIỂM")) {
-            return "ScoreEntryQueue";
-        }
-        if (upper.contains("EXAMDEVICE") || detailUpper.contains("THIẾT BỊ")) {
-            return "ExamDevice";
-        }
-        if (upper.contains("IMPORT")) {
-            return "ExamRegistration";
-        }
-        if (upper.contains("PAYMENT")) {
-            return "Payment";
-        }
-        if (upper.contains("PERSON") || upper.contains("PROFILE")) {
-            return "Profile";
-        }
-        if (upper.contains("EXAMINER") || upper.contains("ASSIGN") || upper.contains("REMOVE")) {
-            return "ExaminerSchedule";
-        }
-        if (detailUpper.contains("ĐIỂM") || detailUpper.contains("DIEM")
-                || upper.contains("EXAMSCORE") || detailUpper.contains("LÝ THUYẾT")
-                || detailUpper.contains("THỰC HÀNH") || detailUpper.contains("ĐƯỜNG TRƯỜNG")) {
-            return "ExamScore";
-        }
-        if (upper.contains("EXAMREGISTRATION") || upper.contains("ALLOCATE")) {
-            return "Candidate";
-        }
-        if (upper.contains("SESSION")) {
-            return "Session";
-        }
-        return "Candidate";
-    }
-
-    private String normalizeAction(String rawAct) {
-        return AuditAction.normalize(rawAct).getDisplayName();
     }
 
     @Override
@@ -109,27 +74,39 @@ public class AuditLogServiceImpl implements AuditLogService {
     @Override
     public Map<String, Object> toViewRow(Audit log, String changerName, Map<Integer, String> sbdByRecordId) {
         Map<String, Object> row = new LinkedHashMap<>();
-        String action = log.getAction() != null ? log.getAction() : "UPDATE";
+        AuditAction action = actionFromDb(log.getAction());
         String sbd = resolveSbd(log, sbdByRecordId);
         String message = firstNonBlank(log.getNewValue(), log.getDetails());
         String reason = normalizeReason(log);
         row.put("username", nullToDash(changerName));
-        row.put("actionLabel", mapActionLabel(action));
+        row.put("actionLabel", action.getValue());
         row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", AuditEntity.resolveLabel(log.getEntityName()));
+        row.put("entityName", entityLabelFromDb(log.getEntityName()));
         row.put("sbd", sbd);
-        row.put("newValueClass", mapNewValueClass(action));
+        row.put("newValueClass", action == AuditAction.DELETE ? "audit-td--old" : "audit-td--new");
         row.put("multiline", message != null && message.contains("\n"));
         if (log.getOldValue() != null && !log.getOldValue().isBlank()) {
-            row.put("info", buildChangeInfo(log, sbd));
+            row.put("info", buildChangeInfo(log, action, sbd));
             row.put("oldValue", log.getOldValue());
             row.put("newValue", nullToDash(message));
             row.put("reason", nullToDash(reason));
         } else {
-            row.put("info", message != null && !message.isBlank() ? message : buildChangeInfo(log, sbd));
+            row.put("info", message != null && !message.isBlank() ? message : buildChangeInfo(log, action, sbd));
             row.put("oldValue", null);
             row.put("newValue", nullToDash(message));
             row.put("reason", nullToDash(reason));
+        }
+        Timestamp createdAt = log.getCreatedAt();
+        if (createdAt != null) {
+            synchronized (AUDIT_TIME_FMT) {
+                row.put("time", AUDIT_TIME_FMT.format(createdAt));
+            }
+            synchronized (AUDIT_DATE_FMT) {
+                row.put("date", AUDIT_DATE_FMT.format(createdAt));
+            }
+        } else {
+            row.put("time", "-");
+            row.put("date", "-");
         }
         return row;
     }
@@ -150,6 +127,19 @@ public class AuditLogServiceImpl implements AuditLogService {
             }
         }
         return "-";
+    }
+
+    private static AuditAction actionFromDb(String rawAction) {
+        AuditAction action = AuditAction.fromValue(rawAction);
+        return action != null ? action : AuditAction.UPDATE;
+    }
+
+    private static String entityLabelFromDb(String entityName) {
+        if (entityName == null || entityName.isBlank()) {
+            return "-";
+        }
+        AuditEntity entity = AuditEntity.fromValue(entityName);
+        return entity != null ? entity.getValue() : entityName.trim();
     }
 
     private static Integer parseEntityId(String entityId) {
@@ -187,55 +177,36 @@ public class AuditLogServiceImpl implements AuditLogService {
         return reason;
     }
 
-    private String buildChangeInfo(Audit log, String sbd) {
-        String entity = AuditEntity.resolveLabel(log.getEntityName());
-        String action = log.getAction() != null ? log.getAction() : AuditAction.CAP_NHAT.getDisplayName();
+    private String buildChangeInfo(Audit log, AuditAction action, String sbd) {
+        String entity = entityLabelFromDb(log.getEntityName());
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
-            case "Cảnh báo" ->
-                "Cảnh báo" + sbdSuffix;
-            case "Thêm" ->
+            case CREATE ->
                 "Thêm " + entity.toLowerCase() + sbdSuffix;
-            case "Xóa" ->
+            case DELETE ->
                 "Xóa " + entity.toLowerCase() + sbdSuffix;
+            case EXPORT ->
+                "Xuất " + entity.toLowerCase() + sbdSuffix;
+            case IMPORT ->
+                "Nhập " + entity.toLowerCase() + sbdSuffix;
             default ->
                 "Cập nhật " + entity.toLowerCase() + sbdSuffix;
         };
     }
 
-    private String mapActionLabel(String action) {
-        return AuditAction.normalize(action).getDisplayName();
-    }
-
-    private String mapActionBadge(String action) {
-        AuditAction normalized = AuditAction.normalize(action);
-        return switch (normalized) {
-            case THEM ->
+    private static String mapActionBadge(AuditAction action) {
+        return switch (action) {
+            case CREATE ->
                 "audit-badge--insert";
-            case XOA ->
+            case DELETE ->
                 "audit-badge--delete";
-            case XUAT ->
+            case EXPORT ->
                 "audit-badge--export";
-            case PHAN_CONG ->
-                "audit-badge--assign";
-            case NHAP ->
+            case IMPORT ->
                 "audit-badge--import";
-            case CANH_BAO ->
-                "audit-badge--warning";
-            case HE_THONG ->
-                "audit-badge--system";
-            case DUYET ->
-                "audit-badge--approve";
             default ->
                 "audit-badge--update";
         };
-    }
-
-    private String mapNewValueClass(String action) {
-        if (AuditAction.normalize(action) == AuditAction.XOA) {
-            return "audit-td--old";
-        }
-        return "audit-td--new";
     }
 
     private String nullToDash(String value) {

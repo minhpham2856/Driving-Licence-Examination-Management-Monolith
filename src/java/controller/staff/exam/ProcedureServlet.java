@@ -1,7 +1,11 @@
 package controller.staff.exam;
-import dto.AutoAllocateResultDTO;
+import dto.ServiceResult;
+import dto.payload.AutoAllocateData;
+import dto.payload.UpdateEnrollmentProfileCommand;
 import dto.CandidateCallBoardStateDTO;
 import dto.CandidateEnrollmentDTO;
+import enums.AuditAction;
+import enums.AuditEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -51,7 +55,7 @@ public class ProcedureServlet extends HttpServlet {
         CandidateEnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         session.setAttribute("candidateQueue", qList);
         if (profile != null && !profile.isPresent()) {
-            if (regService.updatePresent(profile.getId(), true)) {
+            if (regService.updatePresent(profile.getId(), true).isSuccess()) {
                 profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
                 session.setAttribute("candidateQueue", qList);
             }
@@ -89,7 +93,7 @@ public class ProcedureServlet extends HttpServlet {
             request.setAttribute("step", "2");
             request.setAttribute("hasValidPhoto", false);
             request.setAttribute("profile", profile);
-            addAuditLog(session, "UPDATE on Person", "Xóa ảnh chân dung để chụp lại SBD " + sbdParam);
+            addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE, "Xóa ảnh chân dung để chụp lại SBD " + sbdParam);
         }
         if ("saveCapturedPhoto".equals(action)) {
             handleSaveCapturedPhoto(request, response, session, sbdParam, qList, webRoot);
@@ -132,7 +136,6 @@ public class ProcedureServlet extends HttpServlet {
         String fullName = request.getParameter("fullName");
         String dobStr = request.getParameter("dateOfBirth");
         String govIdNo = request.getParameter("govIdNo");
-        String email = request.getParameter("email");
         String phoneNo = request.getParameter("phoneNo");
         if (dobStr == null || dobStr.isBlank()) {
             return;
@@ -148,12 +151,18 @@ public class ProcedureServlet extends HttpServlet {
             } else {
                 sqlDob = Date.valueOf(dobStr);
             }
-            if (regService.updateProfile(profile.getId(), fullName, sqlDob, govIdNo, email, phoneNo)) {
+            UpdateEnrollmentProfileCommand profileCommand = new UpdateEnrollmentProfileCommand();
+            profileCommand.setCandidateId(profile.getId());
+            profileCommand.setFullName(fullName);
+            profileCommand.setDateOfBirth(sqlDob);
+            profileCommand.setGovernmentIdNumber(govIdNo);
+            profileCommand.setPhoneNumber(phoneNo);
+            if (regService.updateProfile(profileCommand).isSuccess()) {
                 profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
                 session.setAttribute("candidateQueue", qList);
                 request.setAttribute("profileUpdatedAlert", "true");
                 request.setAttribute("profile", profile);
-                addAuditLog(session, "UPDATE on Person",
+                addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE,
                         "Cập nhật thông tin nhân thân SBD " + sbdParam, profile.getId());
             }
         } catch (Exception e) {
@@ -221,12 +230,12 @@ public class ProcedureServlet extends HttpServlet {
             payment.setExamEnrollmentId(profile.getEnrollment().getExamEnrollmentId());
         }
         payment.setTotalAmount(EXAM_FEE);
-        payment.setPaymentStatus(enums.PaymentStatus.HOAN_TAT.getDisplayName());
+        payment.setPaymentStatus(enums.PaymentStatus.COMPLETED.getValue());
         payment.setPaymentMethod("Cash");
         payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1_000_000);
         boolean updatedPay = regService.insertPayment(payment);
         if (!updatedPay) {
-            updatedPay = regService.updatePayment(profile.getId(), true);
+            updatedPay = regService.updatePayment(profile.getId(), true).isSuccess();
         }
         if (!updatedPay) {
             return false;
@@ -237,20 +246,21 @@ public class ProcedureServlet extends HttpServlet {
         if (profile.isAbsent()) {
             clearAbsentMarking(profile);
         }
-        AutoAllocateResultDTO allocResult = allocator.autoAllocateCandidate(
+        ServiceResult<AutoAllocateData> allocResult = allocator.autoAllocateCandidate(
                 profile.getExamSessionId(), profile.getId());
         List<CandidateEnrollmentDTO> qList = regService.getCandidatesBySession(profile.getExamSessionId());
         photoService.normalizeQueue(webRoot, qList);
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", profile.getExamSessionId());
         session.setAttribute("selectedSessionId", profile.getExamSessionId());
-        String allocDetail = allocResult.allocatedCount > 0
-                ? "Phân bổ " + allocResult.allocatedCount + " giám khảo"
+        int allocatedCount = allocResult.getData() != null ? allocResult.getData().getAllocatedCount() : 0;
+        String allocDetail = allocatedCount > 0
+                ? "Phân bổ " + allocatedCount + " giám khảo"
                 : "Không phân bổ được giám khảo tự động";
-        addAuditLog(session, "INSERT on Payment",
+        addAuditLog(session, AuditAction.CREATE, AuditEntity.PAYMENT,
                 "Thu phí thi " + allocDetail + " cho SBD " + sbdParam, profile.getId());
-        if (allocResult.allocatedCount > 0) {
-            addAuditLog(session, "ALLOCATE Candidates",
+        if (allocatedCount > 0) {
+            addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE,
                     "Tự động phân bổ giám khảo cho SBD " + sbdParam, profile.getId());
         }
         return true;
@@ -296,7 +306,7 @@ public class ProcedureServlet extends HttpServlet {
                 fos.write(imageBytes);
             }
             String photoPath = "assets/imgs/candidates/" + fileName;
-            if (!regService.updatePhoto(profile.getId(), photoPath)) {
+            if (!regService.updatePhoto(profile.getId(), photoPath).isSuccess()) {
                 throw new IOException("Không cập nhật được photoUrl trong DB");
             }
             profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
@@ -305,7 +315,7 @@ public class ProcedureServlet extends HttpServlet {
             }
             session.setAttribute("candidateQueue", qList);
             session.setAttribute("procedureStep", "2");
-            addAuditLog(session, "UPDATE on Person",
+            addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE,
                     "Lưu ảnh chụp từ webcam thực tế SBD " + sbdParam, profile != null ? profile.getId() : 0);
             writeJson(response, HttpServletResponse.SC_OK, true, null, photoPath);
         } catch (Exception e) {
@@ -478,10 +488,10 @@ public class ProcedureServlet extends HttpServlet {
             state.setShiftEnded(false);
         }
     }
-    private void addAuditLog(HttpSession session, String action, String details) {
-        addAuditLog(session, action, details, 0);
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details) {
+        addAuditLog(session, action, entity, details, 0);
     }
-    private void addAuditLog(HttpSession session, String action, String details, int recordId) {
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details, int recordId) {
         List<Map<String, String>> sessionAuditLogs
                 = (List<Map<String, String>>) session.getAttribute("sessionAuditLogs");
         if (sessionAuditLogs == null) {
@@ -491,7 +501,7 @@ public class ProcedureServlet extends HttpServlet {
         Map<String, String> audit = new HashMap<>();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         audit.put("time", sdf.format(new java.util.Date()));
-        audit.put("action", action);
+        audit.put("action", action.getValue());
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
         int userId = 3;
@@ -499,7 +509,7 @@ public class ProcedureServlet extends HttpServlet {
         if (userObj instanceof User) {
             userId = ((User) userObj).getUserId();
         }
-        auditLogService.logAction(userId, action, details, recordId);
+        auditLogService.logAction(userId, action, entity, details, recordId);
     }
     private static Integer parseSbdParam(String raw) {
         if (raw == null || raw.isBlank()) {

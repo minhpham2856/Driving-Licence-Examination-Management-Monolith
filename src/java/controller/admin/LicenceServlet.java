@@ -8,6 +8,8 @@ import service.LicenceService;
 import service.impl.LicenceServiceImpl;
 import model.Licence;
 import model.User;
+import enums.AuditAction;
+import enums.AuditEntity;
 import service.AuditLogService;
 import util.Sanitize;
 import jakarta.servlet.http.HttpSession;
@@ -79,20 +81,22 @@ public class LicenceServlet extends HttpServlet {
         Integer upgradeFrom = Sanitize.toIntegerOrNull(req.getParameter("upgradeFromLicenceId"));
         boolean isEdit = id > 0;
         Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);
-        LicenceService.SaveResult result = licenceService.save(l, admin.getUserId());
-        if (!result.success) {
+        ServiceResult<SaveEntityData> result = licenceService.save(l, admin.getUserId());
+        if (!result.isSuccess()) {
             req.setAttribute("mode", isEdit ? "edit" : "create");
             req.setAttribute("licence", l);
             req.setAttribute("licences", licenceService.findAll());
-            req.setAttribute("error", result.message);
+            req.setAttribute("error", result.getMessage());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
             return;
         }
-        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT", 
-                (isEdit ? "Cập nhật hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, result.id);
+        int savedId = result.getData() != null ? result.getData().getEntityId() : l.getLicenceId();
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+                isEdit ? AuditAction.UPDATE : AuditAction.CREATE, AuditEntity.DOSSIER,
+                (isEdit ? "Cập nhật hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, savedId);
         HttpSession flashSession = req.getSession(true);
         flashSession.setAttribute("flashType", "success");
-        flashSession.setAttribute("flashMessage", result.message);
+        flashSession.setAttribute("flashMessage", result.getMessage());
         resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
     }
     private Licence build(int id, String cls, String desc, int age, int years, Integer up) {
