@@ -27,4 +27,9 @@ public enum ExamSessionStatus {
         }
         return null;
     }
+
+    public static boolean isEnded(String value) {
+        ExamSessionStatus status = fromValue(value);
+        return status == COMPLETED || status == CANCELLED;
+    }
 }

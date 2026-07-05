@@ -8,6 +8,7 @@ import dto.payload.DeviceActionCommand;
 import dto.payload.RecordViolationCommand;
 import dto.payload.ScoreEditCommand;
 import enums.ExamSection;
+import enums.ExamSessionStatus;
 import filter.ExaminerFilter;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -80,6 +81,10 @@ abstract class BaseExaminerServlet extends HttpServlet {
             return uri.substring(ctx.length());
         }
         return uri;
+    }
+
+    protected static boolean isSessionEnded(String status) {
+        return ExamSessionStatus.isEnded(status);
     }
 
     protected ExamSection getExamSection(HttpSession session) {

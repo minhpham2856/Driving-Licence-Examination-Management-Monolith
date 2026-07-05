@@ -5,8 +5,10 @@ import enums.ExamSection;
 import model.User;
 import service.ExaminerActionsService;
 import service.ExaminerDataService;
+import service.ExamSessionControlService;
 import service.impl.ExaminerActionsServiceImpl;
 import service.impl.ExaminerDataServiceImpl;
+import service.impl.ExamSessionControlServiceImpl;
 import util.ExamQueue;
 import util.ExamQueue.Lane;
 import util.ExaminerCandidateSort;
@@ -21,10 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import dto.ExaminerCandidateRowDTO;
+import dto.SessionDTO;
 @WebServlet("/views/examiner/candidate-call")
 public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
+    private final ExamSessionControlService sessionControlService = new ExamSessionControlServiceImpl();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -37,6 +41,13 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         String search = request.getParameter("q");
         String action = request.getParameter("action");
         if (sessionId != null && sessionId > 0) {
+            SessionDTO examSession = sessionControlService.getSessionById(sessionId);
+            boolean sessionEnded = examSession != null && isSessionEnded(examSession.getStatus());
+            request.setAttribute("sessionEnded", sessionEnded);
+            if (sessionEnded && action != null) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=sessionEnded");
+                return;
+            }
             if (action != null) {
                 if (handleCallAction(request, response, session, sessionId, action, sbd)) {
                     return;
