@@ -94,6 +94,15 @@ public class ProcedureServlet extends HttpServlet {
         ExamRegistrationDTO profile = loadProfileFromDb(request, session, webRoot, sbdParam, qList);
         ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
 
+        if (profile != null && CandidatePhotoHelper.hasPhotoRecord(profile)
+                && !CandidatePhotoHelper.hasCapturedPhoto(webRoot, profile)) {
+            regDAO.updatePhoto(profile.getId(), null);
+            profile.setPhotoUrl(null);
+            profile.setValidCapturedPhoto(false);
+            request.setAttribute("photoStaleMsg",
+                    "Ảnh trong hồ sơ không tìm thấy trên máy chủ — vui lòng chụp lại ảnh chân dung.");
+        }
+
         if (profile != null && !profile.isPresent()) {
             boolean updatedPresent = regDAO.updatePresent(profile.getId(), true);
             if (updatedPresent) {
@@ -260,10 +269,7 @@ public class ProcedureServlet extends HttpServlet {
                 ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
                 ExamStaffViewHelper.syncExamSelection(session, allSessions, examId);
 
-                String allocDetail = allocResult.allocatedCount > 0
-                        ? " và tự động phân bổ vào phòng thi"
-                // show post payment desk
-                        : " (chưa phân được phòng - kiểm tra sức chứa phòng thi)";
+                String allocDetail = formatAutoAllocateDetail(allocResult);
                 addAuditLog(session, "INSERT on Payment",
                         "Thu lệ phí thi 200,000 đ" + allocDetail + " cho SBD " + sbdParam, profile.getId());
                 if (allocResult.allocatedCount > 0) {
@@ -426,9 +432,7 @@ public class ProcedureServlet extends HttpServlet {
         ExamStaffViewHelper.syncExamSelection(session, allSessions, examId);
         session.setAttribute("lastLoadedSessionId",
                 ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId));
-        String allocDetail = allocResult.allocatedCount > 0
-                ? " và tự động phân bổ vào phòng thi"
-                : " (chưa phân được phòng - kiểm tra sức chứa phòng thi)";
+        String allocDetail = formatAutoAllocateDetail(allocResult);
         addAuditLog(session, "INSERT on Payment",
                 "Thu lệ phí thi 200,000 đ" + allocDetail + " cho SBD " + sbdParam, profile.getId());
             // forward desk view
@@ -609,6 +613,16 @@ public class ProcedureServlet extends HttpServlet {
         profile.setTheoryScore(null);
         profile.setPracticalScore(null);
         profile.setRoadTestScore(null);
+    }
+
+    private static String formatAutoAllocateDetail(AutoAllocateResultDTO allocResult) {
+        if (allocResult != null && allocResult.allocatedCount > 0) {
+            return " và tự động phân bổ vào phòng thi";
+        }
+        if (allocResult != null && allocResult.errorMsg != null && !allocResult.errorMsg.isBlank()) {
+            return " (" + allocResult.errorMsg.trim() + ")";
+        }
+        return " (chưa phân được phòng - kiểm tra sức chứa phòng thi)";
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {

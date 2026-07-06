@@ -488,8 +488,7 @@ public class ExamRegistrationDTO {
         if (!isPaymentCompleted) {
             return false;
         }
-        boolean hasPhoto = validCapturedPhoto
-                || (photoUrl != null && !photoUrl.trim().isEmpty());
+        boolean hasPhoto = validCapturedPhoto;
         return hasPhoto;
     }
 

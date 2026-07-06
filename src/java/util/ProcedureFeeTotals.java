@@ -46,5 +46,5 @@ public final class ProcedureFeeTotals {
             AND LEN(LTRIM(RTRIM(c.PhotoImageUrl))) > 0
             """;
 
-    public static final String SQL_PAYMENT_ACTIVE = "p.PaymentStatus IN ('Completed', 'Paid')";
+    public static final String SQL_PAYMENT_ACTIVE = "p.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')";
 }
