@@ -718,8 +718,8 @@ INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
 -- A1: thi lần đầu (lý thuyết + thực hành)
 (N'027',N'Hoàng Thị Mai',    '1999-11-30', N'0955667788', N'Nữ',  N'079012345683', N'34 Nguyễn Trãi, Hà Nội',                          1, 1,    NULL, NULL, 1, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'kim.ngo')),
 -- B: ca lý thuyết đang thi (InProgress) - thêm cho examiner test
-(N'028', N'Nguyễn Thị Hoa', '1997-05-14', N'0911004801', N'Nữ', N'079012345684', N'18 Hoàng Hoa Thám, Hà Nội',                     1, NULL, 1, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi028.jpg', (SELECT UserId FROM [User] WHERE Username = N'thi048')),
-(N'029', N'Trần Văn Khoa',  '1996-09-03', N'0911004901', N'Nam', N'079012345685', N'72 Cầu Giấy, Hà Nội',                           1, NULL, 1, 1, 1, N'Thi lần đầu',              N'/docs/photos/thi029.jpg', (SELECT UserId FROM [User] WHERE Username = N'thi049'));
+(N'028', N'Nguyễn Thị Hoa', '1997-05-14', N'0911004801', N'Nữ', N'079012345684', N'18 Hoàng Hoa Thám, Hà Nội',                     1, NULL, 1, 1, 1, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'thi048')),
+(N'029', N'Trần Văn Khoa',  '1996-09-03', N'0911004901', N'Nam', N'079012345685', N'72 Cầu Giấy, Hà Nội',                           1, NULL, 1, 1, 1, N'Thi lần đầu',              NULL, (SELECT UserId FROM [User] WHERE Username = N'thi049'));
 GO
 
 -- ============================================
@@ -754,14 +754,8 @@ WHERE s.SessionName = N'Ca sáng - Lý thuyết B'
   AND c.CandidateNumber IN (N'022', N'024', N'026', N'028', N'029');
 GO
 
-UPDATE c
-SET PhotoImageUrl = N'/docs/photos/' + c.CandidateNumber + N'.jpg'
-FROM Candidate c
-JOIN ExamEnrollment ec ON ec.CandidateId = c.CandidateId
-JOIN [Session] s ON s.SessionId = ec.SessionId
-WHERE s.SessionName = N'Ca sáng - Lý thuyết B'
-  AND (c.PhotoImageUrl IS NULL OR c.PhotoImageUrl = N'');
-GO
+-- Seed dev ổn định: không gán ảnh cứng từ /docs/photos.
+-- Ảnh sẽ được chụp tại bước thủ tục và lưu runtime.
 
 -- ============================================
 -- 17. PAYMENTS
@@ -1166,7 +1160,7 @@ SELECT
     p.Address,
     1, NULL, 1, 1,
     N'Thi lần đầu - khoá B-1292',
-    N'/docs/photos/b1292_' + RIGHT(N'0' + CAST(n AS NVARCHAR(2)), 2) + N'.jpg',
+    NULL,
     p.UserId,
     1
 FROM nums

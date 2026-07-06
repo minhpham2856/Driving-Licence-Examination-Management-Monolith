@@ -173,6 +173,7 @@ CREATE TABLE ExaminerSchedule (
     AssignedBy INT NULL REFERENCES [User](UserId),
     AssignedAt DATETIME NULL DEFAULT GETDATE(),
     UNIQUE (SessionId, ExaminerId),
+    UNIQUE (ExaminerId),
     FOREIGN KEY (SessionId, ExamSectionId) REFERENCES Session_ExamSection(SessionId, ExamSectionId),
     FOREIGN KEY (SessionId, ExamAreaId) REFERENCES Session_ExamArea(SessionId, ExamAreaId)
 );

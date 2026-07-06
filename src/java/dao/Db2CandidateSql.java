@@ -46,8 +46,8 @@ public final class Db2CandidateSql {
               c.Address AS address,
               c.ReasonForTaking AS reasonForTaking,
               c.TakeTheory AS takeTheory,
-              c.TakePractical AS takePractical,
-              c.TakeOnRoad AS takeOnRoad,
+              c.TakeLayout AS takePractical,
+              c.TakeRoad AS takeOnRoad,
               CAST(s.StartTime AS DATE) AS examDate,
               ee.SectionStatus AS sectionStatus,
               CAST(ISNULL(ee.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
@@ -61,11 +61,12 @@ public final class Db2CandidateSql {
             INNER JOIN [Session] s ON s.SessionId = ee.SessionId
             INNER JOIN Exam ex ON ex.ExamId = s.ExamId
             INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-            LEFT JOIN [User] u ON u.UserId = c.UserId
+            LEFT JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
+            LEFT JOIN [User] u ON u.UserId = prof.UserId
             LEFT JOIN (
                 SELECT p1.ExamEnrollmentId, MIN(p1.PaymentId) AS PaymentId
                 FROM Payment p1
-                WHERE p1.PaymentStatus IN (N'Completed', N'Paid')
+                WHERE p1.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
                 GROUP BY p1.ExamEnrollmentId
             ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
             LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId
@@ -127,8 +128,8 @@ public final class Db2CandidateSql {
               c.Address AS address,
               c.ReasonForTaking AS reasonForTaking,
               c.TakeTheory AS takeTheory,
-              c.TakePractical AS takePractical,
-              c.TakeOnRoad AS takeOnRoad,
+              c.TakeLayout AS takePractical,
+              c.TakeRoad AS takeOnRoad,
               CAST(s.StartTime AS DATE) AS examDate,
               ee.SectionStatus AS sectionStatus,
               CAST(ISNULL(ee.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
@@ -142,11 +143,12 @@ public final class Db2CandidateSql {
             INNER JOIN [Session] s ON s.SessionId = ee.SessionId
             INNER JOIN Exam ex ON ex.ExamId = s.ExamId
             INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-            LEFT JOIN [User] u ON u.UserId = c.UserId
+            LEFT JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
+            LEFT JOIN [User] u ON u.UserId = prof.UserId
             LEFT JOIN (
                 SELECT p1.ExamEnrollmentId, MIN(p1.PaymentId) AS PaymentId
                 FROM Payment p1
-                WHERE p1.PaymentStatus IN (N'Completed', N'Paid')
+                WHERE p1.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
                 GROUP BY p1.ExamEnrollmentId
             ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
             LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId

@@ -255,23 +255,13 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Thực hành trong hình B'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô số 1'),
- (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
+ (SELECT UserId FROM [User] WHERE Username = N'shv_lan'),
  (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:05:00'),
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca chiều - Thực hành trên đường B'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trên đường'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường thi thực hành'),
- (SELECT UserId FROM [User] WHERE Username = N'shv_lan'),
- (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:10:00'),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'),
- (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
- (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi lý thuyết 2'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_dung'),
- (SELECT UserId FROM [User] WHERE Username = N'exam_minh'), '2026-05-25 08:15:00'),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B (kỳ 2)'),
- (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
- (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi lý thuyết 1'),
- (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
- (SELECT UserId FROM [User] WHERE Username = N'exam_minh'), '2026-05-25 08:20:00');
+ (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:10:00');
 GO
 
 -- ============================================
@@ -435,16 +425,16 @@ GO
 -- ============================================
 INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address,
     TakeTheory, TakeLayout, TakeRoad, TakeNo, ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended) VALUES
-(N'001', N'Nguyễn Văn An',       '2000-03-15', N'0989123456', 1, N'001200031501', N'123 Lê Duẩn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/001.jpg', 0, 0),
-(N'002', N'Trần Thị Bình',       '1995-08-22', N'0912345678', 0, N'001095082201', N'45 Nguyễn Huệ, TP.HCM', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/002.jpg', 0, 0),
-(N'003', N'Lê Văn Chính',        '1988-11-10', N'0978563412', 1, N'001088111001', N'78 Trần Phú, Đà Nẵng', 1, 1, 1, 2, N'Thi lại lý thuyết', N'/uploads/candidates/b/003.jpg', 0, 0),
-(N'046', N'Phạm Minh Đức',       '1999-02-14', N'0908460001', 1, N'001199021401', N'12 Giải Phóng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/046.jpg', 0, 0),
-(N'048', N'Nguyễn Thị Hoa',      '1997-05-14', N'0911004801', 0, N'001197051401', N'18 Hoàng Hoa Thám, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/048.jpg', 0, 0),
-(N'049', N'Trần Văn Khoa',       '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/049.jpg', 0, 0),
-(N'123', N'Hoàng Văn Em',        '1990-06-05', N'0901234567', 1, N'001090060501', N'12 Lý Thường Kiệt, Huế', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/123.jpg', 0, 0),
-(N'456', N'Vũ Thị Phương',       '1998-12-12', N'0967890123', 0, N'001198121201', N'34 Nguyễn Trãi, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/456.jpg', 0, 0),
-(N'010', N'Phạm Thị Dung',       '2002-01-28', N'0934567890', 0, N'001202012801', N'56 Hai Bà Trưng, Hà Nội', 1, 1, 0, 1, N'Thi cấp mới hạng A1', N'/uploads/candidates/a1/010.jpg', 0, 0),
-(N'011', N'Đỗ Văn Hải',          '2001-04-20', N'0945678901', 1, N'001201042001', N'90 Lê Lợi, TP.HCM', 1, 1, 0, 1, N'Thi cấp mới hạng A1', N'/uploads/candidates/a1/011.jpg', 0, 0),
+(N'001', N'Nguyễn Văn An',       '2000-03-15', N'0989123456', 1, N'001200031501', N'123 Lê Duẩn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'002', N'Trần Thị Bình',       '1995-08-22', N'0912345678', 0, N'001095082201', N'45 Nguyễn Huệ, TP.HCM', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'003', N'Lê Văn Chính',        '1988-11-10', N'0978563412', 1, N'001088111001', N'78 Trần Phú, Đà Nẵng', 1, 1, 1, 2, N'Thi lại lý thuyết', NULL, 0, 0),
+(N'046', N'Phạm Minh Đức',       '1999-02-14', N'0908460001', 1, N'001199021401', N'12 Giải Phóng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'048', N'Nguyễn Thị Hoa',      '1997-05-14', N'0911004801', 0, N'001197051401', N'18 Hoàng Hoa Thám, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'049', N'Trần Văn Khoa',       '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'123', N'Hoàng Văn Em',        '1990-06-05', N'0901234567', 1, N'001090060501', N'12 Lý Thường Kiệt, Huế', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'456', N'Vũ Thị Phương',       '1998-12-12', N'0967890123', 0, N'001198121201', N'34 Nguyễn Trãi, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'010', N'Phạm Thị Dung',       '2002-01-28', N'0934567890', 0, N'001202012801', N'56 Hai Bà Trưng, Hà Nội', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
+(N'011', N'Đỗ Văn Hải',          '2001-04-20', N'0945678901', 1, N'001201042001', N'90 Lê Lợi, TP.HCM', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
 (N'012', N'Ngô Thị Kim',          '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Đà Nẵng', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0);
 GO
 
