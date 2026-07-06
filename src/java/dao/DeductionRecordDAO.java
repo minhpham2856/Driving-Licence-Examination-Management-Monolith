@@ -1,7 +1,15 @@
 package dao;
-import java.util.List;
-import java.util.Map;
+
+import model.DeductionRecord;
+
 public interface DeductionRecordDAO {
-    List<Map<String, Object>> getViolationRowsForSession(int sessionId);
-    List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
+
+    int getOccurrenceCount(int examScoreId, int scoreDeductionId);
+
+    boolean add(DeductionRecord record);
+
+    boolean updateOccurrence(int examScoreId, int scoreDeductionId, int occurrenceCount,
+            java.sql.Timestamp recordedAt);
+
+    boolean deleteByExamScoreAndRule(int examScoreId, int scoreDeductionId);
 }

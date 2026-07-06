@@ -1,4 +1,5 @@
 package dao.impl;
+
 import dao.ExaminerScheduleDAO;
 import dbconnection.DBContext;
 import enums.ExamSessionStatus;
@@ -12,11 +13,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
 public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerScheduleDAO {
+
     private static final String SCHEDULE_COLUMNS = """
             ExaminerScheduleId, SessionId, ExaminerId, ExamSectionId, ExamAreaId, AssignedBy, AssignedAt
             """;
+
     @Override
     public boolean insert(ExaminerSchedule schedule) {
         String sql = """
@@ -47,17 +50,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         }
         return false;
     }
-    @Override
-    public boolean delete(int examinerScheduleId) {
-        String sql = "DELETE FROM ExaminerSchedule WHERE ExaminerScheduleId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examinerScheduleId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+
     @Override
     public boolean deleteBySlot(int sessionId, int areaId, int examinerId) {
         String sql = """
@@ -74,39 +67,13 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         }
         return false;
     }
+
     @Override
     public List<ExaminerSchedule> getBySessionId(int sessionId) {
         String sql = "SELECT " + SCHEDULE_COLUMNS + " FROM ExaminerSchedule WHERE SessionId = ?";
         return queryList(sql, sessionId);
     }
-    @Override
-    public List<ExaminerSchedule> getByExaminerId(int examinerId) {
-        String sql = "SELECT " + SCHEDULE_COLUMNS + " FROM ExaminerSchedule WHERE ExaminerId = ?";
-        return queryList(sql, examinerId);
-    }
-    @Override
-    public List<ExaminerSchedule> getBySessionIds(List<Integer> sessionIds) {
-        if (sessionIds == null || sessionIds.isEmpty()) {
-            return Collections.emptyList();
-        }
-        String placeholders = sessionIds.stream().map(id -> "?").collect(Collectors.joining(","));
-        String sql = "SELECT " + SCHEDULE_COLUMNS + " FROM ExaminerSchedule WHERE SessionId IN (" + placeholders + ")";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            for (int i = 0; i < sessionIds.size(); i++) {
-                ps.setInt(i + 1, sessionIds.get(i));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                List<ExaminerSchedule> list = new ArrayList<>();
-                while (rs.next()) {
-                    list.add(mapSchedule(rs));
-                }
-                return list;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return Collections.emptyList();
-    }
+
     @Override
     public List<ExaminerSchedule> findByExamDate(Date examDate) {
         String sql = """
@@ -131,6 +98,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         }
         return Collections.emptyList();
     }
+
     @Override
     public Set<Integer> findBusyExaminerIdsByExamDate(Date examDate) {
         Set<Integer> busyIds = new HashSet<>();
@@ -152,6 +120,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         }
         return busyIds;
     }
+
     @Override
     public List<ExaminerSchedule> findInProgressByExaminerId(int examinerUserId) {
         String sql = """
@@ -164,7 +133,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examinerUserId);
-            ps.setString(2, ExamSessionStatus.DANG_DIEN_RA.getDisplayName());
+            ps.setString(2, ExamSessionStatus.IN_PROGRESS.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 List<ExaminerSchedule> list = new ArrayList<>();
                 while (rs.next()) {
@@ -177,6 +146,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         }
         return Collections.emptyList();
     }
+
     private List<ExaminerSchedule> queryList(String sql, int param) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, param);
@@ -192,6 +162,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         }
         return Collections.emptyList();
     }
+
     private static ExaminerSchedule mapSchedule(ResultSet rs) throws SQLException {
         ExaminerSchedule schedule = new ExaminerSchedule();
         schedule.setExaminerScheduleId(rs.getInt("ExaminerScheduleId"));

@@ -1,57 +1,56 @@
 package service;
 
 import dto.CandidateEnrollmentDTO;
+import dto.ServiceResult;
+import dto.payload.AdjustScoreDeductionCommand;
+import dto.payload.CallCandidateCommand;
+import dto.payload.CandidateSessionCommand;
+import dto.payload.ChangeCandidateVehicleCommand;
+import dto.payload.DeviceActionCommand;
+import dto.payload.RecordViolationCommand;
+import dto.payload.ScoreEditCommand;
+import dto.payload.UpdateCandidateProfileCommand;
 import model.User;
 
 public interface ExaminerActionsService {
 
-    CandidateEnrollmentDTO findCandidate(int sessionId, int sbd);
+    CandidateEnrollmentDTO getRegistration(int sessionId, int sbd);
 
-    boolean updateCandidateProfile(int sessionId, int sbd, String fullName, String dobStr,
-            String govIdNo, String email, String phoneNo, String address, String sex, String reasonForTaking,
-            Integer actionUserId);
+    ServiceResult<Void> updateCandidateProfile(UpdateCandidateProfileCommand command);
 
-    boolean markAbsent(int sessionId, int sbd, Integer actionUserId);
+    ServiceResult<Void> callCandidate(CallCandidateCommand command);
 
-    boolean undoAbsent(int sessionId, int sbd, Integer actionUserId);
+    ServiceResult<Integer> callNextCandidate(CallCandidateCommand command);
 
-    boolean callCandidate(int sessionId, int sbd, User user, Integer actionUserId, boolean isTheory,
-            String sectionName, String callDestination);
+    ServiceResult<Integer> callSelectedCandidates(CallCandidateCommand command);
 
-    Integer callNextCandidate(int sessionId, User user, Integer actionUserId, boolean isTheory,
-            String sectionName, String callDestination);
+    ServiceResult<Void> callScoreEntryCandidate(CallCandidateCommand command);
 
-    int callSelectedCandidates(int sessionId, int[] sbds, User user, Integer actionUserId, boolean isTheory,
-            String sectionName, String callDestination);
+    ServiceResult<Void> adjustScoreDeduction(AdjustScoreDeductionCommand command);
 
-    boolean callScoreEntryCandidate(int sessionId, int sbd, User user, Integer actionUserId, boolean isTheory,
-            String sectionName, String callDestination);
+    ServiceResult<Void> finalizeScoreEntry(CandidateSessionCommand command);
 
-    boolean adjustScoreDeduction(int sessionId, int sbd, int deductionId, int delta, Integer actionUserId);
+    ServiceResult<Void> setDeviceMaintenance(DeviceActionCommand command);
 
-    boolean finalizeScoreEntry(int sessionId, int sbd, Integer actionUserId, String sectionKeyword);
+    ServiceResult<Void> setDeviceAvailable(DeviceActionCommand command);
 
-    boolean setDeviceMaintenance(int deviceId, Integer actionUserId);
+    ServiceResult<Void> changeCandidateVehicle(ChangeCandidateVehicleCommand command);
 
-    boolean setDeviceAvailable(int deviceId, Integer actionUserId);
+    ServiceResult<Void> updateTheoryScore(ScoreEditCommand command);
 
-    boolean changeCandidateVehicle(int sessionId, int sbd, int deviceId, Integer actionUserId);
+    ServiceResult<Void> logPracticalScoreEditReason(ScoreEditCommand command);
 
-    boolean updateTheoryScore(int sessionId, int sbd, int newScore, String reasonCode,
-            String reasonDetail, User user, String password, Integer actionUserId);
-
-    boolean logPracticalScoreEditReason(int sessionId, int sbd, String reasonCode,
-            String reasonDetail, User user, String password, Integer actionUserId);
-
-    boolean recordViolation(int sessionId, int sbd, String reasonCode, String reasonDetail,
-            String evidencePath, int[] deductionIds, Integer actionUserId, boolean isTheory, String sectionName);
-
-    boolean undoSuspension(int sessionId, int sbd, String reasonCode, String reasonDetail,
-            Integer actionUserId);
+    ServiceResult<Void> recordViolation(RecordViolationCommand command);
 
     boolean verifyPassword(User user, String password);
 
-    boolean printSignatureForm(int sessionId, int sbd, Integer actionUserId);
+    ServiceResult<Void> printSignatureForm(CandidateSessionCommand command);
 
-    String completeCandidateSection(int sessionId, int sbd, Integer actionUserId);
+    ServiceResult<Void> markPresent(CandidateSessionCommand command);
+
+    ServiceResult<Void> undoPresent(CandidateSessionCommand command);
+
+    ServiceResult<Void> sendWrongInfoToProcedure(CandidateSessionCommand command);
+
+    ServiceResult<Void> completeCandidateSection(CandidateSessionCommand command);
 }

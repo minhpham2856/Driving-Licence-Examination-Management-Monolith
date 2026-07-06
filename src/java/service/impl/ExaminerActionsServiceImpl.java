@@ -523,7 +523,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
         boolean sectionPassed = command.getSectionPassedHint() != null
                 ? command.getSectionPassedHint()
-                : resolveSectionPassed(command.getSessionId(), reg);
+                : computeSectionPassed(command.getSessionId(), reg);
         if (!sectionPassed) {
             removeFromAllQueues(command.getSbd());
         } else {
@@ -611,7 +611,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         }
     }
 
-    private boolean resolveSectionPassed(int sessionId, CandidateEnrollmentDTO reg) {
+    private boolean computeSectionPassed(int sessionId, CandidateEnrollmentDTO reg) {
         int enrollmentId = reg.getEnrollment() != null ? reg.getEnrollment().getExamEnrollmentId() : 0;
         if (enrollmentId > 0) {
             Map<Integer, Boolean> flags = examinerDataDAO.loadPassFlagsBySession(sessionId);

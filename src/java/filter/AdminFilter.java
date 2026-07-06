@@ -28,7 +28,7 @@ public class AdminFilter implements Filter {
         }
         // 2. Use the service to check the role name dynamically
         String roleName = roleService.getRoleNameById(u.getRoleId());
-        if (!UserRole.isAdmin(roleName)) {
+        if (UserRole.fromValue(roleName) != UserRole.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

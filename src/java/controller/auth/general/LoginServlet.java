@@ -62,7 +62,7 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             String roleName = roleService.getRoleNameById(user.getRoleId());
-            if (UserRole.isRegistrant(roleName)) {
+            if (UserRole.fromValue(roleName) == UserRole.REGISTRANT) {
                 response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
             } else {
                 request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");

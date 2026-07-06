@@ -1,70 +1,79 @@
 package service.impl;
-import dto.*;
-import model.*;
+
 import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
+import dto.ServiceResult;
+import dto.payload.SaveEntityData;
+import enums.ErrorType;
 import model.ExamArea;
 import service.ExamAreaService;
+
 import java.util.List;
+
 public class ExamAreaServiceImpl implements ExamAreaService {
+
     private final ExamAreaDAO dao = new ExamAreaDAOImpl();
+
     @Override
     public ExamArea getById(int id) {
         return dao.getById(id);
     }
+
     @Override
     public List<ExamArea> search(String keyword, String type) {
         return dao.search(keyword, type);
     }
+
     @Override
-    public List<ExamArea> getActiveTheoryRooms() { return dao.getActiveTheoryRooms(); }
+    public List<ExamArea> getActiveTheoryRooms() {
+        return dao.getActiveTheoryRooms();
+    }
+
     @Override
     public int countAll() {
         return dao.countAll();
     }
+
     @Override
-    public SaveResult save(ExamArea area, int adminUserId) {
+    public ServiceResult<SaveEntityData> save(ExamArea area, int adminUserId) {
         if (area.getAreaName() == null || area.getAreaName().isBlank()) {
-            return new SaveResult(false, "Vui lòng nhập tên khu vực thi.", area.getExamAreaId());
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng nhập tên khu vực thi.");
         }
         if (area.getAreaType() == null || area.getAreaType().isBlank()) {
-            return new SaveResult(false, "Vui lòng chọn loại khu vực.", area.getExamAreaId());
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn loại khu vực.");
         }
         if (area.getLocation() == null || area.getLocation().isBlank()) {
-            return new SaveResult(false, "Vui lòng nhập địa chỉ khu vực.", area.getExamAreaId());
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng nhập địa chỉ khu vực.");
         }
         if (area.getCapacity() <= 0) {
-            return new SaveResult(false, "Sức chứa phải lớn hơn 0.", area.getExamAreaId());
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sức chứa phải lớn hơn 0.");
         }
         boolean isEdit = area.getExamAreaId() > 0;
         if (isEdit) {
-            boolean ok = dao.update(area);
-            if (ok) {
-                return new SaveResult(true, "Đã cập nhật khu vực \"" + area.getAreaName() + "\".", area.getExamAreaId());
-            } else {
-                return new SaveResult(false, "Cập nhật khu vực thất bại.", area.getExamAreaId());
+            if (dao.update(area)) {
+                return ServiceResult.ok(new SaveEntityData(area.getExamAreaId()),
+                        "Đã cập nhật khu vực \"" + area.getAreaName() + "\".");
             }
-        } else {
-            int newId = dao.insert(area);
-            boolean ok = newId > 0;
-            if (ok) {
-                return new SaveResult(true, "Đã thêm khu vực \"" + area.getAreaName() + "\".", newId);
-            } else {
-                return new SaveResult(false, "Thêm khu vực thất bại.", 0);
-            }
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Cập nhật khu vực thất bại.");
         }
+        int newId = dao.insert(area);
+        if (newId > 0) {
+            return ServiceResult.ok(new SaveEntityData(newId),
+                    "Đã thêm khu vực \"" + area.getAreaName() + "\".");
+        }
+        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Thêm khu vực thất bại.");
     }
+
     @Override
-    public DeleteResult delete(int id, int adminUserId) {
+    public ServiceResult<Void> delete(int id, int adminUserId) {
         ExamArea area = dao.getById(id);
         if (area == null) {
-            return new DeleteResult(false, "Khu vực không tồn tại.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Khu vực không tồn tại.");
         }
-        boolean ok = id > 0 && dao.delete(id);
-        if (ok) {
-            return new DeleteResult(true, "Đã xóa khu vực thi.");
-        } else {
-            return new DeleteResult(false, "Không thể xóa khu vực này (có thể đang được sử dụng bởi phòng/thiết bị/kỳ thi).");
+        if (id > 0 && dao.delete(id)) {
+            return ServiceResult.ok(null, "Đã xóa khu vực thi.");
         }
+        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
+                "Không thể xóa khu vực này (có thể đang được sử dụng bởi phòng/thiết bị/kỳ thi).");
     }
 }

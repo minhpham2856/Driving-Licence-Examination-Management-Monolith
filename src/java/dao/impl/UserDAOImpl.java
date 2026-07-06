@@ -1,10 +1,9 @@
 package dao.impl;
+
 import java.sql.*;
 import java.util.*;
-import service.*;
 import dbconnection.DBContext;
 import dao.UserDAO;
-import model.Profile;
 import model.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +16,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import enums.UserRole;
-import service.impl.RoleServiceImpl;
+
 public class UserDAOImpl extends DBContext implements UserDAO {
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
     private static final String USER_SELECT = """
@@ -62,13 +61,16 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
-                 where Username = ?
-                    or Email = ?
+                 WHERE Username = ?
+                    OR Email = ?
+                    OR UserId IN (
+                        SELECT UserId FROM Profile WHERE GovernmentIdNumber = ?
+                    )
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
-            ps.setString(2, identifier);
+            ps.setString(3, identifier);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -107,8 +109,8 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      """;
         int roleId = user.getRoleId();
         if (roleId <= 0) {
-            RoleService roleService = new RoleServiceImpl();
-            roleId = roleService.getRoleIdByName(UserRole.NGUOI_DANG_KY_THI.getDisplayName());
+            LOG.warning("Cannot insert user: RoleId is required.");
+            return false;
         }
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUsername());
@@ -194,7 +196,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                 + "ORDER BY u.Username";
         List<User> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, UserRole.SAT_HACH_VIEN.getDisplayName());
+            ps.setString(1, UserRole.EXAMINER.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToUser(rs));

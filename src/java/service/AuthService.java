@@ -1,11 +1,18 @@
 package service;
-import dto.ChangePasswordResultDTO;
-import dto.RegisterResultDTO;
+
+import dto.ServiceResult;
+import dto.payload.ChangePasswordCommand;
+import dto.payload.RegisterData;
+import model.Profile;
 import model.User;
+
 public interface AuthService {
-    RegisterResultDTO register(String govIdNo, String fullName, String phoneNo, String dateOfBirth,
-            String address, String email, boolean sex);
+
+    ServiceResult<RegisterData> register(Profile profile, String email);
+
     User login(String identifier, String password);
+
     String forgotPassword(String email);
-    ChangePasswordResultDTO changePassword(int userId, String currentPwd, String newPwd, String confirmPwd);
+
+    ServiceResult<Void> changePassword(ChangePasswordCommand command);
 }

@@ -65,6 +65,7 @@
                     <jsp:param name="title" value="${empty devicesTitle ? 'Máy thi' : devicesTitle}" />
                     <jsp:param name="badgeText" value="Tổng: ${fn:length(devices)} ${empty devicesUnit ? 'máy' : devicesUnit}" />
                     <jsp:param name="pageUrl" value="${pageUrl}" />
+                    <jsp:param name="showArea" value="false" />
                 </jsp:include>
             </main>
         </div>

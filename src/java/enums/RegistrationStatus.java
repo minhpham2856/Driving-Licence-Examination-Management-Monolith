@@ -1,48 +1,29 @@
 package enums;
+
 public enum RegistrationStatus {
-    BAN_NHAP("Bản nháp"),
-    CHO_DUYET("Chờ duyệt"),
-    CAN_BO_SUNG("Cần bổ sung"),
-    DUYET("Duyệt"),
-    LOAI("Loại");
-    private final String displayName;
-    RegistrationStatus(String displayName) {
-        this.displayName = displayName;
+    PENDING("Chờ duyệt"),
+    APPROVED("Duyệt"),
+    REJECTED("Loại");
+
+    private final String value;
+
+    private RegistrationStatus(String value) {
+        this.value = value;
     }
-    public String getDisplayName() {
-        return displayName;
+
+    public String getValue() {
+        return value;
     }
-    public boolean matches(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
+
+    public static RegistrationStatus fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        return displayName.equalsIgnoreCase(value.trim());
-    }
-    public static RegistrationStatus normalize(String value) {
-        if (value == null || value.isBlank()) {
-            return BAN_NHAP;
-        }
-        String trimmed = value.trim();
         for (RegistrationStatus status : values()) {
-            if (status.matches(trimmed)) {
+            if (status.getValue().equals(value)) {
                 return status;
             }
         }
-        return BAN_NHAP;
-    }
-    public static String normalizeDisplayName(String value) {
-        return normalize(value).getDisplayName();
-    }
-    public static String badgeKey(String value) {
-        return switch (normalize(value)) {
-            case DUYET -> "success";
-            case LOAI -> "danger";
-            case CAN_BO_SUNG, CHO_DUYET -> "warning";
-            default -> "info";
-        };
-    }
-    public static boolean isReviewable(String value) {
-        RegistrationStatus status = normalize(value);
-        return status == BAN_NHAP || status == CHO_DUYET || status == CAN_BO_SUNG || status == LOAI;
+        return null;
     }
 }

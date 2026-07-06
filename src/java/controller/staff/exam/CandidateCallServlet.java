@@ -1,7 +1,7 @@
 package controller.staff.exam;
-import dto.*;
-import model.*;
+
 import java.util.*;
+import dto.payload.UpdateEnrollmentScoresCommand;
 import service.ExamRegistrationService;
 import service.impl.ExamRegistrationServiceImpl;
 import dao.AuditDAO;
@@ -13,8 +13,6 @@ import dto.CandidateEnrollmentDTO;
 import model.Audit;
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
-import service.CandidatePhotoService;
-import service.impl.CandidatePhotoServiceImpl;
 import dto.CandidateCallBoardStateDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,16 +22,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
-import enums.UserRole;
-import enums.ExamSessionStatus;
+
 @WebServlet("/views/staff/exam/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
+
     private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
     private final ExamSessionControlService sessionControlService = new ExamSessionControlServiceImpl();
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
     private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -58,7 +57,7 @@ public class CandidateCallServlet extends HttpServlet {
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
         boolean isShiftEnded = "true".equals(shiftEndedVal);
         SessionDTO SessionDTO = sessionService.getSessionById(examSessionId);
-        if (SessionDTO != null && ExamSessionStatus.isEnded(SessionDTO.getStatus())) {
+        if (SessionDTO != null && isSessionEnded(SessionDTO.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
@@ -164,7 +163,13 @@ public class CandidateCallServlet extends HttpServlet {
                 if (foundIdx != -1) {
                     CandidateEnrollmentDTO removed = candidateQueue.remove(foundIdx);
                     permanentAbsents.add(removed);
-                    regService.updateScores(removed.getId(), 0, "failed", 0, "failed");
+                    UpdateEnrollmentScoresCommand failScores = new UpdateEnrollmentScoresCommand();
+                    failScores.setCandidateId(removed.getId());
+                    failScores.setTheoryScore(0);
+                    failScores.setTheoryResult("failed");
+                    failScores.setPracticalScore(0);
+                    failScores.setPracticalResult("failed");
+                    regService.updateScores(failScores);
                     regService.markAbsent(removed.getId());
                     removed.setAbsent(true);
                     removed.setTheoryPassed("failed");
@@ -222,7 +227,13 @@ public class CandidateCallServlet extends HttpServlet {
                         c.setPracticalPassed("failed");
                         c.setTheoryScore(0);
                         c.setPracticalScore(0);
-                        regService.updateScores(c.getId(), 0, "failed", 0, "failed");
+                        UpdateEnrollmentScoresCommand failScores = new UpdateEnrollmentScoresCommand();
+                        failScores.setCandidateId(c.getId());
+                        failScores.setTheoryScore(0);
+                        failScores.setTheoryResult("failed");
+                        failScores.setPracticalScore(0);
+                        failScores.setPracticalResult("failed");
+                        regService.updateScores(failScores);
                         regService.markAbsent(c.getId());
                         if (permanentAbsents != null) {
                             permanentAbsents.add(c);
@@ -289,11 +300,13 @@ public class CandidateCallServlet extends HttpServlet {
         request.setAttribute("nextCallingCandidate", nextCallingCandidate);
         request.getRequestDispatcher("/views/staff/exam/candidatecall.jsp").forward(request, response);
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
     }
+
     private void advanceCallingIfDone(HttpSession session, List<CandidateEnrollmentDTO> candidateQueue) {
         if (candidateQueue == null) {
             return;
@@ -322,14 +335,15 @@ public class CandidateCallServlet extends HttpServlet {
         }
         session.setAttribute("callingSbd", nextSbd);
     }
+
     @SuppressWarnings("unchecked")
     private CandidateCallBoardStateDTO getCallBoardState(int examSessionId) {
         if (examSessionId <= 0) {
             return null;
         }
         jakarta.servlet.ServletContext ctx = getServletContext();
-        Map<Integer, CandidateCallBoardStateDTO> boards =
-                (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+        Map<Integer, CandidateCallBoardStateDTO> boards
+                = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
         if (boards == null) {
             synchronized (ctx) {
                 boards = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);

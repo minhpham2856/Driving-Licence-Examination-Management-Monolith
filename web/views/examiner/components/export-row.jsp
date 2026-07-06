@@ -16,7 +16,8 @@
             <p class="export-row__title">In biên bản kết quả thi</p>
         </div>
     </div>
-    <form class="export-row__actions export-sbd-form" action="${ctx}/views/examiner/print-documents" method="get">
+    <form class="export-row__actions export-sbd-form" action="${ctx}/examiner/print/docx" method="get" target="_blank">
+        <input type="hidden" name="type" value="BB1" />
         <div class="examiner-search">
             <input type="text" name="sbd" class="examiner-search__input" placeholder="Nhập SBD" value="${param.sbd}" required>
         </div>

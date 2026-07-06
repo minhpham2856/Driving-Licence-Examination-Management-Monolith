@@ -12,7 +12,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
     private static final String BASE_SELECT =
             "SELECT ExamDeviceId, DeviceName, DeviceType, IsActive, ExamAreaId FROM ExamDevice";
     @Override
-    public ExamDevice findById(int examDeviceId) {
+    public ExamDevice getById(int examDeviceId) {
         String sql = BASE_SELECT + " WHERE ExamDeviceId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examDeviceId);

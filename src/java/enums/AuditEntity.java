@@ -1,37 +1,36 @@
 package enums;
 
 public enum AuditEntity {
-    THI_SINH("Thí sinh"),
-    KET_QUA_THI("Kết quả thi"),
-    PHONG_THI("Phòng thi"),
-    THIET_BI_THI("Thiết bị thi"),
-    CA_THI("Ca thi"),
-    PHAN_CONG_SAT_HACH_VIEN("Phân công sát hạch viên"),
-    GOI_THI_SINH("Gọi thí sinh"),
-    HO_SO("Hồ sơ"),
-    THANH_TOAN("Thanh toán"),
-    DIEM_THI("Điểm thi"),
-    HANG_DOI_NHAP_DIEM("Hàng đợi nhập điểm");
-    private final String displayName;
+    CANDIDATE("Thí sinh"),
+    EXAM_RESULT("Kết quả thi"),
+    EXAM_ROOM("Phòng thi"),
+    EXAM_DEVICE("Thiết bị thi"),
+    EXAM_SESSION("Ca thi"),
+    EXAMINER_ASSIGNMENT("Phân công sát hạch viên"),
+    CANDIDATE_CALL("Gọi thí sinh"),
+    DOSSIER("Hồ sơ"),
+    PAYMENT("Thanh toán"),
+    EXAM_SCORE("Điểm thi");
 
-    AuditEntity(String displayName) {
-        this.displayName = displayName;
+    private final String value;
+
+    private AuditEntity(String value) {
+        this.value = value;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getValue() {
+        return value;
     }
 
-    public static String resolveLabel(String entityName) {
-        if (entityName == null || entityName.isBlank()) {
-            return "-";
+    public static AuditEntity fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        String trimmed = entityName.trim();
         for (AuditEntity entity : values()) {
-            if (entity.displayName.equalsIgnoreCase(trimmed)) {
-                return entity.displayName;
+            if (entity.getValue().equals(value)) {
+                return entity;
             }
         }
-        return trimmed;
+        return null;
     }
 }

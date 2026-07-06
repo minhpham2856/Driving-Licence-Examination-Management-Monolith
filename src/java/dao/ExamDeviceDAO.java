@@ -2,7 +2,7 @@ package dao;
 import model.ExamDevice;
 import java.util.List;
 public interface ExamDeviceDAO {
-    ExamDevice findById(int examDeviceId);
+    ExamDevice getById(int examDeviceId);
     int insert(ExamDevice device);
     boolean update(ExamDevice device);
     boolean delete(int examDeviceId);

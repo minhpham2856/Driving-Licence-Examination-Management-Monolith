@@ -58,13 +58,14 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", user);
             // switch dashboards based on role
             String roleName = roleService.getRoleNameById(user.getRoleId());
-            if (UserRole.isManagingStaff(roleName)) {
+            UserRole role = UserRole.fromValue(roleName);
+            if (role == UserRole.MANAGING_STAFF) {
                 response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard.jsp");
-            } else if (UserRole.isExamStaff(roleName)) {
+            } else if (role == UserRole.EXAM_STAFF) {
                 response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard.jsp");
-            } else if (UserRole.isExaminer(roleName)) {
+            } else if (role == UserRole.EXAMINER) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
-            } else if (UserRole.isAdmin(roleName)) {
+            } else if (role == UserRole.ADMIN) {
                 response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
             } else {
                 request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");

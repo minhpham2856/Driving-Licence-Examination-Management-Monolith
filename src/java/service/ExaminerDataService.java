@@ -1,21 +1,24 @@
 package service;
 
 import dto.CandidateEnrollmentDTO;
+import dto.ExaminerCandidateRowDTO;
+import dto.payload.CandidateCallDataDTO;
+import dto.payload.CandidateSummaryDTO;
 import enums.ExamSection;
 import java.util.List;
 import java.util.Map;
 
 public interface ExaminerDataService {
 
-    Map<String, Object> getCandidateCallData(int sessionId, Integer sbd);
+    CandidateCallDataDTO getCandidateCallData(int sessionId, Integer sbd);
 
-    Map<String, Object> getCandidateCallData(int sessionId, Integer sbd, String searchQuery);
+    CandidateCallDataDTO getCandidateCallData(int sessionId, Integer sbd, String searchQuery);
 
-    List<Map<String, Object>> loadCandidateRows(int sessionId);
+    List<ExaminerCandidateRowDTO> loadCandidateRows(int sessionId);
 
-    List<Map<String, Object>> loadCandidateRows(int sessionId, boolean isTheory, String sectionName);
+    List<ExaminerCandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName);
 
-    Map<String, Object> buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
+    CandidateSummaryDTO buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
 
     Map<String, Object> getAuditLogsData(int sessionId, String pageParam);
 
@@ -29,7 +32,7 @@ public interface ExaminerDataService {
 
     CandidateEnrollmentDTO findRegistration(int sessionId, int sbd);
 
-    Map<String, Object> getCandidateViewRow(int sessionId, int sbd, boolean isTheory, String sectionName);
+    ExaminerCandidateRowDTO getCandidateViewRow(int sessionId, int sbd, boolean isTheory, String sectionName);
 
     Map<String, Object> getScoreEntryData(int sessionId, Integer sbd, String sectionName);
 
@@ -46,5 +49,6 @@ public interface ExaminerDataService {
 
     boolean isCallEligible(int sessionId, CandidateEnrollmentDTO reg, boolean isTheory, String sectionName);
 
-    List<Map<String, Object>> orderCandidateRowsByQueue(List<Map<String, Object>> rows, ExamSection examSection);
+    List<ExaminerCandidateRowDTO> orderCandidateRowsByQueue(List<ExaminerCandidateRowDTO> rows,
+            ExamSection examSection);
 }

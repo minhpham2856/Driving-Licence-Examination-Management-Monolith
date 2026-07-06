@@ -59,9 +59,8 @@
                 <section class="info-card" data-name="Kết quả thi card">
                     <div class="results-header-row">
                         <h2 class="card-title" style="margin-bottom: 0;">Kết quả thi</h2>
-                        <c:set var="isPassed" value="${result.status eq 'PASSED' || (not empty result.score && result.score >= 32)}" />
                         <c:choose>
-                            <c:when test="${isPassed}">
+                            <c:when test="${passed}">
                                 <div class="status-badge status-badge--pass">ĐẠT</div>
                             </c:when>
                             <c:otherwise>
@@ -72,7 +71,7 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="info-label">Điểm:</span>
-                            <span class="info-value">${not empty result.score ? result.score : '32'}/${not empty result.totalQuestions ? result.totalQuestions : '35'}</span>
+                            <span class="info-value">${not empty correctCount ? correctCount : 0}/${not empty totalQuestions ? totalQuestions : 35}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Số câu trả lời đúng:</span>

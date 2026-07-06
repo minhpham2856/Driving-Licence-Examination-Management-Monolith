@@ -1,35 +1,45 @@
 package enums;
-public enum Gender {
-    NAM("Nam"),
-    NU("Nữ");
-    private final String displayName;
-    Gender(String displayName) {
-        this.displayName = displayName;
+
+public enum Sex {
+    MALE("Nam", false),
+    FEMALE("Nữ", true);
+
+    private final String value;
+    private final boolean dbBit;
+
+    private Sex(String value, boolean dbBit) {
+        this.value = value;
+        this.dbBit = dbBit;
     }
-    public String getDisplayName() {
-        return displayName;
+
+    public String getValue() {
+        return value;
     }
-    public static String display(boolean male) {
-        return male ? NAM.getDisplayName() : NU.getDisplayName();
+
+    public boolean toDbBit() {
+        return dbBit;
     }
-    public static boolean isFemale(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
+
+    public static Sex fromValue(String value) {
+        if (value == null) {
+            return null;
         }
         String trimmed = value.trim();
-        return NU.matches(trimmed) || "0".equals(trimmed);
-    }
-    public static boolean isMale(String value) {
-        if (value == null || value.isBlank()) {
-            return true;
+        for (Sex gender : values()) {
+            if (gender.getValue().equalsIgnoreCase(trimmed)) {
+                return gender;
+            }
         }
-        String trimmed = value.trim();
-        return NAM.matches(trimmed) || "1".equals(trimmed);
-    }
-    public boolean matches(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
+        if ("1".equals(trimmed) || "nu".equalsIgnoreCase(trimmed)) {
+            return FEMALE;
         }
-        return displayName.equalsIgnoreCase(value.trim());
+        if ("0".equals(trimmed) || "nam".equalsIgnoreCase(trimmed)) {
+            return MALE;
+        }
+        return null;
+    }
+
+    public static Sex fromDbBit(boolean dbBit) {
+        return dbBit ? FEMALE : MALE;
     }
 }

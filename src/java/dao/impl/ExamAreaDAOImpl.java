@@ -130,7 +130,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         String sql = "SELECT * FROM ExamArea WHERE AreaType = ? ORDER BY AreaName";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, ExamSection.LY_THUYET.getDisplayName());
+            ps.setString(1, ExamSection.THEORY.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(map(rs));
             }

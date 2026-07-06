@@ -1,5 +1,5 @@
 package controller.examiner;
-import filter.ExaminerPortalFilter;
+import filter.ExaminerFilter;
 import model.User;
 import service.ExaminerActionsService;
 import service.ExaminerDataService;
@@ -7,20 +7,17 @@ import service.impl.ExaminerActionsServiceImpl;
 import service.impl.ExaminerDataServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 @WebServlet(urlPatterns = {
     "/views/examiner/result-details",
     "/views/examiner/result-details-edit"
 })
-public class ExaminerResultDetailsServlet extends HttpServlet {
+public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
     @Override
@@ -30,13 +27,13 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         if (session == null) {
             return;
         }
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = getActiveSessionId(session);
         String path = stripContextPath(request);
         Integer sbd = parseSbdParam(request.getParameter("sbd"));
         String search = request.getParameter("q");
         String action = request.getParameter("action");
         if (sessionId != null && sessionId > 0) {
-            if (isTheorySection(request)) {
+            if (isTheorySection(session)) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
             }
@@ -52,17 +49,18 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                     delta = Integer.parseInt(request.getParameter("delta"));
                 } catch (Exception e) {
                     response.sendRedirect(request.getContextPath() + path + "?sbd="
-                            + urlEncode(sbd) + "&error=invalidDeduction");
+                            + encodeSbd(sbd) + "&error=invalidDeduction");
                     return;
                 }
-                if (!examinerService.adjustScoreDeduction(sessionId, sbd, deductionId, delta,
-                        ((User) session.getAttribute("user")).getUserId())) {
+                if (!examinerService.adjustScoreDeduction(
+                        buildAdjustDeductionCommand(sessionId, sbd, deductionId, delta,
+                                ((User) session.getAttribute("user")).getUserId())).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + path + "?sbd="
-                            + urlEncode(sbd) + "&error=deductionFailed");
+                            + encodeSbd(sbd) + "&error=deductionFailed");
                     return;
                 }
                 response.sendRedirect(request.getContextPath() + path + "?sbd="
-                        + urlEncode(sbd));
+                        + encodeSbd(sbd));
                 return;
             }
             if ("/views/examiner/result-details-edit".equals(path)) {
@@ -82,10 +80,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                     request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
                 }
             } else {
-                Map<String, Object> data = viewDataService.getCandidateCallData(sessionId, sbd, search);
-                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-                }
+                viewDataService.getCandidateCallData(sessionId, sbd, search).applyTo(request);
             }
         }
         String jsp = "/views/examiner/result-details-edit".equals(path)
@@ -100,14 +95,14 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         if (session == null) {
             return;
         }
-        Integer sessionId = activeSessionId(session);
+        Integer sessionId = getActiveSessionId(session);
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
         String path = stripContextPath(request);
         if ("/views/examiner/result-details-edit".equals(path)) {
-            if (isTheorySection(request)) {
+            if (isTheorySection(session)) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
             }
@@ -132,14 +127,13 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                 forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Mật khẩu không đúng.");
                 return;
             }
-            boolean updated = examinerService.logPracticalScoreEditReason(
-                    sessionId, sbd, reason, reasonDetail, user, password, user.getUserId());
-            if (updated) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/result-details-edit?sbd="
-                        + urlEncode(sbd) + "&saved=1");
+            if (!examinerService.logPracticalScoreEditReason(
+                    buildScoreEditCommand(sessionId, sbd, null, reason, reasonDetail, user, password, user.getUserId())).isSuccess()) {
+                forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Lỗi");
                 return;
             }
-            forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Lỗi");
+            response.sendRedirect(request.getContextPath() + "/views/examiner/result-details-edit?sbd="
+                    + encodeSbd(sbd) + "&saved=1");
             return;
         }
         doGet(request, response);
@@ -161,43 +155,8 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         }
         request.getRequestDispatcher("/views/examiner/result-details-edit.jsp").forward(request, response);
     }
-    private HttpSession requireSession(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        }
-        return session;
-    }
-    private Integer activeSessionId(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        return (Integer) session.getAttribute(ExaminerPortalFilter.ATTR_ACTIVE_SESSION_ID);
-    }
-    private String stripContextPath(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        String ctx = request.getContextPath();
-        if (ctx != null && !ctx.isEmpty() && uri.startsWith(ctx)) {
-            return uri.substring(ctx.length());
-        }
-        return uri;
-    }
-    private Integer parseSbdParam(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        try {
-            int sbd = Integer.parseInt(raw.trim());
-            return sbd > 0 ? sbd : null;
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-    private boolean isTheorySection(HttpServletRequest request) {
-        return ExaminerPortalFilter.isTheorySession(request.getSession(false));
-    }
-    private String urlEncode(int value) {
-        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+
+    private boolean isTheorySection(HttpSession session) {
+        return ExaminerFilter.isTheorySession(session);
     }
 }

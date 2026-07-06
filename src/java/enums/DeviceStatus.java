@@ -1,62 +1,28 @@
 package enums;
 
 public enum DeviceStatus {
-    HOAT_DONG("Hoạt động", "device-grid-card--available"),
-    BAO_TRI("Bảo trì", "device-grid-card--maintenance"),
-    SAN_SANG("Sẵn sàng", "device-grid-card--available");
-    private final String displayName;
-    private final String cssClass;
+    ACTIVE("Hoạt động"),
+    MAINTENANCE("Bảo trì");
 
-    DeviceStatus(String displayName, String cssClass) {
-        this.displayName = displayName;
-        this.cssClass = cssClass;
+    private final String value;
+
+    private DeviceStatus(String value) {
+        this.value = value;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getValue() {
+        return value;
     }
 
-    public String getCssClass() {
-        return cssClass;
-    }
-
-    public boolean matches(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
+    public static DeviceStatus fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        return displayName.equalsIgnoreCase(value.trim());
-    }
-
-    public static boolean isActive(String value) {
-        if (value == null || value.isBlank()) {
-            return false;
-        }
-        DeviceStatus status = normalize(value);
-        return status == HOAT_DONG || status == SAN_SANG;
-    }
-
-    public static DeviceStatus normalize(String value) {
-        if (value == null || value.isBlank()) {
-            return BAO_TRI;
-        }
-        String trimmed = value.trim();
         for (DeviceStatus status : values()) {
-            if (status.matches(trimmed)) {
+            if (status.getValue().equals(value)) {
                 return status;
             }
         }
-        return BAO_TRI;
-    }
-
-    public static String fromActive(boolean active) {
-        return active ? HOAT_DONG.getDisplayName() : BAO_TRI.getDisplayName();
-    }
-
-    public static String readyLabel() {
-        return SAN_SANG.getDisplayName();
-    }
-
-    public static String cssClassFor(boolean active) {
-        return active ? HOAT_DONG.getCssClass() : BAO_TRI.getCssClass();
+        return null;
     }
 }

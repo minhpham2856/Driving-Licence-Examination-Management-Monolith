@@ -3,7 +3,7 @@
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="Sửa thông tin" />
+<c:set var="headerTitle" value="Thông tin thí sinh" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/candidate-details" scope="request" />
 <c:set var="detailEditUrl" value="${ctx}/views/examiner/candidate-details-edit" scope="request" />
 
@@ -52,6 +52,7 @@
                     <jsp:param name="showCheckbox" value="true" />
                     <jsp:param name="showExamDate" value="true" />
                     <jsp:param name="actionDetail" value="true" />
+                    <jsp:param name="showAddress" value="false" />
                 </jsp:include>
             </main>
         </div>

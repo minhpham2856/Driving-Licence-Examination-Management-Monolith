@@ -1,37 +1,32 @@
 package enums;
+
 public enum UserRole {
-    QUAN_TRI_VIEN("Quản trị viên"),
-    SAT_HACH_VIEN("Sát hạch viên"),
-    CAN_BO_QUAN_LY("Cán bộ quản lý"),
-    CAN_BO_KY_THI("Cán bộ kỳ thi"),
-    THI_SINH("Thí sinh"),
-    NGUOI_DANG_KY_THI("Người đăng ký thi");
-    private final String displayName;
-    UserRole(String displayName) {
-        this.displayName = displayName;
+    ADMIN("Quản trị viên"),
+    EXAMINER("Sát hạch viên"),
+    MANAGING_STAFF("Cán bộ quản lý"),
+    EXAM_STAFF("Cán bộ kỳ thi"),
+    CANDIDATE("Thí sinh"),
+    REGISTRANT("Người đăng ký thi");
+
+    private final String value;
+
+    private UserRole(String value) {
+        this.value = value;
     }
-    public String getDisplayName() {
-        return displayName;
+
+    public String getValue() {
+        return value;
     }
-    public boolean matches(String roleName) {
-        return roleName != null && displayName.equalsIgnoreCase(roleName.trim());
-    }
-    public static boolean isAdmin(String roleName) {
-        return QUAN_TRI_VIEN.matches(roleName);
-    }
-    public static boolean isExaminer(String roleName) {
-        return SAT_HACH_VIEN.matches(roleName);
-    }
-    public static boolean isManagingStaff(String roleName) {
-        return CAN_BO_QUAN_LY.matches(roleName);
-    }
-    public static boolean isExamStaff(String roleName) {
-        return CAN_BO_KY_THI.matches(roleName);
-    }
-    public static boolean isRegistrant(String roleName) {
-        return NGUOI_DANG_KY_THI.matches(roleName);
-    }
-    public static boolean isStaffPortalRole(String roleName) {
-        return isAdmin(roleName) || isExaminer(roleName) || isManagingStaff(roleName) || isExamStaff(roleName);
+
+    public static UserRole fromValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        for (UserRole role : values()) {
+            if (role.getValue().equals(value)) {
+                return role;
+            }
+        }
+        return null;
     }
 }

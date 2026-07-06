@@ -29,9 +29,9 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
     public List<Session> findActive() {
         return findByWhere(
                 " WHERE s.[Status] IN (?, ?, ?) ORDER BY s.StartTime",
-                ExamSessionStatus.CHUA_DIEN_RA.getDisplayName(),
+                ExamSessionStatus.NOT_STARTED.getValue(),
                 "Mở",
-                ExamSessionStatus.DANG_DIEN_RA.getDisplayName());
+                ExamSessionStatus.IN_PROGRESS.getValue());
     }
     @Override
     public List<Session> findAllOrdered() {
@@ -126,7 +126,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
     }
     private static Session mapSession(ResultSet rs) throws SQLException {
         Session session = new Session();
-        session.setId(rs.getInt("SessionId"));
+        session.setSessionId(rs.getInt("SessionId"));
         session.setSessionName(rs.getString("SessionName"));
         session.setStartTime(rs.getTimestamp("StartTime"));
         session.setEndTime(rs.getTimestamp("EndTime"));

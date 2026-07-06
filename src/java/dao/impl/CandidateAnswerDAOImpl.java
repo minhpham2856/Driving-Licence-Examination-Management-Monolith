@@ -29,34 +29,4 @@ public class CandidateAnswerDAOImpl extends DBContext implements CandidateAnswer
         }
         return list;
     }
-    @Override
-    public List<CandidateAnswer> findByTheoryPaperIds(List<Integer> theoryPaperIds) {
-        List<CandidateAnswer> list = new ArrayList<>();
-        if (theoryPaperIds == null || theoryPaperIds.isEmpty()) return list;
-        StringBuilder sb = new StringBuilder("SELECT ca.TheoryPaperId, ca.Answer, q.CorrectAnswer FROM CandidateAnswer ca ");
-        sb.append("LEFT JOIN Question q ON ca.QuestionId = q.QuestionId ");
-        sb.append("WHERE ca.TheoryPaperId IN (");
-        for (int i = 0; i < theoryPaperIds.size(); i++) {
-            sb.append(i == 0 ? "?" : ", ?");
-        }
-        sb.append(")");
-        try (PreparedStatement ps = getConnection().prepareStatement(sb.toString())) {
-            for (int i = 0; i < theoryPaperIds.size(); i++) {
-                ps.setInt(i + 1, theoryPaperIds.get(i));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    CandidateAnswer ca = new CandidateAnswer();
-                    ca.setTheoryPaperId(rs.getInt("TheoryPaperId"));
-                    ca.setAnswer(rs.getString("Answer"));
-                    String ans = ca.getAnswer();
-                    String correctAns = rs.getString("CorrectAnswer");
-                    boolean isCorrect = ans != null && correctAns != null && ans.equals(correctAns);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
 }

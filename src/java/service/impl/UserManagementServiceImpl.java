@@ -1,98 +1,164 @@
 package service.impl;
-import dao.DossierDAO;
+
+import dao.DocumentDAO;
+import dao.ExamRegistrationDAO;
+import dao.LicenceDAO;
 import dao.ProfileDAO;
-import dao.impl.DossierDAOImpl;
+import dao.impl.DocumentDAOImpl;
+import dao.impl.ExamRegistrationDAOImpl;
+import dao.impl.LicenceDAOImpl;
 import dao.impl.ProfileDAOImpl;
-import dto.CreateUserResultDTO;
-import dto.RegisterResultDTO;
+import dto.ServiceResult;
+import dto.payload.CreateManagedUserCommand;
+import dto.payload.CreateUserData;
+import dto.payload.ManagedDossierCommand;
+import dto.payload.RegisterData;
+import enums.ErrorType;
+import enums.RegistrationStatus;
+import enums.Sex;
+import model.Document;
+import model.ExamRegistration;
+import model.Licence;
 import model.Profile;
 import service.AuthService;
 import service.EmailService;
 import service.UserManagementService;
-import java.time.DateTimeException;
+import util.CredentialsUtil;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
-import enums.RegistrationStatus;
+
 public class UserManagementServiceImpl implements UserManagementService {
-    private static final Pattern CCCD_PATTERN = Pattern.compile("\\d{12}");
-    private static final Pattern PHONE_PATTERN = Pattern.compile("0\\d{9}");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Set<String> USER_TYPES = Set.of("student", "free");
-    private static final Set<String> LICENSE_CLASSES = Set.of(
-            "A1", "A2", "B1", "B2", "C1", "C", "D1", "D2", "D");
+
     private static final Set<String> REQUIRED_DOCUMENTS = Set.of(
             "PORTRAIT", "ID_FRONT", "ID_BACK", "HEALTH_CERTIFICATE");
     private final AuthService authService = new AuthServiceImpl();
     private final EmailService emailService = new EmailServiceImpl();
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
-    private final DossierDAO dossierDAO = new DossierDAOImpl();
+    private final ExamRegistrationDAO examRegistrationDAO = new ExamRegistrationDAOImpl();
+    private final DocumentDAO documentDAO = new DocumentDAOImpl();
+    private final LicenceDAO licenceDAO = new LicenceDAOImpl();
+
     @Override
-    public CreateUserResultDTO createUser(
-            String fullName, String cccd, String phone, String email,
-            String dob, String sex, String address, String userType, String licenseClass) {
-        String normalizedClass = normalizeLicenceClass(licenseClass);
-        String validationError = validate(
-                fullName, cccd, phone, email, dob, sex, address, userType, normalizedClass);
-        if (validationError != null) {
-            return new CreateUserResultDTO(false, validationError, null, null);
+    public ServiceResult<CreateUserData> createUser(CreateManagedUserCommand command) {
+        String normalizedClass = CredentialsUtil.normalizeLicenceClass(command.getLicenceClass());
+        // Business rule: minimum age depends on licence class
+        String ageError = validateMinimumAge(command.getDob(), normalizedClass);
+        if (ageError != null) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, ageError);
         }
         if (!emailService.isConfigured()) {
-            return new CreateUserResultDTO(false, "Chưa cấu hình email gửi đi. Vui lòng cấu hình MAIL_SENDER_USERNAME "
-                    + "và MAIL_SENDER_PASSWORD trong file .env, sau đó khởi động lại Tomcat.", null, null);
+            return ServiceResult.fail(ErrorType.NOT_CONFIGURED,
+                    "Chưa cấu hình email gửi đi. Vui lòng cấu hình MAIL_SENDER_USERNAME "
+                    + "và MAIL_SENDER_PASSWORD trong file .env, sau đó khởi động lại Tomcat.");
         }
-        boolean female = "female".equals(sex);
-        RegisterResultDTO result = authService.register(
-                cccd, fullName, phone, dob, address, email, female);
-        if (!result.isSuccess()) {
-            return new CreateUserResultDTO(false, result.getErrorMessage(), null, null);
+        Profile profile = buildProfileFromCommand(command);
+        ServiceResult<RegisterData> registerResult = authService.register(profile, command.getEmail());
+        if (!registerResult.isSuccess()) {
+            return ServiceResult.fail(registerResult.getErrorType(), registerResult.getMessage());
         }
-        Profile profile = profileDAO.getByGovIdNo(cccd);
-        Integer profileId = profile == null ? null : profile.getId();
-        Integer userId = profile == null ? null : profile.getUserId();
-        if (result.isEmailSent()) {
-            String message = "Tạo tài khoản thành công. Thông tin đăng nhập đã được gửi đến " + email + ".";
-            return new CreateUserResultDTO(true, message, null, null, profileId, userId);
+        RegisterData registerData = registerResult.getData();
+        Profile savedProfile = profileDAO.getByGovIdNo(command.getCccd());
+        Integer profileId = savedProfile == null ? null : savedProfile.getProfileId();
+        Integer userId = savedProfile == null ? null : savedProfile.getUserId();
+        CreateUserData data = new CreateUserData(profileId, userId, null, null);
+        if (registerData.isEmailSent()) {
+            String message = "Tạo tài khoản thành công. Thông tin đăng nhập đã được gửi đến "
+                    + command.getEmail() + ".";
+            return ServiceResult.ok(data, message);
         }
+        data.setUsername(registerData.getUsername());
+        data.setPassword(registerData.getPassword());
         String message = "Tạo tài khoản thành công nhưng chưa gửi được email. "
                 + "Hãy bàn giao thông tin đăng nhập bên dưới cho học viên.";
-        return new CreateUserResultDTO(true, message, result.getUsername(), result.getPassword(), profileId, userId);
+        return ServiceResult.ok(data, message);
     }
+
     @Override
-    public CreateUserResultDTO saveManagedDossier(
-            int profileId, String licenseClass, String applicantType,
-            Map<String, String> documentsByType, int actorUserId) {
-        String normalizedClass = normalizeLicenceClass(licenseClass);
-        String dossierError = validateDossierDocuments(normalizedClass, documentsByType);
+    public ServiceResult<Void> saveManagedDossier(ManagedDossierCommand command) {
+        String normalizedClass = CredentialsUtil.normalizeLicenceClass(command.getLicenceClass());
+        String dossierError = validateDossierDocuments(normalizedClass, command.getDocuments());
         if (dossierError != null) {
-            return new CreateUserResultDTO(false, dossierError, null, null);
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, dossierError);
         }
-        int registrationId = dossierDAO.ensureRegistration(
-                profileId, normalizedClass, "STAFF", applicantType);
+        Licence licence = licenceDAO.getByLicenceClass(normalizedClass);
+        if (licence == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND,
+                    "Chưa thể tạo hồ sơ GPLX tự động; vui lòng kiểm tra lại cấu hình hạng GPLX.");
+        }
+        int registrationId = examRegistrationDAO.getLatestIdByProfileAndLicence(
+                command.getProfileId(), licence.getLicenceId());
         if (registrationId <= 0) {
-            return new CreateUserResultDTO(false,
-                    "Chưa thể tạo hồ sơ GPLX tự động; vui lòng kiểm tra lại cấu hình hạng GPLX.",
-                    null, null);
+            ExamRegistration registration = new ExamRegistration();
+            registration.setRegistrationStatus(RegistrationStatus.PENDING.getValue());
+            registration.setNotes("SOURCE=STAFF;APPLICANT_TYPE=" + command.getApplicantType());
+            registration.setProfileId(command.getProfileId());
+            registration.setLicenceId(licence.getLicenceId());
+            registrationId = examRegistrationDAO.add(registration);
         }
-        for (Map.Entry<String, String> entry : documentsByType.entrySet()) {
+        if (registrationId <= 0) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
+                    "Chưa thể tạo hồ sơ GPLX tự động; vui lòng kiểm tra lại cấu hình hạng GPLX.");
+        }
+        String uploadedNote = "Đã tải lên";
+        for (Map.Entry<String, String> entry : command.getDocuments().entrySet()) {
             if (entry.getValue() == null || entry.getValue().isBlank()) {
                 continue;
             }
-            if (!dossierDAO.saveDocument(profileId, entry.getKey(), entry.getValue())) {
-                return new CreateUserResultDTO(false,
-                        "Không thể ghi thông tin tài liệu vào cơ sở dữ liệu.", null, null);
+            Document document = new Document();
+            document.setProfileId(command.getProfileId());
+            document.setDocumentType(entry.getKey());
+            document.setDocumentUrl(entry.getValue());
+            document.setNotes(uploadedNote);
+            if (!documentDAO.upsertByProfileAndType(document)) {
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
+                        "Không thể ghi thông tin tài liệu vào cơ sở dữ liệu.");
             }
         }
-        if (!dossierDAO.updateStatus(registrationId, RegistrationStatus.DUYET.getDisplayName(),
+        if (!examRegistrationDAO.updateStatusWithReviewNote(registrationId,
+                RegistrationStatus.APPROVED.getValue(),
                 "Hồ sơ bản giấy và tệp đính kèm đã được Managing Staff đối chiếu khi tạo tài khoản",
-                actorUserId)) {
-            return new CreateUserResultDTO(false,
-                    "Không thể cập nhật trạng thái hồ sơ.", null, null);
+                command.getActorUserId())) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
+                    "Không thể cập nhật trạng thái hồ sơ.");
         }
-        return new CreateUserResultDTO(true, "Hồ sơ đã được lưu và xác minh.", null, null);
+        return ServiceResult.ok(null, "Hồ sơ đã được lưu và xác minh.");
     }
+
+    public static boolean requiresGraduationCertificate(String licenseClass) {
+        String normalized = CredentialsUtil.normalizeLicenceClass(licenseClass);
+        return !Set.of("A1", "A2").contains(normalized);
+    }
+
+    private Profile buildProfileFromCommand(CreateManagedUserCommand command) {
+        Profile profile = new Profile();
+        profile.setGovernmentIdNumber(command.getCccd());
+        profile.setFullName(command.getFullName());
+        profile.setPhoneNumber(command.getPhone());
+        profile.setAddress(command.getAddress());
+        Sex sex = Sex.fromValue(command.getSex());
+        profile.setSex(sex != null && sex.toDbBit());
+        LocalDate dob = CredentialsUtil.parseIsoDate(command.getDob()).orElse(null);
+        if (dob != null) {
+            profile.setDateOfBirth(java.sql.Timestamp.valueOf(dob.atStartOfDay()));
+        }
+        return profile;
+    }
+
+    private String validateMinimumAge(String dob, String licenseClass) {
+        LocalDate dateOfBirth = CredentialsUtil.parseIsoDate(dob).orElse(null);
+        if (dateOfBirth == null) {
+            return "Ngày sinh không hợp lệ.";
+        }
+        int minimumAge = minimumAgeFor(licenseClass);
+        int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
+        if (age < minimumAge) {
+            return "Học viên phải đủ " + minimumAge + " tuổi để đăng ký hạng " + licenseClass + ".";
+        }
+        return null;
+    }
+
     private String validateDossierDocuments(String licenseClass, Map<String, String> documentsByType) {
         if (documentsByType == null) {
             return "Vui lòng tải đủ ảnh chân dung, hai mặt CCCD và giấy khám sức khỏe.";
@@ -111,71 +177,15 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
         return null;
     }
-    private String validate(String fullName, String cccd, String phone, String email,
-            String dob, String sex, String address, String userType, String licenseClass) {
-        if (fullName.isEmpty() || cccd.isEmpty() || phone.isEmpty() || email.isEmpty()
-                || dob.isEmpty() || sex.isEmpty() || address.isEmpty()
-                || userType.isEmpty() || licenseClass.isEmpty()) {
-            return "Vui lòng nhập đầy đủ thông tin bắt buộc.";
-        }
-        if (fullName.length() < 3 || fullName.length() > 50) {
-            return "Họ và tên phải có từ 3 đến 50 ký tự.";
-        }
-        if (!CCCD_PATTERN.matcher(cccd).matches()) {
-            return "Số CCCD phải gồm đúng 12 chữ số.";
-        }
-        if (!PHONE_PATTERN.matcher(phone).matches()) {
-            return "Số điện thoại phải bắt đầu bằng 0 và gồm đúng 10 chữ số.";
-        }
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            return "Địa chỉ email không hợp lệ.";
-        }
-        if (!Set.of("male", "female").contains(sex)) {
-            return "Giới tính không hợp lệ.";
-        }
-        if (address.length() < 5 || address.length() > 150) {
-            return "Địa chỉ phải có từ 5 đến 150 ký tự.";
-        }
-        if (!USER_TYPES.contains(userType)) {
-            return "Phân loại học viên không hợp lệ.";
-        }
-        if (!LICENSE_CLASSES.contains(licenseClass)) {
-            return "Hạng GPLX không hợp lệ.";
-        }
-        try {
-            LocalDate dateOfBirth = LocalDate.parse(dob);
-            if (dateOfBirth.isAfter(LocalDate.now())) {
-                return "Ngày sinh không được nằm trong tương lai.";
-            }
-            int minimumAge = minimumAgeFor(licenseClass);
-            int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
-            if (age < minimumAge) {
-                return "Học viên phải đủ " + minimumAge + " tuổi để đăng ký hạng " + licenseClass + ".";
-            }
-        } catch (DateTimeException ex) {
-            return "Ngày sinh không hợp lệ.";
-        }
-        return null;
-    }
-    static String normalizeLicenceClass(String value) {
-        if (value == null) {
-            return "";
-        }
-        String licenseClass = value.trim().toUpperCase();
-        return switch (licenseClass) {
-            case "A" -> "A2";
-            case "B" -> "B2";
-            default -> licenseClass;
-        };
-    }
-    static boolean requiresGraduationCertificate(String licenseClass) {
-        return !Set.of("A1", "A2").contains(normalizeLicenceClass(licenseClass));
-    }
+
     private static int minimumAgeFor(String licenseClass) {
-        return switch (normalizeLicenceClass(licenseClass)) {
-            case "C1", "C" -> 21;
-            case "D1", "D2", "D" -> 24;
-            default -> 18;
-        };
+        String normalized = CredentialsUtil.normalizeLicenceClass(licenseClass);
+        if ("C1".equals(normalized) || "C".equals(normalized)) {
+            return 21;
+        }
+        if ("D1".equals(normalized) || "D2".equals(normalized) || "D".equals(normalized)) {
+            return 24;
+        }
+        return 18;
     }
 }

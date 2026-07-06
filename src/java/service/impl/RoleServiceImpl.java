@@ -25,6 +25,6 @@ public class RoleServiceImpl implements RoleService {
             return 0;
         }
         Role role = roleDAO.getByName(roleName);
-        return role != null ? role.getId() : 0;
+        return role != null ? role.getRoleId() : 0;
     }
 }

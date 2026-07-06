@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import dto.ExaminerCandidateRowDTO;
 @WebServlet("/views/examiner/candidate-call")
 public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
@@ -45,15 +45,12 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             boolean isTheory = ExaminerFilter.isTheorySession(session);
             ExamSection examSection = getExamSection(session);
             String sectionName = examSection.getValue();
-            List<Map<String, Object>> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+            List<ExaminerCandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
             Lane lane = ExamQueue.laneFor(examSection);
             List<Integer> eligibleSbds = new ArrayList<>();
-            for (Map<String, Object> row : candidates) {
-                if (Boolean.TRUE.equals(row.get("callEligible"))) {
-                    Object sbdObj = row.get("sbd");
-                    if (sbdObj instanceof Number) {
-                        eligibleSbds.add(((Number) sbdObj).intValue());
-                    }
+            for (ExaminerCandidateRowDTO row : candidates) {
+                if (row.isCallEligible()) {
+                    eligibleSbds.add(row.getSbd());
                 }
             }
             ExamQueue.sync(lane, eligibleSbds);
@@ -62,11 +59,11 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             ExaminerCandidateSort.applyCandidateSort(request, candidates);
             if (search != null && !search.isBlank()) {
                 String q = search.trim().toLowerCase(Locale.ROOT);
-                List<Map<String, Object>> filtered = new ArrayList<>();
-                for (Map<String, Object> row : candidates) {
-                    String sbdVal = String.valueOf(row.get("sbd"));
-                    String name = String.valueOf(row.get("fullName"));
-                    String gov = String.valueOf(row.get("governmentId"));
+                List<ExaminerCandidateRowDTO> filtered = new ArrayList<>();
+                for (ExaminerCandidateRowDTO row : candidates) {
+                    String sbdVal = String.valueOf(row.getSbd());
+                    String name = row.getFullName() != null ? row.getFullName() : "";
+                    String gov = row.getGovernmentId() != null ? row.getGovernmentId() : "";
                     if (sbdVal.toLowerCase(Locale.ROOT).contains(q)
                             || name.toLowerCase(Locale.ROOT).contains(q)
                             || gov.toLowerCase(Locale.ROOT).contains(q)) {
@@ -79,9 +76,8 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             }
             request.setAttribute("candidates", candidates);
             if (sbd != null) {
-                for (Map<String, Object> row : candidates) {
-                    Object sbdObj = row.get("sbd");
-                    if (sbdObj instanceof Number && ((Number) sbdObj).intValue() == sbd) {
+                for (ExaminerCandidateRowDTO row : candidates) {
+                    if (row.getSbd() == sbd) {
                         request.setAttribute("candidate", row);
                         break;
                     }
@@ -232,34 +228,30 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         }
     }
 
-    private void enrichDeskState(List<Map<String, Object>> candidates, int sessionId, Lane lane) {
+    private void enrichDeskState(List<ExaminerCandidateRowDTO> candidates, int sessionId, Lane lane) {
         Integer activeSbd = ExamQueue.getActiveSbd(lane);
         Integer calledSbd = ExamQueue.getCalledSbd(lane);
-        for (Map<String, Object> row : candidates) {
-            Object sbdObj = row.get("sbd");
-            if (!(sbdObj instanceof Number)) {
-                continue;
-            }
-            int sbd = ((Number) sbdObj).intValue();
+        for (ExaminerCandidateRowDTO row : candidates) {
+            int sbd = row.getSbd();
             boolean present = ExamSessionState.isPresent(getServletContext(), sessionId, sbd);
             boolean inProcedure = ExamSessionState.isInProcedureQueue(getServletContext(), sessionId, sbd);
             boolean called = (activeSbd != null && activeSbd == sbd)
                     || (calledSbd != null && calledSbd == sbd);
-            row.put("present", present);
-            row.put("inProcedure", inProcedure);
-            row.put("markPresentEligible", called && !present && !inProcedure
-                    && !Boolean.TRUE.equals(row.get("suspended"))
-                    && !"awaiting".equals(row.get("status"))
-                    && !"done".equals(row.get("status")));
-            row.put("undoPresentEligible", present && !inProcedure
-                    && !Boolean.TRUE.equals(row.get("suspended"))
-                    && !"awaiting".equals(row.get("status"))
-                    && !"done".equals(row.get("status")));
-            row.put("wrongInfoEligible", called && !inProcedure
-                    && !Boolean.TRUE.equals(row.get("suspended"))
-                    && !"done".equals(row.get("status")));
-            row.put("violationEligible", !Boolean.TRUE.equals(row.get("suspended"))
-                    && !"done".equals(row.get("status")));
+            row.setPresent(present);
+            row.setInProcedure(inProcedure);
+            row.setMarkPresentEligible(called && !present && !inProcedure
+                    && !row.isSuspended()
+                    && !"awaiting".equals(row.getStatus())
+                    && !"done".equals(row.getStatus()));
+            row.setUndoPresentEligible(present && !inProcedure
+                    && !row.isSuspended()
+                    && !"awaiting".equals(row.getStatus())
+                    && !"done".equals(row.getStatus()));
+            row.setWrongInfoEligible(called && !inProcedure
+                    && !row.isSuspended()
+                    && !"done".equals(row.getStatus()));
+            row.setViolationEligible(!row.isSuspended()
+                    && !"done".equals(row.getStatus()));
         }
     }
 }

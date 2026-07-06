@@ -48,9 +48,9 @@ public class ProcedureServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
-        int examSessionId = resolveSessionId(session, null, null);
+        int examSessionId = getSelectedSessionId(session, null, null);
         List<CandidateEnrollmentDTO> qList = refreshQueueFromDb(session, webRoot, examSessionId);
-        String sbdParam = resolveSbd(request, session);
+        String sbdParam = getCurrentSbd(request, session);
         boolean sbdChanged = trackSbdChange(session, sbdParam);
         CandidateEnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         session.setAttribute("candidateQueue", qList);
@@ -60,7 +60,7 @@ public class ProcedureServlet extends HttpServlet {
                 session.setAttribute("candidateQueue", qList);
             }
         }
-        String stepParam = resolveStep(request, session, profile, sbdChanged);
+        String stepParam = getProcedureStep(request, session, profile, sbdChanged);
         boolean hasValidPhoto = profile != null && profile.isValidCapturedPhoto();
         if ("3".equals(stepParam) && profile != null && !hasValidPhoto && !profile.isPaymentCompleted()) {
             stepParam = "2";
@@ -71,7 +71,7 @@ public class ProcedureServlet extends HttpServlet {
         request.setAttribute("hasValidPhoto", hasValidPhoto);
         String action = request.getParameter("action");
         if ("nextCandidate".equals(action)) {
-            advanceToNextCandidate(session, qList, webRoot, resolveSessionId(session, profile, qList));
+            advanceToNextCandidate(session, qList, webRoot, getSelectedSessionId(session, profile, qList));
             response.sendRedirect("candidatecall");
             return;
         }
@@ -121,7 +121,7 @@ public class ProcedureServlet extends HttpServlet {
             HttpSession session = request.getSession();
             String webRoot = request.getServletContext().getRealPath("/");
             List<CandidateEnrollmentDTO> qList = loadQueue(session, webRoot);
-            handleSaveCapturedPhoto(request, response, session, resolveSbd(request, session), qList, webRoot);
+            handleSaveCapturedPhoto(request, response, session, getCurrentSbd(request, session), qList, webRoot);
             return;
         }
         if ("confirmPayment".equals(action)) {
@@ -192,7 +192,7 @@ public class ProcedureServlet extends HttpServlet {
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, CandidateEnrollmentDTO profile, String sbdParam,
             List<CandidateEnrollmentDTO> qList, String webRoot) throws IOException, ServletException {
-        int examSessionId = resolveSessionId(session, profile, qList);
+        int examSessionId = getSelectedSessionId(session, profile, qList);
         profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
         if (profile == null) {
             response.sendRedirect("candidatecall");
@@ -269,7 +269,7 @@ public class ProcedureServlet extends HttpServlet {
             HttpSession session, String sbdParam, List<CandidateEnrollmentDTO> qList, String webRoot)
             throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        int examSessionId = resolveSessionId(session, null, qList);
+        int examSessionId = getSelectedSessionId(session, null, qList);
         CandidateEnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         if (profile == null) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST,
@@ -340,7 +340,7 @@ public class ProcedureServlet extends HttpServlet {
     private String escapeJson(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
-    private String resolveStep(HttpServletRequest request, HttpSession session,
+    private String getProcedureStep(HttpServletRequest request, HttpSession session,
             CandidateEnrollmentDTO profile, boolean sbdChanged) {
         String stepParam = request.getParameter("step");
         if (sbdChanged) {
@@ -422,10 +422,10 @@ public class ProcedureServlet extends HttpServlet {
         return fresh;
     }
     private List<CandidateEnrollmentDTO> loadQueue(HttpSession session, String webRoot) {
-        int examSessionId = resolveSessionId(session, null, null);
+        int examSessionId = getSelectedSessionId(session, null, null);
         return refreshQueueFromDb(session, webRoot, examSessionId);
     }
-    private String resolveSbd(HttpServletRequest request, HttpSession session) {
+    private String getCurrentSbd(HttpServletRequest request, HttpSession session) {
         String sbdParam = request.getParameter("sbd");
         if (sbdParam == null || sbdParam.isBlank()) {
             sbdParam = (String) session.getAttribute("callingSbd");
@@ -450,7 +450,7 @@ public class ProcedureServlet extends HttpServlet {
         profile.setPracticalScore(null);
         profile.setRoadTestScore(null);
     }
-    private int resolveSessionId(HttpSession session, CandidateEnrollmentDTO profile,
+    private int getSelectedSessionId(HttpSession session, CandidateEnrollmentDTO profile,
             List<CandidateEnrollmentDTO> qList) {
         if (profile != null && profile.getExamSessionId() > 0) {
             return profile.getExamSessionId();

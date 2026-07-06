@@ -1,32 +1,64 @@
-package service;
-import java.sql.*;
-import model.*;
-import dto.CandidateEnrollmentDTO;
-import dto.UploadRecordDTO;
-import java.util.List;
-import java.util.Map;
-public interface ExamRegistrationService {
-    CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, int sbd);
-    List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId);
-    boolean updateProfile(int candidateId, String fullName, Date dob, String govIdNo, String email, String phoneNo);
-    boolean updatePhoto(int candidateId, String photoUrl);
-    boolean markAbsent(int candidateId);
-    boolean clearAbsentMarking(int candidateId);
-    boolean markSuspended(int candidateId);
-    boolean undoSuspension(int candidateId);
-    List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
-    boolean updateScores(int candidateId, Integer theoryScore, String theoryResult, Integer pracScore, String pracResult);
-    boolean updatePresent(int candidateId, boolean isPresent);
-    boolean updateAllocatedRoom(int candidateId, int areaId, String areaName);
-    boolean updatePayment(int candidateId, boolean isPaid);
-    boolean insertPayment(Payment payment);
-    CandidateEnrollmentDTO getById(int candidateId);
-    Integer findCandidateIdByProfileAndSession(int profileId, int sessionId);
-    boolean insert(UploadRecordDTO dto);
-    boolean insertProfile(Profile profile);
-    boolean updateProfile(Profile profile);
-    Profile getProfileByGovId(String govId);
-    boolean insertUser(User user);
-    User getUserByUsername(String username);
-    boolean updateRoadScore(int candidateId, int score, String passed);
-}
+package service;
+
+import dto.CandidateEnrollmentDTO;
+import dto.ServiceResult;
+import dto.UploadRecordDTO;
+import dto.payload.UpdateAllocatedRoomCommand;
+import dto.payload.UpdateEnrollmentProfileCommand;
+import dto.payload.UpdateEnrollmentScoresCommand;
+import dto.payload.UpdateRoadScoreCommand;
+import model.Payment;
+import model.Profile;
+import model.User;
+
+import java.util.List;
+import java.util.Map;
+
+public interface ExamRegistrationService {
+
+    CandidateEnrollmentDTO getBySessionAndSbd(int sessionId, int sbd);
+
+    List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId);
+
+    ServiceResult<Void> updateProfile(UpdateEnrollmentProfileCommand command);
+
+    ServiceResult<Void> updatePhoto(int candidateId, String photoUrl);
+
+    ServiceResult<Void> markAbsent(int candidateId);
+
+    ServiceResult<Void> clearAbsentMarking(int candidateId);
+
+    ServiceResult<Void> markSuspended(int candidateId);
+
+    ServiceResult<Void> undoSuspension(int candidateId);
+
+    List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
+
+    ServiceResult<Void> updateScores(UpdateEnrollmentScoresCommand command);
+
+    ServiceResult<Void> updatePresent(int candidateId, boolean isPresent);
+
+    ServiceResult<Void> updateAllocatedRoom(UpdateAllocatedRoomCommand command);
+
+    ServiceResult<Void> updatePayment(int candidateId, boolean isPaid);
+
+    boolean insertPayment(Payment payment);
+
+    CandidateEnrollmentDTO getById(int candidateId);
+
+    Integer findCandidateIdByGovIdAndSession(String governmentIdNumber, int sessionId);
+
+    ServiceResult<Void> insert(UploadRecordDTO dto);
+
+    boolean insertProfile(Profile profile);
+
+    boolean updateProfile(Profile profile);
+
+    Profile getProfileByGovId(String govId);
+
+    boolean insertUser(User user);
+
+    User getUserByUsername(String username);
+
+    ServiceResult<Void> updateRoadScore(UpdateRoadScoreCommand command);
+}

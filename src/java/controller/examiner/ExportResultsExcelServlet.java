@@ -1,20 +1,22 @@
 package controller.examiner;
+
 import dto.ExaminerExportContext;
-import dto.ExaminerExportPayload;
-import service.ExaminerExportService;
-import service.XmlService;
-import service.impl.ExaminerExportServiceImpl;
-import service.impl.XmlServiceImpl;
+import enums.DocumentFormat;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import service.ExaminerDocumentService;
+import service.impl.ExaminerDocumentServiceImpl;
+
 import java.io.IOException;
 import java.io.OutputStream;
+
 @WebServlet("/examiner/export/results")
 public class ExportResultsExcelServlet extends BaseExaminerExportServlet {
-    private final XmlService fileService = new XmlServiceImpl();
-    private final ExaminerExportService exportService = new ExaminerExportServiceImpl();
+
+    private final ExaminerDocumentService documentService = new ExaminerDocumentServiceImpl();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -22,10 +24,9 @@ public class ExportResultsExcelServlet extends BaseExaminerExportServlet {
         if (ctx == null) {
             return;
         }
-        ExaminerExportPayload payload = exportService.buildResultsExport(ctx);
         prepareExcelDownload(response, "ket-qua-thi.xlsx");
         OutputStream out = response.getOutputStream();
-        fileService.exportToExcel(payload.excelSheetName(), payload.primaryHeaders(), payload.primaryRows(), out);
+        documentService.export(ctx, "results", DocumentFormat.EXCEL, null, out);
         flush(out);
     }
 }

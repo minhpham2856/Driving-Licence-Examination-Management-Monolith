@@ -3,6 +3,7 @@
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="printDocxUrl" value="${ctx}/examiner/print/docx" />
 <c:set var="headerTitle" value="In văn bản" />
 
 <!--page-->
@@ -55,7 +56,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="print-btn">
+                            <a href="${printDocxUrl}?type=minutes" class="print-btn" target="_blank" rel="noopener">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
@@ -72,7 +73,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="print-btn">
+                            <a href="${printDocxUrl}?type=candidates" class="print-btn" target="_blank" rel="noopener">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
@@ -89,7 +90,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="print-btn">
+                            <a href="${printDocxUrl}?type=results" class="print-btn" target="_blank" rel="noopener">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
@@ -123,7 +124,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="#" class="print-btn">
+                            <a href="${printDocxUrl}?type=violations" class="print-btn" target="_blank" rel="noopener">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
