@@ -40,31 +40,13 @@
                     <div class="session-shift-chip">
                         <span class="session-shift-chip__meta">
                             <strong>${ds.sessionName}</strong>
-                            (<c:if test="${not empty ds.shiftStartTime}"><fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/></c:if><c:if test="${empty ds.shiftStartTime}">--</c:if>–<c:if test="${not empty ds.shiftEndTime}"><fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/></c:if><c:if test="${empty ds.shiftEndTime}">--</c:if>)
-                            — <c:choose>
-                                <c:when test="${fn:contains(ds.examTypeName, 'Lý thuyết') or ds.examTypeName eq 'Theory'}">Lý thuyết</c:when>
-                                <c:when test="${fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành') or ds.examTypeName eq 'Practical'}">Sa hình</c:when>
-                                <c:when test="${fn:contains(ds.examTypeName, 'Đường') or ds.examTypeName eq 'OnRoad'}">Đường trường</c:when>
-                                <c:otherwise>${ds.examTypeName}</c:otherwise>
-                            </c:choose>
-                            — <em>${ds.status}</em>
                         </span>
-                        <c:if test="${ds.status ne 'InProgress' and ds.status ne 'Completed' and ds.status ne 'Cancelled'}">
-                            <form action="session-control" method="POST" class="session-shift-chip__form" onsubmit="return confirm('Bắt đầu ca ${ds.sessionName}?');">
-                                <input type="hidden" name="action" value="startSession">
-                                <input type="hidden" name="sessionId" value="${ds.id}">
-                                <input type="hidden" name="redirect" value="dashboard">
-                                <button type="submit" class="btn-filter session-shift-chip__btn">Bắt đầu</button>
-                            </form>
-                        </c:if>
-                        <c:if test="${ds.status eq 'InProgress'}">
-                            <form action="session-control" method="POST" class="session-shift-chip__form" onsubmit="return confirm('Kết thúc ca ${ds.sessionName}?');">
-                                <input type="hidden" name="action" value="endSession">
-                                <input type="hidden" name="sessionId" value="${ds.id}">
-                                <input type="hidden" name="redirect" value="dashboard">
-                                <button type="submit" class="btn-export session-shift-chip__btn session-shift-chip__btn--end">Kết thúc</button>
-                            </form>
-                        </c:if>
+                        <jsp:include page="/views/staff/examstaff/includes/session-shift-controls.jsp">
+                            <jsp:param name="sessionId" value="${ds.id}" />
+                            <jsp:param name="sessionName" value="${ds.sessionName}" />
+                            <jsp:param name="status" value="${ds.status}" />
+                            <jsp:param name="redirect" value="dashboard" />
+                        </jsp:include>
                     </div>
                 </c:forEach>
                 <c:if test="${empty examSessions}">

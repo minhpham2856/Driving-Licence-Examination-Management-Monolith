@@ -285,10 +285,11 @@ body.examstaff-portal .dashboard-sessions-panel__desc a:hover {
     text-decoration: underline;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__chips {
+body.examstaff-portal .dashboard-sessions-panel__chips,
+body.examstaff-portal .session-shift-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
 }
 
 body.examstaff-portal .dashboard-sessions-panel__empty {
@@ -309,20 +310,31 @@ body.examstaff-portal .dashboard-metrics-row {
 
 /* Ca thi trên dashboard */
 body.examstaff-portal .session-shift-chip {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 10px 12px;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 13px;
     line-height: 1.4;
+    box-sizing: border-box;
 }
 
 body.examstaff-portal .session-shift-chip__meta {
+    flex: 1;
+    min-width: 0;
     color: #334155;
+}
+
+body.examstaff-portal .session-shift-chip__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 body.examstaff-portal .session-shift-chip__form {
@@ -342,6 +354,12 @@ body.examstaff-portal .session-shift-chip__btn {
 body.examstaff-portal .session-shift-chip__btn--end {
     color: #b91c1c;
     border-color: #fecaca;
+}
+
+body.examstaff-portal .session-shift-chip__btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 @media (max-width: 960px) {

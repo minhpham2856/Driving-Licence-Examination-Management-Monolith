@@ -1,4 +1,7 @@
 package enums;
+
+import java.util.Locale;
+
 public enum ExamSessionStatus {
     CHUA_DIEN_RA("Chưa diễn ra"),
     MO("Mở"),
@@ -28,7 +31,13 @@ public enum ExamSessionStatus {
                 return status;
             }
         }
-        return CHUA_DIEN_RA;
+        return switch (trimmed.toLowerCase(Locale.ROOT)) {
+            case "scheduled", "open" -> MO;
+            case "inprogress", "in progress" -> DANG_DIEN_RA;
+            case "completed", "complete" -> HOAN_TAT;
+            case "cancelled", "canceled" -> DA_HUY;
+            default -> CHUA_DIEN_RA;
+        };
     }
     public static boolean canStart(String status) {
         ExamSessionStatus normalized = normalize(status);

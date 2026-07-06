@@ -24,37 +24,21 @@
             <div class="examiner-panel-card examiner-panel-card--spaced">
                 <h3>Kỳ thi hạng ${currentSession.licenseCode} — <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></h3>
                 <p class="es-text-muted-sm" style="margin: 0 0 10px 0;">Các ca trong kỳ thi (phân công giám khảo theo từng ca/môn):</p>
+                <div class="session-shift-list">
                 <c:forEach var="ds" items="${examSessions}">
-                    <div class="session-pill" style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 8px 4px 0;">
-                        <span>
+                    <div class="session-shift-chip">
+                        <span class="session-shift-chip__meta">
                             <strong>${ds.sessionName}</strong>
-                            (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
-                            — <c:choose>
-                                <c:when test="${ds.examTypeName eq 'Theory' or fn:contains(ds.examTypeName, 'Lý thuyết')}">Lý thuyết</c:when>
-                                <c:when test="${ds.examTypeName eq 'Practical' or fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành')}">Sa hình / Thực hành</c:when>
-                                <c:when test="${ds.examTypeName eq 'OnRoad' or fn:contains(ds.examTypeName, 'Đường')}">Đường trường</c:when>
-                                <c:otherwise>${ds.examTypeName}</c:otherwise>
-                            </c:choose>
-                            — <em>${ds.status}</em>
                         </span>
-                        <c:if test="${ds.status ne 'InProgress' and ds.status ne 'Completed'}">
-                            <form action="session-control" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Bắt đầu ca ${ds.sessionName}?');">
-                                <input type="hidden" name="action" value="startSession">
-                                <input type="hidden" name="sessionId" value="${ds.id}">
-                                <input type="hidden" name="redirect" value="examiner-allocation">
-                                <button type="submit" class="btn-filter" style="height: 28px; padding: 0 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700;">Bắt đầu ca</button>
-                            </form>
-                        </c:if>
-                        <c:if test="${ds.status eq 'InProgress'}">
-                            <form action="session-control" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Kết thúc ca ${ds.sessionName}?');">
-                                <input type="hidden" name="action" value="endSession">
-                                <input type="hidden" name="sessionId" value="${ds.id}">
-                                <input type="hidden" name="redirect" value="examiner-allocation">
-                                <button type="submit" class="btn-export" style="height: 28px; padding: 0 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: #b91c1c; border-color: #fecaca;">Kết thúc ca</button>
-                            </form>
-                        </c:if>
+                        <jsp:include page="/views/staff/examstaff/includes/session-shift-controls.jsp">
+                            <jsp:param name="sessionId" value="${ds.id}" />
+                            <jsp:param name="sessionName" value="${ds.sessionName}" />
+                            <jsp:param name="status" value="${ds.status}" />
+                            <jsp:param name="redirect" value="examiner-allocation" />
+                        </jsp:include>
                     </div>
                 </c:forEach>
+                </div>
             </div>
 
             <div class="examiner-grid">
