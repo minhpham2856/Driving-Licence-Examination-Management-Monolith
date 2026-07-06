@@ -115,6 +115,17 @@ public class AllocationServlet extends HttpServlet {
             request.setAttribute("sortDir", sortSpec.isAscending() ? "asc" : "desc");
             String sessionIdParam = sessionId > 0 ? String.valueOf(sessionId) : request.getParameter("sessionId");
 
+            if (action == null && sessionId > 0
+                    && AllocationStageHelper.STAGE_OVERVIEW.equals(stage)) {
+                ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
+                AutoAllocateResultDTO allocResult = allocationService.autoAllocateSession(sessionId);
+                if (allocResult.allocatedCount > 0) {
+                    qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
+                            pageCtx.getAllSessions());
+                    ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+                }
+            }
+
             if (action != null) {
                 try {
                     if ("autoAllocate".equals(action)) {
@@ -151,6 +162,14 @@ public class AllocationServlet extends HttpServlet {
                                 }
                             }
                         }
+                        if (profile == null && sessionId > 0) {
+                            for (ExamRegistrationDTO c : regDAO.getCandidatesBySession(sessionId)) {
+                                if (c.getId() == regId) {
+                                    profile = c;
+                                    break;
+                                }
+                            }
+                        }
                         if (profile != null) {
                             handleCandidateAction(request, session, sessionId, regId, action, profile);
                             String returnPath = AllocationStageHelper.inferServletPathFromAction(action);
@@ -158,6 +177,8 @@ public class AllocationServlet extends HttpServlet {
                             stage = AllocationStageHelper.resolveStageFromServletPath(returnPath);
                             resultFilter = AllocationStageHelper.resolveResultFilterFromServletPath(returnPath);
                             jspPath = AllocationStageHelper.resolveJspPath(returnPath);
+                        } else if (regIdStr != null) {
+                            request.setAttribute("errorMsg", "Không tìm thấy thí sinh để xử lý.");
                         }
                     }
                 } catch (Exception e) {
@@ -165,11 +186,24 @@ public class AllocationServlet extends HttpServlet {
                     request.setAttribute("errorMsg", "Lỗi xử lý: " + e.getMessage());
                 }
 
+                ExamStaffViewHelper.clearCandidateCache(session);
                 qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
                         pageCtx.getAllSessions());
                 ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
                 session.setAttribute("lastLoadedSessionId", sessionId);
+
+                if (shouldRedirectAfterAction(action)) {
+                    stashAllocationFlash(session, request);
+                    String redirectPath = servletPath;
+                    response.sendRedirect(buildRedirectUrl(request, redirectPath, sessionId, page, pageSize,
+                            searchQ, sortSpec));
+                    return;
+                }
             }
+
+            ExamStaffViewHelper.consumeFlash(session, "allocationFlashMsg", request, "alertMsg");
+            ExamStaffViewHelper.consumeFlash(session, "allocationFlashError", request, "errorMsg");
+            ExamStaffViewHelper.consumeFlash(session, "allocationFlashWarn", request, "warningMsg");
 
             CandidateCallBoardService callBoardService = new CandidateCallBoardServiceImpl();
             CandidateCallBoardStateDTO state = callBoardService.getState(getServletContext(), sessionId);
@@ -237,16 +271,37 @@ public class AllocationServlet extends HttpServlet {
             }
         } else if ("allocateRoom".equals(action)) {
             int areaId = Integer.parseInt(request.getParameter("areaId"));
+            int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamSessionId();
+            if (enrollSessionId <= 0) {
+                request.setAttribute("errorMsg", "Không xác định được ca thi để đổi phòng.");
+                return;
+            }
             ExamArea targetArea = areaDAO.getById(areaId);
-            if (targetArea != null && profile.getAllocatedAreaId() != areaId) {
-                if (regDAO.updateAllocatedRoom(regId, targetArea.getId(), targetArea.getAreaName())) {
-                    profile.setAllocatedAreaId(targetArea.getId());
-                    profile.setAllocatedAreaName(targetArea.getAreaName());
-                    profile.setNotes("AllocatedRoom:" + targetArea.getId() + ":" + targetArea.getAreaName());
-                    addAuditLog(session, "UPDATE ExamRegistrationDTO",
-                            "Chuyển phòng thi → " + targetArea.getAreaName() + " cho SBD " + profile.getSbd(),
-                            regId);
-                }
+            if (targetArea == null
+                    || !enums.ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(targetArea.getAreaType())) {
+                request.setAttribute("errorMsg", "Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết từ ExamArea.");
+                return;
+            }
+            Integer currentAreaId = profile.getAllocatedAreaId();
+            if (currentAreaId != null && currentAreaId == areaId) {
+                return;
+            }
+            String allocationConflict = regDAO.validateUniqueTheoryAllocation(regId, enrollSessionId);
+            if (allocationConflict != null) {
+                request.setAttribute("errorMsg", allocationConflict);
+                return;
+            }
+            if (regDAO.updateAllocatedRoom(regId, enrollSessionId, targetArea.getId(), targetArea.getAreaName())) {
+                profile.setAllocatedAreaId(targetArea.getId());
+                profile.setAllocatedAreaName(targetArea.getAreaName());
+                profile.setNotes("AllocatedRoom:" + targetArea.getId() + ":" + targetArea.getAreaName());
+                request.setAttribute("alertMsg", "Đã đổi phòng → " + targetArea.getAreaName());
+                addAuditLog(session, "UPDATE ExamRegistrationDTO",
+                        "Chuyển phòng thi → " + targetArea.getAreaName() + " cho SBD " + profile.getSbd(),
+                        regId);
+            } else {
+                request.setAttribute("errorMsg",
+                        "Không lưu được phòng thi cho SBD " + profile.getSbd() + ". Kiểm tra máy thi trong phòng.");
             }
         } else if ("submitTheoryScore".equals(action)) {
             int score = Integer.parseInt(request.getParameter("score"));
@@ -389,5 +444,45 @@ public class AllocationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+
+    private static boolean shouldRedirectAfterAction(String action) {
+        return action != null && !"callCandidate".equals(action);
+    }
+
+    private static void stashAllocationFlash(HttpSession session, HttpServletRequest request) {
+        if (session == null || request == null) {
+            return;
+        }
+        Object alert = request.getAttribute("alertMsg");
+        if (alert != null) {
+            session.setAttribute("allocationFlashMsg", alert);
+        }
+        Object error = request.getAttribute("errorMsg");
+        if (error != null) {
+            session.setAttribute("allocationFlashError", error);
+        }
+        Object warn = request.getAttribute("warningMsg");
+        if (warn != null) {
+            session.setAttribute("allocationFlashWarn", warn);
+        }
+    }
+
+    private static String buildRedirectUrl(HttpServletRequest request, String servletPath, int sessionId,
+            int page, int pageSize, String searchQ, ExamRegistrationSort.Spec sortSpec) {
+        String extra = AllocationStageHelper.buildExtraQuery(page, pageSize, searchQ,
+                sessionId > 0 ? String.valueOf(sessionId) : null,
+                sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc");
+        StringBuilder url = new StringBuilder(request.getContextPath()).append(servletPath);
+        if (extra != null && !extra.isBlank()) {
+            url.append('?').append(extra.startsWith("&") ? extra.substring(1) : extra);
+        } else if (sessionId > 0) {
+            url.append("?sessionId=").append(sessionId);
+        } else {
+            url.append("?_=").append(System.currentTimeMillis());
+            return url.toString();
+        }
+        url.append("&_=").append(System.currentTimeMillis());
+        return url.toString();
     }
 }

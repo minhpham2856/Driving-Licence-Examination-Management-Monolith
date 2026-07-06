@@ -231,7 +231,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     SELECT TOP 1 p.PaymentId
                     FROM Payment p
                     INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                    WHERE ee.CandidateId = ? AND p.PaymentStatus IN ('Completed', 'Paid')
+                    WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
                     """;
             try (PreparedStatement ps = getConnection().prepareStatement(check)) {
                 ps.setInt(1, id);
@@ -271,7 +271,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 FROM Payment p
                 INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
     // Xac dinh exam id for candidate
-                WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid')
+                WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
@@ -364,27 +364,102 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     @Override
-    public boolean updateAllocatedRoom(int id, int areaId, String areaName) {
-        String sql = """
+    public boolean updateAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName) {
+        if (candidateId <= 0 || sessionId <= 0 || areaId <= 0) {
+            return false;
+        }
+        if (validateUniqueTheoryAllocation(candidateId, sessionId) != null) {
+            return false;
+        }
+        String assignDeviceSql = """
                 UPDATE ee SET ee.ExamDeviceId = (
                     SELECT TOP 1 ed.ExamDeviceId
                     FROM ExamDevice ed
                     WHERE ed.ExamAreaId = ?
-    // Gan thiet bi / xe cho thi sinh
-                    ORDER BY ed.ExamDeviceId
+                      AND ISNULL(ed.IsActive, 1) = 1
+                    ORDER BY
+                      CASE WHEN ed.ExamDeviceId IN (
+                        SELECT ee2.ExamDeviceId FROM ExamEnrollment ee2
+                        WHERE ee2.SessionId = ? AND ee2.ExamDeviceId IS NOT NULL
+                          AND ee2.CandidateId <> ?
+                      ) THEN 1 ELSE 0 END,
+                      ed.ExamDeviceId
                 )
                 FROM ExamEnrollment ee
-                WHERE ee.CandidateId = ?
+                WHERE ee.CandidateId = ? AND ee.SessionId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(assignDeviceSql)) {
             ps.setInt(1, areaId);
-    // Cap nhat diem ly thuyet va thuc hanh
-            ps.setInt(2, id);
+            ps.setInt(2, sessionId);
+            ps.setInt(3, candidateId);
+            ps.setInt(4, candidateId);
+            ps.setInt(5, sessionId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public String validateUniqueTheoryAllocation(int candidateId, int sessionId) {
+        if (candidateId <= 0 || sessionId <= 0) {
+            return "Không xác định được ca thi để phân phòng.";
+        }
+        int examId = resolveExamIdForSession(sessionId);
+        if (examId <= 0) {
+            return "Không xác định được kỳ thi.";
+        }
+        String sql = """
+                SELECT ee.SessionId, s.SessionName, ea.ExamAreaId, ea.AreaName
+                FROM ExamEnrollment ee
+                INNER JOIN [Session] s ON s.SessionId = ee.SessionId
+                LEFT JOIN ExamDevice ed ON ed.ExamDeviceId = ee.ExamDeviceId
+                LEFT JOIN ExamArea ea ON ea.ExamAreaId = ed.ExamAreaId
+                WHERE ee.CandidateId = ?
+                  AND s.ExamId = ?
+                  AND ee.ExamDeviceId IS NOT NULL
+                  AND ee.SessionId <> ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            ps.setInt(2, examId);
+            ps.setInt(3, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String sessionName = rs.getString("SessionName");
+                    String areaName = rs.getString("AreaName");
+                    if (sessionName == null || sessionName.isBlank()) {
+                        sessionName = "ca #" + rs.getInt("SessionId");
+                    }
+                    if (areaName == null || areaName.isBlank()) {
+                        areaName = "phòng #" + rs.getInt("ExamAreaId");
+                    }
+                    return "Thí sinh đã được phân phòng \"" + areaName.trim()
+                            + "\" ở ca \"" + sessionName.trim()
+                            + "\". Trong một kỳ thi, mỗi thí sinh chỉ được một ca và một phòng thi.";
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Không kiểm tra được phân phòng hiện tại của thí sinh.";
+        }
+        return null;
+    }
+
+    private int resolveExamIdForSession(int sessionId) {
+        String sql = "SELECT ExamId FROM [Session] WHERE SessionId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, sessionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ExamId");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     @Override
@@ -625,7 +700,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             int takeNo = reg.getTakeNo() > 0 ? reg.getTakeNo() : 1;
             String sqlCand = """
                     INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
-                        GovernmentIdNumber, Address, TakeTheory, TakePractical, TakeOnRoad,
+                        GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeRoad,
                         TakeNo, ReasonForTaking, IsAbsent, IsSuspended, UserId)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
                     """;
@@ -704,7 +779,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             int takeNo = reg.getTakeNo() > 0 ? reg.getTakeNo() : 1;
             String sqlCand = """
                     INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
-                        GovernmentIdNumber, Address, TakeTheory, TakePractical, TakeOnRoad,
+                        GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeRoad,
                         TakeNo, ReasonForTaking, IsAbsent, IsSuspended, UserId)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
                     """;

@@ -34,7 +34,13 @@ public interface ExamRegistrationDAO {
     boolean updateComputer(int id, String computerCode);
 
     // Cap nhat phong da phan bo
-    boolean updateAllocatedRoom(int id, int areaId, String areaName);
+    boolean updateAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName);
+
+    /**
+     * Kiem tra thi sinh da co phong o ca khac trong cung ky thi chua.
+     * @return thong bao loi, hoac null neu duoc phep phan / doi phong tai ca nay
+     */
+    String validateUniqueTheoryAllocation(int candidateId, int sessionId);
 
     // Gan thiet bi / xe cho thi sinh
     boolean updateDevice(int id, String deviceCode);

@@ -68,7 +68,10 @@ public final class ExamEnrollmentMergeUtil {
 
         Integer primaryAreaId = primary.getAllocatedAreaId();
         Integer secondaryAreaId = secondary.getAllocatedAreaId();
-        if ((primaryAreaId == null || primaryAreaId <= 0)
+        boolean differentSessions = primary.getExamSessionId() > 0 && secondary.getExamSessionId() > 0
+                && primary.getExamSessionId() != secondary.getExamSessionId();
+        if (!differentSessions
+                && (primaryAreaId == null || primaryAreaId <= 0)
                 && secondaryAreaId != null && secondaryAreaId > 0) {
             primary.setAllocatedAreaId(secondaryAreaId);
             primary.setAllocatedAreaName(secondary.getAllocatedAreaName());
@@ -115,6 +118,9 @@ public final class ExamEnrollmentMergeUtil {
         }
         if (c.isAbsent()) {
             score -= 10;
+        }
+        if (c.getAllocatedAreaId() != null && c.getAllocatedAreaId() > 0) {
+            score += 8;
         }
     // merge score field
         if (c.isSuspended()) {

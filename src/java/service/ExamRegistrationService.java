@@ -86,7 +86,12 @@ public interface ExamRegistrationService {
      * @param areaName tên khu vực
      * @return true nếu cập nhật thành công
      */
-    boolean updateAllocatedRoom(int id, int areaId, String areaName);
+    boolean updateAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName);
+
+    /**
+     * @return thông báo lỗi nếu thí sinh đã có phòng ở ca khác trong cùng kỳ thi; null nếu hợp lệ
+     */
+    String validateUniqueTheoryAllocation(int candidateId, int sessionId);
 
     /**
      * Cập nhật thiết bị cho đăng ký thi.

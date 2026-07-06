@@ -58,8 +58,13 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
-    public boolean updateAllocatedRoom(int id, int areaId, String areaName) {
-        return dao.updateAllocatedRoom(id, areaId, areaName);
+    public boolean updateAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName) {
+        return dao.updateAllocatedRoom(candidateId, sessionId, areaId, areaName);
+    }
+
+    @Override
+    public String validateUniqueTheoryAllocation(int candidateId, int sessionId) {
+        return dao.validateUniqueTheoryAllocation(candidateId, sessionId);
     }
 
     @Override
