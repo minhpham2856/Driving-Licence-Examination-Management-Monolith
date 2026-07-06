@@ -36,6 +36,8 @@ public final class Attributes {
         public static final String ACCOUNT_USER = "accountUser";
         public static final String ACCOUNT_PROFILE = "accountProfile";
         public static final String ACCOUNT_SHELL = "accountShell";
+        public static final String ACCOUNT_PROFILE_PATH = "accountProfilePath";
+        public static final String ACCOUNT_CHANGE_PASSWORD_PATH = "accountChangePasswordPath";
     }
 
     // Examiner session and request context
