@@ -1,5 +1,6 @@
 package dto;
 
+import enums.ExamSection;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -9,7 +10,7 @@ public class SessionDTO {
     private int id;
     private String sessionName;
     private int licenseTypeId;
-    private int examTypeId;
+    private ExamSection examSection;
     private Date examDate;
     private Time shiftStartTime;
     private Time shiftEndTime;
@@ -49,12 +50,12 @@ public class SessionDTO {
         this.licenseTypeId = licenseTypeId;
     }
 
-    public int getExamTypeId() {
-        return examTypeId;
+    public ExamSection getExamSection() {
+        return examSection;
     }
 
-    public void setExamTypeId(int examTypeId) {
-        this.examTypeId = examTypeId;
+    public void setExamSection(ExamSection examSection) {
+        this.examSection = examSection;
     }
 
     public Date getExamDate() {

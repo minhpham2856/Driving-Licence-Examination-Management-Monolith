@@ -47,12 +47,11 @@ public final class ExamQueue {
         return queueTheory;
     }
 
-    public static Lane resolveLane(boolean isTheory, String sectionName) {
-        if (isTheory) {
+    public static Lane laneFor(ExamSection section) {
+        if (section == null || section == ExamSection.THEORY) {
             return Lane.LY_THUYET;
         }
-        ExamSection section = ExamSection.fromSectionName(sectionName);
-        if (section == ExamSection.THUC_HANH_TREN_DUONG) {
+        if (section == ExamSection.ROAD) {
             return Lane.THUC_HANH_TREN_DUONG;
         }
         return Lane.THUC_HANH_TRONG_HINH;

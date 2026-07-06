@@ -453,27 +453,27 @@ GO
 -- ============================================
 INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId) VALUES
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'001' AND FullName = N'Nguyễn Văn An'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Done', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-04')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chờ ký', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-04')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'002' AND FullName = N'Trần Thị Bình'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'AwaitingSignature', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-01')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-01')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'003' AND FullName = N'Lê Văn Chính'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Testing', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-02')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Đang thi', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-02')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'046' AND FullName = N'Phạm Minh Đức'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'AwaitingSignature', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-05')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-05')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'048' AND FullName = N'Nguyễn Thị Hoa'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Pending', 0, NULL),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chưa thi', 0, NULL),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'049' AND FullName = N'Trần Văn Khoa'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Pending', 0, NULL),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chưa thi', 0, NULL),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123' AND FullName = N'Hoàng Văn Em'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Pending', 0, NULL),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chưa thi', 0, NULL),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456' AND FullName = N'Vũ Thị Phương'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'AwaitingSignature', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-06')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-06')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'010' AND FullName = N'Phạm Thị Dung'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Done', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-11')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Đã thi', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-11')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'011' AND FullName = N'Đỗ Văn Hải'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Testing', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-12')),
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Đang thi', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-12')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'012' AND FullName = N'Ngô Thị Kim'),
- (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Pending', 0, NULL);
+ (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Chưa thi', 0, NULL);
 GO
 
 -- ============================================
@@ -486,7 +486,7 @@ INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAm
  (SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'002')),
 (N'Hoàn tất', N'Tiền mặt',      N'TM-20260521-001', 565000.00, '2026-05-21 08:30:00',
  (SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'046')),
-(N'Pending',   N'Tiền mặt',      N'CHO-20260522-001', 565000.00, NULL,
+(N'Chờ thanh toán',   N'Tiền mặt',      N'CHO-20260522-001', 565000.00, NULL,
  (SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'048')),
 (N'Hoàn tất', N'Quét mã QR',    N'QR-20260522-001', 550000.00, '2026-05-22 14:20:00',
  (SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'010')),
@@ -514,8 +514,6 @@ GO
 -- 21. BÀI THI LÝ THUYẾT
 -- ============================================
 INSERT INTO TheoryPaper (ExamEnrollmentId, ExamDeviceId, StartedAt, SubmittedAt) VALUES
-((SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'001'),
- (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-04'), '2026-06-01 07:35:00', '2026-06-01 07:52:00'),
 ((SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'002'),
  (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-01'), '2026-06-01 07:40:00', '2026-06-01 07:58:00'),
 ((SELECT ec.ExamEnrollmentId FROM ExamEnrollment ec JOIN Candidate c ON c.CandidateId = ec.CandidateId WHERE c.CandidateNumber = N'003'),
@@ -839,18 +837,18 @@ GO
 -- 24. NHẬT KÝ HỆ THỐNG
 -- ============================================
 INSERT INTO Audit (UserId, Action, [Reason], EntityName, EntityId, OldValue, NewValue, Details, CreatedAt) VALUES
-((SELECT UserId FROM [User] WHERE Username = N'Quản trị viên'), N'UPDATE', N'Phúc khảo theo đơn của thí sinh',
- N'ExamResult', N'1', N'28/30', N'30/30', N'Điều chỉnh điểm lý thuyết sau phúc khảo', '2026-05-18 09:15:22'),
-(NULL, N'SYSTEM', N'Theo lịch vận hành ca thi',
- N'Session', N'1', N'Đã lên lịch', N'Đang diễn ra', N'Tự động mở ca sáng - Lý thuyết B', '2026-06-01 07:25:00'),
-((SELECT UserId FROM [User] WHERE Username = N'shv_tung'), N'WARNING', N'Vi phạm quy chế phòng thi',
- N'Candidate', N'456', N'Bình thường', N'Vi phạm', N'Thí sinh mang điện thoại vào phòng thi', '2026-06-01 08:12:11'),
-((SELECT UserId FROM [User] WHERE Username = N'qly123'), N'APPROVE', N'Duyệt hồ sơ đăng ký',
- N'ExamRegistration', N'8', N'Submitted', N'Duyệt', N'Hồ sơ đủ điều kiện sức khỏe hạng B', '2026-05-15 15:30:00'),
-((SELECT UserId FROM [User] WHERE Username = N'shv_tung'), N'UPDATE', N'Chấm lại theo biên bản',
- N'ExamResult', N'2', N'25/30', N'27/30', N'Rà soát lại đáp án trắc nghiệm', '2026-06-01 09:20:00'),
-((SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), N'INSERT', N'Phân công ca thi',
- N'ExaminerSchedule', N'1', NULL, N'shv_tung', N'Gán sát hạch viên ca lý thuyết B', '2026-05-25 08:00:00');
+((SELECT UserId FROM [User] WHERE Username = N'Quản trị viên'), N'Cập nhật', N'Phúc khảo theo đơn của thí sinh',
+ N'Kết quả thi', N'1', N'28/30', N'30/30', N'Điều chỉnh điểm lý thuyết sau phúc khảo', '2026-05-18 09:15:22'),
+(NULL, N'Cập nhật', N'Theo lịch vận hành ca thi',
+ N'Ca thi', N'1', N'Chưa diễn ra', N'Đang diễn ra', N'Tự động mở ca sáng - Lý thuyết B', '2026-06-01 07:25:00'),
+((SELECT UserId FROM [User] WHERE Username = N'shv_tung'), N'Cập nhật', N'Vi phạm quy chế phòng thi',
+ N'Thí sinh', N'456', N'Bình thường', N'Vi phạm', N'Thí sinh mang điện thoại vào phòng thi', '2026-06-01 08:12:11'),
+((SELECT UserId FROM [User] WHERE Username = N'qly123'), N'Cập nhật', N'Duyệt hồ sơ đăng ký',
+ N'Hồ sơ', N'8', N'Chờ duyệt', N'Duyệt', N'Hồ sơ đủ điều kiện sức khỏe hạng B', '2026-05-15 15:30:00'),
+((SELECT UserId FROM [User] WHERE Username = N'shv_tung'), N'Cập nhật', N'Chấm lại theo biên bản',
+ N'Kết quả thi', N'2', N'25/30', N'27/30', N'Rà soát lại đáp án trắc nghiệm', '2026-06-01 09:20:00'),
+((SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), N'Thêm', N'Phân công ca thi',
+ N'Phân công sát hạch viên', N'1', NULL, N'shv_tung', N'Gán sát hạch viên ca lý thuyết B', '2026-05-25 08:00:00');
 GO
 
 
@@ -1586,4 +1584,52 @@ WHERE l.LicenceClass = N'B'
     539,540,543,548,553,556,559,560,562,565,
     567,568,583,592,600
 );
+GO
+
+-- ============================================
+-- 27. SEED TEST – SBD 001 đề lý thuyết ngẫu nhiên (in đề + chuyển queue)
+-- Chạy lại riêng: seed_sbd001_theory_test.sql
+-- ============================================
+DECLARE @Sbd001EnrollmentId INT;
+DECLARE @Sbd001PaperId INT;
+DECLARE @Sbd001DeviceId INT;
+
+SELECT
+    @Sbd001EnrollmentId = ec.ExamEnrollmentId,
+    @Sbd001DeviceId = ec.ExamDeviceId
+FROM ExamEnrollment ec
+JOIN Candidate c ON c.CandidateId = ec.CandidateId
+JOIN [Session] s ON s.SessionId = ec.SessionId
+WHERE c.CandidateNumber = N'001'
+  AND s.SessionName = N'Ca sáng - Lý thuyết B';
+
+DELETE ca
+FROM CandidateAnswer ca
+JOIN TheoryPaper tp ON tp.TheoryPaperId = ca.TheoryPaperId
+WHERE tp.ExamEnrollmentId = @Sbd001EnrollmentId;
+
+DELETE FROM TheoryPaper WHERE ExamEnrollmentId = @Sbd001EnrollmentId;
+
+INSERT INTO TheoryPaper (ExamEnrollmentId, ExamDeviceId, StartedAt, SubmittedAt)
+VALUES (@Sbd001EnrollmentId, @Sbd001DeviceId, '2026-06-01 07:35:00', '2026-06-01 07:52:00');
+
+SET @Sbd001PaperId = SCOPE_IDENTITY();
+
+INSERT INTO CandidateAnswer (TheoryPaperId, QuestionId, Answer)
+SELECT
+    @Sbd001PaperId,
+    picked.QuestionId,
+    CASE
+        WHEN ABS(CHECKSUM(NEWID())) % 10 < 8 THEN picked.CorrectAnswer
+        ELSE CASE ABS(CHECKSUM(NEWID())) % 4
+            WHEN 0 THEN N'A' WHEN 1 THEN N'B' WHEN 2 THEN N'C' ELSE N'D'
+        END
+    END
+FROM (
+    SELECT TOP 35 q.QuestionId, q.CorrectAnswer
+    FROM Question q
+    INNER JOIN Licence_Question lq ON lq.QuestionId = q.QuestionId
+    INNER JOIN Licence l ON l.LicenceId = lq.LicenceId AND l.LicenceClass = N'B'
+    ORDER BY NEWID()
+) picked;
 GO
