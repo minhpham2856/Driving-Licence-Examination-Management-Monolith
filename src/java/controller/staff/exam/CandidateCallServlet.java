@@ -10,6 +10,7 @@ import service.ExamSessionControlService;
 import service.impl.ExamSessionControlServiceImpl;
 import dto.SessionDTO;
 import dto.CandidateEnrollmentDTO;
+import enums.ExamSessionStatus;
 import model.Audit;
 import service.CandidatePhotoService;
 import service.impl.CandidatePhotoServiceImpl;
@@ -27,7 +28,6 @@ import java.util.List;
 public class CandidateCallServlet extends HttpServlet {
 
     private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
-    private final ExamSessionControlService sessionControlService = new ExamSessionControlServiceImpl();
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
     private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
@@ -57,7 +57,7 @@ public class CandidateCallServlet extends HttpServlet {
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
         boolean isShiftEnded = "true".equals(shiftEndedVal);
         SessionDTO SessionDTO = sessionService.getSessionById(examSessionId);
-        if (SessionDTO != null && isSessionEnded(SessionDTO.getStatus())) {
+        if (SessionDTO != null && ExamSessionStatus.isEnded(SessionDTO.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
