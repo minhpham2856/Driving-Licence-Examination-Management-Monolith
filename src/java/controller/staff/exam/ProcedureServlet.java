@@ -95,7 +95,7 @@ public class ProcedureServlet extends HttpServlet {
         ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
 
         if (profile != null && CandidatePhotoHelper.hasPhotoRecord(profile)
-                && !CandidatePhotoHelper.hasCapturedPhoto(webRoot, profile)) {
+                && !CandidatePhotoHelper.hasCapturedPhoto(request.getServletContext(), webRoot, profile)) {
             regDAO.updatePhoto(profile.getId(), null);
             profile.setPhotoUrl(null);
             profile.setValidCapturedPhoto(false);
@@ -139,9 +139,12 @@ public class ProcedureServlet extends HttpServlet {
         String pAction = request.getParameter("action");
 
         if ("nextCandidate".equals(pAction)) {
-            // advance to next candidate
             session.removeAttribute("procedureJustPaidSbd");
-            advanceToNextCandidate(session, qList, webRoot, examId, allSessions);
+            String finishedSbd = sbdParam;
+            if (finishedSbd == null || finishedSbd.isBlank()) {
+                finishedSbd = (String) session.getAttribute("callingSbd");
+            }
+            advanceToNextCandidate(session, qList, webRoot, examId, allSessions, finishedSbd);
             response.sendRedirect("candidatecall");
             return;
         }
@@ -313,6 +316,9 @@ public class ProcedureServlet extends HttpServlet {
         ExamStaffViewHelper.bindCandidateCallPageAttributes(request, sessionDAO, httpSession, examId, qList);
         boolean shiftEnded = ExamStaffViewHelper.isCallShiftEnded(httpSession);
         ExamStaffViewHelper.syncCallingSbd(httpSession, request.getServletContext(), sessionId, qList, shiftEnded);
+        if (profile != null && profile.getSbd() != null && !profile.getSbd().isBlank()) {
+            CandidateCallBoard.occupyDesk(request.getServletContext(), sessionId, profile.getSbd(), qList, shiftEnded);
+        }
     // Xu ly yeu cau POST
         if (request.getAttribute("callingCandidate") == null && profile != null) {
             String callingSbd = (String) httpSession.getAttribute("callingSbd");
@@ -630,27 +636,21 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private void advanceToNextCandidate(HttpSession session, List<ExamRegistrationDTO> qList,
-            String webRoot, int examId, List<SessionDTO> allSessions) {
+            String webRoot, int examId, List<SessionDTO> allSessions, String finishedSbd) {
         session.setAttribute("lastSelectedSbd", null);
         session.setAttribute("procedureStep", "1");
         session.removeAttribute("procedureJustPaid");
         session.removeAttribute("procedureJustPaidSbd");
 
-        qList = regDAO.getCandidatesByExam(examId);
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-        photoService.normalizeQueue(webRoot, qList);
+        qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, webRoot, allSessions);
         int boardSessionId = ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
         ExamStaffViewHelper.publishCandidateQueue(null, session, qList, examId, boardSessionId);
         ExamStaffViewHelper.syncExamSelection(session, allSessions, examId);
         session.setAttribute("lastLoadedSessionId", boardSessionId);
 
-        String currentSbd = (String) session.getAttribute("callingSbd");
-        String nextSbd = ExamStaffViewHelper.findNextPendingSbd(qList, currentSbd);
-        if (nextSbd == null || nextSbd.equals(currentSbd)) {
-            nextSbd = ExamStaffViewHelper.findNextPendingSbd(qList, null);
-        }
+        String nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(qList, finishedSbd);
         session.setAttribute("callingSbd", nextSbd);
-        CandidateCallBoard.sync(getServletContext(), boardSessionId, nextSbd, qList, false);
+        CandidateCallBoard.releaseDeskAndCall(getServletContext(), boardSessionId, nextSbd, qList, false);
     }
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {

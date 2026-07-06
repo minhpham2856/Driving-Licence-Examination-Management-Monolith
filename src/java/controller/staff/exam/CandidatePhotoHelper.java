@@ -6,22 +6,20 @@ import jakarta.servlet.ServletContext;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class CandidatePhotoHelper {
 
     private CandidatePhotoHelper() {
     }
 
-    // photo dir
     public static File photoDir() {
         String configured = System.getProperty("dlem.photos.dir");
         if (configured != null && !configured.isBlank()) {
             return new File(configured.trim());
-        }
-        File inProject = projectPhotoDir(null);
-        if (inProject != null) {
-            return inProject;
         }
         String catalina = System.getProperty("catalina.base");
         if (catalina != null && !catalina.isBlank()) {
@@ -30,24 +28,28 @@ public final class CandidatePhotoHelper {
         return new File(System.getProperty("user.home", "."), ".dlem" + File.separator + "candidate-photos");
     }
 
-    /** Thư mục ghi ảnh: ưu tiên cấu hình, rồi thư mục project, cuối cùng Tomcat dlem-data. */
     private static File resolveWritablePhotoDir(ServletContext ctx) throws IOException {
         String configured = System.getProperty("dlem.photos.dir");
         if (configured != null && !configured.isBlank()) {
             return ensureDir(new File(configured.trim()));
         }
-        File inProject = projectPhotoDir(ctx);
+        String webRoot = ctx != null ? ctx.getRealPath("/") : null;
+        File inProject = projectPhotoDir(webRoot);
         if (inProject != null) {
             return ensureDir(inProject);
         }
         return ensureDir(photoDir());
     }
 
-    private static File projectPhotoDir(ServletContext ctx) {
-        if (ctx == null) {
-            return null;
+    private static File projectPhotoDir(String webRoot) {
+        File projectRoot = resolveProjectRootFromWebRoot(webRoot);
+        if (projectRoot != null) {
+            return new File(projectRoot, "candidate-photos");
         }
-        String webRoot = ctx.getRealPath("/");
+        return null;
+    }
+
+    private static File resolveProjectRootFromWebRoot(String webRoot) {
         if (webRoot == null || webRoot.isBlank()) {
             return null;
         }
@@ -57,15 +59,42 @@ public final class CandidatePhotoHelper {
             return null;
         }
         if ("web".equalsIgnoreCase(webRootDir.getName())) {
-            return new File(parent, "candidate-photos");
+            if ("build".equalsIgnoreCase(parent.getName())) {
+                return parent.getParentFile();
+            }
+            return parent;
         }
         if ("build".equalsIgnoreCase(parent.getName())) {
-            File projectRoot = parent.getParentFile();
-            if (projectRoot != null) {
-                return new File(projectRoot, "candidate-photos");
+            return parent.getParentFile();
+        }
+        return parent;
+    }
+
+    private static List<File> collectPhotoSearchDirs(ServletContext ctx, String webRoot) {
+        Set<File> dirs = new LinkedHashSet<>();
+        String configured = System.getProperty("dlem.photos.dir");
+        if (configured != null && !configured.isBlank()) {
+            dirs.add(new File(configured.trim()));
+        }
+        File projectDir = projectPhotoDir(webRoot);
+        if (projectDir != null) {
+            dirs.add(projectDir);
+        }
+        if (webRoot != null && !webRoot.isBlank()) {
+            File webRootDir = new File(webRoot);
+            File parent = webRootDir.getParentFile();
+            if (parent != null && "web".equalsIgnoreCase(webRootDir.getName())) {
+                dirs.add(new File(parent, "candidate-photos"));
             }
         }
-        return null;
+        if (ctx != null) {
+            try {
+                dirs.add(resolveWritablePhotoDir(ctx));
+            } catch (IOException ignored) {
+            }
+        }
+        dirs.add(photoDir());
+        return new ArrayList<>(dirs);
     }
 
     private static File ensureDir(File dir) throws IOException {
@@ -74,7 +103,6 @@ public final class CandidatePhotoHelper {
         }
         return dir;
     }
-    // Xac dinh candidates upload dir
 
     public static File resolveCandidatesUploadDir(ServletContext ctx) {
         try {
@@ -98,9 +126,7 @@ public final class CandidatePhotoHelper {
         }
         return normalized.contains("/")
                 ? normalized.substring(normalized.lastIndexOf('/') + 1)
-    // write photo file
                 : normalized;
-            // ioexception
     }
 
     public static void writePhotoFile(ServletContext ctx, String fileName, byte[] imageBytes) throws IOException {
@@ -109,15 +135,12 @@ public final class CandidatePhotoHelper {
         }
         File dir = resolveWritablePhotoDir(ctx);
         File file = new File(dir, fileName);
-    // to web photo path
         try (FileOutputStream fos = new FileOutputStream(file)) {
             fos.write(imageBytes);
         }
-    // Kiem tra valid photo file
     }
 
     public static String toWebPhotoPath(String fileName) {
-    // Tim photo file
         return "assets/imgs/candidates/" + fileName;
     }
 
@@ -130,24 +153,16 @@ public final class CandidatePhotoHelper {
         if (fileName == null) {
             return null;
         }
-        File inDataDir = new File(photoDir(), fileName);
-        if (inDataDir.isFile() && inDataDir.length() > 0) {
-            return inDataDir;
+        for (File dir : collectPhotoSearchDirs(ctx, webRoot)) {
+            if (dir == null) {
+                continue;
+            }
+            File candidate = new File(dir, fileName);
+            if (candidate.isFile() && candidate.length() > 0) {
+                return candidate;
+            }
         }
         if (webRoot != null && !webRoot.isBlank()) {
-            File webRootDir = new File(webRoot);
-            File parent = webRootDir.getParentFile();
-            if (parent != null) {
-                File projectDir = "build".equalsIgnoreCase(parent.getName())
-                        ? parent.getParentFile() : parent;
-                if (projectDir != null) {
-                    File inProjectDir = new File(projectDir,
-                            "candidate-photos" + File.separator + fileName);
-                    if (inProjectDir.isFile() && inProjectDir.length() > 0) {
-                        return inProjectDir;
-                    }
-                }
-            }
             File inWebAssets = new File(webRoot, "assets" + File.separator + "imgs"
                     + File.separator + "candidates" + File.separator + fileName);
             if (inWebAssets.isFile() && inWebAssets.length() > 0) {
@@ -166,7 +181,6 @@ public final class CandidatePhotoHelper {
             String realPath = ctx.getRealPath("/" + relative);
             if (realPath != null) {
                 File viaCtx = new File(realPath);
-    // Co photo record hay khong
                 if (viaCtx.isFile() && viaCtx.length() > 0) {
                     return viaCtx;
                 }
@@ -174,22 +188,22 @@ public final class CandidatePhotoHelper {
         }
         return null;
     }
-    // Co captured photo hay khong
 
     public static boolean hasPhotoRecord(ExamRegistrationDTO reg) {
         if (reg == null) {
-    // Xac dinh captured photo
             return false;
         }
         String photoUrl = reg.getPhotoUrl();
         return photoUrl != null && !photoUrl.trim().isEmpty();
     }
-    // normalize queue
 
     public static boolean hasCapturedPhoto(String webRoot, ExamRegistrationDTO reg) {
         return reg != null && isValidPhotoFile(webRoot, reg.getPhotoUrl());
     }
-            // Xac dinh captured photo
+
+    public static boolean hasCapturedPhoto(ServletContext ctx, String webRoot, ExamRegistrationDTO reg) {
+        return reg != null && findPhotoFile(ctx, webRoot, reg.getPhotoUrl()) != null;
+    }
 
     public static boolean resolveCapturedPhoto(String webRoot, ExamRegistrationDTO reg) {
         if (reg == null) {
@@ -200,12 +214,25 @@ public final class CandidatePhotoHelper {
         return valid;
     }
 
+    public static boolean resolveCapturedPhoto(ServletContext ctx, String webRoot, ExamRegistrationDTO reg) {
+        if (reg == null) {
+            return false;
+        }
+        boolean valid = hasCapturedPhoto(ctx, webRoot, reg);
+        reg.setValidCapturedPhoto(valid);
+        return valid;
+    }
+
     public static void normalizeQueue(String webRoot, List<ExamRegistrationDTO> qList) {
+        normalizeQueue(null, webRoot, qList);
+    }
+
+    public static void normalizeQueue(ServletContext ctx, String webRoot, List<ExamRegistrationDTO> qList) {
         if (qList == null) {
             return;
         }
         for (ExamRegistrationDTO reg : qList) {
-            resolveCapturedPhoto(webRoot, reg);
+            resolveCapturedPhoto(ctx, webRoot, reg);
         }
     }
 }
