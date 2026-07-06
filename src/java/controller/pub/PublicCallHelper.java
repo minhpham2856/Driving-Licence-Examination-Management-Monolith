@@ -26,6 +26,8 @@ public final class PublicCallHelper {
         private boolean callingActive;
         private boolean shiftEnded;
         private long updatedAtMs;
+        private boolean deskBusy;
+        private String deskSbd;
 
         public int getSessionId() {
             return sessionId;
@@ -58,6 +60,14 @@ public final class PublicCallHelper {
         public long getUpdatedAtMs() {
             return updatedAtMs;
         }
+
+        public boolean isDeskBusy() {
+            return deskBusy;
+        }
+
+        public String getDeskSbd() {
+            return deskSbd;
+        }
     }
 
     private PublicCallHelper() {
@@ -83,13 +93,22 @@ public final class PublicCallHelper {
         CandidatePhotoHelper.normalizeQueue(ctx.getRealPath("/"), queue);
 
         CandidateCallBoard.State board = CandidateCallBoard.getState(ctx, sessionId);
+        if (board != null && board.getQueueOrderSbds() != null && !board.getQueueOrderSbds().isEmpty()) {
+            queue = CandidateCallBoard.applyQueueOrder(queue, board.getQueueOrderSbds());
+        }
         String callingSbd = board != null ? board.getCallingSbd() : null;
         String nextSbd = board != null ? board.getNextSbd() : null;
         boolean shiftEnded = board != null && board.isShiftEnded();
+        boolean deskBusy = board != null && board.isDeskBusy();
+        String deskSbd = board != null ? board.getDeskSbd() : null;
         long updatedAtMs = board != null ? board.getUpdatedAtMs() : System.currentTimeMillis();
 
         if ((nextSbd == null || nextSbd.isBlank()) && !shiftEnded) {
-            nextSbd = CandidateCallBoard.resolveNextSbd(queue, callingSbd);
+            if (deskBusy && deskSbd != null && !deskSbd.isBlank()) {
+                nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(queue, deskSbd);
+            } else {
+                nextSbd = CandidateCallBoard.resolveNextSbd(queue, callingSbd);
+            }
         }
 
         ExamRegistrationDTO callingCandidate = CandidateCallBoard.findBySbd(queue, callingSbd);
@@ -104,6 +123,8 @@ public final class PublicCallHelper {
         snapshot.callingActive = callingCandidate != null && !shiftEnded;
         snapshot.shiftEnded = shiftEnded;
         snapshot.updatedAtMs = updatedAtMs;
+        snapshot.deskBusy = deskBusy;
+        snapshot.deskSbd = deskSbd;
         return snapshot;
     }
 

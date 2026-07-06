@@ -85,7 +85,7 @@ public class CandidateCallServlet extends HttpServlet {
         if ("startCall".equals(qAction)) {
             if (activeQueue != null) {
                 // promote caller
-                String startSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, null);
+                String startSbd = ExamStaffViewHelper.resolveNextCallingSbd(fullQueue, null);
                 promoteCaller(session, activeQueue, startSbd);
             }
         } else if ("moveToBottom".equals(qAction) || "absent".equals(qAction) || "autoAbsent".equals(qAction)) {
@@ -106,8 +106,10 @@ public class CandidateCallServlet extends HttpServlet {
                 }
                 // promote caller
 
-                String nextSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, null);
+                String nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(fullQueue, qSbd);
                 promoteCaller(session, activeQueue, nextSbd);
+                CandidateCallBoard.sync(getServletContext(), boardSessionId, nextSbd, fullQueue,
+                        "true".equals(session.getAttribute("shiftEnded")));
 
                 if ("autoAbsent".equals(qAction)) {
                     request.setAttribute("autoAbsentAlert", qSbd);
@@ -126,7 +128,7 @@ public class CandidateCallServlet extends HttpServlet {
                 // promote caller
                 activeQueue = ExamStaffViewHelper.filterActiveCallQueue(fullQueue);
 
-                String nextSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, qSbd);
+                String nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(fullQueue, qSbd);
                 promoteCaller(session, activeQueue, nextSbd);
                 request.setAttribute("permanentAbsentAlert", qSbd);
             } else {
@@ -216,7 +218,7 @@ public class CandidateCallServlet extends HttpServlet {
         }
 
         String callingSbd = callingSbdForBoard;
-        String nextSbd = ExamStaffViewHelper.findNextPendingSbd(activeQueue, callingSbd);
+        String nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(fullQueue, callingSbd);
 
         ExamRegistrationDTO nextCallingCandidate = ExamStaffViewHelper.findBySbd(activeQueue, nextSbd);
     // promote caller
@@ -287,7 +289,8 @@ public class CandidateCallServlet extends HttpServlet {
         if (current == null || current.isSuspended() || !current.isProcedureComplete()) {
             return;
         }
-        String nextSbd = ExamStaffViewHelper.findNextPendingSbd(candidateQueue, callingSbd);
-        promoteCaller(session, candidateQueue, nextSbd);
+        String nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(candidateQueue, callingSbd);
+        List<ExamRegistrationDTO> activeQueue = ExamStaffViewHelper.filterActiveCallQueue(candidateQueue);
+        promoteCaller(session, activeQueue, nextSbd);
     }
 }

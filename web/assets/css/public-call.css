@@ -1,257 +1,539 @@
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-html,
-body {
-    margin: 0;
-    height: 100%;
-}
-
-body.public-call-mode {
-    background: #f8fafc;
-    color: #0f172a;
-    height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: clamp(0.5rem, 1.2vh, 0.85rem) clamp(0.75rem, 2vw, 1.25rem);
-    gap: clamp(0.4rem, 1vh, 0.65rem);
-    font-family: "Be Vietnam Pro", system-ui, sans-serif;
-}
-
-body.public-call-mode--no-session {
-    background: #e2e8f0;
-}
-
-.tv-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 0.75rem;
-    flex-shrink: 0;
-}
-
-.tv-back-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-    text-decoration: none;
-    flex-shrink: 0;
-}
-
-.tv-back-btn:hover {
-    border-color: #94a3b8;
-    color: #0052cc;
-}
-
-.tv-back-btn svg {
-    width: 1.2rem;
-    height: 1.2rem;
-}
-
-.tv-session-badge {
-    flex: 1;
-    min-width: 0;
-    font-size: clamp(0.7rem, 1.3vh, 0.9rem);
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.tv-status-pill {
-    font-size: clamp(0.62rem, 1.1vh, 0.75rem);
-    font-weight: 700;
-    padding: 0.28rem 0.55rem;
-    border-radius: 999px;
-    border: 1px solid #cbd5e1;
-    color: #64748b;
-    background-color: #ffffff;
-    white-space: nowrap;
-}
-
-.tv-status-pill--ok {
-    color: #047857;
-    border-color: #6ee7b7;
-    background-color: #ecfdf5;
-}
-
-.tv-status-pill--warn {
-    color: #b45309;
-    border-color: #fcd34d;
-    background-color: #fffbeb;
-}
-
-.tv-layout-main {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    width: 100%;
-}
-
-.tv-queue-panel {
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    padding: clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2.5vw, 1.5rem);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.tv-queue-panel__title {
-    margin: 0 0 clamp(0.5rem, 1vh, 0.75rem);
-    padding-bottom: clamp(0.4rem, 0.8vh, 0.6rem);
-    border-bottom: 2px solid #e2e8f0;
-    font-size: clamp(1rem, 2.2vh, 1.35rem);
-    font-weight: 800;
-    color: #065f46;
-}
-
-.tv-queue-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-}
-
-.tv-queue-item {
-    display: flex;
-    align-items: baseline;
-    gap: clamp(0.5rem, 1.2vw, 0.85rem);
-    padding: clamp(0.45rem, 1vh, 0.65rem) 0;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: clamp(1.1rem, 2.8vh, 2rem);
-    line-height: 1.25;
-}
-
-.tv-queue-item:last-child {
-    border-bottom: none;
-}
-
-.tv-queue-item--head {
-    background: #f0fdf4;
-    margin: 0 -0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    border-radius: 6px;
-    border-bottom-color: transparent;
-}
-
-.tv-queue-item--calling {
-    background: #eff6ff;
-    margin: 0 -0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    border-radius: 6px;
-    border-bottom-color: transparent;
-}
-
-.tv-queue-item__sbd {
-    flex: 0 0 auto;
-    min-width: 3.5ch;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-weight: 800;
-    color: #059669;
-    letter-spacing: 0.04em;
-}
-
-.tv-queue-item--calling .tv-queue-item__sbd {
-    color: #1d4ed8;
-}
-
-.tv-queue-item__sep {
-    flex: 0 0 auto;
-    color: #94a3b8;
-    font-weight: 500;
-}
-
-.tv-queue-item__name {
-    flex: 1;
-    min-width: 0;
-    font-weight: 700;
-    color: #0f172a;
-    word-break: break-word;
-}
-
-.tv-queue-empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 8rem;
-    padding: 2rem 1rem;
-    text-align: center;
-    color: #64748b;
-    font-size: clamp(0.95rem, 2vh, 1.25rem);
-    font-weight: 600;
-    list-style: none;
-}
-
-.audio-gate {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    z-index: 999;
-    background: rgba(2, 6, 23, 0.88);
-    backdrop-filter: blur(3px);
-}
-
-.audio-gate.is-hidden {
-    display: none;
-}
-
-.audio-gate__card {
-    width: min(460px, 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(59, 130, 246, 0.35);
-    background: rgba(15, 23, 42, 0.95);
-    padding: 1.25rem 1.25rem 1rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
-}
-
-.audio-gate__title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #e2e8f0;
-}
-
-.audio-gate__desc {
-    margin: 0.65rem 0 1rem;
-    color: #94a3b8;
-    line-height: 1.55;
-    font-size: 0.9rem;
-}
-
-.audio-gate__btn {
-    border: 1px solid #2563eb;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: #ffffff;
-    font-weight: 800;
-    border-radius: 10px;
-    padding: 0.6rem 1.1rem;
-    cursor: pointer;
-}
-
-.audio-gate__btn:hover {
-    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
-}
-
+*,
+
+*::before,
+
+*::after {
+
+    box-sizing: border-box;
+
+}
+
+
+
+html,
+
+body {
+
+    margin: 0;
+
+    height: 100%;
+
+}
+
+
+
+body.public-call-mode {
+
+    background: #f8fafc;
+
+    color: #0f172a;
+
+    height: 100vh;
+
+    max-height: 100vh;
+
+    overflow: hidden;
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: clamp(0.5rem, 1.2vh, 0.85rem) clamp(0.75rem, 2vw, 1.25rem);
+
+    gap: clamp(0.4rem, 1vh, 0.65rem);
+
+    font-family: "Be Vietnam Pro", system-ui, sans-serif;
+
+}
+
+
+
+body.public-call-mode--no-session {
+
+    background: #e2e8f0;
+
+}
+
+
+
+.tv-top-bar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    width: 100%;
+
+    gap: 0.75rem;
+
+    flex-shrink: 0;
+
+}
+
+
+
+.tv-back-btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 2.25rem;
+
+    height: 2.25rem;
+
+    border-radius: 8px;
+
+    border: 1px solid #cbd5e1;
+
+    background: #ffffff;
+
+    color: #334155;
+
+    text-decoration: none;
+
+    flex-shrink: 0;
+
+}
+
+
+
+.tv-back-btn:hover {
+
+    border-color: #94a3b8;
+
+    color: #0052cc;
+
+}
+
+
+
+.tv-back-btn svg {
+
+    width: 1.2rem;
+
+    height: 1.2rem;
+
+}
+
+
+
+.tv-session-badge {
+
+    flex: 1;
+
+    min-width: 0;
+
+    font-size: clamp(0.7rem, 1.3vh, 0.9rem);
+
+    font-weight: 700;
+
+    color: #475569;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.04em;
+
+}
+
+
+
+.tv-status-pill {
+
+    font-size: clamp(0.62rem, 1.1vh, 0.75rem);
+
+    font-weight: 700;
+
+    padding: 0.28rem 0.55rem;
+
+    border-radius: 999px;
+
+    border: 1px solid #cbd5e1;
+
+    color: #64748b;
+
+    background-color: #ffffff;
+
+    white-space: nowrap;
+
+}
+
+
+
+.tv-status-pill--ok {
+
+    color: #047857;
+
+    border-color: #6ee7b7;
+
+    background-color: #ecfdf5;
+
+}
+
+
+
+.tv-status-pill--warn {
+
+    color: #b45309;
+
+    border-color: #fcd34d;
+
+    background-color: #fffbeb;
+
+}
+
+
+
+.tv-layout-main {
+
+    flex: 1;
+
+    min-height: 0;
+
+    display: flex;
+
+    width: 100%;
+
+}
+
+
+
+.tv-queue-panel {
+
+    flex: 1;
+
+    width: 100%;
+
+    min-height: 0;
+
+    background: #ffffff;
+
+    border-radius: 12px;
+
+    border: 1px solid #e2e8f0;
+
+    padding: clamp(0.75rem, 1.5vh, 1rem) clamp(1rem, 2.5vw, 1.5rem);
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+}
+
+
+
+.tv-queue-panel__title {
+
+    margin: 0 0 clamp(0.5rem, 1vh, 0.75rem);
+
+    padding-bottom: clamp(0.4rem, 0.8vh, 0.6rem);
+
+    border-bottom: 2px solid #e2e8f0;
+
+    font-size: clamp(1rem, 2.2vh, 1.35rem);
+
+    font-weight: 800;
+
+    color: #065f46;
+
+}
+
+
+
+.tv-queue-list {
+
+    list-style: none;
+
+    margin: 0;
+
+    padding: 0;
+
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+}
+
+
+
+.tv-queue-item {
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: clamp(0.5rem, 1.2vw, 0.85rem);
+
+    padding: clamp(0.45rem, 1vh, 0.65rem) 0;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    font-size: clamp(1.1rem, 2.8vh, 2rem);
+
+    line-height: 1.25;
+
+}
+
+
+
+.tv-queue-item:last-child {
+
+    border-bottom: none;
+
+}
+
+
+
+.tv-queue-item--head {
+
+    background: #f0fdf4;
+
+    margin: 0 -0.5rem;
+
+    padding-left: 0.5rem;
+
+    padding-right: 0.5rem;
+
+    border-radius: 6px;
+
+    border-bottom-color: transparent;
+
+}
+
+
+
+.tv-queue-item--calling {
+
+    background: #eff6ff;
+
+    margin: 0 -0.5rem;
+
+    padding-left: 0.5rem;
+
+    padding-right: 0.5rem;
+
+    border-radius: 6px;
+
+    border-bottom-color: transparent;
+
+}
+
+
+
+.tv-queue-item--prepare {
+
+    background: #fffbeb;
+
+    margin: 0 -0.5rem;
+
+    padding-left: 0.5rem;
+
+    padding-right: 0.5rem;
+
+    border-radius: 6px;
+
+    border-bottom-color: transparent;
+
+}
+
+
+
+.tv-queue-item__sbd {
+
+    flex: 0 0 auto;
+
+    min-width: 3.5ch;
+
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    font-weight: 800;
+
+    color: #059669;
+
+    letter-spacing: 0.04em;
+
+}
+
+
+
+.tv-queue-item--calling .tv-queue-item__sbd {
+
+    color: #1d4ed8;
+
+}
+
+
+
+.tv-queue-item--prepare .tv-queue-item__sbd {
+
+    color: #d97706;
+
+}
+
+
+
+.tv-queue-item__sep {
+
+    flex: 0 0 auto;
+
+    color: #94a3b8;
+
+    font-weight: 500;
+
+}
+
+
+
+.tv-queue-item__name {
+
+    flex: 1;
+
+    min-width: 0;
+
+    font-weight: 700;
+
+    color: #0f172a;
+
+    word-break: break-word;
+
+}
+
+
+
+.tv-queue-empty {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 8rem;
+
+    padding: 2rem 1rem;
+
+    text-align: center;
+
+    color: #64748b;
+
+    font-size: clamp(0.95rem, 2vh, 1.25rem);
+
+    font-weight: 600;
+
+    list-style: none;
+
+}
+
+
+
+.audio-gate {
+
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 1rem;
+
+    z-index: 999;
+
+    background: rgba(2, 6, 23, 0.88);
+
+    backdrop-filter: blur(3px);
+
+}
+
+
+
+.audio-gate.is-hidden {
+
+    display: none;
+
+}
+
+
+
+.audio-gate__card {
+
+    width: min(460px, 100%);
+
+    border-radius: 16px;
+
+    border: 1px solid rgba(59, 130, 246, 0.35);
+
+    background: rgba(15, 23, 42, 0.95);
+
+    padding: 1.25rem 1.25rem 1rem;
+
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+
+}
+
+
+
+.audio-gate__title {
+
+    font-size: 1.15rem;
+
+    font-weight: 800;
+
+    color: #e2e8f0;
+
+}
+
+
+
+.audio-gate__desc {
+
+    margin: 0.65rem 0 1rem;
+
+    color: #94a3b8;
+
+    line-height: 1.55;
+
+    font-size: 0.9rem;
+
+}
+
+
+
+.audio-gate__btn {
+
+    border: 1px solid #2563eb;
+
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+
+    color: #ffffff;
+
+    font-weight: 800;
+
+    border-radius: 10px;
+
+    padding: 0.6rem 1.1rem;
+
+    cursor: pointer;
+
+}
+
+
+
+.audio-gate__btn:hover {
+
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+
+}
+
+

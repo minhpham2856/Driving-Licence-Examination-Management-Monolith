@@ -4,6 +4,7 @@ import dto.exam.ExamRegistrationDTO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,9 @@ public final class CandidateCallBoard {
         private String nextSbd;
         private boolean shiftEnded;
         private long updatedAtMs;
+        private List<String> queueOrderSbds = new ArrayList<>();
+        private boolean deskBusy;
+        private String deskSbd;
 
         // Lay exam session id
         public int getExamSessionId() {
@@ -73,6 +77,30 @@ public final class CandidateCallBoard {
         public void setUpdatedAtMs(long updatedAtMs) {
             this.updatedAtMs = updatedAtMs;
         }
+
+        public List<String> getQueueOrderSbds() {
+            return queueOrderSbds;
+        }
+
+        public void setQueueOrderSbds(List<String> queueOrderSbds) {
+            this.queueOrderSbds = queueOrderSbds != null ? new ArrayList<>(queueOrderSbds) : new ArrayList<>();
+        }
+
+        public boolean isDeskBusy() {
+            return deskBusy;
+        }
+
+        public void setDeskBusy(boolean deskBusy) {
+            this.deskBusy = deskBusy;
+        }
+
+        public String getDeskSbd() {
+            return deskSbd;
+        }
+
+        public void setDeskSbd(String deskSbd) {
+            this.deskSbd = deskSbd;
+        }
     }
     // Lay state
 
@@ -110,14 +138,59 @@ public final class CandidateCallBoard {
     public static void sync(ServletContext ctx, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         State state = getBoards(ctx).computeIfAbsent(examSessionId, id -> new State());
+        boolean wasDeskBusy = state.isDeskBusy();
+        String wasDeskSbd = state.getDeskSbd();
+
         state.setExamSessionId(examSessionId);
-        state.setCallingSbd(emptyToNull(callingSbd));
-        state.setNextSbd(resolveNextSbd(queue, state.getCallingSbd()));
+        if (!wasDeskBusy) {
+            state.setCallingSbd(emptyToNull(callingSbd));
+        }
+        if (wasDeskBusy && wasDeskSbd != null && !wasDeskSbd.isBlank()) {
+            state.setNextSbd(ExamStaffViewHelper.resolveNextCallingSbd(queue, wasDeskSbd));
+        } else {
+            state.setNextSbd(resolveNextSbd(queue, state.getCallingSbd()));
+        }
+        state.setQueueOrderSbds(extractQueueOrder(queue));
         state.setShiftEnded(shiftEnded);
-        // sync
+        state.setDeskBusy(wasDeskBusy);
+        state.setDeskSbd(wasDeskSbd);
         state.setUpdatedAtMs(System.currentTimeMillis());
         ctx.setAttribute(ACTIVE_SESSION_KEY, examSessionId);
-    // Xac dinh next sbd
+    }
+
+    /** Thí sinh đang làm thủ tục tại bàn — loa chuyển sang gọi chuẩn bị người kế tiếp. */
+    public static void occupyDesk(ServletContext ctx, int examSessionId, String deskSbd,
+            List<ExamRegistrationDTO> queue, boolean shiftEnded) {
+        if (ctx == null || examSessionId <= 0 || deskSbd == null || deskSbd.isBlank()) {
+            return;
+        }
+        State state = getBoards(ctx).computeIfAbsent(examSessionId, id -> new State());
+        state.setExamSessionId(examSessionId);
+        state.setDeskBusy(true);
+        state.setDeskSbd(emptyToNull(deskSbd));
+        if (state.getCallingSbd() == null || state.getCallingSbd().isBlank()) {
+            state.setCallingSbd(state.getDeskSbd());
+        }
+        state.setNextSbd(ExamStaffViewHelper.resolveNextCallingSbd(queue, deskSbd));
+        state.setQueueOrderSbds(extractQueueOrder(queue));
+        state.setShiftEnded(shiftEnded);
+        state.setUpdatedAtMs(System.currentTimeMillis());
+        ctx.setAttribute(ACTIVE_SESSION_KEY, examSessionId);
+    }
+
+    /** Kết thúc thủ tục tại bàn — gọi thí sinh tiếp theo vào bàn. */
+    public static void releaseDeskAndCall(ServletContext ctx, int examSessionId, String callingSbd,
+            List<ExamRegistrationDTO> queue, boolean shiftEnded) {
+        State state = getBoards(ctx).computeIfAbsent(examSessionId, id -> new State());
+        state.setExamSessionId(examSessionId);
+        state.setDeskBusy(false);
+        state.setDeskSbd(null);
+        state.setCallingSbd(emptyToNull(callingSbd));
+        state.setNextSbd(resolveNextSbd(queue, state.getCallingSbd()));
+        state.setQueueOrderSbds(extractQueueOrder(queue));
+        state.setShiftEnded(shiftEnded);
+        state.setUpdatedAtMs(System.currentTimeMillis());
+        ctx.setAttribute(ACTIVE_SESSION_KEY, examSessionId);
     }
 
     public static void syncFromSession(ServletContext ctx, HttpSession session,
@@ -135,28 +208,42 @@ public final class CandidateCallBoard {
     }
 
     public static String resolveNextSbd(List<ExamRegistrationDTO> queue, String callingSbd) {
-        if (queue == null || queue.isEmpty()) {
-            return null;
+        return ExamStaffViewHelper.resolveNextCallingSbd(queue, callingSbd);
+    }
+
+    private static List<String> extractQueueOrder(List<ExamRegistrationDTO> queue) {
+        List<String> order = new ArrayList<>();
+        if (queue == null) {
+            return order;
         }
-        boolean afterCalling = callingSbd == null || callingSbd.trim().isEmpty();
         for (ExamRegistrationDTO c : queue) {
-    // Tim by sbd
-            if (c.isProcedureComplete() || c.isSuspended() || c.isAbsent()) {
-                continue;
+            if (c != null && c.getSbd() != null && !c.getSbd().isBlank()) {
+                order.add(c.getSbd());
             }
-            if (!afterCalling) {
-                if (callingSbd.equals(c.getSbd())) {
-                    afterCalling = true;
-                }
-                continue;
-            }
-            if (callingSbd != null && callingSbd.equals(c.getSbd())) {
-                continue;
-    // empty to null
-            }
-            return c.getSbd();
         }
-        return null;
+        return order;
+    }
+
+    public static List<ExamRegistrationDTO> applyQueueOrder(List<ExamRegistrationDTO> queue,
+            List<String> orderSbds) {
+        if (queue == null || queue.isEmpty() || orderSbds == null || orderSbds.isEmpty()) {
+            return queue;
+        }
+        Map<String, ExamRegistrationDTO> bySbd = new java.util.LinkedHashMap<>();
+        for (ExamRegistrationDTO c : queue) {
+            if (c != null && c.getSbd() != null) {
+                bySbd.put(c.getSbd(), c);
+            }
+        }
+        List<ExamRegistrationDTO> reordered = new ArrayList<>();
+        for (String sbd : orderSbds) {
+            ExamRegistrationDTO c = bySbd.remove(sbd);
+            if (c != null) {
+                reordered.add(c);
+            }
+        }
+        reordered.addAll(bySbd.values());
+        return reordered;
     }
 
     public static ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd) {

@@ -12,10 +12,10 @@ function formatCountdownClock(totalSeconds) {
 
 function applyCountdownTone(textEl, barEl, totalSeconds) {
     textEl.classList.remove('call-countdown--ok', 'call-countdown--warn', 'call-countdown--danger');
-    if (totalSeconds > 90) {
+    if (totalSeconds > 30) {
         textEl.classList.add('call-countdown--ok');
         barEl.style.backgroundColor = '#10b981';
-    } else if (totalSeconds > 30) {
+    } else if (totalSeconds > 15) {
         textEl.classList.add('call-countdown--warn');
         barEl.style.backgroundColor = '#f59e0b';
     } else {
@@ -35,8 +35,21 @@ function initCountdownTimer() {
     const sbd = config.dataset.sbd;
     if (!sbd) return;
 
-    let countdownVal = 180;
-    const totalTime = 180;
+    if (config.dataset.pauseCountdown === 'true') {
+        valueEl.textContent = 'Tạm dừng';
+        textEl.style.color = '#94a3b8';
+        barEl.style.width = '100%';
+        barEl.style.backgroundColor = '#cbd5e1';
+        textEl.classList.remove('call-countdown--ok', 'call-countdown--warn', 'call-countdown--danger');
+        const hintEl = document.getElementById('countdownHint');
+        if (hintEl) {
+            hintEl.textContent = 'Đếm ngược tạm dừng khi đang làm thủ tục tại bàn.';
+        }
+        return;
+    }
+
+    let countdownVal = 60;
+    const totalTime = 60;
 
     valueEl.textContent = formatCountdownClock(countdownVal);
     applyCountdownTone(textEl, barEl, countdownVal);

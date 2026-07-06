@@ -66,7 +66,7 @@
                     <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span style="font-size: 0.82rem; font-weight: 600; color: #b45309;">
-                    [Tự Động Hết Giờ] Thí sinh <strong style="color: #78350f;">${requestScope.autoAbsentAlert}</strong> đã quá 3 phút chưa trình diện! Hệ thống tự động chuyển xuống cuối hàng đợi.
+                    [Tự Động Hết Giờ] Thí sinh <strong style="color: #78350f;">${requestScope.autoAbsentAlert}</strong> đã quá 1 phút chưa trình diện! Hệ thống tự động chuyển xuống cuối hàng đợi.
                 </span>
             </div>
         </c:if>
@@ -198,13 +198,20 @@
                                         <div style="margin-top: 1.25rem; text-align: left; width: 100%;">
                                             <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 4px;">
                                                 <span>GIỚI HẠN THỦ TỤC TRÌNH DIỆN</span>
-                                                <span id="countdownText" style="font-family: monospace; color: #10b981; font-weight: 800;"><span id="countdownValue">3:00</span></span>
+                                                <span id="countdownText" style="font-family: monospace; color: #10b981; font-weight: 800;"><span id="countdownValue">1:00</span></span>
                                             </div>
                                             <div style="background-color: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.05); height: 6px; border-radius: 99px; overflow: hidden; width: 100%;">
                                                 <div id="countdownBar" class="countdown-bar" style="width: 100%; height: 100%; background: #10b981;"></div>
                                             </div>
-                                            <span style="font-size: 0.65rem; color: #94a3b8; display: block; margin-top: 4px; line-height: 1.3;">
-                                                Hệ thống sẽ tự chuyển người sau 3 phút nếu thí sinh này không có mặt.
+                                            <span id="countdownHint" style="font-size: 0.65rem; color: #94a3b8; display: block; margin-top: 4px; line-height: 1.3;">
+                                                <c:choose>
+                                                    <c:when test="${requestScope.deskMode}">
+                                                        Đếm ngược tạm dừng khi đang làm thủ tục tại bàn.
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        Hệ thống sẽ tự chuyển người sau 1 phút nếu thí sinh này không có mặt.
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </span>
                                         </div>
 
@@ -385,6 +392,7 @@
 
         <div id="candidateCallConfig"
              data-sbd="${not empty callingCandidate ? callingCandidate.sbd : ''}"
+             data-pause-countdown="${requestScope.deskMode ? 'true' : 'false'}"
              hidden></div>
         <c:if test="${requestScope.deskMode}">
             <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />

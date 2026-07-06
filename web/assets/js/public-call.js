@@ -19,6 +19,10 @@
         classPrefix: msg('msg-class-prefix', 'H\u1ea1ng '),
         callPrefix: msg('msg-call-prefix', 'M\u1eddi th\u00ed sinh s\u1ed1 b\u00e1o danh '),
         callSuffix: msg('msg-call-suffix', ', nhanh ch\u00f3ng \u0111\u1ebfn b\u00e0n th\u1ee7 t\u1ee5c ch\u00ednh v\u1edbi c\u0103n c\u01b0\u1edbc c\u00f4ng d\u00e2n.'),
+        preparePrefix: msg('msg-prepare-prefix', 'Th\u00ed sinh s\u1ed1 b\u00e1o danh '),
+        prepareSuffix: msg('msg-prepare-suffix', ', '),
+        prepareTail: msg('msg-prepare-tail', 'xin chu\u1ea9n b\u1ecb, s\u1eafp \u0111\u1ebfn l\u01b0\u1ee3t l\u00e0m th\u1ee7 t\u1ee5c t\u1ea1i b\u00e0n.'),
+        queuePrepareBadge: msg('msg-queue-prepare-badge', 'Chu\u1ea9n b\u1ecb'),
         sessionPrefix: msg('msg-session-prefix', 'Ph\u00f2ng ch\u1edd ch\u00ednh \u2014 Ca thi '),
         syncConnecting: msg('msg-sync-connecting', '\u0110ang k\u1ebft n\u1ed1i...'),
         syncReady: msg('msg-sync-ready', '\u0110\u1ed3ng b\u1ed9 & loa s\u1eb5n s\u00e0ng'),
@@ -71,12 +75,21 @@
         window.speechSynthesis.addEventListener('voiceschanged', refreshVoice);
     }
 
-    function buildCallText(c) {
+    function isPrepareMode(state) {
+        return !!(state && state.deskBusy);
+    }
+
+    function buildCallText(c, prepare) {
+        if (prepare) {
+            return I18N.preparePrefix + c.sbd + I18N.prepareSuffix + c.name + ', ' +
+                I18N.prepareTail;
+        }
         return I18N.callPrefix + c.sbd + ', ' + c.name + ', ' + I18N.classPrefix + c.clazz + I18N.callSuffix;
     }
 
     function resolveAnnounceCandidate(state) {
         if (!state || state.shiftEnded) return null;
+        if (state.deskBusy && state.next) return state.next;
         if (state.isCallingActive && state.calling) return state.calling;
         if (state.waitingQueue && state.waitingQueue.length > 0) return state.waitingQueue[0];
         return null;
@@ -85,10 +98,11 @@
     function callKeyFor(state) {
         const candidate = resolveAnnounceCandidate(state);
         if (!candidate) return null;
-        if (state.isCallingActive && state.calling) {
-            return 'call:' + candidate.sbd + ':' + state.updatedAtMs;
+        const mode = isPrepareMode(state) ? 'prepare' : 'call';
+        if (state.isCallingActive && (state.calling || state.deskBusy)) {
+            return mode + ':' + candidate.sbd + ':' + state.updatedAtMs;
         }
-        return 'head:' + candidate.sbd;
+        return mode + ':head:' + candidate.sbd;
     }
 
     function renderQueue(state) {
@@ -104,14 +118,18 @@
             return;
         }
 
-        const callingSbd = state.isCallingActive && state.calling ? state.calling.sbd : null;
+        const prepareMode = isPrepareMode(state);
+        const nextSbd = state.next ? state.next.sbd : null;
+        const callingSbd = !prepareMode && state.isCallingActive && state.calling ? state.calling.sbd : null;
         let html = '';
         for (let i = 0; i < queue.length; i++) {
             const c = queue[i];
             const isHead = i === 0;
             const isCalling = callingSbd && callingSbd === c.sbd;
+            const isPrepare = prepareMode && nextSbd && nextSbd === c.sbd;
             let itemClass = 'tv-queue-item';
             if (isCalling) itemClass += ' tv-queue-item--calling';
+            else if (isPrepare) itemClass += ' tv-queue-item--prepare';
             else if (isHead) itemClass += ' tv-queue-item--head';
 
             html += '<li class="' + itemClass + '">' +
@@ -184,7 +202,7 @@
         speaking = false;
         lastCallKey = callKey;
 
-        const utterance = new SpeechSynthesisUtterance(buildCallText(candidate));
+        const utterance = new SpeechSynthesisUtterance(buildCallText(candidate, isPrepareMode(state)));
         utterance.lang = 'vi-VN';
         utterance.rate = 0.92;
         utterance.pitch = 1;

@@ -511,31 +511,53 @@ public final class ExamStaffViewHelper {
         return null;
     }
 
-    // Tim SBD ke tiep chua xong thu tuc
+    // Tim SBD ke tiep chua xong thu tuc (theo thu tu hang doi, ke ca thi sinh vua xong thu tuc)
     public static String findNextPendingSbd(List<ExamRegistrationDTO> queue, String afterSbd) {
         if (queue == null || queue.isEmpty()) {
             return null;
         }
-        boolean after = afterSbd == null || afterSbd.isBlank();
-        for (ExamRegistrationDTO c : queue) {
-            if (!isCallablePending(c)) {
-                continue;
+        if (afterSbd == null || afterSbd.isBlank()) {
+            for (ExamRegistrationDTO c : queue) {
+                if (isCallablePending(c)) {
+                    return c.getSbd();
+                }
             }
-            if (!after) {
+            return null;
+        }
+        boolean passed = false;
+        for (ExamRegistrationDTO c : queue) {
+            if (!passed) {
                 if (afterSbd.equals(c.getSbd())) {
-                    after = true;
+                    passed = true;
                 }
                 continue;
             }
-            if (afterSbd != null && afterSbd.equals(c.getSbd())) {
+            if (isCallablePending(c)) {
+                return c.getSbd();
+            }
+        }
+        for (ExamRegistrationDTO c : queue) {
+            if (afterSbd.equals(c.getSbd())) {
                 continue;
             }
-            return c.getSbd();
-        }
-        if (!after && afterSbd != null) {
-            return findNextPendingSbd(queue, null);
+            if (isCallablePending(c)) {
+                return c.getSbd();
+            }
         }
         return null;
+    }
+
+    /** Thí sinh cần gọi tiếp: theo đầu hàng đợi đang chờ (active), không lẫn người đã xong thủ tục. */
+    public static String resolveNextCallingSbd(List<ExamRegistrationDTO> fullQueue, String afterSbd) {
+        List<ExamRegistrationDTO> active = filterActiveCallQueue(fullQueue);
+        if (active.isEmpty()) {
+            return null;
+        }
+        if (afterSbd == null || afterSbd.isBlank()) {
+            return active.get(0).getSbd();
+        }
+        String next = findNextPendingSbd(active, afterSbd);
+        return next != null ? next : active.get(0).getSbd();
     }
 
     // Dua thi sinh callable len dau hang doi
@@ -673,7 +695,7 @@ public final class ExamStaffViewHelper {
             if (!c.isProcedureComplete()) {
                 return c;
             }
-            String nextSbd = findNextPendingSbd(qList, null);
+            String nextSbd = resolveNextCallingSbd(qList, sbdParam);
             if (nextSbd != null) {
                 session.setAttribute("callingSbd", nextSbd);
                 return findBySbd(qList, nextSbd);
@@ -687,16 +709,18 @@ public final class ExamStaffViewHelper {
     // Dong bo callingSbd giua session va bang goi loa
     public static String syncCallingSbd(HttpSession session, ServletContext application,
             int sessionId, List<ExamRegistrationDTO> qList, boolean shiftEnded) {
-        String callingSbd = session != null ? (String) session.getAttribute("callingSbd") : null;
+        String sessionCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
         CandidateCallBoard.State callBoard = application != null
                 ? CandidateCallBoard.getState(application, sessionId) : null;
-        if (callBoard != null && callBoard.getCallingSbd() != null && !callBoard.getCallingSbd().isBlank()) {
-            callingSbd = callBoard.getCallingSbd();
-        }
+        String boardCalling = callBoard != null ? callBoard.getCallingSbd() : null;
+
+        String callingSbd = sessionCalling != null && !sessionCalling.isBlank()
+                ? sessionCalling
+                : boardCalling;
         if (callingSbd != null && !callingSbd.isBlank() && qList != null) {
             ExamRegistrationDTO atDesk = findBySbd(qList, callingSbd);
             if (atDesk == null || atDesk.isProcedureComplete() || atDesk.isSuspended() || atDesk.isAbsent()) {
-                callingSbd = null;
+                callingSbd = resolveNextCallingSbd(qList, callingSbd);
             }
         }
         if (session != null) {

@@ -26,6 +26,7 @@ public class PublicCallStateServlet extends HttpServlet {
         json.append('{');
         JsonUtil.appendJsonField(json, "sessionId", snapshot.getSessionId(), true);
         JsonUtil.appendJsonField(json, "isCallingActive", snapshot.isCallingActive(), true);
+        JsonUtil.appendJsonField(json, "deskBusy", snapshot.isDeskBusy(), true);
         JsonUtil.appendJsonField(json, "shiftEnded", snapshot.isShiftEnded(), true);
         JsonUtil.appendJsonField(json, "updatedAtMs", snapshot.getUpdatedAtMs(), true);
 
@@ -35,6 +36,12 @@ public class PublicCallStateServlet extends HttpServlet {
             JsonUtil.appendJsonField(json, "examDate", examDate, true);
         } else {
             json.append("\"examDate\":null,");
+        }
+
+        if (snapshot.getDeskSbd() != null && !snapshot.getDeskSbd().isBlank()) {
+            JsonUtil.appendJsonField(json, "deskSbd", snapshot.getDeskSbd(), true);
+        } else {
+            json.append("\"deskSbd\":null,");
         }
 
         json.append("\"calling\":");
