@@ -1,8 +1,14 @@
 package controller.staff.exam;
-import dto.AutoAllocateResultDTO;
+import dto.ServiceResult;
+import dto.payload.AutoAllocateData;
+import dto.payload.UpdateAllocatedRoomCommand;
+import dto.payload.UpdateEnrollmentScoresCommand;
+import dto.payload.UpdateRoadScoreCommand;
 import dto.CandidateCallBoardStateDTO;
 import dto.CandidateEnrollmentDTO;
 import dto.SessionDTO;
+import enums.AuditAction;
+import enums.AuditEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -81,19 +87,22 @@ public class AllocationServlet extends HttpServlet {
         if (action != null) {
             try {
                 if ("autoAllocate".equals(action)) {
-                    AutoAllocateResultDTO allocResult = allocationService.autoAllocateSession(sessionId);
-                    if (allocResult.errorMsg != null) {
-                        request.setAttribute("errorMsg", allocResult.errorMsg);
-                    } else if (allocResult.warningMsg != null) {
-                        request.setAttribute("warningMsg", allocResult.warningMsg);
+                    ServiceResult<AutoAllocateData> allocResult = allocationService.autoAllocateSession(sessionId);
+                    if (!allocResult.isSuccess()) {
+                        request.setAttribute("errorMsg", allocResult.getMessage());
+                    } else if (allocResult.getData() != null
+                            && allocResult.getData().getWarningMessage() != null) {
+                        request.setAttribute("warningMsg", allocResult.getData().getWarningMessage());
                     }
-                    if (allocResult.allocatedCount > 0) {
+                    int allocatedCount = allocResult.getData() != null
+                            ? allocResult.getData().getAllocatedCount() : 0;
+                    if (allocatedCount > 0) {
                         request.setAttribute("alertMsg", "");
-                        addAuditLog(session, "ALLOCATE Candidates", "");
+                        addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE, "");
                         qList = regService.getCandidatesBySession(sessionId);
                         session.setAttribute("candidateQueue", qList);
                         session.setAttribute("lastLoadedSessionId", sessionId);
-                    } else if (allocResult.errorMsg == null) {
+                    } else if (allocResult.isSuccess()) {
                         request.setAttribute("warningMsg", "");
                     }
                 } else if (regIdStr != null) {
@@ -108,7 +117,7 @@ public class AllocationServlet extends HttpServlet {
                     }
                     if (profile != null) {
                         if ("checkin".equals(action)) {
-                            boolean ok = regService.updatePresent(regId, true);
+                            boolean ok = regService.updatePresent(regId, true).isSuccess();
                             if (ok) {
                                 profile.setIsPresent(true);
                             }
@@ -123,12 +132,16 @@ public class AllocationServlet extends HttpServlet {
                             int areaId = Integer.parseInt(request.getParameter("areaId"));
                             ExamArea targetArea = areaService.getById(areaId);
                             if (targetArea != null && profile.getAllocatedAreaId() != areaId) {
-                                boolean ok = regService.updateAllocatedRoom(regId, targetArea.getId(), targetArea.getAreaName());
+                                UpdateAllocatedRoomCommand roomCommand = new UpdateAllocatedRoomCommand();
+                                roomCommand.setCandidateId(regId);
+                                roomCommand.setAreaId(targetArea.getExamAreaId());
+                                roomCommand.setAreaName(targetArea.getAreaName());
+                                boolean ok = regService.updateAllocatedRoom(roomCommand).isSuccess();
                                 if (ok) {
-                                    profile.setAllocatedAreaId(targetArea.getId());
+                                    profile.setAllocatedAreaId(targetArea.getExamAreaId());
                                     profile.setAllocatedAreaName(targetArea.getAreaName());
-                                    profile.setNotes("AllocatedRoom:" + targetArea.getId() + ":" + targetArea.getAreaName());
-                                    addAuditLog(session, "UPDATE CandidateEnrollmentDTO",
+                                    profile.setNotes("AllocatedRoom:" + targetArea.getExamAreaId() + ":" + targetArea.getAreaName());
+                                    addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE,
                                             "" + targetArea.getAreaName() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 }
@@ -138,11 +151,15 @@ public class AllocationServlet extends HttpServlet {
                             String passed = score >= 80 ? "passed" : "failed";
                             Integer oldScore = profile.getTheoryScore();
                             if (oldScore == null || oldScore != score) {
-                                boolean ok = regService.updateScores(regId, score, passed, null, null);
+                                UpdateEnrollmentScoresCommand scoresCommand = new UpdateEnrollmentScoresCommand();
+                                scoresCommand.setCandidateId(regId);
+                                scoresCommand.setTheoryScore(score);
+                                scoresCommand.setTheoryResult(passed);
+                                boolean ok = regService.updateScores(scoresCommand).isSuccess();
                                 if (ok) {
                                     profile.setTheoryScore(score);
                                     profile.setTheoryPassed(passed);
-                                    addAuditLog(session, "UPDATE ExamScore",
+                                    addAuditLog(session, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
                                             "" + score + " - " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 } else {
@@ -154,11 +171,15 @@ public class AllocationServlet extends HttpServlet {
                             String passed = score >= 80 ? "passed" : "failed";
                             Integer oldScore = profile.getPracticalScore();
                             if (oldScore == null || oldScore != score) {
-                                boolean ok = regService.updateScores(regId, null, null, score, passed);
+                                UpdateEnrollmentScoresCommand scoresCommand = new UpdateEnrollmentScoresCommand();
+                                scoresCommand.setCandidateId(regId);
+                                scoresCommand.setPracticalScore(score);
+                                scoresCommand.setPracticalResult(passed);
+                                boolean ok = regService.updateScores(scoresCommand).isSuccess();
                                 if (ok) {
                                     profile.setPracticalScore(score);
                                     profile.setPracticalPassed(passed);
-                                    addAuditLog(session, "UPDATE ExamScore",
+                                    addAuditLog(session, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
                                             "" + score + "  -  " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 } else {
@@ -170,11 +191,15 @@ public class AllocationServlet extends HttpServlet {
                             String passed = score >= 80 ? "passed" : "failed";
                             Integer oldScore = profile.getRoadTestScore();
                             if (oldScore == null || oldScore != score) {
-                                boolean ok = regService.updateRoadScore(regId, score, passed);
+                                UpdateRoadScoreCommand roadCommand = new UpdateRoadScoreCommand();
+                                roadCommand.setCandidateId(regId);
+                                roadCommand.setScore(score);
+                                roadCommand.setPassed(passed);
+                                boolean ok = regService.updateRoadScore(roadCommand).isSuccess();
                                 if (ok) {
                                     profile.setRoadTestScore(score);
                                     profile.setRoadTestPassed(passed);
-                                    addAuditLog(session, "UPDATE ExamScore",
+                                    addAuditLog(session, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
                                             "" + score + "  - " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
                                             regId);
                                 } else {
@@ -190,7 +215,7 @@ public class AllocationServlet extends HttpServlet {
                             profile.setPhotoUrl(photoPath);
                             profile.setIsPaymentCompleted(true);
                             profile.setIsPresent(true);
-                            addAuditLog(session, "UPDATE CandidateEnrollmentDTO", "" + profile.getSbd());
+                            addAuditLog(session, AuditAction.UPDATE, AuditEntity.CANDIDATE, "" + profile.getSbd());
                         }
                     }
                 }
@@ -214,12 +239,12 @@ public class AllocationServlet extends HttpServlet {
         request.setAttribute("activeTheoryRooms", areaService.getActiveTheoryRooms());
         request.getRequestDispatcher("/views/staff/exam/allocation.jsp").forward(request, response);
     }
-    private void addAuditLog(HttpSession session, String action, String details) {
-        addAuditLog(session, action, details, 0);
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details) {
+        addAuditLog(session, action, entity, details, 0);
     }
-    private void addAuditLog(HttpSession session, String action, String details, int recordId) {
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details, int recordId) {
         try {
-            auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details, recordId);
+            auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, entity, details, recordId);
         } catch (Exception e) {
             e.printStackTrace();
         }

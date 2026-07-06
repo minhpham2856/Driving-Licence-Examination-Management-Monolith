@@ -16,6 +16,8 @@ import service.impl.ExamSessionControlServiceImpl;
 import dto.CandidateEnrollmentDTO;
 import dto.UploadRecordDTO;
 import dto.SessionDTO;
+import enums.AuditAction;
+import enums.AuditEntity;
 import model.Profile;
 import model.User;
 import util.UsernameGenerator;
@@ -115,22 +117,22 @@ public class UploadServlet extends HttpServlet {
                             skippedCount++;
                             continue;
                         }
-                        Integer existingId = regService.findCandidateIdByProfileAndSession(profile.getId(), selectedSessionId);
+                        Integer existingId = regService.findCandidateIdByGovIdAndSession(reg.getGovIdNo(), selectedSessionId);
                         boolean regExists = existingId != null;
                         if (regExists) {
                             int regId = existingId;
                             reg.setId(regId);
-                            reg.setPersonId(profile.getId());
+                            reg.setPersonId(profile.getProfileId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
                             regService.updatePresent(regId, true);
                             regService.updatePhoto(regId, null);
                             importedCount++;
                         } else {
-                            reg.setPersonId(profile.getId());
+                            reg.setPersonId(profile.getProfileId());
                             reg.setExamSessionId(selectedSessionId);
                             reg.setIsPresent(true);
-                            if (regService.insert(reg)) {
+                            if (regService.insert(reg).isSuccess()) {
                                 regService.updatePhoto(reg.getId(), null);
                                 importedCount++;
                             }
@@ -155,7 +157,7 @@ public class UploadServlet extends HttpServlet {
                 String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
                         + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
                         + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");
-                addAuditLog(session, "IMPORT Candidates", auditDetails, selectedSessionId);
+                addAuditLog(session, AuditAction.IMPORT, AuditEntity.CANDIDATE, auditDetails, selectedSessionId);
                 response.sendRedirect("upload?importSuccess=true");
                 return;
             }
@@ -279,7 +281,7 @@ public class UploadServlet extends HttpServlet {
                     if (!cccd.isEmpty()) {
                         Profile existingProfile = regService.getProfileByGovId(cccd);
                         if (existingProfile != null) {
-                            if (regService.findCandidateIdByProfileAndSession(existingProfile.getId(), selectedSessionId) != null) {
+                            if (regService.findCandidateIdByGovIdAndSession(cccd, selectedSessionId) != null) {
                                 reg.setDuplicate(true);
                             }
                         }
@@ -314,7 +316,7 @@ public class UploadServlet extends HttpServlet {
             user.setEmail(finalEmail);
             user.setPasswordHash(UsernameGenerator.randomPassword(10));
             user.setActive(true);
-            user.setRoleId(roleService.getRoleIdByName(enums.UserRole.NGUOI_DANG_KY_THI.getDisplayName()));
+            user.setRoleId(roleService.getRoleIdByName(enums.UserRole.REGISTRANT.getValue()));
             if (!regService.insertUser(user)) {
                 return null;
             }
@@ -348,10 +350,10 @@ public class UploadServlet extends HttpServlet {
         }
         return UsernameGenerator.generateFromFullName(fullName) + System.currentTimeMillis() % 1000;
     }
-    private void addAuditLog(HttpSession session, String action, String details) {
-        addAuditLog(session, action, details, 0);
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details) {
+        addAuditLog(session, action, entity, details, 0);
     }
-    private void addAuditLog(HttpSession session, String action, String details, int recordId) {
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details, int recordId) {
         List<Map<String, String>> sessionAuditLogs = (List<Map<String, String>>) session.getAttribute("sessionAuditLogs");
         if (sessionAuditLogs == null) {
             sessionAuditLogs = new ArrayList<>();
@@ -360,10 +362,10 @@ public class UploadServlet extends HttpServlet {
         Map<String, String> audit = new HashMap<>();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         audit.put("time", sdf.format(new java.util.Date()));
-        audit.put("action", action);
+        audit.put("action", action.getValue());
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
-        auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details, recordId);
+        auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, entity, details, recordId);
     }
     private boolean isValidUTF8(byte[] bytes) {
         int i = 0;

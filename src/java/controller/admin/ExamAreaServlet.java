@@ -1,5 +1,6 @@
 package controller.admin;
-import dto.*;
+import dto.payload.SaveEntityData;
+import dto.ServiceResult;
 import model.*;
 import model.*;
 import service.*;
@@ -8,6 +9,8 @@ import service.ExamAreaService;
 import service.impl.ExamAreaServiceImpl;
 import model.ExamArea;
 import model.User;
+import enums.AuditAction;
+import enums.AuditEntity;
 import service.AuditLogService;
 import util.Sanitize;
 import jakarta.servlet.http.HttpSession;
@@ -75,19 +78,21 @@ public class ExamAreaServlet extends HttpServlet {
         int capacity = Sanitize.toInt(req.getParameter("capacity"), 0);
         boolean isEdit = id > 0;
         ExamArea area = build(id, name, type, location, capacity);
-        ExamAreaService.SaveResult result = examAreaService.save(area, admin.getUserId());
-        if (!result.success) {
+        ServiceResult<SaveEntityData> result = examAreaService.save(area, admin.getUserId());
+        if (!result.isSuccess()) {
             req.setAttribute("mode", isEdit ? "edit" : "create");
             req.setAttribute("area", area);
-            req.setAttribute("error", result.message);
+            req.setAttribute("error", result.getMessage());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
             return;
         }
-        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), isEdit ? "UPDATE" : "INSERT",
-                (isEdit ? "cap nhat khu vuc thi: " : "tao khu vuc thi: ") + name, result.id);
+        int savedId = result.getData() != null ? result.getData().getEntityId() : area.getExamAreaId();
+        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+                isEdit ? AuditAction.UPDATE : AuditAction.CREATE, AuditEntity.EXAM_ROOM,
+                (isEdit ? "cap nhat khu vuc thi: " : "tao khu vuc thi: ") + name, savedId);
         HttpSession flashSession = req.getSession(true);
         flashSession.setAttribute("flashType", "success");
-        flashSession.setAttribute("flashMessage", result.message);
+        flashSession.setAttribute("flashMessage", result.getMessage());
         resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
     }
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp, User admin)
@@ -95,16 +100,17 @@ public class ExamAreaServlet extends HttpServlet {
         int id = Sanitize.toInt(req.getParameter("id"), 0);
         ExamArea area = examAreaService.getById(id);
         String name = area != null ? area.getAreaName() : String.valueOf(id);
-        ExamAreaService.DeleteResult result = examAreaService.delete(id, admin.getUserId());
-        if (result.success) {
-            auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(), "DELETE", "Xóa khu vực thi: " + name, id);
+        ServiceResult<Void> result = examAreaService.delete(id, admin.getUserId());
+        if (result.isSuccess()) {
+            auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+                    AuditAction.DELETE, AuditEntity.EXAM_ROOM, "Xóa khu vực thi: " + name, id);
             HttpSession flashSession = req.getSession(true);
         flashSession.setAttribute("flashType", "success");
-        flashSession.setAttribute("flashMessage", result.message);
+        flashSession.setAttribute("flashMessage", result.getMessage());
         } else {
             HttpSession flashSession = req.getSession(true);
             flashSession.setAttribute("flashType", "danger");
-            flashSession.setAttribute("flashMessage", result.message);
+            flashSession.setAttribute("flashMessage", result.getMessage());
         }
         resp.sendRedirect(req.getContextPath() + "/admin/exam-area");
     }

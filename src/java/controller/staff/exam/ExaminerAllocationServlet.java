@@ -11,6 +11,8 @@ import model.ExamArea;
 import model.ExamDevice;
 import dto.SessionDTO;
 import dto.UserDTO;
+import enums.AuditAction;
+import enums.AuditEntity;
 import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -92,7 +94,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("sessionAreas", sessionAreas);
             Map<Integer, List<ExamDevice>> devicesByArea = new HashMap<>();
             for (ExamArea area : sessionAreas) {
-                devicesByArea.put(area.getId(), allocationService.getDevicesByAreaId(area.getId()));
+                devicesByArea.put(area.getExamAreaId(), allocationService.getDevicesByAreaId(area.getExamAreaId()));
             }
             request.setAttribute("devicesByArea", devicesByArea);
             Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
@@ -124,7 +126,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 ExaminerSlotDTO slot = new ExaminerSlotDTO();
                 slot.setExamSessionId(targetSessionId);
                 slot.setAreaId(areaId);
-                slot.setExamTypeId(targetSession.getExamTypeId());
+                slot.setExamSection(targetSession.getExamSection());
                 slot.setExaminerUserId(examinerUserId);
                 slot.setAssignedBy(resolveStaffId(session));
                 slot.setAreaName(area.getAreaName());
@@ -136,7 +138,8 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 boolean ok = allocationService.assignExaminer(slot);
                 if (ok) {
                     request.setAttribute("alertMsg", "Da phan cong giam khao vao phong " + area.getAreaName() + ".");
-                    addAuditLog(session, "ASSIGN Examiner", "Phan cong giam khao userId=" + examinerUserId
+                    addAuditLog(session, AuditAction.CREATE, AuditEntity.EXAMINER_ASSIGNMENT,
+                            "Phan cong giam khao userId=" + examinerUserId
                             + " ca " + targetSessionId + ", phong " + area.getAreaName());
                 } else {
                     request.setAttribute("errorMsg", "Giam khao da duoc phan cong ca nay. Go phan cong cu truoc khi doi phong.");
@@ -150,7 +153,8 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 boolean ok = allocationService.removeAssignment(slotKey);
                 if (ok) {
                     request.setAttribute("alertMsg", "Da go phan cong giam khao.");
-                    addAuditLog(session, "REMOVE Examiner", "Go phan cong slot=" + slotKey);
+                    addAuditLog(session, AuditAction.DELETE, AuditEntity.EXAMINER_ASSIGNMENT,
+                            "Go phan cong slot=" + slotKey);
                 } else {
                     request.setAttribute("errorMsg", "Go phan cong that bai.");
                 }
@@ -184,8 +188,8 @@ public class ExaminerAllocationServlet extends HttpServlet {
         User user = (User) session.getAttribute("user");
         return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
     }
-    private void addAuditLog(HttpSession session, String action, String details) {
-        auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details);
+    private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details) {
+        auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, entity, details);
     }
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
