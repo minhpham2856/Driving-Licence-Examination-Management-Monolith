@@ -84,18 +84,6 @@ var CONFIRM_REMOVE_EXAMINER = 'G\u1ee1 ph\u00e2n c\u00f4ng gi\u00e1m kh\u1ea3o n
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    const headerPicker = document.getElementById('headerSessionPicker');
-
-    if (headerPicker) {
-
-        headerPicker.addEventListener('change', function () {
-
-            this.form.submit();
-
-        });
-
-    }
-
     filterSessionAreas();
 
     const targetSessionSelect = document.getElementById('targetSessionId');

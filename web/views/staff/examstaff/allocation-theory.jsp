@@ -44,19 +44,37 @@
                             <span class="badge-pill-status badge-pill-status--success">Lệ phí</span>
                         </td>
                         <td>
-                            <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form">
-                                <input type="hidden" name="action" value="allocateRoom">
-                                <input type="hidden" name="id" value="${c.id}">
-                                <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
-                                <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
-                                <c:if test="${not empty param.sessionId}"><input type="hidden" name="sessionId" value="${param.sessionId}"></c:if>
-                                <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
-                                <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table">
+                            <c:choose>
+                                <c:when test="${not empty c.allocatedAreaName}">
+                                    <strong>${c.allocatedAreaName}</strong>
+                                </c:when>
+                                <c:when test="${not empty c.allocatedAreaId}">
                                     <c:forEach var="room" items="${activeTheoryRooms}">
-                                        <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${room.areaName}</option>
+                                        <c:if test="${room.id eq c.allocatedAreaId}">
+                                            <strong>${room.areaName}</strong>
+                                        </c:if>
                                     </c:forEach>
-                                </select>
-                            </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge-pill-status badge-pill-status--warning">Đang chờ</span>
+                                </c:otherwise>
+                            </c:choose>
+                            <c:if test="${not empty activeTheoryRooms}">
+                                <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form allocation-inline-form--room-change">
+                                    <input type="hidden" name="action" value="allocateRoom">
+                                    <input type="hidden" name="id" value="${c.id}">
+                                    <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
+                                    <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
+                                    <c:if test="${not empty layoutSessionId}"><input type="hidden" name="sessionId" value="${layoutSessionId}"></c:if>
+                                    <c:if test="${empty layoutSessionId and allocationActiveSessionId gt 0}"><input type="hidden" name="sessionId" value="${allocationActiveSessionId}"></c:if>
+                                    <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
+                                    <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi phòng">
+                                        <c:forEach var="room" items="${activeTheoryRooms}">
+                                            <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${room.areaName}</option>
+                                        </c:forEach>
+                                    </select>
+                                </form>
+                            </c:if>
                         </td>
                         <td>
                             <c:set var="lic" value="${c.clazz}" />

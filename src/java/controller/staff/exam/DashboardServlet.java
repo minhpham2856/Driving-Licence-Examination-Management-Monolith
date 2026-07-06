@@ -76,6 +76,7 @@ public class DashboardServlet extends HttpServlet {
 
             List<SessionDTO> daySessions = ExamStaffViewHelper.sessionsForExam(
                     pageCtx.getAllSessions(), examId);
+            request.setAttribute("examSessions", daySessions);
             Set<Integer> assignedExaminerIds = new HashSet<>();
             for (SessionDTO daySession : daySessions) {
                 List<ExaminerSlotDTO> slots = allocationService.getAssignmentsBySessionId(daySession.getId());

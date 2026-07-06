@@ -87,7 +87,7 @@
                     <li>Hạng <strong>C / C1</strong>: tối thiểu <strong>50 / 55</strong> câu đúng.</li>
                     <li>Hạng <strong>D+</strong>: tối thiểu <strong>56 / 60</strong> câu đúng.</li>
                 </ul>
-                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt.</p>
+                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một ca thi</strong> và <strong>một phòng thi lý thuyết</strong>.</p>
             </c:otherwise>
         </c:choose>
     </div>

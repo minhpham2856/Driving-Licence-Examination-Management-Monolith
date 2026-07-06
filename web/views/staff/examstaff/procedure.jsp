@@ -132,6 +132,12 @@
                                 <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — chụp tại bàn thủ tục khi đến làm hồ sơ. Ảnh lưu vào hệ thống để bộ phận khác in hồ sơ sau khi thi xong.</p>
                             </div>
 
+                            <c:if test="${not empty requestScope.photoStaleMsg}">
+                                <div class="camera-error-box" style="display:block; margin-bottom:1rem;">
+                                    ${requestScope.photoStaleMsg}
+                                </div>
+                            </c:if>
+
                             <c:if test="${not empty requestScope.photoRequiredMsg}">
                                 <div class="camera-error-box" style="display:block; margin-bottom:1rem;">
                                     ${requestScope.photoRequiredMsg}

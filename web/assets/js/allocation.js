@@ -63,6 +63,9 @@
 
         document.querySelectorAll('select[data-auto-submit]').forEach(function (sel) {
             sel.addEventListener('change', function () {
+                if (!this.value) {
+                    return;
+                }
                 this.form.submit();
             });
         });

@@ -10,22 +10,6 @@
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-        <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Đồng bộ với quy trình phân bổ: một kỳ thi gồm lý thuyết → sa hình → đường trường. Phòng từ <strong>Session_ExamArea</strong>, giám khảo <strong>Session_Examiner</strong>.</p>
-            <div class="page-actions">
-                <form method="get" action="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation" class="examiner-session-form">
-                    <label for="headerSessionPicker" class="examiner-session-form__label">Kỳ thi (hạng / ngày):</label>
-                    <select name="sessionId" id="headerSessionPicker" class="examiner-session-form__select">
-                        <c:forEach var="exam" items="${examOptions}">
-                            <option value="${exam.id}" ${selectedExamId eq exam.examId ? 'selected' : ''}>
-                                Kỳ thi hạng ${exam.licenseCode} — <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/> (${exam.status})
-                            </option>
-                        </c:forEach>
-                    </select>
-                </form>
-            </div>
-        </header>
-
         <c:if test="${not empty requestScope.sessionSelectMsg}">
             <div class="examiner-alert examiner-alert--success">${requestScope.sessionSelectMsg}</div>
         </c:if>
@@ -122,16 +106,16 @@
                         </select>
                     </div>
                     <div>
-                        <label for="areaId">Phòng thi (Session_ExamArea)</label>
+                        <label for="areaId">Phòng thi</label>
                         <select name="areaId" id="areaId" required>
                             <c:choose>
                                 <c:when test="${empty areaAssignOptions}">
-                                    <option value="">— Chưa có phòng thi (Session_ExamArea) —</option>
+                                    <option value="">— Chưa có phòng thi —</option>
                                 </c:when>
                                 <c:otherwise>
                                     <c:forEach var="opt" items="${areaAssignOptions}">
                                         <option value="${opt.areaId}" data-session="${opt.sessionId}" data-type="${opt.areaType}">
-                                            ${opt.areaName} (${opt.areaType}) — ${opt.sessionName}
+                                            ${opt.areaName}
                                         </option>
                                     </c:forEach>
                                 </c:otherwise>
