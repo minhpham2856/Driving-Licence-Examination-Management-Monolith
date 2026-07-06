@@ -10,6 +10,8 @@ import model.ExamArea;
 
 import model.ExamDevice;
 
+import model.User;
+
 import dto.SessionDTO;
 
 import dto.UserDTO;
@@ -18,7 +20,7 @@ import dao.ExamSessionDAO;
 
 import dao.impl.ExamSessionDAOImpl;
 
-import model.User;
+import util.ExamAreaTypeResolver;
 
 import jakarta.servlet.ServletException;
 
@@ -238,7 +240,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         List<ExamArea> sessionAreas = sessionId > 0
 
-                ? allocationService.getAreasBySessionId(sessionId)
+                ? allocationService.getAvailableAreasForSession(sessionId)
 
                 : List.of();
 
@@ -260,7 +262,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         for (SessionDTO ds : daySessions) {
 
-            List<ExamArea> areas = allocationService.getAreasBySessionId(ds.getId());
+            List<ExamArea> areas = allocationService.getAvailableAreasForSession(ds.getId());
 
             areasBySession.put(String.valueOf(ds.getId()), areas);
 
@@ -321,9 +323,9 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
                 }
 
-                if (!allocationService.isAreaInSession(targetSessionId, areaId)) {
+                if (!ExamAreaTypeResolver.areaMatchesSession(area, targetSession)) {
 
-                    request.setAttribute("errorMsg", "Phong thi khong thuoc ca thi da chon (Session_ExamArea).");
+                    request.setAttribute("errorMsg", "Phòng thi không đúng loại với ca/môn đã chọn.");
 
                     return;
 
@@ -365,7 +367,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
                 } else {
 
-                    request.setAttribute("errorMsg", "Giam khao da duoc phan cong ca nay. Go phan cong cu truoc khi doi phong.");
+                    request.setAttribute("errorMsg", "Giám khảo đã được phân công ở ca/phòng khác. Gỡ phân công cũ trước khi gán ca mới.");
 
                 }
 

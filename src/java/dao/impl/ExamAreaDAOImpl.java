@@ -126,19 +126,30 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
+        return getAvailableAreasByType(ExamSection.LY_THUYET.getDisplayName());
+    }
+
+    @Override
+    public List<ExamArea> getAvailableAreasByType(String areaType) {
+        if (areaType == null || areaType.isBlank()) {
+            return List.of();
+        }
         List<ExamArea> list = new ArrayList<>();
         String sql = "SELECT * FROM ExamArea WHERE AreaType = ? ORDER BY AreaName";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, ExamSection.LY_THUYET.getDisplayName());
+            ps.setString(1, areaType.trim());
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(map(rs));
+                while (rs.next()) {
+                    list.add(map(rs));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
+
     @Override
     public List<ExamArea> getAreasBySessionId(int sessionId) {
         List<ExamArea> list = new ArrayList<>();

@@ -28,6 +28,8 @@ public interface ExaminerAllocationService {
     List<UserDTO> getActiveExaminers();
     
     boolean isAreaInSession(int sessionId, int areaId);
+
+    List<ExamArea> getAvailableAreasForSession(int sessionId);
     
     List<ExaminerSlotDTO> getAssignmentsByExamDate(Date date, Map<Integer, Date> sessionDates);
     List<ExaminerSlotDTO> getAssignmentsBySessionId(int sessionId);

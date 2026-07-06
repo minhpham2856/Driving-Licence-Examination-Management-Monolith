@@ -94,6 +94,15 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     }
 
     @Override
+    public List<ExamArea> getAvailableAreasForSession(int sessionId) {
+        SessionDTO session = sessionDAO.getById(sessionId);
+        if (session == null) {
+            return List.of();
+        }
+        return areaDAO.getAvailableAreasByType(util.ExamAreaTypeResolver.resolveAreaType(session));
+    }
+
+    @Override
     public List<ExaminerSlotDTO> getAssignmentsByExamDate(Date date, Map<Integer, Date> sessionDates) {
         return assignmentDAO.getByExamDate(date, sessionDates);
     }
@@ -132,9 +141,14 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
     private AutoAllocateResultDTO autoAllocate(int sessionId, Integer targetRegId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
+        if (sessionId <= 0) {
+            result.errorMsg = "Chưa chọn ca thi để phân bổ phòng.";
+            return result;
+        }
+
         List<ExamArea> activeTheoryRooms = areaDAO.getActiveTheoryRooms();
         if (activeTheoryRooms.isEmpty()) {
-            result.errorMsg = "Không có phòng thi lý thuyết đang hoạt động để phân bổ.";
+            result.errorMsg = "Không có phòng thi lý thuyết khả dụng tại trung tâm (ExamArea).";
             return result;
         }
 
@@ -143,20 +157,29 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
         List<ExamRegistrationDTO> readyCandidates = new ArrayList<>();
         for (ExamRegistrationDTO c : allCandidates) {
-            if (!isReadyForAllocation(c)) continue;
+            if (!isReadyForAllocation(c)) {
+                continue;
+            }
             if (targetRegId != null) {
-                if (c.getId() == targetRegId) readyCandidates.add(c);
+                if (c.getId() == targetRegId) {
+                    readyCandidates.add(c);
+                }
             } else if (!isAlreadyAllocated(c)) {
                 readyCandidates.add(c);
             }
         }
 
-        if (readyCandidates.isEmpty()) return result;
+        if (readyCandidates.isEmpty()) {
+            return result;
+        }
 
         int totalCandidates = readyCandidates.size();
-        int totalSeats = activeTheoryRooms.size() * DEFAULT_MAX_PER_ROOM;
+        int totalSeats = 0;
+        for (ExamArea room : activeTheoryRooms) {
+            totalSeats += roomCapacity(room);
+        }
         if (totalCandidates > totalSeats) {
-            result.errorMsg = "[LỖI Exception 2.0.E1] Vượt quá dung lượng cơ sở hạ tầng. Vui lòng kích hoạt thêm phòng thi lý thuyết.";
+            result.errorMsg = "[LỖI Exception 2.0.E1] Vượt quá dung lượng phòng thi lý thuyết. Vui lòng bổ sung phòng loại Lý thuyết trong ExamArea.";
             return result;
         }
 
@@ -164,18 +187,37 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 c -> c.getLicenseCode() != null ? c.getLicenseCode() : ""));
 
         for (ExamRegistrationDTO c : readyCandidates) {
-            ExamArea room = pickBestRoom(c, activeTheoryRooms, roomOccupancy, allCandidates, DEFAULT_MAX_PER_ROOM);
-            if (room == null) continue;
+            String allocationConflict = registrationDAO.validateUniqueTheoryAllocation(c.getId(), sessionId);
+            if (allocationConflict != null) {
+                if (targetRegId != null && c.getId() == targetRegId) {
+                    result.errorMsg = allocationConflict;
+                    return result;
+                }
+                continue;
+            }
 
-            registrationDAO.updateAllocatedRoom(c.getId(), room.getId(), room.getAreaName());
-            c.setAllocatedAreaId(room.getId());
-            c.setAllocatedAreaName(room.getAreaName());
-            c.setNotes("AllocatedRoom:" + room.getId() + ":" + room.getAreaName());
-            roomOccupancy.merge(room.getId(), 1, Integer::sum);
-            result.allocatedCount++;
+            ExamArea room = pickBestRoom(c, activeTheoryRooms, roomOccupancy, allCandidates);
+            if (room == null) {
+                continue;
+            }
+
+            if (registrationDAO.updateAllocatedRoom(c.getId(), sessionId, room.getId(), room.getAreaName())) {
+                c.setAllocatedAreaId(room.getId());
+                c.setAllocatedAreaName(room.getAreaName());
+                c.setNotes("AllocatedRoom:" + room.getId() + ":" + room.getAreaName());
+                roomOccupancy.merge(room.getId(), 1, Integer::sum);
+                result.allocatedCount++;
+            }
         }
 
         return result;
+    }
+
+    private static int roomCapacity(ExamArea room) {
+        if (room == null || room.getCapacity() == null || room.getCapacity() <= 0) {
+            return DEFAULT_MAX_PER_ROOM;
+        }
+        return room.getCapacity();
     }
 
     private Map<Integer, Integer> buildRoomOccupancy(List<ExamRegistrationDTO> allCandidates, List<ExamArea> rooms) {
@@ -192,14 +234,16 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     }
 
     private ExamArea pickBestRoom(ExamRegistrationDTO candidate, List<ExamArea> rooms,
-            Map<Integer, Integer> roomOccupancy, List<ExamRegistrationDTO> allCandidates, int maxPerRoom) {
+            Map<Integer, Integer> roomOccupancy, List<ExamRegistrationDTO> allCandidates) {
         ExamArea bestRoom = null;
         int bestScore = Integer.MIN_VALUE;
         String licCode = candidate.getLicenseCode();
 
         for (ExamArea room : rooms) {
             int occ = roomOccupancy.getOrDefault(room.getId(), 0);
-            if (occ >= maxPerRoom) continue;
+            if (occ >= roomCapacity(room)) {
+                continue;
+            }
 
             int sameLicense = countSameLicenseInRoom(allCandidates, room.getId(), licCode);
             int score = sameLicense * 1000 - occ;
@@ -225,12 +269,24 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     }
 
     private boolean isReadyForAllocation(ExamRegistrationDTO c) {
-        if (c.isAbsent()) return false;
-        return c.isProcedureComplete() && "none".equals(c.getTheoryPassed());
+        if (c == null || c.isAbsent()) {
+            return false;
+        }
+        String theory = c.getTheoryPassed();
+        if (theory == null || theory.isBlank()) {
+            theory = "none";
+        }
+        return c.isProcedureComplete() && "none".equalsIgnoreCase(theory);
     }
 
     private boolean isAlreadyAllocated(ExamRegistrationDTO c) {
-        if (c.getAllocatedAreaId() != null) return true;
+        if (c == null) {
+            return false;
+        }
+        Integer areaId = c.getAllocatedAreaId();
+        if (areaId != null && areaId > 0) {
+            return true;
+        }
         return c.getNotes() != null && c.getNotes().startsWith("AllocatedRoom:");
     }
 }

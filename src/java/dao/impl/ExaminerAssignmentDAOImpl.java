@@ -7,6 +7,7 @@ import dbconnection.DBContext;
 import dao.ExaminerAssignmentDAO;
 import dto.ExaminerSlotDTO;
 
+import enums.UserRole;
 import model.Profile;
 import dto.UserDTO;
 
@@ -38,7 +39,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                    u.Email,
                    u.PasswordHash,
                    u.RoleId,
-                   u.[Status],
+                   u.IsActive,
                    r.RoleName,
                    p.ProfileId,
                    p.FullName,
@@ -50,7 +51,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             FROM [User] u
             INNER JOIN [Role] r ON r.RoleId = u.RoleId
             LEFT JOIN Profile p ON p.UserId = u.UserId
-            WHERE r.RoleName = N'Examiner' AND u.[Status] = 1
+            WHERE r.RoleName IN (?, N'Examiner') AND u.IsActive = 1
             ORDER BY p.FullName, u.Username
             """;
 
@@ -66,8 +67,8 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                    ea.AreaName AS areaName,
                    ea.AreaType AS areaType,
                    CASE
-                       WHEN sect.examTypeName LIKE N'%Thuc hanh%' OR sect.examTypeName LIKE '%Practical%' THEN 2
-                       WHEN sect.examTypeName LIKE N'%Duong%' OR sect.examTypeName LIKE '%Road%' THEN 4
+                       WHEN sect.examTypeName LIKE N'%Thực hành%' OR sect.examTypeName LIKE N'%Sa hình%' OR sect.examTypeName LIKE '%Practical%' THEN 2
+                       WHEN sect.examTypeName LIKE N'%Đường%' OR sect.examTypeName LIKE '%Road%' THEN 4
                        ELSE 1
                    END AS examTypeId,
                    sect.examTypeName
@@ -90,13 +91,14 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     public List<UserDTO> getActiveExaminers() {
         // List to hold the examiner DTOs
         List<UserDTO> list = new ArrayList<>();
-        try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT); ResultSet rs = ps.executeQuery()) {
-            // Map each result row to a UserDTO with nested Profile
-            while (rs.next()) {
-                list.add(mapExaminer(rs));
+        try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT)) {
+            ps.setString(1, UserRole.SAT_HACH_VIEN.getDisplayName());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapExaminer(rs));
+                }
             }
         } catch (SQLException e) {
-            // Log the error — caller receives the partially-populated list
             e.printStackTrace();
         }
         return list;
@@ -105,8 +107,17 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     // Inserts a Session_Examiner row and an audit mapping in a single transaction.
     @Override
     public boolean assign(ExaminerSlotDTO slot) {
+        if (slot == null || slot.getExamSessionId() <= 0 || slot.getExaminerUserId() <= 0) {
+            return false;
+        }
         // Build the composite entity ID for the audit mapping (sessionId:areaId:examinerId)
         String entityId = buildMappingEntityId(slot.getExamSessionId(), slot.getAreaId(), slot.getExaminerUserId());
+        String existingAssignmentSql = """
+                SELECT TOP 1 ExaminerScheduleId
+                FROM ExaminerSchedule
+                WHERE ExaminerId = ?
+                  AND SessionId <> ?
+                """;
         // SQL: insert the examiner assignment into Session_Examiner
         String insertAssignment = """
                 INSERT INTO ExaminerSchedule (SessionId, ExaminerId, ExamAreaId, ExamSectionId, AssignedBy, AssignedAt)
@@ -129,6 +140,16 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         try {
             // Begin transaction — both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
+            try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
+                ps.setInt(1, slot.getExaminerUserId());
+                ps.setInt(2, slot.getExamSessionId());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        getConnection().rollback();
+                        return false;
+                    }
+                }
+            }
             // Step 1: insert the Session_Examiner row
             try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
@@ -430,7 +451,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         user.setEmail(rs.getString("Email"));
         user.setPasswordHash(rs.getString("PasswordHash"));
         // Map the Status column to the isActive boolean
-        user.setActive(rs.getBoolean("Status"));
+        user.setActive(rs.getBoolean("IsActive"));
         int roleId = rs.getInt("RoleId");
         if (!rs.wasNull()) {
             user.setRoleId(roleId);
