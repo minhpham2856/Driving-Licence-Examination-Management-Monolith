@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -17,13 +17,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Layout Stylesheets -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <jsp:include page="/views/registrant/components/registrant-styles.jsp" />
 </head>
 <body class="has-side-nav-bar">
 
 <%-- Inject registrant sidebar --%>
-<jsp:include page="/views/layout/sidebar-registrant.jsp">
+<jsp:include page="/views/registrant/components/sidebar.jsp">
     <jsp:param name="activeSidebar" value="upload-documents" />
 </jsp:include>
 
@@ -157,7 +156,7 @@
     </main>
 
     <%-- Footer --%>
-    <jsp:include page="/views/layout/footer.jsp" />
+    <jsp:include page="/views/landing/components/footer.jsp" />
 </div>
 
 </body>
