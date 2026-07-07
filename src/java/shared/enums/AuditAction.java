@@ -4,7 +4,7 @@ public enum AuditAction {
     UPDATE("Cập nhật"),
     CREATE("Thêm"),
     DELETE("Xóa"),
-    EXPORT("Xuất"),
+    EXPORT("Xuất file"),
     IMPORT("Nhập");
 
     private final String value;
