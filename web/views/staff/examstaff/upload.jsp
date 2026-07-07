@@ -15,7 +15,10 @@
                     <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải CSV mẫu DSTS
                 </a>
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadTestFile" class="examiner-btn examiner-btn--white">
-                    <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải file test DSTS
+                    <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải file test DSTS (7 TS)
+                </a>
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadBulkTestFile" class="examiner-btn examiner-btn--white">
+                    <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải file test 55 thí sinh
                 </a>
             </div>
         </header>
@@ -46,7 +49,7 @@
                     <c:if test="${not empty requestScope.importExamLicense}">
                         <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
                             <span style="font-size: 0.75rem; color: #1d4ed8; font-weight: 600;">
-                                Hạng bằng kỳ thi: <strong>${requestScope.importExamLicense}</strong> — cột Hạng GPLX phải khớp (B/B1/B2 cùng nhóm).
+                                Hạng bằng kỳ thi: <strong>${requestScope.importExamLicense}</strong> — cột Hạng GPLX phải khớp đúng hạng kỳ thi (A1, A hoặc B1).
                             </span>
                         </div>
                     </c:if>
@@ -131,7 +134,7 @@
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 7</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Khớp kỳ thi (A1↔A1, B/B1/B2↔B,...).
+                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Khớp kỳ thi — chỉ A1, A, B1 (A2→A, B/B2→B1 trong file vẫn chấp nhận).
                         </div>
                     </div>
                     <div class="rule-item">
@@ -298,6 +301,22 @@
         </c:if>
 
         <c:if test="${param.importSuccess eq 'true'}">
+            <c:choose>
+                <c:when test="${sessionScope.importedCount eq 0}">
+                    <div style="background-color: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1.25rem; display: flex; gap: 12px; align-items: center; margin-top: 2rem;">
+                        <div>
+                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #92400e;">Không lưu được thí sinh nào</h4>
+                            <p style="margin: 4px 0 0; font-size: 0.82rem; color: #b45309;">
+                                Đã xử lý xong nhưng <strong>0</strong> thí sinh được ghi vào cơ sở dữ liệu
+                                <c:if test="${not empty sessionScope.importSkippedCount and sessionScope.importSkippedCount gt 0}">
+                                    — bỏ qua / lỗi <strong>${sessionScope.importSkippedCount}</strong> dòng.
+                                </c:if>
+                                Kiểm tra log server (lỗi SQL), ca thi đã chọn, và dòng trùng CCCD trong ca.
+                            </p>
+                        </div>
+                    </div>
+                </c:when>
+                <c:otherwise>
             <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 12px; padding: 1.25rem; display: flex; gap: 12px; align-items: center; margin-top: 2rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);" class="animated slideInUp">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #10b981; flex-shrink: 0;">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -305,11 +324,18 @@
                 </svg>
                 <div>
                     <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #065f46;">Lưu danh sách chính thức thành công!</h4>
-                    <p style="margin: 4px 0 0; font-size: 0.82rem; color: #047857;">Hệ thống đã lưu thành công <strong>${sessionScope.importedCount}</strong> thí sinh từ tệp DSTS/PC08.</p>
+                    <p style="margin: 4px 0 0; font-size: 0.82rem; color: #047857;">Hệ thống đã lưu thành công <strong>${sessionScope.importedCount}</strong> thí sinh.
+                        <c:if test="${not empty sessionScope.importSkippedCount and sessionScope.importSkippedCount gt 0}">
+                            (Bỏ qua ${sessionScope.importSkippedCount} dòng)
+                        </c:if>
+                    </p>
                 </div>
             </div>
+                </c:otherwise>
+            </c:choose>
             <%
                 session.removeAttribute("importedCount");
+                session.removeAttribute("importSkippedCount");
                 session.removeAttribute("uploadedFileName");
                 session.removeAttribute("selectedImportSessionId");
             %>

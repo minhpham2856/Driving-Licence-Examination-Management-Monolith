@@ -3,6 +3,7 @@ import dao.DossierDAO;
 import dbconnection.DBContext;
 import enums.DocumentNote;
 import enums.RegistrationStatus;
+import java.util.Locale;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,11 +11,10 @@ import java.sql.Statement;
 public class DossierDAOImpl extends DBContext implements DossierDAO {
     @Override
     public int ensureRegistration(int profileId, String licenceClass, String source, String applicantType) {
-        String normalizedClass = switch (licenceClass) {
-            case "A" -> "A2";
-            case "B" -> "B2";
-            default -> licenceClass;
-        };
+        String normalizedClass = normalizeManagedLicence(licenceClass);
+        if (normalizedClass.isEmpty()) {
+            return 0;
+        }
         try {
             int licenceId = findLicenceId(normalizedClass);
             if (licenceId <= 0) {
@@ -112,5 +112,18 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
         } catch (SQLException e) {
             throw new IllegalStateException("Không thể cập nhật trạng thái hồ sơ", e);
         }
+    }
+
+    private static String normalizeManagedLicence(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        String lc = raw.trim().toUpperCase(Locale.ROOT);
+        return switch (lc) {
+            case "A2" -> "A";
+            case "B", "B2" -> "B1";
+            case "A1", "A", "B1" -> lc;
+            default -> "";
+        };
     }
 }

@@ -2,7 +2,7 @@ package util;
 
 import java.util.Locale;
 
-/** Hạng GPLX trong file import vs kỳ thi đã chọn. */
+/** Hạng GPLX trong file import vs kỳ thi đã chọn (A1, A, B1). */
 public final class CandidateImportLicenseUtil {
 
     private CandidateImportLicenseUtil() {
@@ -16,18 +16,17 @@ public final class CandidateImportLicenseUtil {
     }
 
     public static boolean matchesExam(String fileLicense, String examLicense) {
-        String file = normalize(fileLicense);
-        String exam = normalize(examLicense);
-        if (file.isEmpty() || exam.isEmpty()) {
-            return false;
-        }
-        if (file.equals(exam)) {
-            return true;
-        }
-        return isCarGroup(file) && isCarGroup(exam);
+        String file = toManaged(normalize(fileLicense));
+        String exam = toManaged(normalize(examLicense));
+        return !file.isEmpty() && file.equals(exam);
     }
 
-    private static boolean isCarGroup(String license) {
-        return "B".equals(license) || "B1".equals(license) || "B2".equals(license);
+    private static String toManaged(String license) {
+        return switch (license) {
+            case "A2" -> "A";
+            case "B", "B2" -> "B1";
+            case "A1", "A", "B1" -> license;
+            default -> "";
+        };
     }
 }

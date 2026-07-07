@@ -208,6 +208,7 @@ CREATE TABLE ExamEnrollment (
     SessionId INT NOT NULL REFERENCES [Session](SessionId),
     SectionStatus NVARCHAR(50) NOT NULL DEFAULT N'Pending',
     SignaturePrinted BIT NOT NULL DEFAULT 0,
+    AllocatedExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
     ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
     UNIQUE (CandidateId, SessionId)
 );
@@ -1503,6 +1504,35 @@ IF COL_LENGTH('ExamEnrollment', 'ExamDeviceId') IS NULL
 BEGIN
     ALTER TABLE ExamEnrollment ADD ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId);
 END
+GO
+
+IF COL_LENGTH('ExamEnrollment', 'AllocatedExamAreaId') IS NULL
+BEGIN
+    ALTER TABLE ExamEnrollment ADD AllocatedExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId);
+END
+GO
+
+UPDATE ee
+SET ee.AllocatedExamAreaId = ed.ExamAreaId
+FROM ExamEnrollment ee
+INNER JOIN ExamDevice ed ON ed.ExamDeviceId = ee.ExamDeviceId
+WHERE ee.AllocatedExamAreaId IS NULL;
+GO
+
+DECLARE @dropExaminerUniqueSql NVARCHAR(MAX);
+SELECT @dropExaminerUniqueSql = 'ALTER TABLE ExaminerSchedule DROP CONSTRAINT ' + QUOTENAME(kc.name)
+FROM sys.key_constraints kc
+INNER JOIN (
+    SELECT ic.object_id, ic.index_id
+    FROM sys.index_columns ic
+    INNER JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+    WHERE ic.object_id = OBJECT_ID(N'dbo.ExaminerSchedule')
+    GROUP BY ic.object_id, ic.index_id
+    HAVING COUNT(*) = 1 AND MAX(c.name) = N'ExaminerId'
+) single_col ON single_col.object_id = kc.parent_object_id
+    AND single_col.index_id = kc.unique_index_id
+WHERE kc.type = 'UQ';
+IF @dropExaminerUniqueSql IS NOT NULL EXEC sp_executesql @dropExaminerUniqueSql;
 GO
 
 UPDATE ec

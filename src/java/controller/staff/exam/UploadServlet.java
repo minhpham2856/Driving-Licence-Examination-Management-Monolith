@@ -65,6 +65,16 @@ public class UploadServlet extends HttpServlet {
             return;
         }
 
+        if ("downloadBulkTestFile".equals(action)) {
+            response.setContentType("text/csv; charset=UTF-8");
+            response.setHeader("Content-Disposition",
+                    "attachment; filename=\"" + CandidateDstsCsvSamples.BULK_TEST_FILENAME + "\"");
+
+            response.getOutputStream().write(CandidateDstsCsvSamples.bulkTestCsvBytes());
+            response.getOutputStream().flush();
+            return;
+        }
+
         if ("save".equals(action)) {
             List<ExamRegistrationDTO> previewList = (List<ExamRegistrationDTO>) session.getAttribute("previewCandidates");
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
@@ -127,6 +137,7 @@ public class UploadServlet extends HttpServlet {
                 String webRoot = request.getServletContext().getRealPath("/");
                 ExamStaffViewHelper.refreshCandidateQueue(session, examId, webRoot);
                 session.setAttribute("importedCount", importedCount);
+                session.setAttribute("importSkippedCount", skippedCount);
 
                 String uploadedFile = (String) session.getAttribute("uploadedFileName");
                 if (uploadedFile == null) {
