@@ -2,11 +2,6 @@
 -- Database Schema
 -- Driving License Examination Management System
 -- DB: DLEM_DB_2
--- Ghi chú examstaff / public-call (schema DLEM_DB_2):
---   - Một kỳ thi = một hàng Exam (StartTime/EndTime trên Exam)
---   - StartTime: managing staff gán khi tạo kỳ; EndTime: NULL cho đến khi examstaff kết thúc kỳ
---   - sessionId trên URL/UI = ExamId
---   - Trạng thái LT/TH trên ExamEnrollmentSection
 -- ============================================
 
 USE master;
@@ -87,6 +82,24 @@ CREATE TABLE ExamRegistration (
     Notes NVARCHAR(MAX),
     ProfileId INT NOT NULL REFERENCES Profile(ProfileId),
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
+);
+GO
+
+-- Ngày thi dự kiến do managing staff tạo theo hạng GPLX (LicenceId -> Licence.LicenceId)
+CREATE TABLE ExamDates (
+    ExamDateId INT PRIMARY KEY IDENTITY(1,1),
+    ExamDate DATE NOT NULL,
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
+);
+GO
+
+-- N–N ExamRegistration - ExamDates: thí sinh chọn ngày dự kiến; IsActive đánh dấu lựa chọn còn hiệu lực
+CREATE TABLE RegistrationDates (
+    RegistrationDateId INT PRIMARY KEY IDENTITY(1,1),
+    ExamRegistrationId INT NOT NULL REFERENCES ExamRegistration(ExamRegistrationId),
+    ExamDateId INT NOT NULL REFERENCES ExamDates(ExamDateId),
+    IsActive BIT NOT NULL DEFAULT 1,
+    UNIQUE (ExamRegistrationId, ExamDateId)
 );
 GO
 
@@ -206,6 +219,7 @@ CREATE TABLE ExamEnrollmentSection (
     AllocatedBy INT NULL REFERENCES [User](UserId),
     StartedAt DATETIME NULL,
     CompletedAt DATETIME NULL,
+    ResultPrintedAt DATETIME NULL,
     UNIQUE (ExamEnrollmentId, ExamSectionId)
 );
 GO
@@ -347,10 +361,4 @@ CREATE TABLE Audit (
     Details NVARCHAR(MAX),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
-GO
-
--- Migration (DB đã tạo trước khi EndTime nullable):
--- ALTER TABLE Exam ALTER COLUMN EndTime DATETIME NULL;
--- ALTER TABLE Exam DROP CONSTRAINT CK__Exam__*;  -- tên constraint tùy instance
--- ALTER TABLE Exam ADD CONSTRAINT CK_Exam_EndTimeAfterStart CHECK (EndTime IS NULL OR EndTime > StartTime);
 GO
