@@ -204,7 +204,6 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             if (registrationDAO.updateAllocatedRoom(c.getId(), sessionId, room.getId(), room.getAreaName())) {
                 c.setAllocatedAreaId(room.getId());
                 c.setAllocatedAreaName(room.getAreaName());
-                c.setNotes("AllocatedRoom:" + room.getId() + ":" + room.getAreaName());
                 roomOccupancy.merge(room.getId(), 1, Integer::sum);
                 result.allocatedCount++;
             }
@@ -284,9 +283,6 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             return false;
         }
         Integer areaId = c.getAllocatedAreaId();
-        if (areaId != null && areaId > 0) {
-            return true;
-        }
-        return c.getNotes() != null && c.getNotes().startsWith("AllocatedRoom:");
+        return areaId != null && areaId > 0;
     }
 }

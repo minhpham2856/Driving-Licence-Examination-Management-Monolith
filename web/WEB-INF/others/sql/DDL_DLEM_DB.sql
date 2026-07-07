@@ -173,7 +173,6 @@ CREATE TABLE ExaminerSchedule (
     AssignedBy INT NULL REFERENCES [User](UserId),
     AssignedAt DATETIME NULL DEFAULT GETDATE(),
     UNIQUE (SessionId, ExaminerId),
-    UNIQUE (ExaminerId),
     FOREIGN KEY (SessionId, ExamSectionId) REFERENCES Session_ExamSection(SessionId, ExamSectionId),
     FOREIGN KEY (SessionId, ExamAreaId) REFERENCES Session_ExamArea(SessionId, ExamAreaId)
 );
@@ -227,6 +226,7 @@ CREATE TABLE ExamEnrollment (
     SessionId INT NOT NULL REFERENCES [Session](SessionId),
     SectionStatus NVARCHAR(50) NOT NULL,
     SignaturePrinted BIT NOT NULL DEFAULT 0,
+    AllocatedExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
     ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
     UNIQUE (CandidateId, SessionId)
 );

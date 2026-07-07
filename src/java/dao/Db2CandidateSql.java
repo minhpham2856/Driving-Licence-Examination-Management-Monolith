@@ -70,7 +70,7 @@ public final class Db2CandidateSql {
                 GROUP BY p1.ExamEnrollmentId
             ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
             LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId
-            LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = dev.ExamAreaId
+            LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = ee.AllocatedExamAreaId
             LEFT JOIN (
                 SELECT er.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
                 FROM ExamResult er
@@ -152,6 +152,6 @@ public final class Db2CandidateSql {
                 GROUP BY p1.ExamEnrollmentId
             ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
             LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId
-            LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = dev.ExamAreaId
+            LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = ee.AllocatedExamAreaId
             """;
 }

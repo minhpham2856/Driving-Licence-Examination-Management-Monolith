@@ -556,12 +556,10 @@ public class ExamRegistrationDTO {
     }
 
     public boolean isRequiresRoadTest() {
-        if (licenseCode == null) {
+        if (licenseCode == null || licenseCode.isBlank()) {
             return false;
         }
-        String lc = licenseCode.toUpperCase(Locale.ROOT).trim();
-        return lc.equals("B") || lc.equals("B1") || lc.equals("B2") || lc.equals("C")
-                || lc.equals("D") || lc.equals("E") || lc.equals("F")
-                || lc.equals("C1") || lc.equals("D1") || lc.equals("D2");
+        String lc = licenseCode.trim().toUpperCase(Locale.ROOT);
+        return "B1".equals(lc) || "B".equals(lc) || "B2".equals(lc);
     }
 }

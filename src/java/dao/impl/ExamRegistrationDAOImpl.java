@@ -12,6 +12,7 @@ import model.ExamRegistration;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrationDAO {
 
@@ -371,29 +372,16 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (validateUniqueTheoryAllocation(candidateId, sessionId) != null) {
             return false;
         }
-        String assignDeviceSql = """
-                UPDATE ee SET ee.ExamDeviceId = (
-                    SELECT TOP 1 ed.ExamDeviceId
-                    FROM ExamDevice ed
-                    WHERE ed.ExamAreaId = ?
-                      AND ISNULL(ed.IsActive, 1) = 1
-                    ORDER BY
-                      CASE WHEN ed.ExamDeviceId IN (
-                        SELECT ee2.ExamDeviceId FROM ExamEnrollment ee2
-                        WHERE ee2.SessionId = ? AND ee2.ExamDeviceId IS NOT NULL
-                          AND ee2.CandidateId <> ?
-                      ) THEN 1 ELSE 0 END,
-                      ed.ExamDeviceId
-                )
-                FROM ExamEnrollment ee
-                WHERE ee.CandidateId = ? AND ee.SessionId = ?
+        String sql = """
+                UPDATE ExamEnrollment
+                SET AllocatedExamAreaId = ?,
+                    ExamDeviceId = NULL
+                WHERE CandidateId = ? AND SessionId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(assignDeviceSql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, areaId);
-            ps.setInt(2, sessionId);
-            ps.setInt(3, candidateId);
-            ps.setInt(4, candidateId);
-            ps.setInt(5, sessionId);
+            ps.setInt(2, candidateId);
+            ps.setInt(3, sessionId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -414,11 +402,10 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 SELECT ee.SessionId, s.SessionName, ea.ExamAreaId, ea.AreaName
                 FROM ExamEnrollment ee
                 INNER JOIN [Session] s ON s.SessionId = ee.SessionId
-                LEFT JOIN ExamDevice ed ON ed.ExamDeviceId = ee.ExamDeviceId
-                LEFT JOIN ExamArea ea ON ea.ExamAreaId = ed.ExamAreaId
+                LEFT JOIN ExamArea ea ON ea.ExamAreaId = ee.AllocatedExamAreaId
                 WHERE ee.CandidateId = ?
                   AND s.ExamId = ?
-                  AND ee.ExamDeviceId IS NOT NULL
+                  AND ee.AllocatedExamAreaId IS NOT NULL
                   AND ee.SessionId <> ?
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -690,7 +677,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 getConnection().rollback();
                 return false;
             }
-            int userId = findUserIdByProfile(reg.getPersonId());
             PersonSnapshot snap = loadProfileSnapshot(reg.getPersonId());
             String candidateNumber = util.FormatUtil.buildCandidateNumber(ctx.licenseCode, reg.getCandidateNo());
             String reason = reg.getReasonForTaking();
@@ -701,8 +687,8 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             String sqlCand = """
                     INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
                         GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeRoad,
-                        TakeNo, ReasonForTaking, IsAbsent, IsSuspended, UserId)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
+                        TakeNo, ReasonForTaking, IsAbsent, IsSuspended)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
                     """;
             int candidateId;
             try (PreparedStatement ps = getConnection().prepareStatement(sqlCand, Statement.RETURN_GENERATED_KEYS)) {
@@ -710,7 +696,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 ps.setString(2, snap.fullName);
                 ps.setTimestamp(3, snap.dob);
                 ps.setString(4, snap.phone);
-                ps.setString(5, snap.sex);
+                ps.setBoolean(5, parseSexBit(snap.sex));
                 ps.setString(6, snap.govId);
                 ps.setString(7, snap.address);
                 setNullableBoolean(ps, 8, reg.getTakeTheory());
@@ -718,11 +704,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 setNullableBoolean(ps, 10, reg.getTakeOnRoad());
                 ps.setInt(11, takeNo);
                 ps.setString(12, reason);
-                if (userId > 0) {
-                    ps.setInt(13, userId);
-                } else {
-                    ps.setNull(13, java.sql.Types.INTEGER);
-                }
                 ps.executeUpdate();
                 try (ResultSet gk = ps.getGeneratedKeys()) {
                     if (!gk.next()) {
@@ -770,7 +751,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 return false;
             }
             PersonSnapshot snap = snapshotFromReg(reg);
-            int userId = findUserIdByEmail(reg.getEmail());
             String candidateNumber = util.FormatUtil.buildCandidateNumber(ctx.licenseCode, reg.getCandidateNo());
             String reason = reg.getReasonForTaking();
             if (reason == null || reason.isBlank()) {
@@ -780,8 +760,8 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             String sqlCand = """
                     INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
                         GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeRoad,
-                        TakeNo, ReasonForTaking, IsAbsent, IsSuspended, UserId)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
+                        TakeNo, ReasonForTaking, IsAbsent, IsSuspended)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
                     """;
             int candidateId;
             try (PreparedStatement ps = getConnection().prepareStatement(sqlCand, Statement.RETURN_GENERATED_KEYS)) {
@@ -789,7 +769,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 ps.setString(2, snap.fullName);
                 ps.setTimestamp(3, snap.dob);
                 ps.setString(4, snap.phone);
-                ps.setString(5, snap.sex);
+                ps.setBoolean(5, parseSexBit(snap.sex));
                 ps.setString(6, snap.govId);
                 ps.setString(7, snap.address);
                 setNullableBoolean(ps, 8, reg.getTakeTheory());
@@ -797,11 +777,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 setNullableBoolean(ps, 10, reg.getTakeOnRoad());
                 ps.setInt(11, takeNo);
                 ps.setString(12, reason);
-                if (userId > 0) {
-                    ps.setInt(13, userId);
-                } else {
-                    ps.setNull(13, java.sql.Types.INTEGER);
-                }
                 ps.executeUpdate();
                 try (ResultSet gk = ps.getGeneratedKeys()) {
                     if (!gk.next()) {
@@ -814,7 +789,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             String sqlEc = """
                     INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted)
                     VALUES (?, ?, N'Pending', 0)
-    // Ap dung khoan tru diem
                     """;
             try (PreparedStatement ps = getConnection().prepareStatement(sqlEc)) {
                 ps.setInt(1, candidateId);
@@ -829,6 +803,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 getConnection().rollback();
             } catch (SQLException ignored) {
             }
+            System.err.println("insertFromDstsImport failed for " + reg.getGovIdNo() + ": " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
@@ -1088,11 +1063,9 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             return;
         }
         String delDeductions = """
-    // upsert section score
                 DELETE sd FROM Score_Deduction sd
                 JOIN ExamScore es ON es.ExamScoreId = sd.ExamScoreId
                 JOIN ExamResult er ON er.ExamResultId = es.ExamResultId
-    // upsert section score
                 WHERE er.ExamEnrollmentId = ?
                 """;
         String delScores = """
@@ -1351,20 +1324,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
-    private int findUserIdByProfile(int profileId) throws SQLException {
-        String sql = "SELECT UserId FROM Profile WHERE ProfileId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, profileId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("UserId");
-                }
-            }
-        }
-    // Tai session context
-        return -1;
-    }
-
     private PersonSnapshot loadProfileSnapshot(int profileId) throws SQLException {
         String sql = """
                 SELECT FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address
@@ -1378,7 +1337,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     s.fullName = rs.getString("FullName");
                     s.dob = rs.getTimestamp("DateOfBirth");
                     s.phone = rs.getString("PhoneNumber");
-                    s.sex = rs.getString("Sex");
+                    s.sex = rs.getBoolean("Sex") ? "Nam" : "Nữ";
                     s.govId = rs.getString("GovernmentIdNumber");
                     s.address = rs.getString("Address");
                     return s;
@@ -1402,23 +1361,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         s.address = reg.getAddress();
     // read nullable boolean
         return s;
-    }
-
-    private int findUserIdByEmail(String email) throws SQLException {
-        if (email == null || email.isBlank()) {
-            return -1;
-        }
-    // map result set to exam registration
-        String sql = "SELECT UserId FROM [User] WHERE Email = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, email.trim());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("UserId");
-                }
-            }
-        }
-        return -1;
     }
 
     private SessionContext loadSessionContext(int sessionId) throws SQLException {
@@ -1458,6 +1400,20 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         } else {
             ps.setBoolean(index, value);
         }
+    }
+
+    private static boolean parseSexBit(String sex) {
+        if (sex == null || sex.isBlank()) {
+            return true;
+        }
+        String s = sex.trim().toLowerCase(Locale.ROOT);
+        if ("1".equals(s) || "true".equals(s)) {
+            return true;
+        }
+        if ("0".equals(s) || "false".equals(s)) {
+            return false;
+        }
+        return !(s.equals("nữ") || s.equals("nu") || s.equals("female"));
     }
 
     private static Boolean readNullableBoolean(ResultSet rs, String column) throws SQLException {

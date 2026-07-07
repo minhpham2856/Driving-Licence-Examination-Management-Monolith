@@ -113,10 +113,13 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Build the composite entity ID for the audit mapping (sessionId:areaId:examinerId)
         String entityId = buildMappingEntityId(slot.getExamSessionId(), slot.getAreaId(), slot.getExaminerUserId());
         String existingAssignmentSql = """
-                SELECT TOP 1 ExaminerScheduleId
-                FROM ExaminerSchedule
-                WHERE ExaminerId = ?
-                  AND SessionId <> ?
+                SELECT TOP 1 esch.ExaminerScheduleId
+                FROM ExaminerSchedule esch
+                INNER JOIN [Session] s ON s.SessionId = esch.SessionId
+                INNER JOIN [Session] target ON target.SessionId = ?
+                WHERE esch.ExaminerId = ?
+                  AND s.ExamId = target.ExamId
+                  AND esch.SessionId <> ?
                 """;
         // SQL: insert the examiner assignment into Session_Examiner
         String insertAssignment = """
@@ -141,8 +144,9 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             // Begin transaction — both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
-                ps.setInt(1, slot.getExaminerUserId());
-                ps.setInt(2, slot.getExamSessionId());
+                ps.setInt(1, slot.getExamSessionId());
+                ps.setInt(2, slot.getExaminerUserId());
+                ps.setInt(3, slot.getExamSessionId());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         getConnection().rollback();
