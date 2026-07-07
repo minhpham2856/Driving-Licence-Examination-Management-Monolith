@@ -11,14 +11,17 @@ public final class UsernameGenerator {
         if (parts.length == 0 || parts[0].isEmpty()) {
             return "user" + randomDigits(6);
         }
-        String givenName = removeAccents(parts[parts.length - 1]).toLowerCase();
+
+        String givenName = normalize(parts[parts.length - 1]).toLowerCase();
+
         StringBuilder initials = new StringBuilder();
         for (int i = 0; i < parts.length - 1; i++) {
-            String part = removeAccents(parts[i]);
+            String part = normalize(parts[i]);
             if (!part.isEmpty()) {
                 initials.append(Character.toLowerCase(part.charAt(0)));
             }
         }
+
         return givenName + initials + randomDigits(6);
     }
 
@@ -38,11 +41,15 @@ public final class UsernameGenerator {
         return String.valueOf(ThreadLocalRandom.current().nextInt(min, max + 1));
     }
 
-    private static String removeAccents(String input) {
-        return Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .replace('\u0111', 'd')
-                .replace('\u0110', 'D')
-                .replaceAll("[^a-zA-Z]", "");
+    private static String normalize(String input) {
+        String result = Normalizer.normalize(input, Normalizer.Form.NFD);
+
+        // normalize all Vietnamese characters
+        result = result.replaceAll("\\p{M}", "");
+        result = result.replace('đ', 'd');
+        result = result.replace('Đ', 'D');
+        result = result.replaceAll("[^a-zA-Z]", "");
+
+        return result;
     }
 }

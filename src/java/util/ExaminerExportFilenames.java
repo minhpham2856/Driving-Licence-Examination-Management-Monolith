@@ -12,15 +12,24 @@ public final class ExaminerExportFilenames {
             return "tai-lieu";
         }
         return switch (documentType.trim().toLowerCase(Locale.ROOT)) {
-            case "candidates" -> "danh-sach-thi-sinh";
-            case "results" -> "ket-qua-thi";
-            case "minutes" -> "bien-ban-thi";
-            case "violations" -> "vi-pham";
-            case "audit" -> "nhat-ky";
-            case "bb1", "signature", "signature_form" -> "bb1-ly-thuyet";
-            case "bb2", "layout", "score_sheet" -> "bb2-thuc-hanh-trong-hinh";
-            case "bb3", "road" -> "bb3-thuc-hanh-tren-duong";
-            default -> "tai-lieu";
+            case "candidates" ->
+                "danh-sach-thi-sinh";
+            case "results" ->
+                "ket-qua-thi";
+            case "minutes" ->
+                "bien-ban-thi";
+            case "violations" ->
+                "vi-pham";
+            case "audit" ->
+                "nhat-ky";
+            case "bb1", "signature", "signature_form" ->
+                "bb1-ly-thuyet";
+            case "bb2", "layout", "score_sheet" ->
+                "bb2-thuc-hanh-trong-hinh";
+            case "bb3", "road" ->
+                "bb3-thuc-hanh-tren-duong";
+            default ->
+                "tai-lieu";
         };
     }
 

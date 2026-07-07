@@ -1,4 +1,5 @@
 package controller.auth.internal;
+
 import service.AuthService;
 import model.User;
 import service.impl.AuthServiceImpl;
@@ -12,10 +13,13 @@ import java.io.IOException;
 import enums.UserRole;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
+
 @WebServlet("/staff/login")
 public class LoginServlet extends HttpServlet {
+
     private final AuthService authService = new AuthServiceImpl();
     private final RoleService roleService = new RoleServiceImpl();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -34,6 +38,7 @@ public class LoginServlet extends HttpServlet {
         }
         request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -59,17 +64,24 @@ public class LoginServlet extends HttpServlet {
             // switch dashboards based on role
             String roleName = roleService.getRoleNameById(user.getRoleId());
             UserRole role = UserRole.fromValue(roleName);
-            if (role == UserRole.MANAGING_STAFF) {
-                response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard.jsp");
-            } else if (role == UserRole.EXAM_STAFF) {
-                response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard.jsp");
-            } else if (role == UserRole.EXAMINER) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
-            } else if (role == UserRole.ADMIN) {
-                response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
-            } else {
+            if (null == role) {
                 request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
                 request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
+            } else {
+                switch (role) {
+                    case MANAGING_STAFF ->
+                        response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard.jsp");
+                    case EXAM_STAFF ->
+                        response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard.jsp");
+                    case EXAMINER ->
+                        response.sendRedirect(request.getContextPath() + "/views/examiner/session");
+                    case ADMIN ->
+                        response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
+                    default -> {
+                        request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
+                        request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
+                    }
+                }
             }
         }
     }

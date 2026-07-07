@@ -1,8 +1,7 @@
 package controller.admin;
+
 import dto.*;
-import model.*;
-import model.*;
-import service.*;
+import dto.payload.SaveEntityData;
 import service.impl.*;
 import service.LicenceService;
 import service.impl.LicenceServiceImpl;
@@ -11,7 +10,6 @@ import model.User;
 import enums.AuditAction;
 import enums.AuditEntity;
 import service.AuditLogService;
-import util.Sanitize;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,26 +17,31 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import static util.FormatUtil.text;
+import static util.FormatUtil.toInt;
+import static util.FormatUtil.toInteger;
+
 @WebServlet(name = "LicenceServlet", urlPatterns = {"/admin/licence-class"})
 public class LicenceServlet extends HttpServlet {
+
     private final AuditLogService auditLogService = new AuditLogServiceImpl();
-    private LicenceService licenceService;
+    private final LicenceService licenceService = new LicenceServiceImpl();
     private static final String LIST_VIEW = "/views/admin/licence-class.jsp";
     private static final String FORM_VIEW = "/views/admin/licence-class-form.jsp";
-    @Override
-    public void init() {
-        licenceService = new LicenceServiceImpl();
-    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String action = Sanitize.text(req.getParameter("action"));
+        String action = text(req.getParameter("action"));
         if ("new".equals(action)) {
             req.setAttribute("mode", "create");
             req.setAttribute("licences", licenceService.findAll());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else if ("edit".equals(action)) {
-            int id = Sanitize.toInt(req.getParameter("id"), 0);
+            int id = toInt(req.getParameter("id"), 0);
             Licence licence = licenceService.getById(id);
             if (licence == null) {
                 HttpSession flashSession = req.getSession(true);
@@ -52,16 +55,17 @@ public class LicenceServlet extends HttpServlet {
             req.setAttribute("licences", licenceService.findAll());
             req.getRequestDispatcher(FORM_VIEW).forward(req, resp);
         } else {
-            String keyword = Sanitize.text(req.getParameter("searchKeyword"));
-            java.util.List<Licence> licenceClasses = licenceService.search(keyword);
+            String keyword = text(req.getParameter("searchKeyword"));
+            List<Licence> licenceClasses = licenceService.search(keyword);
             req.setAttribute("licenceClasses", licenceClasses);
             req.setAttribute("licenceClassById", buildLicenceClassById(licenceClasses));
             req.setAttribute("totalClasses", licenceService.countAll());
             req.getRequestDispatcher(LIST_VIEW).forward(req, resp);
         }
     }
-    private java.util.Map<Integer, String> buildLicenceClassById(java.util.List<Licence> licences) {
-        java.util.Map<Integer, String> byId = new java.util.HashMap<>();
+
+    private Map<Integer, String> buildLicenceClassById(List<Licence> licences) {
+        Map<Integer, String> byId = new HashMap<>();
         if (licences != null) {
             for (Licence licence : licences) {
                 byId.put(licence.getLicenceId(), licence.getLicenceClass());
@@ -69,16 +73,17 @@ public class LicenceServlet extends HttpServlet {
         }
         return byId;
     }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         User admin = (User) req.getSession().getAttribute("user");
-        int id = Sanitize.toInt(req.getParameter("licenceId"), 0);
-        String licenceClass = Sanitize.text(req.getParameter("licenceClass"));
-        String description = Sanitize.text(req.getParameter("description"));
-        int minimumAge = Sanitize.toInt(req.getParameter("minimumAge"), 0);
-        int validForYears = Sanitize.toInt(req.getParameter("validForYears"), 0);
-        Integer upgradeFrom = Sanitize.toIntegerOrNull(req.getParameter("upgradeFromLicenceId"));
+        int id = toInt(req.getParameter("licenceId"), 0);
+        String licenceClass = text(req.getParameter("licenceClass"));
+        String description = text(req.getParameter("description"));
+        int minimumAge = toInt(req.getParameter("minimumAge"), 0);
+        int validForYears = toInt(req.getParameter("validForYears"), 0);
+        Integer upgradeFrom = toInteger(req.getParameter("upgradeFromLicenceId"));
         boolean isEdit = id > 0;
         Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);
         ServiceResult<SaveEntityData> result = licenceService.save(l, admin.getUserId());
@@ -99,6 +104,7 @@ public class LicenceServlet extends HttpServlet {
         flashSession.setAttribute("flashMessage", result.getMessage());
         resp.sendRedirect(req.getContextPath() + "/admin/licence-class");
     }
+
     private Licence build(int id, String cls, String desc, int age, int years, Integer up) {
         Licence l = new Licence();
         l.setLicenceId(id);
@@ -109,4 +115,5 @@ public class LicenceServlet extends HttpServlet {
         l.setUpgradeFromLicenceId(up);
         return l;
     }
+
 }

@@ -13,7 +13,7 @@ import dto.payload.SaveExamDeviceCommand;
 import dto.payload.SaveExamDeviceData;
 import model.User;
 import service.AuditLogService;
-import util.Sanitize;
+import util.FormatUtil;
 import enums.AuditAction;
 import enums.AuditEntity;
 import enums.DeviceStatus;
@@ -36,8 +36,8 @@ public class ExamDeviceServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String keyword = Sanitize.text(req.getParameter("searchKeyword"));
-        String status = Sanitize.text(req.getParameter("filterStatus"));
+        String keyword = FormatUtil.text(req.getParameter("searchKeyword"));
+        String status = FormatUtil.text(req.getParameter("filterStatus"));
         req.setAttribute("examDevices", examDeviceService.search(keyword, status));
         req.setAttribute("totalDevices", examDeviceService.countAll());
         req.setAttribute("activeDevices", examDeviceService.countByStatus(DeviceStatus.ACTIVE.getValue()));
@@ -48,11 +48,11 @@ public class ExamDeviceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String action = Sanitize.text(req.getParameter("action"));
+        String action = FormatUtil.text(req.getParameter("action"));
         User admin = (User) req.getSession().getAttribute("user");
         Integer adminId = (admin != null) ? admin.getUserId() : null;
         if ("delete".equals(action)) {
-            int id = Sanitize.toInt(req.getParameter("id"), 0);
+            int id = FormatUtil.toInt(req.getParameter("id"), 0);
             DeleteExamDeviceCommand deleteCommand = new DeleteExamDeviceCommand();
             deleteCommand.setDeviceId(id);
             deleteCommand.setAdminUserId(adminId);
@@ -71,11 +71,11 @@ public class ExamDeviceServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
         }
-        int id = Sanitize.toInt(req.getParameter("examDeviceId"), 0);
-        String name = Sanitize.text(req.getParameter("deviceName"));
-        String type = Sanitize.text(req.getParameter("deviceType"));
-        String status = Sanitize.text(req.getParameter("status"));
-        int areaId = Sanitize.toInt(req.getParameter("examAreaId"), 0);
+        int id = FormatUtil.toInt(req.getParameter("examDeviceId"), 0);
+        String name = FormatUtil.text(req.getParameter("deviceName"));
+        String type = FormatUtil.text(req.getParameter("deviceType"));
+        String status = FormatUtil.text(req.getParameter("status"));
+        int areaId = FormatUtil.toInt(req.getParameter("examAreaId"), 0);
         boolean isEdit = id > 0;
         ExamDeviceViewDTO dev = new ExamDeviceViewDTO();
         dev.setExamDeviceId(id);
