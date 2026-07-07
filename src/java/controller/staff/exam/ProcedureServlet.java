@@ -21,9 +21,6 @@ import model.Payment;
 import service.ExaminerAllocationService;
 import service.impl.ExaminerAllocationServiceImpl;
 
-import service.CandidatePhotoService;
-import service.impl.CandidatePhotoServiceImpl;
-
 import dto.AutoAllocateResultDTO;
 
 import util.Utf8EncodingHelper;
@@ -94,19 +91,21 @@ public class ProcedureServlet extends HttpServlet {
         ExamRegistrationDTO profile = loadProfileFromDb(request, session, webRoot, sbdParam, qList);
         ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
 
-        if (profile != null && CandidatePhotoHelper.hasPhotoRecord(profile)
-                && !CandidatePhotoHelper.hasCapturedPhoto(request.getServletContext(), webRoot, profile)) {
-            regDAO.updatePhoto(profile.getId(), null);
-            profile.setPhotoUrl(null);
-            profile.setValidCapturedPhoto(false);
-            request.setAttribute("photoStaleMsg",
-                    "Ảnh trong hồ sơ không tìm thấy trên máy chủ — vui lòng chụp lại ảnh chân dung.");
+        if (profile != null && CandidatePhotoHelper.hasPhotoRecord(profile)) {
+            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, profile);
+            if (!profile.isValidCapturedPhoto()) {
+                regDAO.updatePhoto(profile.getId(), null);
+                profile.setPhotoUrl(null);
+                profile.setValidCapturedPhoto(false);
+                request.setAttribute("photoStaleMsg",
+                        "Ảnh trong hồ sơ không tìm thấy trên máy chủ — vui lòng chụp lại ảnh chân dung.");
+            }
         }
 
         if (profile != null && !profile.isPresent()) {
             boolean updatedPresent = regDAO.updatePresent(profile.getId(), true);
             if (updatedPresent) {
-                profile = reloadProfileAfterMutation(webRoot, examId, profile.getId(), sbdParam, qList);
+                profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
                 ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
             }
         }
@@ -132,8 +131,8 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         if ("3".equals(stepParam) && profile != null && !hasValidPhoto && !profile.isPaymentCompleted()) {
-            stepParam = "2";
-            request.setAttribute("photoRequiredMsg", "Bắt buộc chụp ảnh chân dung trước khi thu lệ phí và in hồ sơ.");
+            request.setAttribute("photoRequiredMsg",
+                    "Bắt buộc chụp ảnh chân dung trước khi thu lệ phí. Quay lại Bước 2 để chụp hoặc chụp lại nếu đã lưu ảnh.");
         }
 
         String pAction = request.getParameter("action");
@@ -190,7 +189,7 @@ public class ProcedureServlet extends HttpServlet {
                 boolean updated = regDAO.updateProfile(profile.getId(), fullName, sqlDob, govIdNo, email, phoneNo);
                 if (updated) {
                     // add audit log
-                    profile = reloadProfileAfterMutation(webRoot, examId, profile.getId(), sbdParam, qList);
+                    profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
                     request.setAttribute("profileUpdatedAlert", "true");
                     addAuditLog(session, "UPDATE on Person", "Sửa đổi lý lịch SBD " + sbdParam);
                 }
@@ -204,7 +203,7 @@ public class ProcedureServlet extends HttpServlet {
 
         if ("recapture".equals(pAction) && profile != null) {
             regDAO.updatePhoto(profile.getId(), null);
-            profile = reloadProfileAfterMutation(webRoot, examId, profile.getId(), sbdParam, qList);
+            profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
             hasValidPhoto = false;
             stepParam = "2";
             ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
@@ -288,8 +287,9 @@ public class ProcedureServlet extends HttpServlet {
         // forward desk view
         if (profile != null) {
             request.setAttribute("profile", profile);
-    // forward desk view
             ExamStaffViewHelper.bindProcedureFeeAttributes(request, profile);
+            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, profile);
+            hasValidPhoto = profile.isValidCapturedPhoto();
         }
 
         session.setAttribute("procedureStep", stepParam);
@@ -365,7 +365,7 @@ public class ProcedureServlet extends HttpServlet {
                 // ioexception
         List<SessionDTO> allSessions = sessionDAO.getAllSessions();
         int examId = ExamStaffViewHelper.ensureExamId(request, session, allSessions, sessionDAO);
-        profile = reloadProfileAfterMutation(webRoot, examId, profile.getId(), sbdParam, qList);
+        profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
         if (profile == null) {
             // show post payment desk
             response.sendRedirect("candidatecall");
@@ -521,13 +521,12 @@ public class ProcedureServlet extends HttpServlet {
                 throw new java.io.IOException("Không cập nhật được photoUrl trong DB");
             }
 
-            profile = reloadProfileAfterMutation(webRoot, examId, profile.getId(), sbdParam, qList);
+            profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
             if (profile != null) {
                 profile.setValidCapturedPhoto(true);
             }
             ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
-            // sync profile in queue
-            session.setAttribute("procedureStep", "2");
+            session.setAttribute("procedureStep", "3");
             addAuditLog(session, "UPDATE on Person", "Lưu ảnh chụp từ webcam thực tế SBD " + sbdParam);
 
             response.setStatus(HttpServletResponse.SC_OK);
@@ -560,16 +559,14 @@ public class ProcedureServlet extends HttpServlet {
     // sync profile in queue
         ExamRegistrationDTO profile = ExamStaffViewHelper.resolveCandidateBySbd(request, session, sbdParam.trim());
         if (profile != null) {
-            CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-            photoService.normalizeQueue(webRoot, java.util.Collections.singletonList(profile));
+            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, profile);
             syncProfileInQueue(qList, profile);
         }
         return profile;
     }
 
-    private ExamRegistrationDTO reloadProfileAfterMutation(String webRoot, int examId, int candidateId,
-            String sbdParam, List<ExamRegistrationDTO> qList) {
-    // Huy danh dau vang
+    private ExamRegistrationDTO reloadProfileAfterMutation(HttpServletRequest request, String webRoot, int examId,
+            int candidateId, String sbdParam, List<ExamRegistrationDTO> qList) {
         ExamRegistrationDTO fresh = regDAO.getById(candidateId);
         if (fresh == null) {
             if (sbdParam == null || sbdParam.isBlank()) {
@@ -580,11 +577,11 @@ public class ProcedureServlet extends HttpServlet {
                 return null;
             }
         }
-    // add audit log
-        // add audit log
-        CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-        photoService.normalizeQueue(webRoot, java.util.Collections.singletonList(fresh));
-    // advance to next candidate
+        if (request != null) {
+            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, fresh);
+        } else {
+            CandidatePhotoHelper.resolveCapturedPhoto(webRoot, fresh);
+        }
         syncProfileInQueue(qList, fresh);
         return fresh;
     }

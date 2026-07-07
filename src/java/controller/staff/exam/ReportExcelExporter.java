@@ -404,6 +404,9 @@ public final class ReportExcelExporter {
         if (notes != null && notes.startsWith("AllocatedRoom:")) {
             return "Đã phân phòng";
         }
+        if (reg.getAllocatedAreaId() != null && reg.getAllocatedAreaId() > 0) {
+            return "Đã phân phòng";
+        }
         return "";
     }
 

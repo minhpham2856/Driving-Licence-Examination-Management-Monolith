@@ -30,30 +30,33 @@
                 <c:set var="cCccd" value="${profile.cccd}" />
                 <c:set var="cClass" value="${profile.clazz}" />
 
-                <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
+                <c:set var="currentStep" value="${not empty requestScope.step ? requestScope.step : param.step}" />
                 <c:if test="${empty currentStep}">
                     <c:set var="currentStep" value="1" />
                 </c:if>
 
                 <div class="procedure-steps-bar">
-                    <div class="procedure-step-item ${currentStep eq '1' ? 'procedure-step-item--active' : ''} ${currentStep eq '2' or currentStep eq '3' ? 'procedure-step-item--done' : ''}">
+                    <a href="procedure?sbd=${currentSbd}&amp;step=1#procedure-desk"
+                       class="procedure-step-item procedure-step-item--link ${currentStep eq '1' ? 'procedure-step-item--active' : ''} ${currentStep eq '2' or currentStep eq '3' ? 'procedure-step-item--done' : ''}">
                         <div class="step-number-badge">1</div>
-                        <span>Xác minh & Sửa lỗi</span>
-                    </div>
+                        <span>Xác minh &amp; Sửa lỗi</span>
+                    </a>
 
                     <div class="procedure-step-divider"></div>
 
-                    <div class="procedure-step-item ${currentStep eq '2' ? 'procedure-step-item--active' : ''} ${currentStep eq '3' ? 'procedure-step-item--done' : ''}">
+                    <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk"
+                       class="procedure-step-item procedure-step-item--link ${currentStep eq '2' ? 'procedure-step-item--active' : ''} ${currentStep eq '3' ? 'procedure-step-item--done' : ''}">
                         <div class="step-number-badge">2</div>
                         <span>Chụp ảnh chân dung</span>
-                    </div>
+                    </a>
 
                     <div class="procedure-step-divider"></div>
 
-                    <div class="procedure-step-item ${currentStep eq '3' ? 'procedure-step-item--active' : ''}">
+                    <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk"
+                       class="procedure-step-item procedure-step-item--link ${currentStep eq '3' ? 'procedure-step-item--active' : ''}">
                         <div class="step-number-badge">3</div>
                         <span>Lệ phí &amp; QR chuyển khoản</span>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="report-grid" style="grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
@@ -191,18 +194,32 @@
                                     <p style="margin-top: 0.75rem; font-size: 0.75rem; color: #64748b;">
                                         Trình duyệt sẽ yêu cầu quyền truy cập camera. Nếu bị từ chối, hãy bật quyền camera trong cài đặt trình duyệt rồi tải lại trang.
                                     </p>
+                                    <div class="procedure-step-nav" style="margin-top: 1rem;">
+                                        <a href="procedure?sbd=${currentSbd}&amp;step=1#procedure-desk" class="procedure-step-nav__back">← Bước 1</a>
+                                        <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="procedure-step-nav__next procedure-step-nav__next--muted">Bước 3 (thu lệ phí) →</a>
+                                    </div>
                                 </c:otherwise>
                             </c:choose>
+                            <c:if test="${requestScope.hasValidPhoto}">
+                                <div class="procedure-step-nav procedure-step-nav--after-photo">
+                                    <a href="procedure?sbd=${currentSbd}&amp;step=1#procedure-desk" class="procedure-step-nav__back">← Bước 1</a>
+                                    <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="procedure-step-nav__next">Sang Bước 3 — Thu lệ phí →</a>
+                                </div>
+                            </c:if>
                         </c:if>
 
                         <c:if test="${currentStep eq '3'}">
-                            <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 3: Lệ phí sát hạch &amp; Thanh toán QR Code ngân hàng</h3>
+                            <div class="procedure-step-header-row">
+                                <div>
+                                    <h3 class="procedure-step-title">Bước 3: Lệ phí sát hạch &amp; Thanh toán QR Code ngân hàng</h3>
+                                </div>
+                                <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk" class="procedure-step-nav__back procedure-step-nav__back--btn">← Quay lại Bước 2</a>
                             </div>
 
                             <c:if test="${not requestScope.hasValidPhoto}">
                                 <div class="camera-error-box" style="display:block; margin-bottom:1rem;">
-                                    Chưa có ảnh chân dung hợp lệ. Vui lòng quay lại <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk">Bước 2</a> để chụp ảnh trước khi thu lệ phí.
+                                    Chưa có ảnh chân dung hợp lệ.
+                                    <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk" class="procedure-step-nav__inline-link">Quay lại Bước 2</a> để chụp ảnh trước khi thu lệ phí.
                                 </div>
                             </c:if>
 
@@ -298,10 +315,18 @@
                                                     </button>
                                                 </form>
                                             </c:when>
+                                            <c:when test="${not requestScope.hasValidPhoto}">
+                                                <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk" class="procedure-btn procedure-btn--back">
+                                                    ← Quay lại Bước 2 — Chụp ảnh
+                                                </a>
+                                            </c:when>
                                             <c:otherwise>
-                                                <span class="procedure-btn procedure-btn--disabled">
-                                                    Cần chụp ảnh trước khi thu phí
+                                                <span class="procedure-btn procedure-btn--disabled" style="width: 100%; margin-bottom: 8px;">
+                                                    Chưa cấu hình bảng lệ phí cho hạng ${cClass}
                                                 </span>
+                                                <a href="procedure?sbd=${currentSbd}&amp;step=2#procedure-desk" class="procedure-btn procedure-btn--back">
+                                                    ← Quay lại Bước 2
+                                                </a>
                                             </c:otherwise>
                                         </c:choose>
                                     </div>

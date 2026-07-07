@@ -395,7 +395,7 @@
              data-pause-countdown="${requestScope.deskMode ? 'true' : 'false'}"
              hidden></div>
         <c:if test="${requestScope.deskMode}">
-            <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
+            <c:set var="currentStep" value="${not empty requestScope.step ? requestScope.step : param.step}" />
             <c:if test="${empty currentStep}"><c:set var="currentStep" value="1" /></c:if>
             <div id="procedureCameraConfig"
                  data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"

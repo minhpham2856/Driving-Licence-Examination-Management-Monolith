@@ -133,7 +133,13 @@ public final class CandidatePhotoHelper {
         if (fileName == null || fileName.isBlank() || imageBytes == null || imageBytes.length == 0) {
             throw new IOException("Dữ liệu ảnh không hợp lệ");
         }
-        File dir = resolveWritablePhotoDir(ctx);
+        String configured = System.getProperty("dlem.photos.dir");
+        File dir;
+        if (configured != null && !configured.isBlank()) {
+            dir = ensureDir(new File(configured.trim()));
+        } else {
+            dir = ensureDir(photoDir());
+        }
         File file = new File(dir, fileName);
         try (FileOutputStream fos = new FileOutputStream(file)) {
             fos.write(imageBytes);

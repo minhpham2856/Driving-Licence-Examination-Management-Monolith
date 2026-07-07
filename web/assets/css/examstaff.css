@@ -1671,6 +1671,120 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     color: #ffffff;
 }
 
+a.procedure-step-item--link {
+    text-decoration: none;
+    flex: 1;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 6px 8px;
+    transition: background-color 0.15s ease;
+}
+
+a.procedure-step-item--link:hover {
+    background-color: #eef2ff;
+}
+
+.procedure-step-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.procedure-step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.procedure-step-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.procedure-step-nav--after-photo {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.procedure-step-nav__back,
+.procedure-step-nav__next {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.procedure-step-nav__back {
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+}
+
+.procedure-step-nav__back--btn {
+    flex-shrink: 0;
+}
+
+.procedure-step-nav__back:hover {
+    background: #f8fafc;
+}
+
+.procedure-step-nav__next {
+    color: #ffffff;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: 1px solid #059669;
+}
+
+.procedure-step-nav__next--muted {
+    color: #64748b;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.procedure-step-nav__next:hover {
+    filter: brightness(1.03);
+}
+
+.procedure-step-nav__inline-link {
+    font-weight: 700;
+    color: #0052cc;
+    text-decoration: underline;
+}
+
+.procedure-btn--back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+}
+
+.procedure-btn--back:hover {
+    background: #fef3c7;
+}
+
 .camera-live-frame {
     border: 2px solid #cbd5e1;
     border-radius: 16px;

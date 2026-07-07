@@ -294,14 +294,13 @@ public class AllocationServlet extends HttpServlet {
             if (regDAO.updateAllocatedRoom(regId, enrollSessionId, targetArea.getId(), targetArea.getAreaName())) {
                 profile.setAllocatedAreaId(targetArea.getId());
                 profile.setAllocatedAreaName(targetArea.getAreaName());
-                profile.setNotes("AllocatedRoom:" + targetArea.getId() + ":" + targetArea.getAreaName());
                 request.setAttribute("alertMsg", "Đã đổi phòng → " + targetArea.getAreaName());
                 addAuditLog(session, "UPDATE ExamRegistrationDTO",
                         "Chuyển phòng thi → " + targetArea.getAreaName() + " cho SBD " + profile.getSbd(),
                         regId);
             } else {
                 request.setAttribute("errorMsg",
-                        "Không lưu được phòng thi cho SBD " + profile.getSbd() + ". Kiểm tra máy thi trong phòng.");
+                        "Không lưu được phòng thi cho SBD " + profile.getSbd() + ". Kiểm tra đăng ký ca thi.");
             }
         } else if ("submitTheoryScore".equals(action)) {
             int score = Integer.parseInt(request.getParameter("score"));

@@ -367,7 +367,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
                 } else {
 
-                    request.setAttribute("errorMsg", "Giám khảo đã được phân công ở ca/phòng khác. Gỡ phân công cũ trước khi gán ca mới.");
+                    request.setAttribute("errorMsg", "Giám khảo đã được phân công một phòng ở ca khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán ca mới.");
 
                 }
 

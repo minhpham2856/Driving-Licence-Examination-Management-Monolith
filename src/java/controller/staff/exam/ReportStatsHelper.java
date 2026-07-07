@@ -195,25 +195,24 @@ public final class ReportStatsHelper {
 
         request.setAttribute("licenseStats", licenseStats);
 
-        LicenseAgg a1 = sumLicenseBucket(licenseMap, "A1", "A2");
-
-        LicenseAgg b2 = licenseMap.getOrDefault("B2", new LicenseAgg("B2"));
+        LicenseAgg a1 = sumLicenseBucket(licenseMap, "A1");
+        LicenseAgg a = sumLicenseBucket(licenseMap, "A");
+        LicenseAgg b1 = licenseMap.getOrDefault("B1", new LicenseAgg("B1"));
 
         request.setAttribute("a1Count", a1.registered);
-
         request.setAttribute("a1Completed", a1.completed);
-
         request.setAttribute("a1Passed", a1.passed);
-
         request.setAttribute("a1Failed", a1.failed);
 
-        request.setAttribute("b2Count", b2.registered);
+        request.setAttribute("aCount", a.registered);
+        request.setAttribute("aCompleted", a.completed);
+        request.setAttribute("aPassed", a.passed);
+        request.setAttribute("aFailed", a.failed);
 
-        request.setAttribute("b2Completed", b2.completed);
-
-        request.setAttribute("b2Passed", b2.passed);
-
-        request.setAttribute("b2Failed", b2.failed);
+        request.setAttribute("b1Count", b1.registered);
+        request.setAttribute("b1Completed", b1.completed);
+        request.setAttribute("b1Passed", b1.passed);
+        request.setAttribute("b1Failed", b1.failed);
 
         request.setAttribute("theoryCount", theoryCount);
 
