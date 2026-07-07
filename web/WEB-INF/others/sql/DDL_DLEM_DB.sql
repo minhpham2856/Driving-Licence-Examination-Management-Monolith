@@ -100,10 +100,12 @@ CREATE TABLE Exam (
 GO
 
 -- Session table
--- Session là ca thi
+-- Session là ca thi: chỉ có ca sáng (IsMorningSession = 1) hoặc ca chiều (= 0).
+-- Giờ thực tế (StartTime/EndTime) do cán bộ kỳ thi cấu hình theo ngày thi.
+-- UI chỉ hiển thị "Ca sáng" / "Ca chiều"; phần thi lấy từ Session_ExamSection.
 CREATE TABLE [Session] (
     SessionId INT PRIMARY KEY IDENTITY(1,1),
-    SessionName NVARCHAR(100) NOT NULL, -- chỉ có ca sáng hoặc ca chiều (vào ngày thi chỉ thi ca sáng hay thi cả 2 ca, và thời gian cho từng ca mới được quyết định)
+    IsMorningSession BIT NOT NULL, -- 1 = Ca sáng, 0 = Ca chiều
     StartTime DATETIME NOT NULL,
     EndTime DATETIME NOT NULL,
     [Status] NVARCHAR(50) NOT NULL,
@@ -142,15 +144,27 @@ CREATE TABLE Session_ExamSection (
 );
 GO
 
+-- ExamZone table
+-- Khu vực thi: nhóm các phòng/sân thuộc cùng khuôn viên sát hạch.
+-- Trung tâm loại 3: chỉ phục vụ hạng A1, A, B1.
+CREATE TABLE ExamZone (
+    ExamZoneId INT PRIMARY KEY IDENTITY(1,1),
+    ZoneName NVARCHAR(100) NOT NULL,
+    [Location] NVARCHAR(255) NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1
+);
+GO
+
 -- ExamArea table
--- Thể hiện cho địa điểm thi cụ thể, không phải KHU VỰC THI
+-- Địa điểm thi cụ thể (phòng/sân/đường), thuộc một ExamZone — không phải khu vực thi.
 CREATE TABLE ExamArea (
     ExamAreaId INT PRIMARY KEY IDENTITY(1,1),
-    AreaName NVARCHAR(100) NOT NULL, -- Đặt tên theo hạng gplx trừ phòng thử tục -> ví dụ: phòng 102 (phòng thủ tục), phòng thi LT 102, sân thi số 1, sân thi số 2, RIÊNG đường thi thì không cố định
-    AreaType NVARCHAR(50) NOT NULL, -- (phòng thủ tực, phòng thi, sân thi, đường thi)
-    Capacity INT NULL,
-    [Location] NVARCHAR(255) NOT NULL, -- ví dụ: tầng 2, toà A, khu sân thi thực hành,...
-    CHECK (Capacity > 0)
+    AreaName NVARCHAR(100) NOT NULL,
+    AreaType NVARCHAR(50) NOT NULL, -- Phòng thủ tục | Phòng thi | Sân thi | Đường thi
+    Capacity INT NULL,              -- NULL cho Đường thi
+    [Location] NVARCHAR(255) NOT NULL,
+    ExamZoneId INT NOT NULL REFERENCES ExamZone(ExamZoneId),
+    CHECK (Capacity IS NULL OR Capacity > 0)
 );
 GO
 
@@ -179,15 +193,24 @@ CREATE TABLE ExaminerSchedule (
 GO
 
 -- ExamDevice table
--- Thiết bị thi: bao gồm cả máy thi, và xe thi
+-- Thiết bị thi gắn với ExamArea (phòng/sân).
+-- Trung tâm loại 3: A1/A dùng Máy tính (phòng LT) + Mô tô (sân); B1 thêm Xe con (sân + đường).
 CREATE TABLE ExamDevice (
     ExamDeviceId INT PRIMARY KEY IDENTITY(1,1),
-    DeviceName NVARCHAR(100) NOT NULL, -- ví dụ: A1-01, B-02, B-03, PC-101, PC-211,
-    DeviceType NVARCHAR(50) NOT NULL, -- máy tính, xe máy, oto con, oto tải,... 
+    DeviceName NVARCHAR(100) NOT NULL,
+    DeviceType NVARCHAR(50) NOT NULL, -- Máy tính | Mô tô | Xe con
     IsActive BIT NOT NULL,
     ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId)
 );
 GO
+
+-- ============================================================
+-- ADMIN NOTES
+-- A Kỳ cần implement tương ứng:
+--   /admin/exam-area     -> ExamZone (Khu vực thi)
+--   /admin/exam-room     -> ExamArea  (Phòng/Sân thi, FK ExamZoneId)
+--   /admin/exam-computer -> ExamDevice (FK ExamAreaId, chọn Zone -> Area)
+-- ============================================================
 
 -- Candidate table
 -- Candidate thể hiện cho các thí sinh được import excel mọi thao tác đều không liên quan tới các tt như
