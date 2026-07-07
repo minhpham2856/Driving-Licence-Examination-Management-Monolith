@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
@@ -10,10 +10,13 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@700;800&display=swap" rel="stylesheet">
-        <link href="${pageContext.request.contextPath}/assets/css/exam-face.css" rel="stylesheet">
-    </head>
+   
+        <jsp:include page="/views/exam/components/exam-styles.jsp">
+            <jsp:param name="pageCss" value="exam-face.css" />
+        </jsp:include>
+</head>
     <body>
-        <jsp:include page="/views/layout/header-exam-time.jsp">
+        <jsp:include page="/views/exam/components/header-exam-time.jsp">
             <jsp:param name="timeLeft" value="${not empty timeLeft ? timeLeft : '08:22:38'}" />
         </jsp:include>
 
@@ -55,7 +58,7 @@
             </section>
         </main>
 
-        <jsp:include page="/views/layout/footer-exam.jsp">
+        <jsp:include page="/views/exam/components/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText" value="Thí sinh đưa mặt bên trong khung hình rồi chọn “CHỤP ẢNH” để bắt đầu thi" />
 </body>

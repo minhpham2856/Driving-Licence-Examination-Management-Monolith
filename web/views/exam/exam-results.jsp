@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
@@ -13,12 +13,14 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@700;800&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-        <link rel="stylesheet" href="${ctx}/assets/css/exam-results.css">
-    </head>
+   
+        <jsp:include page="/views/exam/components/exam-styles.jsp">
+            <jsp:param name="pageCss" value="exam-results.css" />
+        </jsp:include>
+</head>
     <body>
 
-        <jsp:include page="../layout/header-exam-time.jsp">
+        <jsp:include page="/views/exam/components/header-exam-time.jsp">
             <jsp:param name="timeLeft" value="08:22:38" />
         </jsp:include>
 
@@ -104,7 +106,7 @@
             </div>
         </main>
 
-        <jsp:include page="../layout/footer-exam.jsp">
+        <jsp:include page="/views/exam/components/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText" value="Thí sinh di chuyển tới bàn ký tên để hoàn tất thủ tục sau khi xem kết quả." />
 </body>

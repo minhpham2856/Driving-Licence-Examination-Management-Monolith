@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -124,13 +124,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- External Layout Stylesheets -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <jsp:include page="/views/admin/components/admin-styles.jsp" />
 </head>
 <body class="has-side-nav-bar">
 
 <%-- Inject the admin sidebar template --%>
-<jsp:include page="/views/layout/sidebar-admin.jsp">
+<jsp:include page="/views/admin/components/sidebar.jsp">
     <jsp:param name="activeSidebar" value="audit" />
 </jsp:include>
 

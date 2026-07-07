@@ -1,12 +1,12 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<jsp:include page="/views/layout/header.jsp">
+<jsp:include page="/views/landing/components/header.jsp">
     <jsp:param name="title" value="Lái Vui - Đăng ký tài khoản" />
 </jsp:include>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/register.css">
 
 <main class="register-page-main">
     <div class="register-card-container">
@@ -154,4 +154,4 @@
     </div>
 </main>
 
-<jsp:include page="/views/layout/footer.jsp" />
+<jsp:include page="/views/landing/components/footer.jsp" />

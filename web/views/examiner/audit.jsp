@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!--variables-->
@@ -24,7 +24,7 @@
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
-        <jsp:include page="/views/layout/sidebar-examiner.jsp">
+        <jsp:include page="/views/examiner/components/sidebar.jsp">
             <jsp:param name="activeSidebar" value="audit" />
         </jsp:include>
 
@@ -32,7 +32,7 @@
         <div class="examiner-shell">
 
             <!--header-->
-            <jsp:include page="/views/layout/header-examiner.jsp" />
+            <jsp:include page="/views/examiner/components/header.jsp" />
 
             <!--main content-->
             <main class="examiner-main examiner-main--dashboard">
