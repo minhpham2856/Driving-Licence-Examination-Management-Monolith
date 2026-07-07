@@ -2,8 +2,9 @@ package dao.impl;
 import java.sql.*;
 import dbconnection.DBContext;
 import dao.ExamAreaDAO;
-import enums.ExamSection;
+import enums.ExamAreaType;
 import model.ExamArea;
+import model.ExamZone;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,8 +18,27 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         a.setExamAreaId(rs.getInt("ExamAreaId"));
         a.setAreaName(rs.getString("AreaName"));
         a.setAreaType(rs.getString("AreaType"));
-        a.setCapacity(rs.getInt("Capacity"));
+        int cap = rs.getInt("Capacity");
+        if (rs.wasNull()) {
+            a.setCapacity(null);
+        } else {
+            a.setCapacity(cap);
+        }
         a.setLocation(rs.getString("Location"));
+        a.setExamZoneId(rs.getInt("ExamZoneId"));
+        return a;
+    }
+
+    private ExamArea mapWithZone(ResultSet rs) throws SQLException {
+        ExamArea a = map(rs);
+        String zoneName = rs.getString("ZoneName");
+        if (zoneName != null) {
+            ExamZone zone = new ExamZone();
+            zone.setExamZoneId(rs.getInt("ExamZoneId"));
+            zone.setZoneName(zoneName);
+            zone.setLocation(rs.getString("ZoneLocation"));
+            a.setExamZone(zone);
+        }
         return a;
     }
     @Override
@@ -50,12 +70,15 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public ExamArea getById(int examAreaId) {
-        String sql = "SELECT * FROM ExamArea WHERE ExamAreaId = ?";
+        String sql = "SELECT ea.*, ez.ZoneName, ez.[Location] AS ZoneLocation "
+                + "FROM ExamArea ea "
+                + "LEFT JOIN ExamZone ez ON ez.ExamZoneId = ea.ExamZoneId "
+                + "WHERE ea.ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, examAreaId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return map(rs);
+                if (rs.next()) return mapWithZone(rs);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,13 +87,18 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public int insert(ExamArea a) {
-        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location], ExamZoneId) VALUES (?, ?, ?, ?, ?)";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
-            ps.setInt(3, a.getCapacity());
+            if (a.getCapacity() == null) {
+                ps.setNull(3, Types.INTEGER);
+            } else {
+                ps.setInt(3, a.getCapacity());
+            }
             ps.setString(4, a.getLocation());
+            ps.setInt(5, a.getExamZoneId());
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) return keys.getInt(1);
@@ -84,14 +112,19 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public boolean update(ExamArea a) {
-        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, [Location] = ? WHERE ExamAreaId = ?";
+        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, [Location] = ?, ExamZoneId = ? WHERE ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
-            ps.setInt(3, a.getCapacity());
+            if (a.getCapacity() == null) {
+                ps.setNull(3, Types.INTEGER);
+            } else {
+                ps.setInt(3, a.getCapacity());
+            }
             ps.setString(4, a.getLocation());
-            ps.setInt(5, a.getExamAreaId());
+            ps.setInt(5, a.getExamZoneId());
+            ps.setInt(6, a.getExamAreaId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,7 +163,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         String sql = "SELECT * FROM ExamArea WHERE AreaType = ? ORDER BY AreaName";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, ExamSection.THEORY.getValue());
+            ps.setString(1, ExamAreaType.EXAM_ROOM.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(map(rs));
             }

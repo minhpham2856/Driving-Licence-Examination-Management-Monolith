@@ -1,6 +1,5 @@
 package controller.examiner;
 
-import dto.ExaminerSlotDTO;
 import dto.payload.AdjustScoreDeductionCommand;
 import dto.payload.CallCandidateCommand;
 import dto.payload.CandidateSessionCommand;
@@ -14,6 +13,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.ExaminerSchedule;
+import model.Session;
 import model.User;
 
 import java.io.IOException;
@@ -87,6 +88,33 @@ abstract class BaseExaminerServlet extends HttpServlet {
         return ExamSessionStatus.isEnded(status);
     }
 
+    protected static void applyExaminerSessionContext(HttpSession httpSession, ExaminerSchedule schedule,
+            Session session, ExamSection examSection) {
+        if (httpSession == null || schedule == null || session == null) {
+            return;
+        }
+        boolean isTheory = examSection == ExamSection.THEORY;
+        schedule.setSession(session);
+        httpSession.setAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE, schedule);
+        httpSession.setAttribute(ExaminerFilter.ATTR_ACTIVE_SESSION_ID, session.getSessionId());
+        httpSession.setAttribute(ExaminerFilter.ATTR_EXAM_SECTION, examSection);
+        httpSession.setAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME, examSection.getValue());
+        httpSession.setAttribute(ExaminerFilter.ATTR_SECTION_THEORY, isTheory);
+        httpSession.setAttribute(ExaminerFilter.ATTR_HAS_ACTIVE, Boolean.TRUE);
+        httpSession.setAttribute(ExaminerFilter.ATTR_MESSAGE, null);
+    }
+
+    protected ExaminerSchedule getExaminerSchedule(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object scheduleObj = session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+        if (scheduleObj instanceof ExaminerSchedule) {
+            return (ExaminerSchedule) scheduleObj;
+        }
+        return null;
+    }
+
     protected ExamSection getExamSection(HttpSession session) {
         if (session == null) {
             return ExamSection.THEORY;
@@ -95,23 +123,12 @@ abstract class BaseExaminerServlet extends HttpServlet {
         if (sectionObj instanceof ExamSection) {
             return (ExamSection) sectionObj;
         }
-        Object slotObj = session.getAttribute(ExaminerFilter.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO) {
-            ExamSection fromSlot = ((ExaminerSlotDTO) slotObj).getExamSection();
-            if (fromSlot != null) {
-                return fromSlot;
-            }
-        }
         return ExamSection.THEORY;
     }
 
     protected String getSectionDisplayName(HttpSession session) {
         if (session == null) {
             return null;
-        }
-        Object slotObj = session.getAttribute(ExaminerFilter.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO) {
-            return ((ExaminerSlotDTO) slotObj).getExamTypeName();
         }
         Object name = session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
         return name != null ? String.valueOf(name) : null;
@@ -121,12 +138,11 @@ abstract class BaseExaminerServlet extends HttpServlet {
         if (session == null) {
             return "Khu vực thi";
         }
-        Object slotObj = session.getAttribute(ExaminerFilter.ATTR_SLOT);
-        if (slotObj instanceof ExaminerSlotDTO) {
-            ExaminerSlotDTO slot = (ExaminerSlotDTO) slotObj;
-            if (slot.getAreaName() != null && !slot.getAreaName().isBlank()) {
-                return slot.getAreaName();
-            }
+        ExaminerSchedule schedule = getExaminerSchedule(session);
+        if (schedule != null && schedule.getExamArea() != null
+                && schedule.getExamArea().getAreaName() != null
+                && !schedule.getExamArea().getAreaName().isBlank()) {
+            return schedule.getExamArea().getAreaName();
         }
         Object sectionName = session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
         if (sectionName != null && !String.valueOf(sectionName).isBlank()) {

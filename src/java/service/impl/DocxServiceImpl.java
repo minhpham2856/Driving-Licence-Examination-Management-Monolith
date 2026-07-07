@@ -23,6 +23,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import service.DocxService;
 import service.ExaminerDataService;
+import util.SessionShiftLabels;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -177,11 +178,14 @@ public class DocxServiceImpl implements DocxService {
     private Map<String, Object> baseCandidatePlaceholders(ExaminerExportContext ctx, ExaminerCandidateRowDTO candidate) {
         Map<String, Object> data = new LinkedHashMap<>();
         TheoryPaper paper = loadTheoryPaper(candidate);
-        String sessionName = ctx.slot() != null ? format(ctx.slot().getSessionName()) : "-";
+        String shiftLabel = "-";
+        if (ctx.schedule() != null && ctx.schedule().getSession() != null) {
+            shiftLabel = format(SessionShiftLabels.toLabel(ctx.schedule().getSession().isMorningSession()));
+        }
 
         data.put("DEPT", "TP. HÀ NỘI");
         data.put("FNAME", format(candidate.getFullName()));
-        data.put("EXAM", sessionName);
+        data.put("EXAM", shiftLabel);
         data.put("PIC", "");
         data.put("DOB", format(candidate.getDob()));
         data.put("DATE", format(candidate.getExamDate()));

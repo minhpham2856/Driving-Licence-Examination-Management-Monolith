@@ -1,6 +1,6 @@
 package controller.examiner;
 
-import dto.ExaminerSlotDTO;
+import model.ExaminerSchedule;
 import filter.ExaminerFilter;
 import model.User;
 import jakarta.servlet.ServletException;
@@ -8,12 +8,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import service.ExamAreaService;
 import service.ExaminerDataService;
+import service.impl.ExamAreaServiceImpl;
 import service.impl.ExaminerDataServiceImpl;
 import service.ExaminerActionsService;
 import service.impl.ExaminerActionsServiceImpl;
-import dao.ExamAreaDAO;
-import dao.impl.ExamAreaDAOImpl;
 import dto.payload.DeviceActionCommand;
 import java.io.IOException;
 import java.util.Map;
@@ -23,7 +23,7 @@ public class ExaminerDevicesServlet extends BaseExaminerServlet {
 
     protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
     protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
-    private final ExamAreaDAO examAreaDAO = new ExamAreaDAOImpl();
+    private final ExamAreaService examAreaService = new ExamAreaServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -59,12 +59,9 @@ public class ExaminerDevicesServlet extends BaseExaminerServlet {
                 return;
             }
             Integer preferredAreaId = null;
-            Object slotObj = session.getAttribute(ExaminerFilter.ATTR_SLOT);
-            if (slotObj instanceof ExaminerSlotDTO) {
-                int areaId = ((ExaminerSlotDTO) slotObj).getAreaId();
-                if (areaId > 0) {
-                    preferredAreaId = areaId;
-                }
+            ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+            if (schedule != null && schedule.getExamAreaId() != null && schedule.getExamAreaId() > 0) {
+                preferredAreaId = schedule.getExamAreaId();
             }
             Map<String, Object> data = viewDataService.getDevicesData(sessionId, search, preferredAreaId);
             for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
@@ -79,7 +76,7 @@ public class ExaminerDevicesServlet extends BaseExaminerServlet {
     }
 
     private String loadAreaName(int areaId) {
-        model.ExamArea area = examAreaDAO.getById(areaId);
+        model.ExamArea area = examAreaService.getById(areaId);
         return area != null && area.getAreaName() != null ? area.getAreaName() : "Phòng thi";
     }
 }

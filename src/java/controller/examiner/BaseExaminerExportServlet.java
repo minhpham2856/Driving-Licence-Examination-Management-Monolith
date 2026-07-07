@@ -1,6 +1,6 @@
 package controller.examiner;
 
-import dto.ExaminerSlotDTO;
+import model.ExaminerSchedule;
 import dto.ExaminerExportContext;
 import filter.ExaminerFilter;
 import jakarta.servlet.http.HttpServlet;
@@ -30,11 +30,11 @@ abstract class BaseExaminerExportServlet extends HttpServlet {
             return null;
         }
 
-        ExaminerSlotDTO slot = (ExaminerSlotDTO) session.getAttribute(ExaminerFilter.ATTR_SLOT);
+        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
         boolean isTheory = ExaminerFilter.isTheorySession(session);
         String sectionName = (String) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
 
-        return new ExaminerExportContext(activeSessionId, slot, isTheory, sectionName);
+        return new ExaminerExportContext(activeSessionId, schedule, isTheory, sectionName);
     }
 
     protected void prepareExcelDownload(HttpServletResponse response, String filename) {

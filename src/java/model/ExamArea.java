@@ -7,16 +7,20 @@ public class ExamArea {
     private String areaType;
     private Integer capacity;
     private String location;
+    private int examZoneId;
+    private ExamZone examZone;
 
     public ExamArea() {
     }
 
-    public ExamArea(int examAreaId, String areaName, String areaType, Integer capacity, String location) {
+    public ExamArea(int examAreaId, String areaName, String areaType, Integer capacity, String location,
+            int examZoneId) {
         this.examAreaId = examAreaId;
         this.areaName = areaName;
         this.areaType = areaType;
         this.capacity = capacity;
         this.location = location;
+        this.examZoneId = examZoneId;
     }
 
     public int getExamAreaId() {
@@ -57,5 +61,21 @@ public class ExamArea {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public int getExamZoneId() {
+        return examZoneId;
+    }
+
+    public void setExamZoneId(int examZoneId) {
+        this.examZoneId = examZoneId;
+    }
+
+    public ExamZone getExamZone() {
+        return examZone;
+    }
+
+    public void setExamZone(ExamZone examZone) {
+        this.examZone = examZone;
     }
 }

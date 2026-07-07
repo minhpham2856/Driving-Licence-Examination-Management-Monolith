@@ -1,6 +1,8 @@
 package dto;
 
-public record ExaminerExportContext(int sessionId, ExaminerSlotDTO slot,
+import model.ExaminerSchedule;
+
+public record ExaminerExportContext(int sessionId, ExaminerSchedule schedule,
         boolean isTheory, String sectionName) {
 
 }

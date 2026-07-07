@@ -4,13 +4,14 @@ import dto.*;
 import dto.ExaminerCandidateRowDTO;
 import dto.payload.CandidateSummaryDTO;
 import model.*;
-import dto.ExaminerSlotDTO;
+import model.ExaminerSchedule;
 import dao.SessionDAO;
 import dao.impl.SessionDAOImpl;
 import dao.ExamDAO;
 import dao.impl.ExamDAOImpl;
 import dao.DeductionRecordViewDAO;
 import dao.impl.DeductionRecordViewDAOImpl;
+import util.SessionShiftLabels;
 import model.Audit;
 import dto.CandidateEnrollmentDTO;
 import service.ExamRegistrationService;
@@ -59,7 +60,7 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
         Map<String, Object> meta = new LinkedHashMap<>();
         Session s = sessionDAO.getById(sessionId);
         if (s != null) {
-            meta.put("sessionName", s.getSessionName());
+            meta.put("shiftLabel", SessionShiftLabels.toLabel(s.isMorningSession()));
             /* meta.put("examDate", s.getExamDate().toString()); */
             meta.put("startTime", s.getStartTime() != null ? s.getStartTime().toString() : "");
             meta.put("endTime", s.getEndTime() != null ? s.getEndTime().toString() : "");
@@ -152,9 +153,9 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
         List<ExaminerCandidateRowDTO> candidates = viewDataService.loadCandidateRows(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
-        Map<String, Object> metadata = buildMinutesMetadata(meta, summary, ctx.slot(), ctx.isTheory(),
+        Map<String, Object> metadata = buildMinutesMetadata(meta, summary, ctx.schedule(), ctx.isTheory(),
                 ctx.sectionName());
-        List<List<Object>> preamble = buildMinutesPreamble(meta, summary, ctx.slot(), ctx.isTheory(),
+        List<List<Object>> preamble = buildMinutesPreamble(meta, summary, ctx.schedule(), ctx.isTheory(),
                 ctx.sectionName());
         List<String> fields;
         List<String> headers;
@@ -202,7 +203,7 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
         }
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("tieuDe", "BIÊN BẢN VI PHẠM");
-        metadata.put("caThi", nullToDash(meta.get("sessionName")));
+        metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
         metadata.put("maDotThi", nullToDash(meta.get("examCode")));
         List<List<Object>> auditRows = new ArrayList<>();
         int index = 1;
@@ -284,17 +285,16 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
     }
 
     private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, CandidateSummaryDTO summary,
-            ExaminerSlotDTO slot, boolean isTheory, String sectionName) {
+            ExaminerSchedule schedule, boolean isTheory, String sectionName) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
-        metadata.put("caThi", nullToDash(meta.get("sessionName")));
+        metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
         metadata.put("maDotThi", nullToDash(meta.get("examCode")));
         metadata.put("ngayThi", formatDate(meta.get("examDate")));
         metadata.put("gioBatDau", formatTime(meta.get("startTime")));
         metadata.put("gioKetThuc", formatTime(meta.get("endTime")));
-        if (slot != null) {
-            metadata.put("khuVucPhong", nullToDash(slot.getAreaName()));
-            metadata.put("giamThi", nullToDash(slot.getExaminerName()));
+        if (schedule != null && schedule.getExamArea() != null) {
+            metadata.put("khuVucPhong", nullToDash(schedule.getExamArea().getAreaName()));
         }
         metadata.put("phanThi",
                 !isTheory ? nullToDash(sectionName) : "Lý thuyết");
@@ -310,17 +310,16 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
     }
 
     private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, CandidateSummaryDTO summary,
-            ExaminerSlotDTO slot, boolean isTheory, String sectionName) {
+            ExaminerSchedule schedule, boolean isTheory, String sectionName) {
         List<List<Object>> preamble = new ArrayList<>();
         preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
-        preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("sessionName"))));
+        preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
         preamble.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
         preamble.add(Arrays.asList("Ngày thi", formatDate(meta.get("examDate"))));
         preamble.add(Arrays.asList("Giờ bắt đầu", formatTime(meta.get("startTime"))));
         preamble.add(Arrays.asList("Giờ kết thúc", formatTime(meta.get("endTime"))));
-        if (slot != null) {
-            preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(slot.getAreaName())));
-            preamble.add(Arrays.asList("Giám thị", nullToDash(slot.getExaminerName())));
+        if (schedule != null && schedule.getExamArea() != null) {
+            preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(schedule.getExamArea().getAreaName())));
         }
         preamble.add(Arrays.asList("Phần thi",
                 !isTheory ? nullToDash(sectionName) : "Lý thuyết"));
@@ -369,7 +368,7 @@ public class ExaminerDocumentServiceImpl implements ExaminerDocumentService {
             Map<Long, String> changerNames, List<Map<String, Object>> scoreViolations) {
         List<List<Object>> rows = new ArrayList<>();
         rows.add(Arrays.asList("BIÊN BẢN VI PHẠM"));
-        rows.add(Arrays.asList("Ca thi", nullToDash(meta.get("sessionName"))));
+        rows.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
         rows.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
         rows.add(Arrays.asList());
         rows.add(Arrays.asList("I. Vi phạm quy chế thi (nhật ký)"));

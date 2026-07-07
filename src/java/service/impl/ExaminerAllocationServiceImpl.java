@@ -197,7 +197,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
         Session session = sessions.get(schedule.getSessionId());
         if (session != null) {
-            slot.setSessionName(session.getSessionName());
+            slot.setMorningSession(session.isMorningSession());
             if (slot.getExamSection() == null) {
                 SessionDTO sessionDto = sessionControlService.getSessionById(session.getSessionId());
                 if (sessionDto != null) {

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -16,12 +16,11 @@
         <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- External Layout Stylesheets (Matching layout standard) -->
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+        <jsp:include page="/views/staff/exam/components/staff-exam-styles.jsp" />
     </head>
     <body class="has-side-nav-bar">
 
-        <jsp:include page="/views/layout/sidebar-examstaff.jsp">
+        <jsp:include page="/views/staff/exam/components/sidebar.jsp">
             <jsp:param name="activeSidebar" value="dashboard" />
         </jsp:include>
 
@@ -66,9 +65,9 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-number" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">${empty activeSessionName ? 'Chưa mở ca thi' : activeSessionName}</span>
+                            <span class="stat-number" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">${empty activeSessionShift ? 'Chưa mở ca thi' : activeSessionShift}</span>
                             <span class="stat-label">Đợt thi sát hạch</span>
-                            <span class="stat-trend ${empty activeSessionName ? 'stat-trend--down' : 'stat-trend--up'}">${empty activeSessionStatus ? 'Không hoạt động' : activeSessionStatus}</span>
+                            <span class="stat-trend ${empty activeSessionShift ? 'stat-trend--down' : 'stat-trend--up'}">${empty activeSessionStatus ? 'Không hoạt động' : activeSessionStatus}</span>
                         </div>
                     </div>
 
