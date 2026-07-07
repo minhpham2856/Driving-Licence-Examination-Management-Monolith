@@ -1,6 +1,7 @@
 package dto;
 
 import enums.ExamSection;
+import util.SessionShiftLabels;
 
 public class ExaminerSlotDTO {
 
@@ -15,7 +16,7 @@ public class ExaminerSlotDTO {
     private String areaName;
     private String areaType;
     private String examTypeName;
-    private String sessionName;
+    private boolean morningSession;
 
     public String getSlotKey() {
         return examSessionId + ":" + areaId + ":" + examinerUserId;
@@ -109,12 +110,15 @@ public class ExaminerSlotDTO {
         this.examTypeName = examTypeName;
     }
 
-    public String getSessionName() {
-        return sessionName;
+    public boolean isMorningSession() {
+        return morningSession;
     }
 
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
+    public void setMorningSession(boolean morningSession) {
+        this.morningSession = morningSession;
     }
 
+    public String getShiftLabel() {
+        return SessionShiftLabels.toLabel(morningSession);
+    }
 }

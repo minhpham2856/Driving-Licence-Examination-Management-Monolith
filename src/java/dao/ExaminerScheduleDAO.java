@@ -18,4 +18,8 @@ public interface ExaminerScheduleDAO {
     Set<Integer> findBusyExaminerIdsByExamDate(Date examDate);
 
     List<ExaminerSchedule> findInProgressByExaminerId(int examinerUserId);
+
+    List<ExaminerSchedule> findByExaminerId(int examinerUserId);
+
+    ExaminerSchedule getById(int examinerScheduleId);
 }

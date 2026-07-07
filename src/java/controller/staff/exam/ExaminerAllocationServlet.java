@@ -132,7 +132,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 slot.setAreaName(area.getAreaName());
                 slot.setAreaType(area.getAreaType());
                 slot.setExamTypeName(targetSession.getExamTypeName());
-                slot.setSessionName(targetSession.getSessionName());
+                slot.setMorningSession(targetSession.isMorningSession());
                 slot.setExaminerName(getExaminerDisplayName(examiner));
                 slot.setExaminerUsername(examiner.getUsername());
                 boolean ok = allocationService.assignExaminer(slot);

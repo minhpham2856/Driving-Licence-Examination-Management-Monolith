@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -11,12 +11,11 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+        <jsp:include page="/views/staff/exam/components/staff-exam-styles.jsp" />
     </head>
     <body class="has-side-nav-bar">
 
-        <jsp:include page="/views/layout/sidebar-examstaff.jsp">
+        <jsp:include page="/views/staff/exam/components/sidebar.jsp">
             <jsp:param name="activeSidebar" value="phan-bo-giam-khao" />
         </jsp:include>
 
@@ -41,7 +40,7 @@
                             <select name="sessionId" id="sessionId" class="examiner-session-form__select">
                                 <c:forEach var="s" items="${allSessions}">
                                     <option value="${s.id}" ${s.id eq currentSession.id ? 'selected' : ''}>
-                                        ${s.sessionName} - <fmt:formatDate value="${s.examDate}" pattern="dd/MM/yyyy"/>
+                                        ${s.shiftLabel} - <fmt:formatDate value="${s.examDate}" pattern="dd/MM/yyyy"/>
                                     </option>
                                 </c:forEach>
                             </select>
@@ -93,7 +92,7 @@
                         <h3>Ca thi trong ngày <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></h3>
                         <c:forEach var="ds" items="${daySessions}">
                             <span class="session-pill">
-                                ${ds.sessionName}
+                                ${ds.shiftLabel}
                                 (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
                                 - <c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>
                                     </span>
@@ -138,7 +137,7 @@
                                 <label for="targetSessionId">Ca thi</label>
                                 <select name="targetSessionId" id="targetSessionId" required>
                                     <c:forEach var="ds" items="${daySessions}">
-                                        <option value="${ds.id}">${ds.sessionName} (<c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>)</option>
+                                        <option value="${ds.id}">${ds.shiftLabel} (<c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>)</option>
                                     </c:forEach>
                                 </select>
                             </div>
@@ -170,7 +169,7 @@
                     </div>
 
                     <div class="examiner-panel-card examiner-panel-card--section">
-                        <h3>Phân công ca đang chọn: ${currentSession.sessionName}</h3>
+                        <h3>Phân công ca đang chọn: ${currentSession.shiftLabel}</h3>
                         <table class="examiner-data-table">
                             <thead>
                                 <tr>
@@ -231,7 +230,7 @@
                                     <c:otherwise>
                                         <c:forEach var="a" items="${dayAssignments}">
                                             <tr>
-                                                <td>${a.sessionName}</td>
+                                                <td>${a.shiftLabel}</td>
                                                 <td>${empty a.areaName ? '-' : a.areaName}</td>
                                                 <td>${a.examTypeName}</td>
                                                 <td>${a.examinerName}</td>

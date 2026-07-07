@@ -59,10 +59,10 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (!canStartSession(examSession.getStatus())) {
             if (isSessionInProgress(examSession.getStatus())) {
                 return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                        "Ca thi \"" + examSession.getSessionName() + "\" đã bắt đầu diễn ra.");
+                        "Ca thi \"" + examSession.getShiftLabel() + "\" đã bắt đầu diễn ra.");
             }
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Ca thi \"" + examSession.getSessionName()
+                    "Ca thi \"" + examSession.getShiftLabel()
                     + "\" không thể bắt đầu (trạng thái: " + examSession.getStatus() + ").");
         }
         List<ExaminerSchedule> assignments = assignmentDAO.getBySessionId(sessionId);
@@ -81,7 +81,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
                     "Không cập nhật được trạng thái ca thi trên cơ sở dữ liệu.");
         }
-        SessionControlData data = new SessionControlData(examSession.getSessionName(), withArea);
+        SessionControlData data = new SessionControlData(examSession.isMorningSession(), withArea);
         return ServiceResult.ok(data, "Bắt đầu ca thi thành công.");
     }
 
@@ -93,14 +93,14 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         }
         if (!isSessionInProgress(examSession.getStatus())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Ca thi \"" + examSession.getSessionName()
+                    "Ca thi \"" + examSession.getShiftLabel()
                     + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
         }
         if (!sessionDAO.updateStatus(sessionId, ExamSessionStatus.COMPLETED.getValue())) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
                     "Không cập nhật được trạng thái kết thúc ca thi.");
         }
-        SessionControlData data = new SessionControlData(examSession.getSessionName(), 0);
+        SessionControlData data = new SessionControlData(examSession.isMorningSession(), 0);
         return ServiceResult.ok(data, "Kết thúc ca thi thành công.");
     }
 
@@ -134,7 +134,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         }
         SessionDTO dto = new SessionDTO();
         dto.setId(session.getSessionId());
-        dto.setSessionName(session.getSessionName());
+        dto.setMorningSession(session.isMorningSession());
         dto.setStatus(session.getStatus());
         if (session.getStartTime() != null) {
             dto.setExamDate(new Date(session.getStartTime().getTime()));
@@ -242,7 +242,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         }
         Session session = sessions.get(schedule.getSessionId());
         if (session != null) {
-            slot.setSessionName(session.getSessionName());
+            slot.setMorningSession(session.isMorningSession());
             if (slot.getExamSection() == null) {
                 SessionDTO sessionDto = buildSessionDto(session);
                 if (sessionDto != null) {

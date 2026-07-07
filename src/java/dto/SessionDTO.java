@@ -1,6 +1,8 @@
 package dto;
 
 import enums.ExamSection;
+import util.SessionShiftLabels;
+
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -8,7 +10,7 @@ import java.sql.Timestamp;
 public class SessionDTO {
 
     private int id;
-    private String sessionName;
+    private boolean morningSession;
     private int licenseTypeId;
     private ExamSection examSection;
     private Date examDate;
@@ -34,12 +36,16 @@ public class SessionDTO {
         this.id = id;
     }
 
-    public String getSessionName() {
-        return sessionName;
+    public boolean isMorningSession() {
+        return morningSession;
     }
 
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
+    public void setMorningSession(boolean morningSession) {
+        this.morningSession = morningSession;
+    }
+
+    public String getShiftLabel() {
+        return SessionShiftLabels.toLabel(morningSession);
     }
 
     public int getLicenseTypeId() {

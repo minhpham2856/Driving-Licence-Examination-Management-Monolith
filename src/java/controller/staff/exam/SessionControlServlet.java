@@ -43,7 +43,7 @@ public class SessionControlServlet extends HttpServlet {
                 session.removeAttribute("callingSbd");
                 auditLogService.logAction(((User) session.getAttribute("user")).getUserId(),
                         AuditAction.UPDATE, AuditEntity.EXAM_SESSION,
-                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + data.getSessionName()
+                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + data.getShiftLabel()
                                 + " (" + data.getExaminerCount() + " sát hạch viên)",
                         sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());

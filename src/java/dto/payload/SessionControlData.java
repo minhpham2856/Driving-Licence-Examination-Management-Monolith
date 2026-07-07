@@ -1,17 +1,23 @@
 package dto.payload;
 
+import util.SessionShiftLabels;
+
 public class SessionControlData {
 
-    private final String sessionName;
+    private final boolean morningSession;
     private final int examinerCount;
 
-    public SessionControlData(String sessionName, int examinerCount) {
-        this.sessionName = sessionName;
+    public SessionControlData(boolean morningSession, int examinerCount) {
+        this.morningSession = morningSession;
         this.examinerCount = examinerCount;
     }
 
-    public String getSessionName() {
-        return sessionName;
+    public boolean isMorningSession() {
+        return morningSession;
+    }
+
+    public String getShiftLabel() {
+        return SessionShiftLabels.toLabel(morningSession);
     }
 
     public int getExaminerCount() {

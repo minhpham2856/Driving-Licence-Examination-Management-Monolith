@@ -122,6 +122,47 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
     }
 
     @Override
+    public List<ExaminerSchedule> findByExaminerId(int examinerUserId) {
+        String sql = """
+                SELECT es.ExaminerScheduleId, es.SessionId, es.ExaminerId, es.ExamSectionId,
+                       es.ExamAreaId, es.AssignedBy, es.AssignedAt
+                FROM ExaminerSchedule es
+                INNER JOIN [Session] s ON s.SessionId = es.SessionId
+                WHERE es.ExaminerId = ?
+                ORDER BY s.StartTime DESC, es.ExaminerScheduleId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examinerUserId);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<ExaminerSchedule> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(mapSchedule(rs));
+                }
+                return list;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public ExaminerSchedule getById(int examinerScheduleId) {
+        String sql = "SELECT " + SCHEDULE_COLUMNS + " FROM ExaminerSchedule WHERE ExaminerScheduleId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examinerScheduleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapSchedule(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public List<ExaminerSchedule> findInProgressByExaminerId(int examinerUserId) {
         String sql = """
                 SELECT es.ExaminerScheduleId, es.SessionId, es.ExaminerId, es.ExamSectionId,

@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class Session {
 
     private int sessionId;
-    private String sessionName;
+    private boolean morningSession;
     private Timestamp startTime;
     private Timestamp endTime;
     private String status;
@@ -15,10 +15,10 @@ public class Session {
     public Session() {
     }
 
-    public Session(int sessionId, String sessionName, Timestamp startTime, Timestamp endTime, String status,
+    public Session(int sessionId, boolean morningSession, Timestamp startTime, Timestamp endTime, String status,
             int examId) {
         this.sessionId = sessionId;
-        this.sessionName = sessionName;
+        this.morningSession = morningSession;
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
@@ -33,12 +33,12 @@ public class Session {
         this.sessionId = sessionId;
     }
 
-    public String getSessionName() {
-        return sessionName;
+    public boolean isMorningSession() {
+        return morningSession;
     }
 
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
+    public void setMorningSession(boolean morningSession) {
+        this.morningSession = morningSession;
     }
 
     public Timestamp getStartTime() {

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -12,12 +12,11 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+        <jsp:include page="/views/staff/exam/components/staff-exam-styles.jsp" />
     </head>
     <body class="has-side-nav-bar">
 
-        <jsp:include page="/views/layout/sidebar-examstaff.jsp">
+        <jsp:include page="/views/staff/exam/components/sidebar.jsp">
             <jsp:param name="activeSidebar" value="ds-thi-sinh" />
         </jsp:include>
 
@@ -80,7 +79,7 @@
                                 <c:set var="cName" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Nguyễn Anh Tuấn' : (cSbd eq 'B2-0145' ? 'Trần Thị Mai' : 'Thí sinh')) : callingCandidate.fullName}" />
                                 <c:set var="cCCCD" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? '001204008912' : (cSbd eq 'B2-0145' ? '038201004567' : 'CCCD/Hộ chiếu')) : callingCandidate.cccd}" />
                                 <c:set var="cClass" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Hạng A1' : (cSbd eq 'B2-0145' ? 'Hạng B2' : 'Chưa rõ')) : callingCandidate.licenseClass}" />
-                                <c:set var="cSession" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Khóa thi A1 - 24/05/2026' : (cSbd eq 'B2-0145' ? 'Khóa thi B2 - 15/06/2026' : 'Chưa xếp khóa')) : callingCandidate.sessionName}" />
+                                <c:set var="cSession" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Ca sáng' : (cSbd eq 'B2-0145' ? 'Ca chiều' : 'Chưa xếp khóa')) : callingCandidate.shiftLabel}" />
                                 <c:set var="cAvatar" value="${empty callingCandidate ? fn:substring(cName, 0, 1) : fn:substring(callingCandidate.fullName, 0, 1)}" />
 
                                 <div class="call-grid">

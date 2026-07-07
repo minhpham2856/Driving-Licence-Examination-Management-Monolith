@@ -153,7 +153,7 @@ public class UploadServlet extends HttpServlet {
                     uploadedFile = "danh_sach.csv";
                 }
                 SessionDTO importSession = sessionService.getSessionById(selectedSessionId);
-                String sessionLabel = importSession != null ? importSession.getSessionName() : ("SessionId " + selectedSessionId);
+                String sessionLabel = importSession != null ? importSession.getShiftLabel() : ("SessionId " + selectedSessionId);
                 String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
                         + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
                         + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");

@@ -4,6 +4,7 @@ import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
 import dto.ServiceResult;
 import dto.payload.SaveEntityData;
+import enums.ExamAreaType;
 import enums.ErrorType;
 import model.ExamArea;
 import service.ExamAreaService;
@@ -42,11 +43,17 @@ public class ExamAreaServiceImpl implements ExamAreaService {
         if (area.getAreaType() == null || area.getAreaType().isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn loại khu vực.");
         }
+        if (ExamAreaType.fromValue(area.getAreaType()) == null) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Loại khu vực không hợp lệ.");
+        }
         if (area.getLocation() == null || area.getLocation().isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng nhập địa chỉ khu vực.");
         }
-        if (area.getCapacity() <= 0) {
+        if (area.getCapacity() != null && area.getCapacity() <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sức chứa phải lớn hơn 0.");
+        }
+        if (area.getExamZoneId() <= 0) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn khu vực thi (ExamZone).");
         }
         boolean isEdit = area.getExamAreaId() > 0;
         if (isEdit) {
