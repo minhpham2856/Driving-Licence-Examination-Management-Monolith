@@ -40,11 +40,16 @@ public class ExamFlowServlet extends HttpServlet {
             case "/exam/entrance" -> {
                 request.getRequestDispatcher("/views/exam/exam-entrance.jsp").forward(request, response);
             }
-            case "/exam/info" -> forwardInfo(request, response);
-            case "/exam/face" -> forwardFace(request, response);
-            case "/exam/questions" -> forwardQuestions(request, response);
-            case "/exam/results" -> forwardResults(request, response);
-            default -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            case "/exam/info" ->
+                forwardInfo(request, response);
+            case "/exam/face" ->
+                forwardFace(request, response);
+            case "/exam/questions" ->
+                forwardQuestions(request, response);
+            case "/exam/results" ->
+                forwardResults(request, response);
+            default ->
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
@@ -53,11 +58,16 @@ public class ExamFlowServlet extends HttpServlet {
             throws ServletException, IOException {
         String path = stripPath(request);
         switch (path) {
-            case "/exam/entrance" -> handleEntrancePost(request, response);
-            case "/exam/face" -> handleFacePost(request, response);
-            case "/exam/save" -> handleSavePost(request, response);
-            case "/exam/submit" -> handleSubmitPost(request, response);
-            default -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            case "/exam/entrance" ->
+                handleEntrancePost(request, response);
+            case "/exam/face" ->
+                handleFacePost(request, response);
+            case "/exam/save" ->
+                handleSavePost(request, response);
+            case "/exam/submit" ->
+                handleSubmitPost(request, response);
+            default ->
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
