@@ -1,7 +1,7 @@
 package service;
 
+import dto.SaveResultDTO;
 import dto.ServiceResult;
-import dto.payload.SaveEntityData;
 import model.Licence;
 
 import java.util.List;
@@ -16,5 +16,5 @@ public interface LicenceService {
 
     int countAll();
 
-    ServiceResult<SaveEntityData> save(Licence licence, int adminUserId);
+    ServiceResult<SaveResultDTO> save(Licence licence, int adminUserId);
 }

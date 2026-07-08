@@ -6,11 +6,9 @@ import dao.AuditDAO;
 import dao.impl.AuditDAOImpl;
 import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
-import dto.ExamDeviceViewDTO;
+import dto.DeviceRowDTO;
 import dto.ServiceResult;
-import dto.payload.DeleteExamDeviceCommand;
-import dto.payload.SaveExamDeviceCommand;
-import dto.payload.SaveExamDeviceData;
+import dto.SaveResultDTO;
 import model.Audit;
 import model.ExamArea;
 import model.ExamDevice;
@@ -29,7 +27,7 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
     private final AuditDAO auditDAO = new AuditDAOImpl();
 
     @Override
-    public List<ExamDeviceViewDTO> search(String keyword, String status) {
+    public List<DeviceRowDTO> search(String keyword, String status) {
         boolean isActive = status == null || status.isBlank() || isActiveDeviceStatus(status);
         List<ExamDevice> devices = dao.search(keyword, isActive);
         if (devices.isEmpty()) {
@@ -38,9 +36,9 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         List<ExamArea> areas = areaDao.search(null, null);
         Map<Integer, String> areaMap = areas.stream()
                 .collect(Collectors.toMap(ExamArea::getExamAreaId, ExamArea::getAreaName));
-        List<ExamDeviceViewDTO> dtos = new ArrayList<>();
+        List<DeviceRowDTO> dtos = new ArrayList<>();
         for (ExamDevice d : devices) {
-            ExamDeviceViewDTO dto = mapToDTO(d);
+            DeviceRowDTO dto = mapToDTO(d);
             dto.setAreaName(areaMap.get(d.getExamAreaId()));
             dtos.add(dto);
         }
@@ -61,8 +59,7 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
     }
 
     @Override
-    public ServiceResult<SaveExamDeviceData> save(SaveExamDeviceCommand command) {
-        ExamDeviceViewDTO dev = command.getDevice();
+    public ServiceResult<SaveResultDTO> save(DeviceRowDTO dev, Integer adminUserId) {
         if (dev == null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiết bị không hợp lệ.");
         }
@@ -84,27 +81,33 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         model.setDeviceType(dev.getDeviceType());
         model.setActive(isActiveDeviceStatus(dev.getStatus()));
         model.setExamAreaId(dev.getExamAreaId());
-        Integer adminUserId = command.getAdminUserId();
+        Integer adminId = adminUserId;
         if (dev.getExamDeviceId() > 0) {
             if (!dao.update(model)) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Cập nhật máy thi thất bại.");
             }
-            logAudit(adminUserId, "UPDATE", "ExamDevice", String.valueOf(dev.getExamDeviceId()), "Giám khảo cập nhật máy thi");
+            logAudit(adminId, "UPDATE", "ExamDevice", String.valueOf(dev.getExamDeviceId()), "Giám khảo cập nhật máy thi");
             String message = "Đã cập nhật máy \"" + dev.getDeviceName() + "\".";
-            return ServiceResult.ok(new SaveExamDeviceData(dev.getExamDeviceId(), message), message);
+            SaveResultDTO result = new SaveResultDTO();
+            result.setEntityId(dev.getExamDeviceId());
+            result.setMessage(message);
+            return ServiceResult.ok(result, message);
         }
         int newId = dao.insert(model);
         if (newId <= 0) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Thêm máy thi thất bại.");
         }
-        logAudit(adminUserId, "INSERT", "ExamDevice", String.valueOf(newId), "Giám khảo thêm máy thi");
+        logAudit(adminId, "INSERT", "ExamDevice", String.valueOf(newId), "Giám khảo thêm máy thi");
         String message = "Đã thêm máy \"" + dev.getDeviceName() + "\".";
-        return ServiceResult.ok(new SaveExamDeviceData(newId, message), message);
+        SaveResultDTO result = new SaveResultDTO();
+        result.setEntityId(newId);
+        result.setMessage(message);
+        return ServiceResult.ok(result, message);
     }
 
     @Override
-    public ServiceResult<Void> delete(DeleteExamDeviceCommand command) {
-        int id = command.getDeviceId();
+    public ServiceResult<Void> delete(int deviceId, Integer adminUserId) {
+        int id = deviceId;
         ExamDevice dev = dao.getById(id);
         if (dev == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Máy thi không tồn tại.");
@@ -112,12 +115,12 @@ public class ExamDeviceServiceImpl implements ExamDeviceService {
         if (id <= 0 || !dao.delete(id)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Xóa máy thi thất bại.");
         }
-        logAudit(command.getAdminUserId(), "DELETE", "ExamDevice", String.valueOf(id), "Giám khảo xóa máy thi");
+        logAudit(adminUserId, "DELETE", "ExamDevice", String.valueOf(id), "Giám khảo xóa máy thi");
         return ServiceResult.ok(null, "Đã xóa máy thi.");
     }
 
-    private ExamDeviceViewDTO mapToDTO(ExamDevice model) {
-        ExamDeviceViewDTO dto = new ExamDeviceViewDTO();
+    private DeviceRowDTO mapToDTO(ExamDevice model) {
+        DeviceRowDTO dto = new DeviceRowDTO();
         dto.setExamDeviceId(model.getExamDeviceId());
         dto.setDeviceName(model.getDeviceName());
         dto.setDeviceType(model.getDeviceType());

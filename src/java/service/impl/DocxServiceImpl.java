@@ -8,9 +8,9 @@ import dao.TheoryPaperDAO;
 import dao.impl.CandidateAnswerDAOImpl;
 import dao.impl.QuestionDAOImpl;
 import dao.impl.TheoryPaperDAOImpl;
-import dto.ExaminerCandidateRowDTO;
-import dto.ExaminerExportContext;
-import dto.ExaminerExportPayload;
+import dto.CandidateRowDTO;
+import dto.ExportContextDTO;
+import dto.ExportPayloadDTO;
 import dto.XmlExportTable;
 import model.CandidateAnswer;
 import model.Question;
@@ -22,8 +22,8 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import service.DocxService;
-import service.ExaminerDataService;
-import util.SessionShiftLabels;
+import service.ExamViewService;
+import enums.SessionCa;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +52,7 @@ public class DocxServiceImpl implements DocxService {
         return Configure.builder().buildGramer("<<", ">>").build();
     }
 
-    private final ExaminerDataService examinerDataService = new ExaminerDataServiceImpl();
+    private final ExamViewService ExamViewService = new ExamViewServiceImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
     private final CandidateAnswerDAO candidateAnswerDAO = new CandidateAnswerDAOImpl();
     private final QuestionDAO questionDAO = new QuestionDAOImpl();
@@ -72,8 +72,8 @@ public class DocxServiceImpl implements DocxService {
         }
     }
 
-    public void renderBb1Theory(ExaminerExportContext ctx, int sbd, OutputStream out) throws IOException {
-        ExaminerCandidateRowDTO candidate = findCandidateRow(ctx, sbd);
+    public void renderBb1Theory(ExportContextDTO ctx, int sbd, OutputStream out) throws IOException {
+        CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String template = pickTemplate("BB1", candidate.getLicenceClass());
         if (template == null) {
             throw new IOException("Không tìm thấy mẫu BB1.");
@@ -81,8 +81,8 @@ public class DocxServiceImpl implements DocxService {
         render(template, buildBb1Placeholders(ctx, candidate), out);
     }
 
-    public void renderBb2Layout(ExaminerExportContext ctx, int sbd, OutputStream out) throws IOException {
-        ExaminerCandidateRowDTO candidate = findCandidateRow(ctx, sbd);
+    public void renderBb2Layout(ExportContextDTO ctx, int sbd, OutputStream out) throws IOException {
+        CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String template = pickTemplate("BB2", candidate.getLicenceClass());
         if (template == null) {
             throw new IOException("Không tìm thấy mẫu BB2.");
@@ -90,8 +90,8 @@ public class DocxServiceImpl implements DocxService {
         render(template, buildBb2Placeholders(ctx, candidate), out);
     }
 
-    public void renderBb3Road(ExaminerExportContext ctx, int sbd, OutputStream out) throws IOException {
-        ExaminerCandidateRowDTO candidate = findCandidateRow(ctx, sbd);
+    public void renderBb3Road(ExportContextDTO ctx, int sbd, OutputStream out) throws IOException {
+        CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String template = pickTemplate("BB3", candidate.getLicenceClass());
         if (template == null) {
             throw new IOException("Không tìm thấy mẫu BB3.");
@@ -99,7 +99,7 @@ public class DocxServiceImpl implements DocxService {
         render(template, buildBb3Placeholders(ctx, candidate), out);
     }
 
-    public void renderTableExport(ExaminerExportPayload payload, OutputStream out) throws IOException {
+    public void renderTableExport(ExportPayloadDTO payload, OutputStream out) throws IOException {
         try (XWPFDocument document = new XWPFDocument()) {
             XWPFParagraph title = document.createParagraph();
             title.setAlignment(ParagraphAlignment.CENTER);
@@ -146,7 +146,7 @@ public class DocxServiceImpl implements DocxService {
         }
     }
 
-    private Map<String, Object> buildBb1Placeholders(ExaminerExportContext ctx, ExaminerCandidateRowDTO candidate) {
+    private Map<String, Object> buildBb1Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
         data.put("A", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_A_FROM, BLOCK_A_TO));
         data.put("B", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_B_FROM, BLOCK_B_TO));
@@ -158,7 +158,7 @@ public class DocxServiceImpl implements DocxService {
         return data;
     }
 
-    private Map<String, Object> buildBb2Placeholders(ExaminerExportContext ctx, ExaminerCandidateRowDTO candidate) {
+    private Map<String, Object> buildBb2Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
         data.put("VNO", format(candidate.getVehicleName()));
         data.put("TIME", format(candidate.getExamDate()));
@@ -169,18 +169,18 @@ public class DocxServiceImpl implements DocxService {
         return data;
     }
 
-    private Map<String, Object> buildBb3Placeholders(ExaminerExportContext ctx, ExaminerCandidateRowDTO candidate) {
+    private Map<String, Object> buildBb3Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = buildBb2Placeholders(ctx, candidate);
         data.put("A", format(candidate.getScoreOnRoad()));
         return data;
     }
 
-    private Map<String, Object> baseCandidatePlaceholders(ExaminerExportContext ctx, ExaminerCandidateRowDTO candidate) {
+    private Map<String, Object> baseCandidatePlaceholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = new LinkedHashMap<>();
         TheoryPaper paper = loadTheoryPaper(candidate);
         String shiftLabel = "-";
         if (ctx.schedule() != null && ctx.schedule().getSession() != null) {
-            shiftLabel = format(SessionShiftLabels.toLabel(ctx.schedule().getSession().isMorningSession()));
+            shiftLabel = format(( ctx.schedule().getSession().isMorningSession()));
         }
 
         data.put("DEPT", "TP. HÀ NỘI");
@@ -198,8 +198,8 @@ public class DocxServiceImpl implements DocxService {
         return data;
     }
 
-    private ExaminerCandidateRowDTO findCandidateRow(ExaminerExportContext ctx, int sbd) throws IOException {
-        ExaminerCandidateRowDTO row = examinerDataService.getCandidateViewRow(
+    private CandidateRowDTO findCandidateRow(ExportContextDTO ctx, int sbd) throws IOException {
+        CandidateRowDTO row = ExamViewService.getCandidateViewRow(
                 ctx.sessionId(), sbd, ctx.isTheory(), ctx.sectionName());
         if (row == null) {
             throw new IOException("Không tìm thấy thí sinh SBD " + sbd);
@@ -242,7 +242,7 @@ public class DocxServiceImpl implements DocxService {
         return normalized;
     }
 
-    private TheoryPaper loadTheoryPaper(ExaminerCandidateRowDTO candidate) {
+    private TheoryPaper loadTheoryPaper(CandidateRowDTO candidate) {
         if (candidate.getEnrollmentId() <= 0) {
             return null;
         }

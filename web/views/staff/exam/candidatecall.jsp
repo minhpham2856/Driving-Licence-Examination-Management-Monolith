@@ -28,7 +28,7 @@
                     <span class="breadcrumbs__separator" aria-hidden="true">/</span>
                     <span class="breadcrumbs__current">Quản lý thi</span>
                     <span class="breadcrumbs__separator" aria-hidden="true">/</span>
-                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidatelist.jsp">Danh sách thí sinh</a>
+                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidates">Danh sách thí sinh</a>
                     <span class="breadcrumbs__separator" aria-hidden="true">/</span>
                     <span class="breadcrumbs__current" aria-current="page">Điều hành gọi thi</span>
                 </nav>
@@ -68,19 +68,19 @@
                                 </svg>
                                 Thí sinh đang được gọi
                             </h2>
-                            <c:if test="${not empty callingCandidate or not empty param.sbd}">
+                            <c:if test="${not empty callingCandidate}">
                                 <span class="action-badge action-badge--warning">Chờ kiểm tra FaceID</span>
                             </c:if>
                         </header>
 
                         <c:choose>
-                            <c:when test="${not empty callingCandidate or not empty param.sbd}">
-                                <c:set var="cSbd" value="${empty callingCandidate ? param.sbd : callingCandidate.sbd}" />
-                                <c:set var="cName" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Nguyễn Anh Tuấn' : (cSbd eq 'B2-0145' ? 'Trần Thị Mai' : 'Thí sinh')) : callingCandidate.fullName}" />
-                                <c:set var="cCCCD" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? '001204008912' : (cSbd eq 'B2-0145' ? '038201004567' : 'CCCD/Hộ chiếu')) : callingCandidate.cccd}" />
-                                <c:set var="cClass" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Hạng A1' : (cSbd eq 'B2-0145' ? 'Hạng B2' : 'Chưa rõ')) : callingCandidate.licenseClass}" />
-                                <c:set var="cSession" value="${empty callingCandidate ? (cSbd eq 'A1-0024' ? 'Ca sáng' : (cSbd eq 'B2-0145' ? 'Ca chiều' : 'Chưa xếp khóa')) : callingCandidate.shiftLabel}" />
-                                <c:set var="cAvatar" value="${empty callingCandidate ? fn:substring(cName, 0, 1) : fn:substring(callingCandidate.fullName, 0, 1)}" />
+                            <c:when test="${not empty callingCandidate}">
+                                <c:set var="cSbd" value="${callingCandidate.sbd}" />
+                                <c:set var="cName" value="${callingCandidate.fullName}" />
+                                <c:set var="cCCCD" value="${callingCandidate.cccd}" />
+                                <c:set var="cClass" value="${callingCandidate.licenseClass}" />
+                                <c:set var="cSession" value="${callingCandidate.shiftLabel}" />
+                                <c:set var="cAvatar" value="${fn:substring(callingCandidate.fullName, 0, 1)}" />
 
                                 <div class="call-grid">
                                     <div class="candidate-photo-frame">
@@ -125,35 +125,35 @@
                                 </div>
 
                                 <div class="control-btn-grid">
-                                    <a href="candidatecall.jsp?sbd=${cSbd eq 'A1-0024' ? 'B2-0145' : 'A1-0024'}" class="btn-call-control btn-call-control--next" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
+                                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidatecall?action=startCall" class="btn-call-control btn-call-control--next" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                         Gọi tiếp theo
                                     </a>
 
-                                    <a href="candidatecall.jsp" class="btn-call-control btn-call-control--absent" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
+                                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidatecall?action=absent&sbd=${cSbd}" class="btn-call-control btn-call-control--absent" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
                                         Vắng mặt
                                     </a>
 
-                                    <a href="candidatecall.jsp" class="btn-call-control btn-call-control--start" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
+                                    <a href="${pageContext.request.contextPath}/views/staff/exam/procedure?sbd=${cSbd}" class="btn-call-control btn-call-control--start" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M5 3l14 9-14 9V3z" fill="currentColor"/>
                                         </svg>
                                         Bắt đầu thi
                                     </a>
 
-                                    <a href="candidatecall.jsp" class="btn-call-control" style="background-color: #f97316; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; color: #ffffff;">
+                                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidatecall" class="btn-call-control" style="background-color: #f97316; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; color: #ffffff;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M18.36 6.64L5.64 19.36M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                         Hủy kết quả
                                     </a>
 
-                                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidatelist.jsp" class="btn-call-control btn-call-control--cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
+                                    <a href="${pageContext.request.contextPath}/views/staff/exam/candidates" class="btn-call-control btn-call-control--cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem;">
                                         Quay lại
                                     </a>
                                 </div>
@@ -169,13 +169,13 @@
                                     <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; max-width: 360px; margin: 0.5rem auto 1.5rem;">Vui lòng bấm nút dưới đây để gọi thí sinh tiếp theo, hoặc chọn trực tiếp từ danh sách thí sinh.</p>
 
                                     <div style="display: flex; gap: 10px; justify-content: center;">
-                                        <a href="candidatecall.jsp?sbd=A1-0024" class="btn-filter" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                                        <a href="${pageContext.request.contextPath}/views/staff/exam/candidatecall?action=startCall" class="btn-filter" style="height: 42px; padding: 0 1.5rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
                                             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                             Gọi thí sinh tiếp theo
                                         </a>
-                                        <a href="${pageContext.request.contextPath}/views/staff/exam/candidatelist.jsp" class="btn-reset" style="height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                                        <a href="${pageContext.request.contextPath}/views/staff/exam/candidates" class="btn-reset" style="height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
                                             Danh sách thí sinh
                                         </a>
                                     </div>
@@ -193,14 +193,14 @@
                                 </svg>
                                 Màn hình nhận diện FaceID
                             </h2>
-                            <c:if test="${not empty callingCandidate or not empty param.sbd}">
+                            <c:if test="${not empty callingCandidate}">
                                 <span class="action-badge" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2);">FaceID Online</span>
                             </c:if>
                         </header>
 
                         <div class="camera-feed">
                             <c:choose>
-                                <c:when test="${not empty callingCandidate or not empty param.sbd}">
+                                <c:when test="${not empty callingCandidate}">
                                     <div class="camera-feed__live-tag">
                                         <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #ffffff; display: inline-block;"></span>
                                         REC LIVE

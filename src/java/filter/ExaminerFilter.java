@@ -16,12 +16,12 @@ import model.ExaminerSchedule;
 import model.Session;
 import model.User;
 import service.ExamAreaService;
-import service.ExamSessionService;
-import service.ExaminerService;
+import service.SessionService;
+import service.ScheduleService;
 import service.RoleService;
 import service.impl.ExamAreaServiceImpl;
-import service.impl.ExamSessionServiceImpl;
-import service.impl.ExaminerServiceImpl;
+import service.impl.SessionServiceImpl;
+import service.impl.ScheduleServiceImpl;
 import service.impl.RoleServiceImpl;
 
 import java.io.IOException;
@@ -40,8 +40,8 @@ public class ExaminerFilter extends HttpFilter {
     private static final String SESSION_SELECT_PATH = "/views/examiner/session";
 
     private final RoleService roleService = new RoleServiceImpl();
-    private final ExaminerService examinerService = new ExaminerServiceImpl();
-    private final ExamSessionService examSessionService = new ExamSessionServiceImpl();
+    private final ScheduleService ScheduleService = new ScheduleServiceImpl();
+    private final SessionService SessionService = new SessionServiceImpl();
     private final ExamAreaService examAreaService = new ExamAreaServiceImpl();
 
     @Override
@@ -97,13 +97,13 @@ public class ExaminerFilter extends HttpFilter {
         }
 
         ExaminerSchedule stored = (ExaminerSchedule) scheduleObj;
-        ExaminerSchedule schedule = examinerService.getScheduleById(stored.getExaminerScheduleId());
+        ExaminerSchedule schedule = ScheduleService.getScheduleById(stored.getExaminerScheduleId());
         if (schedule == null || schedule.getExaminerId() != examinerUserId) {
             clearSessionContext(session);
             return false;
         }
 
-        Session examSession = examSessionService.getById(schedule.getSessionId());
+        Session examSession = SessionService.getById(schedule.getSessionId());
         if (examSession == null
                 || ExamSessionStatus.fromValue(examSession.getStatus()) != ExamSessionStatus.IN_PROGRESS) {
             clearSessionContext(session);
@@ -116,9 +116,9 @@ public class ExaminerFilter extends HttpFilter {
             schedule.setExamArea(area);
         }
         schedule.setSession(examSession);
-        schedule.setExamSection(examSessionService.getExamSectionModel(schedule, examSession));
+        schedule.setExamSection(SessionService.getExamSectionModel(schedule, examSession));
 
-        ExamSection examSection = examSessionService.resolveExamSection(schedule, examSession);
+        ExamSection examSection = SessionService.getExamSection(schedule, examSession);
         boolean isTheory = examSection == THEORY;
 
         session.setAttribute(ATTR_EXAMINER_SCHEDULE, schedule);

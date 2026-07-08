@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-@WebFilter("/admin/*")
+@WebFilter(urlPatterns = {"/admin/*", "/views/admin/*"})
 public class AdminFilter implements Filter {
     private final RoleService roleService = new RoleServiceImpl();
     @Override

@@ -3,7 +3,7 @@ package service.impl;
 import dao.LicenceDAO;
 import dao.impl.LicenceDAOImpl;
 import dto.ServiceResult;
-import dto.payload.SaveEntityData;
+import dto.SaveResultDTO;
 import enums.ErrorType;
 import model.Licence;
 import service.LicenceService;
@@ -35,7 +35,7 @@ public class LicenceServiceImpl implements LicenceService {
     }
 
     @Override
-    public ServiceResult<SaveEntityData> save(Licence licence, int adminUserId) {
+    public ServiceResult<SaveResultDTO> save(Licence licence, int adminUserId) {
         if (licence.getLicenceClass() == null || licence.getLicenceClass().isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng nhập mã hạng (VD: A1, B2, C...).");
         }
@@ -56,15 +56,19 @@ public class LicenceServiceImpl implements LicenceService {
         }
         if (isEdit) {
             if (dao.update(licence)) {
-                return ServiceResult.ok(new SaveEntityData(licence.getLicenceId()),
-                        "Đã cập nhật hạng \"" + licence.getLicenceClass() + "\".");
+                SaveResultDTO result = new SaveResultDTO();
+                result.setEntityId(licence.getLicenceId());
+                result.setMessage("Đã cập nhật hạng \"" + licence.getLicenceClass() + "\".");
+                return ServiceResult.ok(result, result.getMessage());
             }
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Cập nhật hạng GPLX thất bại.");
         }
         int newId = dao.insert(licence);
         if (newId > 0) {
-            return ServiceResult.ok(new SaveEntityData(newId),
-                    "Đã thêm hạng \"" + licence.getLicenceClass() + "\".");
+            SaveResultDTO result = new SaveResultDTO();
+            result.setEntityId(newId);
+            result.setMessage("Đã thêm hạng \"" + licence.getLicenceClass() + "\".");
+            return ServiceResult.ok(result, result.getMessage());
         }
         return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Thêm hạng thất bại.");
     }

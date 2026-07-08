@@ -1,7 +1,8 @@
 package controller.examiner;
 
 import model.ExaminerSchedule;
-import dto.ExaminerExportContext;
+import dto.ExportContextDTO;
+import enums.DocumentName;
 import filter.ExaminerFilter;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 abstract class BaseExaminerExportServlet extends HttpServlet {
 
-    protected ExaminerExportContext requireExportContext(HttpServletRequest request, HttpServletResponse response)
+    protected ExportContextDTO requireExportContext(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         HttpSession session = request.getSession(false);
@@ -34,7 +35,11 @@ abstract class BaseExaminerExportServlet extends HttpServlet {
         boolean isTheory = ExaminerFilter.isTheorySession(session);
         String sectionName = (String) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
 
-        return new ExaminerExportContext(activeSessionId, schedule, isTheory, sectionName);
+        return new ExportContextDTO(activeSessionId, schedule, isTheory, sectionName);
+    }
+
+    protected DocumentName parseDocumentName(String alias) {
+        return DocumentName.parseAlias(alias);
     }
 
     protected void prepareExcelDownload(HttpServletResponse response, String filename) {

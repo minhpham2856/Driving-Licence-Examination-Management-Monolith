@@ -1,37 +1,38 @@
 package controller.staff.exam;
 
 import java.util.*;
-import dto.payload.UpdateEnrollmentScoresCommand;
-import service.ExamRegistrationService;
-import service.impl.ExamRegistrationServiceImpl;
+import service.RegistrationService;
+import service.impl.RegistrationServiceImpl;
 import dao.AuditDAO;
 import dao.impl.AuditDAOImpl;
-import service.ExamSessionControlService;
-import service.impl.ExamSessionControlServiceImpl;
-import dto.SessionDTO;
-import dto.CandidateEnrollmentDTO;
+import service.SessionService;
+import service.impl.SessionServiceImpl;
+import dto.SessionViewDTO;
+import dto.EnrollmentDTO;
 import enums.ExamSessionStatus;
 import model.Audit;
-import service.CandidatePhotoService;
-import service.impl.CandidatePhotoServiceImpl;
-import dto.CandidateCallBoardStateDTO;
+import service.PhotoService;
+import service.impl.PhotoServiceImpl;
+import dto.CallBoardDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.User;
+import controller.staff.exam.BaseStaffExamServlet;
 import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/views/staff/exam/candidatecall")
-public class CandidateCallServlet extends HttpServlet {
+public class CandidateCallServlet extends BaseStaffExamServlet {
 
     private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
-    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
+    private final RegistrationService regService = new RegistrationServiceImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
-    private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
-    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+    private final SessionService sessionService = new SessionServiceImpl();
+    private final PhotoService photoService = new PhotoServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -49,19 +50,18 @@ public class CandidateCallServlet extends HttpServlet {
             }
             return;
         }
-        int examSessionId = 2;
-        Integer selectedSessionId = (Integer) session.getAttribute("selectedSessionId");
-        if (selectedSessionId != null) {
-            examSessionId = selectedSessionId;
+        int examSessionId = readSessionId(request, session, sessionService);
+        if (examSessionId > 0) {
+            session.setAttribute("selectedSessionId", examSessionId);
         }
+        SessionViewDTO SessionViewDTO = examSessionId > 0 ? sessionService.getSessionById(examSessionId) : null;
         String shiftEndedVal = (String) session.getAttribute("shiftEnded");
         boolean isShiftEnded = "true".equals(shiftEndedVal);
-        SessionDTO SessionDTO = sessionService.getSessionById(examSessionId);
-        if (SessionDTO != null && ExamSessionStatus.isEnded(SessionDTO.getStatus())) {
+        if (SessionViewDTO != null && ExamSessionStatus.isEnded(SessionViewDTO.getStatus())) {
             isShiftEnded = true;
             session.setAttribute("shiftEnded", "true");
         }
-        List<CandidateEnrollmentDTO> candidateQueue = null;
+        List<EnrollmentDTO> candidateQueue = null;
         String webRoot = request.getServletContext().getRealPath("/");
         if (!isShiftEnded) {
             candidateQueue = regService.getCandidatesBySession(examSessionId);
@@ -72,20 +72,22 @@ public class CandidateCallServlet extends HttpServlet {
         // 2. Handle operations
         String qAction = request.getParameter("action");
         String qSbd = request.getParameter("sbd");
-        List<CandidateEnrollmentDTO> permanentAbsents = (List<CandidateEnrollmentDTO>) session.getAttribute("permanentAbsents");
+        List<EnrollmentDTO> permanentAbsents = (List<EnrollmentDTO>) session.getAttribute("permanentAbsents");
         if (permanentAbsents == null) {
             permanentAbsents = new ArrayList<>();
             session.setAttribute("permanentAbsents", permanentAbsents);
         }
         if ("startCall".equals(qAction)) {
-            if (candidateQueue != null) {
-                for (CandidateEnrollmentDTO c : candidateQueue) {
+            if (qSbd != null && !qSbd.isBlank()) {
+                session.setAttribute("callingSbd", qSbd.trim());
+            } else if (candidateQueue != null) {
+                for (EnrollmentDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
                         session.setAttribute("callingSbd", String.valueOf(c.getSbd()));
                         // Insert call record in database
                         Audit audit = new Audit();
-                        audit.setUserId(3); // Default staff
+                        audit.setUserId(resolveStaffUserId(session));
                         audit.setAction("CALL");
                         String entityId = c.getExamSessionId() + "-" + c.getCandidateNo();
                         String detail = "calledTo=Bàn làm thủ tục số 2;result=Calling";
@@ -109,11 +111,11 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (foundIdx != -1) {
-                    CandidateEnrollmentDTO removed = candidateQueue.remove(foundIdx);
+                    EnrollmentDTO removed = candidateQueue.remove(foundIdx);
                     candidateQueue.add(removed); // Move to the end of the queue
                     // Insert Call Record as Absent in DB
                     Audit audit = new Audit();
-                    audit.setUserId(3);
+                    audit.setUserId(resolveStaffUserId(session));
                     audit.setAction("CALL");
                     String entityId = removed.getExamSessionId() + "-" + removed.getCandidateNo();
                     String detail = "calledTo=Bàn làm thủ tục số 2;result=Absent";
@@ -125,7 +127,7 @@ public class CandidateCallServlet extends HttpServlet {
                 }
                 // Find next candidate who is not done
                 String nextSbd = null;
-                for (CandidateEnrollmentDTO c : candidateQueue) {
+                for (EnrollmentDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone && !String.valueOf(c.getSbd()).equals(qSbd)) {
                         nextSbd = String.valueOf(c.getSbd());
@@ -161,15 +163,9 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (foundIdx != -1) {
-                    CandidateEnrollmentDTO removed = candidateQueue.remove(foundIdx);
+                    EnrollmentDTO removed = candidateQueue.remove(foundIdx);
                     permanentAbsents.add(removed);
-                    UpdateEnrollmentScoresCommand failScores = new UpdateEnrollmentScoresCommand();
-                    failScores.setCandidateId(removed.getId());
-                    failScores.setTheoryScore(0);
-                    failScores.setTheoryResult("failed");
-                    failScores.setPracticalScore(0);
-                    failScores.setPracticalResult("failed");
-                    regService.updateScores(failScores);
+                    regService.updateScores(removed.getId(), 0, "failed", 0, "failed");
                     regService.markAbsent(removed.getId());
                     removed.setAbsent(true);
                     removed.setTheoryPassed("failed");
@@ -179,7 +175,7 @@ public class CandidateCallServlet extends HttpServlet {
                 }
                 // Find next candidate who is not done
                 String nextSbd = null;
-                for (CandidateEnrollmentDTO c : candidateQueue) {
+                for (EnrollmentDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone && !String.valueOf(c.getSbd()).equals(qSbd)) {
                         nextSbd = String.valueOf(c.getSbd());
@@ -200,7 +196,7 @@ public class CandidateCallServlet extends HttpServlet {
                     }
                 }
                 if (foundIdx != -1) {
-                    CandidateEnrollmentDTO restored = permanentAbsents.remove(foundIdx);
+                    EnrollmentDTO restored = permanentAbsents.remove(foundIdx);
                     // Reset fields
                     restored.setAbsent(false);
                     restored.setTheoryPassed("none");
@@ -218,8 +214,8 @@ public class CandidateCallServlet extends HttpServlet {
             }
         } else if ("endShift".equals(qAction)) {
             if (candidateQueue != null) {
-                List<CandidateEnrollmentDTO> toRemove = new ArrayList<>();
-                for (CandidateEnrollmentDTO c : candidateQueue) {
+                List<EnrollmentDTO> toRemove = new ArrayList<>();
+                for (EnrollmentDTO c : candidateQueue) {
                     boolean isDone = c.isPaymentCompleted() && c.isValidCapturedPhoto();
                     if (!isDone) {
                         c.setAbsent(true);
@@ -227,13 +223,7 @@ public class CandidateCallServlet extends HttpServlet {
                         c.setPracticalPassed("failed");
                         c.setTheoryScore(0);
                         c.setPracticalScore(0);
-                        UpdateEnrollmentScoresCommand failScores = new UpdateEnrollmentScoresCommand();
-                        failScores.setCandidateId(c.getId());
-                        failScores.setTheoryScore(0);
-                        failScores.setTheoryResult("failed");
-                        failScores.setPracticalScore(0);
-                        failScores.setPracticalResult("failed");
-                        regService.updateScores(failScores);
+                        regService.updateScores(c.getId(), 0, "failed", 0, "failed");
                         regService.markAbsent(c.getId());
                         if (permanentAbsents != null) {
                             permanentAbsents.add(c);
@@ -255,7 +245,7 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
         advanceCallingIfDone(session, candidateQueue);
-        CandidateCallBoardStateDTO state = getCallBoardState(examSessionId);
+        CallBoardDTO state = getCallBoardState(examSessionId);
         if (state != null) {
             String callingSbd = (String) session.getAttribute("callingSbd");
             if (callingSbd != null) {
@@ -267,7 +257,7 @@ public class CandidateCallServlet extends HttpServlet {
         String nextSbd = null;
         if (candidateQueue != null) {
             if (callingSbd == null || callingSbd.isBlank()) {
-                for (CandidateEnrollmentDTO c : candidateQueue) {
+                for (EnrollmentDTO c : candidateQueue) {
                     if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                         nextSbd = String.valueOf(c.getSbd());
                         break;
@@ -275,7 +265,7 @@ public class CandidateCallServlet extends HttpServlet {
                 }
             } else {
                 boolean foundCurrent = false;
-                for (CandidateEnrollmentDTO c : candidateQueue) {
+                for (EnrollmentDTO c : candidateQueue) {
                     if (foundCurrent) {
                         if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                             nextSbd = String.valueOf(c.getSbd());
@@ -288,17 +278,42 @@ public class CandidateCallServlet extends HttpServlet {
                 }
             }
         }
-        CandidateEnrollmentDTO nextCallingCandidate = null;
-        if (nextSbd != null && candidateQueue != null) {
-            for (CandidateEnrollmentDTO c : candidateQueue) {
-                if (nextSbd.equals(String.valueOf(c.getSbd()))) {
-                    nextCallingCandidate = c;
-                    break;
-                }
+        EnrollmentDTO callingCandidate = resolveCallingCandidate(session, candidateQueue);
+        if (callingCandidate != null) {
+            request.setAttribute("callingCandidate", toCallView(callingCandidate, SessionViewDTO));
+        }
+        request.getRequestDispatcher("/views/staff/exam/candidatecall.jsp").forward(request, response);
+    }
+
+    private EnrollmentDTO resolveCallingCandidate(HttpSession session,
+            List<EnrollmentDTO> candidateQueue) {
+        String callingSbd = (String) session.getAttribute("callingSbd");
+        if (callingSbd == null || callingSbd.isBlank() || candidateQueue == null) {
+            return null;
+        }
+        for (EnrollmentDTO c : candidateQueue) {
+            if (callingSbd.equals(String.valueOf(c.getSbd()))) {
+                return c;
             }
         }
-        request.setAttribute("nextCallingCandidate", nextCallingCandidate);
-        request.getRequestDispatcher("/views/staff/exam/candidatecall.jsp").forward(request, response);
+        return null;
+    }
+
+    private Map<String, Object> toCallView(EnrollmentDTO c, SessionViewDTO SessionViewDTO) {
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("sbd", String.valueOf(c.getSbd()));
+        view.put("fullName", c.getFullName());
+        view.put("cccd", c.getGovIdNo());
+        view.put("licenseClass", SessionViewDTO != null && SessionViewDTO.getLicenseCode() != null
+                ? "Hạng " + SessionViewDTO.getLicenseCode() : "Chưa rõ");
+        view.put("shiftLabel", SessionViewDTO != null ? SessionViewDTO.getCaLabel() : "Chưa xếp khóa");
+        view.put("faceMatchRate", "99.8%");
+        return view;
+    }
+
+    private int resolveStaffUserId(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        return user != null && user.getUserId() > 0 ? user.getUserId() : 0;
     }
 
     @Override
@@ -307,7 +322,7 @@ public class CandidateCallServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    private void advanceCallingIfDone(HttpSession session, List<CandidateEnrollmentDTO> candidateQueue) {
+    private void advanceCallingIfDone(HttpSession session, List<EnrollmentDTO> candidateQueue) {
         if (candidateQueue == null) {
             return;
         }
@@ -315,8 +330,8 @@ public class CandidateCallServlet extends HttpServlet {
         if (callingSbd == null || callingSbd.isBlank()) {
             return;
         }
-        CandidateEnrollmentDTO current = null;
-        for (CandidateEnrollmentDTO c : candidateQueue) {
+        EnrollmentDTO current = null;
+        for (EnrollmentDTO c : candidateQueue) {
             if (callingSbd.equals(String.valueOf(c.getSbd()))) {
                 current = c;
                 break;
@@ -326,7 +341,7 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
         String nextSbd = null;
-        for (CandidateEnrollmentDTO c : candidateQueue) {
+        for (EnrollmentDTO c : candidateQueue) {
             if (c.isPaymentCompleted() && c.isValidCapturedPhoto()) {
                 continue;
             }
@@ -337,22 +352,22 @@ public class CandidateCallServlet extends HttpServlet {
     }
 
     @SuppressWarnings("unchecked")
-    private CandidateCallBoardStateDTO getCallBoardState(int examSessionId) {
+    private CallBoardDTO getCallBoardState(int examSessionId) {
         if (examSessionId <= 0) {
             return null;
         }
         jakarta.servlet.ServletContext ctx = getServletContext();
-        Map<Integer, CandidateCallBoardStateDTO> boards
-                = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+        Map<Integer, CallBoardDTO> boards
+                = (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
         if (boards == null) {
             synchronized (ctx) {
-                boards = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+                boards = (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
                 if (boards == null) {
                     boards = new HashMap<>();
                     ctx.setAttribute(CALL_BOARD_CONTEXT_KEY, boards);
                 }
             }
         }
-        return boards.computeIfAbsent(examSessionId, id -> new CandidateCallBoardStateDTO());
+        return boards.computeIfAbsent(examSessionId, id -> new CallBoardDTO());
     }
 }

@@ -1,10 +1,10 @@
 package controller.examiner;
 import filter.ExaminerFilter;
 import model.User;
-import service.ExaminerActionsService;
-import service.ExaminerDataService;
-import service.impl.ExaminerActionsServiceImpl;
-import service.impl.ExaminerDataServiceImpl;
+import service.CallService;
+import service.ExamViewService;
+import service.impl.CallServiceImpl;
+import service.impl.ExamViewServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +18,8 @@ import java.util.Map;
     "/views/examiner/result-details-edit"
 })
 public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
-    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
+    protected final CallService ScheduleService = new CallServiceImpl();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -52,9 +52,8 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                             + encodeSbd(sbd) + "&error=invalidDeduction");
                     return;
                 }
-                if (!examinerService.adjustScoreDeduction(
-                        buildAdjustDeductionCommand(sessionId, sbd, deductionId, delta,
-                                ((User) session.getAttribute("user")).getUserId())).isSuccess()) {
+                if (!ScheduleService.adjustScoreDeduction(sessionId, sbd, deductionId, delta,
+                        ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + path + "?sbd="
                             + encodeSbd(sbd) + "&error=deductionFailed");
                     return;
@@ -80,7 +79,7 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                     request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
                 }
             } else {
-                viewDataService.getCandidateCallData(sessionId, sbd, search).applyTo(request);
+                applyCandidateListAttributes(request, session, viewDataService, sessionId, sbd, search);
             }
         }
         String jsp = "/views/examiner/result-details-edit".equals(path)
@@ -123,12 +122,12 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                 forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Vui lòng nhập mật khẩu.");
                 return;
             }
-            if (!examinerService.verifyPassword(user, password)) {
+            if (!ScheduleService.verifyPassword(user, password)) {
                 forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Mật khẩu không đúng.");
                 return;
             }
-            if (!examinerService.logPracticalScoreEditReason(
-                    buildScoreEditCommand(sessionId, sbd, null, reason, reasonDetail, user, password, user.getUserId())).isSuccess()) {
+            if (!ScheduleService.logPracticalScoreEditReason(sessionId, sbd, user, password, reason,
+                    reasonDetail, user.getUserId()).isSuccess()) {
                 forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Lỗi");
                 return;
             }

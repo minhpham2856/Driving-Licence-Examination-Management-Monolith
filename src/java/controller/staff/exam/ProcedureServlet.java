@@ -1,9 +1,8 @@
 package controller.staff.exam;
 import dto.ServiceResult;
-import dto.payload.AutoAllocateData;
-import dto.payload.UpdateEnrollmentProfileCommand;
-import dto.CandidateCallBoardStateDTO;
-import dto.CandidateEnrollmentDTO;
+import dto.AllocateResultDTO;
+import dto.CallBoardDTO;
+import dto.EnrollmentDTO;
 import enums.AuditAction;
 import enums.AuditEntity;
 import jakarta.servlet.ServletException;
@@ -25,34 +24,34 @@ import java.util.List;
 import java.util.Map;
 import model.Payment;
 import model.User;
-import service.AuditLogService;
-import service.CandidatePhotoService;
-import service.ExamRegistrationService;
-import service.ExaminerAllocationService;
-import service.impl.AuditLogServiceImpl;
-import service.impl.CandidatePhotoServiceImpl;
-import service.impl.ExamRegistrationServiceImpl;
-import service.impl.ExaminerAllocationServiceImpl;
+import service.AuditService;
+import service.PhotoService;
+import service.RegistrationService;
+import service.AllocationService;
+import service.impl.AuditServiceImpl;
+import service.impl.PhotoServiceImpl;
+import service.impl.RegistrationServiceImpl;
+import service.impl.AllocationServiceImpl;
 @WebServlet("/views/staff/exam/procedure")
-public class ProcedureServlet extends HttpServlet {
+public class ProcedureServlet extends BaseStaffExamServlet {
     private static final double EXAM_FEE = 200_000.00;
     private static final String MSG_PHOTO_REQUIRED = "Vui lòng chụp ảnh chân dung trước khi thu phí.";
     private static final String MSG_PAYMENT_FAILED = "Không thể ghi nhận thanh toán. Vui lòng thử lại.";
     private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
-    private final AuditLogService auditLogService = new AuditLogServiceImpl();
-    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
-    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-    private final ExaminerAllocationService allocator = new ExaminerAllocationServiceImpl();
+    private final AuditService AuditService = new AuditServiceImpl();
+    private final RegistrationService regService = new RegistrationServiceImpl();
+    private final PhotoService photoService = new PhotoServiceImpl();
+    private final AllocationService allocator = new AllocationServiceImpl();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
         int examSessionId = getSelectedSessionId(session, null, null);
-        List<CandidateEnrollmentDTO> qList = refreshQueueFromDb(session, webRoot, examSessionId);
+        List<EnrollmentDTO> qList = refreshQueueFromDb(session, webRoot, examSessionId);
         String sbdParam = getCurrentSbd(request, session);
         boolean sbdChanged = trackSbdChange(session, sbdParam);
-        CandidateEnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
+        EnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         session.setAttribute("candidateQueue", qList);
         if (profile != null && !profile.isPresent()) {
             if (regService.updatePresent(profile.getId(), true).isSuccess()) {
@@ -77,7 +76,7 @@ public class ProcedureServlet extends HttpServlet {
         }
         if ("saveProfile".equals(action) && profile != null) {
             handleSaveProfile(request, session, webRoot, examSessionId, sbdParam, qList, profile);
-            profile = (CandidateEnrollmentDTO) request.getAttribute("profile");
+            profile = (EnrollmentDTO) request.getAttribute("profile");
             if (profile == null) {
                 profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
             }
@@ -120,7 +119,7 @@ public class ProcedureServlet extends HttpServlet {
         if ("saveCapturedPhoto".equals(action)) {
             HttpSession session = request.getSession();
             String webRoot = request.getServletContext().getRealPath("/");
-            List<CandidateEnrollmentDTO> qList = loadQueue(session, webRoot);
+            List<EnrollmentDTO> qList = loadQueue(session, webRoot);
             handleSaveCapturedPhoto(request, response, session, getCurrentSbd(request, session), qList, webRoot);
             return;
         }
@@ -131,8 +130,8 @@ public class ProcedureServlet extends HttpServlet {
         doGet(request, response);
     }
     private void handleSaveProfile(HttpServletRequest request, HttpSession session, String webRoot,
-            int examSessionId, String sbdParam, List<CandidateEnrollmentDTO> qList,
-            CandidateEnrollmentDTO profile) {
+            int examSessionId, String sbdParam, List<EnrollmentDTO> qList,
+            EnrollmentDTO profile) {
         String fullName = request.getParameter("fullName");
         String dobStr = request.getParameter("dateOfBirth");
         String govIdNo = request.getParameter("govIdNo");
@@ -151,13 +150,7 @@ public class ProcedureServlet extends HttpServlet {
             } else {
                 sqlDob = Date.valueOf(dobStr);
             }
-            UpdateEnrollmentProfileCommand profileCommand = new UpdateEnrollmentProfileCommand();
-            profileCommand.setCandidateId(profile.getId());
-            profileCommand.setFullName(fullName);
-            profileCommand.setDateOfBirth(sqlDob);
-            profileCommand.setGovernmentIdNumber(govIdNo);
-            profileCommand.setPhoneNumber(phoneNo);
-            if (regService.updateProfile(profileCommand).isSuccess()) {
+            if (regService.updateProfile(profile.getId(), fullName, sqlDob, govIdNo, phoneNo).isSuccess()) {
                 profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
                 session.setAttribute("candidateQueue", qList);
                 request.setAttribute("profileUpdatedAlert", "true");
@@ -170,8 +163,8 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
     private boolean handlePaymentSuccess(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, CandidateEnrollmentDTO profile, String sbdParam,
-            List<CandidateEnrollmentDTO> qList, String webRoot) throws IOException, ServletException {
+            HttpSession session, EnrollmentDTO profile, String sbdParam,
+            List<EnrollmentDTO> qList, String webRoot) throws IOException, ServletException {
         if (!profile.isValidCapturedPhoto()) {
             request.setAttribute("photoRequiredMsg", MSG_PHOTO_REQUIRED);
             request.setAttribute("step", "2");
@@ -190,8 +183,8 @@ public class ProcedureServlet extends HttpServlet {
         return false;
     }
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, CandidateEnrollmentDTO profile, String sbdParam,
-            List<CandidateEnrollmentDTO> qList, String webRoot) throws IOException, ServletException {
+            HttpSession session, EnrollmentDTO profile, String sbdParam,
+            List<EnrollmentDTO> qList, String webRoot) throws IOException, ServletException {
         int examSessionId = getSelectedSessionId(session, profile, qList);
         profile = reloadProfileAfterMutation(webRoot, examSessionId, profile.getId(), sbdParam, qList);
         if (profile == null) {
@@ -223,7 +216,7 @@ public class ProcedureServlet extends HttpServlet {
         advanceToNextCandidate(session, qList, webRoot, profile.getExamSessionId());
         response.sendRedirect("candidatecall");
     }
-    private boolean completePayment(HttpSession session, CandidateEnrollmentDTO profile,
+    private boolean completePayment(HttpSession session, EnrollmentDTO profile,
             String sbdParam, String webRoot) {
         Payment payment = new Payment();
         if (profile.getEnrollment() != null) {
@@ -246,9 +239,9 @@ public class ProcedureServlet extends HttpServlet {
         if (profile.isAbsent()) {
             clearAbsentMarking(profile);
         }
-        ServiceResult<AutoAllocateData> allocResult = allocator.autoAllocateCandidate(
+        ServiceResult<AllocateResultDTO> allocResult = allocator.autoAllocateCandidate(
                 profile.getExamSessionId(), profile.getId());
-        List<CandidateEnrollmentDTO> qList = regService.getCandidatesBySession(profile.getExamSessionId());
+        List<EnrollmentDTO> qList = regService.getCandidatesBySession(profile.getExamSessionId());
         photoService.normalizeQueue(webRoot, qList);
         session.setAttribute("candidateQueue", qList);
         session.setAttribute("lastLoadedSessionId", profile.getExamSessionId());
@@ -266,11 +259,11 @@ public class ProcedureServlet extends HttpServlet {
         return true;
     }
     private void handleSaveCapturedPhoto(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, String sbdParam, List<CandidateEnrollmentDTO> qList, String webRoot)
+            HttpSession session, String sbdParam, List<EnrollmentDTO> qList, String webRoot)
             throws IOException {
         response.setContentType("application/json;charset=UTF-8");
         int examSessionId = getSelectedSessionId(session, null, qList);
-        CandidateEnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
+        EnrollmentDTO profile = loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         if (profile == null) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST,
                     false, "Không tìm thấy thí sinh.", null);
@@ -341,7 +334,7 @@ public class ProcedureServlet extends HttpServlet {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
     private String getProcedureStep(HttpServletRequest request, HttpSession session,
-            CandidateEnrollmentDTO profile, boolean sbdChanged) {
+            EnrollmentDTO profile, boolean sbdChanged) {
         String stepParam = request.getParameter("step");
         if (sbdChanged) {
             return "1";
@@ -376,8 +369,8 @@ public class ProcedureServlet extends HttpServlet {
         request.setAttribute("deskMode", Boolean.TRUE);
         request.getRequestDispatcher("/views/staff/exam/candidatecall.jsp").forward(request, response);
     }
-    private List<CandidateEnrollmentDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examSessionId) {
-        List<CandidateEnrollmentDTO> qList;
+    private List<EnrollmentDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examSessionId) {
+        List<EnrollmentDTO> qList;
         try {
             qList = regService.getCandidatesBySession(examSessionId);
         } catch (Exception e) {
@@ -390,15 +383,15 @@ public class ProcedureServlet extends HttpServlet {
         session.setAttribute("selectedSessionId", examSessionId);
         return qList;
     }
-    private CandidateEnrollmentDTO loadProfileFromDb(String webRoot, int examSessionId, String sbdParam,
-            List<CandidateEnrollmentDTO> qList) {
+    private EnrollmentDTO loadProfileFromDb(String webRoot, int examSessionId, String sbdParam,
+            List<EnrollmentDTO> qList) {
         Integer sbd = parseSbdParam(sbdParam);
         if (sbd == null) {
             return null;
         }
-        CandidateEnrollmentDTO profile = regService.getBySessionAndSbd(examSessionId, sbd);
+        EnrollmentDTO profile = regService.getBySessionAndSbd(examSessionId, sbd);
         if (profile == null && qList != null) {
-            for (CandidateEnrollmentDTO c : qList) {
+            for (EnrollmentDTO c : qList) {
                 if (c.getSbd() == sbd) {
                     profile = regService.getById(c.getId());
                     break;
@@ -411,9 +404,9 @@ public class ProcedureServlet extends HttpServlet {
         }
         return profile;
     }
-    private CandidateEnrollmentDTO reloadProfileAfterMutation(String webRoot, int examSessionId, int candidateId,
-            String sbdParam, List<CandidateEnrollmentDTO> qList) {
-        CandidateEnrollmentDTO fresh = regService.getById(candidateId);
+    private EnrollmentDTO reloadProfileAfterMutation(String webRoot, int examSessionId, int candidateId,
+            String sbdParam, List<EnrollmentDTO> qList) {
+        EnrollmentDTO fresh = regService.getById(candidateId);
         if (fresh == null) {
             return loadProfileFromDb(webRoot, examSessionId, sbdParam, qList);
         }
@@ -421,7 +414,7 @@ public class ProcedureServlet extends HttpServlet {
         syncProfileInQueue(qList, fresh);
         return fresh;
     }
-    private List<CandidateEnrollmentDTO> loadQueue(HttpSession session, String webRoot) {
+    private List<EnrollmentDTO> loadQueue(HttpSession session, String webRoot) {
         int examSessionId = getSelectedSessionId(session, null, null);
         return refreshQueueFromDb(session, webRoot, examSessionId);
     }
@@ -432,7 +425,7 @@ public class ProcedureServlet extends HttpServlet {
         }
         return sbdParam;
     }
-    private void syncProfileInQueue(List<CandidateEnrollmentDTO> qList, CandidateEnrollmentDTO refreshed) {
+    private void syncProfileInQueue(List<EnrollmentDTO> qList, EnrollmentDTO refreshed) {
         for (int i = 0; i < qList.size(); i++) {
             if (qList.get(i).getId() == refreshed.getId()) {
                 qList.set(i, refreshed);
@@ -440,7 +433,7 @@ public class ProcedureServlet extends HttpServlet {
             }
         }
     }
-    private void clearAbsentMarking(CandidateEnrollmentDTO profile) {
+    private void clearAbsentMarking(EnrollmentDTO profile) {
         regService.clearAbsentMarking(profile.getId());
         profile.setAbsent(false);
         profile.setTheoryPassed("none");
@@ -450,8 +443,8 @@ public class ProcedureServlet extends HttpServlet {
         profile.setPracticalScore(null);
         profile.setRoadTestScore(null);
     }
-    private int getSelectedSessionId(HttpSession session, CandidateEnrollmentDTO profile,
-            List<CandidateEnrollmentDTO> qList) {
+    private int getSelectedSessionId(HttpSession session, EnrollmentDTO profile,
+            List<EnrollmentDTO> qList) {
         if (profile != null && profile.getExamSessionId() > 0) {
             return profile.getExamSessionId();
         }
@@ -464,7 +457,7 @@ public class ProcedureServlet extends HttpServlet {
         }
         return 2;
     }
-    private void advanceToNextCandidate(HttpSession session, List<CandidateEnrollmentDTO> qList,
+    private void advanceToNextCandidate(HttpSession session, List<EnrollmentDTO> qList,
             String webRoot, int examSessionId) {
         session.setAttribute("lastSelectedSbd", null);
         session.setAttribute("procedureStep", "1");
@@ -475,14 +468,14 @@ public class ProcedureServlet extends HttpServlet {
         session.setAttribute("lastLoadedSessionId", examSessionId);
         session.setAttribute("selectedSessionId", examSessionId);
         String nextSbd = null;
-        for (CandidateEnrollmentDTO c : qList) {
+        for (EnrollmentDTO c : qList) {
             if (!(c.isPaymentCompleted() && c.isValidCapturedPhoto())) {
                 nextSbd = String.valueOf(c.getSbd());
                 break;
             }
         }
         session.setAttribute("callingSbd", nextSbd);
-        CandidateCallBoardStateDTO state = getCallBoardState(examSessionId);
+        CallBoardDTO state = getCallBoardState(examSessionId);
         if (state != null) {
             state.setCallingSbd(nextSbd);
             state.setShiftEnded(false);
@@ -509,7 +502,7 @@ public class ProcedureServlet extends HttpServlet {
         if (userObj instanceof User) {
             userId = ((User) userObj).getUserId();
         }
-        auditLogService.logAction(userId, action, entity, details, recordId);
+        AuditService.logAction(userId, action, entity, details, recordId);
     }
     private static Integer parseSbdParam(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -523,22 +516,22 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
     @SuppressWarnings("unchecked")
-    private CandidateCallBoardStateDTO getCallBoardState(int examSessionId) {
+    private CallBoardDTO getCallBoardState(int examSessionId) {
         if (examSessionId <= 0) {
             return null;
         }
         jakarta.servlet.ServletContext ctx = getServletContext();
-        Map<Integer, CandidateCallBoardStateDTO> boards =
-                (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+        Map<Integer, CallBoardDTO> boards =
+                (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
         if (boards == null) {
             synchronized (ctx) {
-                boards = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+                boards = (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
                 if (boards == null) {
                     boards = new HashMap<>();
                     ctx.setAttribute(CALL_BOARD_CONTEXT_KEY, boards);
                 }
             }
         }
-        return boards.computeIfAbsent(examSessionId, id -> new CandidateCallBoardStateDTO());
+        return boards.computeIfAbsent(examSessionId, id -> new CallBoardDTO());
     }
 }

@@ -1,7 +1,6 @@
 package util;
 
-import dto.ExaminerCandidateRowDTO;
-import jakarta.servlet.http.HttpServletRequest;
+import dto.CandidateRowDTO;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -34,16 +33,6 @@ public final class ExaminerCandidateSort {
         }
     }
 
-    public static void applyCandidateSort(HttpServletRequest request, List<ExaminerCandidateRowDTO> candidates) {
-        if (candidates == null) {
-            return;
-        }
-        Spec spec = parse(request.getParameter("sort"), request.getParameter("dir"));
-        sort(candidates, spec);
-        request.setAttribute("sortBy", spec.getColumn());
-        request.setAttribute("sortDir", spec.isAscending() ? "asc" : "desc");
-    }
-
     public static Spec parse(String sort, String dir) {
         String column = sort != null ? sort.trim() : DEFAULT_COLUMN;
         if (!ALLOWED_COLUMNS.contains(column)) {
@@ -53,34 +42,34 @@ public final class ExaminerCandidateSort {
         return new Spec(column, ascending);
     }
 
-    public static void sort(List<ExaminerCandidateRowDTO> rows, Spec spec) {
+    public static void sort(List<CandidateRowDTO> rows, Spec spec) {
         if (rows == null || rows.size() < 2 || spec == null) {
             return;
         }
-        Comparator<ExaminerCandidateRowDTO> comparator = comparatorFor(spec.getColumn());
+        Comparator<CandidateRowDTO> comparator = comparatorFor(spec.getColumn());
         if (!spec.isAscending()) {
             comparator = comparator.reversed();
         }
         rows.sort(comparator);
     }
 
-    private static Comparator<ExaminerCandidateRowDTO> comparatorFor(String column) {
+    private static Comparator<CandidateRowDTO> comparatorFor(String column) {
         return switch (column) {
             case "fullName", "address", "governmentId" -> stringComparator(column);
-            case "sbd" -> Comparator.comparingInt(ExaminerCandidateRowDTO::getSbd);
+            case "sbd" -> Comparator.comparingInt(CandidateRowDTO::getSbd);
             case "dob" -> Comparator.comparing(row -> normalizeString(row.getDobRaw()));
             case "examDate" -> Comparator.comparing(row -> normalizeString(row.getExamDate()));
             case "status" -> Comparator.comparingInt(ExaminerCandidateSort::statusOrder);
             case "result" -> Comparator.comparingInt(ExaminerCandidateSort::resultOrder);
-            case "correct" -> Comparator.comparingInt(ExaminerCandidateRowDTO::getCorrect);
-            case "wrong" -> Comparator.comparingInt(ExaminerCandidateRowDTO::getWrong);
-            case "unanswered" -> Comparator.comparingInt(ExaminerCandidateRowDTO::getUnanswered);
+            case "correct" -> Comparator.comparingInt(CandidateRowDTO::getCorrect);
+            case "wrong" -> Comparator.comparingInt(CandidateRowDTO::getWrong);
+            case "unanswered" -> Comparator.comparingInt(CandidateRowDTO::getUnanswered);
             case "examScore" -> Comparator.comparingInt(row -> parseNumeric(row.getExamScore()));
-            default -> Comparator.comparingInt(ExaminerCandidateRowDTO::getSbd);
+            default -> Comparator.comparingInt(CandidateRowDTO::getSbd);
         };
     }
 
-    private static Comparator<ExaminerCandidateRowDTO> stringComparator(String field) {
+    private static Comparator<CandidateRowDTO> stringComparator(String field) {
         return Comparator.comparing(row -> {
             return switch (field) {
                 case "fullName" -> normalizeString(row.getFullName());
@@ -117,7 +106,7 @@ public final class ExaminerCandidateSort {
         }
     }
 
-    private static int statusOrder(ExaminerCandidateRowDTO row) {
+    private static int statusOrder(CandidateRowDTO row) {
         String status = row.getStatus() != null ? row.getStatus() : "";
         return switch (status) {
             case "pending" -> 0;
@@ -128,7 +117,7 @@ public final class ExaminerCandidateSort {
         };
     }
 
-    private static int resultOrder(ExaminerCandidateRowDTO row) {
+    private static int resultOrder(CandidateRowDTO row) {
         if (row.isPassed()) {
             return 2;
         }

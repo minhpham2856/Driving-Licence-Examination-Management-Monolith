@@ -70,13 +70,13 @@ public class LoginServlet extends HttpServlet {
             } else {
                 switch (role) {
                     case MANAGING_STAFF ->
-                        response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard.jsp");
+                        response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard");
                     case EXAM_STAFF ->
-                        response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard.jsp");
+                        response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard");
                     case EXAMINER ->
                         response.sendRedirect(request.getContextPath() + "/views/examiner/session");
                     case ADMIN ->
-                        response.sendRedirect(request.getContextPath() + "/views/admin/dashboard.jsp");
+                        response.sendRedirect(request.getContextPath() + "/admin/dashboard");
                     default -> {
                         request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
                         request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);

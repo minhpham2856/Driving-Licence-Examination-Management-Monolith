@@ -14,4 +14,6 @@ public interface AuditDAO {
     int getLogsCountForSession(int sessionId, String searchQuery);
 
     List<Audit> getViolationLogsForSession(int sessionId, int limit);
+
+    List<Audit> searchAll(String keyword, int limit);
 }

@@ -2,35 +2,6 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
-<%
-    // Retrieve the candidate queue from the session
-    java.util.List<Models.ExamRegistration> qList = (java.util.List<Models.ExamRegistration>) session.getAttribute("candidateQueue");
-    if (qList == null) {
-        Integer sessIdObj = (Integer) session.getAttribute("selectedSessionId");
-        int sessId = (sessIdObj != null) ? sessIdObj : 2;
-        DAO.ExamRegistrationDAO regDAO = new DAO.Impl.ExamRegistrationDAOImpl();
-        try {
-            qList = regDAO.getCandidatesBySession(sessId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            qList = new java.util.ArrayList<>();
-        }
-        session.setAttribute("candidateQueue", qList);
-        session.setAttribute("lastLoadedSessionId", sessId);
-    }
-    if (qList != null) {
-        Controllers.Staff.exam.CandidatePhotoHelper.normalizeQueue(
-            application.getRealPath("/"), qList, new DAO.Impl.ExamRegistrationDAOImpl());
-    }
-
-    // Fallback self-healing checks to load active rooms dynamically if accessed directly
-    if (request.getAttribute("activeTheoryRooms") == null) {
-        DAO.ExamAreaDAO areaDAO = new DAO.Impl.ExamAreaDAOImpl();
-        try {
-            request.setAttribute("activeTheoryRooms", areaDAO.getActiveTheoryRooms());
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-%>
 
 <!DOCTYPE html>
 <html lang="vi">

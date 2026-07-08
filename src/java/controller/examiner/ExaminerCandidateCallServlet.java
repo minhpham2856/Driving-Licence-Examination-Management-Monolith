@@ -3,16 +3,15 @@ import filter.ExaminerFilter;
 import dto.ServiceResult;
 import enums.ExamSection;
 import model.User;
-import service.ExaminerActionsService;
-import service.ExaminerDataService;
-import service.ExamSessionControlService;
-import service.impl.ExaminerActionsServiceImpl;
-import service.impl.ExaminerDataServiceImpl;
-import service.impl.ExamSessionControlServiceImpl;
+import service.CallService;
+import service.ExamViewService;
+import service.SessionService;
+import service.impl.CallServiceImpl;
+import service.impl.ExamViewServiceImpl;
+import service.impl.SessionServiceImpl;
 import util.ExamQueue;
 import util.ExamQueue.Lane;
 import util.ExaminerCandidateSort;
-import util.ExamSessionState;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,13 +21,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import dto.ExaminerCandidateRowDTO;
-import dto.SessionDTO;
+import dto.CandidateRowDTO;
+import dto.SessionViewDTO;
 @WebServlet("/views/examiner/candidate-call")
 public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
-    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
-    private final ExamSessionControlService sessionControlService = new ExamSessionControlServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
+    protected final CallService ScheduleService = new CallServiceImpl();
+    private final SessionService sessionControlService = new SessionServiceImpl();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -41,7 +40,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         String search = request.getParameter("q");
         String action = request.getParameter("action");
         if (sessionId != null && sessionId > 0) {
-            SessionDTO examSession = sessionControlService.getSessionById(sessionId);
+            SessionViewDTO examSession = sessionControlService.getSessionById(sessionId);
             boolean sessionEnded = examSession != null && isSessionEnded(examSession.getStatus());
             request.setAttribute("sessionEnded", sessionEnded);
             if (sessionEnded && action != null) {
@@ -56,10 +55,10 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             boolean isTheory = ExaminerFilter.isTheorySession(session);
             ExamSection examSection = getExamSection(session);
             String sectionName = examSection.getValue();
-            List<ExaminerCandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
             Lane lane = ExamQueue.laneFor(examSection);
             List<Integer> eligibleSbds = new ArrayList<>();
-            for (ExaminerCandidateRowDTO row : candidates) {
+            for (CandidateRowDTO row : candidates) {
                 if (row.isCallEligible()) {
                     eligibleSbds.add(row.getSbd());
                 }
@@ -67,11 +66,11 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             ExamQueue.sync(lane, eligibleSbds);
             candidates = viewDataService.orderCandidateRowsByQueue(candidates, examSection);
             enrichDeskState(candidates, sessionId, lane);
-            ExaminerCandidateSort.applyCandidateSort(request, candidates);
+            applyCandidateSort(request, candidates);
             if (search != null && !search.isBlank()) {
                 String q = search.trim().toLowerCase(Locale.ROOT);
-                List<ExaminerCandidateRowDTO> filtered = new ArrayList<>();
-                for (ExaminerCandidateRowDTO row : candidates) {
+                List<CandidateRowDTO> filtered = new ArrayList<>();
+                for (CandidateRowDTO row : candidates) {
                     String sbdVal = String.valueOf(row.getSbd());
                     String name = row.getFullName() != null ? row.getFullName() : "";
                     String gov = row.getGovernmentId() != null ? row.getGovernmentId() : "";
@@ -87,7 +86,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             }
             request.setAttribute("candidates", candidates);
             if (sbd != null) {
-                for (ExaminerCandidateRowDTO row : candidates) {
+                for (CandidateRowDTO row : candidates) {
                     if (row.getSbd() == sbd) {
                         request.setAttribute("candidate", row);
                         break;
@@ -113,9 +112,11 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         }
         if ("callSelected".equals(request.getParameter("action"))) {
             User user = (User) session.getAttribute("user");
+            ExamSection examSection = getExamSection(session);
             int[] sbds = parseSbdParams(request.getParameterValues("sbd"));
-            ServiceResult<Integer> selectedResult = examinerService.callSelectedCandidates(
-                    buildCallCommand(session, user, sessionId, null, sbds, false));
+            ServiceResult<Integer> selectedResult = ScheduleService.callSelectedCandidates(
+                    sessionId, user, user.getUserId(), examSection, examSection == ExamSection.THEORY,
+                    examSection.getValue(), getCallDestination(session), sbds);
             if (!selectedResult.isSuccess() || selectedResult.getData() == null || selectedResult.getData() <= 0) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=callSelectedFailed");
                 return;
@@ -129,11 +130,15 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
             HttpSession session, int sessionId, String action, Integer sbd) throws IOException {
         User user = (User) session.getAttribute("user");
         int userId = user.getUserId();
+        ExamSection examSection = getExamSection(session);
+        boolean isTheory = examSection == ExamSection.THEORY;
+        String sectionName = examSection.getValue();
+        String callDestination = getCallDestination(session);
         switch (action) {
             case "call" -> {
                 if (sbd == null) {
-                    ServiceResult<Integer> nextResult = examinerService.callNextCandidate(
-                            buildCallCommand(session, user, sessionId, null, null, false));
+                    ServiceResult<Integer> nextResult = ScheduleService.callNextCandidate(
+                            sessionId, user, userId, examSection, isTheory, sectionName, callDestination);
                     if (!nextResult.isSuccess() || nextResult.getData() == null) {
                         response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noCandidate");
                         return true;
@@ -142,8 +147,8 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                             + encodeSbd(nextResult.getData()));
                     return true;
                 }
-                if (!examinerService.callCandidate(
-                        buildCallCommand(session, user, sessionId, sbd, null, false)).isSuccess()) {
+                if (!ScheduleService.callCandidate(sessionId, sbd, user, userId, examSection, isTheory,
+                        sectionName, callDestination).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=callFailed&sbd="
                             + encodeSbd(sbd));
                     return true;
@@ -157,12 +162,12 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.undoPresent(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                if (!ScheduleService.undoPresent(sessionId, sbd, userId).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=undoPresentFailed&sbd="
                             + encodeSbd(sbd));
                     return true;
                 }
-                ExamSessionState.clearPresent(getServletContext(), sessionId, sbd);
+                ScheduleService.clearPresent(sessionId, sbd);
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?undoPresent="
                         + encodeSbd(sbd));
                 return true;
@@ -172,12 +177,12 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.markPresent(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                if (!ScheduleService.markPresent(sessionId, sbd, userId).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=presentFailed&sbd="
                             + encodeSbd(sbd));
                     return true;
                 }
-                ExamSessionState.markPresent(getServletContext(), sessionId, sbd);
+                ScheduleService.markPresent(sessionId, sbd);
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?presentDone="
                         + encodeSbd(sbd));
                 return true;
@@ -187,12 +192,12 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.sendWrongInfoToProcedure(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                if (!ScheduleService.sendWrongInfoToProcedure(sessionId, sbd, userId).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=wrongInfoFailed&sbd="
                             + encodeSbd(sbd));
                     return true;
                 }
-                ExamSessionState.sendToProcedure(getServletContext(), sessionId, sbd);
+                ScheduleService.sendToProcedure(sessionId, sbd);
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?wrongInfoDone="
                         + encodeSbd(sbd));
                 return true;
@@ -202,7 +207,7 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                if (!examinerService.printSignatureForm(buildSessionCommand(sessionId, sbd, userId)).isSuccess()) {
+                if (!ScheduleService.printSignatureForm(sessionId, sbd, userId).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=signaturePrintFailed&sbd="
                             + encodeSbd(sbd));
                     return true;
@@ -216,9 +221,8 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=noSbd");
                     return true;
                 }
-                ServiceResult<Void> completeResult = examinerService.completeCandidateSection(
-                        buildSessionCommand(sessionId, sbd, userId,
-                                ExamSessionState.getSectionPassed(getServletContext(), sessionId, sbd)));
+                ServiceResult<Void> completeResult = ScheduleService.completeCandidateSection(
+                        sessionId, sbd, userId, null);
                 if (!completeResult.isSuccess() && "needSignaturePrint".equals(completeResult.getMessage())) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=needSignaturePrint&sbd="
                             + encodeSbd(sbd));
@@ -239,13 +243,13 @@ public class ExaminerCandidateCallServlet extends BaseExaminerServlet {
         }
     }
 
-    private void enrichDeskState(List<ExaminerCandidateRowDTO> candidates, int sessionId, Lane lane) {
+    private void enrichDeskState(List<CandidateRowDTO> candidates, int sessionId, Lane lane) {
         Integer activeSbd = ExamQueue.getActiveSbd(lane);
         Integer calledSbd = ExamQueue.getCalledSbd(lane);
-        for (ExaminerCandidateRowDTO row : candidates) {
+        for (CandidateRowDTO row : candidates) {
             int sbd = row.getSbd();
-            boolean present = ExamSessionState.isPresent(getServletContext(), sessionId, sbd);
-            boolean inProcedure = ExamSessionState.isInProcedureQueue(getServletContext(), sessionId, sbd);
+            boolean present = ScheduleService.isPresent(sessionId, sbd);
+            boolean inProcedure = ScheduleService.isInProcedureQueue(sessionId, sbd);
             boolean called = (activeSbd != null && activeSbd == sbd)
                     || (calledSbd != null && calledSbd == sbd);
             row.setPresent(present);

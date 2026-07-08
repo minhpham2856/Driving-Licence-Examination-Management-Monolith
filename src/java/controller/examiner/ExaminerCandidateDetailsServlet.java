@@ -1,8 +1,9 @@
 package controller.examiner;
 
-import dto.payload.CandidateCallDataDTO;
-import service.ExaminerDataService;
-import service.impl.ExaminerDataServiceImpl;
+import dto.CandidateRowDTO;
+import filter.ExaminerFilter;
+import service.ExamViewService;
+import service.impl.ExamViewServiceImpl;
 import util.ExaminerCandidateSort;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
@@ -20,7 +22,7 @@ import java.util.Map;
 })
 public class ExaminerCandidateDetailsServlet extends BaseExaminerServlet {
 
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -34,9 +36,23 @@ public class ExaminerCandidateDetailsServlet extends BaseExaminerServlet {
         Integer sbd = parseSbdParam(request.getParameter("sbd"));
         String search = request.getParameter("q");
         if (sessionId != null && sessionId > 0) {
-            CandidateCallDataDTO data = viewDataService.getCandidateCallData(sessionId, sbd, search);
-            applyCandidateListSort(request, data);
-            data.applyTo(request);
+            boolean isTheory = ExaminerFilter.isTheorySession(session);
+            String sectionName = getSectionDisplayName(session);
+            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+            if (search != null && !search.isBlank()) {
+                candidates = viewDataService.filterCandidateRows(candidates, search);
+                request.setAttribute("searchActive", true);
+                request.setAttribute("searchQuery", search.trim());
+            }
+            applyCandidateSort(request, candidates);
+            request.setAttribute("candidates", candidates);
+            request.setAttribute("candidateQueue", candidates);
+            if (sbd != null && sbd > 0) {
+                CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+                if (candidate != null) {
+                    request.setAttribute("candidate", candidate);
+                }
+            }
             if ("/views/examiner/candidate-paper".equals(path)) {
                 int paperSbd = sbd != null ? sbd : 0;
                 Map<String, Object> ansData = viewDataService.getPaperAnswersData(sessionId, paperSbd, request.getContextPath());
@@ -72,11 +88,5 @@ public class ExaminerCandidateDetailsServlet extends BaseExaminerServlet {
             return;
         }
         doGet(request, response);
-    }
-
-    private void applyCandidateListSort(HttpServletRequest request, CandidateCallDataDTO data) {
-        if (data.getCandidates() != null) {
-            ExaminerCandidateSort.applyCandidateSort(request, data.getCandidates());
-        }
     }
 }

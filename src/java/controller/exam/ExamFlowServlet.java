@@ -1,8 +1,8 @@
 package controller.exam;
 
 import dto.ServiceResult;
-import dto.payload.TheoryEntranceData;
-import dto.payload.TheorySubmitData;
+import dto.TheoryEntranceDTO;
+import dto.TheorySubmitDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -10,9 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Question;
-import service.TheoryExamService;
-import service.impl.TheoryExamServiceImpl;
-import util.ExamSessionState;
+import service.TheoryService;
+import service.impl.TheoryServiceImpl;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +30,7 @@ import java.util.Map;
 })
 public class ExamFlowServlet extends HttpServlet {
 
-    private final TheoryExamService theoryExamService = new TheoryExamServiceImpl();
+    private final TheoryService theoryService = new TheoryServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -64,7 +63,7 @@ public class ExamFlowServlet extends HttpServlet {
 
     private void handleEntrancePost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int sbd = parseSbd(request.getParameter("sbd"));
-        ServiceResult<TheoryEntranceData> result = theoryExamService.validateEntrance(getServletContext(), sbd);
+        ServiceResult<TheoryEntranceDTO> result = theoryService.validateEntrance(sbd);
         if (!result.isSuccess()) {
             String errorCode = result.getData() != null ? result.getData().getErrorCode() : "error";
             response.sendRedirect(buildUrl(request, "/exam/entrance")
@@ -73,7 +72,7 @@ public class ExamFlowServlet extends HttpServlet {
                     + "&sbd=" + sbd);
             return;
         }
-        TheoryEntranceData data = result.getData();
+        TheoryEntranceDTO data = result.getData();
         HttpSession session = request.getSession(true);
         session.setAttribute("examSessionId", data.getSessionId());
         session.setAttribute("examSbd", data.getSbd());
@@ -88,14 +87,14 @@ public class ExamFlowServlet extends HttpServlet {
             return;
         }
         int sbd = (Integer) session.getAttribute("examSbd");
-        ServiceResult<TheoryEntranceData> result = theoryExamService.validateEntrance(getServletContext(), sbd);
+        ServiceResult<TheoryEntranceDTO> result = theoryService.validateEntrance(sbd);
         if (!result.isSuccess()) {
             String errorCode = result.getData() != null ? result.getData().getErrorCode() : "error";
             response.sendRedirect(buildUrl(request, "/exam/entrance")
                     + "?error=" + urlEncode(errorCode));
             return;
         }
-        TheoryEntranceData data = result.getData();
+        TheoryEntranceDTO data = result.getData();
         request.setAttribute("candidateName", data.getFullName());
         request.setAttribute("sbd", String.valueOf(data.getSbd()));
         request.setAttribute("dob", data.getDob());
@@ -120,7 +119,7 @@ public class ExamFlowServlet extends HttpServlet {
         }
         int sessionId = (Integer) session.getAttribute("examSessionId");
         int sbd = (Integer) session.getAttribute("examSbd");
-        double rate = theoryExamService.scanFace(getServletContext(), sessionId, sbd);
+        double rate = theoryService.scanFace(sessionId, sbd);
         response.sendRedirect(buildUrl(request, "/exam/questions") + "?faceMatch=" + urlEncode(String.valueOf(rate)));
     }
 
@@ -133,7 +132,7 @@ public class ExamFlowServlet extends HttpServlet {
         }
         int sessionId = (Integer) session.getAttribute("examSessionId");
         int sbd = (Integer) session.getAttribute("examSbd");
-        List<Question> questions = theoryExamService.loadExamQuestions(sessionId, sbd);
+        List<Question> questions = theoryService.loadExamQuestions(sessionId, sbd);
         request.setAttribute("questions", questions);
         request.setAttribute("totalQuestions", questions.size());
         request.setAttribute("faceMatchRate", request.getParameter("faceMatch"));
@@ -158,7 +157,7 @@ public class ExamFlowServlet extends HttpServlet {
         int sessionId = (Integer) session.getAttribute("examSessionId");
         int sbd = (Integer) session.getAttribute("examSbd");
         Map<Integer, String> answers = parseAnswers(request);
-        theoryExamService.saveDraftAnswers(getServletContext(), sessionId, sbd, answers);
+        theoryService.saveDraftAnswers(sessionId, sbd, answers);
         response.sendRedirect(buildUrl(request, "/exam/questions") + "?saved=1");
     }
 
@@ -171,13 +170,13 @@ public class ExamFlowServlet extends HttpServlet {
         int sessionId = (Integer) session.getAttribute("examSessionId");
         int sbd = (Integer) session.getAttribute("examSbd");
         Map<Integer, String> answers = parseAnswers(request);
-        ServiceResult<TheorySubmitData> result = theoryExamService.submitExam(getServletContext(), sessionId, sbd, answers);
+        ServiceResult<TheorySubmitDTO> result = theoryService.submitExam(sessionId, sbd, answers);
         if (!result.isSuccess()) {
             String errorCode = result.getData() != null ? result.getData().getErrorCode() : "error";
             response.sendRedirect(buildUrl(request, "/exam/entrance") + "?error=" + urlEncode(errorCode));
             return;
         }
-        TheorySubmitData data = result.getData();
+        TheorySubmitDTO data = result.getData();
         session.setAttribute("lastSubmitCorrect", data.getCorrect());
         session.setAttribute("lastSubmitTotal", data.getTotal());
         session.setAttribute("lastSubmitPassed", data.isPassed());

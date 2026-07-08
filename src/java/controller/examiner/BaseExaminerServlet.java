@@ -1,11 +1,6 @@
 package controller.examiner;
 
-import dto.payload.AdjustScoreDeductionCommand;
-import dto.payload.CallCandidateCommand;
-import dto.payload.CandidateSessionCommand;
-import dto.payload.DeviceActionCommand;
-import dto.payload.RecordViolationCommand;
-import dto.payload.ScoreEditCommand;
+import dto.CandidateRowDTO;
 import enums.ExamSection;
 import enums.ExamSessionStatus;
 import filter.ExaminerFilter;
@@ -16,6 +11,8 @@ import jakarta.servlet.http.HttpSession;
 import model.ExaminerSchedule;
 import model.Session;
 import model.User;
+import service.ExamViewService;
+import util.ExaminerCandidateSort;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -160,90 +157,34 @@ abstract class BaseExaminerServlet extends HttpServlet {
         }
     }
 
-    protected CallCandidateCommand buildCallCommand(HttpSession session, User user, int sessionId,
-            Integer sbd, int[] sbds, boolean scoreEntry) {
-        CallCandidateCommand command = new CallCandidateCommand();
-        command.setSessionId(sessionId);
-        command.setSbd(sbd);
-        command.setSbds(sbds);
-        command.setUser(user);
-        command.setActionUserId(user != null ? user.getUserId() : null);
-        ExamSection examSection = getExamSection(session);
-        command.setExamSection(examSection);
-        command.setTheory(examSection == ExamSection.THEORY);
-        command.setSectionName(examSection.getValue());
-        command.setCallDestination(getCallDestination(session));
-        command.setScoreEntry(scoreEntry);
-        return command;
+    protected void applyCandidateListAttributes(HttpServletRequest request, HttpSession session,
+            ExamViewService dataService, int sessionId, Integer sbd, String search) {
+        boolean isTheory = ExaminerFilter.isTheorySession(session);
+        String sectionName = getSectionDisplayName(session);
+        List<CandidateRowDTO> candidates = dataService.loadCandidateRows(sessionId, isTheory, sectionName);
+        if (search != null && !search.isBlank()) {
+            candidates = dataService.filterCandidateRows(candidates, search);
+            request.setAttribute("searchActive", true);
+            request.setAttribute("searchQuery", search.trim());
+        }
+        request.setAttribute("candidates", candidates);
+        request.setAttribute("candidateQueue", candidates);
+        if (sbd != null && sbd > 0) {
+            CandidateRowDTO candidate = dataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+            if (candidate != null) {
+                request.setAttribute("candidate", candidate);
+            }
+        }
     }
 
-    protected CandidateSessionCommand buildSessionCommand(int sessionId, int sbd, Integer actionUserId) {
-        CandidateSessionCommand command = new CandidateSessionCommand();
-        command.setSessionId(sessionId);
-        command.setSbd(sbd);
-        command.setActionUserId(actionUserId);
-        return command;
-    }
-
-    protected CandidateSessionCommand buildSessionCommand(int sessionId, int sbd, Integer actionUserId,
-            Boolean sectionPassedHint) {
-        CandidateSessionCommand command = buildSessionCommand(sessionId, sbd, actionUserId);
-        command.setSectionPassedHint(sectionPassedHint);
-        return command;
-    }
-
-    protected CandidateSessionCommand buildFinalizeCommand(int sessionId, int sbd, Integer actionUserId,
-            String sectionKeyword) {
-        CandidateSessionCommand command = buildSessionCommand(sessionId, sbd, actionUserId);
-        command.setSectionKeyword(sectionKeyword);
-        return command;
-    }
-
-    protected AdjustScoreDeductionCommand buildAdjustDeductionCommand(int sessionId, int sbd,
-            int deductionId, int delta, Integer actionUserId) {
-        AdjustScoreDeductionCommand command = new AdjustScoreDeductionCommand();
-        command.setSessionId(sessionId);
-        command.setSbd(sbd);
-        command.setDeductionId(deductionId);
-        command.setDelta(delta);
-        command.setActionUserId(actionUserId);
-        return command;
-    }
-
-    protected DeviceActionCommand buildDeviceActionCommand(int deviceId, Integer actionUserId) {
-        DeviceActionCommand command = new DeviceActionCommand();
-        command.setDeviceId(deviceId);
-        command.setActionUserId(actionUserId);
-        return command;
-    }
-
-    protected RecordViolationCommand buildViolationCommand(HttpSession session, int sessionId, int sbd,
-            User user, String reasonCode, String reasonDetail, String evidencePath, int[] deductionIds) {
-        RecordViolationCommand command = new RecordViolationCommand();
-        command.setSessionId(sessionId);
-        command.setSbd(sbd);
-        command.setReasonCode(reasonCode);
-        command.setReasonDetail(reasonDetail);
-        command.setEvidencePath(evidencePath);
-        command.setDeductionIds(deductionIds);
-        command.setActionUserId(user != null ? user.getUserId() : null);
-        ExamSection examSection = getExamSection(session);
-        command.setTheory(examSection == ExamSection.THEORY);
-        command.setSectionName(examSection.getValue());
-        return command;
-    }
-
-    protected ScoreEditCommand buildScoreEditCommand(int sessionId, int sbd, Integer newScore,
-            String reasonCode, String reasonDetail, User user, String password, Integer actionUserId) {
-        ScoreEditCommand command = new ScoreEditCommand();
-        command.setSessionId(sessionId);
-        command.setSbd(sbd);
-        command.setNewScore(newScore);
-        command.setReasonCode(reasonCode);
-        command.setReasonDetail(reasonDetail);
-        command.setUser(user);
-        command.setPassword(password);
-        command.setActionUserId(actionUserId);
-        return command;
+    protected void applyCandidateSort(HttpServletRequest request, List<CandidateRowDTO> candidates) {
+        if (candidates == null) {
+            return;
+        }
+        ExaminerCandidateSort.Spec spec = ExaminerCandidateSort.parse(
+                request.getParameter("sort"), request.getParameter("dir"));
+        ExaminerCandidateSort.sort(candidates, spec);
+        request.setAttribute("sortBy", spec.getColumn());
+        request.setAttribute("sortDir", spec.isAscending() ? "asc" : "desc");
     }
 }

@@ -1,26 +1,26 @@
 package controller.examiner;
 
-import dto.ExaminerExportContext;
+import dto.ExportContextDTO;
 import enums.DocumentFormat;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.ExaminerDocumentService;
-import service.impl.ExaminerDocumentServiceImpl;
-import util.ExaminerExportFilenames;
+import service.DocumentService;
+import service.impl.DocumentServiceImpl;
+import enums.DocumentName;
 import java.io.IOException;
 import java.io.OutputStream;
 
 @WebServlet("/examiner/export/docx")
 public class ExaminerExportDocxServlet extends BaseExaminerExportServlet {
 
-    private final ExaminerDocumentService documentService = new ExaminerDocumentServiceImpl();
+    private final DocumentService documentService = new DocumentServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        ExaminerExportContext ctx = requireExportContext(request, response);
+        ExportContextDTO ctx = requireExportContext(request, response);
         if (ctx == null) {
             return;
         }
@@ -32,7 +32,7 @@ public class ExaminerExportDocxServlet extends BaseExaminerExportServlet {
         String normalizedType = documentType.trim().toLowerCase();
         OutputStream out = response.getOutputStream();
         if (isSessionDocumentType(normalizedType)) {
-            String filename = ExaminerExportFilenames.withExtension(documentType, "docx");
+            String filename = DocumentName.withExtension(documentType, "docx");
             prepareDocxDownload(response, filename);
             String filter = request.getParameter("sbd");
             if (filter == null || filter.isBlank()) {
@@ -47,7 +47,7 @@ public class ExaminerExportDocxServlet extends BaseExaminerExportServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu hoặc sai tham số sbd.");
             return;
         }
-        String filename = ExaminerExportFilenames.printCandidate(documentType, sbd);
+        String filename = DocumentName.printCandidate(documentType, sbd);
         prepareDocxDownload(response, filename);
         documentService.print(ctx, documentType, sbd, out);
         flush(out);

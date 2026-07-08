@@ -48,7 +48,7 @@
     </div>
 
     <nav class="side-nav-bar__menu" data-node-id="4:756">
-        <a href="${ctx}/views/staff/exam/dashboard.jsp"
+        <a href="${ctx}/views/staff/exam/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="examiner:dash"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -103,7 +103,7 @@
                <span class="side-nav-bar__label" data-node-id="4:771">Sửa điểm</span>
            </a>
 
-           <a href="${ctx}/views/staff/exam/candidatelist.jsp"
+           <a href="${ctx}/views/staff/exam/candidates"
            class="side-nav-bar__link${activeSidebar eq 'ds-thi-sinh' ? ' is-active' : ''}"
            data-node-id="4:772"
            <c:if test="${activeSidebar eq 'ds-thi-sinh'}">aria-current="page"</c:if>>

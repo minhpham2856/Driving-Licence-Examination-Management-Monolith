@@ -6,13 +6,11 @@ import service.*;
 import service.impl.*;
 import service.ExamDeviceService;
 import service.impl.ExamDeviceServiceImpl;
-import dto.ExamDeviceViewDTO;
+import dto.DeviceRowDTO;
 import dto.ServiceResult;
-import dto.payload.DeleteExamDeviceCommand;
-import dto.payload.SaveExamDeviceCommand;
-import dto.payload.SaveExamDeviceData;
+import dto.SaveResultDTO;
 import model.User;
-import service.AuditLogService;
+import service.AuditService;
 import util.FormatUtil;
 import enums.AuditAction;
 import enums.AuditEntity;
@@ -26,7 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 @WebServlet(name = "ExamDeviceServlet", urlPatterns = {"/admin/exam-computer"})
 public class ExamDeviceServlet extends HttpServlet {
-    private final AuditLogService auditLogService = new AuditLogServiceImpl();
+    private final AuditService AuditService = new AuditServiceImpl();
     private ExamDeviceService examDeviceService;
     private static final String LIST_VIEW = "/views/admin/exam-computer.jsp";
     @Override
@@ -53,12 +51,9 @@ public class ExamDeviceServlet extends HttpServlet {
         Integer adminId = (admin != null) ? admin.getUserId() : null;
         if ("delete".equals(action)) {
             int id = FormatUtil.toInt(req.getParameter("id"), 0);
-            DeleteExamDeviceCommand deleteCommand = new DeleteExamDeviceCommand();
-            deleteCommand.setDeviceId(id);
-            deleteCommand.setAdminUserId(adminId);
-            ServiceResult<Void> result = examDeviceService.delete(deleteCommand);
+            ServiceResult<Void> result = examDeviceService.delete(id, adminId);
             if (result.isSuccess()) {
-                auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+                AuditService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
                         AuditAction.DELETE, AuditEntity.EXAM_DEVICE, "Xóa máy thi id: " + id, id);
                 HttpSession flashSession = req.getSession(true);
                 flashSession.setAttribute("flashType", "success");
@@ -77,16 +72,13 @@ public class ExamDeviceServlet extends HttpServlet {
         String status = FormatUtil.text(req.getParameter("status"));
         int areaId = FormatUtil.toInt(req.getParameter("examAreaId"), 0);
         boolean isEdit = id > 0;
-        ExamDeviceViewDTO dev = new ExamDeviceViewDTO();
+        DeviceRowDTO dev = new DeviceRowDTO();
         dev.setExamDeviceId(id);
         dev.setDeviceName(name);
         dev.setDeviceType(type);
         dev.setStatus(status);
         dev.setExamAreaId(areaId);
-        SaveExamDeviceCommand saveCommand = new SaveExamDeviceCommand();
-        saveCommand.setDevice(dev);
-        saveCommand.setAdminUserId(adminId);
-        ServiceResult<SaveExamDeviceData> result = examDeviceService.save(saveCommand);
+        ServiceResult<SaveResultDTO> result = examDeviceService.save(dev, adminId);
         if (!result.isSuccess()) {
             HttpSession flashSession = req.getSession(true);
             flashSession.setAttribute("flashType", "danger");
@@ -94,8 +86,8 @@ public class ExamDeviceServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
             return;
         }
-        int savedId = result.getData() != null ? result.getData().getDeviceId() : dev.getExamDeviceId();
-        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+        int savedId = result.getData() != null ? result.getData().getEntityId() : dev.getExamDeviceId();
+        AuditService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
                 isEdit ? AuditAction.UPDATE : AuditAction.CREATE, AuditEntity.EXAM_DEVICE,
                 (isEdit ? "Cập nhật máy thi: " : "Tạo máy thi: ") + name, savedId);
         HttpSession flashSession = req.getSession(true);
