@@ -435,7 +435,22 @@ INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex,
 (N'456', N'Vũ Thị Phương',       '1998-12-12', N'0967890123', 0, N'001198121201', N'34 Nguyễn Trãi, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
 (N'010', N'Phạm Thị Dung',       '2002-01-28', N'0934567890', 0, N'001202012801', N'56 Hai Bà Trưng, Hà Nội', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
 (N'011', N'Đỗ Văn Hải',          '2001-04-20', N'0945678901', 1, N'001201042001', N'90 Lê Lợi, TP.HCM', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
-(N'012', N'Ngô Thị Kim',          '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Đà Nẵng', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0);
+(N'012', N'Ngô Thị Kim',          '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Đà Nẵng', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
+-- Kỳ B-20260601: danh sách DSTS bổ sung (test gọi thủ tục / phân bổ / nhập điểm)
+(N'050', N'Lê Thanh Bình',       '1998-07-12', N'0905005001', 1, N'001198071201', N'10 Phạm Văn Đồng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B',
+ 'https://res.cloudinary.com/dqwh0wcjh/image/upload/v1780127999/050_spneqa.png', 0, 0),
+(N'051', N'Phạm Thu Hà',         '1999-03-25', N'0905005101', 0, N'001199032501', N'22 Nguyễn Chí Thanh, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B',
+ 'https://res.cloudinary.com/dqwh0wcjh/image/upload/v1780128000/051_qdraol.png', 0, 0),
+(N'052', N'Hoàng Minh Tuấn',     '2000-11-08', N'0905005201', 1, N'001200110801', N'5 Láng Hạ, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B',
+ 'https://res.cloudinary.com/dqwh0wcjh/image/upload/v1780128000/052_lwmzvd.png', 0, 0),
+(N'053', N'Võ Thị Lan',          '1997-01-19', N'0905005301', 0, N'001197011901', N'88 Kim Mã, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'054', N'Đặng Văn Phúc',       '1996-06-30', N'0905005401', 1, N'001196063001', N'15 Xã Đàn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'055', N'Bùi Thị Ngọc',        '2001-12-02', N'0905005501', 0, N'001201120201', N'40 Giảng Võ, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'056', N'Nguyễn Quốc Huy',     '1995-04-17', N'0905005601', 1, N'001195041701', N'72 Trần Duy Hưng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'057', N'Trần Thị Mai',        '1998-09-21', N'0905005701', 0, N'001198092101', N'9 Hoàng Quốc Việt, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'058', N'Lý Văn Đạt',          '1999-08-14', N'0905005801', 1, N'001199081401', N'31 Đội Cấn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'059', N'Phan Thị Oanh',       '2000-02-27', N'0905005901', 0, N'001200022701', N'60 Thái Hà, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'060', N'Mai Văn Sơn',         '1997-10-05', N'0905006001', 1, N'001197100501', N'18 Chùa Bộc, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0);
 GO
 
 -- ============================================
@@ -464,6 +479,32 @@ INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrin
  (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Testing', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-12')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'012' AND FullName = N'Ngô Thị Kim'),
  (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Pending', 0, NULL);
+GO
+
+-- 19b. Ghi danh đủ 3 ca kỳ B-20260601 cho SBD 050–060 (lý thuyết / sa hình / đường trường)
+INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId)
+SELECT c.CandidateId, s.SessionId, N'Pending', 0, NULL
+FROM Candidate c
+CROSS JOIN [Session] s
+WHERE c.CandidateNumber IN (
+    N'050', N'051', N'052', N'053', N'054', N'055', N'056', N'057', N'058', N'059', N'060'
+)
+  AND s.SessionName IN (
+    N'Ca sáng - Lý thuyết B',
+    N'Ca sáng - Thực hành trong hình B',
+    N'Ca chiều - Thực hành trên đường B'
+  );
+GO
+
+-- 19c. Ghi danh ca lý thuyết kỳ B-20260615 cho SBD 050–060
+INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId)
+SELECT c.CandidateId, s.SessionId, N'Pending', 0, NULL
+FROM Candidate c
+CROSS JOIN [Session] s
+WHERE c.CandidateNumber IN (
+    N'050', N'051', N'052', N'053', N'054', N'055', N'056', N'057', N'058', N'059', N'060'
+)
+  AND s.SessionName = N'Ca sáng - Lý thuyết B (kỳ 2)';
 GO
 
 -- ============================================

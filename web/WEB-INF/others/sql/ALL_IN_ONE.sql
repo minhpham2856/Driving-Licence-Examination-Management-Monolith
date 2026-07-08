@@ -183,6 +183,7 @@ CREATE TABLE Candidate (
     FullName NVARCHAR(255) NOT NULL,
     DateOfBirth DATETIME NOT NULL,
     PhoneNumber NVARCHAR(20),
+    Email NVARCHAR(255),
     Sex NVARCHAR(10),
     GovernmentIdNumber NVARCHAR(100) UNIQUE,
     Address NVARCHAR(500),
