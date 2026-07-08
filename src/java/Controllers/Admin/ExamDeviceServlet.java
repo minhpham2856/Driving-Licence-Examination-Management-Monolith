@@ -9,6 +9,7 @@ import Models.User;
 import Utils.AuditLogHelper;
 import Utils.Sanitize;
 import Utils.SessionUtil;
+import Utils.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,15 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Admin "Máy thi" management. Uses ExamDeviceManageDAO (NOT the team's
- * DAO.ExamDeviceDAO, which serves a different feature). A device belongs to a
- * Room; the room's area auto-fills ExamDevice.ExamAreaId.
- *
- * GET  /admin/exam-computer                -> list (filters: searchKeyword, filterRoom, filterStatus)
- * POST /admin/exam-computer?action=save    -> insert or update
- * POST /admin/exam-computer?action=delete  -> delete
- */
 @WebServlet(name = "ExamDeviceServlet", urlPatterns = {"/admin/exam-computer"})
 public class ExamDeviceServlet extends HttpServlet {
 
@@ -35,7 +27,9 @@ public class ExamDeviceServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
 
         String keyword = Sanitize.text(req.getParameter("searchKeyword"));
         Integer roomId = Sanitize.toIntegerOrNull(req.getParameter("filterRoom"));
@@ -54,7 +48,9 @@ public class ExamDeviceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
         String action = Sanitize.text(req.getParameter("action"));
         User admin = SessionUtil.getCurrentUser(req);
         Integer adminId = (admin != null) ? admin.getId() : null;
@@ -81,11 +77,16 @@ public class ExamDeviceServlet extends HttpServlet {
         int roomId = Sanitize.toInt(req.getParameter("examRoomId"), 0);
         boolean isEdit = id > 0;
 
-        String error = null;
-        if (name.isEmpty()) error = "Vui lòng nhập tên máy thi.";
-        else if (type.isEmpty()) error = "Vui lòng nhập loại thiết bị.";
-        else if (status.isEmpty()) error = "Vui lòng chọn tình trạng máy.";
-        else if (roomId <= 0) error = "Vui lòng chọn phòng thi.";
+        String error = Validator.name("Tên máy/thiết bị", name, 2, 100);
+        if (name.isEmpty()) {
+            error = "Vui lòng nhập tên máy thi.";
+        } else if (type.isEmpty()) {
+            error = "Vui lòng nhập loại thiết bị.";
+        } else if (status.isEmpty()) {
+            error = "Vui lòng chọn tình trạng máy.";
+        } else if (roomId <= 0) {
+            error = "Vui lòng chọn phòng thi.";
+        }
 
         if (error != null) {
             SessionUtil.flash(req, "danger", error);

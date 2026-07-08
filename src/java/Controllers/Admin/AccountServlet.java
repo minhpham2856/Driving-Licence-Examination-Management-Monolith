@@ -6,8 +6,10 @@ import DAO.Impl.AccountManageDAOImpl;
 import Models.AccountView;
 import Models.User;
 import Utils.AuditLogHelper;
+import Utils.PasswordGenerator;
 import Utils.Sanitize;
 import Utils.SessionUtil;
+import Utils.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,13 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Admin account management: create / edit / assign role / lock / delete.
- * GET  /admin/accounts                 -> list (filters: searchKeyword, filterRole, filterStatus)
- * POST /admin/accounts?action=save     -> create or update (+ role)
- * POST /admin/accounts?action=lock     -> lock / unlock (Status bit)
- * POST /admin/accounts?action=delete   -> delete
- */
 @WebServlet(name = "AccountServlet", urlPatterns = {"/admin/accounts"})
 public class AccountServlet extends HttpServlet {
 
@@ -33,7 +28,7 @@ public class AccountServlet extends HttpServlet {
             throws ServletException, IOException {
         if (!SessionUtil.requireAdmin(req, resp)) return;
 
-        // Đảm bảo nhận từ khóa tìm kiếm tiếng Việt không lỗi font
+        // Đảm bảo nhận dữ liệu từ khóa tìm kiếm tiếng Việt không bị lỗi font
         req.setCharacterEncoding("UTF-8");
 
         String keyword = Sanitize.text(req.getParameter("searchKeyword"));
@@ -57,18 +52,19 @@ public class AccountServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         if (!SessionUtil.requireAdmin(req, resp)) return;
-        
-        // Đảm bảo nhận thông tin form tiếng Việt chuẩn xác
+
+        // Đảm bảo dữ liệu form tiếng Việt gửi lên không bị lỗi font
         req.setCharacterEncoding("UTF-8");
-        
+
         String action = Sanitize.text(req.getParameter("action"));
         User admin = SessionUtil.getCurrentUser(req);
         Integer actorId = (admin != null) ? admin.getId() : null;
         String ctx = req.getContextPath();
 
+        // ---- Khóa / Mở khóa ----
         if ("lock".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            boolean lock = "true".equals(req.getParameter("lock")); // lock=true -> set inactive
+            boolean lock = "true".equals(req.getParameter("lock"));
             boolean ok = id > 0 && dao.setStatus(id, !lock, actorId);
             if (ok) AuditLogHelper.persist(req.getSession(), "UPDATE",
                     (lock ? "Khóa" : "Mở khóa") + " tài khoản #" + id, id);
@@ -78,6 +74,29 @@ public class AccountServlet extends HttpServlet {
             return;
         }
 
+        // ---- Cấp lại mật khẩu ----
+        if ("reset".equals(action)) {
+            int id = Sanitize.toInt(req.getParameter("id"), 0);
+            AccountView acc = (id > 0) ? dao.findById(id) : null;
+            if (acc == null) {
+                SessionUtil.flash(req, "danger", "Không tìm thấy tài khoản.");
+                resp.sendRedirect(ctx + "/admin/accounts");
+                return;
+            }
+            String tempPw = PasswordGenerator.generate();
+            boolean ok = dao.resetPassword(id, tempPw, actorId);
+            if (ok) {
+                AuditLogHelper.persist(req.getSession(), "UPDATE", "Cấp lại mật khẩu tài khoản: " + acc.getUsername(), id);
+                showTempPassword(req, acc.getUsername(), tempPw); // hiện 1 lần
+                SessionUtil.flash(req, "success", "Đã cấp lại mật khẩu cho \"" + acc.getUsername() + "\".");
+            } else {
+                SessionUtil.flash(req, "danger", "Cấp lại mật khẩu thất bại.");
+            }
+            resp.sendRedirect(ctx + "/admin/accounts");
+            return;
+        }
+
+        // ---- Xóa ----
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             boolean ok = id > 0 && dao.delete(id);
@@ -92,14 +111,9 @@ public class AccountServlet extends HttpServlet {
             return;
         }
 
-        // ---- save (create / update) ----
-        int id = Sanitize.toInt(req.getParameter("userId"), 0);
-        boolean isEdit = id > 0;
-
+        // ---- Tạo mới (chỉ tạo, KHÔNG sửa) ----
         String username = Sanitize.text(req.getParameter("username"));
         String email = Sanitize.text(req.getParameter("email"));
-        String password = req.getParameter("password"); // may be blank on edit
-        // The role select submits the DB role string directly (Admin/Examiner/ExamStaff/ManagingStaff/Registrant).
         String rawRole = Sanitize.text(req.getParameter("role"));
         String roleDb = (rawRole.equals("Admin") || rawRole.equals("Examiner") || rawRole.equals("ExamStaff")
                 || rawRole.equals("ManagingStaff") || rawRole.equals("Registrant"))
@@ -115,19 +129,19 @@ public class AccountServlet extends HttpServlet {
         java.sql.Date dob = null;
         try { if (!dobStr.isEmpty()) dob = java.sql.Date.valueOf(dobStr); } catch (Exception ignore) {}
 
-        String error = null;
-        if (username.isEmpty()) error = "Vui lòng nhập tên đăng nhập.";
-        else if (email.isEmpty()) error = "Vui lòng nhập email.";
-        else if (!isEdit && (password == null || password.length() < 6)) error = "Mật khẩu phải có ít nhất 6 ký tự.";
-        else if (fullName.isEmpty()) error = "Vui lòng nhập họ tên.";
-        else if (dob == null) error = "Vui lòng nhập ngày sinh hợp lệ.";
-        else if (phone.isEmpty()) error = "Vui lòng nhập số điện thoại.";
-        else if (sex.isEmpty()) error = "Vui lòng chọn giới tính.";
-        else if (govId.isEmpty()) error = "Vui lòng nhập số CCCD/CMND.";
-        else if (rawRole.isEmpty()) error = "Vui lòng chọn vai trò.";
-        else if (dao.usernameExists(username, id)) error = "Tên đăng nhập đã tồn tại.";
-        else if (dao.emailExists(email, id)) error = "Email đã được sử dụng.";
-        else if (dao.govIdExists(govId, id)) error = "Số CCCD/CMND đã tồn tại.";
+        // Validate bằng Validator (server-side)
+        String error = Validator.username(username);
+        if (error == null) error = Validator.email(email);
+        if (error == null) error = Validator.fullName(fullName);
+        if (error == null) error = Validator.phone(phone);
+        if (error == null) error = Validator.sex(sex);
+        if (error == null) error = Validator.govId(govId);
+        if (error == null) error = Validator.dateOfBirth(dob);
+        if (error == null && rawRole.isEmpty()) error = "Vui lòng chọn vai trò.";
+        if (error == null && dao.usernameExists(username, 0)) error = "Tên đăng nhập đã tồn tại.";
+        if (error == null && dao.emailExists(email, 0))       error = "Email đã được sử dụng.";
+        if (error == null && dao.phoneExists(phone, 0))       error = "Số điện thoại đã được sử dụng.";
+        if (error == null && dao.govIdExists(govId, 0))       error = "Số CCCD/CMND đã tồn tại.";
 
         if (error != null) {
             SessionUtil.flash(req, "danger", error);
@@ -136,7 +150,6 @@ public class AccountServlet extends HttpServlet {
         }
 
         AccountView a = new AccountView();
-        a.setUserId(id);
         a.setUsername(username);
         a.setEmail(email);
         a.setRole(roleDb);
@@ -148,19 +161,24 @@ public class AccountServlet extends HttpServlet {
         a.setAddress(address.isEmpty() ? null : address);
         a.setDateOfBirth(dob);
 
-        if (isEdit) {
-            boolean ok = dao.update(a, (password == null || password.isBlank()) ? null : password, actorId);
-            AuditLogHelper.persist(req.getSession(), "UPDATE", "Cập nhật tài khoản: " + username, id);
-            SessionUtil.flash(req, ok ? "success" : "danger",
-                    ok ? "Đã cập nhật tài khoản \"" + username + "\"." : "Cập nhật thất bại.");
-        } else {
-            int newId = dao.create(a, password, actorId);
-            boolean ok = newId > 0;
+        String tempPw = PasswordGenerator.generate();   // mật khẩu tạm ngẫu nhiên
+        int newId = dao.create(a, tempPw, actorId);
+        boolean ok = newId > 0;
+        if (ok) {
             AuditLogHelper.persist(req.getSession(), "INSERT",
                     "Tạo tài khoản: " + username + " (" + roleDb + ")", newId);
-            SessionUtil.flash(req, ok ? "success" : "danger",
-                    ok ? "Đã tạo tài khoản \"" + username + "\"." : "Tạo tài khoản thất bại (kiểm tra dữ liệu trùng).");
+            showTempPassword(req, username, tempPw); // hiện 1 lần cho admin
+            SessionUtil.flash(req, "success",
+                    "Đã tạo tài khoản \"" + username + "\". Vui lòng gửi mật khẩu tạm bên dưới cho người dùng.");
+        } else {
+            SessionUtil.flash(req, "danger", "Tạo tài khoản thất bại (kiểm tra dữ liệu trùng).");
         }
         resp.sendRedirect(ctx + "/admin/accounts");
+    }
+
+    /** Lưu tạm vào session để accounts.jsp hiển thị mật khẩu tạm ĐÚNG 1 LẦN. */
+    private void showTempPassword(HttpServletRequest req, String username, String tempPw) {
+        req.getSession().setAttribute("newAccUsername", username);
+        req.getSession().setAttribute("newAccPassword", tempPw);
     }
 }

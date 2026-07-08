@@ -7,13 +7,13 @@ import Models.User;
 import Utils.AuditLogHelper;
 import Utils.Sanitize;
 import Utils.SessionUtil;
+import Utils.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
 
 @WebServlet(name = "LicenceServlet", urlPatterns = {"/admin/licence-class"})
 public class LicenceServlet extends HttpServlet {
@@ -25,7 +25,9 @@ public class LicenceServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
         String action = Sanitize.text(req.getParameter("action"));
 
         if ("new".equals(action)) {
@@ -55,7 +57,9 @@ public class LicenceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
         User admin = SessionUtil.getCurrentUser(req);
 
         int id = Sanitize.toInt(req.getParameter("licenceId"), 0);
@@ -66,12 +70,18 @@ public class LicenceServlet extends HttpServlet {
         Integer upgradeFrom = Sanitize.toIntegerOrNull(req.getParameter("upgradeFromLicenceId"));
         boolean isEdit = id > 0;
 
-        String error = null;
-        if (licenceClass.isEmpty()) error = "Vui lòng nhập mã hạng (VD: A1, B2, C...).";
-        else if (minimumAge <= 0) error = "Độ tuổi tối thiểu phải lớn hơn 0.";
-        else if (validForYears <= 0) error = "Thời hạn (năm) phải lớn hơn 0.";
-        else if (dao.existsByClass(licenceClass, id)) error = "Mã Hạng \"" + licenceClass + "\" đã tồn tại.";
-        else if (upgradeFrom != null && upgradeFrom == id && isEdit) error = "Hạng không thể nâng cấp từ chính nó.";
+        String error = Validator.licenceClass(licenceClass);
+        if (licenceClass.isEmpty()) {
+            error = "Vui lòng nhập mã hạng (VD: A1, B2, C...).";
+        } else if (minimumAge <= 0) {
+            error = "Độ tuổi tối thiểu phải lớn hơn 0.";
+        } else if (validForYears <= 0) {
+            error = "Thời hạn (năm) phải lớn hơn 0.";
+        } else if (dao.existsByClass(licenceClass, id)) {
+            error = "Mã Hạng \"" + licenceClass + "\" đã tồn tại.";
+        } else if (upgradeFrom != null && upgradeFrom == id && isEdit) {
+            error = "Hạng không thể nâng cấp từ chính nó.";
+        }
 
         if (error != null) {
             Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);

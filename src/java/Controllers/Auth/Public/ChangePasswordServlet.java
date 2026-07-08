@@ -1,25 +1,29 @@
 package Controllers.Auth.Public;
 
-import DAO.UserDAO;
-import DAO.Impl.UserDAOImpl;
+import DAO.UserSecurityDAO;
+import DAO.Impl.UserSecurityDAOImpl;
 import Models.User;
 import Utils.AuditLogHelper;
+import Utils.Sanitize;
 import Utils.SessionUtil;
+import Utils.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-
+/**
+ * Đổi mật khẩu — TỰ CHỨA, không phụ thuộc AuthService của nhóm (vì AuthService
+ * hiện không có changePassword/ChangePasswordResult). So mật khẩu cũ + cập nhật
+ * mật khẩu mới (plaintext theo quy ước nhóm) + tắt cờ MustChangePassword.
+ */
 @WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
 public class ChangePasswordServlet extends HttpServlet {
 
-    private final UserDAO userDAO = new UserDAOImpl();
+    private final UserSecurityDAO securityDAO = new UserSecurityDAOImpl();
     private static final String VIEW = "/views/public/change-password.jsp";
-    private static final int MIN_LENGTH = 6;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -34,41 +38,52 @@ public class ChangePasswordServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        User sessionUser = SessionUtil.getCurrentUser(req);
-        if (sessionUser == null) {
+        
+        // Đảm bảo mã hóa UTF-8 cho request dữ liệu đầu vào
+        req.setCharacterEncoding("UTF-8");
+
+        User u = SessionUtil.getCurrentUser(req);
+        if (u == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
+        int userId = u.getId();
 
         String current = req.getParameter("currentPassword");
-        String newPwd = req.getParameter("newPassword");
+        String newPwd  = req.getParameter("newPassword");
         String confirm = req.getParameter("confirmPassword");
 
-        User fresh = userDAO.getById(sessionUser.getId());
-        String type = "danger";
-        String message;
+        String stored = securityDAO.getPasswordHash(userId);
 
-        if (fresh == null) {
-            message = "Có lỗi xảy ra, vui lòng thử lại.";
-        } else if (current == null || !current.equals(fresh.getPasswordHash())) { // compare (plain text)
-            message = "Mật khẩu hiện tại không chính xác.";
-        } else if (newPwd == null || newPwd.length() < MIN_LENGTH) {
-            message = "Mật khẩu mới phải có ít nhất 6 ký tự.";
-        } else if (!newPwd.equals(confirm)) {
-            message = "Mật khẩu mới và xác nhận không khớp.";
-        } else if (newPwd.equals(fresh.getPasswordHash())) {
-            message = "Mật khẩu mới không được trùng mật khẩu cũ.";
-        } else if (userDAO.updatePassword(fresh.getId(), newPwd)) {             // save (plain text)
-            type = "success";
-            message = "Đổi mật khẩu thành công.";
-            HttpSession s = req.getSession(false);
-            if (s != null) AuditLogHelper.persist(s, "UPDATE", "Đổi mật khẩu tài khoản", fresh.getId());
+        String error = null;
+        if (current == null || !current.equals(stored == null ? "" : stored.trim())) {
+            error = "Mật khẩu hiện tại không chính xác.";
+        } else if (newPwd == null || confirm == null || !newPwd.equals(confirm)) {
+            error = "Mật khẩu mới và xác nhận không khớp.";
+        } else if (newPwd.equals(current)) {
+            error = "Mật khẩu mới không được trùng mật khẩu cũ.";
         } else {
-            message = "Có lỗi xảy ra, vui lòng thử lại.";
+            error = Validator.password(newPwd, true); // 8+ ký tự, có chữ và số
         }
 
-        req.setAttribute("messageType", type);
-        req.setAttribute("message", message);
+        if (error != null) {
+            req.setAttribute("messageType", "danger");
+            req.setAttribute("message", error);
+            req.getRequestDispatcher(VIEW).forward(req, resp);
+            return;
+        }
+
+        boolean ok = securityDAO.updatePassword(userId, newPwd);
+        if (ok) {
+            securityDAO.setMustChange(userId, false);          // tắt cờ ép-đổi-lần-đầu
+            req.getSession().removeAttribute("forceChangePassword");
+            AuditLogHelper.persist(req.getSession(), "UPDATE", "Đổi mật khẩu", userId);
+            req.setAttribute("messageType", "success");
+            req.setAttribute("message", "Đổi mật khẩu thành công.");
+        } else {
+            req.setAttribute("messageType", "danger");
+            req.setAttribute("message", "Có lỗi xảy ra, vui lòng thử lại.");
+        }
         req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 }

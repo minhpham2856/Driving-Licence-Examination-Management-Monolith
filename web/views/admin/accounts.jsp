@@ -35,7 +35,7 @@
         </nav>
 
         <c:if test="${not empty sessionScope.flashMessage}">
-            <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+            <div style="margin-bottom: 1.25rem; padding: 0.85rem 1.1rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem;
                         background: ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'};
                         border: 1px solid ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'};
                         color: ${sessionScope.flashType eq 'success' ? '#047857' : '#b91c1c'};">
@@ -45,13 +45,35 @@
             <c:remove var="flashType" scope="session" />
         </c:if>
 
+        <%-- Mật khẩu tạm — HIỆN ĐÚNG 1 LẦN sau khi tạo/cấp lại --%>
+        <c:if test="${not empty sessionScope.newAccPassword}">
+            <div style="margin-bottom: 1.25rem; padding: 1rem 1.2rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fcd34d;">
+                <div style="font-weight: 700; color: #92400e; margin-bottom: 6px;">🔑 Mật khẩu tạm cho tài khoản: ${sessionScope.newAccUsername}</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <code id="tmpPw" style="font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; background: #fff; padding: 6px 14px; border-radius: 8px; border: 1px dashed #d97706; color: #b45309;">${sessionScope.newAccPassword}</code>
+                    <button type="button" onclick="copyTmp()" class="btn-export" style="cursor:pointer; padding: 6px 12px;">Sao chép</button>
+                </div>
+                <div style="font-size: 0.8rem; color: #92400e; margin-top: 8px;">
+                    Hãy gửi mật khẩu này cho người dùng. Họ <b>bắt buộc đổi mật khẩu ngay lần đăng nhập đầu tiên</b>. Mật khẩu này chỉ hiển thị <b>một lần</b>.
+                </div>
+            </div>
+            <c:remove var="newAccPassword" scope="session" />
+            <c:remove var="newAccUsername" scope="session" />
+        </c:if>
+
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Quản lý Tài khoản hệ thống</h1>
-                <p class="page-subtitle">Cấp phát tài khoản mới, quản lý thông tin cá nhân, phân quyền truy cập và kiểm soát trạng thái hoạt động của người dùng.</p>
+                <p class="page-subtitle">Cấp phát tài khoản mới, phân quyền truy cập và kiểm soát trạng thái hoạt động của người dùng. Mật khẩu do hệ thống sinh tự động; người dùng tự đổi khi đăng nhập lần đầu.</p>
             </div>
             <div class="page-actions" style="display: flex; gap: 10px;">
-                <button type="button" class="btn-filter" id="btn-add-account" onclick="openAccModal()" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Xuất Excel
+                </button>
+                <button type="button" class="btn-filter" id="btn-add-account" onclick="openAccModal()" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; cursor:pointer;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -63,9 +85,7 @@
         <section class="metrics-row" aria-label="Thống kê tài khoản">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${empty totalAccounts ? 0 : totalAccounts}</span>
@@ -75,9 +95,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue" style="background-color: rgba(0, 82, 204, 0.08); color: #0052cc;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${empty adminCount ? 0 : adminCount}</span>
@@ -87,9 +105,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue" style="background-color: rgba(13, 148, 136, 0.08); color: #0d9488;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2 22s2-4 10-4 10 4 10 4M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 22s2-4 10-4 10 4 10 4M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${empty coiThiCount ? 0 : coiThiCount}</span>
@@ -99,9 +115,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue" style="background-color: rgba(124, 58, 237, 0.08); color: #7c3aed;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8M3 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8M3 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${empty chamThiCount ? 0 : chamThiCount}</span>
@@ -113,17 +127,14 @@
 
         <section class="filter-panel" aria-label="Bộ lọc tài khoản">
             <h2 class="filter-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Bộ lọc tìm kiếm
             </h2>
             <form action="${ctx}/admin/accounts" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.25fr 1.5fr;">
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Tìm kiếm tài khoản</label>
-                        <input type="text" id="searchKeyword" name="searchKeyword" class="input-field"
-                               placeholder="Tên đăng nhập, họ tên, email, sđt..." value="${param.searchKeyword}">
+                        <input type="text" id="searchKeyword" name="searchKeyword" class="input-field" placeholder="Nhập tên đăng nhập, họ tên, email, sđt..." value="${param.searchKeyword}">
                     </div>
                     <div class="input-group">
                         <label for="filterRole" class="input-label">Vai trò phân quyền</label>
@@ -133,7 +144,7 @@
                             <option value="coi_thi" ${param.filterRole eq 'coi_thi' ? 'selected' : ''}>Cán bộ coi thi</option>
                             <option value="cham_thi" ${param.filterRole eq 'cham_thi' ? 'selected' : ''}>Giám khảo chấm thi</option>
                             <option value="managing" ${param.filterRole eq 'managing' ? 'selected' : ''}>Cán bộ quản lý</option>
-                            <option value="candidate" ${param.filterRole eq 'candidate' ? 'selected' : ''}>Thí sinh</option>
+                            <option value="candidate" ${param.filterRole eq 'candidate' ? 'selected' : ''}>Thí sinh tự do</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -147,9 +158,7 @@
                     <div class="input-group filter-grid__btn-col">
                         <div class="btn-group">
                             <button type="submit" class="btn-filter">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                 Lọc
                             </button>
                             <a href="${ctx}/admin/accounts" class="btn-reset">Đặt lại</a>
@@ -162,17 +171,18 @@
         <section class="log-card" aria-label="Danh sách tài khoản">
             <header class="log-card-header">
                 <h2 class="log-card-title">
-                    <svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
-                        <circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="2"/>
-                        <path d="M1 16C1 12.69 4.13 10 8 10C11.87 10 15 12.69 15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
+                    <svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;"><circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="2"/><path d="M1 16C1 12.69 4.13 10 8 10C11.87 10 15 12.69 15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                     Danh sách tài khoản hệ thống
                     <c:if test="${not empty accounts}">
-                        <span style="font-size: 0.78rem; font-weight: 600; background: rgba(0,82,204,0.08); color: #0052cc; padding: 2px 10px; border-radius: 9999px; margin-left: 6px;">
-                            ${fn:length(accounts)} tài khoản
-                        </span>
+                        <span style="font-size: 0.78rem; font-weight: 600; background: rgba(0,82,204,0.08); color: #0052cc; padding: 2px 10px; border-radius: 9999px; margin-left: 6px;">${fn:length(accounts)} tài khoản</span>
                     </c:if>
                 </h2>
+                <div class="log-card-actions">
+                    <button class="btn-export">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                        In danh sách
+                    </button>
+                </div>
             </header>
 
             <div class="table-responsive">
@@ -183,9 +193,10 @@
                             <th scope="col" style="min-width: 200px;">Tên tài khoản</th>
                             <th scope="col" style="min-width: 180px;">Email & SĐT</th>
                             <th scope="col" style="width: 150px; text-align: center;">Vai trò</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Ngày tạo</th>
-                            <th scope="col" style="width: 130px; text-align: center;">Trạng thái</th>
-                            <th scope="col" style="text-align: center; width: 220px;">Thao tác</th>
+                            <th scope="col" style="min-width: 160px;">Trung tâm / Đơn vị</th>
+                            <th scope="col" style="width: 130px; text-align: center;">Ngày tạo</th>
+                            <th scope="col" style="width: 120px; text-align: center;">Trạng thái</th>
+                            <th scope="col" style="text-align: center; width: 260px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -197,10 +208,10 @@
                                         <td>
                                             <div class="user-cell">
                                                 <c:choose>
-                                                    <c:when test="${acc.roleCode eq 'admin'}"><div class="user-avatar" title="Quản trị viên">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
-                                                    <c:when test="${acc.roleCode eq 'coi_thi'}"><div class="user-avatar user-avatar--teal" title="Cán bộ coi thi">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
-                                                    <c:when test="${acc.roleCode eq 'cham_thi'}"><div class="user-avatar user-avatar--purple" title="Giám khảo chấm thi">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
-                                                    <c:otherwise><div class="user-avatar user-avatar--orange" title="Người dùng">${fn:substring(acc.fullName, 0, 1)}</div></c:otherwise>
+                                                    <c:when test="${acc.roleCode eq 'admin'}"><div class="user-avatar">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
+                                                    <c:when test="${acc.roleCode eq 'coi_thi'}"><div class="user-avatar user-avatar--teal">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
+                                                    <c:when test="${acc.roleCode eq 'cham_thi'}"><div class="user-avatar user-avatar--purple">${fn:substring(acc.fullName, 0, 1)}</div></c:when>
+                                                    <c:otherwise><div class="user-avatar user-avatar--orange">${fn:substring(acc.fullName, 0, 1)}</div></c:otherwise>
                                                 </c:choose>
                                                 <div class="user-info">
                                                     <span class="user-name" style="font-weight: 600; color: #0f172a;">${acc.fullName}</span>
@@ -210,7 +221,9 @@
                                         </td>
                                         <td>
                                             <div style="font-weight: 500; color: #334155; font-size: 0.88rem;">${acc.email}</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">${acc.phone}</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle; margin-right:3px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${acc.phone}
+                                            </div>
                                         </td>
                                         <td style="text-align: center;">
                                             <c:choose>
@@ -221,6 +234,7 @@
                                                 <c:otherwise><span class="role-badge role-badge--other">Thí sinh</span></c:otherwise>
                                             </c:choose>
                                         </td>
+                                        <td><span style="font-weight: 500; color: #475569; font-size: 0.88rem;">${acc.department}</span></td>
                                         <td style="text-align: center; font-size: 0.82rem; color: #64748b; font-weight: 500;">
                                             <fmt:formatDate value="${acc.createdAt}" pattern="dd/MM/yyyy"/>
                                         </td>
@@ -232,36 +246,20 @@
                                         </td>
                                         <td>
                                             <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-                                                <button type="button" class="btn-export"
-                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(245,158,11,0.25); color: #d97706; cursor:pointer;"
-                                                        data-id="${acc.id}" data-username="${fn:escapeXml(acc.username)}" data-email="${fn:escapeXml(acc.email)}"
-                                                        data-role="${acc.role}" data-fullname="${fn:escapeXml(acc.fullName)}" data-phone="${fn:escapeXml(acc.phone)}"
-                                                        data-sex="${fn:escapeXml(acc.sex)}" data-govid="${fn:escapeXml(acc.govId)}" data-address="${fn:escapeXml(acc.address)}"
-                                                        data-dob="<fmt:formatDate value='${acc.dateOfBirth}' pattern='yyyy-MM-dd'/>" data-status="${acc.status}"
-                                                        onclick="openAccModalEdit(this)">
-                                                    Sửa
-                                                </button>
                                                 <c:choose>
                                                     <c:when test="${acc.status eq 'active'}">
-                                                        <button type="button" class="btn-export"
-                                                                style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239,68,68,0.25); color: #dc2626; cursor:pointer;"
-                                                                onclick="lockAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}', true)">
-                                                            Khóa
-                                                        </button>
+                                                        <button type="button" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(239,68,68,0.25); color: #dc2626; cursor:pointer;"
+                                                                onclick="lockAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}', true)">Khóa</button>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <button type="button" class="btn-export"
-                                                                style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16,185,129,0.25); color: #059669; cursor:pointer;"
-                                                                onclick="lockAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}', false)">
-                                                            Mở khóa
-                                                        </button>
+                                                        <button type="button" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(16,185,129,0.25); color: #059669; cursor:pointer;"
+                                                                onclick="lockAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}', false)">Mở khóa</button>
                                                     </c:otherwise>
                                                 </c:choose>
-                                                <button type="button" class="btn-export"
-                                                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(100,116,139,0.25); color: #475569; cursor:pointer;"
-                                                        onclick="deleteAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}')">
-                                                    Xóa
-                                                </button>
+                                                <button type="button" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(2,132,199,0.25); color: #0284c7; cursor:pointer;"
+                                                        onclick="resetAccount('${acc.id}', '${fn:escapeXml(acc.username)}')">Cấp lại MK</button>
+                                                <button type="button" class="btn-export" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; border-color: rgba(100,116,139,0.25); color: #475569; cursor:pointer;"
+                                                        onclick="deleteAccount('${acc.id}', '${fn:escapeXml(acc.fullName)}')">Xóa</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -269,14 +267,11 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="7" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
-                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;">
-                                            <circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M1 16C1 12.69 4.13 10 8 10C11.87 10 15 12.69 15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                        Chưa có tài khoản nào trong hệ thống.
+                                    <td colspan="8" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;"><circle cx="8" cy="5" r="3.5" stroke="currentColor" stroke-width="2"/><path d="M1 16C1 12.69 4.13 10 8 10C11.87 10 15 12.69 15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                        Chưa có tài khoản nào được khai báo trong hệ thống.
                                         <p style="font-size: 0.82rem; font-weight: 400; color: #94a3b8; margin-top: 0.5rem; max-width: 440px; margin-left: auto; margin-right: auto;">
-                                            Nhấn <strong>Tạo tài khoản mới</strong> để cấp phát thông tin đăng nhập và phân quyền cho người dùng.
+                                            Nhấn nút <strong>Tạo tài khoản mới</strong> để cấp phát thông tin đăng nhập và phân quyền cho người dùng.
                                         </p>
                                     </td>
                                 </tr>
@@ -289,7 +284,7 @@
             <footer class="pagination-footer">
                 <div class="pagination-info">
                     Hiển thị <c:choose><c:when test="${not empty accounts}">1 - ${fn:length(accounts)}</c:when><c:otherwise>0</c:otherwise></c:choose>
-                    trong tổng số ${empty totalAccounts ? 0 : totalAccounts} tài khoản
+                    trong tổng số ${empty totalAccounts ? 0 : totalAccounts} tài khoản người dùng
                 </div>
                 <div class="pagination-nav">
                     <button class="page-btn page-btn--wide disabled" disabled>Trước</button>
@@ -307,13 +302,13 @@
 </div>
 
 <form id="lockForm" action="${ctx}/admin/accounts" method="POST" style="display:none;">
-    <input type="hidden" name="action" value="lock">
-    <input type="hidden" name="id" id="lockId">
-    <input type="hidden" name="lock" id="lockVal">
+    <input type="hidden" name="action" value="lock"><input type="hidden" name="id" id="lockId"><input type="hidden" name="lock" id="lockVal">
+</form>
+<form id="resetForm" action="${ctx}/admin/accounts" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="reset"><input type="hidden" name="id" id="resetId">
 </form>
 <form id="delAccForm" action="${ctx}/admin/accounts" method="POST" style="display:none;">
-    <input type="hidden" name="action" value="delete">
-    <input type="hidden" name="id" id="delAccId">
+    <input type="hidden" name="action" value="delete"><input type="hidden" name="id" id="delAccId">
 </form>
 
 <style>
@@ -327,19 +322,22 @@
     .modal-foot { display:flex; gap:12px; justify-content:flex-end; padding:1rem 1.5rem; border-top:1px solid #e2e8f0; }
 </style>
 
+<!-- Create modal (chỉ tạo mới; không có ô mật khẩu — hệ thống tự sinh) -->
 <div id="accModal" class="modal-overlay" onclick="if(event.target===this)closeAccModal()">
     <div class="modal-card" role="dialog" aria-modal="true">
         <form action="${ctx}/admin/accounts?action=save" method="POST">
             <div class="modal-head">
-                <h3 id="accModalTitle">Tạo tài khoản mới</h3>
+                <h3>Tạo tài khoản mới</h3>
                 <button type="button" class="modal-close" onclick="closeAccModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="hidden" name="userId" id="a_id" value="">
+                <div style="margin-bottom:1.1rem; padding:0.6rem 0.9rem; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-size:0.82rem;">
+                    Mật khẩu sẽ được <b>hệ thống sinh tự động</b> và hiển thị cho bạn <b>một lần</b> sau khi tạo. Người dùng phải đổi mật khẩu ở lần đăng nhập đầu tiên.
+                </div>
                 <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
                     <div class="input-group">
                         <label for="a_username" class="input-label">Tên đăng nhập <span style="color:#dc2626;">*</span></label>
-                        <input type="text" id="a_username" name="username" class="input-field" required>
+                        <input type="text" id="a_username" name="username" class="input-field" maxlength="50" required>
                     </div>
                     <div class="input-group">
                         <label for="a_role" class="input-label">Vai trò <span style="color:#dc2626;">*</span></label>
@@ -353,25 +351,18 @@
                         </select>
                     </div>
                 </div>
-                <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
-                    <div class="input-group">
-                        <label for="a_email" class="input-label">Email <span style="color:#dc2626;">*</span></label>
-                        <input type="email" id="a_email" name="email" class="input-field" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="a_password" class="input-label">Mật khẩu <span id="a_pw_req" style="color:#dc2626;">*</span></label>
-                        <input type="text" id="a_password" name="password" class="input-field" placeholder="Tối thiểu 6 ký tự">
-                        <small id="a_pw_hint" style="display:none; color:#94a3b8; font-size:0.72rem;">Để trống nếu không đổi mật khẩu</small>
-                    </div>
+                <div class="input-group" style="margin-bottom:1.25rem;">
+                    <label for="a_email" class="input-label">Email <span style="color:#dc2626;">*</span></label>
+                    <input type="email" id="a_email" name="email" class="input-field" maxlength="255" required>
                 </div>
                 <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
                     <div class="input-group">
                         <label for="a_fullName" class="input-label">Họ và tên <span style="color:#dc2626;">*</span></label>
-                        <input type="text" id="a_fullName" name="fullName" class="input-field" required>
+                        <input type="text" id="a_fullName" name="fullName" class="input-field" maxlength="255" required>
                     </div>
                     <div class="input-group">
                         <label for="a_phone" class="input-label">Số điện thoại <span style="color:#dc2626;">*</span></label>
-                        <input type="text" id="a_phone" name="phone" class="input-field" required>
+                        <input type="text" id="a_phone" name="phone" class="input-field" maxlength="10" required>
                     </div>
                 </div>
                 <div class="filter-grid" style="grid-template-columns:1fr 1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
@@ -382,34 +373,30 @@
                     <div class="input-group">
                         <label for="a_sex" class="input-label">Giới tính <span style="color:#dc2626;">*</span></label>
                         <select id="a_sex" name="sex" class="input-field" required>
-                            <option value="">--</option>
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                            <option value="Khác">Khác</option>
+                            <option value="">--</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label for="a_status" class="input-label">Trạng thái</label>
                         <select id="a_status" name="status" class="input-field">
-                            <option value="active">Hoạt động</option>
-                            <option value="inactive">Khóa / Vô hiệu</option>
+                            <option value="active">Hoạt động</option><option value="inactive">Khóa / Vô hiệu</option>
                         </select>
                     </div>
                 </div>
                 <div class="filter-grid" style="grid-template-columns:1fr 1.4fr; gap:1.25rem;">
                     <div class="input-group">
                         <label for="a_govId" class="input-label">Số CCCD/CMND <span style="color:#dc2626;">*</span></label>
-                        <input type="text" id="a_govId" name="govId" class="input-field" required>
+                        <input type="text" id="a_govId" name="govId" class="input-field" maxlength="12" required>
                     </div>
                     <div class="input-group">
                         <label for="a_address" class="input-label">Địa chỉ</label>
-                        <input type="text" id="a_address" name="address" class="input-field">
+                        <input type="text" id="a_address" name="address" class="input-field" maxlength="500">
                     </div>
                 </div>
             </div>
             <div class="modal-foot">
                 <button type="button" class="btn-reset" onclick="closeAccModal()" style="height:44px; padding:0 1.5rem; display:inline-flex; align-items:center;">Hủy bỏ</button>
-                <button type="submit" class="btn-filter" style="height:44px; padding:0 1.5rem;">Lưu tài khoản</button>
+                <button type="submit" class="btn-filter" style="height:44px; padding:0 1.5rem;">Tạo tài khoản</button>
             </div>
         </form>
     </div>
@@ -417,49 +404,30 @@
 
 <script>
     function openAccModal() {
-        document.getElementById('accModalTitle').textContent = 'Tạo tài khoản mới';
-        ['a_id','a_username','a_email','a_password','a_role','a_fullName','a_phone','a_dob','a_sex','a_govId','a_address'].forEach(function(k){document.getElementById(k).value='';});
+        ['a_username','a_email','a_role','a_fullName','a_phone','a_dob','a_sex','a_govId','a_address'].forEach(function(k){document.getElementById(k).value='';});
         document.getElementById('a_status').value = 'active';
-        document.getElementById('a_username').readOnly = false;
-        document.getElementById('a_pw_req').style.display = 'inline';
-        document.getElementById('a_pw_hint').style.display = 'none';
-        document.getElementById('accModal').classList.add('is-open');
-    }
-    function openAccModalEdit(b) {
-        document.getElementById('accModalTitle').textContent = 'Chỉnh sửa tài khoản';
-        document.getElementById('a_id').value = b.dataset.id;
-        document.getElementById('a_username').value = b.dataset.username;
-        document.getElementById('a_username').readOnly = true;
-        document.getElementById('a_email').value = b.dataset.email;
-        document.getElementById('a_password').value = '';
-        document.getElementById('a_role').value = b.dataset.role;
-        document.getElementById('a_fullName').value = b.dataset.fullname;
-        document.getElementById('a_phone').value = b.dataset.phone;
-        document.getElementById('a_dob').value = b.dataset.dob;
-        document.getElementById('a_sex').value = b.dataset.sex;
-        document.getElementById('a_govId').value = b.dataset.govid;
-        document.getElementById('a_address').value = b.dataset.address || '';
-        document.getElementById('a_status').value = b.dataset.status;
-        document.getElementById('a_pw_req').style.display = 'none';
-        document.getElementById('a_pw_hint').style.display = 'block';
         document.getElementById('accModal').classList.add('is-open');
     }
     function closeAccModal() { document.getElementById('accModal').classList.remove('is-open'); }
 
     function lockAccount(id, name, lock) {
-        var msg = lock ? ('Khóa tài khoản "' + name + '"? Người dùng sẽ không đăng nhập được.')
-                       : ('Mở khóa tài khoản "' + name + '"?');
-        if (confirm(msg)) {
-            document.getElementById('lockId').value = id;
-            document.getElementById('lockVal').value = lock ? 'true' : 'false';
-            document.getElementById('lockForm').submit();
+        var msg = lock ? ('Khóa tài khoản của "' + name + '"? Người dùng sẽ không đăng nhập được.')
+                       : ('Mở khóa tài khoản của "' + name + '"?');
+        if (confirm(msg)) { document.getElementById('lockId').value = id; document.getElementById('lockVal').value = lock ? 'true' : 'false'; document.getElementById('lockForm').submit(); }
+    }
+    function resetAccount(id, username) {
+        if (confirm('Cấp lại mật khẩu cho "' + username + '"?\nHệ thống sẽ sinh mật khẩu mới và người dùng phải đổi lại khi đăng nhập.')) {
+            document.getElementById('resetId').value = id; document.getElementById('resetForm').submit();
         }
     }
     function deleteAccount(id, name) {
-        if (confirm('Xóa vĩnh viễn tài khoản "' + name + '"?\nNếu tài khoản đã phát sinh dữ liệu, hệ thống sẽ không cho xóa — hãy dùng Khóa.')) {
-            document.getElementById('delAccId').value = id;
-            document.getElementById('delAccForm').submit();
+        if (confirm('Xóa vĩnh viễn tài khoản của "' + name + '"?\nNếu tài khoản đã phát sinh dữ liệu, hệ thống sẽ không cho xóa — hãy dùng Khóa.')) {
+            document.getElementById('delAccId').value = id; document.getElementById('delAccForm').submit();
         }
+    }
+    function copyTmp() {
+        var el = document.getElementById('tmpPw'); if (!el) return;
+        navigator.clipboard.writeText(el.textContent).then(function(){ alert('Đã sao chép mật khẩu tạm.'); });
     }
     document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAccModal(); });
 </script>

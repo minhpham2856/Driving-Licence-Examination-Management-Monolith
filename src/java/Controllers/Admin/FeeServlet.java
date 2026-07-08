@@ -9,6 +9,7 @@ import Models.User;
 import Utils.AuditLogHelper;
 import Utils.Sanitize;
 import Utils.SessionUtil;
+import Utils.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,10 +19,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 /**
- * Admin exam-fee management (Lệ phí thi). Fees classified by Hạng GPLX + Phân loại.
- * GET  /admin/exam-fee                 -> list (filters: searchKeyword, filterClass, filterCategory, filterStatus)
- * POST /admin/exam-fee?action=save     -> create or update
- * POST /admin/exam-fee?action=delete   -> delete
+ * Admin exam-fee management (Lệ phí thi). Fees classified by Hạng GPLX + Phân
+ * loại. GET /admin/exam-fee -> list (filters: searchKeyword, filterClass,
+ * filterCategory, filterStatus) POST /admin/exam-fee?action=save -> create or
+ * update POST /admin/exam-fee?action=delete -> delete
  */
 @WebServlet(name = "FeeServlet", urlPatterns = {"/admin/exam-fee"})
 public class FeeServlet extends HttpServlet {
@@ -33,7 +34,9 @@ public class FeeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
 
         // Đảm bảo nhận từ khóa tìm kiếm tiếng Việt không bị lỗi font
         req.setCharacterEncoding("UTF-8");
@@ -43,8 +46,11 @@ public class FeeServlet extends HttpServlet {
         String category = Sanitize.text(req.getParameter("filterCategory"));
         String statusFilter = Sanitize.text(req.getParameter("filterStatus"));
         Boolean active = null;
-        if ("active".equals(statusFilter)) active = true;
-        else if ("inactive".equals(statusFilter)) active = false;
+        if ("active".equals(statusFilter)) {
+            active = true;
+        } else if ("inactive".equals(statusFilter)) {
+            active = false;
+        }
 
         req.setAttribute("examFees", dao.search(keyword, licenceId, category, active));
         req.setAttribute("licenceClassesList", licenceDAO.findAll());
@@ -58,7 +64,9 @@ public class FeeServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
 
         // Đảm bảo nhận dữ liệu biểu phí bằng tiếng Việt không bị lỗi font
         req.setCharacterEncoding("UTF-8");
@@ -92,12 +100,24 @@ public class FeeServlet extends HttpServlet {
         boolean active = !"inactive".equals(Sanitize.text(req.getParameter("status")));
 
         BigDecimal amount = null;
-        try { if (!amountStr.isEmpty()) amount = new BigDecimal(amountStr.replace(",", "").trim()); } catch (Exception ignore) {}
+        try {
+            if (!amountStr.isEmpty()) {
+                amount = new BigDecimal(amountStr.replace(",", "").trim());
+            }
+        } catch (Exception ignore) {
+        }
 
-        String error = null;
-        if (name.isEmpty()) error = "Vui lòng nhập tên biểu phí.";
-        else if (category.isEmpty()) error = "Vui lòng chọn phân loại phí.";
-        else if (amount == null || amount.signum() < 0) error = "Mức thu phải là số tiền hợp lệ (≥ 0).";
+        String error = Validator.name("Tên biểu phí", name, 3, 100);
+        if (error == null) {
+            error = Validator.amount(amount);
+        }
+        if (name.isEmpty()) {
+            error = "Vui lòng nhập tên biểu phí.";
+        } else if (category.isEmpty()) {
+            error = "Vui lòng chọn phân loại phí.";
+        } else if (amount == null || amount.signum() < 0) {
+            error = "Mức thu phải là số tiền hợp lệ (≥ 0).";
+        }
 
         if (error != null) {
             SessionUtil.flash(req, "danger", error);

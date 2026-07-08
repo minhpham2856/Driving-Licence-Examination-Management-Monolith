@@ -81,16 +81,10 @@
                     <file>${file.reference.log4j-api-2.22.1.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-<<<<<<< HEAD
-<<<<<<< HEAD
                 <library dirs="200">
                     <file>${file.reference.jakarta.servlet-api-5.0.0.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
-=======
->>>>>>> ccb33228b06ede3aff07241c19abf46421de45d0
-=======
->>>>>>> ccb33228b06ede3aff07241c19abf46421de45d0
             </web-module-libraries>
             <web-module-additional-libraries/>
             <source-roots>

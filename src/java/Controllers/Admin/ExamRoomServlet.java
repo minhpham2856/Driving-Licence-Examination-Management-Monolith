@@ -9,6 +9,7 @@ import Models.User;
 import Utils.AuditLogHelper;
 import Utils.Sanitize;
 import Utils.SessionUtil;
+import Utils.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,13 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Exam Room management (Phòng thi).
- * GET  /admin/exam-room                 -> list (filters: searchKeyword, filterArea, filterType, filterStatus)
- * POST /admin/exam-room?action=save     -> insert or update (modal form)
- * POST /admin/exam-room?action=delete   -> delete
- * Create/Edit/Detail use in-page modals, so no separate form page is needed.
- */
 @WebServlet(name = "ExamRoomServlet", urlPatterns = {"/admin/exam-room"})
 public class ExamRoomServlet extends HttpServlet {
 
@@ -33,7 +27,9 @@ public class ExamRoomServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
 
         String keyword = Sanitize.text(req.getParameter("searchKeyword"));
         Integer areaId = Sanitize.toIntegerOrNull(req.getParameter("filterArea"));
@@ -52,7 +48,9 @@ public class ExamRoomServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (!SessionUtil.requireAdmin(req, resp)) return;
+        if (!SessionUtil.requireAdmin(req, resp)) {
+            return;
+        }
         String action = Sanitize.text(req.getParameter("action"));
         User admin = SessionUtil.getCurrentUser(req);
 
@@ -82,11 +80,20 @@ public class ExamRoomServlet extends HttpServlet {
         int areaId = Sanitize.toInt(req.getParameter("examAreaId"), 0);
         boolean isEdit = id > 0;
 
-        String error = null;
-        if (name.isEmpty()) error = "Vui lòng nhập tên phòng thi.";
-        else if (type.isEmpty()) error = "Vui lòng chọn loại phòng.";
-        else if (status.isEmpty()) error = "Vui lòng chọn trạng thái.";
-        else if (areaId <= 0) error = "Vui lòng chọn khu vực thi.";
+        String error = Validator.name("Tên phòng thi", name, 3, 100);
+        if (error == null && capacity != null) {
+            error = Validator.intRange("Sức chứa", capacity, 0, 1000);
+        }
+
+        if (name.isEmpty()) {
+            error = "Vui lòng nhập tên phòng thi.";
+        } else if (type.isEmpty()) {
+            error = "Vui lòng chọn loại phòng.";
+        } else if (status.isEmpty()) {
+            error = "Vui lòng chọn trạng thái.";
+        } else if (areaId <= 0) {
+            error = "Vui lòng chọn khu vực thi.";
+        }
 
         if (error != null) {
             SessionUtil.flash(req, "danger", error);

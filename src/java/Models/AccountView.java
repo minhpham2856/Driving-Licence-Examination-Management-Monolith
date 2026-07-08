@@ -26,7 +26,7 @@ public class AccountView {
     /** accounts.jsp reads acc.role for the badge -> give it the UI code. */
     public String getRoleUi() { return getRoleCode(); }
     public String getStatus() { return active ? "active" : "inactive"; }
-    public String getDepartment() { return "â€”"; } // no column in DB
+    public String getDepartment() { return "-”"; } // no column in DB
 
     public int getUserId() { return userId; }
     public void setUserId(int v) { this.userId = v; }

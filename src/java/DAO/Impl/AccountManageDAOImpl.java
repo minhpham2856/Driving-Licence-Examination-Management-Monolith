@@ -54,8 +54,9 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
     @Override
     public int create(AccountView a, String passwordPlain, Integer actorId) {
         Connection conn = getConnection();
-        String userSql = "INSERT INTO [User] (Username, Email, PasswordHash, [Role], [Status], CreatedByUserId, UpdatedByUserId) " +
-                         "VALUES (?,?,?,?,?,?,?)";
+        // MustChangePassword = 1: tài khoản do Admin cấp phải đổi mật khẩu lần đầu.
+        String userSql = "INSERT INTO [User] (Username, Email, PasswordHash, [Role], [Status], MustChangePassword, CreatedByUserId, UpdatedByUserId) " +
+                         "VALUES (?,?,?,?,?,1,?,?)";
         String profSql = "INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address, UserId, CreatedByUserId, UpdatedByUserId) " +
                          "VALUES (?,?,?,?,?,?,?,?,?)";
         try {
@@ -64,7 +65,7 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
             try (PreparedStatement st = conn.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {
                 st.setString(1, a.getUsername());
                 st.setString(2, a.getEmail());
-                st.setString(3, passwordPlain);   // plain text (team convention)
+                st.setString(3, passwordPlain);   // plaintext (theo quy ước nhóm)
                 st.setString(4, a.getRole());
                 st.setBoolean(5, a.isActive());
                 setNullableInt(st, 6, actorId);
@@ -100,6 +101,7 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
 
     @Override
     public boolean update(AccountView a, String newPasswordOrNull, Integer actorId) {
+        // Giữ lại cho tương thích; luồng Admin hiện không dùng (đã bỏ nút Sửa).
         Connection conn = getConnection();
         try {
             conn.setAutoCommit(false);
@@ -116,7 +118,6 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
                 st.setInt(i, a.getUserId());
                 st.executeUpdate();
             }
-            // Update profile; if none exists yet, insert one.
             String updProf = "UPDATE Profile SET FullName=?, DateOfBirth=?, PhoneNumber=?, Sex=?, GovernmentIdNumber=?, Address=?, " +
                              "UpdatedAt=GETDATE(), UpdatedByUserId=? WHERE UserId=?";
             int affected;
@@ -158,6 +159,18 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
     }
 
     @Override
+    public boolean resetPassword(int userId, String newPasswordPlain, Integer actorId) {
+        String sql = "UPDATE [User] SET PasswordHash=?, MustChangePassword=1, UpdatedAt=GETDATE(), UpdatedByUserId=? WHERE UserId=?";
+        try (PreparedStatement st = getConnection().prepareStatement(sql)) {
+            st.setString(1, newPasswordPlain);
+            setNullableInt(st, 2, actorId);
+            st.setInt(3, userId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    @Override
     public boolean setStatus(int userId, boolean active, Integer actorId) {
         String sql = "UPDATE [User] SET [Status]=?, UpdatedAt=GETDATE(), UpdatedByUserId=? WHERE UserId=?";
         try (PreparedStatement st = getConnection().prepareStatement(sql)) {
@@ -184,7 +197,7 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
                 return n > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // FK from audit/createdBy/... will block -> false
+            e.printStackTrace();
             try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             return false;
         } finally {
@@ -194,28 +207,34 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
 
     @Override
     public boolean usernameExists(String username, int excludeUserId) {
-        return existsByCol("u.Username", username, excludeUserId, "[User] u");
+        return existsUser("u.Username", username, excludeUserId);
     }
 
     @Override
     public boolean emailExists(String email, int excludeUserId) {
-        return existsByCol("u.Email", email, excludeUserId, "[User] u");
+        return existsUser("u.Email", email, excludeUserId);
+    }
+
+    @Override
+    public boolean phoneExists(String phone, int excludeUserId) {
+        String sql = "SELECT COUNT(*) FROM Profile p WHERE p.PhoneNumber = ? AND p.UserId <> ?";
+        return countPositive(sql, phone, excludeUserId);
     }
 
     @Override
     public boolean govIdExists(String govId, int excludeUserId) {
         String sql = "SELECT COUNT(*) FROM Profile p WHERE p.GovernmentIdNumber = ? AND p.UserId <> ?";
-        try (PreparedStatement st = getConnection().prepareStatement(sql)) {
-            st.setString(1, govId); st.setInt(2, excludeUserId);
-            try (ResultSet rs = st.executeQuery()) { if (rs.next()) return rs.getInt(1) > 0; }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return false;
+        return countPositive(sql, govId, excludeUserId);
     }
 
-    private boolean existsByCol(String col, String val, int excludeUserId, String from) {
-        String sql = "SELECT COUNT(*) FROM " + from + " WHERE " + col + " = ? AND u.UserId <> ?";
+    private boolean existsUser(String col, String val, int excludeUserId) {
+        String sql = "SELECT COUNT(*) FROM [User] u WHERE " + col + " = ? AND u.UserId <> ?";
+        return countPositive(sql, val, excludeUserId);
+    }
+
+    private boolean countPositive(String sql, String val, int excludeId) {
         try (PreparedStatement st = getConnection().prepareStatement(sql)) {
-            st.setString(1, val); st.setInt(2, excludeUserId);
+            st.setString(1, val); st.setInt(2, excludeId);
             try (ResultSet rs = st.executeQuery()) { if (rs.next()) return rs.getInt(1) > 0; }
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
