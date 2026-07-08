@@ -54,7 +54,7 @@ public class ExamViewServiceImpl implements ExamViewService {
     private static final int THEORY_MAX_QUESTIONS = 35;
     private static final int AUDIT_PAGE_SIZE = 20;
     private final AuditService AuditService = new AuditServiceImpl();
-    private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
+//    private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
     private final CandidateAnswerDAO candidateAnswerDAO = new CandidateAnswerDAOImpl();
     private final QuestionDAO questionDAO = new QuestionDAOImpl();
@@ -87,7 +87,7 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     @Override
     public List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName) {
-        List<EnrollmentDTO> registrations = registrationService.getCandidatesBySession(sessionId);
+        List<EnrollmentDTO> enrollments = registrationService.getCandidatesBySession(sessionId);
         Map<Integer, int[]> theoryStats = examinerDataDAO.loadTheoryStatsBySession(sessionId);
         Map<Integer, Double> sectionScores = examinerDataDAO.loadSectionScoresBySession(sessionId, sectionName);
         Map<Integer, Boolean> passFlags = examinerDataDAO.loadPassFlagsBySession(sessionId);
@@ -95,8 +95,8 @@ public class ExamViewServiceImpl implements ExamViewService {
         String licenceClass = loadLicenceClass(sessionId);
         Map<Integer, String> deviceNames = examinerDataDAO.loadDeviceNamesBySession(sessionId);
         List<CandidateRowDTO> rows = new ArrayList<>();
-        for (EnrollmentDTO reg : registrations) {
-            rows.add(buildCandidateRow(reg, isTheory, theoryStats, sectionScores, passFlags,
+        for (EnrollmentDTO en : enrollments) {
+            rows.add(buildCandidateRow(en, isTheory, theoryStats, sectionScores, passFlags,
                     examDate, licenceClass, deviceNames));
         }
         return rows;

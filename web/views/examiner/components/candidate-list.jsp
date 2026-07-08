@@ -5,10 +5,6 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<c:set var="layoutCallQueue" value="${param.layoutCallQueue == 'true'}" />
-<c:set var="actionViewViolation" value="${param.actionViewViolation == 'true'}" />
-<c:set var="detailUrl" value="${requestScope.detailUrl}" />
-
 <c:set var="showCheckbox" value="${param.showCheckbox == 'true'}" />
 <c:set var="showCheckboxCall" value="${param.showCheckboxCall == 'true'}" />
 <c:set var="showName" value="${param.showName != 'false'}" />
@@ -16,15 +12,13 @@
 <c:set var="showDob" value="${param.showDob != 'false'}" />
 <c:set var="showGovId" value="${param.showGovId != 'false'}" />
 <c:set var="showAddress" value="${param.showAddress != 'false'}" />
-<c:if test="${layoutCallQueue}">
-    <c:set var="showAddress" value="false" />
-</c:if>
 <c:set var="showExamDate" value="${param.showExamDate == 'true'}" />
 <c:set var="showTheoryScores" value="${param.showTheoryScores == 'true'}" />
 <c:set var="showExamScore" value="${param.showExamScore == 'true'}" />
 <c:set var="showResult" value="${param.showResult == 'true'}" />
 <c:set var="showStatus" value="${param.showStatus == 'true'}" />
 
+<c:set var="actionAbsent" value="${param.actionAbsent == 'true'}" />
 <c:set var="actionSuspend" value="${param.actionSuspend == 'true'}" />
 <c:set var="actionCall" value="${param.actionCall == 'true'}" />
 <c:set var="actionDetail" value="${param.actionDetail == 'true'}" />
@@ -72,54 +66,38 @@
                         <th>SBD</th>
                         <th>Họ và tên</th>
                         </c:if>
-                    <c:if test="${layoutCallQueue}">
-                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="fullName"/><jsp:param name="label" value="Tên"/></jsp:include>
-                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="sbd"/><jsp:param name="label" value="SBD"/></jsp:include>
-                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="dob"/><jsp:param name="label" value="Ngày sinh"/></jsp:include>
-                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="governmentId"/><jsp:param name="label" value="Số căn cước"/></jsp:include>
-                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="status"/><jsp:param name="label" value="Tình trạng"/></jsp:include>
-                        <th>Gọi</th>
-                        <th>Điểm danh</th>
-                        <th>Sai TT</th>
-                        <th>Đình chỉ</th>
-                        <th>In KQ thi</th>
-                        <th>Hoàn tất</th>
-                    </c:if>
-                    <c:if test="${not layoutCallQueue}">
                         <c:if test="${not isQueueRow}">
                             <c:if test="${showName}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="fullName"/><jsp:param name="label" value="Tên"/></jsp:include></c:if>
                             <c:if test="${showSbd}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="sbd"/><jsp:param name="label" value="SBD"/></jsp:include></c:if>
                         </c:if>
 
-                        <c:if test="${showDob}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="dob"/><jsp:param name="label" value="Ngày sinh"/></jsp:include></c:if>
-                        <c:if test="${showAddress}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="address"/><jsp:param name="label" value="Địa chỉ"/></jsp:include></c:if>
+                    <c:if test="${showDob}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="dob"/><jsp:param name="label" value="Ngày sinh"/></jsp:include></c:if>
+                    <c:if test="${showAddress}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="address"/><jsp:param name="label" value="Địa chỉ"/></jsp:include></c:if>
 
-                        <c:if test="${isQueueRow}">
-                            <c:if test="${showGovId}"><th>Số căn cước</th></c:if>
-                            <c:if test="${showVehicle}"><th>Xe</th></c:if>
+                    <c:if test="${isQueueRow}">
+                        <c:if test="${showGovId}"><th>Số căn cước</th></c:if>
+                        <c:if test="${showVehicle}"><th>Xe</th></c:if>
                             <th>Tình trạng</th>
                         </c:if>
                         <c:if test="${not isQueueRow}">
                             <c:if test="${showGovId}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="governmentId"/><jsp:param name="label" value="Số CC"/></jsp:include></c:if>
                         </c:if>
 
-                        <c:if test="${showExamDate}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="examDate"/><jsp:param name="label" value="Ngày thi"/></jsp:include></c:if>
+                    <c:if test="${showExamDate}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="examDate"/><jsp:param name="label" value="Ngày thi"/></jsp:include></c:if>
 
-                        <c:if test="${showTheoryScores}">
-                            <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="correct"/><jsp:param name="label" value="Đúng"/></jsp:include>
-                            <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="wrong"/><jsp:param name="label" value="Sai"/></jsp:include>
-                            <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="unanswered"/><jsp:param name="label" value="Không TL"/></jsp:include>
-                        </c:if>
-
-                        <c:if test="${showExamScore}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="examScore"/><jsp:param name="label" value="Điểm thi"/></jsp:include></c:if>
-                        <c:if test="${showResult}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="result"/><jsp:param name="label" value="Kết quả"/></jsp:include></c:if>
-                        <c:if test="${showStatus}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="status"/><jsp:param name="label" value="Tình trạng"/></jsp:include></c:if>
-
-                        <c:if test="${actionSuspend}"><th>Đình chỉ</th></c:if>
-                        <c:if test="${actionCall or actionDetail or actionEditResult or actionCallScore}"><th>Thao tác</th></c:if>
+                    <c:if test="${showTheoryScores}">
+                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="correct"/><jsp:param name="label" value="Đúng"/></jsp:include>
+                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="wrong"/><jsp:param name="label" value="Sai"/></jsp:include>
+                        <jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="unanswered"/><jsp:param name="label" value="Không TL"/></jsp:include>
                     </c:if>
 
-                    <c:if test="${actionViewViolation}"><th>Vi phạm</th></c:if>
+                    <c:if test="${showExamScore}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="examScore"/><jsp:param name="label" value="Điểm thi"/></jsp:include></c:if>
+                    <c:if test="${showResult}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="result"/><jsp:param name="label" value="Kết quả"/></jsp:include></c:if>
+                    <c:if test="${showStatus}"><jsp:include page="/views/examiner/components/sort-th.jsp"><jsp:param name="sortColumn" value="status"/><jsp:param name="label" value="Tình trạng"/></jsp:include></c:if>
+
+                    <c:if test="${actionAbsent}"><th>Vắng</th></c:if>
+                    <c:if test="${actionSuspend}"><th>Đình chỉ</th></c:if>
+                    <c:if test="${actionCall or actionDetail or actionEditResult or actionCallScore}"><th>Thao tác</th></c:if>
                     </tr>
                 </thead>
                 <tbody>
@@ -144,95 +122,9 @@
                                     </c:if>
 
                                 <c:choose>
-                                    <c:when test="${layoutCallQueue}">
-                                        <td class="examiner-table__name">
-                                            <a href="${detailUrl}?sbd=${c.sbd}" class="examiner-table-link">${c.fullName}</a>
-                                        </td>
-                                        <td class="examiner-table__mono-md">
-                                            <a href="${detailUrl}?sbd=${c.sbd}" class="examiner-table-link">${c.sbd}</a>
-                                        </td>
-                                        <td class="examiner-table__mono-md">${c.dob}</td>
-                                        <td class="examiner-table__mono-md">
-                                            <a href="${detailUrl}?sbd=${c.sbd}" class="examiner-table-link">${c.governmentId}</a>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.status == 'done'}"><span class="examiner-tag examiner-tag--done">${c.statusLabel}</span></c:when>
-                                                <c:when test="${c.status == 'awaiting'}"><span class="examiner-tag examiner-tag--awaiting">${c.statusLabel}</span></c:when>
-                                                <c:when test="${c.status == 'testing'}"><span class="examiner-tag examiner-tag--testing">${c.statusLabel}</span></c:when>
-                                                <c:otherwise><span class="examiner-tag examiner-tag--pending">${c.statusLabel}</span></c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.callEligible}">
-                                                    <a href="${requestScope.pageUrl}?action=call&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--primary examiner-btn--compact">Gọi</a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Gọi</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.undoPresentEligible}">
-                                                    <a href="${requestScope.pageUrl}?action=undoPresent&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Hoàn tác</a>
-                                                </c:when>
-                                                <c:when test="${c.markPresentEligible}">
-                                                    <a href="${requestScope.pageUrl}?action=markPresent&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--orange examiner-btn--compact">Điểm danh</a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--orange examiner-btn--compact examiner-btn--disabled">Điểm danh</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.wrongInfoEligible}">
-                                                    <a href="${requestScope.pageUrl}?action=wrongInfo&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Sai TT</a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Sai TT</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.suspended}">
-                                                    <a href="${requestScope.violationDetailUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Chi tiết vi phạm</a>
-                                                </c:when>
-                                                <c:when test="${c.violationEligible}">
-                                                    <a href="${pageContext.request.contextPath}/views/examiner/violation-confirm?sbd=${c.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger examiner-btn--compact">Đình chỉ</a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Đình chỉ</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.status == 'awaiting' or c.status == 'done'}">
-                                                    <a href="${ctx}/examiner/print/docx?type=BB1&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact" target="_blank" rel="noopener">In KQ</a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">In KQ</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${c.completeEligible}">
-                                                    <a href="${requestScope.pageUrl}?action=completeSection&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--success examiner-btn--compact">Hoàn tất</a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--success examiner-btn--compact examiner-btn--disabled">Hoàn tất</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                    </c:when>
                                     <c:when test="${isQueueRow}">
-                                        <td class="score-entry-table__sbd"><a href="${requestScope.pageUrl}?sbd=${c.sbd}" class="examiner-table-link">${c.sbd}</a></td>
-                                        <td><a href="${requestScope.pageUrl}?sbd=${c.sbd}" class="examiner-table-link">${c.fullName}</a></td>
+                                        <td class="score-entry-table__sbd"><a href="${requestScope.pageUrl}?sbd=${c.sbd}" class="score-entry-queue-link">${c.sbd}</a></td>
+                                        <td><a href="${requestScope.pageUrl}?sbd=${c.sbd}" class="score-entry-queue-link">${c.fullName}</a></td>
                                         </c:when>
                                         <c:otherwise>
                                             <c:if test="${showName}"><td class="examiner-table__name">${c.fullName}</td></c:if>
@@ -240,7 +132,6 @@
                                     </c:otherwise>
                                 </c:choose>
 
-                                <c:if test="${not layoutCallQueue}">
                                 <c:if test="${showDob}"><td class="examiner-table__mono-md">${c.dob}</td></c:if>
                                 <c:if test="${showAddress}"><td>${c.address}</td></c:if>
 
@@ -253,6 +144,8 @@
                                                 <c:when test="${c.status == 'done'}"><span class="examiner-tag examiner-tag--done">${c.statusLabel}</span></c:when>
                                                 <c:when test="${c.status == 'awaiting'}"><span class="examiner-tag examiner-tag--awaiting">${c.statusLabel}</span></c:when>
                                                 <c:when test="${c.status == 'testing'}"><span class="examiner-tag examiner-tag--testing">${c.statusLabel}</span></c:when>
+                                                <c:when test="${c.status == 'absent'}"><span class="examiner-tag examiner-tag--fail">${c.statusLabel}</span></c:when>
+                                                <c:when test="${c.status == 'suspended'}"><span class="examiner-tag examiner-tag--suspended">${c.statusLabel}</span></c:when>
                                                 <c:otherwise><span class="examiner-tag examiner-tag--pending">${c.statusLabel}</span></c:otherwise>
                                             </c:choose>
                                         </td>
@@ -288,42 +181,47 @@
                                             <c:when test="${c.status == 'done'}"><span class="examiner-tag examiner-tag--done">${c.statusLabel}</span></c:when>
                                             <c:when test="${c.status == 'awaiting'}"><span class="examiner-tag examiner-tag--awaiting">${c.statusLabel}</span></c:when>
                                             <c:when test="${c.status == 'testing'}"><span class="examiner-tag examiner-tag--testing">${c.statusLabel}</span></c:when>
+                                            <c:when test="${c.status == 'absent'}"><span class="examiner-tag examiner-tag--fail">${c.statusLabel}</span></c:when>
+                                            <c:when test="${c.status == 'suspended'}"><span class="examiner-tag examiner-tag--suspended">${c.statusLabel}</span></c:when>
                                             <c:otherwise><span class="examiner-tag examiner-tag--pending">${c.statusLabel}</span></c:otherwise>
                                         </c:choose>
                                     </td>
                                 </c:if>
+
+                                <c:if test="${actionAbsent}">
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${c.absent}">
+                                                <a href="${requestScope.pageUrl}?action=undoAbsent&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Hoàn tác</a>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:choose>
+                                                    <c:when test="${c.markAbsentEligible}">
+                                                        <a href="${requestScope.pageUrl}?action=markAbsent&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--danger examiner-btn--compact">Vắng</a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Vắng</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
                                 </c:if>
 
-                                <c:if test="${actionSuspend and not layoutCallQueue}">
+                                <c:if test="${actionSuspend}">
                                     <td>
                                         <c:choose>
                                             <c:when test="${c.suspended}">
-                                                <a href="${requestScope.violationDetailUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Chi tiết vi phạm</a>
+                                                <a href="${requestScope.violationUndoUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Hoàn tác</a>
                                             </c:when>
-                                            <c:when test="${c.violationEligible}">
+                                            <c:otherwise>
                                                 <a href="${requestScope.violationConfirmUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--danger examiner-btn--compact">Đình chỉ</a>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Đình chỉ</span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
                                 </c:if>
 
-                                <c:if test="${actionViewViolation}">
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${c.suspended}">
-                                                <a href="${requestScope.violationDetailUrl}?sbd=${c.sbd}" class="examiner-btn examiner-btn--white examiner-btn--compact">Chi tiết vi phạm</a>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="examiner-text-muted">-</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                </c:if>
-
-                                <c:if test="${not layoutCallQueue and (actionCall or actionDetail or actionEditResult or actionCallScore)}">
+                                <c:if test="${actionCall or actionDetail or actionEditResult or actionCallScore}">
                                     <td>
                                         <c:if test="${actionCallScore}">
                                             <a href="${requestScope.pageUrl}?action=call&amp;sbd=${c.sbd}" class="examiner-btn examiner-btn--primary examiner-btn--sm">Gọi</a>

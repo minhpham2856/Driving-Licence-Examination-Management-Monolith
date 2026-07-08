@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -10,7 +10,7 @@
 <c:set var="pageUrl" value="${ctx}/views/examiner/violation-confirm?sbd=${sbdParam}" />
 <c:set var="exportExcelUrl" value="${ctx}/examiner/export/violations" />
 <c:set var="exportXmlUrl" value="${ctx}/examiner/export/violations/xml" />
-<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=violations" scope="request" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -30,7 +30,7 @@
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
-        <jsp:include page="/views/examiner/components/sidebar.jsp">
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="violations" />
         </jsp:include>
 
@@ -38,7 +38,7 @@
         <div class="examiner-shell">
 
             <!--header-->
-            <jsp:include page="/views/examiner/components/header.jsp" />
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <!--main content-->
             <main class="examiner-main examiner-main--scroll">

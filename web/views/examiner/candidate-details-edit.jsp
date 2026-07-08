@@ -1,12 +1,13 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="Chi tiết thí sinh" />
+<c:set var="headerTitle" value="Sửa thông tin" />
 <c:set var="backUrl" value="${ctx}/views/examiner/candidate-details" scope="request" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
 <c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
+<c:set var="resultUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -26,7 +27,7 @@
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
-        <jsp:include page="/views/examiner/components/sidebar.jsp">
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="candidate-details" />
         </jsp:include>
 
@@ -34,7 +35,7 @@
         <div class="examiner-shell">
 
             <!--header-->
-            <jsp:include page="/views/examiner/components/header.jsp" />
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <!--main content-->
             <main class="examiner-main examiner-main--scroll">
@@ -50,10 +51,11 @@
                     <jsp:param name="backClass" value="exr-back" />
                     <jsp:param name="btnBack" value="left" />
                     <jsp:param name="btnViewPaper" value="left" />
+                    <jsp:param name="btnEditResult" value="left" />
                     <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
-                <!--candidate detail (read-only)-->
+                <!--candidate form-->
                 <c:choose>
                     <c:when test="${empty candidate}">
                         <section class="examiner-card">
@@ -61,7 +63,9 @@
                         </section>
                     </c:when>
                     <c:otherwise>
-                        <div class="examiner-bento examiner-bento--form">
+                        <form action="${ctx}/views/examiner/candidate-details-edit" method="post" 
+                              class="examiner-bento examiner-bento--form">
+                            <input type="hidden" name="sbd" value="${candidate.sbd}">
 
                             <!--person card-->
                             <div class="examiner-bento__profile">
@@ -75,15 +79,18 @@
                             <!--info card-->
                             <div class="examiner-bento__detail">
 
+                                <!--header-->
                                 <div class="examiner-detail-section">
                                     <span class="examiner-detail-section__icon material-symbols-outlined">person</span>
                                     <span>THÔNG TIN CÁ NHÂN</span>
                                 </div>
 
+                                <!--info-->
                                 <div class="examiner-fields examiner-fields--form">
                                     <div class="examiner-field">
-                                        <p class="examiner-field__label">Họ và Tên</p>
-                                        <p class="examiner-field__value">${candidate.fullName}</p>
+                                        <label class="examiner-field__label" for="fullName">Họ và Tên</label>
+                                        <input type="text" id="fullName" name="fullName" class="exr-input" required
+                                               value="${candidate.fullName != '' ? candidate.fullName : ''}">
                                     </div>
 
                                     <div class="examiner-field">
@@ -94,42 +101,52 @@
                                     </div>
 
                                     <div class="examiner-field">
-                                        <p class="examiner-field__label">Số căn cước</p>
-                                        <p class="examiner-field__value examiner-field__value--mono">${candidate.governmentId}</p>
+                                        <label class="examiner-field__label" for="govIdNo">Số căn cước</label>
+                                        <input type="text" id="govIdNo" name="govIdNo" class="exr-input exr-input--mono" required
+                                               value="${candidate.governmentId != '' ? candidate.governmentId : ''}">
                                     </div>
 
                                     <div class="examiner-field">
-                                        <p class="examiner-field__label">Ngày sinh</p>
-                                        <p class="examiner-field__value examiner-field__value--mono">${candidate.dob}</p>
+                                        <label class="examiner-field__label" for="dateOfBirth">Ngày sinh</label>
+                                        <input type="date" id="dateOfBirth" name="dateOfBirth" class="exr-input exr-input--mono" required
+                                               value="${candidate.dobRaw}">
                                     </div>
 
                                     <div class="examiner-field">
-                                        <p class="examiner-field__label">Giới tính</p>
-                                        <p class="examiner-field__value">${candidate.sex}</p>
+                                        <label class="examiner-field__label" for="sex">Giới tính</label>
+                                        <select id="sex" name="sex" class="exr-select">
+                                            <option value="0" ${candidate.sexValue eq '0' ? 'selected' : ''}>Nam</option>
+                                            <option value="1" ${candidate.sexValue eq '1' ? 'selected' : ''}>Nữ</option>
+                                        </select>
                                     </div>
 
                                     <div class="examiner-field">
-                                        <p class="examiner-field__label">Số điện thoại</p>
-                                        <p class="examiner-field__value examiner-field__value--mono">${empty candidate.phoneNo ? '-' : candidate.phoneNo}</p>
+                                        <label class="examiner-field__label" for="phoneNo">Số điện thoại</label>
+                                        <input type="text" id="phoneNo" name="phoneNo" class="exr-input exr-input--mono"
+                                               value="${candidate.phoneNo}">
                                     </div>
 
                                     <div class="examiner-field">
-                                        <p class="examiner-field__label">Email</p>
-                                        <p class="examiner-field__value">${empty candidate.email ? '-' : candidate.email}</p>
+                                        <label class="examiner-field__label" for="email">Email</label>
+                                        <input type="email" id="email" name="email" class="exr-input"
+                                               value="${candidate.email}">
                                     </div>
 
                                     <div class="examiner-field examiner-field--full">
-                                        <p class="examiner-field__label">Địa chỉ</p>
-                                        <p class="examiner-field__value">${empty candidate.address ? '-' : candidate.address}</p>
+                                        <label class="examiner-field__label" for="address">Địa chỉ</label>
+                                        <input type="text" id="address" name="address" class="exr-input"
+                                               value="${candidate.address != '' ? candidate.address : ''}">
                                     </div>
 
-                                    <div class="examiner-field examiner-field--full">
-                                        <p class="examiner-field__label">Tình trạng</p>
-                                        <p class="examiner-field__value">${candidate.statusLabel}</p>
+                                    <div class="examiner-form-actions">
+                                        <button type="submit" class="examiner-btn examiner-btn--primary">
+                                            <span class="material-symbols-outlined">save</span>Lưu thông tin
+                                        </button>
+                                        <a href="${backUrl}" class="examiner-btn examiner-btn--white">Hủy</a>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
                     </c:otherwise>
                 </c:choose>
             </main>

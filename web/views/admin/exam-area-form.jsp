@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -15,11 +15,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <jsp:include page="/views/admin/components/admin-styles.jsp" />
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/admin/components/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-admin.jsp">
     <jsp:param name="activeSidebar" value="khu-vuc" />
 </jsp:include>
 
@@ -64,25 +65,14 @@
                            placeholder="VD: Khu vực sát hạch trung tâm Hà Nội" value="${area.areaName}" required>
                 </div>
 
-                <div class="input-group" style="margin-bottom: 1.25rem;">
-                    <label for="examZoneId" class="input-label">Khu vực (ExamZone) <span style="color:#dc2626;">*</span></label>
-                    <select id="examZoneId" name="examZoneId" class="input-field" required>
-                        <option value="">-- Chọn khu vực --</option>
-                        <c:forEach var="zone" items="${examZones}">
-                            <option value="${zone.examZoneId}" ${area.examZoneId eq zone.examZoneId ? 'selected' : ''}>${zone.zoneName}</option>
-                        </c:forEach>
-                    </select>
-                </div>
-
                 <div class="filter-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
                     <div class="input-group">
                         <label for="areaType" class="input-label">Loại khu vực <span style="color:#dc2626;">*</span></label>
                         <select id="areaType" name="areaType" class="input-field" required>
                             <option value="">-- Chọn loại --</option>
-                            <option value="Phòng thủ tục" ${area.areaType eq 'Phòng thủ tục' ? 'selected' : ''}>Phòng thủ tục</option>
-                            <option value="Phòng thi" ${area.areaType eq 'Phòng thi' ? 'selected' : ''}>Phòng thi</option>
-                            <option value="Sân thi" ${area.areaType eq 'Sân thi' ? 'selected' : ''}>Sân thi</option>
-                            <option value="Đường thi" ${area.areaType eq 'Đường thi' ? 'selected' : ''}>Đường thi</option>
+                            <option value="Lý thuyết" ${area.areaType eq 'Lý thuyết' ? 'selected' : ''}>Lý thuyết</option>
+                            <option value="Thực hành" ${area.areaType eq 'Thực hành' ? 'selected' : ''}>Thực hành</option>
+                            <option value="Hỗn hợp" ${area.areaType eq 'Hỗn hợp' ? 'selected' : ''}>Hỗn hợp</option>
                         </select>
                     </div>
                     <div class="input-group">

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="candidateName" value="${not empty param.candidateName ? param.candidateName : 'NGUYỄN MINH HOÀNG'}" />
@@ -18,13 +18,10 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@800&display=swap" rel="stylesheet">
-   
-        <jsp:include page="/views/exam/components/exam-styles.jsp">
-            <jsp:param name="pageCss" value="exam-candidate-info.css" />
-        </jsp:include>
-</head>
+        <link href="${pageContext.request.contextPath}/assets/css/exam-candidate-info.css" rel="stylesheet">
+    </head>
     <body>
-        <jsp:include page="/views/exam/components/header-exam-time.jsp">
+        <jsp:include page="/views/layout/header-exam-time.jsp">
             <jsp:param name="timeLeft" value="${timeLeft}" />
         </jsp:include>
 
@@ -124,7 +121,7 @@
             </div>
         </main>
 
-        <jsp:include page="/views/exam/components/footer-exam.jsp">
+        <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="" />
             <jsp:param name="noticeText" value="" />
 </body>

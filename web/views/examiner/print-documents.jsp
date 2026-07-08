@@ -1,9 +1,8 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="printDocxUrl" value="${ctx}/examiner/print/docx" />
 <c:set var="headerTitle" value="In văn bản" />
 
 <!--page-->
@@ -24,7 +23,7 @@
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
-        <jsp:include page="/views/examiner/components/sidebar.jsp">
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="print-documents" />
         </jsp:include>
 
@@ -32,7 +31,7 @@
         <div class="examiner-shell">
 
             <!--header-->
-            <jsp:include page="/views/examiner/components/header.jsp" />
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <!--main content-->
             <main class="examiner-main examiner-main--scroll">
@@ -56,7 +55,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="${printDocxUrl}?type=minutes" class="print-btn" target="_blank" rel="noopener">
+                            <a href="#" class="print-btn">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
@@ -73,7 +72,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="${printDocxUrl}?type=candidates" class="print-btn" target="_blank" rel="noopener">
+                            <a href="#" class="print-btn">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
@@ -90,7 +89,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="${printDocxUrl}?type=results" class="print-btn" target="_blank" rel="noopener">
+                            <a href="#" class="print-btn">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>
@@ -124,7 +123,7 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="${printDocxUrl}?type=violations" class="print-btn" target="_blank" rel="noopener">
+                            <a href="#" class="print-btn">
                                 <span class="material-symbols-outlined">print</span>
                                 <span class="print-btn__text">In</span>
                             </a>

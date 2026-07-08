@@ -1,13 +1,13 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 
-<jsp:include page="/views/landing/components/header.jsp">
+<jsp:include page="/views/layout/header.jsp">
     <jsp:param name="title" value="Lái Vui - Hạng GPLX" />
     <jsp:param name="activeNav" value="hang-bang" />
 </jsp:include>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/license-categories.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/license-categories.css">
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="searchQuery" value="${requestScope.searchQuery}" />

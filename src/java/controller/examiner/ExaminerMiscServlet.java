@@ -5,8 +5,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServlet;
 import service.ExamViewService;
+import dto.CandidateRowDTO;
 import service.impl.ExamViewServiceImpl;
+import service.CallService;
+import service.impl.CallServiceImpl;
 
 import java.io.IOException;
 import java.util.Map;
@@ -16,37 +20,74 @@ import java.util.Map;
     "/views/examiner/export",
     "/views/examiner/print-documents"
 })
-public class ExaminerMiscServlet extends BaseExaminerServlet {
-
+public class ExaminerMiscServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
+    protected final CallService callService = new CallServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = request.getSession(false);
         if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        Integer sessionId = getActiveSessionId(session);
+
+        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
         String path = stripContextPath(request);
-        Integer sbd = parseSbdParam(request.getParameter("sbd"));
+        Integer sbd = null;
+        try {
+            if (request.getParameter("sbd") != null) {
+                sbd = Integer.parseInt(request.getParameter("sbd").trim());
+            }
+        } catch (NumberFormatException e) {}
+        
         String search = request.getParameter("q");
+
         if (sessionId != null && sessionId > 0) {
             if ("/views/examiner/audit".equals(path)) {
                 Map<String, Object> data = viewDataService.getAuditLogsData(sessionId, request.getParameter("page"), search);
-                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                if (data != null) {
+                    for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                        request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                    }
                 }
             } else if ("/views/examiner/print-documents".equals(path)) {
-                applyCandidateListAttributes(request, session, viewDataService, sessionId, sbd, search);
+                boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
+                String sectionName = resolveSectionName(session);
+                
+                if (sbd != null && sbd > 0) {
+                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+                    if (candidate != null) {
+                        request.setAttribute("candidate", candidate);
+                    }
+                }
             }
         }
+
         String jsp = switch (path) {
             case "/views/examiner/audit" -> "/views/examiner/audit.jsp";
             case "/views/examiner/export" -> "/views/examiner/export.jsp";
             case "/views/examiner/print-documents" -> "/views/examiner/print-documents.jsp";
-            default -> "/views/examiner/dashboard.jsp";
+            default -> "/views/examiner/audit.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
+    }
+
+    private String stripContextPath(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String ctx = request.getContextPath();
+        if (ctx != null && !ctx.isEmpty() && uri.startsWith(ctx)) {
+            return uri.substring(ctx.length());
+        }
+        return uri;
+    }
+    
+    private String resolveSectionName(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object name = session.getAttribute("examSectionName");
+        return name != null ? String.valueOf(name) : null;
     }
 }

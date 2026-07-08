@@ -1,0 +1,381 @@
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+
+<c:set var="logoUrl" value="${ctx}/assets/imgs/LOGO.png" />
+
+<c:set var="activeSidebar" value="${param.activeSidebar}" />
+
+<c:if test="${empty activeSidebar}">
+
+    <c:choose>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard') or fn:contains(pageContext.request.requestURI, 'tong-quan')}">
+
+            <c:set var="activeSidebar" value="dashboard" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'upload') or fn:contains(pageContext.request.requestURI, 'tai-ds')}">
+
+            <c:set var="activeSidebar" value="tai-ds" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'examiner-allocation') or fn:contains(pageContext.request.requestURI, 'giam-khao')}">
+
+            <c:set var="activeSidebar" value="phan-bo-giam-khao" />
+
+        </c:when>
+
+        <c:when test="${(fn:contains(pageContext.request.requestURI, '/allocation') or fn:contains(pageContext.request.requestURI, 'phan-bo')) and not fn:contains(pageContext.request.requestURI, 'examiner-allocation')}">
+
+            <c:set var="activeSidebar" value="phan-bo" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'candidatecall') or fn:contains(pageContext.request.requestURI, 'goi-thi')}">
+
+            <c:set var="activeSidebar" value="goi-thi" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'procedure')}">
+
+            <c:set var="activeSidebar" value="goi-thi" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'report') or fn:contains(pageContext.request.requestURI, 'bao-cao')}">
+
+            <c:set var="activeSidebar" value="bao-cao" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'audit') or fn:contains(pageContext.request.requestURI, 'nhat-ky')}">
+
+            <c:set var="activeSidebar" value="nhat-ky" />
+
+        </c:when>
+
+        <c:otherwise>
+
+            <c:set var="activeSidebar" value="dashboard" />
+
+        </c:otherwise>
+
+    </c:choose>
+
+</c:if>
+
+<c:set var="staffName" value="${sessionScope.user.username}" />
+
+<c:if test="${not empty sessionScope.userProfile and not empty sessionScope.userProfile.fullName}">
+
+    <c:set var="staffName" value="${sessionScope.userProfile.fullName}" />
+
+</c:if>
+
+<aside class="side-nav-bar side-nav-bar--examiner side-nav-bar--examstaff" role="navigation" aria-label="Ban Sát Hạch">
+
+    <div class="side-nav-bar__brand">
+
+        <div class="side-nav-bar__brand-inner">
+
+            <img src="${logoUrl}" alt="Lái Vui" width="40" height="40" class="side-nav-bar__logo-img">
+
+            <div class="side-nav-bar__brand-title-wrap">
+
+                <h1 class="side-nav-bar__brand-title">Ban Sát Hạch</h1>
+
+                <p class="side-nav-bar__brand-subtitle"><c:out value="${staffName}" /></p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <c:set var="sidebarRedirect" value="${pageContext.request.servletPath}" />
+
+    <c:set var="sidebarOptions" value="${requestScope.examOptions}" />
+
+    <c:if test="${empty sidebarOptions}">
+
+        <c:set var="sidebarOptions" value="${sessionScope.examStaffExamOptions}" />
+
+    </c:if>
+
+    <c:set var="pickerSessionId" value="${param.sessionId}" />
+
+    <c:if test="${empty pickerSessionId}">
+
+        <c:set var="pickerSessionId" value="${requestScope.selectedSessionId}" />
+
+    </c:if>
+
+    <c:if test="${empty pickerSessionId}">
+
+        <c:set var="pickerSessionId" value="${sessionScope.selectedSessionId}" />
+
+    </c:if>
+
+    <c:set var="pickerExamId" value="${requestScope.selectedExamId}" />
+
+    <c:set var="navSessionId" value="${requestScope.selectedSessionId}" />
+
+    <c:if test="${empty navSessionId}">
+
+        <c:set var="navSessionId" value="${pickerSessionId}" />
+
+    </c:if>
+
+    <c:if test="${empty navSessionId}">
+
+        <c:set var="navSessionId" value="${sessionScope.selectedSessionId}" />
+
+    </c:if>
+
+    <c:set var="sessionQuery" value="" />
+
+    <c:if test="${not empty navSessionId}">
+
+        <c:set var="sessionQuery" value="?sessionId=${navSessionId}" />
+
+    </c:if>
+
+    <div class="side-nav-bar__session-picker">
+
+        <form method="GET" action="${ctx}/views/staff/examstaff/select-session" class="side-nav-bar__session-form">
+
+            <input type="hidden" name="redirect" value="<c:out value='${sidebarRedirect}' />" />
+
+            <label class="side-nav-bar__session-label" for="sessionId">Kỳ thi</label>
+
+            <select id="sessionId" name="sessionId" class="side-nav-bar__session-select"
+
+                    aria-label="Chọn kỳ thi" data-exam-picker="true"
+
+                    data-selected-exam-id="${pickerExamId}"
+
+                    data-committed-session-id="${not empty requestScope.pickerCommittedSessionId ? requestScope.pickerCommittedSessionId : navSessionId}"
+
+                    data-committed-exam-id="${not empty requestScope.pickerCommittedExamId ? requestScope.pickerCommittedExamId : pickerExamId}"
+
+                    onchange="if(window.syncExamStaffSessionApply){window.syncExamStaffSessionApply(this);}">
+
+                <c:if test="${empty sidebarOptions}">
+
+                    <option value="">— Chưa có kỳ thi —</option>
+
+                </c:if>
+
+                <c:forEach var="exam" items="${sidebarOptions}" varStatus="optSt">
+
+                    <option value="${exam.id}" data-exam-id="${exam.examId}"
+
+                            <c:choose>
+                                <c:when test="${not empty requestScope.pickerCommittedExamId}">
+                                    <c:if test="${exam.examId == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
+                                </c:when>
+                                <c:when test="${not empty requestScope.pickerCommittedSessionId}">
+                                    <c:if test="${exam.id == requestScope.pickerCommittedSessionId}">selected="selected"</c:if>
+                                </c:when>
+                                <c:when test="${not empty pickerSessionId or not empty pickerExamId}">
+                                    <c:if test="${pickerSessionId == exam.id or pickerExamId == exam.examId}">selected="selected"</c:if>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:if test="${optSt.first}">selected="selected"</c:if>
+                                </c:otherwise>
+                            </c:choose>>
+
+                        Hạng <c:out value="${exam.licenseCode}" default="—" /> —
+
+                        <c:if test="${not empty exam.examDate}"><fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy" /></c:if>
+
+                        <c:if test="${empty exam.examDate}">—</c:if>
+
+                    </option>
+
+                </c:forEach>
+
+            </select>
+
+            <button type="submit" class="side-nav-bar__session-apply" data-session-apply="true"
+
+                    data-loading-label="Đang tải..."
+
+                    data-default-label="Xác nhận"
+
+                    aria-label="Xác nhận đổi kỳ thi">Xác nhận</button>
+
+        </form>
+
+    </div>
+
+    <nav class="side-nav-bar__menu">
+
+        <a href="${ctx}/views/staff/examstaff/dashboard${sessionQuery}"
+
+           class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">grid_view</span>
+
+            <span class="side-nav-bar__label">Tổng quan ca thi</span>
+
+        </a>
+
+        <a href="${ctx}/views/staff/examstaff/upload${sessionQuery}"
+
+           class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">upload_file</span>
+
+            <span class="side-nav-bar__label">Tải danh sách thi</span>
+
+        </a>
+
+        <c:set var="allocUri" value="${pageContext.request.requestURI}" />
+
+        <c:set var="allocOpen" value="${(fn:contains(allocUri, '/allocation') or fn:contains(allocUri, 'phan-bo')) and not fn:contains(allocUri, 'examiner-allocation')}" />
+
+        <div class="side-nav-bar__menu-group is-open" data-allocation-menu>
+
+            <button type="button" class="side-nav-bar__link side-nav-bar__link--toggle${activeSidebar eq 'phan-bo' ? ' is-active' : ''}"
+
+                    aria-expanded="true" aria-controls="allocation-submenu"
+                    data-allocation-overview-url="${ctx}/views/staff/examstaff/allocation${sessionQuery}">
+
+                <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">view_module</span>
+
+                <span class="side-nav-bar__label">Phân bổ thí sinh</span>
+
+                <span class="side-nav-bar__chevron" aria-hidden="true">
+
+                    <span class="material-symbols-outlined">expand_more</span>
+
+                </span>
+
+            </button>
+
+            <div id="allocation-submenu" class="side-nav-bar__submenu">
+
+                <a href="${ctx}/views/staff/examstaff/allocation${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${(fn:contains(allocUri, '/allocation') and not fn:contains(allocUri, 'allocation-')) ? ' is-active' : ''}"><span class="submenu-dot"></span> Tổng quan</a>
+
+                <a href="${ctx}/views/staff/examstaff/allocation-waiting${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-waiting') ? ' is-active' : ''}"><span class="submenu-dot"></span> Phòng chờ</a>
+
+                <a href="${ctx}/views/staff/examstaff/allocation-theory${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-theory') ? ' is-active' : ''}"><span class="submenu-dot"></span> Lý thuyết</a>
+
+                <a href="${ctx}/views/staff/examstaff/allocation-practical${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-practical') ? ' is-active' : ''}"><span class="submenu-dot"></span> TH / Sa hình</a>
+
+                <a href="${ctx}/views/staff/examstaff/allocation-road${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-road') ? ' is-active' : ''}"><span class="submenu-dot"></span> Đường trường</a>
+
+                <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-pass') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Đỗ</a>
+
+                <a href="${ctx}/views/staff/examstaff/allocation-results-fail${sessionQuery}"
+
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-fail') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Trượt</a>
+
+            </div>
+
+        </div>
+
+        <a href="${ctx}/views/staff/examstaff/examiner-allocation${sessionQuery}"
+
+           class="side-nav-bar__link${activeSidebar eq 'phan-bo-giam-khao' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'phan-bo-giam-khao'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">supervisor_account</span>
+
+            <span class="side-nav-bar__label">Phân bổ giám khảo</span>
+
+        </a>
+
+        <a href="${ctx}/views/staff/examstaff/candidatecall${sessionQuery}"
+
+           class="side-nav-bar__link${activeSidebar eq 'goi-thi' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'goi-thi'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">campaign</span>
+
+            <span class="side-nav-bar__label">Gọi làm thủ tục</span>
+
+        </a>
+
+        <a href="${ctx}/views/staff/examstaff/report${sessionQuery}"
+
+           class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'bao-cao'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">bar_chart</span>
+
+            <span class="side-nav-bar__label">Báo cáo cuối ngày</span>
+
+        </a>
+
+        <a href="${ctx}/views/staff/examstaff/audit${sessionQuery}"
+
+           class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'nhat-ky'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">history</span>
+
+            <span class="side-nav-bar__label">Nhật ký cá nhân</span>
+
+        </a>
+
+        <div class="side-nav-bar__section-label">Màn hình công cộng</div>
+
+        <a href="${ctx}/views/public/public-call<c:if test="${not empty sessionScope.selectedSessionId}">?sessionId=${sessionScope.selectedSessionId}</c:if>"
+
+           class="side-nav-bar__link${activeSidebar eq 'public-call' ? ' is-active' : ''}"
+
+           <c:if test="${activeSidebar eq 'public-call'}">aria-current="page"</c:if>>
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">live_tv</span>
+
+            <span class="side-nav-bar__label">Màn hình gọi TV</span>
+
+        </a>
+
+    </nav>
+
+    <div class="side-nav-bar__footer">
+
+        <a href="${ctx}/logout" class="side-nav-bar__logout">
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">logout</span>
+
+            <span class="side-nav-bar__logout-label">Đăng xuất</span>
+
+        </a>
+
+    </div>
+
+</aside>

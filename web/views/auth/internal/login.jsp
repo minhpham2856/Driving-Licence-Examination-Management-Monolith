@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -13,14 +13,15 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <jsp:include page="/views/landing/components/landing-styles.jsp">
-            <jsp:param name="pageCss" value="login.css" />
-        </jsp:include>
+        <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
     </head>
 
     <body class="${bodyClass}">
 
-        <main class="login-page-main login-page-main--standalone">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+
+        <main class="login-page-main">
             <div class="login-card-container" style="max-width: 540px; min-height: auto;">
 
 
