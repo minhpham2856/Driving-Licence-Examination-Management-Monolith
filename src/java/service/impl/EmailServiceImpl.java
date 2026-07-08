@@ -1,4 +1,5 @@
 package service.impl;
+
 import service.EmailService;
 import util.ConfigManager;
 import jakarta.mail.*;
@@ -8,7 +9,9 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 public class EmailServiceImpl implements EmailService {
+
     private static final Logger LOG = Logger.getLogger(EmailServiceImpl.class.getName());
     private static final String MAIL_HOST = ConfigManager.get("MAIL_SMTP_HOST", "smtp.gmail.com");
     private static final String MAIL_PORT = ConfigManager.get("MAIL_SMTP_PORT", "587");
@@ -17,9 +20,11 @@ public class EmailServiceImpl implements EmailService {
     private Properties props;
     private String senderUsername;
     private String senderPassword;
+
     public EmailServiceImpl() {
         loadConfiguration();
     }
+
     private void loadConfiguration() {
         props = new Properties();
         props.put("mail.smtp.host", MAIL_HOST);
@@ -34,19 +39,23 @@ public class EmailServiceImpl implements EmailService {
         senderUsername = normalize(MAIL_USERNAME);
         senderPassword = normalizeAppPassword(MAIL_PASSWORD);
     }
+
     @Override
     public boolean isConfigured() {
         return senderUsername != null && !senderUsername.isEmpty()
                 && senderPassword != null && !senderPassword.isEmpty();
     }
+
     @Override
     public boolean sendTextEmail(String to, String subject, String content) {
         return sendEmail(to, subject, content, false);
     }
+
     @Override
     public boolean sendHtmlEmail(String to, String subject, String htmlContent) {
         return sendEmail(to, subject, htmlContent, true);
     }
+
     private boolean sendEmail(String to, String subject, String body, boolean isHtml) {
         loadConfiguration();
         if (!isConfigured()) {
@@ -81,9 +90,11 @@ public class EmailServiceImpl implements EmailService {
             return false;
         }
     }
+
     private static String normalize(String value) {
         return value == null ? null : value.trim();
     }
+
     private static String normalizeAppPassword(String value) {
         if (value == null) {
             return null;
