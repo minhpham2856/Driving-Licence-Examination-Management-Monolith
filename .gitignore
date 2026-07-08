@@ -10,7 +10,13 @@ AGENTS.md
 skills-lock.json
 sources.txt
 .agents/
-
+.cursor/
 private/
 build/
 out/
+nbproject/build-impl.xml~
+**/*.backup
+**/*_clean.java
+dump_for_manual.txt
+mappings.json
+web/WEB-INF/others/sql/seed_sbd001_theory_test.sql
