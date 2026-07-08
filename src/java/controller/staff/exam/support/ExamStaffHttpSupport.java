@@ -3,8 +3,8 @@ package controller.staff.exam.support;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import repository.CallBoardRepository;
-import repository.ServletContextCallBoardRepository;
+import dao.CallBoardDAO;
+import dao.impl.ServletContextCallBoardDAO;
 
 public final class ExamStaffHttpSupport {
 
@@ -58,8 +58,8 @@ public final class ExamStaffHttpSupport {
                 return id;
             }
         }
-        CallBoardRepository repository = new ServletContextCallBoardRepository(request.getServletContext());
-        Integer active = repository.getActiveSessionId();
+        CallBoardDAO callBoardDAO = new ServletContextCallBoardDAO(request.getServletContext());
+        Integer active = callBoardDAO.getActiveSessionId();
         return active != null ? active : 0;
     }
 

@@ -1,9 +1,9 @@
 package service.impl;
 
+import dao.CallBoardDAO;
 import dto.examstaff.CandidateCallBoardStateDTO;
 import dto.exam.ExamRegistrationDTO;
 import model.view.CallBoardState;
-import repository.CallBoardRepository;
 import service.CallBoardSyncService;
 import service.CandidateCallBoardService;
 
@@ -14,27 +14,27 @@ public class CandidateCallBoardServiceImpl implements CandidateCallBoardService 
     private final CallBoardSyncService syncService = new CallBoardSyncServiceImpl();
 
     @Override
-    public CandidateCallBoardStateDTO getState(CallBoardRepository repository, int examSessionId) {
-        CallBoardState state = syncService.getState(repository, examSessionId);
+    public CandidateCallBoardStateDTO getState(CallBoardDAO callBoardDAO, int examSessionId) {
+        CallBoardState state = syncService.getState(callBoardDAO, examSessionId);
         return state != null ? toDto(state) : null;
     }
 
     @Override
-    public void sync(CallBoardRepository repository, int examSessionId, String callingSbd,
+    public void sync(CallBoardDAO callBoardDAO, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        syncService.sync(repository, examSessionId, callingSbd, queue, shiftEnded);
+        syncService.sync(callBoardDAO, examSessionId, callingSbd, queue, shiftEnded);
     }
 
     @Override
-    public void occupyDesk(CallBoardRepository repository, int examSessionId, String deskSbd,
+    public void occupyDesk(CallBoardDAO callBoardDAO, int examSessionId, String deskSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        syncService.occupyDesk(repository, examSessionId, deskSbd, queue, shiftEnded);
+        syncService.occupyDesk(callBoardDAO, examSessionId, deskSbd, queue, shiftEnded);
     }
 
     @Override
-    public void releaseDeskAndCall(CallBoardRepository repository, int examSessionId, String callingSbd,
+    public void releaseDeskAndCall(CallBoardDAO callBoardDAO, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        syncService.releaseDeskAndCall(repository, examSessionId, callingSbd, queue, shiftEnded);
+        syncService.releaseDeskAndCall(callBoardDAO, examSessionId, callingSbd, queue, shiftEnded);
     }
 
     private static CandidateCallBoardStateDTO toDto(CallBoardState state) {

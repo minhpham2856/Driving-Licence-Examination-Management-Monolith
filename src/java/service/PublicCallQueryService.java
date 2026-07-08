@@ -2,7 +2,6 @@ package service;
 
 import dto.examstaff.PublicCallSnapshotDTO;
 import model.view.CallBoardState;
-import repository.CallBoardRepository;
 
 public interface PublicCallQueryService {
 

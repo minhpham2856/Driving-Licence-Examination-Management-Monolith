@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import repository.ServletContextCallBoardRepository;
+import dao.impl.ServletContextCallBoardDAO;
 import service.AllocationActionService;
 import service.AllocationStageViewService;
 import service.CandidateCallBoardService;
@@ -169,7 +169,7 @@ public class AllocationServlet extends HttpServlet {
                             AllocationActionResultBinder.apply(request, session, actionResult);
                             if (actionResult.isSyncCallBoard()) {
                                 boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
-                                callBoardService.sync(new ServletContextCallBoardRepository(getServletContext()),
+                                callBoardService.sync(new ServletContextCallBoardDAO(getServletContext()),
                                         sessionId, actionResult.getCallingSbd(), null, shiftEnded);
                             }
                             servletPath = actionResult.getRedirectServletPath();
@@ -204,7 +204,7 @@ public class AllocationServlet extends HttpServlet {
             ExamStaffViewHelper.consumeFlash(session, "allocationFlashWarn", request, "warningMsg");
 
             CandidateCallBoardStateDTO state = callBoardService.getState(
-                    new ServletContextCallBoardRepository(getServletContext()), sessionId);
+                    new ServletContextCallBoardDAO(getServletContext()), sessionId);
             if (state != null) {
                 String callingSbd = (String) session.getAttribute("callingSbd");
                 if (callingSbd != null) {

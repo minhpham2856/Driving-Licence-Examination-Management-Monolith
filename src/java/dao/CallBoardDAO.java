@@ -1,11 +1,12 @@
-package repository;
+package dao;
 
 import model.view.CallBoardState;
 
-import java.util.Map;
-
-/** Lưu trữ trạng thái bảng gọi — triển khai hạ tầng (ServletContext) nằm ngoài service. */
-public interface CallBoardRepository {
+/**
+ * Data-access for runtime candidate-call board state.
+ * Persistence may be in-memory (ServletContext) rather than SQL.
+ */
+public interface CallBoardDAO {
 
     CallBoardState getState(int examSessionId);
 

@@ -8,8 +8,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.view.CallBoardState;
-import repository.CallBoardRepository;
-import repository.ServletContextCallBoardRepository;
+import dao.CallBoardDAO;
+import dao.impl.ServletContextCallBoardDAO;
 import service.CallBoardSyncService;
 import service.ExamStaffServices;
 import service.PublicCallQueryService;
@@ -40,8 +40,8 @@ public class PublicCallServlet extends HttpServlet {
         Utf8EncodingHelper.apply(request, response);
 
         int sessionId = ExamStaffHttpSupport.resolveActiveSessionId(request);
-        CallBoardRepository repository = new ServletContextCallBoardRepository(getServletContext());
-        CallBoardState board = callBoardSyncService.getState(repository, sessionId);
+        CallBoardDAO callBoardDAO = new ServletContextCallBoardDAO(getServletContext());
+        CallBoardState board = callBoardSyncService.getState(callBoardDAO, sessionId);
         PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(
                 sessionId, request.getServletContext().getRealPath("/"), board);
 

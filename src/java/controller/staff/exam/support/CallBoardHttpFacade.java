@@ -1,17 +1,17 @@
 package controller.staff.exam.support;
 
+import dao.CallBoardDAO;
+import dao.impl.ServletContextCallBoardDAO;
 import dto.exam.ExamRegistrationDTO;
 import jakarta.servlet.ServletContext;
 import model.view.CallBoardState;
-import repository.CallBoardRepository;
-import repository.ServletContextCallBoardRepository;
 import service.CallBoardSyncService;
 import service.ExamStaffServices;
 import util.examstaff.CallQueueRules;
 
 import java.util.List;
 
-/** Cầu nối HTTP → repository → service (CallBoard). Controller chỉ dùng lớp này. */
+/** HTTP edge → CallBoardDAO → CallBoardSyncService. Controllers use this facade only. */
 public final class CallBoardHttpFacade {
 
     private CallBoardHttpFacade() {
@@ -21,15 +21,15 @@ public final class CallBoardHttpFacade {
         return ExamStaffServices.get().callBoardSync();
     }
 
-    public static CallBoardRepository repository(ServletContext ctx) {
-        return new ServletContextCallBoardRepository(ctx);
+    public static CallBoardDAO dao(ServletContext ctx) {
+        return new ServletContextCallBoardDAO(ctx);
     }
 
     public static CallBoardState getState(ServletContext ctx, int examSessionId) {
         if (ctx == null || examSessionId <= 0) {
             return null;
         }
-        return sync().getState(repository(ctx), examSessionId);
+        return sync().getState(dao(ctx), examSessionId);
     }
 
     public static void sync(ServletContext ctx, int examSessionId, String callingSbd,
@@ -37,7 +37,7 @@ public final class CallBoardHttpFacade {
         if (ctx == null || examSessionId <= 0) {
             return;
         }
-        sync().sync(repository(ctx), examSessionId, callingSbd, queue, shiftEnded);
+        sync().sync(dao(ctx), examSessionId, callingSbd, queue, shiftEnded);
     }
 
     public static void occupyDesk(ServletContext ctx, int examSessionId, String deskSbd,
@@ -45,7 +45,7 @@ public final class CallBoardHttpFacade {
         if (ctx == null || examSessionId <= 0) {
             return;
         }
-        sync().occupyDesk(repository(ctx), examSessionId, deskSbd, queue, shiftEnded);
+        sync().occupyDesk(dao(ctx), examSessionId, deskSbd, queue, shiftEnded);
     }
 
     public static void releaseDeskAndCall(ServletContext ctx, int examSessionId, String callingSbd,
@@ -53,7 +53,7 @@ public final class CallBoardHttpFacade {
         if (ctx == null || examSessionId <= 0) {
             return;
         }
-        sync().releaseDeskAndCall(repository(ctx), examSessionId, callingSbd, queue, shiftEnded);
+        sync().releaseDeskAndCall(dao(ctx), examSessionId, callingSbd, queue, shiftEnded);
     }
 
     public static void syncFromSession(ServletContext ctx, int examSessionId, String callingSbd,
@@ -65,7 +65,7 @@ public final class CallBoardHttpFacade {
         CallBoardState state = getState(ctx, examSessionId);
         if (state != null) {
             state.setShiftEnded(false);
-            repository(ctx).saveState(examSessionId, state);
+            dao(ctx).saveState(examSessionId, state);
         }
     }
 

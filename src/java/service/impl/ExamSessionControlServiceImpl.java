@@ -1,8 +1,8 @@
 // Forced recompilation trigger
 package service.impl;
 
-import repository.CallBoardRepository;
-import repository.ServletContextCallBoardRepository;
+import dao.CallBoardDAO;
+import dao.impl.ServletContextCallBoardDAO;
 import service.CallBoardSyncService;
 import service.impl.CallBoardSyncServiceImpl;
 import service.ExamSessionControlService;
@@ -88,8 +88,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
             if (active != null && active == sessionId) {
                 ctx.removeAttribute(CTX_ACTIVE_SESSION_ID);
             }
-            CallBoardRepository repository = new ServletContextCallBoardRepository(ctx);
-            callBoardSyncService.sync(repository, sessionId, null, null, true);
+            CallBoardDAO callBoardDAO = new ServletContextCallBoardDAO(ctx);
+            callBoardSyncService.sync(callBoardDAO, sessionId, null, null, true);
         }
         if (httpSession != null) {
             Integer selected = (Integer) httpSession.getAttribute("selectedSessionId");

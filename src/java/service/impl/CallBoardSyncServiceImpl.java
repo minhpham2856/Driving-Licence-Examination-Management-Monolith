@@ -1,8 +1,8 @@
 package service.impl;
 
+import dao.CallBoardDAO;
 import dto.exam.ExamRegistrationDTO;
 import model.view.CallBoardState;
-import repository.CallBoardRepository;
 import service.CallBoardSyncService;
 import util.examstaff.CallBoardRules;
 import util.examstaff.CallQueueRules;
@@ -12,38 +12,38 @@ import java.util.List;
 public class CallBoardSyncServiceImpl implements CallBoardSyncService {
 
     @Override
-    public CallBoardState getState(CallBoardRepository repository, int examSessionId) {
-        return repository.getState(examSessionId);
+    public CallBoardState getState(CallBoardDAO callBoardDAO, int examSessionId) {
+        return callBoardDAO.getState(examSessionId);
     }
 
     @Override
-    public void sync(CallBoardRepository repository, int examSessionId, String callingSbd,
+    public void sync(CallBoardDAO callBoardDAO, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         CallBoardState updated = CallBoardRules.syncBoard(
-                repository.getState(examSessionId), examSessionId, callingSbd, queue, shiftEnded);
-        repository.saveState(examSessionId, updated);
-        repository.setActiveSessionId(examSessionId);
+                callBoardDAO.getState(examSessionId), examSessionId, callingSbd, queue, shiftEnded);
+        callBoardDAO.saveState(examSessionId, updated);
+        callBoardDAO.setActiveSessionId(examSessionId);
     }
 
     @Override
-    public void occupyDesk(CallBoardRepository repository, int examSessionId, String deskSbd,
+    public void occupyDesk(CallBoardDAO callBoardDAO, int examSessionId, String deskSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         if (examSessionId <= 0 || deskSbd == null || deskSbd.isBlank()) {
             return;
         }
         CallBoardState updated = CallBoardRules.occupyDesk(
-                repository.getState(examSessionId), examSessionId, deskSbd, queue, shiftEnded);
-        repository.saveState(examSessionId, updated);
-        repository.setActiveSessionId(examSessionId);
+                callBoardDAO.getState(examSessionId), examSessionId, deskSbd, queue, shiftEnded);
+        callBoardDAO.saveState(examSessionId, updated);
+        callBoardDAO.setActiveSessionId(examSessionId);
     }
 
     @Override
-    public void releaseDeskAndCall(CallBoardRepository repository, int examSessionId, String callingSbd,
+    public void releaseDeskAndCall(CallBoardDAO callBoardDAO, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         CallBoardState updated = CallBoardRules.releaseDeskAndCall(
-                repository.getState(examSessionId), examSessionId, callingSbd, queue, shiftEnded);
-        repository.saveState(examSessionId, updated);
-        repository.setActiveSessionId(examSessionId);
+                callBoardDAO.getState(examSessionId), examSessionId, callingSbd, queue, shiftEnded);
+        callBoardDAO.saveState(examSessionId, updated);
+        callBoardDAO.setActiveSessionId(examSessionId);
     }
 
     @Override

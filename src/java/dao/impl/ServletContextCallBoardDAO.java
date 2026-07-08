@@ -1,18 +1,19 @@
-package repository;
+package dao.impl;
 
-import model.view.CallBoardState;
-
+import dao.CallBoardAttributeKeys;
+import dao.CallBoardDAO;
 import jakarta.servlet.ServletContext;
+import model.view.CallBoardState;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Lưu CallBoardState trên ServletContext — chỉ controller khởi tạo. */
-public class ServletContextCallBoardRepository implements CallBoardRepository {
+/** Stores CallBoardState on ServletContext — constructed at the controller/HTTP edge. */
+public class ServletContextCallBoardDAO implements CallBoardDAO {
 
     private final ServletContext servletContext;
 
-    public ServletContextCallBoardRepository(ServletContext servletContext) {
+    public ServletContextCallBoardDAO(ServletContext servletContext) {
         this.servletContext = servletContext;
     }
 
@@ -32,12 +33,12 @@ public class ServletContextCallBoardRepository implements CallBoardRepository {
 
     @Override
     public void setActiveSessionId(int examSessionId) {
-        servletContext.setAttribute(CallBoardRepositoryKeys.ACTIVE_SESSION_ID, examSessionId);
+        servletContext.setAttribute(CallBoardAttributeKeys.ACTIVE_SESSION_ID, examSessionId);
     }
 
     @Override
     public Integer getActiveSessionId() {
-        Object value = servletContext.getAttribute(CallBoardRepositoryKeys.ACTIVE_SESSION_ID);
+        Object value = servletContext.getAttribute(CallBoardAttributeKeys.ACTIVE_SESSION_ID);
         if (value instanceof Integer id && id > 0) {
             return id;
         }
@@ -47,10 +48,10 @@ public class ServletContextCallBoardRepository implements CallBoardRepository {
     @SuppressWarnings("unchecked")
     private Map<Integer, CallBoardState> boards() {
         Map<Integer, CallBoardState> boards = (Map<Integer, CallBoardState>) servletContext
-                .getAttribute(CallBoardRepositoryKeys.BOARDS_MAP);
+                .getAttribute(CallBoardAttributeKeys.BOARDS_MAP);
         if (boards == null) {
             boards = new ConcurrentHashMap<>();
-            servletContext.setAttribute(CallBoardRepositoryKeys.BOARDS_MAP, boards);
+            servletContext.setAttribute(CallBoardAttributeKeys.BOARDS_MAP, boards);
         }
         return boards;
     }
