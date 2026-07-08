@@ -1,29 +1,19 @@
 package controller.staff.exam;
 
-import controller.staff.exam.CandidateCallBoard;
-import service.ExamRegistrationService;
-
-import service.impl.ExamRegistrationServiceImpl;
-
-import dao.PaymentDAO;
-
-import dao.ExamSessionDAO;
-
-import dao.impl.ExamSessionDAOImpl;
-
-import dao.impl.PaymentDAOImpl;
-
-import dto.exam.ExamRegistrationDTO;
+import controller.staff.exam.support.CallBoardHttpFacade;
+import controller.staff.exam.support.StaffAuditLogSupport;
 import dto.SessionDTO;
-
-import model.Payment;
-
-import service.ExaminerAllocationService;
-import service.impl.ExaminerAllocationServiceImpl;
-
-import dto.AutoAllocateResultDTO;
-
+import dto.exam.ExamRegistrationDTO;
+import dto.examstaff.ProcedurePaymentOutcomeDTO;
+import dto.examstaff.ProcedurePhotoSaveOutcomeDTO;
+import dto.examstaff.ProcedureProfilePrepareResultDTO;
+import dto.examstaff.ProcedureResetOutcomeDTO;
+import service.CandidatePhotoService;
+import service.ProcedureWorkflowService;
+import service.impl.CandidatePhotoServiceImpl;
+import service.impl.ProcedureWorkflowServiceImpl;
 import util.Utf8EncodingHelper;
+import util.examstaff.ProcedureStepHelper;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -33,20 +23,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @WebServlet("/views/staff/examstaff/procedure")
 public class ProcedureServlet extends HttpServlet {
 
-    private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
-    private final PaymentDAO payDAO = new PaymentDAOImpl();
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final ProcedureWorkflowService procedureWorkflow = new ProcedureWorkflowServiceImpl();
+    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
-    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -55,8 +39,7 @@ public class ProcedureServlet extends HttpServlet {
         String webRoot = request.getServletContext().getRealPath("/");
 
         if ("startShift".equals(request.getParameter("action"))) {
-            List<SessionDTO> bootstrapSessions = sessionDAO.getAllSessions();
-            int examId = ExamStaffViewHelper.ensureExamId(request, session, bootstrapSessions);
+            List<SessionDTO> bootstrapSessions = ExamStaffViewHelper.loadAllSessions();
             int boardSessionId = ExamStaffViewHelper.resolveSessionId(request, session, bootstrapSessions, 0);
             ExamStaffViewHelper.resumeCallShift(getServletContext(), session, boardSessionId);
             response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
@@ -65,74 +48,29 @@ public class ProcedureServlet extends HttpServlet {
 
         ExamStaffViewHelper.applyNoCacheHeaders(response);
         ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
-                request, session, sessionDAO, webRoot);
+                request, session, webRoot);
         int examId = pageCtx.getExamId();
         int sessionId = pageCtx.getSessionId();
         List<SessionDTO> allSessions = pageCtx.getAllSessions();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
 
-        String sbdParam = request.getParameter("sbd");
-        if (sbdParam == null || sbdParam.trim().isEmpty()) {
-            sbdParam = (String) session.getAttribute("callingSbd");
-        }
+        String sbdParam = resolveSbdParam(request, session);
+        boolean sbdChanged = trackSbdChange(session, sbdParam);
 
-        boolean sbdChanged = false;
-        String prevSbd = (String) session.getAttribute("lastSelectedSbd");
-        if (sbdParam != null && !sbdParam.trim().isEmpty()) {
-            if (prevSbd == null || !prevSbd.equals(sbdParam)) {
-                sbdChanged = true;
-                session.setAttribute("lastSelectedSbd", sbdParam);
-                session.setAttribute("callingSbd", sbdParam);
-            }
-        } else {
-            session.setAttribute("lastSelectedSbd", null);
+        ExamRegistrationDTO profile = procedureWorkflow.findProfile(webRoot, examId, sessionId, sbdParam, qList);
+        ProcedureProfilePrepareResultDTO prepared = procedureWorkflow.prepareProfileForDesk(
+                webRoot, examId, sessionId, profile, qList);
+        profile = prepared.getProfile();
+        if (prepared.getPhotoStaleMessage() != null) {
+            request.setAttribute("photoStaleMsg", prepared.getPhotoStaleMessage());
         }
-
-        ExamRegistrationDTO profile = loadProfileFromDb(request, session, webRoot, sbdParam, qList);
         ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
 
-        if (profile != null && CandidatePhotoHelper.hasPhotoRecord(profile)) {
-            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, profile);
-            if (!profile.isValidCapturedPhoto()) {
-                regDAO.updatePhoto(profile.getId(), null);
-                profile.setPhotoUrl(null);
-                profile.setValidCapturedPhoto(false);
-                request.setAttribute("photoStaleMsg",
-                        "Ảnh trong hồ sơ không tìm thấy trên máy chủ — vui lòng chụp lại ảnh chân dung.");
-            }
-        }
-
-        if (profile != null && !profile.isPresent()) {
-            boolean updatedPresent = regDAO.updatePresent(profile.getId(), true);
-            if (updatedPresent) {
-                profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
-                ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
-            }
-        }
-
-        String stepParam = request.getParameter("step");
-        if (sbdChanged && (stepParam == null || stepParam.trim().isEmpty())) {
-            stepParam = "1";
-        }
         boolean hasValidPhoto = profile != null && profile.isValidCapturedPhoto();
-
-        if (stepParam == null || stepParam.trim().isEmpty()) {
-            if (profile != null) {
-                if (profile.isPaymentCompleted()) {
-                    stepParam = "3";
-                } else if (hasValidPhoto) {
-                    stepParam = "2";
-                } else {
-                    stepParam = "1";
-                }
-            } else {
-                stepParam = "1";
-            }
-        }
+        String stepParam = ProcedureStepHelper.resolveStep(request.getParameter("step"), sbdChanged, profile, hasValidPhoto);
 
         if ("3".equals(stepParam) && profile != null && !hasValidPhoto && !profile.isPaymentCompleted()) {
-            request.setAttribute("photoRequiredMsg",
-                    "Bắt buộc chụp ảnh chân dung trước khi thu lệ phí. Quay lại Bước 2 để chụp hoặc chụp lại nếu đã lưu ảnh.");
+            request.setAttribute("photoRequiredMsg", ProcedureStepHelper.photoRequiredForStep3Message());
         }
 
         String pAction = request.getParameter("action");
@@ -149,88 +87,54 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         if ("resetProcedure".equals(pAction) && sbdParam != null && !sbdParam.trim().isEmpty()) {
-            ExamRegistrationDTO target = loadProfileFromDb(request, session, webRoot, sbdParam.trim(), qList);
-            if (target != null) {
-                regDAO.updatePhoto(target.getId(), null);
-                regDAO.clearCompletedPayments(target.getId());
-                qList = refreshQueueFromDb(session, webRoot, examId, allSessions);
-                ExamStaffViewHelper.moveCallableCandidateToFront(qList, sbdParam.trim());
+            ProcedureResetOutcomeDTO reset = procedureWorkflow.resetProcedure(sbdParam.trim(), examId, webRoot);
+            if (reset.isSuccess()) {
+                qList = reset.getQueue();
+                ExamStaffViewHelper.moveCallableCandidateToFront(qList, reset.getSbd());
                 ExamStaffViewHelper.syncCallQueueOrderFromQueue(session, sessionId, qList);
                 ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
-                session.setAttribute("callingSbd", sbdParam.trim());
+                session.setAttribute("callingSbd", reset.getSbd());
                 session.removeAttribute("procedureStep");
                 session.removeAttribute("lastSelectedSbd");
-                addAuditLog(session, "RESET Procedure", "Xóa hồ sơ thủ tục SBD " + sbdParam.trim(), target.getId());
+                addAuditLog(session, "RESET Procedure",
+                        "Xóa hồ sơ thủ tục SBD " + reset.getSbd(), reset.getCandidateId());
                 response.sendRedirect(request.getContextPath()
                         + "/views/staff/examstaff/candidatecall?procedureReset="
-                        + java.net.URLEncoder.encode(sbdParam.trim(), java.nio.charset.StandardCharsets.UTF_8));
+                        + java.net.URLEncoder.encode(reset.getSbd(), java.nio.charset.StandardCharsets.UTF_8));
                 return;
             }
         }
 
         if ("saveProfile".equals(pAction) && profile != null) {
-            String fullName = request.getParameter("fullName");
-            String dobStr = request.getParameter("dateOfBirth");
-            String govIdNo = request.getParameter("govIdNo");
-            String email = request.getParameter("email");
-            String phoneNo = request.getParameter("phoneNo");
-
-            try {
-                Date sqlDob = null;
-                if (dobStr != null && !dobStr.trim().isEmpty()) {
-                    if (dobStr.contains("/")) {
-                        String[] parts = dobStr.split("/");
-                        sqlDob = Date.valueOf(parts[2] + "-" + parts[1] + "-" + parts[0]);
-                    } else {
-                        sqlDob = Date.valueOf(dobStr.trim());
-                    }
-                }
-
-                boolean updated = regDAO.updateProfile(profile.getId(), fullName, sqlDob, govIdNo, email, phoneNo);
-                if (updated) {
-                    // add audit log
-                    profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
-                    request.setAttribute("profileUpdatedAlert", "true");
-                    addAuditLog(session, "UPDATE on Person", "Sửa đổi lý lịch SBD " + sbdParam);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            profile = handleSaveProfile(request, session, profile, sbdParam, qList, webRoot, examId, sessionId);
             stepParam = "2";
             hasValidPhoto = profile != null && profile.isValidCapturedPhoto();
-            ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
         }
 
         if ("recapture".equals(pAction) && profile != null) {
-            regDAO.updatePhoto(profile.getId(), null);
-            profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
+            profile = procedureWorkflow.recapturePhoto(profile.getId(), webRoot, examId, sbdParam, qList);
             hasValidPhoto = false;
             stepParam = "2";
             ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
-            // add audit log
             session.setAttribute("procedureStep", "2");
             request.setAttribute("step", "2");
             request.setAttribute("hasValidPhoto", false);
-            // handle save captured photo
             addAuditLog(session, "UPDATE on Person", "Yêu cầu chụp lại ảnh SBD " + sbdParam);
         }
 
         if ("saveCapturedPhoto".equals(pAction)) {
-            // process payment
             handleSaveCapturedPhoto(request, response, session, sbdParam, qList, webRoot, examId, sessionId);
             return;
         }
 
         if ("confirmPayment".equals(pAction) && profile != null) {
-            processPayment(request, response, session, profile, sbdParam, qList, webRoot);
+            processPayment(request, response, session, profile, sbdParam, qList, webRoot, allSessions, examId);
             return;
         }
 
-        String paymentSuccessParam = request.getParameter("paymentSuccess");
-        if ("true".equals(paymentSuccessParam) && profile != null) {
-                // forward desk view
+        if ("true".equals(request.getParameter("paymentSuccess")) && profile != null) {
             if (!profile.isValidCapturedPhoto()) {
-                request.setAttribute("photoRequiredMsg", "Không thể thu lệ phí: thí sinh chưa chụp ảnh chân dung tại bàn thủ tục.");
+                request.setAttribute("photoRequiredMsg", ProcedureStepHelper.paymentBlockedNoPhotoMessage());
                 request.setAttribute("step", "2");
                 session.setAttribute("procedureStep", "2");
                 request.setAttribute("hasValidPhoto", false);
@@ -238,57 +142,20 @@ public class ProcedureServlet extends HttpServlet {
                 forwardDeskView(request, response, qList);
                 return;
             }
-            Payment payment = new Payment();
-            int enrollmentId = profile.getExamEnrollmentId();
-            if (enrollmentId <= 0) {
-                enrollmentId = payDAO.resolveEnrollmentId(profile.getId());
-            }
-            payment.setExamEnrollmentId(enrollmentId);
-            payment.setTotalAmount(200000.00);
-            payment.setPaymentStatus("Completed");
-            payment.setPaymentMethod("Cash");
-            payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1000000);
-            boolean updatedPay = payDAO.insert(payment);
-            if (!updatedPay) {
-                updatedPay = regDAO.updatePayment(profile.getId(), true);
-                    // Huy danh dau vang
-            }
-            if (updatedPay) {
-                profile.setIsPaymentCompleted(true);
-                profile.setIsPresent(true);
-                regDAO.updatePresent(profile.getId(), true);
-
-                if (profile.isAbsent()) {
-                    clearAbsentMarking(profile);
-                }
-
-                ExaminerAllocationService allocator = new ExaminerAllocationServiceImpl();
-                AutoAllocateResultDTO allocResult = allocator.autoAllocateCandidate(
-                        profile.getExamSessionId(), profile.getId());
-
-                qList = regDAO.getCandidatesByExam(examId);
-                CandidatePhotoHelper.normalizeQueue(webRoot, qList);
-                ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+            ProcedurePaymentOutcomeDTO outcome = procedureWorkflow.confirmPayment(
+                    profile, sbdParam, examId, webRoot, allSessions);
+            applyPaymentOutcome(request, session, sbdParam, outcome, examId);
+            if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.SUCCESS) {
                 ExamStaffViewHelper.syncExamSelection(session, allSessions, examId);
-
-                String allocDetail = formatAutoAllocateDetail(allocResult);
-                addAuditLog(session, "INSERT on Payment",
-                        "Thu lệ phí thi 200,000 đ" + allocDetail + " cho SBD " + sbdParam, profile.getId());
-                if (allocResult.allocatedCount > 0) {
-                    addAuditLog(session, "ALLOCATE Candidates",
-                            "Tự động phân bổ phòng thi cho SBD " + sbdParam);
-                }
-
-                showPostPaymentDesk(request, response, session, profile, sbdParam, qList, false);
+                showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, outcome.getQueue(), false);
                 return;
             }
         }
 
-        // forward desk view
         if (profile != null) {
             request.setAttribute("profile", profile);
             ExamStaffViewHelper.bindProcedureFeeAttributes(request, profile);
-            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, profile);
+            photoService.resolveCapturedPhoto(webRoot, profile);
             hasValidPhoto = profile.isValidCapturedPhoto();
         }
 
@@ -299,51 +166,15 @@ public class ProcedureServlet extends HttpServlet {
         forwardDeskView(request, response, qList);
     }
 
-    private void forwardDeskView(HttpServletRequest request, HttpServletResponse response,
-            List<ExamRegistrationDTO> qList) throws ServletException, IOException {
-        HttpSession httpSession = request.getSession();
-        ExamRegistrationDTO profile = (ExamRegistrationDTO) request.getAttribute("profile");
-        if (profile != null && request.getAttribute("feeLines") == null) {
-            ExamStaffViewHelper.bindProcedureFeeAttributes(request, profile);
-        }
-        String webRoot = request.getServletContext().getRealPath("/");
-        List<SessionDTO> allSessions = sessionDAO.getAllSessions();
-        int examId = ExamStaffViewHelper.ensureExamId(request, httpSession, allSessions, sessionDAO);
-        int sessionId = ExamStaffViewHelper.resolveSessionId(request, httpSession, allSessions, 0);
-
-        qList = refreshQueueFromDb(httpSession, webRoot, examId, allSessions);
-        ExamStaffViewHelper.publishCandidateQueue(request, httpSession, qList, examId, sessionId);
-        ExamStaffViewHelper.bindCandidateCallPageAttributes(request, sessionDAO, httpSession, examId, qList);
-        boolean shiftEnded = ExamStaffViewHelper.isCallShiftEnded(httpSession);
-        ExamStaffViewHelper.syncCallingSbd(httpSession, request.getServletContext(), sessionId, qList, shiftEnded);
-        if (profile != null && profile.getSbd() != null && !profile.getSbd().isBlank()) {
-            CandidateCallBoard.occupyDesk(request.getServletContext(), sessionId, profile.getSbd(), qList, shiftEnded);
-        }
-    // Xu ly yeu cau POST
-        if (request.getAttribute("callingCandidate") == null && profile != null) {
-            String callingSbd = (String) httpSession.getAttribute("callingSbd");
-            if (callingSbd != null && callingSbd.equals(profile.getSbd())) {
-                request.setAttribute("callingCandidate", profile);
-            }
-        }
-        request.setAttribute("deskMode", Boolean.TRUE);
-        ExamStaffViewHelper.bindSidebarIfNeeded(request, httpSession);
-        request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
-    }
-
     @Override
-            // handle save captured photo
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-            // Xu ly yeu cau GET
         if ("saveCapturedPhoto".equals(action)) {
             HttpSession session = request.getSession();
-        // Xu ly yeu cau GET
             String webRoot = request.getServletContext().getRealPath("/");
-            List<SessionDTO> allSessions = sessionDAO.getAllSessions();
-    // process payment
-            int examId = ExamStaffViewHelper.ensureExamId(request, session, allSessions, sessionDAO);
+            List<SessionDTO> allSessions = ExamStaffViewHelper.loadAllSessions();
+            int examId = ExamStaffViewHelper.ensureExamId(request, session, allSessions);
             int sessionId = ExamStaffViewHelper.resolveSessionId(request, session, allSessions, 0);
             List<ExamRegistrationDTO> qList = ExamStaffViewHelper.refreshCandidateQueue(
                     session, examId, webRoot, allSessions);
@@ -358,98 +189,101 @@ public class ProcedureServlet extends HttpServlet {
         doGet(request, response);
     }
 
+    private ExamRegistrationDTO handleSaveProfile(HttpServletRequest request, HttpSession session,
+            ExamRegistrationDTO profile, String sbdParam, List<ExamRegistrationDTO> qList,
+            String webRoot, int examId, int sessionId) {
+        String fullName = request.getParameter("fullName");
+        String dobStr = request.getParameter("dateOfBirth");
+        String govIdNo = request.getParameter("govIdNo");
+        String email = request.getParameter("email");
+        String phoneNo = request.getParameter("phoneNo");
+
+        try {
+            Date sqlDob = parseDateOfBirth(dobStr);
+            boolean updated = procedureWorkflow.saveProfile(
+                    profile.getId(), fullName, sqlDob, govIdNo, email, phoneNo);
+            if (updated) {
+                profile = procedureWorkflow.reloadProfile(webRoot, examId, profile.getId(), sbdParam, qList);
+                request.setAttribute("profileUpdatedAlert", "true");
+                addAuditLog(session, "UPDATE on Person", "Sửa đổi lý lịch SBD " + sbdParam);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+        return profile;
+    }
+
+    private static Date parseDateOfBirth(String dobStr) {
+        if (dobStr == null || dobStr.trim().isEmpty()) {
+            return null;
+        }
+        if (dobStr.contains("/")) {
+            String[] parts = dobStr.split("/");
+            return Date.valueOf(parts[2] + "-" + parts[1] + "-" + parts[0]);
+        }
+        return Date.valueOf(dobStr.trim());
+    }
+
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam,
-                // forward desk view
-            List<ExamRegistrationDTO> qList, String webRoot) throws IOException {
-                // ioexception
-        List<SessionDTO> allSessions = sessionDAO.getAllSessions();
-        int examId = ExamStaffViewHelper.ensureExamId(request, session, allSessions, sessionDAO);
-        profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
-        if (profile == null) {
-            // show post payment desk
+            List<ExamRegistrationDTO> qList, String webRoot, List<SessionDTO> allSessions, int examId)
+            throws IOException {
+        ProcedurePaymentOutcomeDTO outcome = procedureWorkflow.confirmPayment(
+                profile, sbdParam, examId, webRoot, allSessions);
+
+        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PROFILE_NOT_FOUND) {
             response.sendRedirect("candidatecall");
             return;
         }
-        if (!profile.isValidCapturedPhoto()) {
+        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.NO_PHOTO) {
             try {
-                request.setAttribute("photoRequiredMsg",
-                        "Không thể thu lệ phí: thí sinh chưa chụp ảnh chân dung tại bàn thủ tục.");
+                request.setAttribute("photoRequiredMsg", ProcedureStepHelper.paymentBlockedNoPhotoMessage());
                 request.setAttribute("step", "2");
                 session.setAttribute("procedureStep", "2");
                 request.setAttribute("hasValidPhoto", false);
-                request.setAttribute("profile", profile);
+                request.setAttribute("profile", outcome.getProfile());
                 forwardDeskView(request, response, qList);
             } catch (ServletException e) {
                 throw new IOException(e);
             }
             return;
         }
-        if (profile.isPaymentCompleted()) {
-                // forward desk view
-            showPostPaymentDesk(request, response, session, profile, sbdParam, qList, false);
-                // ioexception
+        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.ALREADY_PAID) {
+            showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, qList, false);
             return;
         }
-        Payment payment = new Payment();
-        int enrollmentId = profile.getExamEnrollmentId();
-        if (enrollmentId <= 0) {
-            enrollmentId = payDAO.resolveEnrollmentId(profile.getId());
-        }
-        payment.setExamEnrollmentId(enrollmentId);
-        payment.setTotalAmount(200000.00);
-        payment.setPaymentStatus("Completed");
-        payment.setPaymentMethod("Cash");
-            // Huy danh dau vang
-        payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1000000);
-        boolean updatedPay = payDAO.insert(payment);
-        if (!updatedPay) {
-            updatedPay = regDAO.updatePayment(profile.getId(), true);
-        }
-        if (!updatedPay) {
+        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PAYMENT_FAILED) {
             try {
                 request.setAttribute("paymentErrorMsg", "Không ghi được thanh toán. Vui lòng thử lại.");
                 request.setAttribute("step", "3");
-                request.setAttribute("profile", profile);
-                request.setAttribute("hasValidPhoto", profile.isValidCapturedPhoto());
+                request.setAttribute("profile", outcome.getProfile());
+                request.setAttribute("hasValidPhoto", outcome.getProfile().isValidCapturedPhoto());
                 forwardDeskView(request, response, qList);
             } catch (ServletException e) {
                 throw new IOException(e);
             }
             return;
         }
-        profile.setIsPaymentCompleted(true);
-        profile.setIsPresent(true);
-        regDAO.updatePresent(profile.getId(), true);
-        if (profile.isAbsent()) {
-            clearAbsentMarking(profile);
-        }
-        // show post payment desk
-        ExaminerAllocationService allocator = new ExaminerAllocationServiceImpl();
-        AutoAllocateResultDTO allocResult = allocator.autoAllocateCandidate(
-    // show post payment desk
-                profile.getExamSessionId(), profile.getId());
-        qList = regDAO.getCandidatesByExam(examId);
-        CandidatePhotoHelper.normalizeQueue(webRoot, qList);
-        int boardSessionId = profile.getExamSessionId() > 0
-                ? profile.getExamSessionId()
-                : ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
-        ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, boardSessionId);
+
+        applyPaymentOutcome(request, session, sbdParam, outcome, examId);
         ExamStaffViewHelper.syncExamSelection(session, allSessions, examId);
-        session.setAttribute("lastLoadedSessionId",
-                ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId));
-        String allocDetail = formatAutoAllocateDetail(allocResult);
-        addAuditLog(session, "INSERT on Payment",
-                "Thu lệ phí thi 200,000 đ" + allocDetail + " cho SBD " + sbdParam, profile.getId());
-            // forward desk view
-        if (allocResult.allocatedCount > 0) {
-            // ioexception
-            addAuditLog(session, "ALLOCATE Candidates",
-                    "Tự động phân bổ phòng thi cho SBD " + sbdParam);
-        }
-    // handle save captured photo
+        session.setAttribute("lastLoadedSessionId", outcome.getBoardSessionId());
+
         boolean openPrint = "true".equals(request.getParameter("printAfterPayment"));
-        showPostPaymentDesk(request, response, session, profile, sbdParam, qList, openPrint);
+        showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, outcome.getQueue(), openPrint);
+    }
+
+    private void applyPaymentOutcome(HttpServletRequest request, HttpSession session, String sbdParam,
+            ProcedurePaymentOutcomeDTO outcome, int examId) {
+        if (outcome.getStatus() != ProcedurePaymentOutcomeDTO.Status.SUCCESS) {
+            return;
+        }
+        ExamStaffViewHelper.publishCandidateQueue(request, session, outcome.getQueue(), examId, outcome.getBoardSessionId());
+        addAuditLog(session, "INSERT on Payment", outcome.getPaymentAuditDetail(), outcome.getProfile().getId());
+        if (outcome.isAuditAllocate()) {
+            addAuditLog(session, "ALLOCATE Candidates", "Tự động phân bổ phòng thi cho SBD " + sbdParam);
+        }
     }
 
     private void showPostPaymentDesk(HttpServletRequest request, HttpServletResponse response,
@@ -477,116 +311,74 @@ public class ProcedureServlet extends HttpServlet {
     private void handleSaveCapturedPhoto(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, String sbdParam, List<ExamRegistrationDTO> qList, String webRoot,
             int examId, int sessionId) throws IOException {
-                // illegal argument exception
         response.setContentType("application/json;charset=UTF-8");
         Utf8EncodingHelper.applyResponse(response);
 
-        ExamRegistrationDTO profile = loadProfileFromDb(request, session, webRoot, sbdParam, qList);
-        if (profile == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("{\"success\":false,\"message\":\"Không tìm thấy thí sinh.\"}");
-            return;
-        }
+        ProcedurePhotoSaveOutcomeDTO outcome = procedureWorkflow.saveCapturedPhoto(
+                webRoot, sbdParam, examId, request.getParameter("photoBase64"), qList);
 
-        String base64Data = request.getParameter("photoBase64");
-        String ext = null;
-        if (base64Data != null && base64Data.startsWith("data:image/png;base64,")) {
-            ext = "png";
-        } else if (base64Data != null && base64Data.startsWith("data:image/jpeg;base64,")) {
-            ext = "jpg";
-        }
-        if (ext == null) {
-            // add audit log
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("{\"success\":false,\"message\":\"Dữ liệu ảnh không hợp lệ.\"}");
-            return;
-        }
-
-        try {
-            String base64Image = base64Data.substring(base64Data.indexOf(',') + 1);
-            byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
-            if (imageBytes.length == 0) {
-                throw new IllegalArgumentException("Ảnh rỗng");
+        switch (outcome.getStatus()) {
+            case CANDIDATE_NOT_FOUND, INVALID_IMAGE -> {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\":false,\"message\":\"" + outcome.getMessage() + "\"}");
             }
-    // Lam moi queue from db
-
-            String safeSbd = sbdParam.replaceAll("[^A-Za-z0-9\\-]", "_");
-            String fileName = safeSbd + "_captured." + ext;
-            CandidatePhotoHelper.writePhotoFile(request.getServletContext(), fileName, imageBytes);
-
-            String photoPath = CandidatePhotoHelper.toWebPhotoPath(fileName);
-            boolean updated = regDAO.updatePhoto(profile.getId(), photoPath);
-            if (!updated) {
-    // Tai profile from db
-                throw new java.io.IOException("Không cập nhật được photoUrl trong DB");
+            case SUCCESS -> {
+                ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+                session.setAttribute("procedureStep", "3");
+                addAuditLog(session, "UPDATE on Person",
+                        "Lưu ảnh chụp từ webcam thực tế SBD " + sbdParam);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("{\"success\":true,\"photoUrl\":\"" + outcome.getPhotoPath() + "\"}");
             }
-
-            profile = reloadProfileAfterMutation(request, webRoot, examId, profile.getId(), sbdParam, qList);
-            if (profile != null) {
-                profile.setValidCapturedPhoto(true);
+            default -> {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                String msg = outcome.getMessage() != null ? outcome.getMessage().replace("\"", "'") : "Lỗi lưu ảnh";
+                response.getWriter().write("{\"success\":false,\"message\":\"" + msg + "\"}");
             }
-            ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
-            session.setAttribute("procedureStep", "3");
-            addAuditLog(session, "UPDATE on Person", "Lưu ảnh chụp từ webcam thực tế SBD " + sbdParam);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-    // reload profile after mutation
-            response.getWriter().write("{\"success\":true,\"photoUrl\":\"" + photoPath + "\"}");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            String msg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "Lỗi lưu ảnh";
-            response.getWriter().write("{\"success\":false,\"message\":\"" + msg + "\"}");
         }
+    }
+
+    private void forwardDeskView(HttpServletRequest request, HttpServletResponse response,
+            List<ExamRegistrationDTO> qList) throws ServletException, IOException {
+        HttpSession httpSession = request.getSession();
+        ExamRegistrationDTO profile = (ExamRegistrationDTO) request.getAttribute("profile");
+        if (profile != null && request.getAttribute("feeLines") == null) {
+            ExamStaffViewHelper.bindProcedureFeeAttributes(request, profile);
+        }
+        String webRoot = request.getServletContext().getRealPath("/");
+        List<SessionDTO> allSessions = ExamStaffViewHelper.loadAllSessions();
+        int examId = ExamStaffViewHelper.ensureExamId(request, httpSession, allSessions);
+        int sessionId = ExamStaffViewHelper.resolveSessionId(request, httpSession, allSessions, 0);
+
+        qList = refreshQueueFromDb(httpSession, webRoot, examId, allSessions);
+        ExamStaffViewHelper.publishCandidateQueue(request, httpSession, qList, examId, sessionId);
+        ExamStaffViewHelper.bindCandidateCallPageAttributes(request, httpSession, examId, qList);
+        boolean shiftEnded = ExamStaffViewHelper.isCallShiftEnded(httpSession);
+        ExamStaffViewHelper.syncCallingSbd(httpSession, request.getServletContext(), sessionId, qList, shiftEnded);
+        if (profile != null && profile.getSbd() != null && !profile.getSbd().isBlank()) {
+            CallBoardHttpFacade.occupyDesk(request.getServletContext(), sessionId, profile.getSbd(), qList, shiftEnded);
+        }
+        if (request.getAttribute("callingCandidate") == null && profile != null) {
+            String callingSbd = (String) httpSession.getAttribute("callingSbd");
+            if (callingSbd != null && callingSbd.equals(profile.getSbd())) {
+                request.setAttribute("callingCandidate", profile);
+            }
+        }
+        request.setAttribute("deskMode", Boolean.TRUE);
+        ExamStaffViewHelper.bindSidebarIfNeeded(request, httpSession);
+        request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
     }
 
     private List<ExamRegistrationDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examId,
             List<SessionDTO> allSessions) {
         ExamStaffViewHelper.syncExamSelection(session, allSessions, examId);
         List<ExamRegistrationDTO> qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, webRoot, allSessions);
-        // sync profile in queue
         session.setAttribute("lastLoadedSessionId",
                 ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId));
         return qList;
-    // Xac dinh sbd
     }
 
-    private ExamRegistrationDTO loadProfileFromDb(HttpServletRequest request, HttpSession session,
-            String webRoot, String sbdParam, List<ExamRegistrationDTO> qList) {
-        if (sbdParam == null || sbdParam.trim().isEmpty()) {
-            return null;
-        }
-    // sync profile in queue
-        ExamRegistrationDTO profile = ExamStaffViewHelper.resolveCandidateBySbd(request, session, sbdParam.trim());
-        if (profile != null) {
-            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, profile);
-            syncProfileInQueue(qList, profile);
-        }
-        return profile;
-    }
-
-    private ExamRegistrationDTO reloadProfileAfterMutation(HttpServletRequest request, String webRoot, int examId,
-            int candidateId, String sbdParam, List<ExamRegistrationDTO> qList) {
-        ExamRegistrationDTO fresh = regDAO.getById(candidateId);
-        if (fresh == null) {
-            if (sbdParam == null || sbdParam.isBlank()) {
-                return null;
-            }
-            fresh = regDAO.getByExamAndSbd(examId, sbdParam.trim());
-            if (fresh == null) {
-                return null;
-            }
-        }
-        if (request != null) {
-            CandidatePhotoHelper.resolveCapturedPhoto(request.getServletContext(), webRoot, fresh);
-        } else {
-            CandidatePhotoHelper.resolveCapturedPhoto(webRoot, fresh);
-        }
-        syncProfileInQueue(qList, fresh);
-        return fresh;
-    }
-
-    private String resolveSbd(HttpServletRequest request, HttpSession session) {
+    private String resolveSbdParam(HttpServletRequest request, HttpSession session) {
         String sbdParam = request.getParameter("sbd");
         if (sbdParam == null || sbdParam.trim().isEmpty()) {
             sbdParam = (String) session.getAttribute("callingSbd");
@@ -594,42 +386,23 @@ public class ProcedureServlet extends HttpServlet {
         return sbdParam;
     }
 
-    private void syncProfileInQueue(List<ExamRegistrationDTO> qList, ExamRegistrationDTO refreshed) {
-        if (qList == null || refreshed == null) {
-            return;
-        }
-        for (int i = 0; i < qList.size(); i++) {
-            if (qList.get(i).getId() == refreshed.getId()) {
-                qList.set(i, refreshed);
-                return;
+    private boolean trackSbdChange(HttpSession session, String sbdParam) {
+        boolean sbdChanged = false;
+        String prevSbd = (String) session.getAttribute("lastSelectedSbd");
+        if (sbdParam != null && !sbdParam.trim().isEmpty()) {
+            if (prevSbd == null || !prevSbd.equals(sbdParam)) {
+                sbdChanged = true;
+                session.setAttribute("lastSelectedSbd", sbdParam);
+                session.setAttribute("callingSbd", sbdParam);
             }
+        } else {
+            session.setAttribute("lastSelectedSbd", null);
         }
-    }
-    // add audit log
-
-    private void clearAbsentMarking(ExamRegistrationDTO profile) {
-        regDAO.clearAbsentMarking(profile.getId());
-        profile.setAbsent(false);
-        profile.setTheoryPassed("none");
-        profile.setPracticalPassed("none");
-        profile.setRoadTestPassed("none");
-        profile.setTheoryScore(null);
-        profile.setPracticalScore(null);
-        profile.setRoadTestScore(null);
+        return sbdChanged;
     }
 
-    private static String formatAutoAllocateDetail(AutoAllocateResultDTO allocResult) {
-        if (allocResult != null && allocResult.allocatedCount > 0) {
-            return " và tự động phân bổ vào phòng thi";
-        }
-        if (allocResult != null && allocResult.errorMsg != null && !allocResult.errorMsg.isBlank()) {
-            return " (" + allocResult.errorMsg.trim() + ")";
-        }
-        return " (chưa phân được phòng - kiểm tra sức chứa phòng thi)";
-    }
-
-    private void addAuditLog(HttpSession session, String action, String details) {
-        addAuditLog(session, action, details, 0);
+    private String resolveSbd(HttpServletRequest request, HttpSession session) {
+        return resolveSbdParam(request, session);
     }
 
     private void advanceToNextCandidate(HttpSession session, List<ExamRegistrationDTO> qList,
@@ -647,22 +420,14 @@ public class ProcedureServlet extends HttpServlet {
 
         String nextSbd = ExamStaffViewHelper.resolveNextCallingSbd(qList, finishedSbd);
         session.setAttribute("callingSbd", nextSbd);
-        CandidateCallBoard.releaseDeskAndCall(getServletContext(), boardSessionId, nextSbd, qList, false);
+        CallBoardHttpFacade.releaseDeskAndCall(getServletContext(), boardSessionId, nextSbd, qList, false);
+    }
+
+    private void addAuditLog(HttpSession session, String action, String details) {
+        addAuditLog(session, action, details, 0);
     }
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
-        List<Map<String, String>> sessionAuditLogs = (List<Map<String, String>>) session.getAttribute("sessionAuditLogs");
-        if (sessionAuditLogs == null) {
-            sessionAuditLogs = new ArrayList<>();
-            session.setAttribute("sessionAuditLogs", sessionAuditLogs);
-        }
-        Map<String, String> audit = new HashMap<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-        audit.put("time", sdf.format(new java.util.Date()));
-        audit.put("action", action);
-        audit.put("details", details);
-        sessionAuditLogs.add(0, audit);
-
-        util.AuditLogHelper.persist(session, action, details, recordId);
+        StaffAuditLogSupport.persistWithSessionFeed(session, action, details, recordId);
     }
 }

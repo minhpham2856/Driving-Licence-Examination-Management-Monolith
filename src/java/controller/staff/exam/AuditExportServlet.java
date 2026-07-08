@@ -1,11 +1,14 @@
 package controller.staff.exam;
 
-import dao.AuditLogDAO;
-import dao.impl.AuditLogDAOImpl;
 import dto.user.AuditDTO;
 import model.Profile;
 import model.User;
+import service.StaffAuditExportService;
+import service.StaffAuditQueryService;
+import service.impl.StaffAuditExportServiceImpl;
+import service.impl.StaffAuditQueryServiceImpl;
 import util.SessionUserHelper;
+import util.examstaff.AuditFilterHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -23,9 +26,9 @@ import java.util.Locale;
 @WebServlet("/views/staff/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
 
-    private final AuditLogDAO logDAO = new AuditLogDAOImpl();
+    private final StaffAuditQueryService auditQueryService = new StaffAuditQueryServiceImpl();
+    private final StaffAuditExportService auditExportService = new StaffAuditExportServiceImpl();
 
-    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -36,9 +39,9 @@ public class AuditExportServlet extends HttpServlet {
         }
 
         int userId = SessionUserHelper.resolveUserId(session);
-        String filterDate = resolveFilterDate(request);
+        String filterDate = AuditFilterHelper.resolveFilterDate(request);
         List<AuditDTO> personalLogs = loadLogs(userId, filterDate);
-        var procedureKpi = logDAO.getStaffProcedureKpi(userId, filterDate);
+        var procedureKpi = auditQueryService.getStaffProcedureKpi(userId, filterDate);
 
         try {
             streamExcel(response, session, personalLogs, procedureKpi.getCompletedCount(),
@@ -56,7 +59,7 @@ public class AuditExportServlet extends HttpServlet {
         }
     }
 
-    static void streamExcel(HttpServletResponse response, HttpSession session,
+    private void streamExcel(HttpServletResponse response, HttpSession session,
             List<AuditDTO> logs, int completedProcedures, double totalFees, String filterDate)
             throws IOException {
         response.reset();
@@ -75,41 +78,28 @@ public class AuditExportServlet extends HttpServlet {
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
 
-        String staffName = "";
-        Object profileObj = session.getAttribute("userProfile");
-        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
-            staffName = profile.getFullName();
-        } else {
-            User user = (User) session.getAttribute("user");
-            if (user != null) {
-                staffName = user.getUsername();
-            }
-        }
+        String staffName = resolveStaffName(session);
         String scopeLabel = (filterDate != null && !filterDate.isBlank())
                 ? "Ngày " + filterDate
                 : "Tất cả lịch sử";
 
-        AuditExcelExporter.export(response.getOutputStream(), logs, completedProcedures,
+        auditExportService.exportAuditLog(response.getOutputStream(), logs, completedProcedures,
                 totalFees, staffName, scopeLabel);
         response.getOutputStream().flush();
     }
-    // Xac dinh filter date
 
-    private static String resolveFilterDate(HttpServletRequest request) {
-        String filterDate = request.getParameter("filterDate");
-        if (filterDate == null || filterDate.isBlank()) {
-            filterDate = request.getParameter("date");
+    private static String resolveStaffName(HttpSession session) {
+        Object profileObj = session.getAttribute("userProfile");
+        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
+            return profile.getFullName();
         }
-        return filterDate;
-    // Tai logs
+        User user = (User) session.getAttribute("user");
+        return user != null ? user.getUsername() : "";
     }
 
     private List<AuditDTO> loadLogs(int userId, String filterDate) {
         try {
-            if (filterDate != null && !filterDate.trim().isEmpty()) {
-                return logDAO.getLogsByUserAndDate(userId, filterDate);
-            }
-            return logDAO.getLogsByUserAndDate(userId, null);
+            return auditQueryService.listLogsByUserAndDate(userId, filterDate);
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();

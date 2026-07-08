@@ -14,12 +14,6 @@
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadTemplate" class="examiner-btn examiner-btn--white">
                     <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải CSV mẫu DSTS
                 </a>
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadTestFile" class="examiner-btn examiner-btn--white">
-                    <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải file test DSTS (7 TS)
-                </a>
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload?action=downloadBulkTestFile" class="examiner-btn examiner-btn--white">
-                    <span class="material-symbols-outlined" aria-hidden="true">download</span>Tải file test 55 thí sinh
-                </a>
             </div>
         </header>
 
@@ -45,6 +39,32 @@
 
                 <form id="uploadForm" action="upload" method="POST" enctype="multipart/form-data"
                       style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
+
+                    <c:if test="${not empty requestScope.currentSession}">
+                        <input type="hidden" name="examSessionId" value="${requestScope.currentSession.id}" />
+                        <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
+                            <span style="font-size: 0.75rem; color: #166534; font-weight: 700;">
+                                Đang nhập vào kỳ:
+                                <strong>
+                                    <c:choose>
+                                        <c:when test="${not empty requestScope.currentSession.examCode}">
+                                            ${requestScope.currentSession.examCode}
+                                        </c:when>
+                                        <c:otherwise>
+                                            Hạng ${requestScope.currentSession.licenseCode}
+                                            <c:if test="${not empty requestScope.currentSession.examDate}">
+                                                — <fmt:formatDate value="${requestScope.currentSession.examDate}" pattern="dd/MM/yyyy" />
+                                            </c:if>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </strong>
+                            </span>
+                            <span style="font-size: 0.72rem; color: #15803d;">
+                                Thí sinh được ghi vào các phần thi theo Nội dung SH (L / H / Đ).
+                                Chọn đúng kỳ ở sidebar trước khi tải file.
+                            </span>
+                        </div>
+                    </c:if>
 
                     <c:if test="${not empty requestScope.importExamLicense}">
                         <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
@@ -88,35 +108,35 @@
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                             <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Quy cách dữ liệu danh sách thi (PC08)
+                        Quy cách dữ liệu danh sách thi
                     </h2>
                 </div>
 
-                <p style="font-size: 0.82rem; color: #475569; margin-bottom: 1rem; line-height: 1.5;">Format <strong>DSTS / PC08 — 10 cột</strong> (Excel .xlsx hoặc CSV UTF-8). SBD lấy từ file; cột <strong>Nội dung SH</strong> xác định phần thi và lần thi.</p>
+                <p style="font-size: 0.82rem; color: #475569; margin-bottom: 1rem; line-height: 1.5;">Định dạng hỗ trợ: <strong>.xlsx, .xls, .csv, .txt</strong>. File gồm <strong>10 cột DSTS</strong>; SBD lấy từ file, cột <strong>Nội dung SH</strong> xác định phần thi và lần thi.</p>
 
                 <div style="display: flex; flex-direction: column;">
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 1</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Số báo danh:</strong> SBD từ PC08 (bắt buộc, không tự sinh).
+                            <strong style="color: #0f172a;">Số báo danh:</strong> SBD từ file (không tự sinh).
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 2</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Họ và tên:</strong> Bắt buộc.
+                            <strong style="color: #0f172a;">Họ và tên</strong>
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 3</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Số căn cước:</strong> CCCD 12 số, duy nhất (bắt buộc).
+                            <strong style="color: #0f172a;">Số căn cước:</strong> CCCD 12 số, duy nhất.
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 4</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Ngày sinh:</strong> DD/MM/YYYY (bắt buộc).
+                            <strong style="color: #0f172a;">Ngày sinh:</strong> DD/MM/YYYY.
                         </div>
                     </div>
                     <div class="rule-item">
@@ -140,19 +160,19 @@
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 8</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Nội dung SH:</strong> VD: <em>SH lần đầu L+H</em>, <em>SH lại L</em>, <em>Sát hạch H</em> (bắt buộc).
+                            <strong style="color: #0f172a;">Nội dung SH:</strong> VD: <em>SH lần đầu L+H</em>, <em>SH lại L</em>, <em>Sát hạch H</em>.
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 9</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Số điện thoại:</strong> Bắt buộc.
+                            <strong style="color: #0f172a;">Số điện thoại</strong>
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 10</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Email:</strong> Bắt buộc.
+                            <strong style="color: #0f172a;">Email</strong>
                         </div>
                     </div>
                 </div>
@@ -175,7 +195,7 @@
                             </h2>
                             <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
                                 Kỳ thi: hạng <strong>${sessionScope.selectedImportExamLicense}</strong>.
-                                Chỉ lưu dòng hợp lệ (đủ trường bắt buộc, khớp hạng kỳ thi) — dòng lỗi sẽ bỏ qua.
+                                Chỉ lưu dòng hợp lệ (đủ trường, khớp hạng, nội dung SH L/H/Đ khớp ca của kỳ) — dòng lỗi sẽ bỏ qua.
                             </p>
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -202,7 +222,7 @@
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                                 <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span>Có dòng lỗi (thiếu SĐT/Email, SH, SBD, hạng không khớp…). Các dòng hợp lệ vẫn lưu được — dòng lỗi sẽ bỏ qua khi xác nhận.</span>
+                            <span>Có dòng lỗi (thiếu trường, hạng không khớp, hoặc nội dung SH không khớp ca kỳ…). Các dòng hợp lệ vẫn lưu được — dòng lỗi sẽ bỏ qua khi xác nhận.</span>
                         </div>
                     </c:if>
 
@@ -329,6 +349,11 @@
                             (Bỏ qua ${sessionScope.importSkippedCount} dòng)
                         </c:if>
                     </p>
+                    <c:if test="${not empty sessionScope.importSkipSummary}">
+                        <p style="margin: 6px 0 0; font-size: 0.78rem; color: #b45309;">
+                            Chi tiết bỏ qua: ${sessionScope.importSkipSummary}
+                        </p>
+                    </c:if>
                 </div>
             </div>
                 </c:otherwise>
@@ -336,6 +361,7 @@
             <%
                 session.removeAttribute("importedCount");
                 session.removeAttribute("importSkippedCount");
+                session.removeAttribute("importSkipSummary");
                 session.removeAttribute("uploadedFileName");
                 session.removeAttribute("selectedImportSessionId");
             %>

@@ -63,8 +63,6 @@
                         <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
                             <li>Hạng <strong>A / A1</strong>: ≥ <strong>36 / 40</strong></li>
                             <li>Hạng <strong>B / B1</strong>: ≥ <strong>45 / 50</strong></li>
-                            <li>Hạng <strong>C / C1</strong>: ≥ <strong>50 / 55</strong></li>
-                            <li>Hạng <strong>D+</strong>: ≥ <strong>56 / 60</strong></li>
                         </ul>
                     </div>
                     <div class="examstaff-rules-doc__card">
@@ -84,8 +82,6 @@
                 <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
                     <li>Hạng <strong>A / A1</strong>: tối thiểu <strong>36 / 40</strong> câu đúng.</li>
                     <li>Hạng <strong>B / B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
-                    <li>Hạng <strong>C / C1</strong>: tối thiểu <strong>50 / 55</strong> câu đúng.</li>
-                    <li>Hạng <strong>D+</strong>: tối thiểu <strong>56 / 60</strong> câu đúng.</li>
                 </ul>
                 <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một ca thi</strong> và <strong>một phòng thi lý thuyết</strong>.</p>
             </c:otherwise>

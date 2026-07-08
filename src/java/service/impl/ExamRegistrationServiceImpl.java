@@ -78,6 +78,12 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
+    public boolean updateScores(int id, int sessionId, Integer theoryScore, String theoryPassed,
+            Integer practicalScore, String practicalPassed) {
+        return dao.updateScores(id, sessionId, theoryScore, theoryPassed, practicalScore, practicalPassed);
+    }
+
+    @Override
     public boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold) {
         return dao.updateTheoryCorrectCount(id, correctCount, passThreshold);
     }
@@ -110,6 +116,32 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     @Override
     public boolean insertFromDstsImport(ExamRegistrationDTO reg) {
         return dao.insertFromDstsImport(reg);
+    }
+
+    @Override
+    public boolean ensureExamEnrollmentForSession(int candidateId, int sessionId) {
+        return dao.ensureExamEnrollmentForSession(candidateId, sessionId);
+    }
+
+    @Override
+    public boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
+            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad) {
+        return dao.ensureExamEnrollmentsForImport(candidateId, examId, takeTheory, takePractical, takeOnRoad);
+    }
+
+    @Override
+    public java.util.Set<String> findAvailableSectionKindsForExam(int examId) {
+        return dao.findAvailableSectionKindsForExam(examId);
+    }
+
+    @Override
+    public Integer findCandidateIdByGovIdAndExam(String govId, int examId) {
+        return dao.findCandidateIdByGovIdAndExam(govId, examId);
+    }
+
+    @Override
+    public Integer findCandidateIdByGovId(String govId) {
+        return dao.findCandidateIdByGovId(govId);
     }
 
     @Override

@@ -82,7 +82,9 @@
                             <c:if test="${lic eq 'A' or lic eq 'A1'}"><c:set var="demo" value="36" /></c:if>
                             <c:if test="${lic eq 'C' or lic eq 'C1'}"><c:set var="demo" value="50" /></c:if>
                             <c:if test="${lic eq 'D' or lic eq 'D1' or lic eq 'D2' or lic eq 'E'}"><c:set var="demo" value="56" /></c:if>
-                            <a href="${ctx}${allocationListPath}?action=submitTheoryScore&amp;id=${c.id}&amp;score=${demo}${extra}" class="allocation-table-action allocation-table-action--theory">Chấm LT (Auto)</a>
+                            <c:set var="scoreSessionId" value="${not empty layoutSessionId ? layoutSessionId : allocationActiveSessionId}" />
+                            <c:set var="scoreSessionQuery" value="${scoreSessionId gt 0 ? '&amp;sessionId='.concat(scoreSessionId) : ''}" />
+                            <a href="${ctx}${allocationListPath}?action=submitTheoryScore&amp;id=${c.id}&amp;score=${demo}${scoreSessionQuery}${extra}" class="allocation-table-action allocation-table-action--theory">Chấm LT (Auto)</a>
                         </td>
                     </tr>
                 </c:forEach>

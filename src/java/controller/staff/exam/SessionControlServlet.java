@@ -1,9 +1,9 @@
 package controller.staff.exam;
 
-import model.User;
+import controller.staff.exam.support.StaffAuditLogSupport;
 import service.ExamSessionControlService;
-import util.AuditLogHelper;
-
+import service.impl.ExamSessionControlServiceImpl;
+import util.SessionUserHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,23 +16,22 @@ import java.io.IOException;
 @WebServlet("/views/staff/examstaff/session-control")
 public class SessionControlServlet extends HttpServlet {
 
-    private final ExamSessionControlService controlService = new service.impl.ExamSessionControlServiceImpl();
+    private final ExamSessionControlService controlService = new ExamSessionControlServiceImpl();
 
-    // Xu ly yeu cau POST
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         int sessionId = parseSessionId(request, session);
-        int staffId = resolveStaffId(session);
+        int staffId = SessionUserHelper.resolveUserId(session);
         String redirect = buildRedirect(request, sessionId);
 
         if ("startSession".equals(action)) {
             ExamSessionControlService.StartResult result = controlService.startSession(sessionId, staffId);
             if (result.isSuccess()) {
                 controlService.applyRuntimeStart(getServletContext(), session, sessionId);
-                AuditLogHelper.persist(session, "UPDATE Session",
+                StaffAuditLogSupport.persist(session, "UPDATE Session",
                         "Bắt đầu ca thi SessionId=" + sessionId + " - " + result.getSessionName()
                                 + " (" + result.getExaminerCount() + " sát hạch viên)",
                         sessionId);
@@ -44,7 +43,7 @@ public class SessionControlServlet extends HttpServlet {
             ExamSessionControlService.EndResult result = controlService.endSession(sessionId);
             if (result.isSuccess()) {
                 controlService.applyRuntimeEnd(getServletContext(), session, sessionId);
-                AuditLogHelper.persist(session, "UPDATE Session",
+                StaffAuditLogSupport.persist(session, "UPDATE Session",
                         "Kết thúc ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
@@ -54,13 +53,10 @@ public class SessionControlServlet extends HttpServlet {
 
         response.sendRedirect(redirect);
     }
-    // Xu ly yeu cau GET
 
     @Override
-        // Xu ly yeu cau POST
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-    // parse session id
         doPost(request, response);
     }
 
@@ -72,15 +68,8 @@ public class SessionControlServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
-    // Xac dinh staff id
         Integer selected = (Integer) session.getAttribute("selectedSessionId");
         return selected != null ? selected : 2;
-    }
-
-    // Tao redirect
-    private int resolveStaffId(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
     }
 
     private String buildRedirect(HttpServletRequest request, int sessionId) {

@@ -1,7 +1,6 @@
 package filter;
 
 import controller.staff.exam.ExamStaffViewHelper;
-import dao.impl.ExamSessionDAOImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -28,8 +27,7 @@ public class ExamStaffSidebarFilter extends HttpFilter {
                 ExamStaffViewHelper.clearCandidateCache(session);
             }
             ExamStaffViewHelper.applySessionIdFromRequest(request, session,
-                    ExamStaffViewHelper.loadAllSessions(new ExamSessionDAOImpl()),
-                    new ExamSessionDAOImpl());
+                    ExamStaffViewHelper.loadAllSessions());
         }
         ExamStaffViewHelper.bindSidebarIfNeeded(request, session);
         chain.doFilter(request, response);

@@ -1,19 +1,19 @@
 package controller.staff.exam;
 
-import service.ExamRegistrationService;
-
-import dao.ExamSessionDAO;
-
-import service.impl.ExamRegistrationServiceImpl;
-
-import dao.impl.ExamSessionDAOImpl;
+import service.ExamStaffSessionQueryService;
+import service.impl.ExamStaffSessionQueryServiceImpl;
 
 import dto.exam.ExamRegistrationDTO;
 
 import dto.SessionDTO;
 
+import controller.staff.exam.support.ExamStaffPageBinder;
+import controller.staff.exam.support.StaffAuditLogSupport;
+import service.CandidateDstsImportService;
+import service.impl.CandidateDstsImportServiceImpl;
+import dto.examstaff.CandidateDstsImportCommitResultDTO;
+import dto.examstaff.CandidateDstsImportPreviewDTO;
 import util.CandidateDstsCsvSamples;
-import util.CandidateDstsImportParser;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -25,8 +25,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/views/staff/examstaff/upload")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2,
@@ -34,8 +35,8 @@ import java.util.List;
                  maxRequestSize = 1024 * 1024 * 30)
 public class UploadServlet extends HttpServlet {
 
-    private final ExamRegistrationService regDAO = new ExamRegistrationServiceImpl();
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final ExamStaffSessionQueryService sessionQueryService = new ExamStaffSessionQueryServiceImpl();
+    private final CandidateDstsImportService importService = new CandidateDstsImportServiceImpl();
 
     // Xu ly yeu cau GET
     @Override
@@ -55,95 +56,54 @@ public class UploadServlet extends HttpServlet {
             return;
         }
 
-        if ("downloadTestFile".equals(action)) {
-            response.setContentType("text/csv; charset=UTF-8");
-            response.setHeader("Content-Disposition",
-                    "attachment; filename=\"" + CandidateDstsCsvSamples.TEST_FILENAME + "\"");
-
-            response.getOutputStream().write(CandidateDstsCsvSamples.testCsvBytes());
-            response.getOutputStream().flush();
-            return;
-        }
-
-        if ("downloadBulkTestFile".equals(action)) {
-            response.setContentType("text/csv; charset=UTF-8");
-            response.setHeader("Content-Disposition",
-                    "attachment; filename=\"" + CandidateDstsCsvSamples.BULK_TEST_FILENAME + "\"");
-
-            response.getOutputStream().write(CandidateDstsCsvSamples.bulkTestCsvBytes());
-            response.getOutputStream().flush();
-            return;
-        }
-
         if ("save".equals(action)) {
             List<ExamRegistrationDTO> previewList = (List<ExamRegistrationDTO>) session.getAttribute("previewCandidates");
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
             if (selectedSessionId == null || selectedSessionId <= 0) {
-                List<SessionDTO> allSessions = sessionDAO.getAllSessions();
+                List<SessionDTO> allSessions = sessionQueryService.listAllSessions();
                 int examId = ExamStaffViewHelper.resolveExamId(request, session, allSessions, 0);
-                selectedSessionId = ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
+                selectedSessionId = resolveImportSessionId(request, session, allSessions, examId);
             }
 
             if (previewList != null && !previewList.isEmpty()) {
-                int importedCount = 0;
-                int skippedCount = 0;
+                Map<String, String> duplicateActions = new HashMap<>();
                 for (ExamRegistrationDTO reg : previewList) {
-                    try {
-                        String dupAction = request.getParameter("dupAction_" + reg.getGovIdNo());
-                        if (reg.isDuplicate() && "skip".equals(dupAction)) {
-                            skippedCount++;
-                            continue;
-                        }
-                        if (reg.isInvalid()) {
-                            skippedCount++;
-                            continue;
-                        }
-
-                        Integer existingId = regDAO.findCandidateIdByGovIdAndSession(
-                                reg.getGovIdNo(), selectedSessionId);
-                        boolean regExists = existingId != null;
-
-                        if (regExists) {
-                            int regId = existingId;
-                            reg.setId(regId);
-                            reg.setExamSessionId(selectedSessionId);
-                            reg.setIsPresent(true);
-                            regDAO.updatePresent(regId, true);
-                            regDAO.updatePhoto(regId, null);
-                            importedCount++;
-                        } else {
-                            reg.setExamSessionId(selectedSessionId);
-                            reg.setIsPresent(true);
-                            if (regDAO.insertFromDstsImport(reg)) {
-                                regDAO.updatePhoto(reg.getId(), null);
-                                importedCount++;
-                            } else {
-                                skippedCount++;
-                            }
-                        }
-                    } catch (Exception ex) {
-                        System.err.println("Error importing: " + reg.getFullName() + " - " + ex.getMessage());
-                        ex.printStackTrace();
-                        skippedCount++;
+                    if (reg.getGovIdNo() != null) {
+                        duplicateActions.put(reg.getGovIdNo(),
+                                request.getParameter("dupAction_" + reg.getGovIdNo()));
                     }
                 }
+                CandidateDstsImportCommitResultDTO commit = importService.commit(
+                        previewList, selectedSessionId, duplicateActions);
+                int importedCount = commit.getImportedCount();
+                int skippedCount = commit.getSkippedCount();
 
                 session.removeAttribute("previewCandidates");
                 session.removeAttribute("validImportCount");
                 Integer selectedExamId = (Integer) session.getAttribute("selectedExamId");
                 int examId = selectedExamId != null && selectedExamId > 0
                         ? selectedExamId
-                        : ExamStaffViewHelper.resolveExamId(request, session, sessionDAO.getAllSessions(), 0);
+                        : ExamStaffViewHelper.resolveExamId(request, session, sessionQueryService.listAllSessions(), 0);
                 String webRoot = request.getServletContext().getRealPath("/");
-                ExamStaffViewHelper.refreshCandidateQueue(session, examId, webRoot);
+                ExamStaffViewHelper.refreshCandidateQueue(session, examId, selectedSessionId, webRoot,
+                        sessionQueryService.listAllSessions());
+                if (selectedSessionId > 0) {
+                    SessionDTO importSessionDto = sessionQueryService.findBySessionId(selectedSessionId);
+                    if (importSessionDto != null && importSessionDto.getExamId() > 0) {
+                        ExamStaffPageBinder.persistExamSelection(session, selectedSessionId,
+                                importSessionDto.getExamId());
+                    }
+                    session.setAttribute("selectedImportSessionId", selectedSessionId);
+                }
                 session.setAttribute("importedCount", importedCount);
                 session.setAttribute("importSkippedCount", skippedCount);
+                session.setAttribute("importSkipSummary", commit.getSkipSummary());
 
                 String uploadedFile = (String) session.getAttribute("uploadedFileName");
                 if (uploadedFile == null) {
                     uploadedFile = "danh_sach.xlsx";
                 }
-                SessionDTO importSession = sessionDAO.getById(selectedSessionId);
+                SessionDTO importSession = sessionQueryService.findBySessionId(selectedSessionId);
                 String sessionLabel = importSession != null ? importSession.getSessionName() : ("SessionId " + selectedSessionId);
                 String auditDetails = "Import DSTS \"" + uploadedFile + "\": nhập " + importedCount
                         + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
@@ -157,7 +117,7 @@ public class UploadServlet extends HttpServlet {
         }
 
         ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
-                request, session, sessionDAO, request.getServletContext().getRealPath("/"), false);
+                request, session, request.getServletContext().getRealPath("/"), false);
         int examId = pageCtx.getExamId();
         int sessionId = pageCtx.getSessionId();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
@@ -177,26 +137,19 @@ public class UploadServlet extends HttpServlet {
         session.removeAttribute("hasInvalidRows");
         session.removeAttribute("validImportCount");
 
-        String sessionParam = request.getParameter("examSessionId");
-        List<SessionDTO> allSessions = sessionDAO.getAllSessions();
+        List<SessionDTO> allSessions = sessionQueryService.listAllSessions();
         int examId = ExamStaffViewHelper.resolveExamId(request, session, allSessions, 0);
-        int selectedSessionId = ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
-        if (sessionParam != null && !sessionParam.isEmpty()) {
-            try {
-                int paramSessionId = Integer.parseInt(sessionParam.trim());
-                SessionDTO paramSession = ExamStaffViewHelper.findSessionById(allSessions, paramSessionId);
-                if (paramSession == null) {
-                    paramSession = sessionDAO.getById(paramSessionId);
-                }
-                if (paramSession != null && paramSession.getExamId() == examId) {
-                    selectedSessionId = paramSessionId;
-                }
-            } catch (NumberFormatException ignored) {
+        int selectedSessionId = resolveImportSessionId(request, session, allSessions, examId);
+        session.setAttribute("selectedImportSessionId", selectedSessionId);
+        if (selectedSessionId > 0) {
+            SessionDTO picked = sessionQueryService.findBySessionId(selectedSessionId);
+            if (picked != null && picked.getExamId() > 0) {
+                examId = picked.getExamId();
+                session.setAttribute("selectedExamId", examId);
             }
         }
-        session.setAttribute("selectedImportSessionId", selectedSessionId);
 
-        SessionDTO importSession = sessionDAO.getById(selectedSessionId);
+        SessionDTO importSession = sessionQueryService.findBySessionId(selectedSessionId);
         String examLicenseCode = importSession != null ? importSession.getLicenseCode() : null;
         if (examLicenseCode != null) {
             session.setAttribute("selectedImportExamLicense", examLicenseCode);
@@ -209,28 +162,12 @@ public class UploadServlet extends HttpServlet {
                 session.setAttribute("uploadedFileName", fileName);
 
                 byte[] fileBytes = filePart.getInputStream().readAllBytes();
-                CandidateDstsImportParser.ParseResult parsed = CandidateDstsImportParser.parse(
-                        fileBytes, fileName, examLicenseCode);
+                CandidateDstsImportPreviewDTO preview = importService.preview(
+                        fileBytes, fileName, examLicenseCode, selectedSessionId);
 
-                boolean hasInvalidRows = parsed.hasInvalidRows();
-                int validImportCount = 0;
-                for (ExamRegistrationDTO reg : parsed.getRows()) {
-                    if (reg.isInvalid()) {
-                        continue;
-                    }
-                    String cccd = reg.getGovIdNo();
-                    if (cccd == null || cccd.isBlank()) {
-                        continue;
-                    }
-                    if (regDAO.findCandidateIdByGovIdAndSession(cccd, selectedSessionId) != null) {
-                        reg.setDuplicate(true);
-                    }
-                    validImportCount++;
-                }
-
-                session.setAttribute("previewCandidates", parsed.getRows());
-                session.setAttribute("hasInvalidRows", hasInvalidRows);
-                session.setAttribute("validImportCount", validImportCount);
+                session.setAttribute("previewCandidates", preview.getRows());
+                session.setAttribute("hasInvalidRows", preview.isHasInvalidRows());
+                session.setAttribute("validImportCount", preview.getValidImportCount());
                 response.sendRedirect("upload?preview=true");
                 return;
             }
@@ -244,18 +181,35 @@ public class UploadServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
-        List<java.util.Map<String, String>> sessionAuditLogs = (List<java.util.Map<String, String>>) session.getAttribute("sessionAuditLogs");
-        if (sessionAuditLogs == null) {
-            sessionAuditLogs = new ArrayList<>();
-            session.setAttribute("sessionAuditLogs", sessionAuditLogs);
-        }
-        java.util.Map<String, String> audit = new java.util.HashMap<>();
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-        audit.put("time", sdf.format(new java.util.Date()));
-        audit.put("action", action);
-        audit.put("details", details);
-        sessionAuditLogs.add(0, audit);
+        StaffAuditLogSupport.persistWithSessionFeed(session, action, details, recordId);
+    }
 
-        util.AuditLogHelper.persist(session, action, details, recordId);
+    private static int resolveImportSessionId(HttpServletRequest request, HttpSession session,
+            List<SessionDTO> allSessions, int examId) {
+        String sessionParam = request.getParameter("examSessionId");
+        if (sessionParam != null && !sessionParam.isBlank()) {
+            try {
+                int paramSessionId = Integer.parseInt(sessionParam.trim());
+                SessionDTO paramSession = ExamStaffViewHelper.findSessionById(allSessions, paramSessionId);
+                if (paramSession != null) {
+                    return paramSessionId;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (session != null) {
+            Object stored = session.getAttribute("selectedImportSessionId");
+            if (stored instanceof Integer storedId && storedId > 0) {
+                return storedId;
+            }
+            Object lastLoaded = session.getAttribute("lastLoadedSessionId");
+            if (lastLoaded instanceof Integer lastId && lastId > 0) {
+                return lastId;
+            }
+        }
+        if (examId > 0) {
+            return ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
+        }
+        return 0;
     }
 }

@@ -6,6 +6,7 @@ import dbconnection.DBContext;
 import dao.CandidateCallDAO;
 
 import dto.candidate.CandidateCallDTO;
+import util.examstaff.CallAuditFormatter;
 
 import java.sql.*;
 
@@ -31,8 +32,7 @@ public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO 
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             int userId = call.getCalledBy() != 0 ? call.getCalledBy() : 3;
             String entityId = call.getExamSessionId() + "-" + call.getCandidateNo();
-            String detail = "calledTo=" + call.getCalledTo()
-                    + ";result=" + (call.getResult() != null ? call.getResult() : "");
+            String detail = CallAuditFormatter.formatDetail(call.getCalledTo(), call.getResult());
             ps.setInt(1, userId);
             ps.setString(2, detail);
             ps.setString(3, entityId);

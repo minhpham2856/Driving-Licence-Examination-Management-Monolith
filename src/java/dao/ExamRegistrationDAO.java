@@ -48,6 +48,10 @@ public interface ExamRegistrationDAO {
     // Cap nhat diem ly thuyet va thuc hanh
     boolean updateScores(int id, Integer theoryScore, String theoryPassed, Integer practicalScore, String practicalPassed);
 
+    // Cap nhat diem theo ca thi (uu tien ExamEnrollment + Session_ExamSection cua ca)
+    boolean updateScores(int id, int sessionId, Integer theoryScore, String theoryPassed,
+            Integer practicalScore, String practicalPassed);
+
     // Cap nhat so cau dung ly thuyet
     boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold);
 
@@ -72,6 +76,22 @@ public interface ExamRegistrationDAO {
 
     // Import DSTS vao Candidate + ExamEnrollment
     boolean insertFromDstsImport(ExamRegistrationDTO reg);
+
+    // Tao ExamEnrollment neu thieu (import / ghi de trung CCCD trong ca)
+    boolean ensureExamEnrollmentForSession(int candidateId, int sessionId);
+
+    // Ghi danh tat ca ca thi trong ky ma thi sinh tham gia (theo TakeTheory/TakeLayout/TakeRoad)
+    boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
+            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad);
+
+    /** Các loại phần thi có ca trong kỳ: Theory / Practical / Road. */
+    java.util.Set<String> findAvailableSectionKindsForExam(int examId);
+
+    // Tim CandidateId theo CCCD trong mot ky thi
+    Integer findCandidateIdByGovIdAndExam(String govId, int examId);
+
+    // Tim CandidateId theo CCCD (toan he thong — tranh tao ban ghi Candidate trung)
+    Integer findCandidateIdByGovId(String govId);
 
     // Lay tat ca dang ky
     List<ExamRegistrationDTO> getAllCandidates();

@@ -114,6 +114,9 @@ public interface ExamRegistrationService {
      */
     boolean updateScores(int id, Integer theoryScore, String theoryPassed, Integer practicalScore, String practicalPassed);
 
+    boolean updateScores(int id, int sessionId, Integer theoryScore, String theoryPassed,
+            Integer practicalScore, String practicalPassed);
+
     /**
      * Cập nhật điểm lý thuyết dưới dạng số câu đúng (0–35) với ngưỡng đạt.
      *
@@ -174,6 +177,18 @@ public interface ExamRegistrationService {
      * @return true nếu thêm thành công
      */
     boolean insertFromDstsImport(ExamRegistrationDTO reg);
+
+    boolean ensureExamEnrollmentForSession(int candidateId, int sessionId);
+
+    boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
+            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad);
+
+    /** Các loại phần thi có ca trong kỳ: Theory / Practical / Road. */
+    java.util.Set<String> findAvailableSectionKindsForExam(int examId);
+
+    Integer findCandidateIdByGovIdAndExam(String govId, int examId);
+
+    Integer findCandidateIdByGovId(String govId);
 
     /**
      * Lấy danh sách tất cả đăng ký thi.

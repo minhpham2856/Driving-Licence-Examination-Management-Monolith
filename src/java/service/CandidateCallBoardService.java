@@ -1,18 +1,21 @@
 package service;
 
-import dto.CandidateCallBoardStateDTO;
+import dto.examstaff.CandidateCallBoardStateDTO;
 import dto.exam.ExamRegistrationDTO;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpSession;
+import repository.CallBoardRepository;
 
 import java.util.List;
 
 public interface CandidateCallBoardService {
 
-    CandidateCallBoardStateDTO getState(ServletContext ctx, int examSessionId);
+    CandidateCallBoardStateDTO getState(CallBoardRepository repository, int examSessionId);
 
-    void sync(ServletContext ctx, int examSessionId, String callingSbd,
+    void sync(CallBoardRepository repository, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded);
 
-    void syncFromSession(ServletContext ctx, HttpSession session, List<ExamRegistrationDTO> queue);
+    void occupyDesk(CallBoardRepository repository, int examSessionId, String deskSbd,
+            List<ExamRegistrationDTO> queue, boolean shiftEnded);
+
+    void releaseDeskAndCall(CallBoardRepository repository, int examSessionId, String callingSbd,
+            List<ExamRegistrationDTO> queue, boolean shiftEnded);
 }

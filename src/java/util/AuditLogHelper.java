@@ -101,7 +101,7 @@ public final class AuditLogHelper {
         }
     }
 
-    static String resolveEntityName(String action, String details) {
+    public static String resolveEntityName(String action, String details) {
         String upper = action != null ? action.toUpperCase() : "";
         String detailUpper = details != null ? details.toUpperCase() : "";
 
@@ -137,7 +137,7 @@ public final class AuditLogHelper {
         return "Candidate";
     }
 
-    static String normalizeAction(String rawAct) {
+    public static String normalizeAction(String rawAct) {
         if (rawAct == null) {
             return "UPDATE";
         }

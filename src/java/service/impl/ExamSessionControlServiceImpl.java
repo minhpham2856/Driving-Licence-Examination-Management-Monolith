@@ -1,7 +1,10 @@
 // Forced recompilation trigger
 package service.impl;
 
-import controller.staff.exam.CandidateCallBoard;
+import repository.CallBoardRepository;
+import repository.ServletContextCallBoardRepository;
+import service.CallBoardSyncService;
+import service.impl.CallBoardSyncServiceImpl;
 import service.ExamSessionControlService;
 
 import dto.ExaminerSlotDTO;
@@ -20,6 +23,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
 
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
     private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
+    private final CallBoardSyncService callBoardSyncService = new CallBoardSyncServiceImpl();
 
     @Override
     public StartResult startSession(int sessionId, int staffUserId) {
@@ -84,7 +88,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
             if (active != null && active == sessionId) {
                 ctx.removeAttribute(CTX_ACTIVE_SESSION_ID);
             }
-            CandidateCallBoard.sync(ctx, sessionId, null, null, true);
+            CallBoardRepository repository = new ServletContextCallBoardRepository(ctx);
+            callBoardSyncService.sync(repository, sessionId, null, null, true);
         }
         if (httpSession != null) {
             Integer selected = (Integer) httpSession.getAttribute("selectedSessionId");

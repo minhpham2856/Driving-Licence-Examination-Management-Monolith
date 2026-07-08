@@ -1,13 +1,20 @@
 package controller.staff.exam;
 
-import dao.ExamRegistrationDAO;
-import dao.ExamSessionDAO;
-import dao.impl.ExamRegistrationDAOImpl;
-import dao.impl.ExamSessionDAOImpl;
+import service.ExamReportStatsService;
+import service.StaffReportExportService;
+import controller.staff.exam.support.ReportProcedureStatusBinder;
+import controller.staff.exam.support.ReportStatsBinder;
+import service.ExamReportProcedureStatusService;
+import service.impl.ExamReportProcedureStatusServiceImpl;
+import dto.examstaff.ExamReportProcedureStatusDTO;
+import service.impl.ExamReportStatsServiceImpl;
+import service.impl.StaffReportExportServiceImpl;
 import dto.exam.ExamRegistrationDTO;
+import dto.examstaff.ExamReportStatsDTO;
 import dto.SessionDTO;
 import model.Profile;
 import model.User;
+import util.examstaff.ReportExportLabels;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,17 +24,16 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @WebServlet("/views/staff/examstaff/report")
 public class ReportServlet extends HttpServlet {
 
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
-    private final ExamRegistrationDAO regDAO = new ExamRegistrationDAOImpl();
+    private final ExamReportStatsService reportStatsService = new ExamReportStatsServiceImpl();
+    private final StaffReportExportService reportExportService = new StaffReportExportServiceImpl();
+    private final ExamReportProcedureStatusService procedureStatusService = new ExamReportProcedureStatusServiceImpl();
 
     // Xu ly yeu cau GET
     @Override
@@ -36,39 +42,15 @@ public class ReportServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
         ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
-                request, session, sessionDAO, webRoot);
-        int examId = pageCtx.getExamId();
+                request, session, webRoot);
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
-        List<String> missingPhotoSbds = new ArrayList<>();
-        List<ExamRegistrationDTO> missingPhotoCandidates = new ArrayList<>();
-        List<ExamRegistrationDTO> procedurePendingCandidates = new ArrayList<>();
-        int missingPhotoCount = 0;
-        int procedureCompleteCount = 0;
-        int procedurePendingCount = 0;
-        for (ExamRegistrationDTO reg : qList) {
-            boolean valid = CandidatePhotoHelper.resolveCapturedPhoto(webRoot, reg);
-            if (reg.isAbsent()) {
-                continue;
-            }
-            if (reg.isProcedureComplete()) {
-                procedureCompleteCount++;
-                continue;
-            }
-            procedurePendingCount++;
-            procedurePendingCandidates.add(reg);
-            if (!valid) {
-                missingPhotoCount++;
-                missingPhotoSbds.add(reg.getSbd() + " — " + reg.getName());
-                missingPhotoCandidates.add(reg);
-            }
-        }
-        request.setAttribute("missingPhotoCount", missingPhotoCount);
-        request.setAttribute("missingPhotoSbds", missingPhotoSbds);
-        request.setAttribute("missingPhotoCandidates", missingPhotoCandidates);
-        request.setAttribute("procedurePendingCandidates", procedurePendingCandidates);
-        request.setAttribute("procedureCompleteCount", procedureCompleteCount);
-        request.setAttribute("procedurePendingCount", procedurePendingCount);
+        ExamReportProcedureStatusDTO procedureStatus = procedureStatusService.analyze(qList, webRoot);
+        ReportProcedureStatusBinder.bind(request, procedureStatus);
+        int missingPhotoCount = procedureStatus.getMissingPhotoCount();
+
+        request.setAttribute("candidateList", qList);
+        ReportStatsBinder.bind(request, reportStatsService.computeStats(qList));
 
         boolean exportExcel = "true".equals(request.getParameter("exportExcel"));
         boolean exportPdf = "true".equals(request.getParameter("exportPdf"));
@@ -77,10 +59,6 @@ public class ReportServlet extends HttpServlet {
             request.setAttribute("exportBlocked", true);
         }
 
-        request.setAttribute("candidateList", qList);
-        ReportStatsHelper.populateReportAttributes(request, qList);
-
-            // stream excel
         if (exportExcel && !exportBlocked) {
             streamExcel(response, request, currentSession, qList);
             return;
@@ -95,7 +73,6 @@ public class ReportServlet extends HttpServlet {
     // stream excel
     }
 
-    @SuppressWarnings("unchecked")
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
             SessionDTO currentSession, List<ExamRegistrationDTO> qList) throws IOException {
         String token = ReportExportLabels.safeFileToken(
@@ -106,16 +83,14 @@ public class ReportServlet extends HttpServlet {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 
-        ReportExportStats stats = ReportExportStats.fromRequest(request);
-        List<Map<String, Object>> infractions = (List<Map<String, Object>>) request.getAttribute("infractions");
+        ExamReportStatsDTO stats = reportStatsService.computeStats(qList);
         String exporterName = resolveExporterName(request.getSession());
 
-        ReportExcelExporter.exportExamReport(
+        reportExportService.exportExamReport(
                 response.getOutputStream(),
                 currentSession,
                 qList,
                 stats,
-                infractions,
                 exporterName);
     // Xac dinh exporter name
         response.getOutputStream().flush();

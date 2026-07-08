@@ -6,7 +6,13 @@ import java.util.Locale;
 
 /**
  * Phân tích cột «Nội dung SH» (DSTS / PC08).
- * NULL = thi phần đó; FALSE = bảo lưu, không thi lại.
+ *
+ * Quy ước mã: L = Lý thuyết, H = Thực hành (sa hình), Đ = Đường trường,
+ * nối bằng dấu «+» (ví dụ: "L", "L+H", "L+H+Đ", "H", "Đ", "H+Đ").
+ *
+ * NULL = có thi phần đó; FALSE = bảo lưu, không thi phần đó.
+ * Nếu không nhận diện được phần nào (văn bản mơ hồ) thì giữ mặc định NULL
+ * cho cả ba (an toàn: coi như thi đầy đủ).
  */
 public final class CandidateShContentParser {
 
@@ -33,67 +39,51 @@ public final class CandidateShContentParser {
             reg.setTakeNo(1);
         }
 
-        if (isTheoryOnlyRetake(lower)) {
-            reg.setTakeTheory(null);
-            reg.setTakePractical(Boolean.FALSE);
-            reg.setTakeOnRoad(Boolean.FALSE);
-            return;
-        }
+        boolean hasTheory = hasTheory(lower);
+        boolean hasPractical = hasPractical(lower);
+        boolean hasRoad = hasRoad(lower);
 
-        if (isPracticalOnly(lower)) {
-            reg.setTakeTheory(Boolean.FALSE);
-            reg.setTakePractical(null);
-            reg.setTakeOnRoad(Boolean.FALSE);
-            return;
-        }
-
-        if (isRoadOnly(lower)) {
-            reg.setTakeTheory(Boolean.FALSE);
-            reg.setTakePractical(Boolean.FALSE);
-            reg.setTakeOnRoad(null);
-            return;
-        }
-
-        // SH lần đầu / thi lại cả L+H (+ Đ nếu có)
-        if (containsTheory(lower)) {
-            reg.setTakeTheory(null);
-        }
-        if (containsPractical(lower)) {
-            reg.setTakePractical(null);
-        }
-        if (containsRoad(lower)) {
-            reg.setTakeOnRoad(null);
+        // Chỉ suy ra cờ khi nhận diện được ít nhất một phần thi rõ ràng.
+        // Phần có mặt -> null (thi); phần vắng -> FALSE (bảo lưu).
+        if (hasTheory || hasPractical || hasRoad) {
+            reg.setTakeTheory(hasTheory ? null : Boolean.FALSE);
+            reg.setTakePractical(hasPractical ? null : Boolean.FALSE);
+            reg.setTakeOnRoad(hasRoad ? null : Boolean.FALSE);
         }
     }
 
-    private static boolean isTheoryOnlyRetake(String lower) {
-        return (lower.contains("sh lại l") || lower.contains("sh lai l") || lower.contains("thi lại l"))
-                && !lower.contains("l+h") && !lower.contains("l + h");
+    private static boolean hasTheory(String lower) {
+        return hasToken(lower, "l")
+                || lower.contains("lý thuyết") || lower.contains("ly thuyet")
+                || lower.contains("theory");
     }
 
-    private static boolean isPracticalOnly(String lower) {
-        return lower.contains("sát hạch h") || lower.contains("sat hach h")
-                || lower.contains("sh lại h") || lower.contains("sh lai h");
+    private static boolean hasPractical(String lower) {
+        return hasToken(lower, "h")
+                || lower.contains("sa hình") || lower.contains("sa hinh")
+                || lower.contains("thực hành") || lower.contains("thuc hanh")
+                || lower.contains("practical");
     }
 
-    private static boolean isRoadOnly(String lower) {
-        return (lower.contains("sh lại đ") || lower.contains("sh lai d") || lower.contains("sát hạch đ"))
-                && !lower.contains("l+h");
+    private static boolean hasRoad(String lower) {
+        return hasToken(lower, "đ", "d")
+                || lower.contains("đường") || lower.contains("duong")
+                || lower.contains("road");
     }
 
-    private static boolean containsTheory(String lower) {
-        return lower.contains("l+h") || lower.contains("l + h") || lower.contains("+l")
-                || lower.matches(".*\\bl\\b.*") && !isPracticalOnly(lower);
-    }
-
-    private static boolean containsPractical(String lower) {
-        return lower.contains("l+h") || lower.contains("h") || lower.contains("sa hình")
-                || lower.contains("sát hạch");
-    }
-
-    private static boolean containsRoad(String lower) {
-        return lower.contains("đường") || lower.contains("duong")
-                || lower.contains("+đ") || lower.contains("+d")
-                || lower.matches(".*\\bđ\\b.*");
+    /**
+     * Trả về true nếu một trong các mã xuất hiện như một token độc lập
+     * (được ngăn cách bởi ký tự không phải chữ cái: khoảng trắng, «+», «,»...).
+     * Nhờ vậy "SH" không bị hiểu nhầm thành mã "H", "lại" không thành "L".
+     */
+    private static boolean hasToken(String lower, String... codes) {
+        for (String token : lower.split("[^\\p{L}]+")) {
+            for (String code : codes) {
+                if (token.equals(code)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

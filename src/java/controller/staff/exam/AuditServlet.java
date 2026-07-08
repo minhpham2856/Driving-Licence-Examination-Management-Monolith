@@ -1,37 +1,35 @@
 package controller.staff.exam;
 
-import dao.AuditLogDAO;
-import dao.impl.AuditLogDAOImpl;
-import dao.impl.ExamSessionDAOImpl;
-import dto.staff.StaffProcedureKpiDTO;
-import dto.user.AuditDTO;
+import controller.staff.exam.support.StaffAuditPageBinder;
+import dto.examstaff.StaffAuditPageViewDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import service.StaffAuditPageService;
+import service.impl.StaffAuditPageServiceImpl;
 import util.SessionUserHelper;
+import util.examstaff.AllocationStageHelper;
+import util.examstaff.AuditFilterHelper;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 @WebServlet("/views/staff/examstaff/audit")
 public class AuditServlet extends HttpServlet {
 
-    private final AuditLogDAO logDAO = new AuditLogDAOImpl();
+    private final StaffAuditPageService auditPageService = new StaffAuditPageServiceImpl();
 
-    // Xu ly yeu cau GET
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
 
         if ("true".equals(request.getParameter("exportExcel"))) {
-            String filterDate = resolveFilterDate(request);
+            String filterDate = AuditFilterHelper.resolveFilterDate(request);
             String target = request.getContextPath() + "/views/staff/examstaff/audit-export";
             if (filterDate != null && !filterDate.isBlank()) {
                 target += "?filterDate=" + URLEncoder.encode(filterDate, StandardCharsets.UTF_8);
@@ -41,8 +39,8 @@ public class AuditServlet extends HttpServlet {
         }
 
         int userId = SessionUserHelper.resolveUserId(session);
-        String filterDate = resolveFilterDate(request);
-        String filterKey = filterDate == null ? "" : filterDate.trim();
+        String filterDate = AuditFilterHelper.resolveFilterDate(request);
+        String filterKey = AuditFilterHelper.normalizeFilterKey(filterDate);
 
         Integer prevUserId = (Integer) session.getAttribute("auditPageUserId");
         String prevFilter = (String) session.getAttribute("auditPageFilterDate");
@@ -51,65 +49,17 @@ public class AuditServlet extends HttpServlet {
 
         int page = AllocationStageHelper.parsePage(request.getParameter("page"));
         int pageSize = AllocationStageHelper.parsePageSize(request.getParameter("size"));
-        if (filterContextChanged) {
-            page = 1;
-        }
 
-        int totalLogs = logDAO.getLogsCountByUserAndDate(userId, filterDate);
-        int totalPages = totalLogs <= 0 ? 0 : (int) Math.ceil((double) totalLogs / pageSize);
-        if (totalPages > 0 && page > totalPages) {
-            page = 1;
-        } else if (totalPages == 0) {
-            page = 1;
-        }
+        StaffAuditPageViewDTO view = auditPageService.buildPage(
+                userId, filterDate, page, pageSize, filterContextChanged);
 
         session.setAttribute("auditPageUserId", userId);
-        session.setAttribute("auditPageFilterDate", filterKey);
+        session.setAttribute("auditPageFilterDate", view.getFilterKey());
 
-        // apply vietnamese labels
-        List<AuditDTO> personalLogs = loadLogs(userId, filterDate, page, pageSize);
-        applyVietnameseLabels(personalLogs);
-        StaffProcedureKpiDTO procedureKpi = logDAO.getStaffProcedureKpi(userId, filterDate);
+        ExamStaffViewHelper.prepareExamStaffPage(request, session,
+                request.getServletContext().getRealPath("/"));
 
-        String webRoot = request.getServletContext().getRealPath("/");
-        ExamStaffViewHelper.prepareExamStaffPage(request, session, new ExamSessionDAOImpl(), webRoot);
-
-        request.setAttribute("personalLogs", personalLogs);
-        request.setAttribute("examStaffPageSlice",
-                new AllocationStageHelper.PageSlice<>(personalLogs, page, pageSize, totalLogs));
-        request.setAttribute("examStaffListPath", "/views/staff/examstaff/audit");
-        request.setAttribute("myCompletedProcedures", procedureKpi.getCompletedCount());
-        request.setAttribute("myTotalFees", procedureKpi.getTotalFees());
-
+        StaffAuditPageBinder.bind(request, view);
         request.getRequestDispatcher("/views/staff/examstaff/audit.jsp").forward(request, response);
-    // Xac dinh filter date
-    }
-
-    private static String resolveFilterDate(HttpServletRequest request) {
-        String filterDate = request.getParameter("filterDate");
-        if (filterDate == null || filterDate.isBlank()) {
-            filterDate = request.getParameter("date");
-        }
-    // Tai logs
-        return filterDate;
-    }
-
-    private List<AuditDTO> loadLogs(int userId, String filterDate, int page, int pageSize) {
-        try {
-            return logDAO.getLogsByUserAndDatePaginated(userId, filterDate, page, pageSize);
-        } catch (Exception e) {
-            e.printStackTrace();
-    // apply vietnamese labels
-            return new ArrayList<>();
-        }
-    }
-
-    private static void applyVietnameseLabels(List<AuditDTO> logs) {
-        if (logs == null) {
-            return;
-        }
-        for (AuditDTO log : logs) {
-            AuditExportLabels.applyDisplayLabels(log);
-        }
     }
 }

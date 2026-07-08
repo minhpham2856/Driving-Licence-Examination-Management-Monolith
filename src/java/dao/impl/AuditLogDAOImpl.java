@@ -312,33 +312,44 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     @Override
     public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
+        String paymentStatusIn = enums.PaymentStatus.sqlInClause();
         String sql = """
-                SELECT COUNT(*) AS completedCount,
+                SELECT COUNT(DISTINCT x.candidateId) AS completedCount,
                        ISNULL(SUM(x.TotalAmount), 0) AS totalFees
                 FROM (
-                    SELECT DISTINCT p.PaymentId, p.TotalAmount
-                    FROM Payment p
-                    INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                    INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
-                    WHERE p.PaymentStatus IN (N'Completed', N'Paid')
-                      AND EXISTS (
-                          SELECT 1
-                          FROM Audit a
-                          WHERE a.UserId = ?
-                            AND a.EntityName IN (N'Thanh toán', N'Payment')
-                            AND a.Action = N'INSERT'
-                            AND (
-                                TRY_CAST(a.EntityId AS INT) = c.CandidateId
-                                OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'
-                                OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
+                    SELECT DISTINCT
+                        c.CandidateId AS candidateId,
+                        p.PaymentId,
+                        p.TotalAmount
+                    FROM Audit a
+                    INNER JOIN Candidate c ON (
+                        c.CandidateId = TRY_CAST(NULLIF(NULLIF(LTRIM(RTRIM(a.EntityId)), ''), '0') AS INT)
+                        OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
+                    )
+                    INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
+                    INNER JOIN Payment p ON p.ExamEnrollmentId = ee.ExamEnrollmentId
+                        AND p.PaymentStatus IN ("""
+                + paymentStatusIn + """
+                        )
+                    WHERE a.UserId = ?
+                      AND (
+                            a.EntityName IN (N'Thanh toán', N'Payment')
+                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU PHI%'
+                          )
+                      AND (
+                            UPPER(ISNULL(a.Action, N'')) IN (
+                                N'INSERT', N'UPDATE', N'THÊM', N'NHẬP', N'CẬP NHẬT'
                             )
+                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                          )
                 """;
         if (hasDate) {
-            sql += "                            AND CAST(a.CreatedAt AS DATE) = ?\n";
+            sql += "                      AND CAST(a.CreatedAt AS DATE) = ?\n";
         }
         sql += """
-                      )
                 ) x
+                WHERE x.candidateId IS NOT NULL
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, userId);

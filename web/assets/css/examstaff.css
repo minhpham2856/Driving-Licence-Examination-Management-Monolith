@@ -978,6 +978,56 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     color: #64748b;
 }
 
+.allocation-overview-search {
+    margin-top: 1.35rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.allocation-overview-search__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+.allocation-overview-search__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.allocation-overview-search__count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.allocation-overview-search__link {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.allocation-overview-search__link:hover {
+    text-decoration: underline;
+}
+
+.allocation-stage-status--waiting { color: #b45309; }
+.allocation-stage-status--theory { color: #1d4ed8; }
+.allocation-stage-status--practical { color: #7c3aed; }
+.allocation-stage-status--road { color: #0f766e; }
+.allocation-stage-status--results-pass { color: #047857; }
+.allocation-stage-status--results-fail { color: #b91c1c; }
+.allocation-stage-status--unknown { color: #64748b; }
+
 .allocation-pagination {
     display: flex;
     justify-content: space-between;

@@ -18,7 +18,7 @@
 </jsp:include>
 
         <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Xem lại lịch sử thao tác nghiệp vụ, đối chiếu hồ sơ học viên do chính bạn thực hiện trong ngày trực.</p>
+            <p class="examiner-page-desc">Xem lại lịch sử thao tác nghiệp vụ, đối chiếu hồ sơ thí sinh do chính bạn thực hiện trong ngày trực.</p>
         </header>
 
         <c:if test="${param.exportError eq '1'}">
@@ -114,8 +114,8 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="color: #7e22ce;">${requestScope.myCompletedProcedures}</span>
-                    <span class="stat-label">Học viên đã làm thủ tục</span>
-                    <span class="stat-trend stat-trend--up">Theo log thu phí (INSERT Payment) do bạn ghi nhận</span>
+                    <span class="stat-label">Thí sinh đã làm thủ tục</span>
+                    <span class="stat-trend stat-trend--up">Theo log thu lệ phí thủ tục do bạn ghi nhận</span>
                 </div>
             </div>
 
