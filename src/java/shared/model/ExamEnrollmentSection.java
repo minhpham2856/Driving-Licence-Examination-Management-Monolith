@@ -14,6 +14,7 @@ public class ExamEnrollmentSection {
     private Integer allocatedBy;
     private Timestamp startedAt;
     private Timestamp completedAt;
+    private Timestamp resultPrintedAt;
     private ExamEnrollment examEnrollment;
     private ExamSection examSection;
     private ExamArea examArea;
@@ -101,6 +102,14 @@ public class ExamEnrollmentSection {
 
     public void setCompletedAt(Timestamp v) {
         this.completedAt = v;
+    }
+
+    public Timestamp getResultPrintedAt() {
+        return resultPrintedAt;
+    }
+
+    public void setResultPrintedAt(Timestamp v) {
+        this.resultPrintedAt = v;
     }
 
     public ExamEnrollment getExamEnrollment() {
