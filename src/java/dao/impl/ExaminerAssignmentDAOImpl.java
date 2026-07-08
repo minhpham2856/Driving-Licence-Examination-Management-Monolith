@@ -55,36 +55,35 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             ORDER BY p.FullName, u.Username
             """;
 
-    private static final String SLOT_SELECT = """
-            SELECT esch.ExaminerScheduleId AS SessionExaminerId,
-                   esch.SessionId AS examSessionId,
-                   esch.ExaminerId AS examinerUserId,
-                   s.SessionName AS sessionName,
-                   eu.Username AS examinerUsername,
-                   ep.FullName AS examinerName,
-                   CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId,
-                   ea.ExamAreaId AS areaId,
-                   ea.AreaName AS areaName,
-                   ea.AreaType AS areaType,
-                   CASE
-                       WHEN sect.examTypeName LIKE N'%Thực hành%' OR sect.examTypeName LIKE N'%Sa hình%' OR sect.examTypeName LIKE '%Practical%' THEN 2
-                       WHEN sect.examTypeName LIKE N'%Đường%' OR sect.examTypeName LIKE '%Road%' THEN 4
-                       ELSE 1
-                   END AS examTypeId,
-                   sect.examTypeName
-            FROM ExaminerSchedule esch
-            JOIN [Session] s ON s.SessionId = esch.SessionId
-            JOIN [User] eu ON eu.UserId = esch.ExaminerId
-            LEFT JOIN Profile ep ON ep.UserId = eu.UserId
-            LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId
-            LEFT JOIN (
-                SELECT ses.SessionId,
-                       MIN(es.SectionName) AS examTypeName
-                FROM Session_ExamSection ses
-                JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
-                GROUP BY ses.SessionId
-            ) sect ON sect.SessionId = s.SessionId
-            """;
+    private static final String SLOT_SELECT =
+            "SELECT esch.ExaminerScheduleId AS SessionExaminerId, "
+            + "esch.SessionId AS examSessionId, "
+            + "esch.ExaminerId AS examinerUserId, "
+            + util.examstaff.SessionLabel.SQL_WITH_SECTION + " AS sessionName, "
+            + "eu.Username AS examinerUsername, "
+            + "ep.FullName AS examinerName, "
+            + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
+            + "ea.ExamAreaId AS areaId, "
+            + "ea.AreaName AS areaName, "
+            + "ea.AreaType AS areaType, "
+            + "CASE "
+            + "    WHEN sect.examTypeName LIKE N'%Thực hành%' OR sect.examTypeName LIKE N'%Sa hình%' OR sect.examTypeName LIKE '%Practical%' THEN 2 "
+            + "    WHEN sect.examTypeName LIKE N'%Đường%' OR sect.examTypeName LIKE '%Road%' THEN 4 "
+            + "    ELSE 1 "
+            + "END AS examTypeId, "
+            + "sect.examTypeName "
+            + "FROM ExaminerSchedule esch "
+            + "JOIN [Session] s ON s.SessionId = esch.SessionId "
+            + "JOIN [User] eu ON eu.UserId = esch.ExaminerId "
+            + "LEFT JOIN Profile ep ON ep.UserId = eu.UserId "
+            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId "
+            + "LEFT JOIN ( "
+            + "    SELECT ses.SessionId, "
+            + "           MIN(es.SectionName) AS examTypeName "
+            + "    FROM Session_ExamSection ses "
+            + "    JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId "
+            + "    GROUP BY ses.SessionId "
+            + ") sect ON sect.SessionId = s.SessionId";
 
     // Retrieves all active examiner users with their profiles from the database
     @Override

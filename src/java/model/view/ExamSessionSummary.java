@@ -1,12 +1,13 @@
-package dto;
+package model.view;
 
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-public class SessionDTO {
+/** Read model Session + Exam + Licence (SELECT JOIN). */
+public class ExamSessionSummary {
 
-    private int id;
+    private int sessionId;
     private int examId;
     private boolean morningSession;
     private String sessionName;
@@ -25,15 +26,12 @@ public class SessionDTO {
     private String examTypeName;
     private String areaName;
 
-    public SessionDTO() {
+    public int getSessionId() {
+        return sessionId;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    public void setSessionId(int sessionId) {
+        this.sessionId = sessionId;
     }
 
     public int getExamId() {

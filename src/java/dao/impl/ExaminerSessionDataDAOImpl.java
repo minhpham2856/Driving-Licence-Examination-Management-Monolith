@@ -291,16 +291,15 @@ public class ExaminerSessionDataDAOImpl extends DBContext implements ExaminerSes
         // LinkedHashMap preserves insertion order for consistent metadata display
         Map<String, Object> meta = new LinkedHashMap<>();
         // SQL: join Session to Exam and extract date/time components
-        String sql = """
-                SELECT s.SessionName,
-                       e.ExamCode,
-                       CAST(s.StartTime AS DATE) AS examDate,
-                       CAST(s.StartTime AS TIME) AS startTime,
-                       CAST(s.EndTime AS TIME) AS endTime
-                FROM [Session] s
-                JOIN Exam e ON e.ExamId = s.ExamId
-                WHERE s.SessionId = ?
-                """;
+        String sql =
+                "SELECT " + util.examstaff.SessionLabel.SQL_SHIFT_ONLY + " AS SessionName, "
+                + "e.ExamCode, "
+                + "CAST(s.StartTime AS DATE) AS examDate, "
+                + "CAST(s.StartTime AS TIME) AS startTime, "
+                + "CAST(s.EndTime AS TIME) AS endTime "
+                + "FROM [Session] s "
+                + "JOIN Exam e ON e.ExamId = s.ExamId "
+                + "WHERE s.SessionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             // Bind the session ID parameter
             ps.setInt(1, sessionId);

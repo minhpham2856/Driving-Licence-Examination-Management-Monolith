@@ -25,11 +25,12 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                 if (rs.next()) {
                     Session s = new Session();
                     s.setId(rs.getInt("SessionId"));
-                    s.setSessionName(rs.getString("SessionName"));
+                    s.setMorningSession(rs.getBoolean("IsMorningSession"));
                     s.setStartTime(rs.getTimestamp("StartTime"));
                     s.setEndTime(rs.getTimestamp("EndTime"));
                     s.setStatus(rs.getString("Status"));
                     s.setExamId(rs.getInt("ExamId"));
+                    s.setSessionName(util.examstaff.SessionLabel.shiftLabel(s.isMorningSession()));
                     return s;
                 }
             }
@@ -39,98 +40,101 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return null;
     }
 
-    private static final String SESSION_SELECT = """
-            SELECT s.SessionId AS id,
-                   s.ExamId AS examId,
-                   s.SessionName AS sessionName,
-                   e.LicenceId AS licenseTypeId,
-                   ISNULL(sect.examTypeId, 1) AS examTypeId,
-                   CAST(s.StartTime AS DATE) AS examDate,
-                   CAST(s.StartTime AS TIME) AS shiftStartTime,
-                   CAST(s.EndTime AS TIME) AS shiftEndTime,
-                   ISNULL(sea.ExamAreaId, 0) AS areaId,
-                   s.[Status] AS status,
-                   ISNULL(ea.Capacity, 100) AS maxCandidates,
-                   (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount,
-                   s.StartTime AS createdAt,
-                   l.LicenceClass AS licenseCode,
-                   sect.examTypeName,
-                   ea.AreaName AS areaName
-            FROM [Session] s
-            JOIN Exam e ON e.ExamId = s.ExamId
-            JOIN Licence l ON l.LicenceId = e.LicenceId
-            LEFT JOIN (
-                SELECT ses.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId
-                FROM Session_ExamArea sea2
-                JOIN [Session] ses ON ses.SessionId = sea2.SessionId
-                GROUP BY ses.SessionId
-            ) sea ON sea.SessionId = s.SessionId
-            LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId
-            LEFT JOIN (
-                SELECT ses.SessionId,
-                       MIN(es.ExamSectionId) AS examSectionId,
-                       CASE
-                           WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1
-                           WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2
-                           WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4
-                           ELSE 1
-                       END AS examTypeId,
-                       MIN(es.SectionName) AS examTypeName
-                FROM Session_ExamSection ses
-                JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
-                GROUP BY ses.SessionId
-            ) sect ON sect.SessionId = s.SessionId
-            """;
+    private static final String SESSION_SELECT =
+            "SELECT s.SessionId AS id, "
+            + "s.ExamId AS examId, "
+            + "s.IsMorningSession AS isMorningSession, "
+            + util.examstaff.SessionLabel.SQL_WITH_SECTION + " AS sessionName, "
+            + "e.LicenceId AS licenseTypeId, "
+            + "ISNULL(sect.examTypeId, 1) AS examTypeId, "
+            + "CAST(s.StartTime AS DATE) AS examDate, "
+            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
+            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
+            + "ISNULL(sea.ExamAreaId, 0) AS areaId, "
+            + "s.[Status] AS status, "
+            + "ISNULL(ea.Capacity, 100) AS maxCandidates, "
+            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
+            + "s.StartTime AS createdAt, "
+            + "l.LicenceClass AS licenseCode, "
+            + "e.ExamCode AS examCode, "
+            + "sect.examTypeName, "
+            + "ea.AreaName AS areaName "
+            + "FROM [Session] s "
+            + "JOIN Exam e ON e.ExamId = s.ExamId "
+            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
+            + "LEFT JOIN ( "
+            + "    SELECT ses.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId "
+            + "    FROM Session_ExamArea sea2 "
+            + "    JOIN [Session] ses ON ses.SessionId = sea2.SessionId "
+            + "    GROUP BY ses.SessionId "
+            + ") sea ON sea.SessionId = s.SessionId "
+            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId "
+            + "LEFT JOIN ( "
+            + "    SELECT ses.SessionId, "
+            + "           MIN(es.ExamSectionId) AS examSectionId, "
+            + "           CASE "
+            + "               WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1 "
+            + "               WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2 "
+            + "               WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4 "
+            + "               ELSE 1 "
+            + "           END AS examTypeId, "
+            + "           MIN(es.SectionName) AS examTypeName "
+            + "    FROM Session_ExamSection ses "
+            + "    JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId "
+            + "    GROUP BY ses.SessionId "
+            + ") sect ON sect.SessionId = s.SessionId";
 
-    private static final String SESSION_SELECT_BASIC = """
-            SELECT s.SessionId AS id,
-                   s.ExamId AS examId,
-                   s.SessionName AS sessionName,
-                   e.LicenceId AS licenseTypeId,
-                   1 AS examTypeId,
-                   CAST(s.StartTime AS DATE) AS examDate,
-                   CAST(s.StartTime AS TIME) AS shiftStartTime,
-                   CAST(s.EndTime AS TIME) AS shiftEndTime,
-                   0 AS areaId,
-                   s.[Status] AS status,
-                   100 AS maxCandidates,
-                   (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount,
-                   s.StartTime AS createdAt,
-                   l.LicenceClass AS licenseCode,
-                   CAST(NULL AS NVARCHAR(200)) AS examTypeName,
-                   CAST(NULL AS NVARCHAR(200)) AS areaName
-            FROM [Session] s
-            JOIN Exam e ON e.ExamId = s.ExamId
-            JOIN Licence l ON l.LicenceId = e.LicenceId
-            """;
+    private static final String SESSION_SELECT_BASIC =
+            "SELECT s.SessionId AS id, "
+            + "s.ExamId AS examId, "
+            + "s.IsMorningSession AS isMorningSession, "
+            + util.examstaff.SessionLabel.SQL_SHIFT_ONLY + " AS sessionName, "
+            + "e.LicenceId AS licenseTypeId, "
+            + "1 AS examTypeId, "
+            + "CAST(s.StartTime AS DATE) AS examDate, "
+            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
+            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
+            + "0 AS areaId, "
+            + "s.[Status] AS status, "
+            + "100 AS maxCandidates, "
+            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
+            + "s.StartTime AS createdAt, "
+            + "l.LicenceClass AS licenseCode, "
+            + "e.ExamCode AS examCode, "
+            + "CAST(NULL AS NVARCHAR(200)) AS examTypeName, "
+            + "CAST(NULL AS NVARCHAR(200)) AS areaName "
+            + "FROM [Session] s "
+            + "JOIN Exam e ON e.ExamId = s.ExamId "
+            + "JOIN Licence l ON l.LicenceId = e.LicenceId";
 
     /** Một ca đại diện mỗi ExamId — query tối giản cho dropdown. */
-    private static final String EXAM_DAY_PICKER_SELECT = """
-            SELECT s.SessionId AS id,
-                   s.ExamId AS examId,
-                   s.SessionName AS sessionName,
-                   e.LicenceId AS licenseTypeId,
-                   1 AS examTypeId,
-                   CAST(s.StartTime AS DATE) AS examDate,
-                   CAST(s.StartTime AS TIME) AS shiftStartTime,
-                   CAST(s.EndTime AS TIME) AS shiftEndTime,
-                   0 AS areaId,
-                   s.[Status] AS status,
-                   100 AS maxCandidates,
-                   (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount,
-                   s.StartTime AS createdAt,
-                   l.LicenceClass AS licenseCode,
-                   CAST(NULL AS NVARCHAR(200)) AS examTypeName,
-                   CAST(NULL AS NVARCHAR(200)) AS areaName
-            FROM [Session] s
-            INNER JOIN (
-                SELECT ExamId, MIN(SessionId) AS SessionId
-                FROM [Session]
-                GROUP BY ExamId
-            ) pick ON pick.SessionId = s.SessionId
-            JOIN Exam e ON e.ExamId = s.ExamId
-            JOIN Licence l ON l.LicenceId = e.LicenceId
-            """;
+    private static final String EXAM_DAY_PICKER_SELECT =
+            "SELECT s.SessionId AS id, "
+            + "s.ExamId AS examId, "
+            + "s.IsMorningSession AS isMorningSession, "
+            + util.examstaff.SessionLabel.SQL_SHIFT_ONLY + " AS sessionName, "
+            + "e.LicenceId AS licenseTypeId, "
+            + "1 AS examTypeId, "
+            + "CAST(s.StartTime AS DATE) AS examDate, "
+            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
+            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
+            + "0 AS areaId, "
+            + "s.[Status] AS status, "
+            + "100 AS maxCandidates, "
+            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
+            + "s.StartTime AS createdAt, "
+            + "l.LicenceClass AS licenseCode, "
+            + "e.ExamCode AS examCode, "
+            + "CAST(NULL AS NVARCHAR(200)) AS examTypeName, "
+            + "CAST(NULL AS NVARCHAR(200)) AS areaName "
+            + "FROM [Session] s "
+            + "INNER JOIN ( "
+            + "    SELECT ExamId, MIN(SessionId) AS SessionId "
+            + "    FROM [Session] "
+            + "    GROUP BY ExamId "
+            + ") pick ON pick.SessionId = s.SessionId "
+            + "JOIN Exam e ON e.ExamId = s.ExamId "
+            + "JOIN Licence l ON l.LicenceId = e.LicenceId";
 
     // Retrieves a rich SessionDTO by primary key with all joined fields.
     @Override
@@ -262,6 +266,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         SessionDTO es = new SessionDTO();
         es.setId(rs.getInt("id"));
         es.setExamId(rs.getInt("examId"));
+        es.setMorningSession(rs.getBoolean("isMorningSession"));
         es.setSessionName(rs.getString("sessionName"));
         es.setLicenseTypeId(rs.getInt("licenseTypeId"));
         es.setExamTypeId(rs.getInt("examTypeId"));
@@ -275,6 +280,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         Timestamp created = rs.getTimestamp("createdAt");
         es.setCreatedAt(rs.wasNull() ? null : created);
         es.setLicenseCode(rs.getString("licenseCode"));
+        es.setExamCode(rs.getString("examCode"));
         es.setExamTypeName(rs.getString("examTypeName"));
         es.setAreaName(rs.getString("areaName"));
         return es;

@@ -15,7 +15,7 @@ public final class Db2CandidateSql {
                 ELSE 0
               END AS BIT) AS gender,""";
 
-    public static final String CANDIDATE_SELECT = """
+    private static final String CANDIDATE_SELECT_HEAD = """
             SELECT
               c.CandidateId AS id,
               ee.SessionId AS examSessionId,
@@ -25,7 +25,9 @@ public final class Db2CandidateSql {
                 TRY_CAST(c.CandidateNumber AS INT),
                 TRY_CAST(SUBSTRING(c.CandidateNumber, CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT)
               ) AS candidateNo,
-              CASE WHEN ISNULL(c.TakeNo, 1) > 1 THEN N'Retake' ELSE N'PreRegistered' END AS registrationType,
+              """;
+
+    private static final String CANDIDATE_SELECT_MID = """
               CAST(CASE WHEN pay.PaymentId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS isPaymentCompleted,
               CAST(CASE
                 WHEN ISNULL(c.IsAbsent, 0) = 1 OR ISNULL(c.IsSuspended, 0) = 1 THEN 0
@@ -37,9 +39,11 @@ public final class Db2CandidateSql {
               c.FullName AS fullName,
               c.GovernmentIdNumber AS govIdNo,
               CAST(c.DateOfBirth AS DATE) AS dateOfBirth,
-            """ + GENDER_AS_BIT + """
+            """;
+
+    private static final String CANDIDATE_SELECT_TAIL = """
               c.PhoneNumber AS phoneNo,
-              u.Email AS email,
+              COALESCE(NULLIF(LTRIM(RTRIM(c.Email)), N''), u.Email) AS email,
               c.PhotoImageUrl AS photoUrl,
               l.LicenceClass AS licenseCode,
               dev.DeviceName AS computerCode,
@@ -53,9 +57,9 @@ public final class Db2CandidateSql {
               CAST(ISNULL(ee.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
               allocArea.ExamAreaId AS allocatedAreaId,
               allocArea.AreaName AS allocatedAreaName,
-              theory.scoreVal AS theoryScore,
-              practical.scoreVal AS practicalScore,
-              road.scoreVal AS roadTestScore
+            """;
+
+    private static final String CANDIDATE_FROM_JOIN = """
             FROM Candidate c
             INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
             INNER JOIN [Session] s ON s.SessionId = ee.SessionId
@@ -66,11 +70,18 @@ public final class Db2CandidateSql {
             LEFT JOIN (
                 SELECT p1.ExamEnrollmentId, MIN(p1.PaymentId) AS PaymentId
                 FROM Payment p1
-                WHERE p1.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
+                WHERE p1.PaymentStatus IN (
+            """;
+
+    private static final String CANDIDATE_PAYMENT_JOIN_END = """
+                )
                 GROUP BY p1.ExamEnrollmentId
             ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
             LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId
             LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = ee.AllocatedExamAreaId
+            """;
+
+    private static final String CANDIDATE_SCORE_JOINS = """
             LEFT JOIN (
                 SELECT er.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
                 FROM ExamResult er
@@ -97,61 +108,35 @@ public final class Db2CandidateSql {
             ) road ON road.ExamEnrollmentId = ee.ExamEnrollmentId
             """;
 
-    public static final String CANDIDATE_SELECT_MINIMAL = """
-            SELECT
-              c.CandidateId AS id,
-              ee.SessionId AS examSessionId,
-              ee.ExamEnrollmentId AS examEnrollmentId,
-              CAST(0 AS INT) AS personId,
-              COALESCE(
-                TRY_CAST(c.CandidateNumber AS INT),
-                TRY_CAST(SUBSTRING(c.CandidateNumber, CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT)
-              ) AS candidateNo,
-              CASE WHEN ISNULL(c.TakeNo, 1) > 1 THEN N'Retake' ELSE N'PreRegistered' END AS registrationType,
-              CAST(CASE WHEN pay.PaymentId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS isPaymentCompleted,
-              CAST(CASE
-                WHEN ISNULL(c.IsAbsent, 0) = 1 OR ISNULL(c.IsSuspended, 0) = 1 THEN 0
-                ELSE 1 END AS BIT) AS isPresent,
-              CAST(ISNULL(c.IsAbsent, 0) AS BIT) AS isAbsent,
-              CAST(ISNULL(c.IsSuspended, 0) AS BIT) AS isSuspended,
-              CAST(NULL AS DATETIME) AS presentMarkedAt,
-              CAST(NULL AS NVARCHAR(500)) AS notes,
-              c.FullName AS fullName,
-              c.GovernmentIdNumber AS govIdNo,
-              CAST(c.DateOfBirth AS DATE) AS dateOfBirth,
-            """ + GENDER_AS_BIT + """
-              c.PhoneNumber AS phoneNo,
-              u.Email AS email,
-              c.PhotoImageUrl AS photoUrl,
-              l.LicenceClass AS licenseCode,
-              dev.DeviceName AS computerCode,
-              c.Address AS address,
-              c.ReasonForTaking AS reasonForTaking,
-              c.TakeTheory AS takeTheory,
-              c.TakeLayout AS takePractical,
-              c.TakeRoad AS takeOnRoad,
-              CAST(s.StartTime AS DATE) AS examDate,
-              ee.SectionStatus AS sectionStatus,
-              CAST(ISNULL(ee.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
-              allocArea.ExamAreaId AS allocatedAreaId,
-              allocArea.AreaName AS allocatedAreaName,
+    private static final String CANDIDATE_SCORE_COLUMNS = """
+              theory.scoreVal AS theoryScore,
+              practical.scoreVal AS practicalScore,
+              road.scoreVal AS roadTestScore
+            """;
+
+    private static final String CANDIDATE_NULL_SCORE_COLUMNS = """
               CAST(NULL AS INT) AS theoryScore,
               CAST(NULL AS INT) AS practicalScore,
               CAST(NULL AS INT) AS roadTestScore
-            FROM Candidate c
-            INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-            INNER JOIN [Session] s ON s.SessionId = ee.SessionId
-            INNER JOIN Exam ex ON ex.ExamId = s.ExamId
-            INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-            LEFT JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
-            LEFT JOIN [User] u ON u.UserId = prof.UserId
-            LEFT JOIN (
-                SELECT p1.ExamEnrollmentId, MIN(p1.PaymentId) AS PaymentId
-                FROM Payment p1
-                WHERE p1.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
-                GROUP BY p1.ExamEnrollmentId
-            ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
-            LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId
-            LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = ee.AllocatedExamAreaId
             """;
+
+    private static String buildCandidateSelect(String scoreColumns, String scoreJoins) {
+        return CANDIDATE_SELECT_HEAD
+                + enums.RegistrationType.sqlCaseExpression("c.TakeNo")
+                + " AS registrationType,\n"
+                + CANDIDATE_SELECT_MID
+                + GENDER_AS_BIT
+                + CANDIDATE_SELECT_TAIL
+                + scoreColumns
+                + CANDIDATE_FROM_JOIN
+                + enums.PaymentStatus.sqlInClause()
+                + CANDIDATE_PAYMENT_JOIN_END
+                + scoreJoins;
+    }
+
+    public static final String CANDIDATE_SELECT =
+            buildCandidateSelect(CANDIDATE_SCORE_COLUMNS, CANDIDATE_SCORE_JOINS);
+
+    public static final String CANDIDATE_SELECT_MINIMAL =
+            buildCandidateSelect(CANDIDATE_NULL_SCORE_COLUMNS, "");
 }

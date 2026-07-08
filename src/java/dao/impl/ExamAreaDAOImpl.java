@@ -17,8 +17,14 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         a.setExamAreaId(rs.getInt("ExamAreaId"));
         a.setAreaName(rs.getString("AreaName"));
         a.setAreaType(rs.getString("AreaType"));
-        a.setCapacity(rs.getInt("Capacity"));
+        int capacity = rs.getInt("Capacity");
+        a.setCapacity(rs.wasNull() ? null : capacity);
         a.setLocation(rs.getString("Location"));
+        try {
+            a.setExamZoneId(rs.getInt("ExamZoneId"));
+        } catch (SQLException ignored) {
+            // cột có thể thiếu trên schema cũ
+        }
         return a;
     }
     @Override
@@ -64,13 +70,15 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public int insert(ExamArea a) {
-        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location]) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location], ExamZoneId) VALUES (?, ?, ?, ?, ?)";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
-            ps.setInt(3, a.getCapacity());
+            setIntOrNull(ps, 3, a.getCapacity());
             ps.setString(4, a.getLocation());
+            int zoneId = a.getExamZoneId() > 0 ? a.getExamZoneId() : 1;
+            ps.setInt(5, zoneId);
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) return keys.getInt(1);
@@ -84,14 +92,16 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public boolean update(ExamArea a) {
-        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, [Location] = ? WHERE ExamAreaId = ?";
+        String sql = "UPDATE ExamArea SET AreaName = ?, AreaType = ?, Capacity = ?, [Location] = ?, ExamZoneId = ? WHERE ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, a.getAreaName());
             ps.setString(2, a.getAreaType());
-            ps.setInt(3, a.getCapacity());
+            setIntOrNull(ps, 3, a.getCapacity());
             ps.setString(4, a.getLocation());
-            ps.setInt(5, a.getExamAreaId());
+            int zoneId = a.getExamZoneId() > 0 ? a.getExamZoneId() : 1;
+            ps.setInt(5, zoneId);
+            ps.setInt(6, a.getExamAreaId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
