@@ -1,7 +1,5 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.ExamStaffDashboardViewBinder;
-import controller.staff.exam.support.ExamStaffHttpSupport;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.ExamStaffDashboardViewDTO;
 import jakarta.servlet.ServletException;
@@ -29,8 +27,8 @@ public class DashboardServlet extends HttpServlet {
         String webRoot = request.getServletContext().getRealPath("/");
 
         try {
-            ExamStaffHttpSupport.applyNoCacheHeaders(response);
-            ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+            BaseExamStaffServlet.applyNoCacheHeaders(response);
+            BaseExamStaffServlet.ExamStaffPageContext pageCtx = BaseExamStaffServlet.prepareExamStaffPage(
                     request, session, webRoot);
 
             int examId = pageCtx.getExamId();
@@ -40,15 +38,15 @@ public class DashboardServlet extends HttpServlet {
             session.setAttribute("lastLoadedSessionId", sessionId);
 
             boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
-            ExamStaffViewHelper.syncCallingSbd(session, getServletContext(), sessionId, qList, shiftEnded);
+            BaseExamStaffServlet.syncCallingSbd(session, getServletContext(), sessionId, qList, shiftEnded);
 
             ExamStaffDashboardViewDTO dashboardView = dashboardService.buildView(pageCtx.getAllSessions(), examId);
-            ExamStaffDashboardViewBinder.bind(request, dashboardView);
+            BaseExamStaffServlet.bind(request, dashboardView);
 
-            ExamStaffHttpSupport.consumeFlash(session, "sessionControlMsg", request, "sessionControlMsg");
-            ExamStaffHttpSupport.consumeFlash(session, "sessionControlError", request, "sessionControlError");
-            ExamStaffHttpSupport.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
-            ExamStaffHttpSupport.consumeFlash(session, "sessionSelectError", request, "sessionSelectError");
+            BaseExamStaffServlet.consumeFlash(session, "sessionControlMsg", request, "sessionControlMsg");
+            BaseExamStaffServlet.consumeFlash(session, "sessionControlError", request, "sessionControlError");
+            BaseExamStaffServlet.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
+            BaseExamStaffServlet.consumeFlash(session, "sessionSelectError", request, "sessionSelectError");
 
             request.getRequestDispatcher("/views/staff/examstaff/dashboard.jsp").forward(request, response);
         } catch (Exception e) {

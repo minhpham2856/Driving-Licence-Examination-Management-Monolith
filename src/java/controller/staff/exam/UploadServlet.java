@@ -7,8 +7,6 @@ import dto.exam.ExamRegistrationDTO;
 
 import dto.SessionDTO;
 
-import controller.staff.exam.support.ExamStaffPageBinder;
-import controller.staff.exam.support.StaffAuditLogSupport;
 import service.CandidateDstsImportService;
 import service.impl.CandidateDstsImportServiceImpl;
 import dto.examstaff.CandidateDstsImportCommitResultDTO;
@@ -61,7 +59,7 @@ public class UploadServlet extends HttpServlet {
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
             if (selectedSessionId == null || selectedSessionId <= 0) {
                 List<SessionDTO> allSessions = sessionQueryService.listAllSessions();
-                int examId = ExamStaffViewHelper.resolveExamId(request, session, allSessions, 0);
+                int examId = BaseExamStaffServlet.resolveExamId(request, session, allSessions, 0);
                 selectedSessionId = resolveImportSessionId(request, session, allSessions, examId);
             }
 
@@ -83,14 +81,14 @@ public class UploadServlet extends HttpServlet {
                 Integer selectedExamId = (Integer) session.getAttribute("selectedExamId");
                 int examId = selectedExamId != null && selectedExamId > 0
                         ? selectedExamId
-                        : ExamStaffViewHelper.resolveExamId(request, session, sessionQueryService.listAllSessions(), 0);
+                        : BaseExamStaffServlet.resolveExamId(request, session, sessionQueryService.listAllSessions(), 0);
                 String webRoot = request.getServletContext().getRealPath("/");
-                ExamStaffViewHelper.refreshCandidateQueue(session, examId, selectedSessionId, webRoot,
+                BaseExamStaffServlet.refreshCandidateQueue(session, examId, selectedSessionId, webRoot,
                         sessionQueryService.listAllSessions());
                 if (selectedSessionId > 0) {
                     SessionDTO importSessionDto = sessionQueryService.findBySessionId(selectedSessionId);
                     if (importSessionDto != null && importSessionDto.getExamId() > 0) {
-                        ExamStaffPageBinder.persistExamSelection(session, selectedSessionId,
+                        BaseExamStaffServlet.persistExamSelection(session, selectedSessionId,
                                 importSessionDto.getExamId());
                     }
                     session.setAttribute("selectedImportSessionId", selectedSessionId);
@@ -116,12 +114,12 @@ public class UploadServlet extends HttpServlet {
             }
         }
 
-        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+        BaseExamStaffServlet.ExamStaffPageContext pageCtx = BaseExamStaffServlet.prepareExamStaffPage(
                 request, session, request.getServletContext().getRealPath("/"), false);
         int examId = pageCtx.getExamId();
         int sessionId = pageCtx.getSessionId();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
-        ExamStaffViewHelper.bindImportExamAttributes(request, currentSession, examId);
+        BaseExamStaffServlet.bindImportExamAttributes(request, currentSession, examId);
         session.setAttribute("selectedImportSessionId", sessionId);
 
         request.getRequestDispatcher("/views/staff/examstaff/upload.jsp").forward(request, response);
@@ -138,7 +136,7 @@ public class UploadServlet extends HttpServlet {
         session.removeAttribute("validImportCount");
 
         List<SessionDTO> allSessions = sessionQueryService.listAllSessions();
-        int examId = ExamStaffViewHelper.resolveExamId(request, session, allSessions, 0);
+        int examId = BaseExamStaffServlet.resolveExamId(request, session, allSessions, 0);
         int selectedSessionId = resolveImportSessionId(request, session, allSessions, examId);
         session.setAttribute("selectedImportSessionId", selectedSessionId);
         if (selectedSessionId > 0) {
@@ -181,7 +179,7 @@ public class UploadServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
-        StaffAuditLogSupport.persistWithSessionFeed(session, action, details, recordId);
+        BaseExamStaffServlet.persistWithSessionFeed(session, action, details, recordId);
     }
 
     private static int resolveImportSessionId(HttpServletRequest request, HttpSession session,
@@ -190,7 +188,7 @@ public class UploadServlet extends HttpServlet {
         if (sessionParam != null && !sessionParam.isBlank()) {
             try {
                 int paramSessionId = Integer.parseInt(sessionParam.trim());
-                SessionDTO paramSession = ExamStaffViewHelper.findSessionById(allSessions, paramSessionId);
+                SessionDTO paramSession = BaseExamStaffServlet.findSessionById(allSessions, paramSessionId);
                 if (paramSession != null) {
                     return paramSessionId;
                 }
@@ -208,7 +206,7 @@ public class UploadServlet extends HttpServlet {
             }
         }
         if (examId > 0) {
-            return ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
+            return BaseExamStaffServlet.resolvePrimarySessionId(allSessions, examId);
         }
         return 0;
     }

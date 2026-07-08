@@ -1,7 +1,7 @@
 package service.impl;
 
 import dto.SessionDTO;
-import dto.examstaff.ExamStaffSelectionResolveInput;
+import dto.examstaff.ExamStaffSelectionDTO;
 import dto.examstaff.ExamStaffSelectionStateDTO;
 import service.ExamStaffPageService;
 import service.ExamStaffSelectionService;
@@ -14,7 +14,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
     private final ExamStaffPageService pageService = new ExamStaffPageServiceImpl();
 
     @Override
-    public int resolveExamId(ExamStaffSelectionResolveInput input) {
+    public int resolveExamId(ExamStaffSelectionDTO input) {
         if (input == null) {
             return 0;
         }
@@ -57,7 +57,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
     }
 
     @Override
-    public int resolveSessionId(ExamStaffSelectionResolveInput input) {
+    public int resolveSessionId(ExamStaffSelectionDTO input) {
         if (input == null) {
             return 0;
         }
@@ -79,7 +79,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
     }
 
     @Override
-    public int ensureExamId(ExamStaffSelectionResolveInput input) {
+    public int ensureExamId(ExamStaffSelectionDTO input) {
         int examId = resolveExamId(input);
         if (examId > 0) {
             return examId;

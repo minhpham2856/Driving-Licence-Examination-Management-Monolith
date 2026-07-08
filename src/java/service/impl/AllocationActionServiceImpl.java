@@ -13,7 +13,7 @@ import service.AllocationScoreService;
 import service.ExamAreaQueryService;
 import service.ExamRegistrationService;
 import service.ExaminerAllocationService;
-import util.examstaff.AllocationStageHelper;
+import util.examstaff.AllocationStageUtil;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
     @Override
     public AllocationActionResultDTO autoAllocateOnOverview(int sessionId, String stage) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
-        if (sessionId <= 0 || !AllocationStageHelper.STAGE_OVERVIEW.equals(stage)) {
+        if (sessionId <= 0 || !AllocationStageUtil.STAGE_OVERVIEW.equals(stage)) {
             return result;
         }
         AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocateSession(sessionId);
@@ -86,7 +86,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
             default -> result.setErrorMsg("Thao tác không hỗ trợ: " + action);
         }
 
-        result.setRedirectServletPath(AllocationStageHelper.inferServletPathFromAction(action));
+        result.setRedirectServletPath(AllocationStageUtil.inferServletPathFromAction(action));
         return result;
     }
 

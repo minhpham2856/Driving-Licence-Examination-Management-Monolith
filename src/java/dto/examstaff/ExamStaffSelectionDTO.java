@@ -4,7 +4,7 @@ import dto.SessionDTO;
 
 import java.util.List;
 
-public class ExamStaffSelectionResolveInput {
+public class ExamStaffSelectionDTO {
 
     private int urlSessionId;
     private String examIdParam;

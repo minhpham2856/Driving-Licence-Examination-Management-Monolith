@@ -24,16 +24,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import service.SessionQueryService;
+import service.ExaminerSlotQueryService;
 
-public final class ExaminerSlotViewSupport {
+public final class ExaminerSlotQueryServiceImpl implements ExaminerSlotQueryService {
 
     private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
-    private final SessionViewSupport sessionViewSupport = new SessionViewSupport();
+    private final SessionQueryService SessionQueryService = new service.impl.SessionQueryServiceImpl();
 
+    @Override
     public List<ExaminerSlotDTO> toDtoList(List<ExaminerSchedule> schedules) {
         List<ExaminerSlotDTO> list = new ArrayList<>();
         if (schedules == null) {
@@ -48,6 +51,7 @@ public final class ExaminerSlotViewSupport {
         return list;
     }
 
+    @Override
     public ExaminerSlotDTO toDto(ExaminerSchedule schedule) {
         if (schedule == null) {
             return null;
@@ -66,6 +70,7 @@ public final class ExaminerSlotViewSupport {
         return toDto(schedule, sessions, users, profiles);
     }
 
+    @Override
     public List<UserDTO> toUserDtoList(List<User> users) {
         List<UserDTO> list = new ArrayList<>();
         if (users == null || users.isEmpty()) {
@@ -108,7 +113,7 @@ public final class ExaminerSlotViewSupport {
         if (session != null) {
             slot.setSessionName(session.getSessionName());
             if (slot.getExamTypeId() == 0) {
-                SessionDTO sessionDto = sessionViewSupport.toDto(session);
+                SessionDTO sessionDto = SessionQueryService.toDto(session);
                 if (sessionDto != null) {
                     slot.setExamTypeId(sessionDto.getExamTypeId());
                     if (slot.getExamTypeName() == null) {

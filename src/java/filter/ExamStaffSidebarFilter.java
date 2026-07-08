@@ -1,6 +1,6 @@
 package filter;
 
-import controller.staff.exam.ExamStaffViewHelper;
+import controller.staff.exam.BaseExamStaffServlet;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -18,18 +18,18 @@ public class ExamStaffSidebarFilter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        ExamStaffViewHelper.applyNoCacheHeaders(response);
+        BaseExamStaffServlet.applyNoCacheHeaders(response);
         HttpSession session = request.getSession(false);
-        int urlSessionId = ExamStaffViewHelper.parseSessionIdParam(request);
+        int urlSessionId = BaseExamStaffServlet.parseSessionIdParam(request);
         if (session != null && urlSessionId > 0) {
             Integer loadedSession = (Integer) session.getAttribute("examStaffLoadedSessionId");
             if (loadedSession == null || loadedSession != urlSessionId) {
-                ExamStaffViewHelper.clearCandidateCache(session);
+                BaseExamStaffServlet.clearCandidateCache(session);
             }
-            ExamStaffViewHelper.applySessionIdFromRequest(request, session,
-                    ExamStaffViewHelper.loadAllSessions());
+            BaseExamStaffServlet.applySessionIdFromRequest(request, session,
+                    BaseExamStaffServlet.loadAllSessions());
         }
-        ExamStaffViewHelper.bindSidebarIfNeeded(request, session);
+        BaseExamStaffServlet.bindSidebarIfNeeded(request, session);
         chain.doFilter(request, response);
     }
 }

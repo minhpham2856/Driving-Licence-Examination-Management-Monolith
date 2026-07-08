@@ -21,8 +21,9 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
+import service.SessionQueryService;
 
-public final class SessionViewSupport {
+public final class SessionQueryServiceImpl implements SessionQueryService {
 
     private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final ExamDAO examDAO = new ExamDAOImpl();
@@ -30,10 +31,12 @@ public final class SessionViewSupport {
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
 
+    @Override
     public SessionDTO toDto(int sessionId) {
         return toDto(sessionDAO.getById(sessionId));
     }
 
+    @Override
     public SessionDTO toDto(Session session) {
         if (session == null) {
             return null;
@@ -94,6 +97,7 @@ public final class SessionViewSupport {
         return dto;
     }
 
+    @Override
     public List<SessionDTO> toDtoList(List<Session> sessions) {
         List<SessionDTO> list = new ArrayList<>();
         if (sessions == null) {

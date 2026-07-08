@@ -13,13 +13,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
  // Utility class that handles file uploads for violation evidence in the examiner portal.
-public final class ExaminerViolationUploadHelper {
+public final class ExaminerViolationUploadUtil {
 
     // Relative subdirectory under the web root where violation uploads are stored
     private static final String UPLOAD_SUBDIR = "uploads/violations";
 
     // Private constructor prevents instantiation — all methods are static
-    private ExaminerViolationUploadHelper() {
+    private ExaminerViolationUploadUtil() {
     }
 
          // Processes a file upload part from a multipart request and saves it to disk.

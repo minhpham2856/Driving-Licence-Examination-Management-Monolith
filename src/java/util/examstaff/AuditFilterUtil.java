@@ -2,9 +2,9 @@ package util.examstaff;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-public final class AuditFilterHelper {
+public final class AuditFilterUtil {
 
-    private AuditFilterHelper() {
+    private AuditFilterUtil() {
     }
 
     public static String resolveFilterDate(HttpServletRequest request) {

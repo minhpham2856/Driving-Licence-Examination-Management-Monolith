@@ -5,9 +5,9 @@ import dto.user.AuditDTO;
 import dto.examstaff.StaffAuditPageViewDTO;
 import service.StaffAuditPageService;
 import service.StaffAuditQueryService;
-import util.examstaff.AllocationStageHelper;
+import util.examstaff.AllocationStageUtil;
 import util.examstaff.AuditExportLabels;
-import util.examstaff.AuditFilterHelper;
+import util.examstaff.AuditFilterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class StaffAuditPageServiceImpl implements StaffAuditPageService {
     public StaffAuditPageViewDTO buildPage(int userId, String filterDate, int page, int pageSize,
             boolean filterContextChanged) {
         StaffAuditPageViewDTO view = new StaffAuditPageViewDTO();
-        String filterKey = AuditFilterHelper.normalizeFilterKey(filterDate);
+        String filterKey = AuditFilterUtil.normalizeFilterKey(filterDate);
         view.setFilterKey(filterKey);
 
         if (filterContextChanged) {
@@ -41,7 +41,7 @@ public class StaffAuditPageServiceImpl implements StaffAuditPageService {
         StaffProcedureKpiDTO procedureKpi = auditQueryService.getStaffProcedureKpi(userId, filterDate);
 
         view.setPersonalLogs(personalLogs);
-        view.setPageSlice(new AllocationStageHelper.PageSlice<>(personalLogs, page, pageSize, totalLogs));
+        view.setPageSlice(new AllocationStageUtil.PageSlice<>(personalLogs, page, pageSize, totalLogs));
         view.setProcedureKpi(procedureKpi);
         return view;
     }

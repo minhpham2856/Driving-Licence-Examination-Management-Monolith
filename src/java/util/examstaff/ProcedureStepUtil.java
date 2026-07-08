@@ -2,9 +2,9 @@ package util.examstaff;
 
 import dto.exam.ExamRegistrationDTO;
 
-public final class ProcedureStepHelper {
+public final class ProcedureStepUtil {
 
-    private ProcedureStepHelper() {
+    private ProcedureStepUtil() {
     }
 
     public static String resolveStep(String requestedStep, boolean sbdChanged,

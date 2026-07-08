@@ -1,9 +1,8 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.StaffAuditLogSupport;
 import service.ExamSessionControlService;
 import service.impl.ExamSessionControlServiceImpl;
-import util.SessionUserHelper;
+import util.SessionUserUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,14 +23,14 @@ public class SessionControlServlet extends HttpServlet {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         int sessionId = parseSessionId(request, session);
-        int staffId = SessionUserHelper.resolveUserId(session);
+        int staffId = SessionUserUtil.resolveUserId(session);
         String redirect = buildRedirect(request, sessionId);
 
         if ("startSession".equals(action)) {
             ExamSessionControlService.StartResult result = controlService.startSession(sessionId, staffId);
             if (result.isSuccess()) {
                 controlService.applyRuntimeStart(getServletContext(), session, sessionId);
-                StaffAuditLogSupport.persist(session, "UPDATE Session",
+                BaseExamStaffServlet.persist(session, "UPDATE Session",
                         "Bắt đầu ca thi SessionId=" + sessionId + " - " + result.getSessionName()
                                 + " (" + result.getExaminerCount() + " sát hạch viên)",
                         sessionId);
@@ -43,7 +42,7 @@ public class SessionControlServlet extends HttpServlet {
             ExamSessionControlService.EndResult result = controlService.endSession(sessionId);
             if (result.isSuccess()) {
                 controlService.applyRuntimeEnd(getServletContext(), session, sessionId);
-                StaffAuditLogSupport.persist(session, "UPDATE Session",
+                BaseExamStaffServlet.persist(session, "UPDATE Session",
                         "Kết thúc ca thi SessionId=" + sessionId, sessionId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {

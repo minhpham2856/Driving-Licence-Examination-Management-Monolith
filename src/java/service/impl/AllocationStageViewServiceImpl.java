@@ -6,7 +6,7 @@ import dto.examstaff.AllocationStageViewDTO;
 import service.AllocationStageViewService;
 import util.ExamRegistrationSort;
 import util.examstaff.AllocationPassRules;
-import util.examstaff.AllocationStageHelper;
+import util.examstaff.AllocationStageUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,9 +23,9 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
         if (candidates == null) {
             view.setPracticalStageIds(Set.of());
             view.setNoRoadTestIds(Set.of());
-            view.setStageCounts(new AllocationStageHelper.StageCounts());
+            view.setStageCounts(new AllocationStageUtil.StageCounts());
             view.setStageList(List.of());
-            view.setPageSlice(new AllocationStageHelper.PageSlice<>(List.of(), page, pageSize, 0));
+            view.setPageSlice(new AllocationStageUtil.PageSlice<>(List.of(), page, pageSize, 0));
             view.setOverviewSearchHits(List.of());
             return view;
         }
@@ -45,18 +45,18 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
         }
 
         List<ExamRegistrationDTO> stageFiltered = new ArrayList<>();
-        if (!AllocationStageHelper.STAGE_OVERVIEW.equals(stage)) {
-            String filter = AllocationStageHelper.STAGE_RESULTS.equals(stage) ? resultFilter : null;
-            stageFiltered = AllocationStageHelper.filterForStage(candidates, stage, practicalStageIds, filter);
-            stageFiltered = AllocationStageHelper.filterSearch(stageFiltered, searchQuery);
+        if (!AllocationStageUtil.STAGE_OVERVIEW.equals(stage)) {
+            String filter = AllocationStageUtil.STAGE_RESULTS.equals(stage) ? resultFilter : null;
+            stageFiltered = AllocationStageUtil.filterForStage(candidates, stage, practicalStageIds, filter);
+            stageFiltered = AllocationStageUtil.filterSearch(stageFiltered, searchQuery);
         }
         ExamRegistrationSort.sort(stageFiltered, sortSpec);
-        AllocationStageHelper.PageSlice<ExamRegistrationDTO> slice
-                = AllocationStageHelper.paginate(stageFiltered, page, pageSize);
+        AllocationStageUtil.PageSlice<ExamRegistrationDTO> slice
+                = AllocationStageUtil.paginate(stageFiltered, page, pageSize);
 
         view.setPracticalStageIds(practicalStageIds);
         view.setNoRoadTestIds(noRoadTestIds);
-        view.setStageCounts(AllocationStageHelper.computeCounts(candidates, practicalStageIds));
+        view.setStageCounts(AllocationStageUtil.computeCounts(candidates, practicalStageIds));
         view.setStageList(slice.getItems());
         view.setPageSlice(slice);
         view.setOverviewSearchHits(buildOverviewHits(candidates, practicalStageIds, stage, searchQuery));
@@ -66,19 +66,19 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
     private static List<AllocationOverviewHitDTO> buildOverviewHits(
             List<ExamRegistrationDTO> candidates, Set<Integer> practicalStageIds,
             String stage, String searchQuery) {
-        if (!AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
+        if (!AllocationStageUtil.STAGE_OVERVIEW.equals(stage)
                 || searchQuery == null || searchQuery.isBlank()) {
             return List.of();
         }
-        List<ExamRegistrationDTO> matched = AllocationStageHelper.filterSearch(candidates, searchQuery);
+        List<ExamRegistrationDTO> matched = AllocationStageUtil.filterSearch(candidates, searchQuery);
         List<AllocationOverviewHitDTO> hits = new ArrayList<>(matched.size());
         for (ExamRegistrationDTO candidate : matched) {
-            String stageKey = AllocationStageHelper.resolveCurrentStageKey(candidate, practicalStageIds);
+            String stageKey = AllocationStageUtil.resolveCurrentStageKey(candidate, practicalStageIds);
             AllocationOverviewHitDTO hit = new AllocationOverviewHitDTO();
             hit.setCandidate(candidate);
             hit.setStageKey(stageKey);
-            hit.setStageLabel(AllocationStageHelper.stageLabel(stageKey));
-            hit.setStagePath(AllocationStageHelper.stageServletPath(stageKey));
+            hit.setStageLabel(AllocationStageUtil.stageLabel(stageKey));
+            hit.setStagePath(AllocationStageUtil.stageServletPath(stageKey));
             hits.add(hit);
         }
         return hits;

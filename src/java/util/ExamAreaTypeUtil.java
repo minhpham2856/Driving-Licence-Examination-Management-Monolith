@@ -4,11 +4,11 @@ import dto.SessionDTO;
 import enums.ExamSection;
 import model.ExamArea;
 
-public final class ExamAreaTypeResolver {
+public final class ExamAreaTypeUtil {
 
     public static final String PRACTICAL_AREA_TYPE = "Thực hành";
 
-    private ExamAreaTypeResolver() {
+    private ExamAreaTypeUtil() {
     }
 
     public static String resolveAreaType(SessionDTO session) {

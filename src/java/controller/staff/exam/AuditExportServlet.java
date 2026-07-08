@@ -7,8 +7,8 @@ import service.StaffAuditExportService;
 import service.StaffAuditQueryService;
 import service.impl.StaffAuditExportServiceImpl;
 import service.impl.StaffAuditQueryServiceImpl;
-import util.SessionUserHelper;
-import util.examstaff.AuditFilterHelper;
+import util.SessionUserUtil;
+import util.examstaff.AuditFilterUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -38,8 +38,8 @@ public class AuditExportServlet extends HttpServlet {
             return;
         }
 
-        int userId = SessionUserHelper.resolveUserId(session);
-        String filterDate = AuditFilterHelper.resolveFilterDate(request);
+        int userId = SessionUserUtil.resolveUserId(session);
+        String filterDate = AuditFilterUtil.resolveFilterDate(request);
         List<AuditDTO> personalLogs = loadLogs(userId, filterDate);
         var procedureKpi = auditQueryService.getStaffProcedureKpi(userId, filterDate);
 

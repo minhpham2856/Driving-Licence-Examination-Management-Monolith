@@ -1,6 +1,5 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.ExamStaffHttpSupport;
 import dto.examstaff.PublicCallSnapshotDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,7 +12,7 @@ import repository.ServletContextCallBoardRepository;
 import service.CallBoardSyncService;
 import service.ExamStaffServices;
 import service.PublicCallQueryService;
-import util.Utf8EncodingHelper;
+import util.Utf8EncodingUtil;
 
 import java.io.IOException;
 
@@ -37,9 +36,9 @@ public class PublicCallServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Utf8EncodingHelper.apply(request, response);
+        Utf8EncodingUtil.apply(request, response);
 
-        int sessionId = ExamStaffHttpSupport.resolveActiveSessionId(request);
+        int sessionId = BaseExamStaffServlet.resolveActiveSessionId(request);
         CallBoardRepository repository = new ServletContextCallBoardRepository(getServletContext());
         CallBoardState board = callBoardSyncService.getState(repository, sessionId);
         PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(

@@ -3,11 +3,11 @@ package util;
 import model.User;
 import jakarta.servlet.http.HttpSession;
 
-public final class SessionUserHelper {
+public final class SessionUserUtil {
 
     public static final int DEFAULT_STAFF_USER_ID = 3;
 
-    private SessionUserHelper() {
+    private SessionUserUtil() {
     }
 
     public static int resolveUserId(HttpSession session) {

@@ -39,7 +39,7 @@ public class ExaminerDataServiceImpl implements ExaminerDataService {
     private static final int THEORY_PASS_CORRECT = 32;
     private static final int THEORY_MAX_QUESTIONS = 35;
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
-    private final CandidateEnrollmentViewSupport enrollmentViewSupport = new CandidateEnrollmentViewSupport();
+    private final CandidateEnrollmentQueryService enrollmentViewSupport = new service.impl.CandidateEnrollmentQueryServiceImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
     private final SessionDAO sessionDAO = new SessionDAOImpl();

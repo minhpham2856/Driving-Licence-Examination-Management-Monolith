@@ -14,11 +14,11 @@ import jakarta.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.util.List;
 
-public final class AuditLogHelper {
+public final class AuditLogUtil {
 
     private static final AuditLogDAO DAO = new AuditLogDAOImpl();
 
-    private AuditLogHelper() {
+    private AuditLogUtil() {
     }
 
     public static void persist(HttpSession session, String action, String details) {

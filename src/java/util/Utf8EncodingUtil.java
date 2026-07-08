@@ -6,11 +6,11 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * UTF-8 cho servlet/JSP exam staff và màn hình gọi loa TV.
  */
-public final class Utf8EncodingHelper {
+public final class Utf8EncodingUtil {
 
     public static final String UTF_8 = "UTF-8";
 
-    private Utf8EncodingHelper() {
+    private Utf8EncodingUtil() {
     }
 
     public static void applyRequest(HttpServletRequest request) {

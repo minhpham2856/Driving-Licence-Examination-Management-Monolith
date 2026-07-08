@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public final class AllocationStageHelper {
+public final class AllocationStageUtil {
 
     public static final String STAGE_OVERVIEW = "overview";
     public static final String STAGE_WAITING = "waiting";
@@ -24,7 +24,7 @@ public final class AllocationStageHelper {
     public static final int DEFAULT_PAGE_SIZE = 50;
     public static final int MAX_PAGE_SIZE = 200;
 
-    private AllocationStageHelper() {
+    private AllocationStageUtil() {
     }
 
     public static final class StageCounts {

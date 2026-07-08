@@ -2,8 +2,6 @@ package controller.staff.exam;
 
 import service.ExamReportStatsService;
 import service.StaffReportExportService;
-import controller.staff.exam.support.ReportProcedureStatusBinder;
-import controller.staff.exam.support.ReportStatsBinder;
 import service.ExamReportProcedureStatusService;
 import service.impl.ExamReportProcedureStatusServiceImpl;
 import dto.examstaff.ExamReportProcedureStatusDTO;
@@ -41,16 +39,16 @@ public class ReportServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
-        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+        BaseExamStaffServlet.ExamStaffPageContext pageCtx = BaseExamStaffServlet.prepareExamStaffPage(
                 request, session, webRoot);
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
         ExamReportProcedureStatusDTO procedureStatus = procedureStatusService.analyze(qList, webRoot);
-        ReportProcedureStatusBinder.bind(request, procedureStatus);
+        BaseExamStaffServlet.bind(request, procedureStatus);
         int missingPhotoCount = procedureStatus.getMissingPhotoCount();
 
         request.setAttribute("candidateList", qList);
-        ReportStatsBinder.bind(request, reportStatsService.computeStats(qList));
+        BaseExamStaffServlet.bind(request, reportStatsService.computeStats(qList));
 
         boolean exportExcel = "true".equals(request.getParameter("exportExcel"));
         boolean exportPdf = "true".equals(request.getParameter("exportPdf"));

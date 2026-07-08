@@ -37,12 +37,12 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     private final AuditLogService auditLogService = new AuditLogServiceImpl();
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
-    private final CandidateEnrollmentViewSupport enrollmentViewSupport = new CandidateEnrollmentViewSupport();
+    private final CandidateEnrollmentQueryService enrollmentViewSupport = new service.impl.CandidateEnrollmentQueryServiceImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExamEnrollmentDAO vehicleDAO = new ExamEnrollmentDAOImpl();
     private final SessionDAO sessionDAO = new SessionDAOImpl();
-    private final SessionViewSupport sessionViewSupport = new SessionViewSupport();
+    private final SessionQueryService SessionQueryService = new service.impl.SessionQueryServiceImpl();
     private final ExamScoreDAO examScoreDAO = new ExamScoreDAOImpl();
     private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
     private final ScoreDeductionDAO scoreDeductionDAO = new ScoreDeductionDAOImpl();
@@ -502,7 +502,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
     private void enqueueNextSection(int sessionId, CandidateEnrollmentDTO reg) {
         int sbd = reg.getSbd();
-        SessionDTO session = sessionViewSupport.toDto(sessionId);
+        SessionDTO session = SessionQueryService.toDto(sessionId);
         String sectionName = session != null ? session.getExamTypeName() : null;
         boolean isTheory = enums.ExamSection.isTheory(sectionName);
         Lane current = ExamQueue.resolveLane(isTheory, sectionName);

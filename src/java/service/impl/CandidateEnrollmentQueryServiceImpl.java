@@ -13,9 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-public final class CandidateEnrollmentViewSupport {
+import service.CandidateEnrollmentQueryService;
+
+public final class CandidateEnrollmentQueryServiceImpl implements CandidateEnrollmentQueryService {
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
+    @Override
     public List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId) {
         List<ExamEnrollment> enrollments = enrollmentDAO.getBySessionId(sessionId);
         if (enrollments.isEmpty()) {
@@ -38,6 +41,7 @@ public final class CandidateEnrollmentViewSupport {
         list.sort(Comparator.comparingInt(CandidateEnrollmentDTO::getSbd));
         return list;
     }
+    @Override
     public CandidateEnrollmentDTO toDto(Candidate candidate, ExamEnrollment enrollment) {
         CandidateProfileDTO profile = new CandidateProfileDTO();
         profile.setCandidateId(candidate.getCandidateId());

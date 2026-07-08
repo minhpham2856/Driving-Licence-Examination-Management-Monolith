@@ -35,7 +35,7 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     }
 
     static String resolveEntityName(String action, String details) {
-        String resolved = util.AuditLogHelper.resolveEntityName(action, details);
+        String resolved = util.AuditLogUtil.resolveEntityName(action, details);
         if ("Payment".equalsIgnoreCase(resolved)) {
             return AuditEntity.THANH_TOAN.getDisplayName();
         }
@@ -43,6 +43,6 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     }
 
     static String normalizeAction(String rawAct) {
-        return util.AuditLogHelper.normalizeAction(rawAct);
+        return util.AuditLogUtil.normalizeAction(rawAct);
     }
 }

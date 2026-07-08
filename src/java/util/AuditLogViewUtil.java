@@ -13,12 +13,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class AuditLogViewHelper {
+public final class AuditLogViewUtil {
 
     private static final Pattern SBD_PATTERN =
             Pattern.compile("SBD\\s+([A-Za-z0-9]+-\\d+)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
-    private AuditLogViewHelper() {
+    private AuditLogViewUtil() {
     }
 
     public static List<Map<String, Object>> toViewRows(AuditDTO log, Map<Integer, String> sbdByRecordId) {

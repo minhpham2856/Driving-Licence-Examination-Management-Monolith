@@ -10,7 +10,7 @@ import model.ExamArea;
 import model.ExamDevice;
 import service.ExaminerAllocationDeskService;
 import service.ExaminerAllocationService;
-import util.ExamAreaTypeResolver;
+import util.ExamAreaTypeUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -118,7 +118,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
             return result;
         }
 
-        if (!ExamAreaTypeResolver.areaMatchesSession(area, targetSession)) {
+        if (!ExamAreaTypeUtil.areaMatchesSession(area, targetSession)) {
             result.setErrorMsg("Phòng thi không đúng loại với ca/môn đã chọn.");
             return result;
         }

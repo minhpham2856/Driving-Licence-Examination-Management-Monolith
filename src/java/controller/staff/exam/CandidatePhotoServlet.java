@@ -27,8 +27,8 @@ public class CandidatePhotoServlet extends HttpServlet {
             return;
         }
 
-        int examId = ExamStaffViewHelper.resolveExamId(request, request.getSession(), null, 0);
-        int sessionId = ExamStaffViewHelper.resolveSessionId(request, request.getSession(), null, 0);
+        int examId = BaseExamStaffServlet.resolveExamId(request, request.getSession(), null, 0);
+        int sessionId = BaseExamStaffServlet.resolveSessionId(request, request.getSession(), null, 0);
         CandidatePhotoStreamDTO photo = photoLookupService.resolvePhoto(
                 request.getServletContext().getRealPath("/"), examId, sessionId, sbd.trim());
 

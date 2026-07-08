@@ -2,14 +2,14 @@ package dto.examstaff;
 
 import dto.staff.StaffProcedureKpiDTO;
 import dto.user.AuditDTO;
-import util.examstaff.AllocationStageHelper;
+import util.examstaff.AllocationStageUtil;
 
 import java.util.List;
 
 public class StaffAuditPageViewDTO {
 
     private List<AuditDTO> personalLogs;
-    private AllocationStageHelper.PageSlice<AuditDTO> pageSlice;
+    private AllocationStageUtil.PageSlice<AuditDTO> pageSlice;
     private StaffProcedureKpiDTO procedureKpi;
     private String filterKey;
     private int page;
@@ -22,11 +22,11 @@ public class StaffAuditPageViewDTO {
         this.personalLogs = personalLogs;
     }
 
-    public AllocationStageHelper.PageSlice<AuditDTO> getPageSlice() {
+    public AllocationStageUtil.PageSlice<AuditDTO> getPageSlice() {
         return pageSlice;
     }
 
-    public void setPageSlice(AllocationStageHelper.PageSlice<AuditDTO> pageSlice) {
+    public void setPageSlice(AllocationStageUtil.PageSlice<AuditDTO> pageSlice) {
         this.pageSlice = pageSlice;
     }
 

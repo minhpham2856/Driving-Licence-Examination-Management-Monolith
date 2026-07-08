@@ -99,7 +99,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         if (session == null) {
             return List.of();
         }
-        return areaDAO.getAvailableAreasByType(util.ExamAreaTypeResolver.resolveAreaType(session));
+        return areaDAO.getAvailableAreasByType(util.ExamAreaTypeUtil.resolveAreaType(session));
     }
 
     @Override

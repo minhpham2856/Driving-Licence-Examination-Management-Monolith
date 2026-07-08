@@ -1,6 +1,5 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.CallBoardHttpFacade;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.CandidateCallActionResultDTO;
 import dto.examstaff.CandidateCallPageCommand;
@@ -51,15 +50,15 @@ public class CandidateCallServlet extends HttpServlet {
         }
 
         String webRoot = request.getServletContext().getRealPath("/");
-        ExamStaffViewHelper.applyNoCacheHeaders(response);
-        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+        BaseExamStaffServlet.applyNoCacheHeaders(response);
+        BaseExamStaffServlet.ExamStaffPageContext pageCtx = BaseExamStaffServlet.prepareExamStaffPage(
                 request, session, webRoot);
 
         CandidateCallPageCommand command = buildCommand(request, session, pageCtx, webRoot);
         CandidateCallPageViewDTO view = pageService.preparePage(command);
 
         if (view.isResumeShift()) {
-            ExamStaffViewHelper.resumeCallShift(getServletContext(), session, pageCtx.getSessionId());
+            BaseExamStaffServlet.resumeCallShift(getServletContext(), session, pageCtx.getSessionId());
             response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
             return;
         }
@@ -70,9 +69,9 @@ public class CandidateCallServlet extends HttpServlet {
 
         applySessionSideEffects(session, view);
         applyBoardOp(pageCtx.getSessionId(), view);
-        ExamStaffViewHelper.bindCandidateCallPageAttributes(
+        BaseExamStaffServlet.bindCandidateCallPageAttributes(
                 request, session, view.getPublishExamId(), view.getFullQueue());
-        ExamStaffViewHelper.publishCandidateQueue(request, session, view.getFullQueue(),
+        BaseExamStaffServlet.publishCandidateQueue(request, session, view.getFullQueue(),
                 view.getPublishExamId(), view.getPublishSessionId());
         bindActionAlert(request, view);
 
@@ -88,7 +87,7 @@ public class CandidateCallServlet extends HttpServlet {
     }
 
     private CandidateCallPageCommand buildCommand(HttpServletRequest request, HttpSession session,
-            ExamStaffViewHelper.ExamStaffPageContext pageCtx, String webRoot) {
+            BaseExamStaffServlet.ExamStaffPageContext pageCtx, String webRoot) {
         CandidateCallPageCommand command = new CandidateCallPageCommand();
         command.setAction(request.getParameter("action"));
         command.setSbd(request.getParameter("sbd"));
@@ -96,9 +95,9 @@ public class CandidateCallServlet extends HttpServlet {
         command.setReturnView(request.getParameter("returnView"));
         command.setExamId(pageCtx.getExamId());
         command.setBoardSessionId(pageCtx.getSessionId());
-        command.setCalledByStaffId(ExamStaffViewHelper.resolveStaffId(session));
+        command.setCalledByStaffId(BaseExamStaffServlet.resolveStaffId(session));
         command.setWebRoot(webRoot);
-        command.setShiftEnded(ExamStaffViewHelper.isCallShiftEnded(session));
+        command.setShiftEnded(BaseExamStaffServlet.isCallShiftEnded(session));
         command.setCallingSbd((String) session.getAttribute("callingSbd"));
         command.setLastLoadedExamId((Integer) session.getAttribute("lastLoadedExamId"));
         @SuppressWarnings("unchecked")
@@ -120,7 +119,7 @@ public class CandidateCallServlet extends HttpServlet {
                 (List<ExamRegistrationDTO>) session.getAttribute("candidateQueue");
         command.setCachedQueue(cached);
 
-        command.setBoard(CallBoardHttpFacade.getState(getServletContext(), pageCtx.getSessionId()));
+        command.setBoard(BaseExamStaffServlet.getState(getServletContext(), pageCtx.getSessionId()));
         return command;
     }
 
@@ -137,19 +136,19 @@ public class CandidateCallServlet extends HttpServlet {
             session.removeAttribute("procedureJustPaidSbd");
         }
         if (view.isPersistQueueOrder()) {
-            ExamStaffViewHelper.syncCallQueueOrderFromQueue(
+            BaseExamStaffServlet.syncCallQueueOrderFromQueue(
                     session, view.getPublishSessionId(), view.getFullQueue());
         }
     }
 
     private void applyBoardOp(int boardSessionId, CandidateCallPageViewDTO view) {
         if (view.isReleaseDesk()) {
-            CallBoardHttpFacade.releaseDeskAndCall(
+            BaseExamStaffServlet.releaseDeskAndCall(
                     getServletContext(), boardSessionId, view.getReleaseDeskCallingSbd(),
                     view.getFullQueue(), view.isShiftEnded());
         }
         if (view.isSyncBoard()) {
-            CallBoardHttpFacade.sync(
+            BaseExamStaffServlet.sync(
                     getServletContext(), boardSessionId, view.getBoardCallingSbd(),
                     view.getFullQueue(), view.isShiftEnded());
         }

@@ -1,7 +1,7 @@
 package dto.examstaff;
 
 import dto.exam.ExamRegistrationDTO;
-import util.examstaff.AllocationStageHelper;
+import util.examstaff.AllocationStageUtil;
 
 import java.util.List;
 import java.util.Set;
@@ -10,9 +10,9 @@ public class AllocationStageViewDTO {
 
     private Set<Integer> practicalStageIds;
     private Set<Integer> noRoadTestIds;
-    private AllocationStageHelper.StageCounts stageCounts;
+    private AllocationStageUtil.StageCounts stageCounts;
     private List<ExamRegistrationDTO> stageList;
-    private AllocationStageHelper.PageSlice<ExamRegistrationDTO> pageSlice;
+    private AllocationStageUtil.PageSlice<ExamRegistrationDTO> pageSlice;
     private List<AllocationOverviewHitDTO> overviewSearchHits;
 
     public Set<Integer> getPracticalStageIds() {
@@ -31,11 +31,11 @@ public class AllocationStageViewDTO {
         this.noRoadTestIds = noRoadTestIds;
     }
 
-    public AllocationStageHelper.StageCounts getStageCounts() {
+    public AllocationStageUtil.StageCounts getStageCounts() {
         return stageCounts;
     }
 
-    public void setStageCounts(AllocationStageHelper.StageCounts stageCounts) {
+    public void setStageCounts(AllocationStageUtil.StageCounts stageCounts) {
         this.stageCounts = stageCounts;
     }
 
@@ -47,11 +47,11 @@ public class AllocationStageViewDTO {
         this.stageList = stageList;
     }
 
-    public AllocationStageHelper.PageSlice<ExamRegistrationDTO> getPageSlice() {
+    public AllocationStageUtil.PageSlice<ExamRegistrationDTO> getPageSlice() {
         return pageSlice;
     }
 
-    public void setPageSlice(AllocationStageHelper.PageSlice<ExamRegistrationDTO> pageSlice) {
+    public void setPageSlice(AllocationStageUtil.PageSlice<ExamRegistrationDTO> pageSlice) {
         this.pageSlice = pageSlice;
     }
 

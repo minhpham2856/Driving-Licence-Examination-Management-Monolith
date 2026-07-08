@@ -39,7 +39,7 @@ import service.ExamRegistrationService;
 import service.ExaminerSessionContextService;
 import service.ExaminerViewDataService;
 import service.impl.ExamRegistrationServiceImpl;
-import util.AuditLogViewHelper;
+import util.AuditLogViewUtil;
 
 import util.ExaminerCandidateSort;
 import util.FormatUtil;
@@ -272,7 +272,7 @@ public class ExaminerViewDataServiceImpl implements ExaminerViewDataService {
         
         // Process raw logs into UI models
         for (AuditDTO log : logs) {
-            for (Map<String, Object> row : AuditLogViewHelper.toViewRows(log, sbdByRecordId)) {
+            for (Map<String, Object> row : AuditLogViewUtil.toViewRows(log, sbdByRecordId)) {
                 Timestamp changedAt = log.getChangedAt();
                 // Format timestamps into separate time and date strings
                 if (changedAt != null) {
