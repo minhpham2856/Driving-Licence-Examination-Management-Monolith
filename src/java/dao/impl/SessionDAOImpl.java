@@ -127,11 +127,12 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
     private static Session mapSession(ResultSet rs) throws SQLException {
         Session session = new Session();
         session.setId(rs.getInt("SessionId"));
-        session.setSessionName(rs.getString("SessionName"));
+        session.setMorningSession(rs.getBoolean("IsMorningSession"));
         session.setStartTime(rs.getTimestamp("StartTime"));
         session.setEndTime(rs.getTimestamp("EndTime"));
         session.setStatus(rs.getString("Status"));
         session.setExamId(rs.getInt("ExamId"));
+        session.setSessionName(util.examstaff.SessionLabel.shiftLabel(session.isMorningSession()));
         return session;
     }
 }

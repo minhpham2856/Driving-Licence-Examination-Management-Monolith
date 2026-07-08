@@ -21,17 +21,17 @@ import service.impl.RoleServiceImpl;
 public class UserDAOImpl extends DBContext implements UserDAO {
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
     private static final String USER_SELECT = """
-                     select UserId,
-                     	Username,
-                     	Email,
-                     	PasswordHash,
-                     	RoleId,
-                     	IsActive
-                     from [User]
+                     select u.UserId,
+                     	u.Username,
+                     	u.Email,
+                     	u.PasswordHash,
+                     	u.RoleId,
+                     	u.IsActive
+                     from [User] u
                      """;
     @Override
     public User getById(int id) {
-        String sql = USER_SELECT + " where UserId = ?";
+        String sql = USER_SELECT + " where u.UserId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -46,7 +46,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     }
     @Override
     public User getByUsername(String username) {
-        String sql = USER_SELECT + " where Username = ?";
+        String sql = USER_SELECT + " where u.Username = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
@@ -62,26 +62,30 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
-                 where Username = ?
-                    or Email = ?
+                     left join Profile p on p.UserId = u.UserId
+                     where u.Username = ?
+                        or u.Email = ?
+                        or p.PhoneNumber = ?
+                        or p.GovernmentIdNumber = ?
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
-            ps.setString(2, identifier);
+            ps.setString(3, identifier);
+            ps.setString(4, identifier);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Failed to resolve user by identifier", e);
         }
         return null;
     }
     @Override
     public User getByEmail(String email) {
-        String sql = USER_SELECT + " where Email = ?";
+        String sql = USER_SELECT + " where u.Email = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {

@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDAO {
     private static final String ENROLLMENT_COLUMNS = """
-            ExamEnrollmentId, CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId
+            ExamEnrollmentId, CandidateId, SessionId, SectionStatus, SignaturePrinted,
+            AllocatedExamAreaId, ExamDeviceId
             """;
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     @Override
@@ -34,18 +35,23 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
     @Override
     public int insert(ExamEnrollment enrollment) {
-        String sql = "INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId) "
-                + "VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, "
+                + "AllocatedExamAreaId, ExamDeviceId) VALUES (?,?,?,?,?,?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, enrollment.getCandidateId());
             ps.setInt(2, enrollment.getSessionId());
             ps.setString(3, enrollment.getSectionStatus() != null ? enrollment.getSectionStatus()
                     : SectionStatus.CHUA_THI.getDisplayName());
             ps.setBoolean(4, enrollment.isSignaturePrinted());
-            if (enrollment.getExamDeviceId() != null) {
-                ps.setInt(5, enrollment.getExamDeviceId());
+            if (enrollment.getAllocatedExamAreaId() != null) {
+                ps.setInt(5, enrollment.getAllocatedExamAreaId());
             } else {
                 ps.setNull(5, java.sql.Types.INTEGER);
+            }
+            if (enrollment.getExamDeviceId() != null) {
+                ps.setInt(6, enrollment.getExamDeviceId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
             }
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -61,17 +67,22 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
     @Override
     public boolean update(ExamEnrollment enrollment) {
-        String sql = "UPDATE ExamEnrollment SET SectionStatus = ?, SignaturePrinted = ?, ExamDeviceId = ? "
-                + "WHERE ExamEnrollmentId = ?";
+        String sql = "UPDATE ExamEnrollment SET SectionStatus = ?, SignaturePrinted = ?, "
+                + "AllocatedExamAreaId = ?, ExamDeviceId = ? WHERE ExamEnrollmentId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, enrollment.getSectionStatus());
             ps.setBoolean(2, enrollment.isSignaturePrinted());
-            if (enrollment.getExamDeviceId() != null) {
-                ps.setInt(3, enrollment.getExamDeviceId());
+            if (enrollment.getAllocatedExamAreaId() != null) {
+                ps.setInt(3, enrollment.getAllocatedExamAreaId());
             } else {
                 ps.setNull(3, java.sql.Types.INTEGER);
             }
-            ps.setInt(4, enrollment.getExamEnrollmentId());
+            if (enrollment.getExamDeviceId() != null) {
+                ps.setInt(4, enrollment.getExamDeviceId());
+            } else {
+                ps.setNull(4, java.sql.Types.INTEGER);
+            }
+            ps.setInt(5, enrollment.getExamEnrollmentId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -194,6 +205,10 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         enrollment.setSessionId(rs.getInt("SessionId"));
         enrollment.setSectionStatus(rs.getString("SectionStatus"));
         enrollment.setSignaturePrinted(rs.getBoolean("SignaturePrinted"));
+        int allocatedAreaId = rs.getInt("AllocatedExamAreaId");
+        if (!rs.wasNull()) {
+            enrollment.setAllocatedExamAreaId(allocatedAreaId);
+        }
         int deviceId = rs.getInt("ExamDeviceId");
         if (!rs.wasNull()) {
             enrollment.setExamDeviceId(deviceId);

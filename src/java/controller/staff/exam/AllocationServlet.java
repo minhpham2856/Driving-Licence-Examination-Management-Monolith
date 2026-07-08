@@ -1,7 +1,11 @@
 package controller.staff.exam;
-import dto.AutoAllocateResultDTO;
-import dto.CandidateCallBoardStateDTO;
-import dto.CandidateEnrollmentDTO;
+
+import controller.staff.exam.support.AllocationActionResultBinder;
+import controller.staff.exam.support.AllocationStageViewBinder;
+import dto.exam.ExamRegistrationDTO;
+import dto.examstaff.AllocationActionResultDTO;
+import dto.examstaff.AllocationCandidateActionRequest;
+import dto.examstaff.CandidateCallBoardStateDTO;
 import dto.SessionDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,243 +13,296 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import repository.ServletContextCallBoardRepository;
+import service.AllocationActionService;
+import service.AllocationStageViewService;
+import service.CandidateCallBoardService;
+import service.ExamAreaQueryService;
+import service.ExamStaffServices;
+import util.ExamRegistrationSort;
+import util.examstaff.AllocationStageHelper;
+
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import model.ExamArea;
-import model.User;
-import service.AuditLogService;
-import service.CandidatePhotoService;
-import service.ExamAreaService;
-import service.ExamRegistrationService;
-import service.ExamSessionControlService;
-import service.ExaminerAllocationService;
-import service.impl.AuditLogServiceImpl;
-import service.impl.CandidatePhotoServiceImpl;
-import service.impl.ExamAreaServiceImpl;
-import service.impl.ExamRegistrationServiceImpl;
-import service.impl.ExamSessionControlServiceImpl;
-import service.impl.ExaminerAllocationServiceImpl;
-@WebServlet("/views/staff/exam/allocation")
+
+@WebServlet(urlPatterns = {
+        "/views/staff/examstaff/allocation",
+        "/views/staff/examstaff/allocation-waiting",
+        "/views/staff/examstaff/allocation-theory",
+        "/views/staff/examstaff/allocation-practical",
+        "/views/staff/examstaff/allocation-road",
+        "/views/staff/examstaff/allocation-results-pass",
+        "/views/staff/examstaff/allocation-results-fail"
+})
 public class AllocationServlet extends HttpServlet {
-    private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
-    private final AuditLogService auditLogService = new AuditLogServiceImpl();
-    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
-    private final ExamAreaService areaService = new ExamAreaServiceImpl();
-    private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
-    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
-    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+
+    private final ExamAreaQueryService areaQueryService;
+    private final CandidateCallBoardService callBoardService;
+    private final AllocationStageViewService allocationStageViewService;
+    private final AllocationActionService allocationActionService;
+
+    public AllocationServlet() {
+        this(ExamStaffServices.get().examAreas(), ExamStaffServices.get().callBoard(),
+                ExamStaffServices.get().allocationStageView(), ExamStaffServices.get().allocationActions());
+    }
+
+    AllocationServlet(ExamAreaQueryService areaQueryService,
+            CandidateCallBoardService callBoardService,
+            AllocationStageViewService allocationStageViewService,
+            AllocationActionService allocationActionService) {
+        this.areaQueryService = areaQueryService;
+        this.callBoardService = callBoardService;
+        this.allocationStageViewService = allocationStageViewService;
+        this.allocationActionService = allocationActionService;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         HttpSession session = request.getSession();
-        request.removeAttribute("errorMsg");
-        request.removeAttribute("warningMsg");
-        request.removeAttribute("alertMsg");
-        // 0. Load all sessions for session dropdown
-        List<SessionDTO> allSessions = sessionService.getAllSessions();
-        request.setAttribute("allSessions", allSessions);
-        // 1. Retrieve or load selected sessionId
-        String sessIdParam = request.getParameter("sessionId");
-        int sessionId = 2; // Default session
-        if (sessIdParam != null && !sessIdParam.isEmpty()) {
-            try {
-                sessionId = Integer.parseInt(sessIdParam);
-            } catch (Exception e) {
+        String servletPath = request.getServletPath();
+        String stage = AllocationStageHelper.resolveStageFromServletPath(servletPath);
+        String resultFilter = AllocationStageHelper.resolveResultFilterFromServletPath(servletPath);
+        String jspPath = AllocationStageHelper.resolveJspPath(servletPath);
+
+        try {
+            request.removeAttribute("errorMsg");
+            request.removeAttribute("warningMsg");
+            request.removeAttribute("alertMsg");
+
+            ExamStaffViewHelper.applyNoCacheHeaders(response);
+            String webRoot = request.getServletContext().getRealPath("/");
+
+            int urlSessionId = ExamStaffViewHelper.parseSessionIdParam(request);
+            if (Boolean.TRUE.equals(session.getAttribute("examStaffSessionJustChanged"))) {
+                session.removeAttribute("examStaffSessionJustChanged");
+                ExamStaffViewHelper.clearCandidateCache(session);
             }
-        } else if (session.getAttribute("selectedSessionId") != null) {
-            sessionId = (Integer) session.getAttribute("selectedSessionId");
-        }
-        session.setAttribute("selectedSessionId", sessionId);
-        // Retrieve the current session details
-        SessionDTO currentSession = null;
-        for (SessionDTO s : allSessions) {
-            if (s.getId() == sessionId) {
-                currentSession = s;
-                break;
-            }
-        }
-        request.setAttribute("currentSession", currentSession);
-        // Load queue for this session if session changed or first time
-        List<CandidateEnrollmentDTO> qList = (List<CandidateEnrollmentDTO>) session.getAttribute("candidateQueue");
-        Integer lastLoadedSessId = (Integer) session.getAttribute("lastLoadedSessionId");
-        if (qList == null || lastLoadedSessId == null || lastLoadedSessId != sessionId) {
-            qList = regService.getCandidatesBySession(sessionId);
-            session.setAttribute("candidateQueue", qList);
-            session.setAttribute("lastLoadedSessionId", sessionId);
-        }
-        // 3. Handle pipeline action triggers
-        String action = request.getParameter("action");
-        String regIdStr = request.getParameter("id");
-        if (action != null) {
-            try {
-                if ("autoAllocate".equals(action)) {
-                    AutoAllocateResultDTO allocResult = allocationService.autoAllocateSession(sessionId);
-                    if (allocResult.errorMsg != null) {
-                        request.setAttribute("errorMsg", allocResult.errorMsg);
-                    } else if (allocResult.warningMsg != null) {
-                        request.setAttribute("warningMsg", allocResult.warningMsg);
-                    }
-                    if (allocResult.allocatedCount > 0) {
-                        request.setAttribute("alertMsg", "");
-                        addAuditLog(session, "ALLOCATE Candidates", "");
-                        qList = regService.getCandidatesBySession(sessionId);
-                        session.setAttribute("candidateQueue", qList);
-                        session.setAttribute("lastLoadedSessionId", sessionId);
-                    } else if (allocResult.errorMsg == null) {
-                        request.setAttribute("warningMsg", "");
-                    }
-                } else if (regIdStr != null) {
-                    int regId = Integer.parseInt(regIdStr);
-                    // Find matching profile in session
-                    CandidateEnrollmentDTO profile = null;
-                    for (CandidateEnrollmentDTO c : qList) {
-                        if (c.getId() == regId) {
-                            profile = c;
-                            break;
-                        }
-                    }
-                    if (profile != null) {
-                        if ("checkin".equals(action)) {
-                            boolean ok = regService.updatePresent(regId, true);
-                            if (ok) {
-                                profile.setIsPresent(true);
-                            }
-                        } else if ("callCandidate".equals(action)) {
-                            session.setAttribute("callingSbd", String.valueOf(profile.getSbd()));
-                            CandidateCallBoardStateDTO state = getCallBoardState(sessionId);
-                            if (state != null) {
-                                state.setCallingSbd(String.valueOf(profile.getSbd()));
-                                state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
-                            }
-                        } else if ("allocateRoom".equals(action)) {
-                            int areaId = Integer.parseInt(request.getParameter("areaId"));
-                            ExamArea targetArea = areaService.getById(areaId);
-                            if (targetArea != null && profile.getAllocatedAreaId() != areaId) {
-                                boolean ok = regService.updateAllocatedRoom(regId, targetArea.getId(), targetArea.getAreaName());
-                                if (ok) {
-                                    profile.setAllocatedAreaId(targetArea.getId());
-                                    profile.setAllocatedAreaName(targetArea.getAreaName());
-                                    profile.setNotes("AllocatedRoom:" + targetArea.getId() + ":" + targetArea.getAreaName());
-                                    addAuditLog(session, "UPDATE CandidateEnrollmentDTO",
-                                            "" + targetArea.getAreaName() + " cho SBD " + profile.getSbd(),
-                                            regId);
-                                }
-                            }
-                        } else if ("submitTheoryScore".equals(action)) {
-                            int score = Integer.parseInt(request.getParameter("score"));
-                            String passed = score >= 80 ? "passed" : "failed";
-                            Integer oldScore = profile.getTheoryScore();
-                            if (oldScore == null || oldScore != score) {
-                                boolean ok = regService.updateScores(regId, score, passed, null, null);
-                                if (ok) {
-                                    profile.setTheoryScore(score);
-                                    profile.setTheoryPassed(passed);
-                                    addAuditLog(session, "UPDATE ExamScore",
-                                            "" + score + " - " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
-                                            regId);
-                                } else {
-                                    request.setAttribute("errorMsg", "");
-                                }
-                            }
-                        } else if ("submitPracticalScore".equals(action)) {
-                            int score = Integer.parseInt(request.getParameter("score"));
-                            String passed = score >= 80 ? "passed" : "failed";
-                            Integer oldScore = profile.getPracticalScore();
-                            if (oldScore == null || oldScore != score) {
-                                boolean ok = regService.updateScores(regId, null, null, score, passed);
-                                if (ok) {
-                                    profile.setPracticalScore(score);
-                                    profile.setPracticalPassed(passed);
-                                    addAuditLog(session, "UPDATE ExamScore",
-                                            "" + score + "  -  " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
-                                            regId);
-                                } else {
-                                    request.setAttribute("errorMsg", "");
-                                }
-                            }
-                        } else if ("submitRoadScore".equals(action)) {
-                            int score = Integer.parseInt(request.getParameter("score"));
-                            String passed = score >= 80 ? "passed" : "failed";
-                            Integer oldScore = profile.getRoadTestScore();
-                            if (oldScore == null || oldScore != score) {
-                                boolean ok = regService.updateRoadScore(regId, score, passed);
-                                if (ok) {
-                                    profile.setRoadTestScore(score);
-                                    profile.setRoadTestPassed(passed);
-                                    addAuditLog(session, "UPDATE ExamScore",
-                                            "" + score + "  - " + passed.toUpperCase() + " cho SBD " + profile.getSbd(),
-                                            regId);
-                                } else {
-                                    request.setAttribute("errorMsg", "" + profile.getSbd() + ".");
-                                }
-                            }
-                        } else if ("quickComplete".equals(action)) {
-                            // Simulates complete desk registrations (photo + payment)
-                            String photoPath = "assets/imgs/candidates/" + profile.getSbd() + "_captured.png";
-                            regService.updatePhoto(regId, photoPath);
-                            regService.updatePayment(regId, true);
-                            regService.updatePresent(regId, true);
-                            profile.setPhotoUrl(photoPath);
-                            profile.setIsPaymentCompleted(true);
-                            profile.setIsPresent(true);
-                            addAuditLog(session, "UPDATE CandidateEnrollmentDTO", "" + profile.getSbd());
-                        }
+            if (urlSessionId > 0) {
+                Integer loadedSession = (Integer) session.getAttribute("examStaffLoadedSessionId");
+                Integer loadedExam = (Integer) session.getAttribute("examStaffLoadedExamId");
+                if (loadedSession == null || loadedSession != urlSessionId) {
+                    ExamStaffViewHelper.clearCandidateCache(session);
+                } else if (loadedExam != null && loadedExam > 0) {
+                    SessionDTO urlSession = ExamStaffViewHelper.resolveSessionById(
+                            urlSessionId, ExamStaffViewHelper.loadAllSessions());
+                    if (urlSession != null && urlSession.getExamId() > 0
+                            && urlSession.getExamId() != loadedExam) {
+                        ExamStaffViewHelper.clearCandidateCache(session);
                     }
                 }
+                ExamStaffViewHelper.applySessionIdFromRequest(request, session,
+                        ExamStaffViewHelper.loadAllSessions());
+            }
+
+            ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+                    request, session, webRoot);
+            int examId = pageCtx.getExamId();
+            int sessionId = pageCtx.getSessionId();
+            List<ExamRegistrationDTO> qList = new ArrayList<>(pageCtx.getCandidates());
+            ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+            session.setAttribute("lastLoadedSessionId", sessionId);
+            request.setAttribute("allocationActiveSessionId", sessionId);
+
+            String action = request.getParameter("action");
+            String regIdStr = request.getParameter("id");
+            String searchQ = request.getParameter("q");
+            if (searchQ == null) {
+                searchQ = "";
+            }
+            int page = AllocationStageHelper.parsePage(request.getParameter("page"));
+            int pageSize = AllocationStageHelper.parsePageSize(request.getParameter("size"));
+            if (urlSessionId > 0 && session != null) {
+                Integer allocationPageSession = (Integer) session.getAttribute("allocationPageSessionId");
+                if (allocationPageSession != null && allocationPageSession > 0
+                        && allocationPageSession != urlSessionId) {
+                    page = 1;
+                }
+                session.setAttribute("allocationPageSessionId", urlSessionId);
+            }
+            ExamRegistrationSort.Spec sortSpec = ExamRegistrationSort.parse(
+                    request.getParameter("sort"), request.getParameter("dir"));
+            request.setAttribute("sortBy", sortSpec.getColumn());
+            request.setAttribute("sortDir", sortSpec.isAscending() ? "asc" : "desc");
+            String sessionIdParam = sessionId > 0 ? String.valueOf(sessionId) : request.getParameter("sessionId");
+
+            if (action == null) {
+                AllocationActionResultDTO overviewResult = allocationActionService.autoAllocateOnOverview(
+                        sessionId, stage);
+                if (overviewResult.getAllocatedCount() > 0) {
+                    qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
+                            pageCtx.getAllSessions());
+                    ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+                }
+            }
+
+            if (action != null) {
+                try {
+                    if ("autoAllocate".equals(action)) {
+                        AllocationActionResultDTO allocResult = allocationActionService.executeAutoAllocate(sessionId);
+                        AllocationActionResultBinder.apply(request, session, allocResult);
+                        if (allocResult.getAllocatedCount() > 0) {
+                            qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
+                                    pageCtx.getAllSessions());
+                        }
+                        stage = AllocationStageHelper.STAGE_THEORY;
+                        servletPath = allocResult.getRedirectServletPath();
+                        jspPath = AllocationStageHelper.resolveJspPath(servletPath);
+                    } else if (regIdStr != null) {
+                        int regId = Integer.parseInt(regIdStr);
+                        ExamRegistrationDTO profile = allocationActionService.findCandidate(regId, sessionId, qList);
+                        if (profile != null) {
+                            AllocationCandidateActionRequest actionRequest = new AllocationCandidateActionRequest();
+                            actionRequest.setAction(action);
+                            actionRequest.setRegId(regId);
+                            actionRequest.setSessionId(sessionId);
+                            actionRequest.setProfile(profile);
+                            if ("allocateRoom".equals(action)) {
+                                actionRequest.setAreaId(Integer.parseInt(request.getParameter("areaId")));
+                            } else if (action != null && action.startsWith("submit") && action.endsWith("Score")) {
+                                actionRequest.setScore(Integer.parseInt(request.getParameter("score")));
+                            }
+                            AllocationActionResultDTO actionResult = allocationActionService.executeCandidateAction(
+                                    actionRequest);
+                            AllocationActionResultBinder.apply(request, session, actionResult);
+                            if (actionResult.isSyncCallBoard()) {
+                                boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
+                                callBoardService.sync(new ServletContextCallBoardRepository(getServletContext()),
+                                        sessionId, actionResult.getCallingSbd(), null, shiftEnded);
+                            }
+                            servletPath = actionResult.getRedirectServletPath();
+                            stage = AllocationStageHelper.resolveStageFromServletPath(servletPath);
+                            resultFilter = AllocationStageHelper.resolveResultFilterFromServletPath(servletPath);
+                            jspPath = AllocationStageHelper.resolveJspPath(servletPath);
+                        } else {
+                            request.setAttribute("errorMsg", "Không tìm thấy thí sinh để xử lý.");
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    request.setAttribute("errorMsg", "Lỗi xử lý: " + e.getMessage());
+                }
+
+                ExamStaffViewHelper.clearCandidateCache(session);
+                qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
+                        pageCtx.getAllSessions());
+                ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+                session.setAttribute("lastLoadedSessionId", sessionId);
+
+                if (shouldRedirectAfterAction(action)) {
+                    stashAllocationFlash(session, request);
+                    response.sendRedirect(buildRedirectUrl(request, servletPath, sessionId, page, pageSize,
+                            searchQ, sortSpec));
+                    return;
+                }
+            }
+
+            ExamStaffViewHelper.consumeFlash(session, "allocationFlashMsg", request, "alertMsg");
+            ExamStaffViewHelper.consumeFlash(session, "allocationFlashError", request, "errorMsg");
+            ExamStaffViewHelper.consumeFlash(session, "allocationFlashWarn", request, "warningMsg");
+
+            CandidateCallBoardStateDTO state = callBoardService.getState(
+                    new ServletContextCallBoardRepository(getServletContext()), sessionId);
+            if (state != null) {
+                String callingSbd = (String) session.getAttribute("callingSbd");
+                if (callingSbd != null) {
+                    state.setCallingSbd(callingSbd);
+                }
+                state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
+            }
+
+            publishStageData(request, qList, stage, resultFilter, searchQ, page, pageSize, sortSpec);
+
+            request.setAttribute("allocationListPath", servletPath);
+            request.setAttribute("allocationExtraQuery", AllocationStageHelper.buildExtraQuery(
+                    page, pageSize, searchQ, sessionIdParam,
+                    sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc"));
+            request.setAttribute("allocationSearchQuery", searchQ.trim());
+            request.setAttribute("allocationPageSize", pageSize);
+            try {
+                request.setAttribute("activeTheoryRooms", areaQueryService.listActiveTheoryRooms());
             } catch (Exception e) {
                 e.printStackTrace();
+                request.setAttribute("activeTheoryRooms", List.of());
             }
-        }
-        // 4. Reload all database state after actions to ensure 100% request/response synchronization
-        qList = regService.getCandidatesBySession(sessionId);
-        photoService.normalizeQueue(request.getServletContext().getRealPath("/"), qList);
-        session.setAttribute("candidateQueue", qList);
-        session.setAttribute("lastLoadedSessionId", sessionId);
-        CandidateCallBoardStateDTO state = getCallBoardState(sessionId);
-        if (state != null) {
-            String callingSbd = (String) session.getAttribute("callingSbd");
-            if (callingSbd != null) {
-                state.setCallingSbd(callingSbd);
-            }
-            state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
-        }
-        request.setAttribute("activeTheoryRooms", areaService.getActiveTheoryRooms());
-        request.getRequestDispatcher("/views/staff/exam/allocation.jsp").forward(request, response);
-    }
-    private void addAuditLog(HttpSession session, String action, String details) {
-        addAuditLog(session, action, details, 0);
-    }
-    private void addAuditLog(HttpSession session, String action, String details, int recordId) {
-        try {
-            auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, details, recordId);
+
+            ExamStaffViewHelper.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
+            ExamStaffViewHelper.consumeFlash(session, "sessionSelectError", request, "sessionSelectError");
+
+            request.getRequestDispatcher(jspPath).forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
+            request.setAttribute("errorMsg", "Không tải được trang phân bổ: " + e.getMessage());
+            publishStageData(request, List.of(), stage, resultFilter, "", 1,
+                    AllocationStageHelper.DEFAULT_PAGE_SIZE,
+                    ExamRegistrationSort.parse(null, null));
+            request.setAttribute("allocationListPath", servletPath);
+            request.setAttribute("allocationSearchQuery", "");
+            request.setAttribute("allocationExtraQuery", "");
+            request.setAttribute("allocationPageSize", AllocationStageHelper.DEFAULT_PAGE_SIZE);
+            request.setAttribute("activeTheoryRooms", List.of());
+            try {
+                request.getRequestDispatcher(jspPath).forward(request, response);
+            } catch (Exception forwardError) {
+                forwardError.printStackTrace();
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Không tải được trang phân bổ: " + e.getMessage());
+            }
         }
     }
+
+    private void publishStageData(HttpServletRequest request, List<ExamRegistrationDTO> qList,
+            String stage, String resultFilter, String searchQ, int page, int pageSize,
+            ExamRegistrationSort.Spec sortSpec) {
+        AllocationStageViewBinder.bind(request,
+                allocationStageViewService.buildView(qList, stage, resultFilter, searchQ, page, pageSize, sortSpec));
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
     }
-    @SuppressWarnings("unchecked")
-    private CandidateCallBoardStateDTO getCallBoardState(int examSessionId) {
-        if (examSessionId <= 0) {
-            return null;
+
+    private static boolean shouldRedirectAfterAction(String action) {
+        return action != null && !"callCandidate".equals(action);
+    }
+
+    private static void stashAllocationFlash(HttpSession session, HttpServletRequest request) {
+        if (session == null || request == null) {
+            return;
         }
-        jakarta.servlet.ServletContext ctx = getServletContext();
-        Map<Integer, CandidateCallBoardStateDTO> boards =
-                (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
-        if (boards == null) {
-            synchronized (ctx) {
-                boards = (Map<Integer, CandidateCallBoardStateDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
-                if (boards == null) {
-                    boards = new HashMap<>();
-                    ctx.setAttribute(CALL_BOARD_CONTEXT_KEY, boards);
-                }
-            }
+        Object alert = request.getAttribute("alertMsg");
+        if (alert != null) {
+            session.setAttribute("allocationFlashMsg", alert);
         }
-        return boards.computeIfAbsent(examSessionId, id -> new CandidateCallBoardStateDTO());
+        Object error = request.getAttribute("errorMsg");
+        if (error != null) {
+            session.setAttribute("allocationFlashError", error);
+        }
+        Object warn = request.getAttribute("warningMsg");
+        if (warn != null) {
+            session.setAttribute("allocationFlashWarn", warn);
+        }
+    }
+
+    private static String buildRedirectUrl(HttpServletRequest request, String servletPath, int sessionId,
+            int page, int pageSize, String searchQ, ExamRegistrationSort.Spec sortSpec) {
+        String extra = AllocationStageHelper.buildExtraQuery(page, pageSize, searchQ,
+                sessionId > 0 ? String.valueOf(sessionId) : null,
+                sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc");
+        StringBuilder url = new StringBuilder(request.getContextPath()).append(servletPath);
+        if (extra != null && !extra.isBlank()) {
+            url.append('?').append(extra.startsWith("&") ? extra.substring(1) : extra);
+        } else if (sessionId > 0) {
+            url.append("?sessionId=").append(sessionId);
+        } else {
+            url.append("?_=").append(System.currentTimeMillis());
+            return url.toString();
+        }
+        url.append("&_=").append(System.currentTimeMillis());
+        return url.toString();
     }
 }

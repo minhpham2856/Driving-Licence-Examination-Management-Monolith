@@ -9,6 +9,7 @@ public interface ExamAreaDAO {
     boolean delete(int examAreaId);
     int countAll();
     List<ExamArea> getActiveTheoryRooms();
+    List<ExamArea> getAvailableAreasByType(String areaType);
     List<ExamArea> getAreasBySessionId(int sessionId);
     boolean isAreaInSession(int sessionId, int examAreaId);
 }

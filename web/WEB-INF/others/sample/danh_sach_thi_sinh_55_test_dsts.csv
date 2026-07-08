@@ -1,0 +1,56 @@
+﻿Số báo danh,Họ và tên,Số căn cước,Ngày sinh,Giới tính,Nơi cư trú,Hạng GPLX,Nội dung SH,Số điện thoại,Email
+051,Trần Văn Bình,038400100001,02/02/1996,Nam,"Quận Cầu Giấy, Hà Nội",B1,SH lại L+H,09111000001,thisinh051@dststest.local
+052,Lê Văn Chi,038400100002,03/03/1997,Nam,"Quận Đống Đa, Hà Nội",B1,SH lại L,09121000002,thisinh052@dststest.local
+053,Phạm Văn Dũng,038400100003,04/04/1998,Nữ,"Phường Lam Sơn, Thanh Hóa",B1,SH lại H,09131000003,thisinh053@dststest.local
+054,Hoàng Văn Em,038400100004,05/05/1999,Nam,"Xã Diễn Lộc, Thanh Hóa",B1,Sát hạch H,09141000004,thisinh054@dststest.local
+055,Huỳnh Văn Giang,038400100005,06/06/2000,Nam,"Xã Văn Giang, Hưng Yên",B1,SH lần đầu L+H,09151000005,thisinh055@dststest.local
+056,Vũ Văn Hà,038400100006,07/07/2001,Nữ,"Phường Thái Bình, Hưng Yên",B1,SH lại L+H,09161000006,thisinh056@dststest.local
+057,Đặng Văn Khánh,038400100007,08/08/2002,Nam,"Quận Hải Châu, Đà Nẵng",B1,SH lại L,09171000007,thisinh057@dststest.local
+058,Bùi Văn Long,038400100008,09/09/2003,Nam,"Quận Ngũ Hành Sơn, Đà Nẵng",B1,SH lại H,09181000008,thisinh058@dststest.local
+059,Đỗ Văn Mai,038400100009,10/10/2004,Nữ,"Phường Lê Chân, Hải Phòng",B1,Sát hạch H,09191000009,thisinh059@dststest.local
+060,Nguyễn Thị Nam,038400100010,11/11/1995,Nam,"Phường Bách Khoa, Hà Nội",B1,SH lần đầu L+H,09201000010,thisinh060@dststest.local
+061,Trần Thị Oanh,038400100011,12/12/1996,Nam,"Quận Cầu Giấy, Hà Nội",B1,SH lại L+H,09211000011,thisinh061@dststest.local
+062,Lê Thị Phúc,038400100012,13/01/1997,Nữ,"Quận Đống Đa, Hà Nội",B1,SH lại L,09221000012,thisinh062@dststest.local
+063,Phạm Thị Quân,038400100013,14/02/1998,Nam,"Phường Lam Sơn, Thanh Hóa",B1,SH lại H,09231000013,thisinh063@dststest.local
+064,Hoàng Thị Sơn,038400100014,15/03/1999,Nam,"Xã Diễn Lộc, Thanh Hóa",B1,Sát hạch H,09241000014,thisinh064@dststest.local
+065,Huỳnh Thị Tâm,038400100015,16/04/2000,Nữ,"Xã Văn Giang, Hưng Yên",B1,SH lần đầu L+H,09251000015,thisinh065@dststest.local
+066,Vũ Thị Uyên,038400100016,17/05/2001,Nam,"Phường Thái Bình, Hưng Yên",B1,SH lại L+H,09261000016,thisinh066@dststest.local
+067,Đặng Thị Vinh,038400100017,18/06/2002,Nam,"Quận Hải Châu, Đà Nẵng",B1,SH lại L,09271000017,thisinh067@dststest.local
+068,Bùi Thị Yến,038400100018,19/07/2003,Nữ,"Quận Ngũ Hành Sơn, Đà Nẵng",B1,SH lại H,09281000018,thisinh068@dststest.local
+069,Đỗ Thị Bảo,038400100019,20/08/2004,Nam,"Phường Lê Chân, Hải Phòng",B1,Sát hạch H,09291000019,thisinh069@dststest.local
+070,Nguyễn Minh An,038400100020,21/09/1995,Nam,"Phường Bách Khoa, Hà Nội",B1,SH lần đầu L+H,09301000020,thisinh070@dststest.local
+071,Trần Minh Bình,038400100021,22/10/1996,Nữ,"Quận Cầu Giấy, Hà Nội",B1,SH lại L+H,09311000021,thisinh071@dststest.local
+072,Lê Minh Chi,038400100022,23/11/1997,Nam,"Quận Đống Đa, Hà Nội",B1,SH lại L,09321000022,thisinh072@dststest.local
+073,Phạm Minh Dũng,038400100023,24/12/1998,Nam,"Phường Lam Sơn, Thanh Hóa",B1,SH lại H,09331000023,thisinh073@dststest.local
+074,Hoàng Minh Em,038400100024,25/01/1999,Nữ,"Xã Diễn Lộc, Thanh Hóa",B1,Sát hạch H,09341000024,thisinh074@dststest.local
+075,Huỳnh Minh Giang,038400100025,26/02/2000,Nam,"Xã Văn Giang, Hưng Yên",B1,SH lần đầu L+H,09351000025,thisinh075@dststest.local
+076,Vũ Minh Hà,038400100026,27/03/2001,Nam,"Phường Thái Bình, Hưng Yên",B1,SH lại L+H,09361000026,thisinh076@dststest.local
+077,Đặng Minh Khánh,038400100027,01/04/2002,Nữ,"Quận Hải Châu, Đà Nẵng",B1,SH lại L,09371000027,thisinh077@dststest.local
+078,Bùi Minh Long,038400100028,02/05/2003,Nam,"Quận Ngũ Hành Sơn, Đà Nẵng",B1,SH lại H,09381000028,thisinh078@dststest.local
+079,Đỗ Minh Mai,038400100029,03/06/2004,Nam,"Phường Lê Chân, Hải Phòng",B1,Sát hạch H,09391000029,thisinh079@dststest.local
+080,Nguyễn Quốc Nam,038400100030,04/07/1995,Nữ,"Phường Bách Khoa, Hà Nội",B1,SH lần đầu L+H,09401000030,thisinh080@dststest.local
+081,Trần Quốc Oanh,038400100031,05/08/1996,Nam,"Quận Cầu Giấy, Hà Nội",B1,SH lại L+H,09411000031,thisinh081@dststest.local
+082,Lê Quốc Phúc,038400100032,06/09/1997,Nam,"Quận Đống Đa, Hà Nội",B1,SH lại L,09421000032,thisinh082@dststest.local
+083,Phạm Quốc Quân,038400100033,07/10/1998,Nữ,"Phường Lam Sơn, Thanh Hóa",B1,SH lại H,09431000033,thisinh083@dststest.local
+084,Hoàng Quốc Sơn,038400100034,08/11/1999,Nam,"Xã Diễn Lộc, Thanh Hóa",B1,Sát hạch H,09441000034,thisinh084@dststest.local
+085,Huỳnh Quốc Tâm,038400100035,09/12/2000,Nam,"Xã Văn Giang, Hưng Yên",B1,SH lần đầu L+H,09451000035,thisinh085@dststest.local
+086,Vũ Quốc Uyên,038400100036,10/01/2001,Nữ,"Phường Thái Bình, Hưng Yên",B1,SH lại L+H,09461000036,thisinh086@dststest.local
+087,Đặng Quốc Vinh,038400100037,11/02/2002,Nam,"Quận Hải Châu, Đà Nẵng",B1,SH lại L,09471000037,thisinh087@dststest.local
+088,Bùi Quốc Yến,038400100038,12/03/2003,Nam,"Quận Ngũ Hành Sơn, Đà Nẵng",B1,SH lại H,09481000038,thisinh088@dststest.local
+089,Đỗ Quốc Bảo,038400100039,13/04/2004,Nữ,"Phường Lê Chân, Hải Phòng",B1,Sát hạch H,09491000039,thisinh089@dststest.local
+090,Nguyễn Đức An,038400100040,14/05/1995,Nam,"Phường Bách Khoa, Hà Nội",B1,SH lần đầu L+H,09501000040,thisinh090@dststest.local
+091,Trần Đức Bình,038400100041,15/06/1996,Nam,"Quận Cầu Giấy, Hà Nội",B1,SH lại L+H,09511000041,thisinh091@dststest.local
+092,Lê Đức Chi,038400100042,16/07/1997,Nữ,"Quận Đống Đa, Hà Nội",B1,SH lại L,09521000042,thisinh092@dststest.local
+093,Phạm Đức Dũng,038400100043,17/08/1998,Nam,"Phường Lam Sơn, Thanh Hóa",B1,SH lại H,09531000043,thisinh093@dststest.local
+094,Hoàng Đức Em,038400100044,18/09/1999,Nam,"Xã Diễn Lộc, Thanh Hóa",B1,Sát hạch H,09541000044,thisinh094@dststest.local
+095,Huỳnh Đức Giang,038400100045,19/10/2000,Nữ,"Xã Văn Giang, Hưng Yên",B1,SH lần đầu L+H,09551000045,thisinh095@dststest.local
+096,Vũ Đức Hà,038400100046,20/11/2001,Nam,"Phường Thái Bình, Hưng Yên",B1,SH lại L+H,09561000046,thisinh096@dststest.local
+097,Đặng Đức Khánh,038400100047,21/12/2002,Nam,"Quận Hải Châu, Đà Nẵng",B1,SH lại L,09571000047,thisinh097@dststest.local
+098,Bùi Đức Long,038400100048,22/01/2003,Nữ,"Quận Ngũ Hành Sơn, Đà Nẵng",B1,SH lại H,09581000048,thisinh098@dststest.local
+099,Đỗ Đức Mai,038400100049,23/02/2004,Nam,"Phường Lê Chân, Hải Phòng",B1,Sát hạch H,09591000049,thisinh099@dststest.local
+100,Nguyễn Hữu Nam,038400100050,24/03/1995,Nam,"Phường Bách Khoa, Hà Nội",B1,SH lần đầu L+H,09601000050,thisinh100@dststest.local
+101,Trần Hữu Oanh,038400100051,25/04/1996,Nữ,"Quận Cầu Giấy, Hà Nội",B1,SH lại L+H,09611000051,thisinh101@dststest.local
+102,Lê Hữu Phúc,038400100052,26/05/1997,Nam,"Quận Đống Đa, Hà Nội",B1,SH lại L,09621000052,thisinh102@dststest.local
+103,Phạm Hữu Quân,038400100053,27/06/1998,Nam,"Phường Lam Sơn, Thanh Hóa",B1,SH lại H,09631000053,thisinh103@dststest.local
+104,Hoàng Hữu Sơn,038400100054,01/07/1999,Nữ,"Xã Diễn Lộc, Thanh Hóa",B1,Sát hạch H,09641000054,thisinh104@dststest.local
+105,Huỳnh Hữu Tâm,038400100055,02/08/2000,Nam,"Xã Văn Giang, Hưng Yên",B1,SH lần đầu L+H,09651000055,thisinh105@dststest.local

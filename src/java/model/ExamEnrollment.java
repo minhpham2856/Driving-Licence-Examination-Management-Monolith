@@ -6,6 +6,7 @@ public class ExamEnrollment {
     private String sectionStatus;
     private boolean signaturePrinted;
     private Integer examDeviceId;
+    private Integer allocatedExamAreaId;
     public ExamEnrollment() {
     }
     public ExamEnrollment(int examEnrollmentId, int candidateId, int sessionId,
@@ -52,5 +53,11 @@ public class ExamEnrollment {
     }
     public void setExamDeviceId(Integer examDeviceId) {
         this.examDeviceId = examDeviceId;
+    }
+    public Integer getAllocatedExamAreaId() {
+        return allocatedExamAreaId;
+    }
+    public void setAllocatedExamAreaId(Integer allocatedExamAreaId) {
+        this.allocatedExamAreaId = allocatedExamAreaId;
     }
 }

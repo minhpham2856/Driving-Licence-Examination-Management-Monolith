@@ -31,10 +31,7 @@
                     <!-- Benefit item 1 -->
                     <div class="benefit-item">
                         <div class="benefit-item__icon-wrap">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            <path d="M9 11l2 2 4-4"/>
-                            </svg>
+                            <span class="material-symbols-outlined" style="font-size:20px">verified</span>
                         </div>
                         <div class="benefit-item__content">
                             <h3 class="benefit-item__title">Uy tín hàng đầu</h3>
@@ -45,12 +42,7 @@
                     <!-- Benefit item 2 -->
                     <div class="benefit-item">
                         <div class="benefit-item__icon-wrap">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                            </svg>
+                            <span class="material-symbols-outlined" style="font-size:20px">calendar_month</span>
                         </div>
                         <div class="benefit-item__content">
                             <h3 class="benefit-item__title">Nhanh chóng, tiện lợi</h3>
@@ -71,20 +63,13 @@
 
                 <c:if test="${not empty error}">
                     <div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-family: 'Inter', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
+                        <span class="material-symbols-outlined" style="font-size:18px">error</span>
                         <c:out value="${error}" />
                     </div>
                 </c:if>
                 <c:if test="${not empty success}">
                     <div style="background-color: #F0FDF4; border: 1px solid #86EFAC; color: #166534; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-family: 'Inter', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                        <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
+                        <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
                         <c:out value="${success}" />
                     </div>
                 </c:if>

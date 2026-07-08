@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (fileInput && dropzoneLabel && uploadForm) {
         fileInput.addEventListener('change', function () {
             if (fileInput.files && fileInput.files[0]) {
-                dropzoneLabel.textContent = 'Đang phân tích: ' + fileInput.files[0].name;
+                var prefix = dropzoneLabel.getAttribute('data-analyzing-prefix') || '';
+                dropzoneLabel.textContent = prefix + fileInput.files[0].name;
                 uploadForm.submit();
             }
         });

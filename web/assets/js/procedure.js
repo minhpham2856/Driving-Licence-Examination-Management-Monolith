@@ -6,7 +6,7 @@
     function markProcedureDeskScroll() {
         try {
             sessionStorage.setItem(SCROLL_KEY, '1');
-        } catch (e) { /* ignore */ }
+        } catch (e) {  }
     }
 
     function scrollToProcedureDesk() {
@@ -29,7 +29,7 @@
             try {
                 shouldScroll = sessionStorage.getItem(SCROLL_KEY) === '1';
                 sessionStorage.removeItem(SCROLL_KEY);
-            } catch (e) { /* ignore */ }
+            } catch (e) {  }
         }
         if (!shouldScroll && document.getElementById('procedureCameraConfig')) {
             shouldScroll = true;
@@ -62,7 +62,26 @@
         initFormChangeChecking();
         initWebcamCapture();
         scrollToProcedureDeskIfNeeded();
+        maybeOpenDossierPrint();
     });
+
+    function maybeOpenDossierPrint() {
+        var desk = document.getElementById('procedure-desk');
+        if (!desk) {
+            return;
+        }
+        var sbd = desk.getAttribute('data-open-dossier-print');
+        if (!sbd) {
+            return;
+        }
+        desk.removeAttribute('data-open-dossier-print');
+        var ctx = desk.getAttribute('data-ctx') || '';
+        window.open(
+            ctx + '/views/staff/examstaff/candidate-dossier?sbd=' + encodeURIComponent(sbd) + '&print=true',
+            '_blank',
+            'noopener'
+        );
+    }
 
     function initFormChangeChecking() {
         var form = document.querySelector('#procedureForm');
@@ -248,7 +267,7 @@
             body.append('photoBase64', dataUrl);
 
             try {
-                var resp = await fetch(ctxPath + '/views/staff/exam/procedure', {
+                var resp = await fetch(ctxPath + '/views/staff/examstaff/procedure', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
                     body: body.toString(),
@@ -260,8 +279,8 @@
                 }
                 stopCamera();
                 markProcedureDeskScroll();
-                window.location.href = ctxPath + '/views/staff/exam/procedure?sbd='
-                    + encodeURIComponent(sbd) + '&step=2#procedure-desk';
+                window.location.href = ctxPath + '/views/staff/examstaff/procedure?sbd='
+                    + encodeURIComponent(sbd) + '&step=3#procedure-desk';
             } catch (err) {
                 console.error(err);
                 showError(MSG.saveFail + (err.message || 'l\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh'));

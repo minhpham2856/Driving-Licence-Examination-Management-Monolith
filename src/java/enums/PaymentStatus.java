@@ -1,7 +1,9 @@
 package enums;
 public enum PaymentStatus {
     HOAN_TAT("Hoàn tất"),
-    CHO_THANH_TOAN("Chờ thanh toán");
+    CHO_THANH_TOAN("Chờ thanh toán"),
+    COMPLETED("Completed"),
+    PAID("Paid");
     private final String displayName;
     PaymentStatus(String displayName) {
         this.displayName = displayName;
@@ -28,6 +30,12 @@ public enum PaymentStatus {
         return CHO_THANH_TOAN;
     }
     public static boolean isCompleted(String value) {
-        return normalize(value) == HOAN_TAT;
+        PaymentStatus status = normalize(value);
+        return status == HOAN_TAT || status == COMPLETED || status == PAID;
+    }
+
+    /** Giá trị PaymentStatus hợp lệ khi ghi/đọc CSDL. */
+    public static String sqlInClause() {
+        return "N'" + HOAN_TAT.displayName + "', N'" + COMPLETED.displayName + "', N'" + PAID.displayName + "'";
     }
 }

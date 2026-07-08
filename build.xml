@@ -69,4 +69,11 @@
     nbproject/build-impl.xml file. 
 
     -->
+
+    <!-- Fail fast if Run deploys before a full Ant compile (avoids ClassNotFoundException). -->
+    <target name="-pre-run-deploy">
+        <available file="${build.classes.dir}/service/AuthService.class" property="deploy.classes.ready"/>
+        <fail unless="deploy.classes.ready"
+              message="Missing compiled classes (service/AuthService.class). Stop Tomcat, then Clean and Build (Shift+F11) before Run."/>
+    </target>
 </project>

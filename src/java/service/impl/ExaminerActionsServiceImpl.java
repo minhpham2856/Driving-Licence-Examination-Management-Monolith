@@ -25,6 +25,7 @@ import service.ExaminerActionsService;
 import service.ExaminerDataService;
 import util.ExamQueue;
 import util.ExamQueue.Lane;
+import util.examstaff.CallAuditFormatter;
 import service.AuditLogService;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -267,7 +268,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         audit.setAction("CALL");
         String entityId = sessionId + "-" + reg.getCandidateNo();
-        String detail = "calledTo=" + callDestination + ";result=Calling";
+        String detail = CallAuditFormatter.formatDetail(callDestination, "Calling");
         audit.setReason(detail);
         audit.setEntityName("Candidate");
         audit.setEntityId(entityId);
@@ -285,7 +286,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         audit.setAction("CALL");
         String entityId = sessionId + "-" + reg.getCandidateNo();
-        String detail = "calledTo=" + callDestination + ";result=Calling";
+        String detail = CallAuditFormatter.formatDetail(callDestination, "Calling");
         audit.setReason(detail);
         audit.setEntityName("Candidate");
         audit.setEntityId(entityId);

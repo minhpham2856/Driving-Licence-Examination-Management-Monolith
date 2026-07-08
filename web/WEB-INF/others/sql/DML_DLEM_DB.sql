@@ -255,23 +255,13 @@ INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, 
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Thực hành trong hình B'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô số 1'),
- (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
+ (SELECT UserId FROM [User] WHERE Username = N'shv_lan'),
  (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:05:00'),
 ((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca chiều - Thực hành trên đường B'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trên đường'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Đường thi thực hành'),
- (SELECT UserId FROM [User] WHERE Username = N'shv_lan'),
- (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:10:00'),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'),
- (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
- (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi lý thuyết 2'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_dung'),
- (SELECT UserId FROM [User] WHERE Username = N'exam_minh'), '2026-05-25 08:15:00'),
-((SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết B (kỳ 2)'),
- (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
- (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi lý thuyết 1'),
- (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
- (SELECT UserId FROM [User] WHERE Username = N'exam_minh'), '2026-05-25 08:20:00');
+ (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:10:00');
 GO
 
 -- ============================================
@@ -435,17 +425,32 @@ GO
 -- ============================================
 INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber, Address,
     TakeTheory, TakeLayout, TakeRoad, TakeNo, ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended) VALUES
-(N'001', N'Nguyễn Văn An',       '2000-03-15', N'0989123456', 1, N'001200031501', N'123 Lê Duẩn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/001.jpg', 0, 0),
-(N'002', N'Trần Thị Bình',       '1995-08-22', N'0912345678', 0, N'001095082201', N'45 Nguyễn Huệ, TP.HCM', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/002.jpg', 0, 0),
-(N'003', N'Lê Văn Chính',        '1988-11-10', N'0978563412', 1, N'001088111001', N'78 Trần Phú, Đà Nẵng', 1, 1, 1, 2, N'Thi lại lý thuyết', N'/uploads/candidates/b/003.jpg', 0, 0),
-(N'046', N'Phạm Minh Đức',       '1999-02-14', N'0908460001', 1, N'001199021401', N'12 Giải Phóng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/046.jpg', 0, 0),
-(N'048', N'Nguyễn Thị Hoa',      '1997-05-14', N'0911004801', 0, N'001197051401', N'18 Hoàng Hoa Thám, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/048.jpg', 0, 0),
-(N'049', N'Trần Văn Khoa',       '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/049.jpg', 0, 0),
-(N'123', N'Hoàng Văn Em',        '1990-06-05', N'0901234567', 1, N'001090060501', N'12 Lý Thường Kiệt, Huế', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/123.jpg', 0, 0),
-(N'456', N'Vũ Thị Phương',       '1998-12-12', N'0967890123', 0, N'001198121201', N'34 Nguyễn Trãi, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', N'/uploads/candidates/b/456.jpg', 0, 0),
-(N'010', N'Phạm Thị Dung',       '2002-01-28', N'0934567890', 0, N'001202012801', N'56 Hai Bà Trưng, Hà Nội', 1, 1, 0, 1, N'Thi cấp mới hạng A1', N'/uploads/candidates/a1/010.jpg', 0, 0),
-(N'011', N'Đỗ Văn Hải',          '2001-04-20', N'0945678901', 1, N'001201042001', N'90 Lê Lợi, TP.HCM', 1, 1, 0, 1, N'Thi cấp mới hạng A1', N'/uploads/candidates/a1/011.jpg', 0, 0),
-(N'012', N'Ngô Thị Kim',          '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Đà Nẵng', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0);
+(N'001', N'Nguyễn Văn An',       '2000-03-15', N'0989123456', 1, N'001200031501', N'123 Lê Duẩn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'002', N'Trần Thị Bình',       '1995-08-22', N'0912345678', 0, N'001095082201', N'45 Nguyễn Huệ, TP.HCM', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'003', N'Lê Văn Chính',        '1988-11-10', N'0978563412', 1, N'001088111001', N'78 Trần Phú, Đà Nẵng', 1, 1, 1, 2, N'Thi lại lý thuyết', NULL, 0, 0),
+(N'046', N'Phạm Minh Đức',       '1999-02-14', N'0908460001', 1, N'001199021401', N'12 Giải Phóng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'048', N'Nguyễn Thị Hoa',      '1997-05-14', N'0911004801', 0, N'001197051401', N'18 Hoàng Hoa Thám, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'049', N'Trần Văn Khoa',       '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'123', N'Hoàng Văn Em',        '1990-06-05', N'0901234567', 1, N'001090060501', N'12 Lý Thường Kiệt, Huế', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'456', N'Vũ Thị Phương',       '1998-12-12', N'0967890123', 0, N'001198121201', N'34 Nguyễn Trãi, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'010', N'Phạm Thị Dung',       '2002-01-28', N'0934567890', 0, N'001202012801', N'56 Hai Bà Trưng, Hà Nội', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
+(N'011', N'Đỗ Văn Hải',          '2001-04-20', N'0945678901', 1, N'001201042001', N'90 Lê Lợi, TP.HCM', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
+(N'012', N'Ngô Thị Kim',          '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Đà Nẵng', 1, 1, 0, 1, N'Thi cấp mới hạng A1', NULL, 0, 0),
+-- Kỳ B-20260601: danh sách DSTS bổ sung (test gọi thủ tục / phân bổ / nhập điểm)
+(N'050', N'Lê Thanh Bình',       '1998-07-12', N'0905005001', 1, N'001198071201', N'10 Phạm Văn Đồng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B',
+ 'https://res.cloudinary.com/dqwh0wcjh/image/upload/v1780127999/050_spneqa.png', 0, 0),
+(N'051', N'Phạm Thu Hà',         '1999-03-25', N'0905005101', 0, N'001199032501', N'22 Nguyễn Chí Thanh, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B',
+ 'https://res.cloudinary.com/dqwh0wcjh/image/upload/v1780128000/051_qdraol.png', 0, 0),
+(N'052', N'Hoàng Minh Tuấn',     '2000-11-08', N'0905005201', 1, N'001200110801', N'5 Láng Hạ, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B',
+ 'https://res.cloudinary.com/dqwh0wcjh/image/upload/v1780128000/052_lwmzvd.png', 0, 0),
+(N'053', N'Võ Thị Lan',          '1997-01-19', N'0905005301', 0, N'001197011901', N'88 Kim Mã, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'054', N'Đặng Văn Phúc',       '1996-06-30', N'0905005401', 1, N'001196063001', N'15 Xã Đàn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'055', N'Bùi Thị Ngọc',        '2001-12-02', N'0905005501', 0, N'001201120201', N'40 Giảng Võ, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'056', N'Nguyễn Quốc Huy',     '1995-04-17', N'0905005601', 1, N'001195041701', N'72 Trần Duy Hưng, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'057', N'Trần Thị Mai',        '1998-09-21', N'0905005701', 0, N'001198092101', N'9 Hoàng Quốc Việt, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'058', N'Lý Văn Đạt',          '1999-08-14', N'0905005801', 1, N'001199081401', N'31 Đội Cấn, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'059', N'Phan Thị Oanh',       '2000-02-27', N'0905005901', 0, N'001200022701', N'60 Thái Hà, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0),
+(N'060', N'Mai Văn Sơn',         '1997-10-05', N'0905006001', 1, N'001197100501', N'18 Chùa Bộc, Hà Nội', 1, 1, 1, 1, N'Thi cấp mới hạng B', NULL, 0, 0);
 GO
 
 -- ============================================
@@ -474,6 +479,32 @@ INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrin
  (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Testing', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-12')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'012' AND FullName = N'Ngô Thị Kim'),
  (SELECT SessionId FROM [Session] WHERE SessionName = N'Ca sáng - Lý thuyết A1'), N'Pending', 0, NULL);
+GO
+
+-- 19b. Ghi danh đủ 3 ca kỳ B-20260601 cho SBD 050–060 (lý thuyết / sa hình / đường trường)
+INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId)
+SELECT c.CandidateId, s.SessionId, N'Pending', 0, NULL
+FROM Candidate c
+CROSS JOIN [Session] s
+WHERE c.CandidateNumber IN (
+    N'050', N'051', N'052', N'053', N'054', N'055', N'056', N'057', N'058', N'059', N'060'
+)
+  AND s.SessionName IN (
+    N'Ca sáng - Lý thuyết B',
+    N'Ca sáng - Thực hành trong hình B',
+    N'Ca chiều - Thực hành trên đường B'
+  );
+GO
+
+-- 19c. Ghi danh ca lý thuyết kỳ B-20260615 cho SBD 050–060
+INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId)
+SELECT c.CandidateId, s.SessionId, N'Pending', 0, NULL
+FROM Candidate c
+CROSS JOIN [Session] s
+WHERE c.CandidateNumber IN (
+    N'050', N'051', N'052', N'053', N'054', N'055', N'056', N'057', N'058', N'059', N'060'
+)
+  AND s.SessionName = N'Ca sáng - Lý thuyết B (kỳ 2)';
 GO
 
 -- ============================================

@@ -16,6 +16,7 @@ import model.ExamArea;
 import model.ExamSection;
 import model.Licence;
 import model.Session;
+import util.examstaff.SessionLabel;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
@@ -39,7 +40,8 @@ public final class SessionViewSupport {
         }
         SessionDTO dto = new SessionDTO();
         dto.setId(session.getId());
-        dto.setSessionName(session.getSessionName());
+        dto.setExamId(session.getExamId());
+        dto.setMorningSession(session.isMorningSession());
         dto.setStatus(session.getStatus());
         if (session.getStartTime() != null) {
             dto.setExamDate(new Date(session.getStartTime().getTime()));
@@ -51,6 +53,7 @@ public final class SessionViewSupport {
         }
         Exam exam = examDAO.getById(session.getExamId());
         if (exam != null) {
+            dto.setExamCode(exam.getExamCode());
             dto.setLicenseTypeId(exam.getLicenceId());
             Licence licence = licenceDAO.getById(exam.getLicenceId());
             if (licence != null) {
@@ -73,17 +76,20 @@ public final class SessionViewSupport {
         } else {
             dto.setMaxCandidates(100);
         }
+        String sectionName = null;
         Integer sectionId = sessionDAO.getExamSectionId(session.getId());
         if (sectionId != null) {
             ExamSection section = sectionDAO.findById(sectionId);
             if (section != null) {
-                dto.setExamTypeName(section.getSectionName());
-                dto.setExamTypeId(enums.ExamSection.resolveExamTypeId(section.getSectionName()));
+                sectionName = section.getSectionName();
+                dto.setExamTypeName(sectionName);
+                dto.setExamTypeId(enums.ExamSection.resolveExamTypeId(sectionName));
             }
         }
         if (dto.getExamTypeId() == 0) {
             dto.setExamTypeId(1);
         }
+        dto.setSessionName(SessionLabel.of(session.isMorningSession(), sectionName));
         dto.setRegisteredCount(sessionDAO.countEnrollments(session.getId()));
         return dto;
     }
