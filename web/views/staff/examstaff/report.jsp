@@ -12,23 +12,18 @@
 <c:set var="completedEx" value="${examCompletedCount}" />
 <c:set var="passEx" value="${passedCount}" />
 <c:set var="failEx" value="${failedCount}" />
+<c:set var="absentEx" value="${absentCount}" />
+<c:set var="suspendedEx" value="${suspendedCount}" />
 
 <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="bao-cao" />
-    <jsp:param name="pageTitle" value="Báo cáo cuối ngày" />
+    <jsp:param name="pageTitle" value="Báo cáo" />
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
         <header class="page-header page-header--toolbar">
             <p class="examiner-page-desc">Tổng hợp số liệu kết quả thi sát hạch trong ngày, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
             <div class="page-actions">
-                <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ngày thi:</span>
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
-                        <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
-                    </span>
-                </div>
-
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportExcel=true"
                    class="btn-filter"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
@@ -140,12 +135,6 @@
                 <div class="stat-info">
                     <span class="stat-number" style="color: #7e22ce;">${procedureCompleteCount}</span>
                     <span class="stat-label">Đã xong thủ tục tại bàn</span>
-                    <span class="stat-trend stat-trend--up">
-                        <c:choose>
-                            <c:when test="${procedurePendingCount > 0}">Còn ${procedurePendingCount} chưa làm thủ tục</c:when>
-                            <c:otherwise>Tất cả thí sinh (trừ vắng) đã xong</c:otherwise>
-                        </c:choose>
-                    </span>
                 </div>
             </div>
 
@@ -159,7 +148,6 @@
                 <div class="stat-info">
                     <span class="stat-number">${rateStr}</span>
                     <span class="stat-label">Tỷ lệ đạt</span>
-                    <span class="stat-trend stat-trend--up">${passEx} đạt / ${completedEx} đã thi xong</span>
                 </div>
             </div>
 
@@ -172,7 +160,6 @@
                 <div class="stat-info">
                     <span class="stat-number">${completedEx}</span>
                     <span class="stat-label">Thí sinh đã thi xong</span>
-                    <span class="stat-trend stat-trend--up">${totalEx} đăng ký · còn lại chưa thi</span>
                 </div>
             </div>
 
@@ -185,7 +172,6 @@
                 <div class="stat-info">
                     <span class="stat-number">${passEx}</span>
                     <span class="stat-label">Hồ sơ ĐẠT</span>
-                    <span class="stat-trend stat-trend--up" style="color: #10b981;">Đủ điều kiện cấp bằng</span>
                 </div>
             </div>
 
@@ -197,8 +183,33 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number">${failEx}</span>
-                    <span class="stat-label">Hồ sơ CHƯA ĐẠT</span>
-                    <span class="stat-trend stat-trend--down">Yêu cầu đăng ký thi lại</span>
+                    <span class="stat-label">Hồ sơ TRƯỢT</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--amber" style="background-color: rgba(245, 158, 11, 0.08); color: #b45309;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${absentEx}</span>
+                    <span class="stat-label">Thí sinh VẮNG</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--amber" style="background-color: rgba(239, 68, 68, 0.08); color: #b91c1c;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number">${suspendedEx}</span>
+                    <span class="stat-label">Thí sinh ĐÌNH CHỈ</span>
                 </div>
             </div>
         </section>
@@ -217,100 +228,93 @@
                 </header>
 
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 0; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">1. Thống kê theo hạng bằng sát hạch</h3>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Hạng bằng</th>
-                            <th scope="col" style="text-align: center;">Đăng ký</th>
-                            <th scope="col" style="text-align: center;">Đã thi</th>
-                            <th scope="col" style="text-align: center; color: #059669;">Đạt (Đỗ)</th>
-                            <th scope="col" style="text-align: center; color: #dc2626;">Chưa đạt</th>
-                            <th scope="col" style="text-align: right;">Tỷ lệ Đạt</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="lic" items="${licenseStats}">
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill">
+                        <thead>
                             <tr>
-                                <td style="font-weight: 700; color: #0f172a;">
-                                    <span class="role-badge role-badge--coi">Hạng ${lic.code}</span>
-                                </td>
-                                <td style="text-align: center; font-weight: 600;">${lic.registered}</td>
-                                <td style="text-align: center; font-weight: 600;">${lic.completed}</td>
-                                <td style="text-align: center; color: #059669; font-weight: 700;">${lic.passed}</td>
-                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${lic.failed}</td>
-                                <td style="text-align: right; font-weight: 700; color: #0052cc;">
+                                <th scope="col">Hạng bằng</th>
+                                <th scope="col" style="text-align: center;">Đăng ký</th>
+                                <th scope="col" style="text-align: center;">Đã thi</th>
+                                <th scope="col" style="text-align: center; color: #059669;">Đạt (Đỗ)</th>
+                                <th scope="col" style="text-align: center; color: #dc2626;">Chưa đạt</th>
+                                <th scope="col" style="text-align: right;">Tỷ lệ Đạt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="lic" items="${licenseStats}">
+                                <tr>
+                                    <td style="font-weight: 700; color: #0f172a;">
+                                        <span class="role-badge role-badge--coi">Hạng ${lic.code}</span>
+                                    </td>
+                                    <td style="text-align: center; font-weight: 600;">${lic.registered}</td>
+                                    <td style="text-align: center; font-weight: 600;">${lic.completed}</td>
+                                    <td style="text-align: center; color: #059669; font-weight: 700;">${lic.passed}</td>
+                                    <td style="text-align: center; color: #dc2626; font-weight: 700;">${lic.failed}</td>
+                                    <td style="text-align: right; font-weight: 700; color: #0052cc;">
+                                        <c:choose>
+                                            <c:when test="${lic.completed > 0}">
+                                                <fmt:formatNumber value="${lic.passed * 100.0 / lic.completed}" maxFractionDigits="1"/>%
+                                            </c:when>
+                                            <c:otherwise>0%</c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty licenseStats}">
+                                <tr>
+                                    <td colspan="6" class="allocation-results-table__empty">
+                                        Chưa có thí sinh đăng ký trong kỳ thi này.
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">2. Thống kê tỷ lệ loại theo từng phần thi</h3>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th scope="col">Phần thi sát hạch</th>
+                                <th scope="col" style="text-align: center;">Tổng số thi</th>
+                                <th scope="col" style="text-align: center; color: #059669;">Đạt điều kiện</th>
+                                <th scope="col" style="text-align: center; color: #dc2626;">Bị loại trực tiếp</th>
+                                <th scope="col" style="text-align: right;">Tỷ lệ loại</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: 600; color: #0f172a;">Lý thuyết sát hạch</td>
+                                <td style="text-align: center; font-weight: 600;">${theoryCount}</td>
+                                <td style="text-align: center; color: #059669; font-weight: 600;">${theoryPassed}</td>
+                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${theoryFailed}</td>
+                                <td style="text-align: right; font-weight: 700; color: #ef4444;">
                                     <c:choose>
-                                        <c:when test="${lic.completed > 0}">
-                                            <fmt:formatNumber value="${lic.passed * 100.0 / lic.completed}" maxFractionDigits="1"/>%
+                                        <c:when test="${theoryCount > 0}">
+                                            <fmt:formatNumber value="${theoryFailed * 100.0 / theoryCount}" maxFractionDigits="1"/>%
                                         </c:when>
                                         <c:otherwise>0%</c:otherwise>
                                     </c:choose>
                                 </td>
                             </tr>
-                        </c:forEach>
-                        <c:if test="${empty licenseStats}">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem;">
-                                    Chưa có thí sinh đăng ký trong kỳ thi này.
-                                </td>
-                            </tr>
-                        </c:if>
-                    </tbody>
-                </table>
-
-                <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">2. Thống kê tỷ lệ loại theo từng phần thi</h3>
-                <table class="report-table" style="margin-bottom: 0;">
-                    <thead>
-                        <tr>
-                            <th scope="col">Phần thi sát hạch</th>
-                            <th scope="col" style="text-align: center;">Tổng số thi</th>
-                            <th scope="col" style="text-align: center; color: #059669;">Đạt điều kiện</th>
-                            <th scope="col" style="text-align: center; color: #dc2626;">Bị loại trực tiếp</th>
-                            <th scope="col" style="text-align: right;">Tỷ lệ loại</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="font-weight: 600; color: #0f172a;">Lý thuyết sát hạch</td>
-                            <td style="text-align: center; font-weight: 600;">${theoryCount}</td>
-                            <td style="text-align: center; color: #059669; font-weight: 600;">${theoryPassed}</td>
-                            <td style="text-align: center; color: #dc2626; font-weight: 700;">${theoryFailed}</td>
-                            <td style="text-align: right; font-weight: 700; color: #ef4444;">
-                                <c:choose>
-                                    <c:when test="${theoryCount > 0}">
-                                        <fmt:formatNumber value="${theoryFailed * 100.0 / theoryCount}" maxFractionDigits="1"/>%
-                                    </c:when>
-                                    <c:otherwise>0%</c:otherwise>
-                                </c:choose>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600; color: #0f172a;">Thực hành</td>
-                            <td style="text-align: center; font-weight: 600;">${practicalCount}</td>
-                            <td style="text-align: center; color: #059669; font-weight: 600;">${practicalPassed}</td>
-                            <td style="text-align: center; color: #dc2626; font-weight: 700;">${practicalFailed}</td>
-                            <td style="text-align: right; font-weight: 700; color: #ef4444;">
-                                <c:choose>
-                                    <c:when test="${practicalCount > 0}">
-                                        <fmt:formatNumber value="${practicalFailed * 100.0 / practicalCount}" maxFractionDigits="1"/>%
-                                    </c:when>
-                                    <c:otherwise>0%</c:otherwise>
-                                </c:choose>
-                            </td>
-                        </tr>
-                        <c:if test="${roadCount > 0}">
-                            <tr>
-                                <td style="font-weight: 600; color: #0f172a;">Đường trường</td>
-                                <td style="text-align: center; font-weight: 600;">${roadCount}</td>
-                                <td style="text-align: center; color: #059669; font-weight: 600;">${roadPassed}</td>
-                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${roadFailed}</td>
+                                <td style="font-weight: 600; color: #0f172a;">Thực hành</td>
+                                <td style="text-align: center; font-weight: 600;">${practicalCount}</td>
+                                <td style="text-align: center; color: #059669; font-weight: 600;">${practicalPassed}</td>
+                                <td style="text-align: center; color: #dc2626; font-weight: 700;">${practicalFailed}</td>
                                 <td style="text-align: right; font-weight: 700; color: #ef4444;">
-                                    <fmt:formatNumber value="${roadFailed * 100.0 / roadCount}" maxFractionDigits="1"/>%
+                                    <c:choose>
+                                        <c:when test="${practicalCount > 0}">
+                                            <fmt:formatNumber value="${practicalFailed * 100.0 / practicalCount}" maxFractionDigits="1"/>%
+                                        </c:when>
+                                        <c:otherwise>0%</c:otherwise>
+                                    </c:choose>
                                 </td>
                             </tr>
-                        </c:if>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="report-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
@@ -339,7 +343,15 @@
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #ef4444;"></div>
-                            <span>Chưa đạt (${failEx} học viên)</span>
+                            <span>Trượt (${failEx} học viên)</span>
+                        </div>
+                        <div class="chart-legend__item">
+                            <div class="chart-legend__color" style="background-color: #f59e0b;"></div>
+                            <span>Vắng (${absentEx} học viên)</span>
+                        </div>
+                        <div class="chart-legend__item">
+                            <div class="chart-legend__color" style="background-color: #b91c1c;"></div>
+                            <span>Đình chỉ (${suspendedEx} học viên)</span>
                         </div>
                     </div>
                 </div>

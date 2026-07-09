@@ -24,6 +24,7 @@
 <nav class="allocation-result-subnav">
     <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sq}" class="allocation-result-subnav__tab">Đỗ</a>
     <a href="${ctx}/views/staff/examstaff/allocation-results-fail${sq}" class="allocation-result-subnav__tab is-active">Trượt / vắng</a>
+    <a href="${ctx}/views/staff/examstaff/allocation-results-suspended${sq}" class="allocation-result-subnav__tab">Đình chỉ</a>
 </nav>
 <jsp:include page="/views/staff/examstaff/includes/allocation-pagination.jsp" />
 <jsp:include page="/views/staff/examstaff/includes/allocation-rules-box.jsp">
@@ -63,20 +64,13 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${allocationNoRoadTestIds.contains(c.id)}"><span class="allocation-na">N/A</span></c:when>
-                                <c:when test="${c.absent or c.practicalPassed ne 'passed'}">—</c:when>
-                                <c:otherwise><span class="allocation-score allocation-score--${c.roadTestPassed eq 'passed' ? 'pass' : 'fail'}">${c.roadTestScore}</span></c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>
-                            <c:choose>
                                 <c:when test="${c.absent}"><span class="allocation-result-reason allocation-result-reason--absent">Vắng thi</span></c:when>
                                 <c:otherwise><span class="allocation-result-reason allocation-result-reason--fail">Trượt</span></c:otherwise>
                             </c:choose>
                         </td>
                     </tr>
                 </c:forEach>
-                <c:if test="${pg.totalItems eq 0}"><tr><td colspan="8" class="allocation-results-table__empty">Chưa có thí sinh trượt hoặc vắng.</td></tr></c:if>
+                <c:if test="${pg.totalItems eq 0}"><tr><td colspan="7" class="allocation-results-table__empty">Chưa có thí sinh trượt hoặc vắng.</td></tr></c:if>
             </tbody>
         </table>
     </div>

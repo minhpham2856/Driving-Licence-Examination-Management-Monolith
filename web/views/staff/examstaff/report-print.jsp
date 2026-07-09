@@ -46,11 +46,15 @@
                 </tr>
                 <tr>
                     <td>Đạt</td><td class="text-pass"><strong>${passedCount}</strong></td>
-                    <td>Chưa đạt</td><td class="text-fail"><strong>${failedCount}</strong></td>
+                    <td>Trượt</td><td class="text-fail"><strong>${failedCount}</strong></td>
                 </tr>
                 <tr>
-                    <td>Vắng/đình chỉ</td><td><strong>${absentCount}</strong></td>
+                    <td>Vắng</td><td><strong>${absentCount}</strong></td>
+                    <td>Đình chỉ</td><td><strong>${suspendedCount}</strong></td>
+                </tr>
+                <tr>
                     <td>Tỷ lệ đạt</td><td><strong><fmt:formatNumber value="${passRate}" maxFractionDigits="1"/>%</strong></td>
+                    <td></td><td></td>
                 </tr>
             </tbody>
         </table>
@@ -83,15 +87,6 @@
                     <td>${practicalFailed}</td>
                     <td><c:if test="${practicalCount > 0}"><fmt:formatNumber value="${practicalFailed * 100.0 / practicalCount}" maxFractionDigits="1"/>%</c:if><c:if test="${practicalCount == 0}">0%</c:if></td>
                 </tr>
-                <c:if test="${roadCount > 0}">
-                <tr>
-                    <td>Đường trường</td>
-                    <td>${roadCount}</td>
-                    <td>${roadPassed}</td>
-                    <td>${roadFailed}</td>
-                    <td><fmt:formatNumber value="${roadFailed * 100.0 / roadCount}" maxFractionDigits="1"/>%</td>
-                </tr>
-                </c:if>
             </tbody>
         </table>
     </section>
@@ -107,7 +102,6 @@
                     <th>Hạng</th>
                     <th>LT</th>
                     <th>SH</th>
-                    <th>ĐT</th>
                     <th>KQ</th>
                 </tr>
             </thead>
@@ -134,16 +128,10 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${c.roadTestPassed eq 'passed'}">Đạt</c:when>
-                                <c:when test="${c.roadTestPassed eq 'failed'}">Trượt</c:when>
-                                <c:otherwise>—</c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>
-                            <c:choose>
+                                <c:when test="${c.suspended}">Đình chỉ</c:when>
                                 <c:when test="${c.absent}">Vắng</c:when>
                                 <c:when test="${c.examFinished and c.finalPass}">Đạt</c:when>
-                                <c:when test="${c.examFinished}">Chưa đạt</c:when>
+                                <c:when test="${c.examFinished}">Trượt</c:when>
                                 <c:otherwise>Chưa xong</c:otherwise>
                             </c:choose>
                         </td>

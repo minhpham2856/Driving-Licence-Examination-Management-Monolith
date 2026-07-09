@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -49,7 +48,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
             // write fee sheet
 
             writeOverviewSheet(workbook, headerStyle, session, stats, exporterName);
-            writeLicenseSheet(workbook, headerStyle, candidates);
+            writeLicenseSheet(workbook, headerStyle, stats);
             writeSectionSheet(workbook, headerStyle, stats);
             writeCandidateSheet(workbook, headerStyle, dateStyle, candidates);
     // write overview sheet
@@ -70,8 +69,9 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         row = writeKv(sheet, row, "Tổng đăng ký", stats != null ? stats.getTotalCandidates() : 0);
         row = writeKv(sheet, row, "Đã thi xong", stats != null ? stats.getExamCompletedCount() : 0);
         row = writeKv(sheet, row, "Đạt", stats != null ? stats.getPassedCount() : 0);
-        row = writeKv(sheet, row, "Chưa đạt", stats != null ? stats.getFailedCount() : 0);
-        row = writeKv(sheet, row, "Vắng/đình chỉ", stats != null ? stats.getAbsentCount() : 0);
+        row = writeKv(sheet, row, "Trượt", stats != null ? stats.getFailedCount() : 0);
+        row = writeKv(sheet, row, "Vắng", stats != null ? stats.getAbsentCount() : 0);
+        row = writeKv(sheet, row, "Đình chỉ", stats != null ? stats.getSuspendedCount() : 0);
         row = writeKv(sheet, row, "Tỷ lệ đạt (%)", round1(stats != null ? stats.getPassRate() : 0));
         row = writeKv(sheet, row, "Người xuất", exporterName != null ? exporterName : "");
         row = writeKv(sheet, row, "Thời gian xuất", new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.forLanguageTag("vi-VN")).format(new Date()));
@@ -79,28 +79,30 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         sheet.autoSizeColumn(1);
     }
 
-    private static void writeLicenseSheet(Workbook wb, CellStyle headerStyle, List<ExamRegistrationDTO> candidates) {
+    private static void writeLicenseSheet(Workbook wb, CellStyle headerStyle, ExamReportStatsDTO stats) {
         Sheet sheet = wb.createSheet("Theo hạng bằng");
         Row header = sheet.createRow(0);
-        String[] cols = {"Hạng bằng", "Đăng ký", "Đã thi", "Đạt", "Chưa đạt", "Tỷ lệ đạt (%)"};
+        String[] cols = {"Hạng bằng", "Đăng ký", "Đã thi", "Đạt", "Trượt", "Tỷ lệ đạt (%)"};
         for (int i = 0; i < cols.length; i++) {
             Cell c = header.createCell(i);
             c.setCellValue(cols[i]);
             c.setCellStyle(headerStyle);
         }
-        Map<String, LicenseAgg> agg = aggregateByLicense(candidates);
+        List<Map<String, Object>> licenseStats = stats != null ? stats.getLicenseStats() : null;
         int row = 1;
-        for (Map.Entry<String, LicenseAgg> e : agg.entrySet()) {
-            LicenseAgg a = e.getValue();
-            Row r = sheet.createRow(row++);
-            r.createCell(0).setCellValue(e.getKey());
-            r.createCell(1).setCellValue(a.registered);
-            r.createCell(2).setCellValue(a.completed);
-            r.createCell(3).setCellValue(a.passed);
-    // write section sheet
-            r.createCell(4).setCellValue(a.failed);
-            double rate = a.completed > 0 ? (a.passed * 100.0 / a.completed) : 0;
-            r.createCell(5).setCellValue(round1(rate));
+        if (licenseStats != null) {
+            for (Map<String, Object> lic : licenseStats) {
+                int completed = toInt(lic.get("completed"));
+                int passed = toInt(lic.get("passed"));
+                Row r = sheet.createRow(row++);
+                r.createCell(0).setCellValue(String.valueOf(lic.getOrDefault("code", "")));
+                r.createCell(1).setCellValue(toInt(lic.get("registered")));
+                r.createCell(2).setCellValue(completed);
+                r.createCell(3).setCellValue(passed);
+                r.createCell(4).setCellValue(toInt(lic.get("failed")));
+                double rate = completed > 0 ? (passed * 100.0 / completed) : 0;
+                r.createCell(5).setCellValue(round1(rate));
+            }
         }
         for (int i = 0; i < cols.length; i++) {
             sheet.autoSizeColumn(i);
@@ -120,9 +122,6 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         if (stats != null) {
             row = writeSectionRow(sheet, row, "Lý thuyết", stats.getTheoryCount(), stats.getTheoryPassed(), stats.getTheoryFailed());
             row = writeSectionRow(sheet, row, "Sa hình / Thực hành", stats.getPracticalCount(), stats.getPracticalPassed(), stats.getPracticalFailed());
-            if (stats.getRoadCount() > 0) {
-                writeSectionRow(sheet, row, "Đường trường", stats.getRoadCount(), stats.getRoadPassed(), stats.getRoadFailed());
-            }
         }
         for (int i = 0; i < cols.length; i++) {
             sheet.autoSizeColumn(i);
@@ -147,7 +146,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         Row header = sheet.createRow(0);
         String[] cols = {
                 "STT", "SBD", "Họ và tên", "Ngày sinh", "CCCD", "Hạng", "Phòng LT",
-                "Điểm LT", "KQ LT", "Điểm SH", "KQ SH", "Điểm ĐT", "KQ ĐT",
+                "Điểm LT", "KQ LT", "Điểm SH", "KQ SH",
                 "KQ cuối", "Thu phí", "Ảnh", "Ghi chú"
         };
         for (int i = 0; i < cols.length; i++) {
@@ -160,6 +159,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         int passCount = 0;
         int failCount = 0;
         int absentCount = 0;
+        int suspendedCount = 0;
         for (ExamRegistrationDTO reg : candidates) {
             Row r = sheet.createRow(row++);
             int col = 0;
@@ -172,17 +172,22 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
             r.createCell(col++).setCellValue(nullToEmpty(reg.getAllocatedAreaName()));
             writeScoreCell(r.createCell(col++), reg.getTheoryScore());
             r.createCell(col++).setCellValue(ReportExportLabels.formatSectionResult(reg.getTheoryPassed()));
-            writeScoreCell(r.createCell(col++), reg.getPracticalScore());
-            r.createCell(col++).setCellValue(ReportExportLabels.formatSectionResult(reg.getPracticalPassed()));
-            writeScoreCell(r.createCell(col++), reg.getRoadTestScore());
-            r.createCell(col++).setCellValue(ReportExportLabels.formatSectionResult(reg.getRoadTestPassed()));
+            if (reg.skipsPractical()) {
+                r.createCell(col++).setBlank();
+                r.createCell(col++).setBlank();
+            } else {
+                writeScoreCell(r.createCell(col++), reg.getPracticalScore());
+                r.createCell(col++).setCellValue(ReportExportLabels.formatSectionResult(reg.getPracticalPassed()));
+            }
             String finalResult = ReportExportLabels.formatFinalResult(reg);
             r.createCell(col++).setCellValue(finalResult);
             r.createCell(col++).setCellValue(ReportExportLabels.yesNo(reg.isIsPaymentCompleted()));
             r.createCell(col++).setCellValue(ReportExportLabels.yesNo(reg.isValidCapturedPhoto()));
             r.createCell(col++).setCellValue(notesLabel(reg));
 
-            if (reg.isAbsent()) {
+            if (reg.isSuspended()) {
+                suspendedCount++;
+            } else if (reg.isAbsent()) {
                 absentCount++;
             } else if (reg.isExamFinished()) {
                 if (reg.isFinalPass()) {
@@ -195,7 +200,8 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
         Row total = sheet.createRow(row + 1);
         total.createCell(0).setCellValue("Tổng hợp");
-        total.createCell(1).setCellValue("Đạt: " + passCount + " | Chưa đạt: " + failCount + " | Vắng: " + absentCount);
+        total.createCell(1).setCellValue("Đạt: " + passCount + " | Trượt: " + failCount
+                + " | Vắng: " + absentCount + " | Đình chỉ: " + suspendedCount);
         for (int i = 0; i < Math.min(cols.length, 12); i++) {
             sheet.autoSizeColumn(i);
         }
@@ -298,35 +304,6 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return sb.toString();
     }
 
-    private static Map<String, LicenseAgg> aggregateByLicense(List<ExamRegistrationDTO> candidates) {
-        Map<String, LicenseAgg> map = new LinkedHashMap<>();
-        if (candidates == null) {
-            return map;
-        }
-        for (ExamRegistrationDTO reg : candidates) {
-            String lic = reg.getLicenseCode() != null ? reg.getLicenseCode().trim().toUpperCase(Locale.ROOT) : "N/A";
-            LicenseAgg a = map.computeIfAbsent(lic, k -> new LicenseAgg());
-            a.registered++;
-            if (reg.isAbsent()) {
-    // write title block
-                a.completed++;
-                a.failed++;
-                continue;
-            }
-            if (!reg.isExamFinished()) {
-                continue;
-            }
-    // write kv
-            a.completed++;
-            if (reg.isFinalPass()) {
-                a.passed++;
-            } else {
-                a.failed++;
-            }
-        }
-        return map;
-    }
-
     // bold style
     private static int writeTitleBlock(Sheet sheet, int row, CellStyle headerStyle, String title) {
         Row r = sheet.createRow(row++);
@@ -386,8 +363,11 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private static String notesLabel(ExamRegistrationDTO reg) {
     // to double
+        if (reg.isSuspended()) {
+            return "Đình chỉ";
+        }
         if (reg.isAbsent()) {
-            return "Vắng/Đình chỉ";
+            return "Vắng";
         }
         String notes = reg.getNotes();
         if (notes != null && notes.startsWith("AllocatedRoom:")) {
@@ -421,10 +401,4 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return 0;
     }
 
-    private static final class LicenseAgg {
-        int registered;
-        int completed;
-        int passed;
-        int failed;
-    }
 }

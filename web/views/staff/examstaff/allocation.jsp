@@ -33,11 +33,6 @@
         <span class="allocation-overview-card__count">${counts.practical}</span>
         <span class="allocation-overview-card__hint">Đạt LT, chờ TH/SH</span>
     </a>
-    <a href="${ctx}/views/staff/examstaff/allocation-road${sidQ}" class="allocation-overview-card allocation-overview-card--road">
-        <span class="allocation-overview-card__label">Thi đường trường</span>
-        <span class="allocation-overview-card__count">${counts.road}</span>
-        <span class="allocation-overview-card__hint">Đạt TH/SH, chờ đường trường</span>
-    </a>
     <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sidQ}" class="allocation-overview-card allocation-overview-card--pass">
         <span class="allocation-overview-card__label">Đỗ sát hạch</span>
         <span class="allocation-overview-card__count">${counts.passCount}</span>
@@ -47,6 +42,11 @@
         <span class="allocation-overview-card__label">Trượt / vắng</span>
         <span class="allocation-overview-card__count">${counts.failCount}</span>
         <span class="allocation-overview-card__hint">Kết thúc ca</span>
+    </a>
+    <a href="${ctx}/views/staff/examstaff/allocation-results-suspended${sidQ}" class="allocation-overview-card allocation-overview-card--fail">
+        <span class="allocation-overview-card__label">Đình chỉ</span>
+        <span class="allocation-overview-card__count">${counts.suspendedCount}</span>
+        <span class="allocation-overview-card__hint">Bị loại khỏi kỳ thi</span>
     </a>
 </div>
 

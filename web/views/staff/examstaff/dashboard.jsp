@@ -62,11 +62,18 @@
         <c:set var="waitingCount" value="0" />
         <c:set var="examFinishedCount" value="0" />
         <c:set var="examPassedCount" value="0" />
+        <c:set var="suspendedExamCount" value="0" />
+        <c:set var="examOutcomeCount" value="0" />
 
         <c:forEach var="c" items="${candidateQueue}">
+            <c:if test="${c.suspended}">
+                <c:set var="suspendedExamCount" value="${suspendedExamCount + 1}" />
+                <c:set var="examOutcomeCount" value="${examOutcomeCount + 1}" />
+            </c:if>
             <c:set var="isExamFinished" value="${c.examFinished}" />
             <c:if test="${isExamFinished}">
                 <c:set var="examFinishedCount" value="${examFinishedCount + 1}" />
+                <c:set var="examOutcomeCount" value="${examOutcomeCount + 1}" />
                 <c:if test="${c.finalPass}">
                     <c:set var="examPassedCount" value="${examPassedCount + 1}" />
                 </c:if>
@@ -113,7 +120,6 @@
                         <c:if test="${empty currentSession or empty currentSession.examDate}">—</c:if>
                         — ${fn:length(examSessions)} ca thi
                     </span>
-                    <span class="stat-trend stat-trend--up">Lý thuyết → Sa hình → Đường trường</span>
                 </div>
             </div>
 
@@ -124,7 +130,6 @@
                 <div class="stat-info">
                     <span class="stat-number">${totalCandidatesCount}</span>
                     <span class="stat-label">Tổng thí sinh kỳ thi</span>
-                    <span class="stat-trend stat-trend--up">Hàng đợi động</span>
                 </div>
             </div>
 
@@ -135,7 +140,6 @@
                 <div class="stat-info">
                     <span class="stat-number" style="color: #10b981;">${completedCount}</span>
                     <span class="stat-label">Đã xong thủ tục</span>
-                    <span class="stat-trend stat-trend--up"><fmt:formatNumber value="${completedPercent}" maxFractionDigits="1"/>% hoàn thành</span>
                 </div>
             </div>
 
@@ -146,7 +150,6 @@
                 <div class="stat-info">
                     <span class="stat-number" style="color: #d97706;">${waitingCount}</span>
                     <span class="stat-label">Đang ở phòng chờ</span>
-                    <span class="stat-trend stat-trend--up">${processingCount} đang tại quầy thủ tục</span>
                 </div>
             </div>
 
@@ -155,9 +158,8 @@
                     <span class="material-symbols-outlined" aria-hidden="true">emoji_events</span>
                 </div>
                 <div class="stat-info">
-                    <span class="stat-number" style="color: #10b981;">${examPassedCount}<span style="font-size: 0.85rem; color: #64748b;"> / ${examFinishedCount}</span></span>
-                    <span class="stat-label">Kết quả thi (Đạt / đã chấm xong)</span>
-                    <span class="stat-trend stat-trend--up">${examFinishedCount - examPassedCount} trượt hoặc vắng</span>
+                    <span class="stat-number" style="color: #10b981;">${examPassedCount}<span style="font-size: 0.85rem; color: #64748b;"> / ${examOutcomeCount}</span></span>
+                    <span class="stat-label">Kết quả thi đạt</span>
                 </div>
             </div>
         </section>
@@ -193,7 +195,7 @@
                 </div>
                 <div class="progress-legend-item">
                     <span class="progress-legend-dot" style="background-color: #7c3aed;"></span>
-                    <span>Đã chấm xong kỳ thi: <strong>${examFinishedCount}</strong> (Đạt: ${examPassedCount}, Trượt/vắng: ${examFinishedCount - examPassedCount})</span>
+                    <span>Đã có kết quả: <strong>${examOutcomeCount}</strong> (Đạt: ${examPassedCount})</span>
                 </div>
             </div>
         </div>
@@ -238,7 +240,7 @@
                     </c:if>
                 </div>
 
-                <a href="candidatecall" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
+                <a href="candidatecall" class="room-monitor-card__action hover-elevate">
                     Xem phòng điều hành gọi thi &rarr;
                 </a>
             </div>
@@ -250,7 +252,7 @@
                             <rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
                             <path d="M12 20h.01M16 20h.01M8 20h.01M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        Bàn thủ tục khép kín
+                        Thủ tục
                     </h3>
                     <span class="room-badge room-badge--blue">Đang xử lý</span>
                 </div>
@@ -280,7 +282,7 @@
                     </c:if>
                 </div>
 
-                <a href="procedure" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s;" class="hover-elevate">
+                <a href="procedure" class="room-monitor-card__action hover-elevate">
                     Vào quầy làm thủ tục &rarr;
                 </a>
             </div>
@@ -294,29 +296,32 @@
                         </svg>
                         Kết quả thi cuối cùng
                     </h3>
-                    <span class="room-badge room-badge--green">${examFinishedCount} thí sinh</span>
+                    <span class="room-badge room-badge--green">${examOutcomeCount} thí sinh</span>
                 </div>
 
-                <div style="max-height: 280px; overflow-y: auto;">
-                    <table style="width: 100%; font-size: 0.78rem; border-collapse: collapse;">
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
                         <thead>
-                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                                <th style="text-align: left; padding: 8px 6px; color: #475569;">SBD</th>
-                                <th style="text-align: left; padding: 8px 6px; color: #475569;">Họ tên</th>
-                                <th style="text-align: center; padding: 8px 6px; color: #475569;">Kết quả</th>
+                            <tr>
+                                <th style="text-align: left;">SBD</th>
+                                <th style="text-align: left;">Họ tên</th>
+                                <th style="text-align: center;">Kết quả</th>
                             </tr>
                         </thead>
                         <tbody>
                             <c:set var="resultRenderCount" value="0" />
                             <c:forEach var="c" items="${candidateQueue}">
-                                <c:if test="${c.examFinished}">
+                                <c:if test="${c.examFinished or c.suspended}">
                                     <c:set var="resultRenderCount" value="${resultRenderCount + 1}" />
                                     <c:set var="finalPass" value="${c.finalPass}" />
-                                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="padding: 8px 6px; font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
-                                        <td style="padding: 8px 6px; font-weight: 600; color: #0f172a;">${c.name}</td>
-                                        <td style="padding: 8px 6px; text-align: center;">
+                                    <tr>
+                                        <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
+                                        <td style="font-weight: 600; color: #0f172a;">${c.name}</td>
+                                        <td style="text-align: center;">
                                             <c:choose>
+                                                <c:when test="${c.suspended}">
+                                                    <span style="font-weight: 800; color: #b91c1c; background: #fef2f2; padding: 2px 8px; border-radius: 4px;">ĐÌNH CHỈ</span>
+                                                </c:when>
                                                 <c:when test="${c.absent}">
                                                     <span style="font-weight: 800; color: #ef4444; background: #fef2f2; padding: 2px 8px; border-radius: 4px;">VẮNG</span>
                                                 </c:when>
@@ -333,7 +338,7 @@
                             </c:forEach>
                             <c:if test="${resultRenderCount eq 0}">
                                 <tr>
-                                    <td colspan="3" style="padding: 1.5rem; text-align: center; color: #94a3b8; font-style: italic;">
+                                    <td colspan="3" class="allocation-results-table__empty">
                                         Chưa có thí sinh nào hoàn thành toàn bộ kỳ thi.
                                     </td>
                                 </tr>
@@ -342,7 +347,7 @@
                     </table>
                 </div>
 
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" style="text-decoration: none; text-align: center; font-size: 0.8rem; font-weight: 700; color: #0052cc; padding: 6px; border: 1px dashed rgba(0, 82, 204, 0.4); border-radius: 8px; background: rgba(0, 82, 204, 0.02); transition: all 0.2s; margin-top: 8px; display: block;" class="hover-elevate">
+                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" class="room-monitor-card__action hover-elevate">
                     Xem báo cáo chi tiết &rarr;
                 </a>
             </div>

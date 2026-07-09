@@ -26,6 +26,7 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
         int passedCount = 0;
         int failedCount = 0;
         int absentCount = 0;
+        int suspendedCount = 0;
         int examCompletedCount = 0;
         int theoryCount = 0;
         int theoryPassed = 0;
@@ -33,17 +34,19 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
         int practicalCount = 0;
         int practicalPassed = 0;
         int practicalFailed = 0;
-        int roadCount = 0;
-        int roadPassed = 0;
-        int roadFailed = 0;
 
         Map<String, LicenseAgg> licenseMap = new LinkedHashMap<>();
         for (ExamRegistrationDTO reg : qList) {
             String lic = normalizeLicense(reg.getLicenseCode());
             LicenseAgg agg = licenseMap.computeIfAbsent(lic, k -> new LicenseAgg(lic));
             agg.registered++;
-            if (reg.isAbsent()) {
+            if (reg.isSuspended()) {
+                suspendedCount++;
+                continue;
+            }
+            if (reg.isAbsent() && !reg.isSuspended()) {
                 absentCount++;
+                continue;
             }
             String tPass = reg.getTheoryPassed();
             if ("passed".equalsIgnoreCase(tPass)) {
@@ -53,21 +56,15 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
                 theoryCount++;
                 theoryFailed++;
             }
-            String pPass = reg.getPracticalPassed();
-            if ("passed".equalsIgnoreCase(pPass)) {
-                practicalCount++;
-                practicalPassed++;
-            } else if ("failed".equalsIgnoreCase(pPass)) {
-                practicalCount++;
-                practicalFailed++;
-            }
-            String rPass = reg.getRoadTestPassed();
-            if ("passed".equalsIgnoreCase(rPass)) {
-                roadCount++;
-                roadPassed++;
-            } else if ("failed".equalsIgnoreCase(rPass)) {
-                roadCount++;
-                roadFailed++;
+            if (!reg.skipsPractical()) {
+                String pPass = reg.getPracticalPassed();
+                if ("passed".equalsIgnoreCase(pPass)) {
+                    practicalCount++;
+                    practicalPassed++;
+                } else if ("failed".equalsIgnoreCase(pPass)) {
+                    practicalCount++;
+                    practicalFailed++;
+                }
             }
             if (!reg.isExamFinished()) {
                 continue;
@@ -86,6 +83,7 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
         stats.setPassedCount(passedCount);
         stats.setFailedCount(failedCount);
         stats.setAbsentCount(absentCount);
+        stats.setSuspendedCount(suspendedCount);
         stats.setExamCompletedCount(examCompletedCount);
         stats.setPassRate(examCompletedCount > 0 ? ((double) passedCount / examCompletedCount) * 100.0 : 0.0);
         stats.setTheoryCount(theoryCount);
@@ -94,9 +92,6 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
         stats.setPracticalCount(practicalCount);
         stats.setPracticalPassed(practicalPassed);
         stats.setPracticalFailed(practicalFailed);
-        stats.setRoadCount(roadCount);
-        stats.setRoadPassed(roadPassed);
-        stats.setRoadFailed(roadFailed);
 
         List<Map<String, Object>> licenseStats = new ArrayList<>();
         for (LicenseAgg agg : licenseMap.values()) {

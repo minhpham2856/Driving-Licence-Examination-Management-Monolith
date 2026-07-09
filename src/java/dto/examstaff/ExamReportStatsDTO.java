@@ -10,6 +10,7 @@ public class ExamReportStatsDTO {
     private int passedCount;
     private int failedCount;
     private int absentCount;
+    private int suspendedCount;
     private double passRate;
     private List<Map<String, Object>> licenseStats;
     private int a1Count;
@@ -30,9 +31,6 @@ public class ExamReportStatsDTO {
     private int practicalCount;
     private int practicalPassed;
     private int practicalFailed;
-    private int roadCount;
-    private int roadPassed;
-    private int roadFailed;
     private List<Map<String, Object>> infractions;
 
     public int getTotalCandidates() {
@@ -73,6 +71,14 @@ public class ExamReportStatsDTO {
 
     public void setAbsentCount(int absentCount) {
         this.absentCount = absentCount;
+    }
+
+    public int getSuspendedCount() {
+        return suspendedCount;
+    }
+
+    public void setSuspendedCount(int suspendedCount) {
+        this.suspendedCount = suspendedCount;
     }
 
     public double getPassRate() {
@@ -233,30 +239,6 @@ public class ExamReportStatsDTO {
 
     public void setPracticalFailed(int practicalFailed) {
         this.practicalFailed = practicalFailed;
-    }
-
-    public int getRoadCount() {
-        return roadCount;
-    }
-
-    public void setRoadCount(int roadCount) {
-        this.roadCount = roadCount;
-    }
-
-    public int getRoadPassed() {
-        return roadPassed;
-    }
-
-    public void setRoadPassed(int roadPassed) {
-        this.roadPassed = roadPassed;
-    }
-
-    public int getRoadFailed() {
-        return roadFailed;
-    }
-
-    public void setRoadFailed(int roadFailed) {
-        this.roadFailed = roadFailed;
     }
 
     public List<Map<String, Object>> getInfractions() {

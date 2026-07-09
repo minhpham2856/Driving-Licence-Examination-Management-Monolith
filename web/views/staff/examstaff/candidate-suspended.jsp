@@ -14,17 +14,6 @@
         <header class="page-header page-header--toolbar">
             <p class="examiner-page-desc">Thí sinh đình chỉ được ghi TRƯỢT và không được gọi lại trong ca thi này.</p>
             <div class="call-page-actions">
-                <div class="call-session-chip">
-                    <span class="call-session-chip__label">Ngày thi:</span>
-                    <span class="call-session-chip__value">
-                        <c:if test="${not empty currentSession.examDate}">
-                            <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
-                        </c:if>
-                        <c:if test="${not empty currentSession.licenseCode}">
-                            (Hạng <c:out value="${currentSession.licenseCode}" />)
-                        </c:if>
-                    </span>
-                </div>
                 <a href="candidatecall" class="call-toolbar-btn">Quay lại gọi thủ tục</a>
             </div>
         </header>
@@ -111,7 +100,7 @@
                                         </td>
                                         <td style="text-align: center; font-family: monospace; color: #475569;">${c.cccd}</td>
                                         <td style="text-align: center;">
-                                            <span class="action-badge action-badge--danger" style="font-weight: 700;">Đình chỉ (Trượt)</span>
+                                            <span class="action-badge action-badge--danger" style="font-weight: 700;">Đình chỉ</span>
                                         </td>
                                         <td style="text-align: right;">
                                             <a href="candidatecall?action=undoAbsent&amp;returnView=suspended&amp;sbd=${c.sbd}"

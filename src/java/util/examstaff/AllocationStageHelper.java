@@ -15,11 +15,11 @@ public final class AllocationStageHelper {
     public static final String STAGE_WAITING = "waiting";
     public static final String STAGE_THEORY = "theory";
     public static final String STAGE_PRACTICAL = "practical";
-    public static final String STAGE_ROAD = "road";
     public static final String STAGE_RESULTS = "results";
 
     public static final String RESULT_PASS = "pass";
     public static final String RESULT_FAIL = "fail";
+    public static final String RESULT_SUSPENDED = "suspended";
 
     public static final int DEFAULT_PAGE_SIZE = 50;
     public static final int MAX_PAGE_SIZE = 200;
@@ -31,9 +31,9 @@ public final class AllocationStageHelper {
         private int waiting;
         private int theory;
         private int practical;
-        private int road;
         private int pass;
         private int fail;
+        private int suspended;
         private int total;
 
         // Lay waiting
@@ -48,13 +48,7 @@ public final class AllocationStageHelper {
         }
 
         public int getPractical() {
-        // Lay road
             return practical;
-        }
-
-        // Lay pass
-        public int getRoad() {
-            return road;
         }
         // Lay fail
 
@@ -75,6 +69,14 @@ public final class AllocationStageHelper {
 
         public int getFailCount() {
             return fail;
+        }
+
+        public int getSuspended() {
+            return suspended;
+        }
+
+        public int getSuspendedCount() {
+            return suspended;
         }
 
         public int getTotal() {
@@ -154,12 +156,9 @@ public final class AllocationStageHelper {
         if (servletPath.endsWith("allocation-practical")) {
             return STAGE_PRACTICAL;
         }
-        if (servletPath.endsWith("allocation-road")) {
-    // Xac dinh jsp path
-            return STAGE_ROAD;
-        }
         if (servletPath.endsWith("allocation-results-pass")
-                || servletPath.endsWith("allocation-results-fail")) {
+                || servletPath.endsWith("allocation-results-fail")
+                || servletPath.endsWith("allocation-results-suspended")) {
             return STAGE_RESULTS;
         }
         return STAGE_OVERVIEW;
@@ -168,6 +167,9 @@ public final class AllocationStageHelper {
     public static String resolveResultFilterFromServletPath(String servletPath) {
         if (servletPath != null && servletPath.endsWith("allocation-results-fail")) {
             return RESULT_FAIL;
+        }
+        if (servletPath != null && servletPath.endsWith("allocation-results-suspended")) {
+            return RESULT_SUSPENDED;
         }
         if (servletPath != null && servletPath.endsWith("allocation-results-pass")) {
             return RESULT_PASS;
@@ -190,14 +192,14 @@ public final class AllocationStageHelper {
         if (servletPath.endsWith("allocation-practical")) {
             return "/views/staff/examstaff/allocation-practical.jsp";
         }
-        if (servletPath.endsWith("allocation-road")) {
-            return "/views/staff/examstaff/allocation-road.jsp";
-        }
         if (servletPath.endsWith("allocation-results-pass")) {
             return "/views/staff/examstaff/allocation-results-pass.jsp";
         }
         if (servletPath.endsWith("allocation-results-fail")) {
             return "/views/staff/examstaff/allocation-results-fail.jsp";
+        }
+        if (servletPath.endsWith("allocation-results-suspended")) {
+            return "/views/staff/examstaff/allocation-results-suspended.jsp";
         }
         return "/views/staff/examstaff/allocation.jsp";
     }
@@ -240,7 +242,7 @@ public final class AllocationStageHelper {
             return STAGE_OVERVIEW;
         }
         return switch (raw.trim().toLowerCase(Locale.ROOT)) {
-            case STAGE_WAITING, STAGE_THEORY, STAGE_PRACTICAL, STAGE_ROAD, STAGE_RESULTS -> raw.trim().toLowerCase(Locale.ROOT);
+            case STAGE_WAITING, STAGE_THEORY, STAGE_PRACTICAL, STAGE_RESULTS -> raw.trim().toLowerCase(Locale.ROOT);
             default -> STAGE_OVERVIEW;
         };
     }
@@ -253,7 +255,6 @@ public final class AllocationStageHelper {
         return switch (action) {
             case "allocateRoom", "submitTheoryScore" -> "/views/staff/examstaff/allocation-theory";
             case "submitPracticalScore" -> "/views/staff/examstaff/allocation-practical";
-            case "submitRoadScore" -> "/views/staff/examstaff/allocation-road";
             case "quickComplete", "checkin" -> "/views/staff/examstaff/allocation-waiting";
             default -> "/views/staff/examstaff/allocation";
         };
@@ -267,7 +268,6 @@ public final class AllocationStageHelper {
         return switch (action) {
             case "allocateRoom", "submitTheoryScore" -> STAGE_THEORY;
             case "submitPracticalScore" -> STAGE_PRACTICAL;
-            case "submitRoadScore" -> STAGE_ROAD;
             case "quickComplete", "checkin" -> STAGE_WAITING;
             default -> STAGE_OVERVIEW;
         };
@@ -306,7 +306,13 @@ public final class AllocationStageHelper {
             return RESULT_PASS;
         }
         String v = raw.trim().toLowerCase(Locale.ROOT);
-        return RESULT_FAIL.equals(v) ? RESULT_FAIL : RESULT_PASS;
+        if (RESULT_FAIL.equals(v)) {
+            return RESULT_FAIL;
+        }
+        if (RESULT_SUSPENDED.equals(v)) {
+            return RESULT_SUSPENDED;
+        }
+        return RESULT_PASS;
     }
 
     // in stage
@@ -326,14 +332,14 @@ public final class AllocationStageHelper {
             if (inStage(c, STAGE_PRACTICAL, practicalStageIds, null)) {
                 counts.practical++;
             }
-            if (inStage(c, STAGE_ROAD, practicalStageIds, null)) {
-                counts.road++;
-            }
             if (inStage(c, STAGE_RESULTS, practicalStageIds, RESULT_PASS)) {
                 counts.pass++;
             }
             if (inStage(c, STAGE_RESULTS, practicalStageIds, RESULT_FAIL)) {
                 counts.fail++;
+            }
+            if (inStage(c, STAGE_RESULTS, practicalStageIds, RESULT_SUSPENDED)) {
+                counts.suspended++;
             }
         }
         return counts;
@@ -353,19 +359,17 @@ public final class AllocationStageHelper {
                     && !c.isAbsent();
             case STAGE_PRACTICAL -> practicalStageIds != null
                     && practicalStageIds.contains(c.getId());
-    // filter search
-            case STAGE_ROAD -> c.isRequiresRoadTest()
-                    && "passed".equalsIgnoreCase(nullToPass(c.getPracticalPassed()))
-                    && "none".equalsIgnoreCase(nullToPass(c.getRoadTestPassed()))
-                    && !c.isAbsent();
             case STAGE_RESULTS -> {
+                if (RESULT_SUSPENDED.equals(resultFilter)) {
+                    yield c.isSuspended();
+                }
                 if (!c.isExamFinished()) {
                     yield false;
                 }
                 if (RESULT_FAIL.equals(resultFilter)) {
-                    yield !c.isFinalPass();
+                    yield !c.isSuspended() && !c.isFinalPass();
                 }
-                yield c.isFinalPass();
+                yield !c.isSuspended() && c.isFinalPass();
             }
             default -> false;
         };
@@ -405,8 +409,8 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Xác định phần hiện tại của thí sinh (ưu tiên kết quả → đường → sa hình → LT → chờ).
-     * Trả về key: waiting | theory | practical | road | results-pass | results-fail | unknown.
+     * Xác định phần hiện tại của thí sinh (ưu tiên kết quả -> sa hình -> LT -> chờ).
+     * Trả về key: waiting | theory | practical | results-pass | results-fail | results-suspended | unknown.
      */
     public static String resolveCurrentStageKey(ExamRegistrationDTO c, Set<Integer> practicalStageIds) {
         if (c == null) {
@@ -418,8 +422,8 @@ public final class AllocationStageHelper {
         if (inStage(c, STAGE_RESULTS, practicalStageIds, RESULT_FAIL)) {
             return "results-fail";
         }
-        if (inStage(c, STAGE_ROAD, practicalStageIds, null)) {
-            return STAGE_ROAD;
+        if (inStage(c, STAGE_RESULTS, practicalStageIds, RESULT_SUSPENDED)) {
+            return "results-suspended";
         }
         if (inStage(c, STAGE_PRACTICAL, practicalStageIds, null)) {
             return STAGE_PRACTICAL;
@@ -441,9 +445,9 @@ public final class AllocationStageHelper {
             case STAGE_WAITING -> "Phòng chờ chính";
             case STAGE_THEORY -> "Phòng thi lý thuyết";
             case STAGE_PRACTICAL -> "Thực hành / Sa hình";
-            case STAGE_ROAD -> "Thi đường trường";
             case "results-pass" -> "Đỗ sát hạch";
             case "results-fail" -> "Trượt / vắng";
+            case "results-suspended" -> "Đình chỉ";
             default -> "Chưa xác định";
         };
     }
@@ -456,9 +460,9 @@ public final class AllocationStageHelper {
             case STAGE_WAITING -> "/views/staff/examstaff/allocation-waiting";
             case STAGE_THEORY -> "/views/staff/examstaff/allocation-theory";
             case STAGE_PRACTICAL -> "/views/staff/examstaff/allocation-practical";
-            case STAGE_ROAD -> "/views/staff/examstaff/allocation-road";
             case "results-pass" -> "/views/staff/examstaff/allocation-results-pass";
             case "results-fail" -> "/views/staff/examstaff/allocation-results-fail";
+            case "results-suspended" -> "/views/staff/examstaff/allocation-results-suspended";
             default -> "/views/staff/examstaff/allocation";
         };
     }

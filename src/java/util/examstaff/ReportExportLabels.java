@@ -16,7 +16,7 @@ public final class ReportExportLabels {
             return "Đạt";
         }
         if ("failed".equalsIgnoreCase(passed)) {
-            return "Chưa đạt";
+            return "Trượt";
         }
         return passed;
     }
@@ -26,13 +26,16 @@ public final class ReportExportLabels {
         if (reg == null) {
             return "";
         }
+        if (reg.isSuspended()) {
+            return "Đình chỉ";
+        }
         if (reg.isAbsent()) {
-            return "Vắng/Đình chỉ";
+            return "Vắng";
         }
         if (!reg.isExamFinished()) {
             return "Chưa xong";
         }
-        return reg.isFinalPass() ? "Đạt" : "Chưa đạt";
+        return reg.isFinalPass() ? "Đạt" : "Trượt";
     // yes no
     }
 
