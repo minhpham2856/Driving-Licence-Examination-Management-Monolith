@@ -12,7 +12,7 @@ import shared.model.Role;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.EmailService;
-import auth.util.PasswordUtil;
+import shared.util.PasswordUtil;
 import auth.util.CredentialsGenerator;
 import auth.dto.ServiceResult;
 import shared.enums.ErrorType;
@@ -200,6 +200,18 @@ public class AuthServiceImpl implements AuthService {
 
         return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
                 "Có lỗi xảy ra, vui lòng thử lại.");
+    }
+
+    @Override
+    public boolean verifyPassword(int userId, String rawPassword) {
+        if (userId <= 0 || rawPassword == null || rawPassword.isBlank()) {
+            return false;
+        }
+        User user = userDAO.getById(userId);
+        if (user == null || user.getPasswordHash() == null) {
+            return false;
+        }
+        return passwordsMatch(rawPassword.trim(), user.getPasswordHash());
     }
 
     // create a new user for registration
