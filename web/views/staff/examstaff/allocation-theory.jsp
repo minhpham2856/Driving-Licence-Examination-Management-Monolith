@@ -56,7 +56,7 @@
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="badge-pill-status badge-pill-status--warning">Đang chờ</span>
+                                    <span class="allocation-room-pending">—</span>
                                 </c:otherwise>
                             </c:choose>
                             <c:if test="${not empty activeTheoryRooms}">

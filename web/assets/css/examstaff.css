@@ -760,6 +760,19 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     align-items: center;
 }
 
+.allocation-page-actions--end {
+    margin-left: auto;
+}
+
+.allocation-refresh-btn.is-spinning .material-symbols-outlined {
+    animation: allocation-refresh-spin 0.75s linear infinite;
+}
+
+@keyframes allocation-refresh-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .allocation-search-form {
     margin: 0;
 }

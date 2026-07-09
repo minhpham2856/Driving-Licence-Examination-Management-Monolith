@@ -10,7 +10,25 @@
         return body ? (body.getAttribute('data-alloc-session') || '').trim() : '';
     }
 
-    function reloadForSession(sessionId) {
+    function reloadAllocationPage() {
+        var url = new URL(window.location.href);
+        url.searchParams.delete('_');
+        url.searchParams.set('_', String(Date.now()));
+        window.location.href = url.toString();
+    }
+
+    function bindAllocationRefresh() {
+        var refreshBtn = document.getElementById('allocationRefreshBtn');
+        if (!refreshBtn) {
+            return;
+        }
+        refreshBtn.addEventListener('click', function () {
+            refreshBtn.disabled = true;
+            refreshBtn.classList.add('is-spinning');
+            reloadAllocationPage();
+        });
+    }
+
         var path = window.location.pathname;
         var next = path + '?sessionId=' + encodeURIComponent(sessionId) + '&_=' + Date.now();
         window.location.replace(next);
@@ -48,6 +66,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         ensureAllocationSessionSynced();
+        bindAllocationRefresh();
 
         var searchForm = document.getElementById('allocationSearchForm');
         var searchInput = document.getElementById('candidateSearch');

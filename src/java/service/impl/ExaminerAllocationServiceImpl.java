@@ -141,7 +141,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
 
     private AutoAllocateResultDTO autoAllocate(int sessionId, Integer targetRegId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
-        if (sessionId <= 0) {
+        if (sessionId <= 0 && targetRegId == null) {
             result.errorMsg = "Chưa chọn ca thi để phân bổ phòng.";
             return result;
         }
@@ -152,7 +152,10 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             return result;
         }
 
-        List<ExamRegistrationDTO> allCandidates = registrationDAO.getCandidatesBySession(sessionId);
+        int examId = resolveExamId(sessionId);
+        List<ExamRegistrationDTO> allCandidates = examId > 0
+                ? registrationDAO.getCandidatesByExam(examId)
+                : registrationDAO.getCandidatesBySession(sessionId);
         Map<Integer, Integer> roomOccupancy = buildRoomOccupancy(allCandidates, activeTheoryRooms);
 
         List<ExamRegistrationDTO> readyCandidates = new ArrayList<>();
@@ -187,7 +190,12 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 c -> c.getLicenseCode() != null ? c.getLicenseCode() : ""));
 
         for (ExamRegistrationDTO c : readyCandidates) {
-            String allocationConflict = registrationDAO.validateUniqueTheoryAllocation(c.getId(), sessionId);
+            int enrollSessionId = c.getExamSessionId() > 0 ? c.getExamSessionId() : sessionId;
+            if (enrollSessionId <= 0) {
+                continue;
+            }
+
+            String allocationConflict = registrationDAO.validateUniqueTheoryAllocation(c.getId(), enrollSessionId);
             if (allocationConflict != null) {
                 if (targetRegId != null && c.getId() == targetRegId) {
                     result.errorMsg = allocationConflict;
@@ -196,12 +204,12 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 continue;
             }
 
-            ExamArea room = pickBestRoom(c, activeTheoryRooms, roomOccupancy, allCandidates);
+            ExamArea room = pickBestRoom(activeTheoryRooms, roomOccupancy);
             if (room == null) {
                 continue;
             }
 
-            if (registrationDAO.updateAllocatedRoom(c.getId(), sessionId, room.getId(), room.getAreaName())) {
+            if (registrationDAO.updateAllocatedRoom(c.getId(), enrollSessionId, room.getId(), room.getAreaName())) {
                 c.setAllocatedAreaId(room.getId());
                 c.setAllocatedAreaName(room.getAreaName());
                 roomOccupancy.merge(room.getId(), 1, Integer::sum);
@@ -210,6 +218,14 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
 
         return result;
+    }
+
+    private int resolveExamId(int sessionId) {
+        if (sessionId <= 0) {
+            return 0;
+        }
+        SessionDTO session = sessionDAO.getById(sessionId);
+        return session != null ? session.getExamId() : 0;
     }
 
     private static int roomCapacity(ExamArea room) {
@@ -232,39 +248,21 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return occupancy;
     }
 
-    private ExamArea pickBestRoom(ExamRegistrationDTO candidate, List<ExamArea> rooms,
-            Map<Integer, Integer> roomOccupancy, List<ExamRegistrationDTO> allCandidates) {
+    private ExamArea pickBestRoom(List<ExamArea> rooms, Map<Integer, Integer> roomOccupancy) {
         ExamArea bestRoom = null;
-        int bestScore = Integer.MIN_VALUE;
-        String licCode = candidate.getLicenseCode();
+        int bestOccupancy = Integer.MAX_VALUE;
 
         for (ExamArea room : rooms) {
             int occ = roomOccupancy.getOrDefault(room.getId(), 0);
             if (occ >= roomCapacity(room)) {
                 continue;
             }
-
-            int sameLicense = countSameLicenseInRoom(allCandidates, room.getId(), licCode);
-            int score = sameLicense * 1000 - occ;
-            if (score > bestScore) {
-                bestScore = score;
+            if (occ < bestOccupancy) {
+                bestOccupancy = occ;
                 bestRoom = room;
             }
         }
         return bestRoom;
-    }
-
-    private int countSameLicenseInRoom(List<ExamRegistrationDTO> allCandidates, int roomId, String licenseCode) {
-        if (licenseCode == null) return 0;
-        int count = 0;
-        for (ExamRegistrationDTO c : allCandidates) {
-            if (roomId == (c.getAllocatedAreaId() != null ? c.getAllocatedAreaId() : -1)
-                    && licenseCode.equals(c.getLicenseCode())
-                    && (isReadyForAllocation(c) || isAlreadyAllocated(c))) {
-                count++;
-            }
-        }
-        return count;
     }
 
     private boolean isReadyForAllocation(ExamRegistrationDTO c) {

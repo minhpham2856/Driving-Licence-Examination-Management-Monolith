@@ -51,8 +51,8 @@
     <c:if test="${param.showSearch ne 'true'}">
         <p class="examiner-page-desc"><c:out value="${pageTitle}" /></p>
     </c:if>
-    <c:if test="${param.showSearch eq 'true'}">
-    <div class="page-actions allocation-page-actions">
+    <div class="page-actions allocation-page-actions${param.showSearch ne 'true' ? ' allocation-page-actions--end' : ''}">
+        <c:if test="${param.showSearch eq 'true'}">
         <form method="get" action="${ctx}${layoutListPath}" class="allocation-search-form" id="allocationSearchForm">
                 <c:if test="${not empty layoutSessionId}"><input type="hidden" name="sessionId" value="${layoutSessionId}"></c:if>
             <div class="allocation-search-row">
@@ -65,8 +65,12 @@
                 </button>
             </div>
         </form>
+        </c:if>
+        <button type="button" id="allocationRefreshBtn" class="allocation-search-btn allocation-refresh-btn"
+                title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">
+            <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+        </button>
     </div>
-    </c:if>
 </header>
 
 <jsp:include page="/views/staff/examstaff/includes/allocation-alerts.jsp" />

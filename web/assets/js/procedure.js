@@ -280,7 +280,7 @@
                 stopCamera();
                 markProcedureDeskScroll();
                 window.location.href = ctxPath + '/views/staff/examstaff/procedure?sbd='
-                    + encodeURIComponent(sbd) + '&step=3#procedure-desk';
+                    + encodeURIComponent(sbd) + '&step=2#procedure-desk';
             } catch (err) {
                 console.error(err);
                 showError(MSG.saveFail + (err.message || 'l\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh'));

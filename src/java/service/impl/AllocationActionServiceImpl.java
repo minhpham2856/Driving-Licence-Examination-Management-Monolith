@@ -28,7 +28,11 @@ public class AllocationActionServiceImpl implements AllocationActionService {
     @Override
     public AllocationActionResultDTO autoAllocateOnOverview(int sessionId, String stage) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
-        if (sessionId <= 0 || !AllocationStageHelper.STAGE_OVERVIEW.equals(stage)) {
+        if (sessionId <= 0) {
+            return result;
+        }
+        if (!AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
+                && !AllocationStageHelper.STAGE_THEORY.equals(stage)) {
             return result;
         }
         AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocateSession(sessionId);
@@ -81,7 +85,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
             case "allocateRoom" -> handleAllocateRoom(result, request, profile, regId, sessionId);
             case "submitTheoryScore" -> handleTheoryScore(result, profile, regId, sessionId, request.getScore());
             case "submitPracticalScore" -> handlePracticalScore(result, profile, regId, sessionId, request.getScore());
-            case "quickComplete" -> handleQuickComplete(result, profile, regId);
+            case "quickComplete" -> handleQuickComplete(result, profile, regId, sessionId);
             default -> result.setErrorMsg("Thao tác không hỗ trợ: " + action);
         }
 
@@ -168,8 +172,15 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         applyScoreResult(result, allocationScoreService.submitPracticalScore(profile, sessionId, score), regId);
     }
 
-    private void handleQuickComplete(AllocationActionResultDTO result, ExamRegistrationDTO profile, int regId) {
+    private void handleQuickComplete(AllocationActionResultDTO result, ExamRegistrationDTO profile,
+            int regId, int sessionId) {
         allocationRegistrationService.quickCompleteProcedure(profile, regId);
+        int enrollSessionId = profile.getExamSessionId() > 0 ? profile.getExamSessionId() : sessionId;
+        AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocateCandidate(
+                enrollSessionId, regId);
+        if (allocResult != null && allocResult.allocatedCount > 0) {
+            result.setAlertMsg("Hoàn thành thủ tục và tự động phân phòng cho SBD " + profile.getSbd());
+        }
         result.setAuditAction("UPDATE ExamRegistrationDTO");
         result.setAuditDetails("Hoàn thành nhanh thủ tục (FaceID + lệ phí) cho SBD " + profile.getSbd());
     }
