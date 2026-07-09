@@ -352,54 +352,69 @@
 <%-- Add/Edit modal --%>
 <div id="roomModal" class="modal-overlay" onclick="if(event.target===this)closeRoomModal()">
     <div class="modal-card" role="dialog" aria-modal="true">
-        <form action="${ctx}/admin/exam-room?action=save" method="POST">
+        <form id="roomForm" action="${ctx}/admin/exam-room?action=save" method="POST">
             <div class="modal-head">
                 <h3 id="roomModalTitle">Thêm phòng thi</h3>
                 <button type="button" class="modal-close" onclick="closeRoomModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" name="examRoomId" id="r_id" value="">
+                <input type="hidden" name="ajax" value="1">
+
+                <div id="roomFormError" style="display:none; margin-bottom:1.1rem; padding:0.7rem 0.9rem; border-radius:10px; font-weight:600; font-size:0.85rem; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); color:#b91c1c;"></div>
+
+                <%-- Bước 1: chọn khu vực --%>
                 <div class="input-group" style="margin-bottom:1.25rem;">
-                    <label for="r_name" class="input-label">Tên phòng thi <span style="color:#dc2626;">*</span></label>
-                    <input type="text" id="r_name" name="roomName" class="input-field" placeholder="VD: Phòng thi lý thuyết A01" required>
-                </div>
-                <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
-                    <div class="input-group">
-                        <label for="r_type" class="input-label">Loại phòng <span style="color:#dc2626;">*</span></label>
-                        <select id="r_type" name="roomType" class="input-field" required>
-                            <option value="">-- Chọn loại --</option>
-                            <option value="theory">Lý thuyết</option>
-                            <option value="practical">Thực hành</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="r_status" class="input-label">Trạng thái <span style="color:#dc2626;">*</span></label>
-                        <select id="r_status" name="status" class="input-field" required>
-                            <option value="">-- Chọn trạng thái --</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="maintenance">Bảo trì</option>
-                            <option value="inactive">Tạm dừng</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
-                    <div class="input-group">
-                        <label for="r_capacity" class="input-label">Sức chứa (người)</label>
-                        <input type="number" id="r_capacity" name="capacity" class="input-field" min="0" placeholder="VD: 40">
-                    </div>
-                    <div class="input-group">
-                        <label for="r_floor" class="input-label">Tầng</label>
-                        <input type="text" id="r_floor" name="floor" class="input-field" placeholder="VD: 1, Trệt...">
-                    </div>
-                </div>
-                <div class="input-group">
                     <label for="r_area" class="input-label">Khu vực thi <span style="color:#dc2626;">*</span></label>
-                    <select id="r_area" name="examAreaId" class="input-field" required>
+                    <select id="r_area" name="examAreaId" class="input-field" required onchange="onRoomAreaChange()">
                         <option value="">-- Chọn khu vực --</option>
                         <c:forEach var="area" items="${examAreas}">
                             <option value="${area.examAreaId}">${area.areaName}</option>
                         </c:forEach>
                     </select>
+                </div>
+
+                <%-- Phòng đã có trong khu vực --%>
+                <div id="roomsInAreaWrap" style="display:none; margin-bottom:1.25rem;">
+                    <div class="input-label" style="margin-bottom:6px;">Phòng thi hiện có trong khu vực</div>
+                    <div id="roomsInArea" style="max-height:150px; overflow-y:auto; padding:0.5rem 0.85rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;"></div>
+                </div>
+
+                <%-- Bước 2: các field còn lại --%>
+                <div id="roomFields" style="display:none;">
+                    <div class="input-group" style="margin-bottom:1.25rem;">
+                        <label for="r_name" class="input-label">Tên phòng thi <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="r_name" name="roomName" class="input-field" placeholder="VD: Phòng thi lý thuyết A01">
+                    </div>
+                    <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+                        <div class="input-group">
+                            <label for="r_type" class="input-label">Loại phòng <span style="color:#dc2626;">*</span></label>
+                            <select id="r_type" name="roomType" class="input-field">
+                                <option value="">-- Chọn loại --</option>
+                                <option value="theory">Lý thuyết</option>
+                                <option value="practical">Thực hành</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="r_status" class="input-label">Trạng thái <span style="color:#dc2626;">*</span></label>
+                            <select id="r_status" name="status" class="input-field">
+                                <option value="">-- Chọn trạng thái --</option>
+                                <option value="active">Hoạt động</option>
+                                <option value="maintenance">Bảo trì</option>
+                                <option value="inactive">Tạm dừng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-grid" style="grid-template-columns:1fr 1fr; gap:1.25rem;">
+                        <div class="input-group">
+                            <label for="r_capacity" class="input-label">Sức chứa (người)</label>
+                            <input type="number" id="r_capacity" name="capacity" class="input-field" min="0" placeholder="VD: 40">
+                        </div>
+                        <div class="input-group">
+                            <label for="r_floor" class="input-label">Tầng</label>
+                            <input type="text" id="r_floor" name="floor" class="input-field" placeholder="VD: 1, Trệt...">
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-foot">
@@ -434,46 +449,105 @@
 </div>
 
 <script>
-    function openRoomModal() {
-        document.getElementById('roomModalTitle').textContent = 'Thêm phòng thi';
-        ['r_id','r_name','r_type','r_status','r_capacity','r_floor','r_area'].forEach(function(k){document.getElementById(k).value='';});
-        document.getElementById('roomModal').classList.add('is-open');
-    }
-    function openRoomModalEdit(b) {
-        document.getElementById('roomModalTitle').textContent = 'Chỉnh sửa phòng thi';
-        document.getElementById('r_id').value = b.dataset.id;
-        document.getElementById('r_name').value = b.dataset.name;
-        document.getElementById('r_type').value = b.dataset.type;
-        document.getElementById('r_status').value = b.dataset.status;
-        document.getElementById('r_capacity').value = (b.dataset.capacity && b.dataset.capacity !== '') ? b.dataset.capacity : '';
-        document.getElementById('r_floor').value = b.dataset.floor || '';
-        document.getElementById('r_area').value = b.dataset.area;
-        document.getElementById('roomModal').classList.add('is-open');
-    }
-    function closeRoomModal() { document.getElementById('roomModal').classList.remove('is-open'); }
+    const ROOM_AREA_URL = '${ctx}/admin/exam-room?action=roomsByArea';
 
-    function openRoomDetail(b) {
-        document.getElementById('d_code').textContent = b.dataset.code;
-        document.getElementById('d_name').textContent = b.dataset.name;
-        document.getElementById('d_type').textContent = b.dataset.typelabel;
-        document.getElementById('d_capacity').textContent = (b.dataset.capacity && b.dataset.capacity !== '') ? b.dataset.capacity + ' người' : '—';
-        document.getElementById('d_floor').textContent = b.dataset.floor && b.dataset.floor !== '' ? b.dataset.floor : '—';
-        document.getElementById('d_area').textContent = b.dataset.area + ' (' + b.dataset.areacode + ')';
-        document.getElementById('d_count').textContent = b.dataset.type === 'theory' ? (b.dataset.count + ' máy') : '—';
-        var st = b.dataset.status;
-        document.getElementById('d_status').textContent = st === 'active' ? 'Hoạt động' : (st === 'maintenance' ? 'Bảo trì' : 'Tạm dừng');
+    function escapeHtml(s){
+        return (s==null?'':String(s)).replace(/[&<>"']/g,function(c){
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+    function showRoomError(m){ var e=document.getElementById('roomFormError'); e.textContent=m; e.style.display='block'; }
+    function hideRoomError(){ document.getElementById('roomFormError').style.display='none'; }
+
+    function resetRoomModal(title){
+        document.getElementById('roomModalTitle').textContent=title;
+        ['r_id','r_name','r_type','r_status','r_capacity','r_floor','r_area'].forEach(function(k){document.getElementById(k).value='';});
+        document.getElementById('roomsInAreaWrap').style.display='none';
+        document.getElementById('roomsInArea').innerHTML='';
+        document.getElementById('roomFields').style.display='none';
+        hideRoomError();
+    }
+
+    function openRoomModal(){
+        resetRoomModal('Thêm phòng thi');
+        document.getElementById('roomModal').classList.add('is-open');
+    }
+    function openRoomModalEdit(b){
+        resetRoomModal('Chỉnh sửa phòng thi');
+        document.getElementById('r_id').value=b.dataset.id;
+        document.getElementById('r_area').value=b.dataset.area;
+        onRoomAreaChange();
+        document.getElementById('r_name').value=b.dataset.name;
+        document.getElementById('r_type').value=b.dataset.type;
+        document.getElementById('r_status').value=b.dataset.status;
+        document.getElementById('r_capacity').value=(b.dataset.capacity && b.dataset.capacity!=='') ? b.dataset.capacity : '';
+        document.getElementById('r_floor').value=b.dataset.floor||'';
+        document.getElementById('roomModal').classList.add('is-open');
+    }
+    function closeRoomModal(){ document.getElementById('roomModal').classList.remove('is-open'); }
+
+    function onRoomAreaChange(){
+        hideRoomError();
+        var areaId=document.getElementById('r_area').value;
+        var wrap=document.getElementById('roomsInAreaWrap');
+        var list=document.getElementById('roomsInArea');
+        var fields=document.getElementById('roomFields');
+        if(!areaId){ wrap.style.display='none'; fields.style.display='none'; return; }
+        wrap.style.display='block';
+        fields.style.display='block';
+        list.innerHTML='<div style="color:#94a3b8; font-size:0.85rem;">Đang tải...</div>';
+        fetch(ROOM_AREA_URL+'&areaId='+encodeURIComponent(areaId))
+            .then(function(r){return r.json();})
+            .then(function(rooms){
+                if(!rooms.length){ list.innerHTML='<div style="color:#64748b; font-size:0.85rem;">Khu vực này chưa có phòng thi nào.</div>'; return; }
+                var html='';
+                rooms.forEach(function(r){
+                    html+='<div style="display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px dashed #e2e8f0; font-size:0.85rem;">'
+                        +'<span style="font-weight:600; color:#0f172a;">'+escapeHtml(r.code)+' · '+escapeHtml(r.name)+'</span>'
+                        +'<span style="color:#64748b;">'+escapeHtml(r.typeLabel)+'</span>'
+                        +'</div>';
+                });
+                list.innerHTML=html;
+            })
+            .catch(function(){ list.innerHTML='<div style="color:#dc2626; font-size:0.85rem;">Không tải được danh sách phòng.</div>'; });
+    }
+
+    document.getElementById('roomForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        hideRoomError();
+        var form=e.target;
+        var body=new URLSearchParams(new FormData(form)).toString();
+        fetch(form.action,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:body})
+            .then(function(r){return r.json();})
+            .then(function(res){
+                if(res.ok){ window.location.href='${ctx}/admin/exam-room'; }
+                else{ showRoomError(res.message||'Đã xảy ra lỗi.'); }
+            })
+            .catch(function(){ showRoomError('Không gửi được yêu cầu. Vui lòng thử lại.'); });
+    });
+
+    // ----- Detail modal (giữ nguyên) -----
+    function openRoomDetail(b){
+        document.getElementById('d_code').textContent=b.dataset.code;
+        document.getElementById('d_name').textContent=b.dataset.name;
+        document.getElementById('d_type').textContent=b.dataset.typelabel;
+        document.getElementById('d_capacity').textContent=(b.dataset.capacity && b.dataset.capacity!=='') ? b.dataset.capacity+' người' : '—';
+        document.getElementById('d_floor').textContent=b.dataset.floor && b.dataset.floor!=='' ? b.dataset.floor : '—';
+        document.getElementById('d_area').textContent=b.dataset.area+' ('+b.dataset.areacode+')';
+        document.getElementById('d_count').textContent=b.dataset.type==='theory' ? (b.dataset.count+' máy') : '—';
+        var st=b.dataset.status;
+        document.getElementById('d_status').textContent=st==='active'?'Hoạt động':(st==='maintenance'?'Bảo trì':'Tạm dừng');
         document.getElementById('roomDetail').classList.add('is-open');
     }
-    function closeRoomDetail() { document.getElementById('roomDetail').classList.remove('is-open'); }
+    function closeRoomDetail(){ document.getElementById('roomDetail').classList.remove('is-open'); }
 
-    function deleteRoom(id, name) {
-        if (confirm('Bạn có chắc chắn muốn xóa phòng thi "' + name + '"?\nThao tác này không thể hoàn tác.')) {
-            document.getElementById('deleteRoomId').value = id;
+    function deleteRoom(id, name){
+        if(confirm('Bạn có chắc chắn muốn xóa phòng thi "'+name+'"?\nThao tác này không thể hoàn tác.')){
+            document.getElementById('deleteRoomId').value=id;
             document.getElementById('deleteRoomForm').submit();
         }
     }
     document.addEventListener('keydown', function(e){ if(e.key==='Escape'){closeRoomModal();closeRoomDetail();} });
 </script>
-
 </body>
 </html>

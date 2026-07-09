@@ -4,11 +4,6 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/D:/Lam/Github/Driving-Licence-Examination-Management-Monolith/src/java/DBConnection/DBContext.java</file>
-            <file>file:/D:/Lam/Github/Driving-Licence-Examination-Management-Monolith/src/java/Controllers/Admin/AccountServlet.java</file>
-            <file>file:/D:/Lam/Github/Driving-Licence-Examination-Management-Monolith/src/java/Controllers/Admin/ExamAreaServlet.java</file>
-            <file>file:/D:/Lam/Github/Driving-Licence-Examination-Management-Monolith/src/java/Models/AccountView.java</file>
-            <file>file:/D:/Lam/Github/Driving-Licence-Examination-Management-Monolith/web/views/admin/exam-area.jsp</file>
-            <file>file:/D:/Lam/Github/Driving-Licence-Examination-Management-Monolith/web/views/admin/exam-area-form.jsp</file>
         </group>
     </open-files>
 </project-private>
