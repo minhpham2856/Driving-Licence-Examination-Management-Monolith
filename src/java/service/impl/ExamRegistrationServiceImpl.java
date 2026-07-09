@@ -90,6 +90,7 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
 
     @Override
     public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
+        // Legacy shim cho contract cũ; DAO hiện no-op cho luồng road đã bị loại.
         return dao.updateRoadScore(id, roadScore, roadPassed);
     }
 
@@ -125,8 +126,8 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
 
     @Override
     public boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad) {
-        return dao.ensureExamEnrollmentsForImport(candidateId, examId, takeTheory, takePractical, takeOnRoad);
+            Boolean takeTheory, Boolean takePractical) {
+        return dao.ensureExamEnrollmentsForImport(candidateId, examId, takeTheory, takePractical);
     }
 
     @Override

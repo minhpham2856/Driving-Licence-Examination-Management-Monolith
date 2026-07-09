@@ -51,7 +51,6 @@ public final class Db2CandidateSql {
               c.ReasonForTaking AS reasonForTaking,
               c.TakeTheory AS takeTheory,
               c.TakeLayout AS takePractical,
-              c.TakeRoad AS takeOnRoad,
               CAST(s.StartTime AS DATE) AS examDate,
               ee.SectionStatus AS sectionStatus,
               CAST(ISNULL(ee.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
@@ -98,26 +97,16 @@ public final class Db2CandidateSql {
                 WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%' OR sec.SectionName LIKE N'%Sa hình%'
                 GROUP BY er.ExamEnrollmentId
             ) practical ON practical.ExamEnrollmentId = ee.ExamEnrollmentId
-            LEFT JOIN (
-                SELECT er.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                FROM ExamResult er
-                JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
-                JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE sec.SectionName LIKE N'%Đường%' OR sec.SectionName LIKE '%Road%'
-                GROUP BY er.ExamEnrollmentId
-            ) road ON road.ExamEnrollmentId = ee.ExamEnrollmentId
             """;
 
     private static final String CANDIDATE_SCORE_COLUMNS = """
               theory.scoreVal AS theoryScore,
-              practical.scoreVal AS practicalScore,
-              road.scoreVal AS roadTestScore
+              practical.scoreVal AS practicalScore
             """;
 
     private static final String CANDIDATE_NULL_SCORE_COLUMNS = """
               CAST(NULL AS INT) AS theoryScore,
-              CAST(NULL AS INT) AS practicalScore,
-              CAST(NULL AS INT) AS roadTestScore
+              CAST(NULL AS INT) AS practicalScore
             """;
 
     private static String buildCandidateSelect(String scoreColumns, String scoreJoins) {

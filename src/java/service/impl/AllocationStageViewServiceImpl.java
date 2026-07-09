@@ -22,7 +22,6 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
         AllocationStageViewDTO view = new AllocationStageViewDTO();
         if (candidates == null) {
             view.setPracticalStageIds(Set.of());
-            view.setNoRoadTestIds(Set.of());
             view.setStageCounts(new AllocationStageHelper.StageCounts());
             view.setStageList(List.of());
             view.setPageSlice(new AllocationStageHelper.PageSlice<>(List.of(), page, pageSize, 0));
@@ -31,16 +30,10 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
         }
 
         Set<Integer> practicalStageIds = new HashSet<>();
-        Set<Integer> noRoadTestIds = new HashSet<>();
         for (ExamRegistrationDTO candidate : candidates) {
             AllocationPassRules.applyToCandidate(candidate);
             if (AllocationPassRules.isPracticalStageEligible(candidate)) {
                 practicalStageIds.add(candidate.getId());
-            }
-            String license = AllocationPassRules.normalizeLicense(
-                    candidate.getLicenseCode(), candidate.getClazz());
-            if (!AllocationPassRules.requiresRoadTest(license) || candidate.skipsRoad()) {
-                noRoadTestIds.add(candidate.getId());
             }
         }
 
@@ -55,7 +48,6 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
                 = AllocationStageHelper.paginate(stageFiltered, page, pageSize);
 
         view.setPracticalStageIds(practicalStageIds);
-        view.setNoRoadTestIds(noRoadTestIds);
         view.setStageCounts(AllocationStageHelper.computeCounts(candidates, practicalStageIds));
         view.setStageList(slice.getItems());
         view.setPageSlice(slice);

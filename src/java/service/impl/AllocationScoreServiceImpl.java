@@ -42,9 +42,7 @@ public class AllocationScoreServiceImpl implements AllocationScoreService {
                 + " (đạt ≥" + need + ") → " + passed.toUpperCase()
                 + " cho SBD " + profile.getSbd();
         if (theoryOk && profile.skipsPractical()) {
-            auditDetail += " — bảo lưu thực hành/sa hình"
-                    + (profile.skipsRoad() ? " và đường trường" : "")
-                    + ", đỗ kỳ thi";
+            auditDetail += " - bảo lưu thực hành/sa hình, đỗ kỳ thi";
         }
         result.setAuditDetail(auditDetail);
         return result;
@@ -75,32 +73,6 @@ public class AllocationScoreServiceImpl implements AllocationScoreService {
         result.setSaved(true);
         result.setPassedFlag(passed);
         result.setAuditDetail("Nhập điểm THỰC HÀNH: " + score + " → " + passed.toUpperCase()
-                + " cho SBD " + profile.getSbd());
-        return result;
-    }
-
-    @Override
-    public AllocationScoreResultDTO submitRoadScore(ExamRegistrationDTO profile, int score) {
-        AllocationScoreResultDTO result = new AllocationScoreResultDTO();
-        if (profile == null) {
-            result.setErrorMessage("Không tìm thấy thí sinh.");
-            return result;
-        }
-        String passed = AllocationPassRules.toPassFlag(AllocationPassRules.isRoadPassed(score));
-        Integer oldScore = profile.getRoadTestScore();
-        if (oldScore != null && oldScore == score) {
-            result.setSaved(false);
-            return result;
-        }
-        if (!registrationService.updateRoadScore(profile.getId(), score, passed)) {
-            result.setErrorMessage("Không lưu được điểm đường trường cho SBD " + profile.getSbd() + ".");
-            return result;
-        }
-        profile.setRoadTestScore(score);
-        profile.setRoadTestPassed(passed);
-        result.setSaved(true);
-        result.setPassedFlag(passed);
-        result.setAuditDetail("Nhập điểm ĐƯỜNG TRƯỜNG: " + score + " → " + passed.toUpperCase()
                 + " cho SBD " + profile.getSbd());
         return result;
     }

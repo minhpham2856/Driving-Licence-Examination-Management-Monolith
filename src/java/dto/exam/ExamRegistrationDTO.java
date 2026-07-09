@@ -50,7 +50,6 @@ public class ExamRegistrationDTO {
     /** NULL = thi phần đó; false = bảo lưu, không thi lại. */
     private Boolean takeTheory;
     private Boolean takePractical;
-    private Boolean takeOnRoad;
     private Date examDate;
     private String sectionStatus = "Pending";
     private boolean signaturePrinted;
@@ -396,22 +395,14 @@ public class ExamRegistrationDTO {
         this.takePractical = takePractical;
     }
 
-    public Boolean getTakeOnRoad() {
-        return takeOnRoad;
-    }
-
-    public void setTakeOnRoad(Boolean takeOnRoad) {
-        this.takeOnRoad = takeOnRoad;
+    /** Bảo lưu lý thuyết, không thi lại phần này. */
+    public boolean skipsTheory() {
+        return Boolean.FALSE.equals(takeTheory);
     }
 
     /** Chỉ thi lại lý thuyết — bảo lưu thực hành/sa hình. */
     public boolean skipsPractical() {
         return Boolean.FALSE.equals(takePractical);
-    }
-
-    /** Bảo lưu đường trường (hoặc kèm theo khi chỉ thi lại lý thuyết). */
-    public boolean skipsRoad() {
-        return Boolean.FALSE.equals(takeOnRoad) || skipsPractical();
     }
 
     public Date getExamDate() {
@@ -494,6 +485,9 @@ public class ExamRegistrationDTO {
 
     /** Đã xong toàn bộ kỳ thi (đủ phần thi theo hạng bằng). */
     public boolean isExamFinished() {
+        if (isSuspended()) {
+            return false;
+        }
         if (isAbsent()) {
             return true;
         }
@@ -509,22 +503,15 @@ public class ExamRegistrationDTO {
         if ("failed".equalsIgnoreCase(practicalPassed) && !skipsPractical()) {
             return true;
         }
-        if ("failed".equalsIgnoreCase(roadTestPassed) && !skipsRoad() && isRequiresRoadTest()) {
-            return true;
-        }
         String practical = effectivePracticalPassed();
-        if ("passed".equalsIgnoreCase(theoryPassed) && "passed".equalsIgnoreCase(practical)
-                && !isRequiresRoadTest()) {
-            return true;
-        }
-        return isRequiresRoadTest()
-                && "passed".equalsIgnoreCase(theoryPassed)
-                && "passed".equalsIgnoreCase(practical)
-                && !effectiveRoadTestPassed().isBlank()
-                && !"none".equalsIgnoreCase(effectiveRoadTestPassed());
+        return "passed".equalsIgnoreCase(theoryPassed)
+                && "passed".equalsIgnoreCase(practical);
     }
 
     public boolean isFinalPass() {
+        if (isSuspended()) {
+            return false;
+        }
         if (isAbsent()) {
             return false;
         }
@@ -533,10 +520,6 @@ public class ExamRegistrationDTO {
         }
         if (skipsPractical()) {
             return true;
-        }
-        if (isRequiresRoadTest()) {
-            return "passed".equalsIgnoreCase(effectivePracticalPassed())
-                    && "passed".equalsIgnoreCase(effectiveRoadTestPassed());
         }
         return "passed".equalsIgnoreCase(effectivePracticalPassed());
     }
@@ -548,18 +531,7 @@ public class ExamRegistrationDTO {
         return practicalPassed == null || practicalPassed.isBlank() ? "none" : practicalPassed.trim();
     }
 
-    private String effectiveRoadTestPassed() {
-        if (skipsRoad() && "passed".equalsIgnoreCase(effectivePracticalPassed())) {
-            return "passed";
-        }
-        return roadTestPassed == null || roadTestPassed.isBlank() ? "none" : roadTestPassed.trim();
-    }
-
     public boolean isRequiresRoadTest() {
-        if (licenseCode == null || licenseCode.isBlank()) {
-            return false;
-        }
-        String lc = licenseCode.trim().toUpperCase(Locale.ROOT);
-        return "B1".equals(lc) || "B".equals(lc) || "B2".equals(lc);
+        return false;
     }
 }

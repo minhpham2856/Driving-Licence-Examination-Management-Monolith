@@ -30,7 +30,6 @@ public class ExamStaffCandidate {
     private String reasonForTaking;
     private Boolean takeTheory;
     private Boolean takePractical;
-    private Boolean takeOnRoad;
     private Date examDate;
     private String sectionStatus;
     private boolean signaturePrinted;
@@ -38,7 +37,6 @@ public class ExamStaffCandidate {
     private String allocatedAreaName;
     private Integer theoryScore;
     private Integer practicalScore;
-    private Integer roadTestScore;
 
     public int getCandidateId() {
         return candidateId;
@@ -232,14 +230,6 @@ public class ExamStaffCandidate {
         this.takePractical = takePractical;
     }
 
-    public Boolean getTakeOnRoad() {
-        return takeOnRoad;
-    }
-
-    public void setTakeOnRoad(Boolean takeOnRoad) {
-        this.takeOnRoad = takeOnRoad;
-    }
-
     public Date getExamDate() {
         return examDate;
     }
@@ -296,11 +286,4 @@ public class ExamStaffCandidate {
         this.practicalScore = practicalScore;
     }
 
-    public Integer getRoadTestScore() {
-        return roadTestScore;
-    }
-
-    public void setRoadTestScore(Integer roadTestScore) {
-        this.roadTestScore = roadTestScore;
-    }
 }

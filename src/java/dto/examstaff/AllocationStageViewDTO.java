@@ -9,7 +9,6 @@ import java.util.Set;
 public class AllocationStageViewDTO {
 
     private Set<Integer> practicalStageIds;
-    private Set<Integer> noRoadTestIds;
     private AllocationStageHelper.StageCounts stageCounts;
     private List<ExamRegistrationDTO> stageList;
     private AllocationStageHelper.PageSlice<ExamRegistrationDTO> pageSlice;
@@ -21,14 +20,6 @@ public class AllocationStageViewDTO {
 
     public void setPracticalStageIds(Set<Integer> practicalStageIds) {
         this.practicalStageIds = practicalStageIds;
-    }
-
-    public Set<Integer> getNoRoadTestIds() {
-        return noRoadTestIds;
-    }
-
-    public void setNoRoadTestIds(Set<Integer> noRoadTestIds) {
-        this.noRoadTestIds = noRoadTestIds;
     }
 
     public AllocationStageHelper.StageCounts getStageCounts() {

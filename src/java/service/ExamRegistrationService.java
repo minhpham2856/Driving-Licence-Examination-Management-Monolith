@@ -128,12 +128,12 @@ public interface ExamRegistrationService {
     boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold);
 
     /**
-     * Cập nhật điểm thi đường trường cho đăng ký thi.
+     * Legacy compatibility shim. Luồng đường trường không còn dùng trong examstaff/public-call.
      *
-     * @param id        mã đăng ký thi
-     * @param roadScore điểm đường trường (có thể null)
-     * @param roadPassed kết quả đỗ/trượt đường trường
-     * @return true nếu cập nhật thành công
+     * @param id mã đăng ký thi
+     * @param roadScore điểm đường trường cũ (bỏ qua)
+     * @param roadPassed kết quả đường trường cũ (bỏ qua)
+     * @return luôn trả về true để không làm vỡ contract cũ
      */
     boolean updateRoadScore(int id, Integer roadScore, String roadPassed);
 
@@ -181,9 +181,9 @@ public interface ExamRegistrationService {
     boolean ensureExamEnrollmentForSession(int candidateId, int sessionId);
 
     boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad);
+            Boolean takeTheory, Boolean takePractical);
 
-    /** Các loại phần thi có ca trong kỳ: Theory / Practical / Road. */
+    /** Các loại phần thi có ca trong kỳ theo luồng hiện tại: Theory / Practical. */
     java.util.Set<String> findAvailableSectionKindsForExam(int examId);
 
     Integer findCandidateIdByGovIdAndExam(String govId, int examId);
@@ -236,7 +236,7 @@ public interface ExamRegistrationService {
      *
      * @param candidateId    mã thí sinh
      * @param deductionIds   mảng mã các khoản trừ điểm
-     * @param sectionKeyword từ khóa xác định phần thi (theory/practical/road)
+     * @param sectionKeyword từ khóa xác định phần thi (theory/practical)
      * @return true nếu áp dụng thành công
      */
     boolean applyScoreDeductions(int candidateId, int[] deductionIds, String sectionKeyword);

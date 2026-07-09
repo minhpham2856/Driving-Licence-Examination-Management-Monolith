@@ -7,12 +7,12 @@ import java.util.Locale;
 /**
  * Phân tích cột «Nội dung SH» (DSTS / PC08).
  *
- * Quy ước mã: L = Lý thuyết, H = Thực hành (sa hình), Đ = Đường trường,
- * nối bằng dấu «+» (ví dụ: "L", "L+H", "L+H+Đ", "H", "Đ", "H+Đ").
+ * Quy ước mã: L = Lý thuyết, H = Thực hành (sa hình),
+ * nối bằng dấu «+» (ví dụ: "L", "L+H", "H").
  *
  * NULL = có thi phần đó; FALSE = bảo lưu, không thi phần đó.
  * Nếu không nhận diện được phần nào (văn bản mơ hồ) thì giữ mặc định NULL
- * cho cả ba (an toàn: coi như thi đầy đủ).
+ * cho lý thuyết và thực hành (an toàn: coi như thi đủ hai phần này).
  */
 public final class CandidateShContentParser {
 
@@ -25,7 +25,6 @@ public final class CandidateShContentParser {
 
         reg.setTakeTheory(null);
         reg.setTakePractical(null);
-        reg.setTakeOnRoad(null);
         reg.setTakeNo(1);
 
         if (raw.isEmpty()) {
@@ -41,14 +40,12 @@ public final class CandidateShContentParser {
 
         boolean hasTheory = hasTheory(lower);
         boolean hasPractical = hasPractical(lower);
-        boolean hasRoad = hasRoad(lower);
 
         // Chỉ suy ra cờ khi nhận diện được ít nhất một phần thi rõ ràng.
         // Phần có mặt -> null (thi); phần vắng -> FALSE (bảo lưu).
-        if (hasTheory || hasPractical || hasRoad) {
+        if (hasTheory || hasPractical) {
             reg.setTakeTheory(hasTheory ? null : Boolean.FALSE);
             reg.setTakePractical(hasPractical ? null : Boolean.FALSE);
-            reg.setTakeOnRoad(hasRoad ? null : Boolean.FALSE);
         }
     }
 
@@ -65,9 +62,14 @@ public final class CandidateShContentParser {
                 || lower.contains("practical");
     }
 
-    private static boolean hasRoad(String lower) {
+    public static boolean hasUnsupportedRoadOption(String shContent) {
+        if (shContent == null || shContent.isBlank()) {
+            return false;
+        }
+        String lower = shContent.trim().toLowerCase(Locale.ROOT);
         return hasToken(lower, "đ", "d")
-                || lower.contains("đường") || lower.contains("duong")
+                || lower.contains("đường trường") || lower.contains("duong truong")
+                || lower.contains("trên đường") || lower.contains("tren duong")
                 || lower.contains("road");
     }
 

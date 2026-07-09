@@ -518,15 +518,9 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     @Override
     public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
-        try {
-            if (roadScore != null) {
-                return upsertSectionScore(id, "Road", roadScore);
-            }
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        // Luồng road test đã bị loại khỏi examstaff/public-call.
+        // Giữ method để tương thích interface cũ nhưng không còn ghi điểm đường trường.
+        return true;
     }
 
     @Override
@@ -733,7 +727,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 ps.setString(8, snap.address);
                 setNullableBoolean(ps, 9, reg.getTakeTheory());
                 setNullableBoolean(ps, 10, reg.getTakePractical());
-                setNullableBoolean(ps, 11, reg.getTakeOnRoad());
+                setNullableBoolean(ps, 11, Boolean.FALSE);
                 ps.setInt(12, takeNo);
                 ps.setString(13, reason);
                 ps.executeUpdate();
@@ -807,7 +801,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 ps.setString(8, snap.address);
                 setNullableBoolean(ps, 9, reg.getTakeTheory());
                 setNullableBoolean(ps, 10, reg.getTakePractical());
-                setNullableBoolean(ps, 11, reg.getTakeOnRoad());
+                setNullableBoolean(ps, 11, Boolean.FALSE);
                 ps.setInt(12, takeNo);
                 ps.setString(13, reason);
                 ps.executeUpdate();
@@ -820,7 +814,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 }
             }
             if (!ensureExamEnrollmentsForImport(candidateId, ctx.examId,
-                    reg.getTakeTheory(), reg.getTakePractical(), reg.getTakeOnRoad())) {
+                    reg.getTakeTheory(), reg.getTakePractical())) {
                 getConnection().rollback();
                 return false;
             }
@@ -873,7 +867,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     @Override
     public boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad) {
+            Boolean takeTheory, Boolean takePractical) {
         if (candidateId <= 0 || examId <= 0) {
             return false;
         }
@@ -893,7 +887,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 while (rs.next()) {
                     int sessionId = rs.getInt("SessionId");
                     String sectionKind = resolveSectionKind(rs.getString("SectionName"));
-                    if (sectionKind == null || !shouldEnrollForSection(sectionKind, takeTheory, takePractical, takeOnRoad)) {
+                    if (sectionKind == null || !shouldEnrollForSection(sectionKind, takeTheory, takePractical)) {
                         continue;
                     }
                     if (ensureExamEnrollmentForSession(candidateId, sessionId)) {
@@ -991,14 +985,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private static boolean shouldEnrollForSection(String sectionKind, Boolean takeTheory,
-            Boolean takePractical, Boolean takeOnRoad) {
+            Boolean takePractical) {
         return switch (sectionKind) {
             case util.examstaff.ImportSectionMatch.THEORY ->
                 util.examstaff.ImportSectionMatch.wantsSection(takeTheory);
             case util.examstaff.ImportSectionMatch.PRACTICAL ->
                 util.examstaff.ImportSectionMatch.wantsSection(takePractical);
-            case util.examstaff.ImportSectionMatch.ROAD ->
-                util.examstaff.ImportSectionMatch.wantsSection(takeOnRoad);
             default -> false;
         };
     }
@@ -1317,9 +1309,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (sectionId == null && "Practical".equalsIgnoreCase(sectionKeyword)) {
             sectionId = findPracticalSectionIdByCandidate(candidateId);
         }
-        if (sectionId == null && "Road".equalsIgnoreCase(sectionKeyword)) {
-            sectionId = findRoadSectionIdByCandidate(candidateId);
-        }
         if (sectionId == null && sessionId > 0) {
             sectionId = findSectionIdBySession(sessionId, sectionKeyword);
         }
@@ -1417,29 +1406,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                   AND (es.SectionName LIKE N'%Sa hình%'
                        OR es.SectionName LIKE N'%Thực hành trong hình%'
                        OR es.SectionName LIKE '%Practical%')
-                ORDER BY ee.ExamEnrollmentId DESC
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, candidateId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("ExamSectionId");
-                }
-            }
-        }
-        return null;
-    }
-
-    private Integer findRoadSectionIdByCandidate(int candidateId) throws SQLException {
-        String sql = """
-                SELECT TOP 1 es.ExamSectionId
-                FROM ExamEnrollment ee
-                JOIN Session_ExamSection ses ON ses.SessionId = ee.SessionId
-                JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId
-                WHERE ee.CandidateId = ?
-                  AND (es.SectionName LIKE N'%Đường trường%'
-                       OR es.SectionName LIKE N'%trên đường%'
-                       OR es.SectionName LIKE '%Road%')
                 ORDER BY ee.ExamEnrollmentId DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -1782,11 +1748,9 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         try {
             er.setTakeTheory(readNullableBoolean(rs, "takeTheory"));
             er.setTakePractical(readNullableBoolean(rs, "takePractical"));
-            er.setTakeOnRoad(readNullableBoolean(rs, "takeOnRoad"));
         } catch (SQLException ignored) {
             er.setTakeTheory(null);
             er.setTakePractical(null);
-            er.setTakeOnRoad(null);
         }
         er.setExamDate(rs.getDate("examDate"));
         try {
@@ -1856,18 +1820,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             }
         }
 
-        int rScoreVal = rs.getInt("roadTestScore");
-        if (isAbsent || rs.wasNull()) {
-            er.setRoadTestScore(null);
-            er.setRoadTestPassed("none");
-        } else {
-            er.setRoadTestScore(rScoreVal);
-            if (er.skipsRoad()) {
-                er.setRoadTestPassed("none");
-            } else {
-                er.setRoadTestPassed(AllocationPassRules.isRoadPassed(rScoreVal) ? "passed" : "failed");
-            }
-        }
         return er;
     }
 
@@ -2006,9 +1958,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if ("Practical".equalsIgnoreCase(key)) {
             return "Sa hình";
         }
-        if ("Road".equalsIgnoreCase(key)) {
-            return "Đường trường";
-        }
         return key;
     }
 
@@ -2029,9 +1978,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     }
                     if (name.contains("Sa hình") || name.contains("Practical")) {
                         return "Practical";
-                    }
-                    if (name.contains("Đường") || name.contains("Road")) {
-                        return "Road";
                     }
                 }
             }

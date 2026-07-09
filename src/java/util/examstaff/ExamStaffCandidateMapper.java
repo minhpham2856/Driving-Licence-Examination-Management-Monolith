@@ -38,7 +38,6 @@ public final class ExamStaffCandidateMapper {
         dto.setReasonForTaking(row.getReasonForTaking());
         dto.setTakeTheory(row.getTakeTheory());
         dto.setTakePractical(row.getTakePractical());
-        dto.setTakeOnRoad(row.getTakeOnRoad());
         dto.setExamDate(row.getExamDate());
         dto.setSectionStatus(row.getSectionStatus());
         dto.setSignaturePrinted(row.isSignaturePrinted());
@@ -54,9 +53,6 @@ public final class ExamStaffCandidateMapper {
         }
         if (row.getPracticalScore() != null) {
             dto.setPracticalScore(row.getPracticalScore());
-        }
-        if (row.getRoadTestScore() != null) {
-            dto.setRoadTestScore(row.getRoadTestScore());
         }
         return dto;
     }

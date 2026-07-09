@@ -55,7 +55,7 @@ public interface ExamRegistrationDAO {
     // Cap nhat so cau dung ly thuyet
     boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold);
 
-    // Cap nhat diem duong truong
+    // Legacy: cap nhat diem phan thi duong truong (khong con dung trong examstaff/public-call)
     boolean updateRoadScore(int id, Integer roadScore, String roadPassed);
 
     // Cap nhat ho so co ban
@@ -80,11 +80,11 @@ public interface ExamRegistrationDAO {
     // Tao ExamEnrollment neu thieu (import / ghi de trung CCCD trong ca)
     boolean ensureExamEnrollmentForSession(int candidateId, int sessionId);
 
-    // Ghi danh tat ca ca thi trong ky ma thi sinh tham gia (theo TakeTheory/TakeLayout/TakeRoad)
+    // Ghi danh tat ca ca thi trong ky ma thi sinh tham gia (theo TakeTheory/TakeLayout)
     boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad);
+            Boolean takeTheory, Boolean takePractical);
 
-    /** Các loại phần thi có ca trong kỳ: Theory / Practical / Road. */
+    /** Các loại phần thi có ca trong kỳ theo luồng hiện tại: Theory / Practical. */
     java.util.Set<String> findAvailableSectionKindsForExam(int examId);
 
     // Tim CandidateId theo CCCD trong mot ky thi

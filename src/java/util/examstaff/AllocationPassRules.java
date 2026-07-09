@@ -2,19 +2,16 @@ package util.examstaff;
 
 import dto.exam.ExamRegistrationDTO;
 
-import java.util.Locale;
-
 public final class AllocationPassRules {
 
     public static final int PRACTICAL_PASS_SCORE = 80;
-    public static final int ROAD_PASS_SCORE = 80;
 
     private AllocationPassRules() {
     }
 
     public static String normalizeLicense(String licenseCode, String clazz) {
         String raw = licenseCode != null && !licenseCode.isBlank() ? licenseCode : clazz;
-        return raw == null ? "" : raw.trim().toUpperCase(Locale.ROOT);
+        return LicenseClassRules.normalizeManaged(raw);
     }
 
     public static int theoryQuestionTotal(String license) {
@@ -43,16 +40,8 @@ public final class AllocationPassRules {
         return score >= PRACTICAL_PASS_SCORE;
     }
 
-    public static boolean isRoadPassed(int score) {
-        return score >= ROAD_PASS_SCORE;
-    }
-
     public static boolean isMotorcycle(String license) {
         return licenseGroup(license) == LicenseGroup.MOTORCYCLE;
-    }
-
-    public static boolean requiresRoadTest(String license) {
-        return !isMotorcycle(license);
     }
 
     public static boolean hasPracticalScoreToShow(ExamRegistrationDTO c) {
@@ -100,10 +89,6 @@ public final class AllocationPassRules {
         if (practicalScore != null && !c.skipsPractical()) {
             c.setPracticalPassed(toPassFlag(isPracticalPassed(practicalScore)));
         }
-        Integer roadScore = c.getRoadTestScore();
-        if (roadScore != null && !c.skipsRoad()) {
-            c.setRoadTestPassed(toPassFlag(isRoadPassed(roadScore)));
-        }
         applyWaivedSections(c);
     }
 
@@ -116,13 +101,6 @@ public final class AllocationPassRules {
                 c.setPracticalPassed("passed");
             } else if ("failed".equalsIgnoreCase(nullToPass(c.getPracticalPassed()))) {
                 c.setPracticalPassed("none");
-            }
-        }
-        if (c.skipsRoad()) {
-            if ("passed".equalsIgnoreCase(nullToPass(c.getPracticalPassed()))) {
-                c.setRoadTestPassed("passed");
-            } else if ("failed".equalsIgnoreCase(nullToPass(c.getRoadTestPassed()))) {
-                c.setRoadTestPassed("none");
             }
         }
     }
@@ -143,7 +121,7 @@ public final class AllocationPassRules {
         }
         return switch (license) {
             case "A", "A1" -> LicenseGroup.MOTORCYCLE;
-            case "B", "B1" -> LicenseGroup.CAR;
+            case "B1" -> LicenseGroup.CAR;
             case "C", "C1" -> LicenseGroup.TRUCK_C;
             case "D", "D1", "D2", "E", "FB2", "FC", "FD", "FE" -> LicenseGroup.TRUCK_D;
             default -> LicenseGroup.CAR;

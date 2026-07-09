@@ -51,4 +51,5 @@ public final class FormatUtil {
         row.put("computer", DeviceType.isComputer(type));
         row.put("licenceMatch", DeviceType.isComputer(type) || DeviceType.matchesLicenceClass(licenceClass, type));
     }
+
 }

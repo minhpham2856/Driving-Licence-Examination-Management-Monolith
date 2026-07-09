@@ -134,11 +134,9 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         try {
             row.setTakeTheory(readNullableBoolean(rs, "takeTheory"));
             row.setTakePractical(readNullableBoolean(rs, "takePractical"));
-            row.setTakeOnRoad(readNullableBoolean(rs, "takeOnRoad"));
         } catch (SQLException ignored) {
             row.setTakeTheory(null);
             row.setTakePractical(null);
-            row.setTakeOnRoad(null);
         }
         row.setExamDate(rs.getDate("examDate"));
         try {
@@ -169,10 +167,6 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
             int practical = rs.getInt("practicalScore");
             if (!rs.wasNull()) {
                 row.setPracticalScore(practical);
-            }
-            int road = rs.getInt("roadTestScore");
-            if (!rs.wasNull()) {
-                row.setRoadTestScore(road);
             }
         } catch (SQLException ignored) {
             // minimal select may omit scores

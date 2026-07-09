@@ -15,7 +15,7 @@ public final class ExamRegistrationSort {
 
     private static final Set<String> ALLOWED_COLUMNS = Set.of(
             "sbd", "name", "clazz", "govIdNo", "cccd", "dob",
-            "theoryScore", "practicalScore", "roadTestScore");
+            "theoryScore", "practicalScore");
 
     private ExamRegistrationSort() {
     }
@@ -69,7 +69,6 @@ public final class ExamRegistrationSort {
             case "dob" -> Comparator.comparingLong(ExamRegistrationSort::dobMillis);
             case "theoryScore" -> Comparator.comparingInt(c -> scoreOrMinus(c.getTheoryScore()));
             case "practicalScore" -> Comparator.comparingInt(c -> scoreOrMinus(c.getPracticalScore()));
-            case "roadTestScore" -> Comparator.comparingInt(c -> scoreOrMinus(c.getRoadTestScore()));
             default -> Comparator.comparingInt(ExamRegistrationSort::sbdNumber);
         };
     }

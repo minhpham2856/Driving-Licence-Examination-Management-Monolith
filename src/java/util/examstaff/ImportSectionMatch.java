@@ -7,15 +7,13 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Khớp nội dung SH (L / H / Đ) với các phần thi có ca trong kỳ.
+ * Khớp nội dung SH (L / H) với các phần thi có ca trong kỳ.
  * Quy ước Take*: {@code FALSE} = bảo lưu (không thi); {@code null}/khác = có thi.
  */
 public final class ImportSectionMatch {
 
     public static final String THEORY = "Theory";
     public static final String PRACTICAL = "Practical";
-    public static final String ROAD = "Road";
-
     private ImportSectionMatch() {
     }
 
@@ -28,11 +26,6 @@ public final class ImportSectionMatch {
             return null;
         }
         String normalized = sectionName.trim().toLowerCase(Locale.ROOT);
-        if (normalized.contains("đường trường") || normalized.contains("duong truong")
-                || normalized.contains("trên đường") || normalized.contains("tren duong")
-                || normalized.contains("road")) {
-            return ROAD;
-        }
         if (normalized.contains("lý thuyết") || normalized.contains("ly thuyet")
                 || normalized.contains("theory")) {
             return THEORY;
@@ -49,7 +42,7 @@ public final class ImportSectionMatch {
     /**
      * @return null nếu phù hợp; message tiếng Việt nếu nội dung SH đòi phần mà kỳ không có ca
      */
-    public static String mismatchReason(Boolean takeTheory, Boolean takePractical, Boolean takeOnRoad,
+    public static String mismatchReason(Boolean takeTheory, Boolean takePractical,
             Collection<String> availableKinds) {
         if (availableKinds == null || availableKinds.isEmpty()) {
             return "Kỳ thi chưa có ca phần thi nào";
@@ -57,15 +50,12 @@ public final class ImportSectionMatch {
         Set<String> available = availableKinds instanceof Set
                 ? (Set<String>) availableKinds
                 : Set.copyOf(availableKinds);
-        List<String> missing = new ArrayList<>(3);
+        List<String> missing = new ArrayList<>(2);
         if (wantsSection(takeTheory) && !available.contains(THEORY)) {
             missing.add("Lý thuyết (L)");
         }
         if (wantsSection(takePractical) && !available.contains(PRACTICAL)) {
             missing.add("Sa hình (H)");
-        }
-        if (wantsSection(takeOnRoad) && !available.contains(ROAD)) {
-            missing.add("Đường trường (Đ)");
         }
         if (missing.isEmpty()) {
             return null;

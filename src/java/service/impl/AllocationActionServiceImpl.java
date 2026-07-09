@@ -81,7 +81,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
             case "allocateRoom" -> handleAllocateRoom(result, request, profile, regId, sessionId);
             case "submitTheoryScore" -> handleTheoryScore(result, profile, regId, sessionId, request.getScore());
             case "submitPracticalScore" -> handlePracticalScore(result, profile, regId, sessionId, request.getScore());
-            case "submitRoadScore" -> handleRoadScore(result, profile, regId, request.getScore());
             case "quickComplete" -> handleQuickComplete(result, profile, regId);
             default -> result.setErrorMsg("Thao tác không hỗ trợ: " + action);
         }
@@ -167,11 +166,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
     private void handlePracticalScore(AllocationActionResultDTO result, ExamRegistrationDTO profile,
             int regId, int sessionId, int score) {
         applyScoreResult(result, allocationScoreService.submitPracticalScore(profile, sessionId, score), regId);
-    }
-
-    private void handleRoadScore(AllocationActionResultDTO result, ExamRegistrationDTO profile,
-            int regId, int score) {
-        applyScoreResult(result, allocationScoreService.submitRoadScore(profile, score), regId);
     }
 
     private void handleQuickComplete(AllocationActionResultDTO result, ExamRegistrationDTO profile, int regId) {

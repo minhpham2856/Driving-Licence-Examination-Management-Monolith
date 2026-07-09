@@ -199,7 +199,8 @@ public final class CandidateDstsImportParser {
         reg.setGovIdNo(cccd);
         reg.setSex(normalizeSex(sex));
         reg.setAddress(address);
-        reg.setLicenseCode(licenseCode.isEmpty() ? examLicenseCode : licenseCode);
+        reg.setLicenseCode(CandidateImportLicenseUtil.normalize(
+                licenseCode.isEmpty() ? examLicenseCode : licenseCode));
         reg.setPhoneNo(phone);
         reg.setEmail(email);
         reg.setRegistrationType("WalkIn");
@@ -240,6 +241,8 @@ public final class CandidateDstsImportParser {
         }
         if (shContent.isEmpty()) {
             errors.add("Nội dung SH");
+        } else if (CandidateShContentParser.hasUnsupportedRoadOption(shContent)) {
+            errors.add("Nội dung SH chứa mục Đ/đường trường không còn hỗ trợ");
         }
         if (phone.isEmpty()) {
             errors.add("SĐT");
