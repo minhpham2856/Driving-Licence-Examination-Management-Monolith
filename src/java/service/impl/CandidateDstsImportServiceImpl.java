@@ -18,8 +18,18 @@ import java.util.Set;
 
 public class CandidateDstsImportServiceImpl implements CandidateDstsImportService {
 
-    private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
-    private final ExamStaffSessionQueryService sessionQuery = new ExamStaffSessionQueryServiceImpl();
+    private final ExamRegistrationService registrationService;
+    private final ExamStaffSessionQueryService sessionQuery;
+
+    public CandidateDstsImportServiceImpl() {
+        this(new ExamRegistrationServiceImpl(), new ExamStaffSessionQueryServiceImpl());
+    }
+
+    public CandidateDstsImportServiceImpl(ExamRegistrationService registrationService,
+            ExamStaffSessionQueryService sessionQuery) {
+        this.registrationService = registrationService;
+        this.sessionQuery = sessionQuery;
+    }
 
     @Override
     public CandidateDstsImportPreviewDTO preview(byte[] fileBytes, String fileName,
@@ -113,7 +123,7 @@ public class CandidateDstsImportServiceImpl implements CandidateDstsImportServic
                 if (existingId != null) {
                     reg.setId(existingId);
                     if (!registrationService.ensureExamEnrollmentsForImport(existingId, examId,
-                            reg.getTakeTheory(), reg.getTakePractical(), reg.getTakeOnRoad())) {
+                            reg.getTakeTheory(), reg.getTakePractical())) {
                         skippedCount++;
                         bump(skipReasons, describeEnrollmentMismatch(reg));
                         continue;
@@ -147,7 +157,7 @@ public class CandidateDstsImportServiceImpl implements CandidateDstsImportServic
             return;
         }
         String mismatch = ImportSectionMatch.mismatchReason(
-                reg.getTakeTheory(), reg.getTakePractical(), reg.getTakeOnRoad(), availableKinds);
+                reg.getTakeTheory(), reg.getTakePractical(), availableKinds);
         if (mismatch == null) {
             return;
         }
@@ -180,14 +190,8 @@ public class CandidateDstsImportServiceImpl implements CandidateDstsImportServic
 
     private static String describeEnrollmentMismatch(ExamRegistrationDTO reg) {
         if (Boolean.FALSE.equals(reg.getTakeTheory())
-                && !Boolean.FALSE.equals(reg.getTakePractical())
-                && Boolean.FALSE.equals(reg.getTakeOnRoad())) {
+                && !Boolean.FALSE.equals(reg.getTakePractical())) {
             return "Chỉ thi sa hình (H) nhưng kỳ chưa có ca thực hành";
-        }
-        if (Boolean.FALSE.equals(reg.getTakeTheory())
-                && Boolean.FALSE.equals(reg.getTakePractical())
-                && !Boolean.FALSE.equals(reg.getTakeOnRoad())) {
-            return "Chỉ thi đường trường (Đ) nhưng kỳ chưa có ca đường trường";
         }
         return "Không ghi danh được ca thi phù hợp với nội dung SH";
     }

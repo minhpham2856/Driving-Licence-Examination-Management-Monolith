@@ -14,11 +14,6 @@ import service.ExamRegistrationService;
 import service.ExaminerAllocationService;
 import service.ProcedurePaymentService;
 import service.ProcedureWorkflowService;
-import service.impl.CandidatePhotoServiceImpl;
-import service.impl.CandidateQueueServiceImpl;
-import service.impl.ExamRegistrationServiceImpl;
-import service.impl.ExaminerAllocationServiceImpl;
-import service.impl.ProcedurePaymentServiceImpl;
 import util.examstaff.ExamStaffSessionRules;
 import util.examstaff.ProcedurePaymentLabels;
 
@@ -27,11 +22,29 @@ import java.util.List;
 
 public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
 
-    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
-    private final ProcedurePaymentService paymentService = new ProcedurePaymentServiceImpl();
-    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
-    private final CandidateQueueService queueService = new CandidateQueueServiceImpl();
-    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
+    private final ExamRegistrationService regService;
+    private final ProcedurePaymentService paymentService;
+    private final CandidatePhotoService photoService;
+    private final CandidateQueueService queueService;
+    private final ExaminerAllocationService allocationService;
+
+    public ProcedureWorkflowServiceImpl() {
+        this(new ExamRegistrationServiceImpl(), new ProcedurePaymentServiceImpl(),
+                new CandidatePhotoServiceImpl(), new CandidateQueueServiceImpl(),
+                new ExaminerAllocationServiceImpl());
+    }
+
+    public ProcedureWorkflowServiceImpl(ExamRegistrationService regService,
+            ProcedurePaymentService paymentService,
+            CandidatePhotoService photoService,
+            CandidateQueueService queueService,
+            ExaminerAllocationService allocationService) {
+        this.regService = regService;
+        this.paymentService = paymentService;
+        this.photoService = photoService;
+        this.queueService = queueService;
+        this.allocationService = allocationService;
+    }
 
     @Override
     public ExamRegistrationDTO findProfile(String webRoot, int examId, int sessionId,
@@ -201,7 +214,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         }
 
         ProcedureFeeResultDTO feePreview = paymentService.previewFees(
-                profile.getId(), profile.getLicenseCode(), profile.isRequiresRoadTest());
+                profile.getId(), profile.getLicenseCode(), false);
         boolean updatedPay = paymentService.recordProcedureCashPayment(profile);
         if (!updatedPay) {
             outcome.setStatus(ProcedurePaymentOutcomeDTO.Status.PAYMENT_FAILED);
@@ -276,10 +289,8 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         profile.setAbsent(false);
         profile.setTheoryPassed("none");
         profile.setPracticalPassed("none");
-        profile.setRoadTestPassed("none");
         profile.setTheoryScore(null);
         profile.setPracticalScore(null);
-        profile.setRoadTestScore(null);
     }
 
     private static void syncProfileInQueue(List<ExamRegistrationDTO> qList, ExamRegistrationDTO refreshed) {

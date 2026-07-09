@@ -1,6 +1,8 @@
 package service.impl;
 
 import dto.SessionDTO;
+import dto.examstaff.ExamStaffPageTransitionInput;
+import dto.examstaff.ExamStaffPageTransitionStateDTO;
 import dto.examstaff.ExamStaffSelectionResolveInput;
 import dto.examstaff.ExamStaffSelectionStateDTO;
 import service.ExamStaffPageService;
@@ -11,7 +13,15 @@ import java.util.List;
 
 public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService {
 
-    private final ExamStaffPageService pageService = new ExamStaffPageServiceImpl();
+    private final ExamStaffPageService pageService;
+
+    public ExamStaffSelectionServiceImpl() {
+        this(new ExamStaffPageServiceImpl());
+    }
+
+    public ExamStaffSelectionServiceImpl(ExamStaffPageService pageService) {
+        this.pageService = pageService;
+    }
 
     @Override
     public int resolveExamId(ExamStaffSelectionResolveInput input) {
@@ -124,5 +134,50 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         }
         state.setSessionId(sessionId);
         return state;
+    }
+
+    @Override
+    public ExamStaffPageTransitionStateDTO preparePageTransition(ExamStaffPageTransitionInput input) {
+        ExamStaffPageTransitionStateDTO state = new ExamStaffPageTransitionStateDTO();
+        if (input == null || input.getUrlSessionId() <= 0) {
+            return state;
+        }
+
+        List<SessionDTO> allSessions = input.getAllSessions();
+        SessionDTO urlSession = pageService.findSessionById(input.getUrlSessionId(), allSessions);
+        if (urlSession == null || urlSession.getExamId() <= 0) {
+            return state;
+        }
+
+        state.setExamId(urlSession.getExamId());
+        state.setSessionId(input.getUrlSessionId());
+        state.setPersistSelection(true);
+
+        Integer loadedSessionId = input.getLoadedSessionId();
+        if (loadedSessionId == null || loadedSessionId != input.getUrlSessionId()) {
+            state.setClearCandidateCache(true);
+        }
+
+        Integer previousExamId = input.getPreviousExamId();
+        if (previousExamId != null && previousExamId > 0 && !previousExamId.equals(urlSession.getExamId())) {
+            state.setClearProcedureState(true);
+        }
+
+        return state;
+    }
+
+    @Override
+    public int resolveActiveSessionId(int urlSessionId, Integer selectedSessionId,
+            Integer runtimeActiveSessionId) {
+        if (urlSessionId > 0) {
+            return urlSessionId;
+        }
+        if (selectedSessionId != null && selectedSessionId > 0) {
+            return selectedSessionId;
+        }
+        if (runtimeActiveSessionId != null && runtimeActiveSessionId > 0) {
+            return runtimeActiveSessionId;
+        }
+        return 0;
     }
 }

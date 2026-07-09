@@ -1,6 +1,8 @@
 package service;
 
 import dto.SessionDTO;
+import dto.examstaff.ExamStaffPageTransitionInput;
+import dto.examstaff.ExamStaffPageTransitionStateDTO;
 import dto.examstaff.ExamStaffSelectionResolveInput;
 import dto.examstaff.ExamStaffSelectionStateDTO;
 
@@ -17,4 +19,8 @@ public interface ExamStaffSelectionService {
     int resolveExamFromSessionUrl(int urlSessionId, List<SessionDTO> allSessions);
 
     ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentSessionId, List<SessionDTO> allSessions);
+
+    ExamStaffPageTransitionStateDTO preparePageTransition(ExamStaffPageTransitionInput input);
+
+    int resolveActiveSessionId(int urlSessionId, Integer selectedSessionId, Integer runtimeActiveSessionId);
 }

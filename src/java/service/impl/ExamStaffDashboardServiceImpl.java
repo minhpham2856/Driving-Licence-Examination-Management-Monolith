@@ -13,8 +13,18 @@ import java.util.Set;
 
 public class ExamStaffDashboardServiceImpl implements ExamStaffDashboardService {
 
-    private final ExamStaffSessionQueryService sessionQuery = new ExamStaffSessionQueryServiceImpl();
-    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
+    private final ExamStaffSessionQueryService sessionQuery;
+    private final ExaminerAllocationService allocationService;
+
+    public ExamStaffDashboardServiceImpl() {
+        this(new ExamStaffSessionQueryServiceImpl(), new ExaminerAllocationServiceImpl());
+    }
+
+    public ExamStaffDashboardServiceImpl(ExamStaffSessionQueryService sessionQuery,
+            ExaminerAllocationService allocationService) {
+        this.sessionQuery = sessionQuery;
+        this.allocationService = allocationService;
+    }
 
     @Override
     public ExamStaffDashboardViewDTO buildView(List<SessionDTO> allSessions, int examId) {

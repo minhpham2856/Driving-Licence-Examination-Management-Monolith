@@ -19,8 +19,18 @@ import java.util.List;
 
 public class ExamStaffPageServiceImpl implements ExamStaffPageService {
 
-    private final ExamStaffSessionQueryService sessionQuery = new ExamStaffSessionQueryServiceImpl();
-    private final CandidateQueueService queueService = new CandidateQueueServiceImpl();
+    private final ExamStaffSessionQueryService sessionQuery;
+    private final CandidateQueueService queueService;
+
+    public ExamStaffPageServiceImpl() {
+        this(new ExamStaffSessionQueryServiceImpl(), new CandidateQueueServiceImpl());
+    }
+
+    public ExamStaffPageServiceImpl(ExamStaffSessionQueryService sessionQuery,
+            CandidateQueueService queueService) {
+        this.sessionQuery = sessionQuery;
+        this.queueService = queueService;
+    }
 
     @Override
     public List<SessionDTO> listAllSessions() {

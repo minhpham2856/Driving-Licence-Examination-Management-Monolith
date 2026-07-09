@@ -1,10 +1,6 @@
 // Forced recompilation trigger
 package service.impl;
 
-import dao.CallBoardDAO;
-import dao.impl.ServletContextCallBoardDAO;
-import service.CallBoardSyncService;
-import service.impl.CallBoardSyncServiceImpl;
 import service.ExamSessionControlService;
 
 import dto.ExaminerSlotDTO;
@@ -13,17 +9,40 @@ import dao.ExaminerAssignmentDAO;
 import dao.impl.ExamSessionDAOImpl;
 import dao.impl.ExaminerAssignmentDAOImpl;
 import dto.SessionDTO;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class ExamSessionControlServiceImpl implements ExamSessionControlService {
 
     public static final String CTX_ACTIVE_SESSION_ID = "examActiveSessionId";
 
-    private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
-    private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
-    private final CallBoardSyncService callBoardSyncService = new CallBoardSyncServiceImpl();
+    private final ExamSessionDAO sessionDAO;
+    private final ExaminerAssignmentDAO assignmentDAO;
+
+    public ExamSessionControlServiceImpl() {
+        this(new ExamSessionDAOImpl(), new ExaminerAssignmentDAOImpl());
+    }
+
+    public ExamSessionControlServiceImpl(ExamSessionDAO sessionDAO, ExaminerAssignmentDAO assignmentDAO) {
+        this.sessionDAO = sessionDAO;
+        this.assignmentDAO = assignmentDAO;
+    }
+
+    private static String buildSessionLabel(SessionDTO session) {
+        if (session == null) {
+            return "ca thi";
+        }
+        String name = session.getSessionName() != null && !session.getSessionName().isBlank()
+                ? session.getSessionName().trim()
+                : "ca thi";
+        if (session.getExamDate() == null) {
+            return name;
+        }
+        String date = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"))
+                .format(session.getExamDate());
+        return name + " - ngày " + date;
+    }
 
     @Override
     public StartResult startSession(int sessionId, int staffUserId) {
@@ -50,7 +69,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
             return StartResult.fail("Không cập nhật được trạng thái ca thi trên cơ sở dữ liệu.");
         }
 
-        return StartResult.ok(examSession.getSessionName(), (int) withArea);
+        return StartResult.ok(buildSessionLabel(examSession), examSession.getExamDate(), (int) withArea);
     }
 
     @Override
@@ -66,38 +85,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.HOAN_TAT.getDisplayName())) {
             return EndResult.fail("Không cập nhật được trạng thái kết thúc ca thi.");
         }
-        return EndResult.ok(examSession.getSessionName());
-    }
-
-    @Override
-    public void applyRuntimeStart(ServletContext ctx, HttpSession httpSession, int sessionId) {
-        if (ctx != null) {
-            ctx.setAttribute(CTX_ACTIVE_SESSION_ID, sessionId);
-        }
-        if (httpSession != null) {
-            httpSession.setAttribute("selectedSessionId", sessionId);
-            httpSession.removeAttribute("shiftEnded");
-            httpSession.removeAttribute("callingSbd");
-        }
-    }
-
-    @Override
-    public void applyRuntimeEnd(ServletContext ctx, HttpSession httpSession, int sessionId) {
-        if (ctx != null) {
-            Integer active = (Integer) ctx.getAttribute(CTX_ACTIVE_SESSION_ID);
-            if (active != null && active == sessionId) {
-                ctx.removeAttribute(CTX_ACTIVE_SESSION_ID);
-            }
-            CallBoardDAO callBoardDAO = new ServletContextCallBoardDAO(ctx);
-            callBoardSyncService.sync(callBoardDAO, sessionId, null, null, true);
-        }
-        if (httpSession != null) {
-            Integer selected = (Integer) httpSession.getAttribute("selectedSessionId");
-            if (selected != null && selected == sessionId) {
-                httpSession.setAttribute("shiftEnded", "true");
-                httpSession.removeAttribute("callingSbd");
-            }
-        }
+        return EndResult.ok(buildSessionLabel(examSession), examSession.getExamDate());
     }
 
     @Override
