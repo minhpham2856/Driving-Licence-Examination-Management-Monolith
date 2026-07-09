@@ -3,6 +3,7 @@ package controller.examiner;
 import model.ExaminerSchedule;
 import dto.ExportContextDTO;
 import enums.DocumentName;
+import enums.SectionType;
 import filter.ExaminerFilter;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,8 +33,9 @@ abstract class BaseExaminerExportServlet extends HttpServlet {
         }
 
         ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
-        boolean isTheory = ExaminerFilter.isTheory(session);
-        String sectionName = (String) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
+        SectionType section = (SectionType) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION);
+        boolean isTheory = section == SectionType.THEORY;
+        String sectionName = section.getValue();
 
         return new ExportContextDTO(activeSessionId, schedule, isTheory, sectionName);
     }

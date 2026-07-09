@@ -2,7 +2,7 @@ package service.impl;
 
 import dto.*;
 import dto.CandidateRowDTO;
-import dto.CallStatsDTO;
+import dto.ExamStatsDTO;
 import model.*;
 import model.ExaminerSchedule;
 import dao.SessionDAO;
@@ -11,7 +11,6 @@ import dao.ExamDAO;
 import dao.impl.ExamDAOImpl;
 import dao.DeductionRecordViewDAO;
 import dao.impl.DeductionRecordViewDAOImpl;
-import enums.SessionType;
 import model.Audit;
 import dto.EnrollmentDTO;
 import service.RegistrationService;
@@ -79,10 +78,10 @@ public class DocumentServiceImpl implements DocumentService {
         for (CandidateRowDTO c : candidates) {
             rows.add(Arrays.asList(
                     index++,
-                    c.getSbd(),
+                    c.getCandidateNumber(),
                     c.getFullName(),
                     c.getDob(),
-                    c.getSex(),
+                    c.getSex() != null ? c.getSex().getValue() : "",
                     c.getGovernmentId(),
                     c.getEmail(),
                     c.getPhoneNo(),
@@ -90,8 +89,8 @@ public class DocumentServiceImpl implements DocumentService {
                     c.getLicenceClass(),
                     c.getReasonForTaking(),
                     c.getExamDate(),
-                    c.isAbsent() ? "Có" : "Không",
-                    c.getStatusLabel(),
+                    "Không",
+                    c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
                     c.getCorrect(),
                     c.getWrong(),
                     c.getUnanswered(),
@@ -119,12 +118,12 @@ public class DocumentServiceImpl implements DocumentService {
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         index++,
-                        c.getSbd(),
+                        c.getCandidateNumber(),
                         c.getFullName(),
                         c.getExamScore(),
                         c.getResultLabel(),
-                        c.getStatusLabel(),
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
+                        "Không"));
             }
         } else {
             fields = List.of("stt", "sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
@@ -133,14 +132,14 @@ public class DocumentServiceImpl implements DocumentService {
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         index++,
-                        c.getSbd(),
+                        c.getCandidateNumber(),
                         c.getFullName(),
                         c.getCorrect(),
                         c.getWrong(),
                         c.getUnanswered(),
                         c.getResultLabel(),
-                        c.getStatusLabel(),
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
+                        "Không"));
             }
         }
         XmlExportTable table = new XmlExportTable("ketQuaThi", "ketQua", fields, headers, rows);
@@ -149,7 +148,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     public ExportPayloadDTO buildMinutesExport(ExportContextDTO ctx) {
         Map<String, Object> meta = getSessionExportMeta(ctx.sessionId());
-        CallStatsDTO summary = viewDataService.buildCandidateSummary(
+        ExamStatsDTO summary = viewDataService.buildCandidateSummary(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
         List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
                 ctx.sessionId(), ctx.isTheory(), ctx.sectionName());
@@ -284,7 +283,7 @@ public class DocumentServiceImpl implements DocumentService {
         return new ExportPayloadDTO("Nhật ký", "nhatKyHeThong", metadata, List.of(table), null);
     }
 
-    private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, CallStatsDTO summary,
+    private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionName) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
@@ -309,7 +308,7 @@ public class DocumentServiceImpl implements DocumentService {
         return metadata;
     }
 
-    private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, CallStatsDTO summary,
+    private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionName) {
         List<List<Object>> preamble = new ArrayList<>();
         preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
@@ -342,23 +341,23 @@ public class DocumentServiceImpl implements DocumentService {
             if (!isTheory) {
                 rows.add(Arrays.asList(
                         index++,
-                        c.getSbd(),
+                        c.getCandidateNumber(),
                         c.getFullName(),
                         c.getExamScore(),
                         c.getResultLabel(),
-                        c.getStatusLabel(),
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
+                        "Không"));
             } else {
                 rows.add(Arrays.asList(
                         index++,
-                        c.getSbd(),
+                        c.getCandidateNumber(),
                         c.getFullName(),
                         c.getCorrect(),
                         c.getWrong(),
                         c.getUnanswered(),
                         c.getResultLabel(),
-                        c.getStatusLabel(),
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
+                        "Không"));
             }
         }
         return rows;
@@ -446,7 +445,7 @@ public class DocumentServiceImpl implements DocumentService {
     private Map<Integer, String> buildSbdLookup(int sessionId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
         for (EnrollmentDTO reg : registrationService.getCandidatesBySession(sessionId)) {
-            lookup.put(reg.getId(), String.valueOf(reg.getSbd()));
+            lookup.put(reg.getId(), String.valueOf(reg.getCandidateNumber()));
         }
         return lookup;
     }

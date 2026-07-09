@@ -24,22 +24,15 @@ public enum Sex {
         if (value == null) {
             return null;
         }
-        String trimmed = value.trim();
-        for (Sex gender : values()) {
-            if (gender.getValue().equalsIgnoreCase(trimmed)) {
-                return gender;
+        for (Sex sex : values()) {
+            if (sex.getValue().equalsIgnoreCase(value)) {
+                return sex;
             }
-        }
-        if ("1".equals(trimmed) || "nu".equalsIgnoreCase(trimmed)) {
-            return FEMALE;
-        }
-        if ("0".equals(trimmed) || "nam".equalsIgnoreCase(trimmed)) {
-            return MALE;
         }
         return null;
     }
-
-    public static Sex fromDbBit(boolean dbBit) {
-        return dbBit ? FEMALE : MALE;
+    
+    public static Sex fromDbBit(boolean bit) {
+        return bit ? FEMALE : MALE;
     }
 }

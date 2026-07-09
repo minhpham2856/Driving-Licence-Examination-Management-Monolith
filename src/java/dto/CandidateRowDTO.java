@@ -1,60 +1,41 @@
 package dto;
 
 import enums.CandidateStatus;
+import enums.Sex;
 
 public class CandidateRowDTO {
 
-    private int sbd;
+    private int candidateNumber;
     private int enrollmentId;
     private String fullName;
     private String dob;
-    private String dobRaw;
     private String governmentId;
     private String address;
     private String phoneNo;
-    private String sex;
-    private String sexValue;
+    private Sex sex;
     private String email;
     private String licenceClass;
     private String reasonForTaking;
     private String examDate;
     private CandidateStatus sectionStatus;
-    private String status;
-    private String statusLabel;
-    private boolean absent;
-    private boolean suspended;
-    private boolean callEligible;
     private int correct;
     private int wrong;
     private int unanswered;
-    private Object examScore;
-    private Object scoreTheory;
-    private Object scorePractical;
-    private Object scoreOnRoad;
+    private Integer examScore;
+    private Integer scoreTheory;
+    private Integer scorePractical;
+    private Integer scoreOnRoad;
     private boolean passed;
     private String resultLabel;
     private String vehicleName;
-    private boolean awaitingSignature;
-    private boolean violationEligible;
-    private boolean completeEligible;
-    private boolean markPresentEligible;
-    private boolean undoPresentEligible;
-    private boolean wrongInfoEligible;
-    private boolean present;
-    private boolean inProcedure;
-    private String statusKey;
     private String avatarClass;
-    private String username;
-    private String cccd;
-    private String licenseClass;
-    private String sessionLabel;
 
-    public int getSbd() {
-        return sbd;
+    public int getCandidateNumber() {
+        return candidateNumber;
     }
 
-    public void setSbd(int sbd) {
-        this.sbd = sbd;
+    public void setCandidateNumber(int candidateNumber) {
+        this.candidateNumber = candidateNumber;
     }
 
     public int getEnrollmentId() {
@@ -81,14 +62,6 @@ public class CandidateRowDTO {
         this.dob = dob;
     }
 
-    public String getDobRaw() {
-        return dobRaw;
-    }
-
-    public void setDobRaw(String dobRaw) {
-        this.dobRaw = dobRaw;
-    }
-
     public String getGovernmentId() {
         return governmentId;
     }
@@ -113,20 +86,12 @@ public class CandidateRowDTO {
         this.phoneNo = phoneNo;
     }
 
-    public String getSex() {
+    public Sex getSex() {
         return sex;
     }
 
-    public void setSex(String sex) {
+    public void setSex(Sex sex) {
         this.sex = sex;
-    }
-
-    public String getSexValue() {
-        return sexValue;
-    }
-
-    public void setSexValue(String sexValue) {
-        this.sexValue = sexValue;
     }
 
     public String getEmail() {
@@ -169,46 +134,6 @@ public class CandidateRowDTO {
         this.sectionStatus = sectionStatus;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getStatusLabel() {
-        return statusLabel;
-    }
-
-    public void setStatusLabel(String statusLabel) {
-        this.statusLabel = statusLabel;
-    }
-
-    public boolean isAbsent() {
-        return absent;
-    }
-
-    public void setAbsent(boolean absent) {
-        this.absent = absent;
-    }
-
-    public boolean isSuspended() {
-        return suspended;
-    }
-
-    public void setSuspended(boolean suspended) {
-        this.suspended = suspended;
-    }
-
-    public boolean isCallEligible() {
-        return callEligible;
-    }
-
-    public void setCallEligible(boolean callEligible) {
-        this.callEligible = callEligible;
-    }
-
     public int getCorrect() {
         return correct;
     }
@@ -233,35 +158,35 @@ public class CandidateRowDTO {
         this.unanswered = unanswered;
     }
 
-    public Object getExamScore() {
+    public Integer getExamScore() {
         return examScore;
     }
 
-    public void setExamScore(Object examScore) {
+    public void setExamScore(Integer examScore) {
         this.examScore = examScore;
     }
 
-    public Object getScoreTheory() {
+    public Integer getScoreTheory() {
         return scoreTheory;
     }
 
-    public void setScoreTheory(Object scoreTheory) {
+    public void setScoreTheory(Integer scoreTheory) {
         this.scoreTheory = scoreTheory;
     }
 
-    public Object getScorePractical() {
+    public Integer getScorePractical() {
         return scorePractical;
     }
 
-    public void setScorePractical(Object scorePractical) {
+    public void setScorePractical(Integer scorePractical) {
         this.scorePractical = scorePractical;
     }
 
-    public Object getScoreOnRoad() {
+    public Integer getScoreOnRoad() {
         return scoreOnRoad;
     }
 
-    public void setScoreOnRoad(Object scoreOnRoad) {
+    public void setScoreOnRoad(Integer scoreOnRoad) {
         this.scoreOnRoad = scoreOnRoad;
     }
 
@@ -289,115 +214,11 @@ public class CandidateRowDTO {
         this.vehicleName = vehicleName;
     }
 
-    public boolean isAwaitingSignature() {
-        return awaitingSignature;
-    }
-
-    public void setAwaitingSignature(boolean awaitingSignature) {
-        this.awaitingSignature = awaitingSignature;
-    }
-
-    public boolean isViolationEligible() {
-        return violationEligible;
-    }
-
-    public void setViolationEligible(boolean violationEligible) {
-        this.violationEligible = violationEligible;
-    }
-
-    public boolean isCompleteEligible() {
-        return completeEligible;
-    }
-
-    public void setCompleteEligible(boolean completeEligible) {
-        this.completeEligible = completeEligible;
-    }
-
-    public boolean isMarkPresentEligible() {
-        return markPresentEligible;
-    }
-
-    public void setMarkPresentEligible(boolean markPresentEligible) {
-        this.markPresentEligible = markPresentEligible;
-    }
-
-    public boolean isUndoPresentEligible() {
-        return undoPresentEligible;
-    }
-
-    public void setUndoPresentEligible(boolean undoPresentEligible) {
-        this.undoPresentEligible = undoPresentEligible;
-    }
-
-    public boolean isWrongInfoEligible() {
-        return wrongInfoEligible;
-    }
-
-    public void setWrongInfoEligible(boolean wrongInfoEligible) {
-        this.wrongInfoEligible = wrongInfoEligible;
-    }
-
-    public boolean isPresent() {
-        return present;
-    }
-
-    public void setPresent(boolean present) {
-        this.present = present;
-    }
-
-    public boolean isInProcedure() {
-        return inProcedure;
-    }
-
-    public void setInProcedure(boolean inProcedure) {
-        this.inProcedure = inProcedure;
-    }
-
-    public String getStatusKey() {
-        return statusKey;
-    }
-
-    public void setStatusKey(String statusKey) {
-        this.statusKey = statusKey;
-    }
-
     public String getAvatarClass() {
         return avatarClass;
     }
 
     public void setAvatarClass(String avatarClass) {
         this.avatarClass = avatarClass;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getCccd() {
-        return cccd;
-    }
-
-    public void setCccd(String cccd) {
-        this.cccd = cccd;
-    }
-
-    public String getLicenseClass() {
-        return licenseClass;
-    }
-
-    public void setLicenseClass(String licenseClass) {
-        this.licenseClass = licenseClass;
-    }
-
-    public String getSessionLabel() {
-        return sessionLabel;
-    }
-
-    public void setsessionLabel(String sessionLabel) {
-        this.sessionLabel = sessionLabel;
     }
 }

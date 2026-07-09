@@ -183,7 +183,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null && changes.length() > 0) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Cập nhật hồ sơ SBD " + reg.getSbd() + ": " + changes, reg.getId());
+                    "Cập nhật hồ sơ SBD " + reg.getCandidateNumber() + ": " + changes, reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -206,8 +206,8 @@ public class CallServiceImpl implements CallService {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi thí sinh.");
         }
         Lane lane = ExamQueue.laneFor(examSection);
-        ExamQueue.setCalledSbd(lane, reg.getSbd());
-        ExamQueue.setActiveSbd(lane, reg.getSbd());
+        ExamQueue.setCalledSbd(lane, reg.getCandidateNumber());
+        ExamQueue.setActiveSbd(lane, reg.getCandidateNumber());
         return ServiceResult.ok(null);
     }
 
@@ -228,9 +228,9 @@ public class CallServiceImpl implements CallService {
                 continue;
             }
             if (insertCall(sessionId, reg, user, actionUserId, callDestination)) {
-                ExamQueue.setCalledSbd(lane, reg.getSbd());
-                ExamQueue.setActiveSbd(lane, reg.getSbd());
-                return ServiceResult.ok(reg.getSbd());
+                ExamQueue.setCalledSbd(lane, reg.getCandidateNumber());
+                ExamQueue.setActiveSbd(lane, reg.getCandidateNumber());
+                return ServiceResult.ok(reg.getCandidateNumber());
             }
         }
         return ServiceResult.fail(ErrorType.NOT_FOUND, "Không còn thí sinh đủ điều kiện để gọi.");
@@ -274,8 +274,8 @@ public class CallServiceImpl implements CallService {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi nhập điểm.");
         }
         Lane lane = ExamQueue.laneFor(examSection);
-        ExamQueue.setCalledSbd(lane, reg.getSbd());
-        ExamQueue.setActiveSbd(lane, reg.getSbd());
+        ExamQueue.setCalledSbd(lane, reg.getCandidateNumber());
+        ExamQueue.setActiveSbd(lane, reg.getCandidateNumber());
         return ServiceResult.ok(null);
     }
 
@@ -329,7 +329,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Gán xe #" + deviceId + " cho SBD " + reg.getSbd(), reg.getId());
+                    "Gán xe #" + deviceId + " cho SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -361,7 +361,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             String passed = score >= dataService.theoryPassThreshold() ? "Đạt" : "Trượt";
-            String message = "Sửa điểm lý thuyết SBD " + reg.getSbd() + ": "
+            String message = "Sửa điểm lý thuyết SBD " + reg.getCandidateNumber() + ": "
                     + (oldScore != null ? oldScore : "-") + " -> " + score + " (" + passed + ")";
             if (!auditReason.isBlank()) {
                 message += " - Lý do: " + auditReason;
@@ -387,7 +387,7 @@ public class CallServiceImpl implements CallService {
         String auditReason = buildReasonText(reasonCode, reasonDetail);
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
-                    "Sửa điểm thực hành SBD " + reg.getSbd()
+                    "Sửa điểm thực hành SBD " + reg.getCandidateNumber()
                     + (auditReason.isBlank() ? "" : " - Lý do: " + auditReason),
                     reg.getId());
         }
@@ -410,7 +410,7 @@ public class CallServiceImpl implements CallService {
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, evidencePath);
         auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                "Vi phạm SBD " + reg.getSbd() + ": " + auditText, reg.getId(), auditText);
+                "Vi phạm SBD " + reg.getCandidateNumber() + ": " + auditText, reg.getId(), auditText);
         Candidate candidate = candidateDAO.getById(reg.getId());
         if (candidate == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy hồ sơ thí sinh.");
@@ -420,7 +420,7 @@ public class CallServiceImpl implements CallService {
         if (!updated) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận vi phạm.");
         }
-        removeFromAllQueues(reg.getSbd());
+        removeFromAllQueues(reg.getCandidateNumber());
         return ServiceResult.ok(null);
     }
 
@@ -440,7 +440,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Điểm danh SBD " + reg.getSbd(), reg.getId());
+                    "Điểm danh SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -462,7 +462,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Hoàn tác điểm danh SBD " + reg.getSbd(), reg.getId());
+                    "Hoàn tác điểm danh SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -473,10 +473,10 @@ public class CallServiceImpl implements CallService {
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
-        removeFromAllQueues(reg.getSbd());
+        removeFromAllQueues(reg.getCandidateNumber());
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Sai thông tin - chuyển phòng thủ tục SBD " + reg.getSbd(), reg.getId());
+                    "Sai thông tin - chuyển phòng thủ tục SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -498,7 +498,7 @@ public class CallServiceImpl implements CallService {
         if (actionUserId != null) {
             String action = delta > 0 ? "cộng" : "trừ";
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
-                    action + " điểm lỗi #" + deductionId + " cho SBD " + reg.getSbd()
+                    action + " điểm lỗi #" + deductionId + " cho SBD " + reg.getCandidateNumber()
                     + " (Δ=" + delta + ")",
                     reg.getId());
         }
@@ -525,7 +525,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Giám khảo hoàn tất nhập điểm SBD " + reg.getSbd(), reg.getId());
+                    "Giám khảo hoàn tất nhập điểm SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -553,7 +553,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "In biên bản kết quả thi SBD " + reg.getSbd(), reg.getId());
+                    "In biên bản kết quả thi SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -582,7 +582,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Hoàn tất phần thi SBD " + reg.getSbd(), reg.getId());
+                    "Hoàn tất phần thi SBD " + reg.getCandidateNumber(), reg.getId());
         }
         boolean sectionPassed = sectionPassedHint != null
                 ? sectionPassedHint
@@ -619,7 +619,7 @@ public class CallServiceImpl implements CallService {
         int insertedId = auditDAO.insert(audit);
         if (insertedId > 0 && actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.CREATE, AuditEntity.CANDIDATE_CALL,
-                    "Gọi SBD " + reg.getSbd(), reg.getId());
+                    "Gọi SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return insertedId > 0;
     }
@@ -638,7 +638,7 @@ public class CallServiceImpl implements CallService {
         int insertedId = auditDAO.insert(audit);
         if (insertedId > 0 && actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.CREATE, AuditEntity.CANDIDATE_CALL,
-                    "Gọi SBD " + reg.getSbd(), reg.getId());
+                    "Gọi SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return insertedId > 0;
     }
@@ -680,7 +680,7 @@ public class CallServiceImpl implements CallService {
     }
 
     private void enqueueNextSection(int sessionId, EnrollmentDTO reg) {
-        int sbd = reg.getSbd();
+        int sbd = reg.getCandidateNumber();
         SessionViewDTO session = sessionService.getSessionById(sessionId);
         enums.SectionType examSection = session != null && session.getExamSection() != null
                 ? session.getExamSection() : enums.SectionType.THEORY;

@@ -88,7 +88,7 @@ public class TheoryServiceImpl implements TheoryService {
         }
         TheoryEntranceDTO data = new TheoryEntranceDTO();
         data.setSessionId(sessionId);
-        data.setSbd(sbd);
+        data.setCandidateNumber(sbd);
         data.setFullName(reg.getFullName());
         SimpleDateFormat fmt = new SimpleDateFormat("dd / MM / yyyy");
         if (reg.getDateOfBirth() != null) {
@@ -202,7 +202,7 @@ public class TheoryServiceImpl implements TheoryService {
 
     private EnrollmentDTO findBySbd(int sessionId, int sbd) {
         for (EnrollmentDTO row : registrationService.getCandidatesBySession(sessionId)) {
-            if (row.getSbd() == sbd) {
+            if (row.getCandidateNumber() == sbd) {
                 return row;
             }
         }

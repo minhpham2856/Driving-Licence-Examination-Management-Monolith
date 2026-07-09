@@ -51,8 +51,8 @@
                 <!--candidate list-->
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
-                    <jsp:param name="showTheoryScores" value="${requestScope.examinerSectionTheory ? 'true' : 'false'}" />
-                    <jsp:param name="showExamScore" value="${requestScope.examinerSectionTheory ? 'false' : 'true'}" />
+                    <jsp:param name="showTheoryScores" value="${examSection == 'THEORY' ? 'true' : 'false'}" />
+                    <jsp:param name="showPracticalScore"value="${examSection == 'THEORY' ? 'false' : 'true'}" />
                     <jsp:param name="showResult" value="true" />
                     <jsp:param name="showStatus" value="true" />
                 </jsp:include>
@@ -61,7 +61,7 @@
                 <section class="examiner-summary examiner-summary--dashboard">
                     <div class="examiner-summary__grid">
                         <div class="examiner-summary__course">
-                            <p class="examiner-summary__label">Khoá thi</p>
+                            <p class="examiner-summary__label">Kỳ thi</p>
                             <p class="examiner-summary__value">${empty examSummary.examCode ? '' : examSummary.examCode}</p>
                         </div>
                         <div class="examiner-summary__stat examiner-summary__stat--total">

@@ -37,6 +37,7 @@ import java.util.Map;
         maxFileSize = 5 * 1024 * 1024,
         maxRequestSize = 10 * 1024 * 1024)
 public class ExaminerViolationsServlet extends HttpServlet {
+
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
     protected final CallService callService = new CallServiceImpl();
 
@@ -56,8 +57,9 @@ public class ExaminerViolationsServlet extends HttpServlet {
             if (request.getParameter("sbd") != null) {
                 sbd = Integer.parseInt(request.getParameter("sbd").trim());
             }
-        } catch (NumberFormatException e) {}
-        
+        } catch (NumberFormatException e) {
+        }
+
         String search = request.getParameter("q");
 
         if (sessionId != null && sessionId > 0) {
@@ -67,15 +69,15 @@ public class ExaminerViolationsServlet extends HttpServlet {
             if ("/views/examiner/violations".equals(path)) {
                 List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
                 if (search != null && !search.isBlank()) {
-                    String q = search.trim().toLowerCase(java.util.Locale.ROOT);
+                    String q = search.trim().toLowerCase();
                     List<CandidateRowDTO> filtered = new java.util.ArrayList<>();
                     for (CandidateRowDTO row : candidates) {
-                        String sbdVal = String.valueOf(row.getSbd());
+                        String sbdVal = String.valueOf(row.getCandidateNumber());
                         String name = row.getFullName() != null ? row.getFullName() : "";
                         String gov = row.getGovernmentId() != null ? row.getGovernmentId() : "";
-                        if (sbdVal.toLowerCase(java.util.Locale.ROOT).contains(q)
-                                || name.toLowerCase(java.util.Locale.ROOT).contains(q)
-                                || gov.toLowerCase(java.util.Locale.ROOT).contains(q)) {
+                        if (sbdVal.toLowerCase().contains(q)
+                                || name.toLowerCase().contains(q)
+                                || gov.toLowerCase().contains(q)) {
                             filtered.add(row);
                         }
                     }
@@ -85,7 +87,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 }
                 request.setAttribute("candidates", candidates);
                 request.setAttribute("candidateQueue", candidates);
-                
+
                 if (sbd != null && sbd > 0) {
                     Map<String, Object> data = viewDataService.getViolationData(sessionId, sbd);
                     if (data != null) {
@@ -107,10 +109,14 @@ public class ExaminerViolationsServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/views/examiner/violations" -> "/views/examiner/violations.jsp";
-            case "/views/examiner/violation-confirm" -> "/views/examiner/violation-confirm.jsp";
-            case "/views/examiner/violation-undo" -> "/views/examiner/violation-undo.jsp";
-            default -> "/views/examiner/violations.jsp";
+            case "/views/examiner/violations" ->
+                "/views/examiner/violations.jsp";
+            case "/views/examiner/violation-confirm" ->
+                "/views/examiner/violation-confirm.jsp";
+            case "/views/examiner/violation-undo" ->
+                "/views/examiner/violation-undo.jsp";
+            default ->
+                "/views/examiner/violations.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
     }
@@ -136,11 +142,12 @@ public class ExaminerViolationsServlet extends HttpServlet {
             if (request.getParameter("sbd") != null) {
                 sbd = Integer.parseInt(request.getParameter("sbd").trim());
             }
-        } catch (NumberFormatException e) {}
+        } catch (NumberFormatException e) {
+        }
 
         if ("/views/examiner/violation-confirm".equals(path)) {
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noSbd");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noCandidateNumber");
                 return;
             }
 
@@ -152,8 +159,10 @@ public class ExaminerViolationsServlet extends HttpServlet {
             if (filePart != null && filePart.getSize() > 0) {
                 String uploadsDirStr = getServletContext().getRealPath("") + File.separator + "uploads" + File.separator + "violations";
                 File uploadDir = new File(uploadsDirStr);
-                if (!uploadDir.exists()) uploadDir.mkdirs();
-                
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs();
+                }
+
                 String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 String fileName = datePrefix + "_" + sessionId + "_" + sbd + "_" + System.currentTimeMillis() + "_" + getSubmittedFileName(filePart);
                 Path destination = new File(uploadDir, fileName).toPath();
@@ -172,13 +181,13 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     reasonCode,
                     reasonDetail,
                     evidencePath);
-                    
+
             if (result.isSuccess()) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/violations?sbd="
                         + urlEncode(sbd) + "&violationRecorded=1");
                 return;
             }
-            
+
             request.setAttribute("errorMsg", "Không thể ghi nhận vi phạm: " + result.getMessage());
             doGet(request, response);
             return;
@@ -186,7 +195,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
 
         doGet(request, response);
     }
-    
+
     private String getSubmittedFileName(Part part) {
         for (String cd : part.getHeader("content-disposition").split(";")) {
             if (cd.trim().startsWith("filename")) {
@@ -209,7 +218,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
         }
         return uri;
     }
-    
+
     private String resolveSectionName(HttpSession session) {
         if (session == null) {
             return null;

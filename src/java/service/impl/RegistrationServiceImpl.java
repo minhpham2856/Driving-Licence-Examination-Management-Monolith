@@ -49,7 +49,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             return null;
         }
         for (EnrollmentDTO row : getCandidatesBySession(sessionId)) {
-            if (row.getSbd() == sbd) {
+            if (row.getCandidateNumber() == sbd) {
                 return row;
             }
         }
@@ -80,7 +80,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 list.add(toEnrollmentDto(candidate, enrollment));
             }
         }
-        list.sort(Comparator.comparingInt(EnrollmentDTO::getSbd));
+        list.sort(Comparator.comparingInt(EnrollmentDTO::getCandidateNumber));
         return list;
     }
 

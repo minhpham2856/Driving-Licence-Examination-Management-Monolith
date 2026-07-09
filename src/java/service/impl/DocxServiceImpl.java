@@ -193,7 +193,7 @@ public class DocxServiceImpl implements DocxService {
         data.put("START", formatTime(paper != null ? paper.getStartedAt() : null));
         data.put("CLASS", format(candidate.getLicenceClass()));
         data.put("END", formatTime(paper != null ? paper.getSubmittedAt() : null));
-        data.put("CNO", format(candidate.getSbd()));
+        data.put("CNO", format(candidate.getCandidateNumber()));
         data.put("TAKENO", "1");
         return data;
     }
@@ -235,7 +235,7 @@ public class DocxServiceImpl implements DocxService {
         if (licenceClass == null || licenceClass.isBlank()) {
             return "B2";
         }
-        String normalized = licenceClass.trim().toUpperCase(Locale.ROOT);
+        String normalized = licenceClass.trim().toUpperCase();
         if ("B".equals(normalized)) {
             return "B2";
         }

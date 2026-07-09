@@ -21,8 +21,8 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/login.css">
 
-        <main class="login-page-main">
-            <div class="login-card-container" style="max-width: 540px; min-height: auto;">
+        <main class="login-page-main login-page-main--standalone">
+            <div class="login-card-container login-card-container--standalone">
 
 
 

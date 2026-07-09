@@ -76,7 +76,7 @@
                                 <jsp:param name="itemsAttr" value="singleCandidateList" />
                                 <jsp:param name="showAddress" value="false" />
                                 <jsp:param name="showTheoryScores" value="false" />
-                                <jsp:param name="showExamScore" value="false" />
+                                <jsp:param name="showPracticalScore" value="false" />
                                 <jsp:param name="showResult" value="true" />
                                 <jsp:param name="showStatus" value="true" />
                             </jsp:include>

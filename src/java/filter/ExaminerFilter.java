@@ -33,8 +33,6 @@ public class ExaminerFilter extends HttpFilter {
     public static final String ATTR_EXAMINER_SCHEDULE = "examinerSchedule";
     public static final String ATTR_ACTIVE_SESSION_ID = "activeSessionId";
     public static final String ATTR_EXAM_SECTION = "examSection";
-    public static final String ATTR_EXAM_SECTION_NAME = "examSectionName";
-    public static final String ATTR_SECTION_THEORY = "examinerSectionTheory";
     public static final String ATTR_HAS_ACTIVE = "examinerHasActiveSession";
     public static final String ATTR_MESSAGE = "examinerSessionMessage";
 
@@ -139,14 +137,11 @@ public class ExaminerFilter extends HttpFilter {
 
         // Determine whether the examiner is supervising a theory exam
         SectionType examSection = sessionService.getExamSection(schedule, examSession);
-        boolean isTheory = examSection == THEORY;
 
         // Update the session with the latest examination context
         session.setAttribute(ATTR_EXAMINER_SCHEDULE, schedule);
         session.setAttribute(ATTR_ACTIVE_SESSION_ID, examSession.getSessionId());
         session.setAttribute(ATTR_EXAM_SECTION, examSection);
-        session.setAttribute(ATTR_EXAM_SECTION_NAME, examSection.getValue());
-        session.setAttribute(ATTR_SECTION_THEORY, isTheory);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.TRUE);
         session.setAttribute(ATTR_MESSAGE, null);
 
@@ -158,8 +153,6 @@ public class ExaminerFilter extends HttpFilter {
         session.removeAttribute(ATTR_EXAMINER_SCHEDULE);
         session.removeAttribute(ATTR_ACTIVE_SESSION_ID);
         session.removeAttribute(ATTR_EXAM_SECTION);
-        session.removeAttribute(ATTR_EXAM_SECTION_NAME);
-        session.removeAttribute(ATTR_SECTION_THEORY);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.FALSE);
     }
 
@@ -169,8 +162,6 @@ public class ExaminerFilter extends HttpFilter {
         copySessionToRequest(session, request, ATTR_EXAMINER_SCHEDULE);
         copySessionToRequest(session, request, ATTR_ACTIVE_SESSION_ID);
         copySessionToRequest(session, request, ATTR_EXAM_SECTION);
-        copySessionToRequest(session, request, ATTR_EXAM_SECTION_NAME);
-        copySessionToRequest(session, request, ATTR_SECTION_THEORY);
         copySessionToRequest(session, request, ATTR_MESSAGE);
     }
 
@@ -201,8 +192,7 @@ public class ExaminerFilter extends HttpFilter {
         return uri;
     }
 
-    // Check whether the current session is a theory examination
     public static boolean isTheory(HttpSession session) {
-        return session != null && Boolean.TRUE.equals(session.getAttribute(ATTR_SECTION_THEORY));
+        return session.getAttribute(ATTR_EXAM_SECTION) == THEORY;
     }
 }

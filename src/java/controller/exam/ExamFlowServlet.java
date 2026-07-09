@@ -85,7 +85,7 @@ public class ExamFlowServlet extends HttpServlet {
         TheoryEntranceDTO data = result.getData();
         HttpSession session = request.getSession(true);
         session.setAttribute("examSessionId", data.getSessionId());
-        session.setAttribute("examSbd", data.getSbd());
+        session.setAttribute("examSbd", data.getCandidateNumber());
         response.sendRedirect(buildUrl(request, "/exam/info"));
     }
 
@@ -106,7 +106,7 @@ public class ExamFlowServlet extends HttpServlet {
         }
         TheoryEntranceDTO data = result.getData();
         request.setAttribute("candidateName", data.getFullName());
-        request.setAttribute("sbd", String.valueOf(data.getSbd()));
+        request.setAttribute("sbd", String.valueOf(data.getCandidateNumber()));
         request.setAttribute("dob", data.getDob());
         request.setAttribute("cccd", data.getGovIdNo());
         request.setAttribute("licenseClass", data.getLicenceClass());

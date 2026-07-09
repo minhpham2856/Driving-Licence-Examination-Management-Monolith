@@ -22,9 +22,9 @@ public enum RoleType {
         if (value == null) {
             return null;
         }
-        for (RoleType role : values()) {
-            if (role.getValue().equals(value)) {
-                return role;
+        for (RoleType type : values()) {
+            if (type.getValue().equals(value)) {
+                return type;
             }
         }
         return null;
