@@ -5,8 +5,7 @@ import dao.UserDAO;
 import dao.impl.ProfileDAOImpl;
 import dao.impl.UserDAOImpl;
 import dto.ServiceResult;
-import dto.payload.ChangePasswordCommand;
-import dto.payload.RegisterData;
+import dto.RegisterResultDTO;
 import enums.ErrorType;
 import model.Profile;
 import model.User;
@@ -22,7 +21,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService = new EmailServiceImpl();
 
     @Override
-    public ServiceResult<RegisterData> register(Profile profile, String email) {
+    public ServiceResult<RegisterResultDTO> register(Profile profile, String email) {
         if (userDAO.getByEmail(email) != null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Email đã được sử dụng.");
         }
@@ -58,7 +57,11 @@ public class AuthServiceImpl implements AuthService {
                 Vui lòng đăng nhập và đổi mật khẩu trong phần cài đặt tài khoản.
                 """.formatted(profile.getFullName(), username, password);
         boolean emailSent = emailService.sendTextEmail(email, subject, content);
-        RegisterData data = new RegisterData(username, password, emailSent, user.getUserId());
+        RegisterResultDTO data = new RegisterResultDTO();
+        data.setUsername(username);
+        data.setPassword(password);
+        data.setEmailSent(emailSent);
+        data.setUserId(user.getUserId());
         return ServiceResult.ok(data);
     }
 
@@ -131,28 +134,29 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ServiceResult<Void> changePassword(ChangePasswordCommand command) {
-        User fresh = userDAO.getById(command.getUserId());
+    public ServiceResult<Void> changePassword(int userId, String currentPassword, String newPassword,
+            String confirmPassword) {
+        User fresh = userDAO.getById(userId);
         if (fresh == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Có lỗi xảy ra, vui lòng thử lại.");
         }
-        if (command.getCurrentPassword() == null
-                || !command.getCurrentPassword().equals(fresh.getPasswordHash())) {
+        if (currentPassword == null
+                || !currentPassword.equals(fresh.getPasswordHash())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Mật khẩu hiện tại không chính xác.");
         }
-        if (command.getNewPassword() == null || command.getNewPassword().length() < 6) {
+        if (newPassword == null || newPassword.length() < 6) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
                     "Mật khẩu mới phải có ít nhất 6 ký tự.");
         }
-        if (!command.getNewPassword().equals(command.getConfirmPassword())) {
+        if (!newPassword.equals(confirmPassword)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
                     "Mật khẩu mới và xác nhận không khớp.");
         }
-        if (command.getNewPassword().equals(fresh.getPasswordHash())) {
+        if (newPassword.equals(fresh.getPasswordHash())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
                     "Mật khẩu mới không được trùng mật khẩu cũ.");
         }
-        if (userDAO.updatePassword(fresh.getUserId(), command.getNewPassword())) {
+        if (userDAO.updatePassword(fresh.getUserId(), newPassword)) {
             return ServiceResult.ok(null, "Đổi mật khẩu thành công.");
         }
         return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Có lỗi xảy ra, vui lòng thử lại.");

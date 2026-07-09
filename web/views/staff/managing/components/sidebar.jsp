@@ -47,7 +47,7 @@
     <nav class="side-nav-bar__menu" data-node-id="manager:7">
         
         <%-- SC-030: Dashboard quản lý --%>
-        <a href="${ctx}/views/staff/managing/dashboard.jsp"
+        <a href="${ctx}/views/staff/managing/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="manager:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>

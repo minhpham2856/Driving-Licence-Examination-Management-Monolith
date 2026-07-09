@@ -1,16 +1,16 @@
 package controller.examiner;
 
-import dto.CandidateEnrollmentDTO;
+import dto.EnrollmentDTO;
 import enums.AuditAction;
 import enums.AuditEntity;
 import enums.ExamSection;
 import model.User;
-import service.AuditLogService;
-import service.ExaminerActionsService;
-import service.ExaminerDataService;
-import service.impl.AuditLogServiceImpl;
-import service.impl.ExaminerActionsServiceImpl;
-import service.impl.ExaminerDataServiceImpl;
+import service.AuditService;
+import service.CallService;
+import service.ExamViewService;
+import service.impl.AuditServiceImpl;
+import service.impl.CallServiceImpl;
+import service.impl.ExamViewServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,9 +23,9 @@ import java.util.Map;
 @WebServlet("/views/examiner/score-entry")
 public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
 
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
-    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
-    private final AuditLogService auditLogService = new AuditLogServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
+    protected final CallService ScheduleService = new CallServiceImpl();
+    private final AuditService AuditService = new AuditServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -61,8 +61,8 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
                                 + encodeSbd(sbd) + "&error=invalidDeduction");
                         return;
                     }
-                    if (!examinerService.adjustScoreDeduction(
-                            buildAdjustDeductionCommand(sessionId, sbd, deductionId, delta, user.getUserId())).isSuccess()) {
+                    if (!ScheduleService.adjustScoreDeduction(
+                            sessionId, sbd, deductionId, delta, user.getUserId()).isSuccess()) {
                         response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
                                 + encodeSbd(sbd) + "&error=deductionFailed");
                         return;
@@ -108,15 +108,14 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
             return;
         }
         ExamSection examSection = getExamSection(session);
-        String sectionName = examSection.getValue();
         if ("finalize".equals(request.getParameter("action"))) {
             Integer sbd = parseSbdParam(request.getParameter("sbd"));
             if (sbd == null) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=noSbd");
                 return;
             }
-            if (!examinerService.finalizeScoreEntry(
-                    buildFinalizeCommand(sessionId, sbd, ((User) session.getAttribute("user")).getUserId(), sectionName)).isSuccess()) {
+            if (!ScheduleService.finalizeScoreEntry(sessionId, sbd,
+                    ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
                         + encodeSbd(sbd) + "&error=finalizeFailed");
                 return;
@@ -149,8 +148,9 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
                             + encodeSbd(called) + "&scoreCalled=1");
                     return true;
                 }
-                if (!examinerService.callScoreEntryCandidate(
-                        buildCallCommand(session, user, sessionId, sbd, null, true)).isSuccess()) {
+                if (!ScheduleService.callScoreEntryCandidate(sessionId, sbd, user, user.getUserId(),
+                        examSection, examSection == ExamSection.THEORY, sectionName,
+                        getCallDestination(session), true).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?error=callFailed&sbd="
                             + encodeSbd(sbd));
                     return true;
@@ -197,8 +197,9 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
         if (first == null) {
             return null;
         }
-        if (examinerService.callScoreEntryCandidate(
-                buildCallCommand(session, user, sessionId, first, null, true)).isSuccess()) {
+        if (ScheduleService.callScoreEntryCandidate(sessionId, first, user, actionUserId, examSection,
+                examSection == ExamSection.THEORY, examSection.getValue(), getCallDestination(session),
+                true).isSuccess()) {
             ExaminerScoreEntryQueue.setCalledSbd(examSection, first);
             ExaminerScoreEntryQueue.setActiveSbd(examSection, first);
             return first;
@@ -208,17 +209,18 @@ public class ExaminerScoreEntryServlet extends BaseExaminerServlet {
 
     private Integer deferScoreEntryCandidate(int sessionId, int sbd, User user, HttpSession session,
             ExamSection examSection, Integer actionUserId) {
-        CandidateEnrollmentDTO reg = examinerService.getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = ScheduleService.getRegistration(sessionId, sbd);
         if (reg == null) {
             return null;
         }
         Integer nextSbd = ExaminerScoreEntryQueue.moveToBottom(examSection, reg.getSbd());
-        auditLogService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
+        AuditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
                 "Chuyển SBD " + reg.getSbd() + " xuống cuối hàng nhập điểm",
                 reg.getId());
         if (nextSbd != null) {
-            if (examinerService.callScoreEntryCandidate(
-                    buildCallCommand(session, user, sessionId, nextSbd, null, true)).isSuccess()) {
+            if (ScheduleService.callScoreEntryCandidate(sessionId, nextSbd, user, actionUserId, examSection,
+                    examSection == ExamSection.THEORY, examSection.getValue(), getCallDestination(session),
+                    true).isSuccess()) {
                 ExaminerScoreEntryQueue.setCalledSbd(examSection, nextSbd);
                 ExaminerScoreEntryQueue.setActiveSbd(examSection, nextSbd);
             }

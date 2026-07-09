@@ -120,6 +120,30 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
             ps.setInt(2, safeLimit);
         });
     }
+
+    @Override
+    public List<Audit> searchAll(String keyword, int limit) {
+        int safeLimit = limit > 0 ? limit : 100;
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" WHERE Action LIKE ? OR EntityName LIKE ? OR NewValue LIKE ? "
+                    + "OR Details LIKE ? OR Reason LIKE ?");
+        }
+        sql.append(" ORDER BY CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY");
+        return queryList(sql.toString(), ps -> {
+            int idx = 1;
+            if (keyword != null && !keyword.isBlank()) {
+                String like = "%" + keyword.trim() + "%";
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+            }
+            ps.setInt(idx, safeLimit);
+        });
+    }
+
     private List<Audit> queryList(String sql, StatementBinder binder) {
         List<Audit> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

@@ -5,8 +5,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import service.ExaminerDataService;
-import service.impl.ExaminerDataServiceImpl;
+import service.ExamViewService;
+import service.impl.ExamViewServiceImpl;
 
 import java.io.IOException;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.Map;
 })
 public class ExaminerMiscServlet extends BaseExaminerServlet {
 
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -38,7 +38,7 @@ public class ExaminerMiscServlet extends BaseExaminerServlet {
                     request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                 }
             } else if ("/views/examiner/print-documents".equals(path)) {
-                viewDataService.getCandidateCallData(sessionId, sbd, search).applyTo(request);
+                applyCandidateListAttributes(request, session, viewDataService, sessionId, sbd, search);
             }
         }
         String jsp = switch (path) {

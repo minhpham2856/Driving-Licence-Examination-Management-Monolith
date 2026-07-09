@@ -3,7 +3,7 @@ package service.impl;
 import dao.ExamAreaDAO;
 import dao.impl.ExamAreaDAOImpl;
 import dto.ServiceResult;
-import dto.payload.SaveEntityData;
+import dto.SaveResultDTO;
 import enums.ExamAreaType;
 import enums.ErrorType;
 import model.ExamArea;
@@ -36,7 +36,7 @@ public class ExamAreaServiceImpl implements ExamAreaService {
     }
 
     @Override
-    public ServiceResult<SaveEntityData> save(ExamArea area, int adminUserId) {
+    public ServiceResult<SaveResultDTO> save(ExamArea area, int adminUserId) {
         if (area.getAreaName() == null || area.getAreaName().isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng nhập tên khu vực thi.");
         }
@@ -58,15 +58,19 @@ public class ExamAreaServiceImpl implements ExamAreaService {
         boolean isEdit = area.getExamAreaId() > 0;
         if (isEdit) {
             if (dao.update(area)) {
-                return ServiceResult.ok(new SaveEntityData(area.getExamAreaId()),
-                        "Đã cập nhật khu vực \"" + area.getAreaName() + "\".");
+                SaveResultDTO result = new SaveResultDTO();
+                result.setEntityId(area.getExamAreaId());
+                result.setMessage("Đã cập nhật khu vực \"" + area.getAreaName() + "\".");
+                return ServiceResult.ok(result, result.getMessage());
             }
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Cập nhật khu vực thất bại.");
         }
         int newId = dao.insert(area);
         if (newId > 0) {
-            return ServiceResult.ok(new SaveEntityData(newId),
-                    "Đã thêm khu vực \"" + area.getAreaName() + "\".");
+            SaveResultDTO result = new SaveResultDTO();
+            result.setEntityId(newId);
+            result.setMessage("Đã thêm khu vực \"" + area.getAreaName() + "\".");
+            return ServiceResult.ok(result, result.getMessage());
         }
         return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Thêm khu vực thất bại.");
     }

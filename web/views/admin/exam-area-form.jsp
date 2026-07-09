@@ -64,14 +64,25 @@
                            placeholder="VD: Khu vực sát hạch trung tâm Hà Nội" value="${area.areaName}" required>
                 </div>
 
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="examZoneId" class="input-label">Khu vực (ExamZone) <span style="color:#dc2626;">*</span></label>
+                    <select id="examZoneId" name="examZoneId" class="input-field" required>
+                        <option value="">-- Chọn khu vực --</option>
+                        <c:forEach var="zone" items="${examZones}">
+                            <option value="${zone.examZoneId}" ${area.examZoneId eq zone.examZoneId ? 'selected' : ''}>${zone.zoneName}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+
                 <div class="filter-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
                     <div class="input-group">
                         <label for="areaType" class="input-label">Loại khu vực <span style="color:#dc2626;">*</span></label>
                         <select id="areaType" name="areaType" class="input-field" required>
                             <option value="">-- Chọn loại --</option>
-                            <option value="Lý thuyết" ${area.areaType eq 'Lý thuyết' ? 'selected' : ''}>Lý thuyết</option>
-                            <option value="Thực hành" ${area.areaType eq 'Thực hành' ? 'selected' : ''}>Thực hành</option>
-                            <option value="Hỗn hợp" ${area.areaType eq 'Hỗn hợp' ? 'selected' : ''}>Hỗn hợp</option>
+                            <option value="Phòng thủ tục" ${area.areaType eq 'Phòng thủ tục' ? 'selected' : ''}>Phòng thủ tục</option>
+                            <option value="Phòng thi" ${area.areaType eq 'Phòng thi' ? 'selected' : ''}>Phòng thi</option>
+                            <option value="Sân thi" ${area.areaType eq 'Sân thi' ? 'selected' : ''}>Sân thi</option>
+                            <option value="Đường thi" ${area.areaType eq 'Đường thi' ? 'selected' : ''}>Đường thi</option>
                         </select>
                     </div>
                     <div class="input-group">

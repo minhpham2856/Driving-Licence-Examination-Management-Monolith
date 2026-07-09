@@ -1,7 +1,7 @@
 package controller.admin;
 
 import dto.*;
-import dto.payload.SaveEntityData;
+import dto.SaveResultDTO;
 import service.impl.*;
 import service.LicenceService;
 import service.impl.LicenceServiceImpl;
@@ -9,7 +9,7 @@ import model.Licence;
 import model.User;
 import enums.AuditAction;
 import enums.AuditEntity;
-import service.AuditLogService;
+import service.AuditService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -27,7 +27,7 @@ import static util.FormatUtil.toInteger;
 @WebServlet(name = "LicenceServlet", urlPatterns = {"/admin/licence-class"})
 public class LicenceServlet extends HttpServlet {
 
-    private final AuditLogService auditLogService = new AuditLogServiceImpl();
+    private final AuditService AuditService = new AuditServiceImpl();
     private final LicenceService licenceService = new LicenceServiceImpl();
     private static final String LIST_VIEW = "/views/admin/licence-class.jsp";
     private static final String FORM_VIEW = "/views/admin/licence-class-form.jsp";
@@ -86,7 +86,7 @@ public class LicenceServlet extends HttpServlet {
         Integer upgradeFrom = toInteger(req.getParameter("upgradeFromLicenceId"));
         boolean isEdit = id > 0;
         Licence l = build(id, licenceClass, description, minimumAge, validForYears, upgradeFrom);
-        ServiceResult<SaveEntityData> result = licenceService.save(l, admin.getUserId());
+        ServiceResult<SaveResultDTO> result = licenceService.save(l, admin.getUserId());
         if (!result.isSuccess()) {
             req.setAttribute("mode", isEdit ? "edit" : "create");
             req.setAttribute("licence", l);
@@ -96,7 +96,7 @@ public class LicenceServlet extends HttpServlet {
             return;
         }
         int savedId = result.getData() != null ? result.getData().getEntityId() : l.getLicenceId();
-        auditLogService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
+        AuditService.logAction(((User) req.getSession().getAttribute("user")).getUserId(),
                 isEdit ? AuditAction.UPDATE : AuditAction.CREATE, AuditEntity.DOSSIER,
                 (isEdit ? "Cập nhật hạng GPLX: " : "Tạo hạng GPLX: ") + licenceClass, savedId);
         HttpSession flashSession = req.getSession(true);

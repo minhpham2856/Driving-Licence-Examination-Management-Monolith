@@ -82,9 +82,10 @@
                         <label for="filterType" class="input-label">Loại khu vực</label>
                         <select id="filterType" name="filterType" class="input-field">
                             <option value="">Tất cả loại</option>
-                            <option value="Lý thuyết" ${param.filterType eq 'Lý thuyết' ? 'selected' : ''}>Lý thuyết</option>
-                            <option value="Thực hành" ${param.filterType eq 'Thực hành' ? 'selected' : ''}>Thực hành</option>
-                            <option value="Hỗn hợp" ${param.filterType eq 'Hỗn hợp' ? 'selected' : ''}>Hỗn hợp</option>
+                            <option value="Phòng thủ tục" ${param.filterType eq 'Phòng thủ tục' ? 'selected' : ''}>Phòng thủ tục</option>
+                            <option value="Phòng thi" ${param.filterType eq 'Phòng thi' ? 'selected' : ''}>Phòng thi</option>
+                            <option value="Sân thi" ${param.filterType eq 'Sân thi' ? 'selected' : ''}>Sân thi</option>
+                            <option value="Đường thi" ${param.filterType eq 'Đường thi' ? 'selected' : ''}>Đường thi</option>
                         </select>
                     </div>
                     <div class="input-group filter-grid__btn-col">
@@ -169,6 +170,7 @@
                                                    data-type="${fn:escapeXml(area.areaType)}"
                                                    data-capacity="${area.capacity}"
                                                    data-location="${fn:escapeXml(area.location)}"
+                                                   data-zoneid="${area.examZoneId}"
                                                    onclick="openAreaModalEdit(this)">
                                                     Sửa
                                                 </button>
@@ -277,14 +279,25 @@
                            placeholder="VD: Khu vực sát hạch trung tâm Hà Nội" required>
                 </div>
 
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="m_examZoneId" class="input-label">Khu vực (ExamZone) <span style="color:#dc2626;">*</span></label>
+                    <select id="m_examZoneId" name="examZoneId" class="input-field" required>
+                        <option value="">-- Chọn khu vực --</option>
+                        <c:forEach var="zone" items="${examZones}">
+                            <option value="${zone.examZoneId}">${zone.zoneName}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+
                 <div class="filter-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
                     <div class="input-group">
                         <label for="m_areaType" class="input-label">Loại khu vực <span style="color:#dc2626;">*</span></label>
                         <select id="m_areaType" name="areaType" class="input-field" required>
                             <option value="">-- Chọn loại --</option>
-                            <option value="Lý thuyết">Lý thuyết</option>
-                            <option value="Thực hành">Thực hành</option>
-                            <option value="Hỗn hợp">Hỗn hợp</option>
+                            <option value="Phòng thủ tục">Phòng thủ tục</option>
+                            <option value="Phòng thi">Phòng thi</option>
+                            <option value="Sân thi">Sân thi</option>
+                            <option value="Đường thi">Đường thi</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -319,6 +332,7 @@
     function openAreaModal() {
         document.getElementById('areaModalTitle').textContent = 'Thêm khu vực thi';
         document.getElementById('m_examAreaId').value = '';
+        document.getElementById('m_examZoneId').value = '';
         document.getElementById('m_areaName').value = '';
         document.getElementById('m_areaType').value = '';
         document.getElementById('m_capacity').value = '';
@@ -330,6 +344,7 @@
         document.getElementById('areaModalTitle').textContent = 'Chỉnh sửa khu vực thi';
         document.getElementById('m_examAreaId').value = btn.dataset.id;
         document.getElementById('m_areaName').value = btn.dataset.name;
+        document.getElementById('m_examZoneId').value = btn.dataset.zoneid || '';
         document.getElementById('m_areaType').value = btn.dataset.type;
         document.getElementById('m_capacity').value = btn.dataset.capacity;
         document.getElementById('m_location').value = btn.dataset.location;

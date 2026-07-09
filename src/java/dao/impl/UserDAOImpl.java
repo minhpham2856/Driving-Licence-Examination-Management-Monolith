@@ -218,4 +218,67 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return 0;
     }
+
+    @Override
+    public List<User> searchForAdmin(String keyword, String roleFilter, String statusFilter) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT u.UserId, u.Username, u.Email, u.PasswordHash, u.RoleId, u.IsActive "
+                + "FROM [User] u INNER JOIN Role r ON r.RoleId = u.RoleId WHERE 1=1");
+        boolean hasKw = keyword != null && !keyword.isBlank();
+        boolean hasRole = roleFilter != null && !roleFilter.isBlank();
+        boolean hasStatus = statusFilter != null && !statusFilter.isBlank();
+        if (hasKw) {
+            sql.append(" AND (u.Username LIKE ? OR u.Email LIKE ? OR u.UserId IN "
+                    + "(SELECT UserId FROM Profile WHERE FullName LIKE ? OR PhoneNumber LIKE ?))");
+        }
+        if (hasRole) {
+            sql.append(" AND r.RoleName = ?");
+        }
+        if (hasStatus) {
+            if ("active".equals(statusFilter)) {
+                sql.append(" AND u.IsActive = 1");
+            } else if ("locked".equals(statusFilter) || "inactive".equals(statusFilter)) {
+                sql.append(" AND u.IsActive = 0");
+            }
+        }
+        sql.append(" ORDER BY u.UserId DESC");
+        List<User> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (hasKw) {
+                String like = "%" + keyword.trim() + "%";
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+            }
+            if (hasRole) {
+                ps.setString(idx++, mapRoleFilterToDbName(roleFilter.trim()));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    private static String mapRoleFilterToDbName(String filter) {
+        if ("admin".equals(filter)) {
+            return UserRole.ADMIN.getValue();
+        }
+        if ("coi_thi".equals(filter)) {
+            return UserRole.EXAM_STAFF.getValue();
+        }
+        if ("cham_thi".equals(filter)) {
+            return UserRole.EXAMINER.getValue();
+        }
+        if ("candidate".equals(filter)) {
+            return UserRole.CANDIDATE.getValue();
+        }
+        return filter;
+    }
 }

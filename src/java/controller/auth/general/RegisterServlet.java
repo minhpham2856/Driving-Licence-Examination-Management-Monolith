@@ -1,7 +1,7 @@
 package controller.auth.general;
 
 import dto.ServiceResult;
-import dto.payload.RegisterData;
+import dto.RegisterResultDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -86,13 +86,13 @@ public class RegisterServlet extends HttpServlet {
         profile.setSex("1".equals(sexParam));
         profile.setDateOfBirth(Timestamp.valueOf(dob.atStartOfDay()));
 
-        ServiceResult<RegisterData> result = authService.register(profile, email);
+        ServiceResult<RegisterResultDTO> result = authService.register(profile, email);
         if (!result.isSuccess()) {
             request.setAttribute("error", result.getMessage());
             forwardRegister(request, response);
             return;
         }
-        RegisterData data = result.getData();
+        RegisterResultDTO data = result.getData();
         HttpSession session = request.getSession();
         if (data.isEmailSent()) {
             session.setAttribute("successMessage",

@@ -1,7 +1,7 @@
 package service;
 
+import dto.SaveResultDTO;
 import dto.ServiceResult;
-import dto.payload.SaveEntityData;
 import model.ExamArea;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface ExamAreaService {
 
     List<ExamArea> getActiveTheoryRooms();
 
-    ServiceResult<SaveEntityData> save(ExamArea area, int adminUserId);
+    ServiceResult<SaveResultDTO> save(ExamArea area, int adminUserId);
 
     ServiceResult<Void> delete(int id, int adminUserId);
 }

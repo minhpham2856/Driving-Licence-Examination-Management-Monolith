@@ -1,7 +1,6 @@
 package controller.examiner;
 
-import dto.ExaminerCandidateRowDTO;
-import filter.ExaminerFilter;
+import dto.CandidateRowDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,11 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
-import service.ExaminerActionsService;
-import service.ExaminerDataService;
-import service.impl.ExaminerActionsServiceImpl;
-import service.impl.ExaminerDataServiceImpl;
-import util.ExamSessionState;
+import service.CallService;
+import service.ExamViewService;
+import service.impl.CallServiceImpl;
+import service.impl.ExamViewServiceImpl;
 import util.ExaminerCandidateSort;
 
 import java.io.IOException;
@@ -33,8 +31,8 @@ import java.util.UUID;
 @MultipartConfig(maxFileSize = 5 * 1024 * 1024)
 public class ExaminerViolationsServlet extends BaseExaminerServlet {
 
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
-    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
+    protected final CallService ScheduleService = new CallServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -112,15 +110,13 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         String reasonCode = request.getParameter("reasonCode");
         String reasonDetail = request.getParameter("reasonDetail");
         String evidencePath = saveEvidence(request);
-        boolean isTheory = ExaminerFilter.isTheorySession(session);
-        String sectionName = getSectionDisplayName(session);
-        if (!examinerService.recordViolation(
-                buildViolationCommand(session, sessionId, sbd, user, reasonCode, reasonDetail, evidencePath, new int[0])).isSuccess()) {
+        if (!ScheduleService.recordViolation(sessionId, sbd, userId, reasonCode, reasonDetail,
+                evidencePath).isSuccess()) {
             response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd="
                     + encodeSbd(sbd) + "&error=recordFailed");
             return;
         }
-        ExamSessionState.removeCandidate(getServletContext(), sessionId, sbd);
+        ScheduleService.removeCandidate(sessionId, sbd);
         response.sendRedirect(request.getContextPath() + "/views/examiner/violation-detail?sbd="
                 + encodeSbd(sbd) + "&violationDone=" + encodeSbd(sbd));
     }
@@ -133,8 +129,8 @@ public class ExaminerViolationsServlet extends BaseExaminerServlet {
         Object candidatesObj = request.getAttribute("candidates");
         if (candidatesObj instanceof List<?> candidates) {
             @SuppressWarnings("unchecked")
-            List<ExaminerCandidateRowDTO> rows = (List<ExaminerCandidateRowDTO>) candidates;
-            ExaminerCandidateSort.applyCandidateSort(request, rows);
+            List<CandidateRowDTO> rows = (List<CandidateRowDTO>) candidates;
+            applyCandidateSort(request, rows);
             request.setAttribute("candidates", rows);
         }
     }

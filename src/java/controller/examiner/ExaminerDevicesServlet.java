@@ -9,20 +9,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.ExamAreaService;
-import service.ExaminerDataService;
+import service.ExamViewService;
 import service.impl.ExamAreaServiceImpl;
-import service.impl.ExaminerDataServiceImpl;
-import service.ExaminerActionsService;
-import service.impl.ExaminerActionsServiceImpl;
-import dto.payload.DeviceActionCommand;
+import service.impl.ExamViewServiceImpl;
+import service.CallService;
+import service.impl.CallServiceImpl;
 import java.io.IOException;
 import java.util.Map;
 
 @WebServlet("/views/examiner/devices")
 public class ExaminerDevicesServlet extends BaseExaminerServlet {
 
-    protected final ExaminerDataService viewDataService = new ExaminerDataServiceImpl();
-    protected final ExaminerActionsService examinerService = new ExaminerActionsServiceImpl();
+    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
+    protected final CallService ScheduleService = new CallServiceImpl();
     private final ExamAreaService examAreaService = new ExamAreaServiceImpl();
 
     @Override
@@ -45,14 +44,14 @@ public class ExaminerDevicesServlet extends BaseExaminerServlet {
                     return;
                 }
                 User deviceUser = (User) session.getAttribute("user");
-                DeviceActionCommand deviceCommand = buildDeviceActionCommand(deviceId, deviceUser.getUserId());
+                int actionUserId = deviceUser.getUserId();
                 boolean updated;
                 String redirectParam;
                 if ("operational".equals(action)) {
-                    updated = examinerService.setDeviceAvailable(deviceCommand).isSuccess();
+                    updated = ScheduleService.setDeviceAvailable(deviceId, actionUserId).isSuccess();
                     redirectParam = updated ? "/views/examiner/devices?operationalDone=" + deviceId : "/views/examiner/devices?error=operationalFailed&deviceId=" + deviceId;
                 } else {
-                    updated = examinerService.setDeviceMaintenance(deviceCommand).isSuccess();
+                    updated = ScheduleService.setDeviceMaintenance(deviceId, actionUserId).isSuccess();
                     redirectParam = updated ? "/views/examiner/devices?maintenanceDone=" + deviceId : "/views/examiner/devices?error=maintenanceFailed&deviceId=" + deviceId;
                 }
                 response.sendRedirect(request.getContextPath() + redirectParam);

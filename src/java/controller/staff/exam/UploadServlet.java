@@ -9,20 +9,20 @@ import java.util.*;
 import model.*;
 import service.*;
 import service.impl.*;
-import service.ExamRegistrationService;
-import service.ExamSessionControlService;
-import service.impl.ExamRegistrationServiceImpl;
-import service.impl.ExamSessionControlServiceImpl;
-import dto.CandidateEnrollmentDTO;
-import dto.UploadRecordDTO;
-import dto.SessionDTO;
+import service.RegistrationService;
+import service.SessionService;
+import service.impl.RegistrationServiceImpl;
+import service.impl.SessionServiceImpl;
+import dto.EnrollmentDTO;
+import dto.UploadRowDTO;
+import dto.SessionViewDTO;
 import enums.AuditAction;
 import enums.AuditEntity;
 import model.Profile;
 import model.User;
 import util.UsernameGenerator;
-import service.CandidatePhotoService;
-import service.impl.CandidatePhotoServiceImpl;
+import service.PhotoService;
+import service.impl.PhotoServiceImpl;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
 import jakarta.servlet.ServletException;
@@ -37,17 +37,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
-import java.util.ArrayList;
+import controller.staff.exam.BaseStaffExamServlet;
 import java.util.List;
 @WebServlet("/views/staff/exam/upload")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
         maxFileSize = 1024 * 1024 * 15, // 15MB
         maxRequestSize = 1024 * 1024 * 30)   // 30MB
-public class UploadServlet extends HttpServlet {
-    private final AuditLogService auditLogService = new AuditLogServiceImpl();
-    private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
-    private final ExamSessionControlService sessionService = new ExamSessionControlServiceImpl();
-    private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
+public class UploadServlet extends BaseStaffExamServlet {
+    private final AuditService AuditService = new AuditServiceImpl();
+    private final RegistrationService regService = new RegistrationServiceImpl();
+    private final SessionService sessionService = new SessionServiceImpl();
+    private final PhotoService photoService = new PhotoServiceImpl();
     private final RoleService roleService = new RoleServiceImpl();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -93,15 +93,15 @@ public class UploadServlet extends HttpServlet {
         }
         // UC-01 Normal Flow Step 6: Confirm & save from preview
         if ("save".equals(action)) {
-            List<UploadRecordDTO> previewList = (List<UploadRecordDTO>) session.getAttribute("previewCandidates");
+            List<UploadRowDTO> previewList = (List<UploadRowDTO>) session.getAttribute("previewCandidates");
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
-            if (selectedSessionId == null) {
-                selectedSessionId = 2;
+            if (selectedSessionId == null || selectedSessionId <= 0) {
+                selectedSessionId = readSessionId(request, session, sessionService);
             }
             if (previewList != null && !previewList.isEmpty()) {
                 int importedCount = 0;
                 int skippedCount = 0;
-                for (UploadRecordDTO reg : previewList) {
+                for (UploadRowDTO reg : previewList) {
                     try {
                         String dupAction = request.getParameter("dupAction_" + reg.getGovIdNo());
                         if (reg.isDuplicate() && "skip".equals(dupAction)) {
@@ -143,7 +143,7 @@ public class UploadServlet extends HttpServlet {
                     }
                 }
                 session.removeAttribute("previewCandidates");
-                List<CandidateEnrollmentDTO> updatedQueue = regService.getCandidatesBySession(selectedSessionId);
+                List<EnrollmentDTO> updatedQueue = regService.getCandidatesBySession(selectedSessionId);
                 photoService.normalizeQueue(request.getServletContext().getRealPath("/"), updatedQueue);
                 session.setAttribute("candidateQueue", updatedQueue);
                 session.setAttribute("lastLoadedSessionId", selectedSessionId);
@@ -152,8 +152,8 @@ public class UploadServlet extends HttpServlet {
                 if (uploadedFile == null) {
                     uploadedFile = "danh_sach.csv";
                 }
-                SessionDTO importSession = sessionService.getSessionById(selectedSessionId);
-                String sessionLabel = importSession != null ? importSession.getShiftLabel() : ("SessionId " + selectedSessionId);
+                SessionViewDTO importSession = sessionService.getSessionById(selectedSessionId);
+                String sessionLabel = importSession != null ? importSession.getCaLabel() : ("SessionId " + selectedSessionId);
                 String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
                         + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
                         + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");
@@ -172,13 +172,7 @@ public class UploadServlet extends HttpServlet {
         session.removeAttribute("uploadError");
         session.removeAttribute("hasInvalidRows");
         String sessionParam = request.getParameter("examSessionId");
-        int selectedSessionId = 2;
-        if (sessionParam != null && !sessionParam.isEmpty()) {
-            try {
-                selectedSessionId = Integer.parseInt(sessionParam);
-            } catch (Exception e) {
-                /* ignore */ }
-        }
+        int selectedSessionId = readSessionId(request, session, sessionService);
         session.setAttribute("selectedImportSessionId", selectedSessionId);
         Part filePart = request.getPart("fileInput");
         try {
@@ -205,7 +199,7 @@ public class UploadServlet extends HttpServlet {
                 if (fileContent.startsWith("\uFEFF")) {
                     fileContent = fileContent.substring(1);
                 }
-                List<UploadRecordDTO> parsedList = new ArrayList<>();
+                List<UploadRowDTO> parsedList = new ArrayList<>();
                 BufferedReader reader = new BufferedReader(new StringReader(fileContent));
                 String line;
                 boolean isHeader = true;
@@ -230,7 +224,7 @@ public class UploadServlet extends HttpServlet {
                     String licenseCode = parts[4].trim();
                     String phone = parts[5].trim();
                     String email = parts[6].trim();
-                    UploadRecordDTO reg = new UploadRecordDTO();
+                    UploadRowDTO reg = new UploadRowDTO();
                     reg.setFullName(fullName);
                     reg.setGovIdNo(cccd);
                     reg.setLicenseCode(licenseCode.isEmpty() ? "B2" : licenseCode);
@@ -302,7 +296,7 @@ public class UploadServlet extends HttpServlet {
         }
         response.sendRedirect("upload");
     }
-    private Profile ensureProfileForImport(UploadRecordDTO reg) {
+    private Profile ensureProfileForImport(UploadRowDTO reg) {
         Profile profile = regService.getProfileByGovId(reg.getGovIdNo());
         String finalPhone = (reg.getPhoneNo() != null && !reg.getPhoneNo().isBlank())
                 ? reg.getPhoneNo().trim()
@@ -365,7 +359,7 @@ public class UploadServlet extends HttpServlet {
         audit.put("action", action.getValue());
         audit.put("details", details);
         sessionAuditLogs.add(0, audit);
-        auditLogService.logAction(((User) session.getAttribute("user")).getUserId(), action, entity, details, recordId);
+        AuditService.logAction(((User) session.getAttribute("user")).getUserId(), action, entity, details, recordId);
     }
     private boolean isValidUTF8(byte[] bytes) {
         int i = 0;

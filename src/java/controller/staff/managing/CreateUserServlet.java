@@ -1,9 +1,7 @@
 package controller.staff.managing;
 
 import dto.ServiceResult;
-import dto.payload.CreateManagedUserCommand;
-import dto.payload.CreateUserData;
-import dto.payload.ManagedDossierCommand;
+import dto.CreateUserResultDTO;
 import enums.UserRole;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -15,9 +13,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import model.User;
 import service.RoleService;
-import service.UserManagementService;
+import service.UserService;
 import service.impl.RoleServiceImpl;
-import service.impl.UserManagementServiceImpl;
+import service.impl.UserServiceImpl;
 import util.CredentialsUtil;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,7 +42,7 @@ public class CreateUserServlet extends HttpServlet {
             "healthCertificate", "HEALTH_CERTIFICATE");
     private static final String GRADUATION_PART = "graduationCertificate";
     private static final String GRADUATION_DOCUMENT_TYPE = "GRADUATION_CERTIFICATE";
-    private final UserManagementService userManagementService = new UserManagementServiceImpl();
+    private final UserService UserService = new UserServiceImpl();
     private final RoleService roleService = new RoleServiceImpl();
 
     @Override
@@ -91,14 +89,13 @@ public class CreateUserServlet extends HttpServlet {
             forwardError(request, response, ex.getMessage());
             return;
         }
-        CreateManagedUserCommand command = new CreateManagedUserCommand(
+        ServiceResult<CreateUserResultDTO> result = UserService.createUser(
                 fullName, cccd, phone, email, dob, sex, address, userType, licenseClass);
-        ServiceResult<CreateUserData> result = userManagementService.createUser(command);
         if (!result.isSuccess()) {
             forwardError(request, response, result.getMessage());
             return;
         }
-        CreateUserData data = result.getData();
+        CreateUserResultDTO data = result.getData();
         if (data.getProfileId() == null || data.getUserId() == null) {
             forwardError(request, response,
                     "Tài khoản đã được tạo nhưng không tìm thấy hồ sơ người dùng để lưu giấy tờ.");
@@ -114,9 +111,8 @@ public class CreateUserServlet extends HttpServlet {
         }
         HttpSession session = request.getSession();
         User actor = (User) session.getAttribute("user");
-        ManagedDossierCommand dossierCommand = new ManagedDossierCommand(
+        ServiceResult<Void> dossierResult = UserService.saveManagedDossier(
                 data.getProfileId(), licenseClass, userType, documents, actor.getUserId());
-        ServiceResult<Void> dossierResult = userManagementService.saveManagedDossier(dossierCommand);
         if (!dossierResult.isSuccess()) {
             forwardError(request, response,
                     "Tài khoản đã được tạo nhưng " + dossierResult.getMessage());
@@ -197,7 +193,7 @@ public class CreateUserServlet extends HttpServlet {
             validateUploadFile(part);
         }
         Part graduation = request.getPart(GRADUATION_PART);
-        if (UserManagementServiceImpl.requiresGraduationCertificate(licenseClass)) {
+        if (UserServiceImpl.requiresGraduationCertificate(licenseClass)) {
             if (graduation == null || graduation.getSize() == 0) {
                 throw new IllegalArgumentException(
                         "Hồ sơ hạng ô tô phải có giấy tốt nghiệp/chứng chỉ đào tạo từ trung tâm.");
@@ -229,7 +225,7 @@ public class CreateUserServlet extends HttpServlet {
             String fileName = storePart(graduation, directory, GRADUATION_DOCUMENT_TYPE);
             documents.put(GRADUATION_DOCUMENT_TYPE,
                     "/uploads/dossiers/" + userId + "/" + fileName);
-        } else if (UserManagementServiceImpl.requiresGraduationCertificate(licenseClass)) {
+        } else if (UserServiceImpl.requiresGraduationCertificate(licenseClass)) {
             throw new IllegalArgumentException(
                     "Hồ sơ hạng ô tô phải có giấy tốt nghiệp/chứng chỉ đào tạo từ trung tâm.");
         }

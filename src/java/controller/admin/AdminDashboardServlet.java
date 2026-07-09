@@ -1,8 +1,8 @@
 package controller.admin;
 import dto.*;
 import model.*;
-import service.AdminDashboardService;
-import service.impl.AdminDashboardServiceImpl;
+import service.DashboardService;
+import service.impl.DashboardServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,10 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 @WebServlet(name = "AdminDashboardServlet", urlPatterns = {"/admin/dashboard"})
 public class AdminDashboardServlet extends HttpServlet {
-    private AdminDashboardService dashboardService;
+    private DashboardService dashboardService;
     @Override
     public void init() {
-        dashboardService = new AdminDashboardServiceImpl();
+        dashboardService = new DashboardServiceImpl();
     }
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)

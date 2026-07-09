@@ -16,13 +16,13 @@ import model.Session;
 import model.User;
 import service.ExamAreaService;
 import service.ExamService;
-import service.ExamSessionService;
-import service.ExaminerService;
+import service.SessionService;
+import service.ScheduleService;
 import service.LicenceService;
 import service.impl.ExamAreaServiceImpl;
 import service.impl.ExamServiceImpl;
-import service.impl.ExamSessionServiceImpl;
-import service.impl.ExaminerServiceImpl;
+import service.impl.SessionServiceImpl;
+import service.impl.ScheduleServiceImpl;
 import service.impl.LicenceServiceImpl;
 
 import java.io.IOException;
@@ -34,8 +34,8 @@ import java.util.Map;
 @WebServlet("/views/examiner/session")
 public class ExaminerSessionServlet extends BaseExaminerServlet {
 
-    private final ExaminerService examinerService = new ExaminerServiceImpl();
-    private final ExamSessionService examSessionService = new ExamSessionServiceImpl();
+    private final ScheduleService ScheduleService = new ScheduleServiceImpl();
+    private final SessionService SessionService = new SessionServiceImpl();
     private final ExamService examService = new ExamServiceImpl();
     private final ExamAreaService examAreaService = new ExamAreaServiceImpl();
     private final LicenceService licenceService = new LicenceServiceImpl();
@@ -53,7 +53,7 @@ public class ExaminerSessionServlet extends BaseExaminerServlet {
             return;
         }
 
-        List<ExaminerSchedule> schedules = examinerService.getSchedulesByExaminerId(user.getUserId());
+        List<ExaminerSchedule> schedules = ScheduleService.getSchedulesByExaminerId(user.getUserId());
         Map<Integer, Licence> licencesByExamId = new HashMap<>();
         List<ExaminerSchedule> hydrated = new ArrayList<>();
         for (ExaminerSchedule schedule : schedules) {
@@ -86,26 +86,26 @@ public class ExaminerSessionServlet extends BaseExaminerServlet {
             return;
         }
 
-        ExaminerSchedule schedule = examinerService.getScheduleById(scheduleId);
+        ExaminerSchedule schedule = ScheduleService.getScheduleById(scheduleId);
         if (schedule == null || schedule.getExaminerId() != user.getUserId()) {
             response.sendRedirect(request.getContextPath() + "/views/examiner/session?error=denied");
             return;
         }
 
-        Session session = examSessionService.getById(schedule.getSessionId());
+        Session session = SessionService.getById(schedule.getSessionId());
         if (session == null || ExamSessionStatus.fromValue(session.getStatus()) != ExamSessionStatus.IN_PROGRESS) {
             response.sendRedirect(request.getContextPath() + "/views/examiner/session?error=notActive");
             return;
         }
 
         schedule = hydrateSchedule(schedule, new HashMap<>());
-        ExamSection examSection = examSessionService.resolveExamSection(schedule, session);
+        ExamSection examSection = SessionService.getExamSection(schedule, session);
         applyExaminerSessionContext(httpSession, schedule, session, examSection);
         response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
     }
 
     private ExaminerSchedule hydrateSchedule(ExaminerSchedule schedule, Map<Integer, Licence> licencesByExamId) {
-        Session session = examSessionService.getById(schedule.getSessionId());
+        Session session = SessionService.getById(schedule.getSessionId());
         schedule.setSession(session);
         if (session != null) {
             Exam exam = examService.getById(session.getExamId());
@@ -121,7 +121,7 @@ public class ExaminerSessionServlet extends BaseExaminerServlet {
             ExamArea area = examAreaService.getById(schedule.getExamAreaId());
             schedule.setExamArea(area);
         }
-        schedule.setExamSection(examSessionService.getExamSectionModel(schedule, session));
+        schedule.setExamSection(SessionService.getExamSectionModel(schedule, session));
         return schedule;
     }
 }

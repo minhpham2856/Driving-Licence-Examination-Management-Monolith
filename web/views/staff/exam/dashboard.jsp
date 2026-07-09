@@ -45,7 +45,7 @@
                     </div>
 
                     <div class="page-actions" style="display: flex; gap: 10px;">
-                        <a href="candidatecall.jsp" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; gap: 6px;">
+                        <a href="${pageContext.request.contextPath}/views/staff/exam/candidatecall" class="btn-filter" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; flex: none; text-decoration: none; background-color: #0052cc; border-color: #0052cc; display: inline-flex; align-items: center; gap: 6px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
                             <path d="M3 21v-2a7 7 0 0 1 14 0v2M19 8v6M16 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -228,7 +228,7 @@
                                     Tải danh sách Excel thí sinh
                                 </a>
 
-                                <a href="candidatecall.jsp" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #ffffff; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
+                                <a href="${pageContext.request.contextPath}/views/staff/exam/candidatecall" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #ffffff; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
                                     <span style="color: #059669; display: inline-flex; align-items: center;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
@@ -238,7 +238,7 @@
                                     Gọi thí sinh sát hạch sa hình
                                 </a>
 
-                                <a href="candidatelist.jsp" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #ffffff; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
+                                <a href="${pageContext.request.contextPath}/views/staff/exam/candidates" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; color: #334155; background: #ffffff; font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
                                     <span style="color: #4f46e5; display: inline-flex; align-items: center;">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
