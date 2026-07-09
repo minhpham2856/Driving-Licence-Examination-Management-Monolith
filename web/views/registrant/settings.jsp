@@ -19,8 +19,6 @@
     <!-- Layout Stylesheets -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css?v=<%= System.currentTimeMillis() %>">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css?v=<%= System.currentTimeMillis() %>">
-    <link rel="stylesheet" href="../../assets/css/style.css?v=<%= System.currentTimeMillis() %>">
-    <link rel="stylesheet" href="../../assets/css/layout.css?v=<%= System.currentTimeMillis() %>">
 </head>
 <body class="has-side-nav-bar">
 

@@ -8,7 +8,7 @@
 </jsp:include>
 
 <!-- Link custom stylesheet for this page -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/license-categories.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/license-categories.css">
 
 <!-- Server-side filtering using JSTL -->
 <c:set var="isFirstLoad" value="${empty param.submit}" />

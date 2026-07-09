@@ -14,7 +14,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@700;800&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="${ctx}/assets/css/style.css">
-        <link rel="stylesheet" href="${ctx}/assets/css/exam-results.css">
+        <link rel="stylesheet" href="${ctx}/assets/css/exam/exam-results.css">
     </head>
     <body>
 

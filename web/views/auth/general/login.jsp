@@ -8,7 +8,7 @@
 </jsp:include>
 <!--HEADER-->
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/login.css">
 
 <main class="login-page-main">
     <div class="login-card-container">

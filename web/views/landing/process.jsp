@@ -5,7 +5,7 @@
 </jsp:include>
 
 <!-- Link custom stylesheet for this page -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/process.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/process.css">
 
 <main class="public-main process-page">
     <!-- Hero Section -->

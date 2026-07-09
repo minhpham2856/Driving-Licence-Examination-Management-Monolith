@@ -7,7 +7,7 @@
     <jsp:param name="activeNav" value="hang-bang" />
 </jsp:include>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/license-categories.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/license-categories.css">
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="searchQuery" value="${requestScope.searchQuery}" />

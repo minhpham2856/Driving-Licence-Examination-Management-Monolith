@@ -7,7 +7,7 @@
 </jsp:include>
 
 <!-- Link custom stylesheet for the forgot password page -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/forgot-password.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/forgot-password.css">
 
 <main class="recovery-page-main">
     <!-- Ambient Blur Background Overlays (matching Figma specs!) -->
