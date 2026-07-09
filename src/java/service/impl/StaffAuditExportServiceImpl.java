@@ -55,9 +55,7 @@ public class StaffAuditExportServiceImpl implements StaffAuditExportService {
                     "Thời gian đầy đủ",
                     "Kiểu thao tác",
                     "Nghiệp vụ",
-                    "Thao tác (chi tiết)",
-                    "Mã bản ghi",
-                    "Mã nhật ký"
+                    "Thao tác (chi tiết)"
             };
             for (int i = 0; i < cols.length; i++) {
                 Cell c = header.createCell(i);
@@ -94,14 +92,7 @@ public class StaffAuditExportServiceImpl implements StaffAuditExportService {
 
                     data.createCell(col++).setCellValue(AuditExportLabels.formatActionType(log));
                     data.createCell(col++).setCellValue(AuditExportLabels.formatEntityLabel(log.getTableName()));
-                    data.createCell(col++).setCellValue(AuditExportLabels.formatOperationDetail(log));
-
-                    if (log.getRecordId() != null && log.getRecordId() > 0) {
-                        data.createCell(col++).setCellValue(log.getRecordId());
-                    } else {
-                        data.createCell(col++).setBlank();
-                    }
-                    data.createCell(col).setCellValue(log.getId());
+                    data.createCell(col).setCellValue(AuditExportLabels.formatOperationDetail(log));
                 }
             }
 

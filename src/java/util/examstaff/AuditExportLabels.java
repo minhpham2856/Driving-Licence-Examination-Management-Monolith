@@ -179,7 +179,7 @@ public final class AuditExportLabels {
 
             case "EXAMSCORE" -> "Điểm / Kết quả thi";
 
-            case "SESSION" -> "Ca thi";
+            case "SESSION" -> "Điều hành ca thi";
 
             case "CANDIDATE", "EXAMENROLLMENT" -> "Thí sinh";
 
@@ -234,6 +234,8 @@ public final class AuditExportLabels {
 
             case "Điểm thi", "Kết quả thi" -> "Điểm / Kết quả thi";
 
+            case "Ca thi" -> "Điều hành ca thi";
+
             case "Thí sinh", "Hồ sơ đăng ký thi" -> label.trim();
 
     // format operation detail
@@ -255,29 +257,44 @@ public final class AuditExportLabels {
 
         if (details != null && !details.isBlank()) {
 
-            return details.trim();
+            return normalizeOperationDetail(details.trim());
 
         }
 
         if (log.getReason() != null && !log.getReason().isBlank()) {
 
-            return log.getReason().trim();
+            return normalizeOperationDetail(log.getReason().trim());
 
         }
 
         if (log.getOldValue() != null && !log.getOldValue().isBlank()) {
 
-            return log.getOldValue().trim();
+            return normalizeOperationDetail(log.getOldValue().trim());
 
         }
 
         if (log.getNewValue() != null && !log.getNewValue().isBlank()) {
 
-            return log.getNewValue().trim();
+            return normalizeOperationDetail(log.getNewValue().trim());
 
         }
 
         return "";
+
+    }
+
+    private static String normalizeOperationDetail(String detail) {
+
+        if (detail == null || detail.isBlank()) {
+
+            return "";
+
+        }
+
+        String normalized = detail.replaceAll("\\s*SessionId=\\d+\\s*-\\s*", " ");
+        normalized = normalized.replaceAll("\\s*SessionId=\\d+", "");
+        normalized = normalized.replaceAll("\\s{2,}", " ").trim();
+        return normalized;
 
     }
 
