@@ -9,12 +9,6 @@
         <c:set var="boxLabel" value="Quy định điểm đạt thi thực hành / sa hình" />
         <c:set var="boxTitle" value="Quy định điểm đạt — Thực hành / Sa hình" />
     </c:when>
-    <c:when test="${variant eq 'road'}">
-        <c:set var="boxClass" value="examstaff-rules-box--road" />
-        <c:set var="boxIcon" value="route" />
-        <c:set var="boxLabel" value="Quy định điểm đạt thi đường trường" />
-        <c:set var="boxTitle" value="Quy định điểm đạt — Đường trường" />
-    </c:when>
     <c:when test="${variant eq 'results'}">
         <c:set var="boxClass" value="examstaff-rules-box--results" />
         <c:set var="boxIcon" value="fact_check" />
@@ -46,15 +40,6 @@
                 </ol>
             </c:when>
 
-            <c:when test="${variant eq 'road'}">
-                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi đường trường khi đáp ứng các điều kiện sau:</p>
-                <ol class="examstaff-rules-doc__list">
-                    <li>Đạt tối thiểu <strong>80 điểm trên tổng 100 điểm</strong>.</li>
-                    <li>Không mắc <strong>lỗi liệt</strong> trong quá trình thi.</li>
-                    <li>Áp dụng cho hạng <strong>B trở lên</strong>; hạng <strong>A / A1</strong> không thi phần đường trường.</li>
-                </ol>
-            </c:when>
-
             <c:when test="${variant eq 'results'}">
                 <p class="examstaff-rules-doc__lead">Kết quả đỗ / trượt được xác định theo ngưỡng đạt của từng phần thi như sau:</p>
                 <div class="examstaff-rules-doc__cards">
@@ -62,16 +47,12 @@
                         <p class="examstaff-rules-doc__card-title">1. Thi lý thuyết</p>
                         <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
                             <li>Hạng <strong>A / A1</strong>: ≥ <strong>36 / 40</strong></li>
-                            <li>Hạng <strong>B / B1</strong>: ≥ <strong>45 / 50</strong></li>
+                            <li>Hạng <strong>B1</strong>: ≥ <strong>45 / 50</strong></li>
                         </ul>
                     </div>
                     <div class="examstaff-rules-doc__card">
                         <p class="examstaff-rules-doc__card-title">2. Thực hành / Sa hình</p>
                         <p class="examstaff-rules-doc__card-text">Đạt tối thiểu <strong>80 điểm</strong>, không mắc lỗi liệt.</p>
-                    </div>
-                    <div class="examstaff-rules-doc__card">
-                        <p class="examstaff-rules-doc__card-title">3. Đường trường</p>
-                        <p class="examstaff-rules-doc__card-text">Đạt tối thiểu <strong>80 điểm</strong>, không lỗi liệt. Hạng <strong>A / A1</strong> không áp dụng.</p>
                     </div>
                 </div>
                 <p class="examstaff-rules-doc__note">Lưu ý: Lý thuyết không sai câu điểm liệt. Bảo lưu phần thi theo hồ sơ đăng ký.</p>
@@ -81,7 +62,7 @@
                 <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi lý thuyết khi đáp ứng ngưỡng số câu đúng theo hạng GPLX:</p>
                 <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
                     <li>Hạng <strong>A / A1</strong>: tối thiểu <strong>36 / 40</strong> câu đúng.</li>
-                    <li>Hạng <strong>B / B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
+                    <li>Hạng <strong>B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
                 </ul>
                 <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một ca thi</strong> và <strong>một phòng thi lý thuyết</strong>.</p>
             </c:otherwise>

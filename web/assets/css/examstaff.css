@@ -230,7 +230,6 @@
 .allocation-stage-panel--waiting,
 .allocation-stage-panel--theory,
 .allocation-stage-panel--practical,
-.allocation-stage-panel--road,
 .allocation-results-panel--pass,
 .allocation-results-panel--fail {
     border-top: 3px solid #cbd5e1;
@@ -674,8 +673,7 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
 
 .allocation-table-action,
 .allocation-table-action--theory,
-.allocation-table-action--practical,
-.allocation-table-action--road {
+.allocation-table-action--practical {
     background: #f8fafc;
     color: #334155;
     border-color: #d1d5db;
@@ -1023,7 +1021,6 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
 .allocation-stage-status--waiting { color: #b45309; }
 .allocation-stage-status--theory { color: #1d4ed8; }
 .allocation-stage-status--practical { color: #7c3aed; }
-.allocation-stage-status--road { color: #0f766e; }
 .allocation-stage-status--results-pass { color: #047857; }
 .allocation-stage-status--results-fail { color: #b91c1c; }
 .allocation-stage-status--unknown { color: #64748b; }
@@ -1306,12 +1303,32 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    min-height: min(620px, calc(100vh - 220px));
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .room-monitor-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+}
+
+.room-monitor-card .room-candidate-list {
+    flex: 1;
+    min-height: 0;
+    max-height: min(480px, calc(100vh - 360px));
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.room-monitor-card .examiner-table-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow-x: auto;
+}
+
+body.examstaff-portal .examstaff-main--scroll .room-monitor-card .examiner-table-wrap {
+    max-height: min(480px, calc(100vh - 360px));
+    overflow-y: auto;
 }
 
 .room-header {
@@ -1347,6 +1364,21 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     flex-direction: column;
     gap: 0.75rem;
     min-height: 240px;
+}
+
+.room-monitor-card__action {
+    display: block;
+    margin-top: auto;
+    text-decoration: none;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0052cc;
+    padding: 6px;
+    border: 1px dashed rgba(0, 82, 204, 0.4);
+    border-radius: 8px;
+    background: rgba(0, 82, 204, 0.02);
+    transition: all 0.2s;
 }
 
 .room-candidate-item {

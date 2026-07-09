@@ -3,7 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<header class="examiner-header">
+<header class="examiner-header examiner-header--examstaff">
     <div class="examiner-header__title examiner-header__crumb-row">
         <c:url var="dashboardUrl" value="/views/staff/examstaff/dashboard">
             <c:if test="${not empty param.sessionId}"><c:param name="sessionId" value="${param.sessionId}" /></c:if>
@@ -11,33 +11,44 @@
                 <c:param name="sessionId" value="${requestScope.selectedSessionId}" />
             </c:if>
         </c:url>
-        <a href="${dashboardUrl}" class="examiner-header__crumb-primary">Ban Sát Hạch</a>
-        <c:if test="${not empty param.sectionTitle}">
-            <span class="examiner-header__crumb-sep">&gt;</span>
-            <c:choose>
-                <c:when test="${not empty param.sectionUrl}">
-                    <a href="${param.sectionUrl}" class="examiner-header__crumb-child"><c:out value="${param.sectionTitle}" /></a>
-                </c:when>
-                <c:otherwise>
-                    <span class="examiner-header__crumb-child"><c:out value="${param.sectionTitle}" /></span>
-                </c:otherwise>
-            </c:choose>
-        </c:if>
-        <c:if test="${not empty param.pageTitle}">
-            <span class="examiner-header__crumb-sep">&gt;</span>
-            <span class="examiner-header__crumb-child"><c:out value="${param.pageTitle}" /></span>
-        </c:if>
+        <c:choose>
+            <c:when test="${not empty param.sectionTitle}">
+                <c:choose>
+                    <c:when test="${not empty param.sectionUrl}">
+                        <a href="${param.sectionUrl}" class="examiner-header__crumb-primary"><c:out value="${param.sectionTitle}" /></a>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="examiner-header__crumb-primary examiner-header__crumb-current"><c:out value="${param.sectionTitle}" /></span>
+                    </c:otherwise>
+                </c:choose>
+                <c:if test="${not empty param.pageTitle and param.pageTitle ne param.sectionTitle}">
+                    <span class="examiner-header__crumb-sep" aria-hidden="true">&rsaquo;</span>
+                    <span class="examiner-header__crumb-child examiner-header__crumb-current"><c:out value="${param.pageTitle}" /></span>
+                </c:if>
+            </c:when>
+            <c:otherwise>
+                <c:choose>
+                    <c:when test="${not empty param.pageTitle}">
+                        <span class="examiner-header__crumb-primary examiner-header__crumb-current"><c:out value="${param.pageTitle}" /></span>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${dashboardUrl}" class="examiner-header__crumb-primary examiner-header__crumb-current">Tổng quan</a>
+                    </c:otherwise>
+                </c:choose>
+            </c:otherwise>
+        </c:choose>
     </div>
-    <div class="examiner-header__meta">
+    <div class="examiner-header__meta examiner-header__session">
         <c:choose>
             <c:when test="${not empty requestScope.currentSession}">
-                <span class="examiner-header__meta-label">Kỳ thi</span>
-                <span class="examiner-tag examiner-tag--done">
+                <span class="examiner-header__session-license">
                     Hạng <c:out value="${requestScope.currentSession.licenseCode}" default="—" />
-                    <c:if test="${not empty requestScope.currentSession.examDate}">
-                        — <fmt:formatDate value="${requestScope.currentSession.examDate}" pattern="dd/MM/yyyy" />
-                    </c:if>
                 </span>
+                <c:if test="${not empty requestScope.currentSession.examDate}">
+                    <span class="examiner-header__session-date">
+                        <fmt:formatDate value="${requestScope.currentSession.examDate}" pattern="dd/MM/yyyy" />
+                    </span>
+                </c:if>
             </c:when>
             <c:otherwise>
                 <span class="examiner-tag examiner-tag--pending">Chưa chọn kỳ thi</span>
@@ -46,5 +57,5 @@
     </div>
 </header>
 <c:if test="${not empty param.pageTitle}">
-<script>document.title = '<c:out value="${param.pageTitle}" /> - Ban Sát Hạch';</script>
+<script>document.title = '<c:out value="${param.pageTitle}" />';</script>
 </c:if>

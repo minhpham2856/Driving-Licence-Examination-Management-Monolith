@@ -14,17 +14,6 @@
         <header class="page-header page-header--toolbar">
             <p class="examiner-page-desc">Điều hành hàng đợi gọi thủ tục; phát loa qua màn hình TV riêng.</p>
             <div class="call-page-actions">
-                <div class="call-session-chip">
-                    <span class="call-session-chip__label">Ngày thi:</span>
-                    <span class="call-session-chip__value">
-                        <c:if test="${not empty currentSession.examDate}">
-                            <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy" />
-                        </c:if>
-                        <c:if test="${not empty currentSession.licenseCode}">
-                            (Hạng <c:out value="${currentSession.licenseCode}" />)
-                        </c:if>
-                    </span>
-                </div>
                 <c:if test="${sessionScope.shiftEnded ne 'true'}">
                     <a href="candidatecall?action=endShift" class="call-toolbar-btn call-toolbar-btn--danger"
                        onclick="return confirm('Kết thúc ca thi? Tất cả thí sinh chưa làm thủ tục sẽ bị đình chỉ.');">
@@ -224,8 +213,8 @@
                                                 <a href="candidatecall?action=absent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(245, 158, 11, 0.3); color: #d97706; background: rgba(245, 158, 11, 0.01); font-size: 0.8rem;" title="Đẩy xuống cuối hàng đợi">
                                                     Vắng
                                                 </a>
-                                                <a href="candidatecall?action=permanentAbsent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626; background: rgba(239, 68, 68, 0.04); font-size: 0.8rem;" title="Đình chỉ thi — ghi TRƯỢT"
-                                                   onclick="return confirm('Đình chỉ thí sinh ${callingCandidate.sbd}? Kết quả ghi TRƯỢT và không gọi lại trong ca.');">
+                                                <a href="candidatecall?action=permanentAbsent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626; background: rgba(239, 68, 68, 0.04); font-size: 0.8rem;" title="Đình chỉ thi"
+                                                   onclick="return confirm('Đình chỉ thí sinh ${callingCandidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại trong ca.');">
                                                     Đình chỉ
                                                 </a>
                                             </div>

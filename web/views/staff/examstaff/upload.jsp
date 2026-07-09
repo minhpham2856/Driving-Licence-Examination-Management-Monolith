@@ -60,7 +60,7 @@
                                 </strong>
                             </span>
                             <span style="font-size: 0.72rem; color: #15803d;">
-                                Thí sinh được ghi vào các phần thi theo Nội dung SH (L / H / Đ).
+                                Thí sinh được ghi vào các phần thi theo Nội dung SH (L / H).
                                 Chọn đúng kỳ ở sidebar trước khi tải file.
                             </span>
                         </div>
@@ -154,13 +154,13 @@
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 7</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Khớp kỳ thi — chỉ A1, A, B1 (A2→A, B/B2→B1 trong file vẫn chấp nhận).
+                            <strong style="color: #0f172a;">Hạng GPLX:</strong> Khớp kỳ thi — chỉ A1, A, B1. Không nhận A2, B hoặc B2.
                         </div>
                     </div>
                     <div class="rule-item">
                         <span class="rule-column-tag">CỘT 8</span>
                         <div style="font-size: 0.8rem; color: #334155;">
-                            <strong style="color: #0f172a;">Nội dung SH:</strong> VD: <em>SH lần đầu L+H</em>, <em>SH lại L</em>, <em>Sát hạch H</em>.
+                            <strong style="color: #0f172a;">Nội dung SH:</strong> VD: <em>SH lần đầu L+H</em>, <em>SH lại L</em>, <em>Sát hạch H</em>. Không dùng mục <em>Đ</em>.
                         </div>
                     </div>
                     <div class="rule-item">
@@ -195,7 +195,7 @@
                             </h2>
                             <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
                                 Kỳ thi: hạng <strong>${sessionScope.selectedImportExamLicense}</strong>.
-                                Chỉ lưu dòng hợp lệ (đủ trường, khớp hạng, nội dung SH L/H/Đ khớp ca của kỳ) — dòng lỗi sẽ bỏ qua.
+                                Chỉ lưu dòng hợp lệ (đủ trường, khớp hạng, nội dung SH L/H khớp ca của kỳ) — dòng lỗi sẽ bỏ qua.
                             </p>
                         </div>
                         <div style="display: flex; gap: 10px;">
@@ -209,7 +209,6 @@
                                 <c:otherwise>
                                     <button type="submit" class="btn-filter" style="height: 38px; padding: 0 1.25rem; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
                                         Lưu ${sessionScope.validImportCount} thí sinh hợp lệ
-                                        <c:if test="${sessionScope.hasInvalidRows eq true}"> (bỏ qua dòng lỗi)</c:if>
                                     </button>
                                 </c:otherwise>
                             </c:choose>
@@ -222,7 +221,7 @@
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                                 <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span>Có dòng lỗi (thiếu trường, hạng không khớp, hoặc nội dung SH không khớp ca kỳ…). Các dòng hợp lệ vẫn lưu được — dòng lỗi sẽ bỏ qua khi xác nhận.</span>
+                            <span>Có dòng lỗi (thiếu trường, hạng không khớp, có mục Đ, hoặc nội dung SH không khớp ca kỳ…). Các dòng hợp lệ vẫn lưu được — dòng lỗi sẽ bỏ qua khi xác nhận.</span>
                         </div>
                     </c:if>
 

@@ -362,6 +362,61 @@ body.examstaff-portal .session-shift-chip__btn:disabled {
     pointer-events: none;
 }
 
+/* Header examstaff — breadcrumb + kỳ thi đang chọn */
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-current {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-primary.examiner-header__crumb-current {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    color: #003d9b;
+    letter-spacing: -0.02em;
+}
+
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-child.examiner-header__crumb-current {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 600;
+    color: #334155;
+}
+
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-sep {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+body.examstaff-portal .examiner-header__session {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+body.examstaff-portal .examiner-header__session-license {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #0052cc;
+    white-space: nowrap;
+}
+
+body.examstaff-portal .examiner-header__session-date {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: #0f172a;
+    padding-left: 8px;
+    border-left: 1px solid #cbd5e1;
+    white-space: nowrap;
+}
+
 @media (max-width: 960px) {
     body.examstaff-portal .page-header--toolbar {
         flex-direction: column;

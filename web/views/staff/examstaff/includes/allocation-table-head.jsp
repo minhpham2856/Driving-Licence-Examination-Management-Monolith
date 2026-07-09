@@ -30,17 +30,6 @@
         </jsp:include>
         <th>Thao tác</th>
     </c:if>
-    <c:if test="${variant eq 'road'}">
-        <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
-            <jsp:param name="sortColumn" value="theoryScore" />
-            <jsp:param name="label" value="Lý thuyết" />
-        </jsp:include>
-        <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
-            <jsp:param name="sortColumn" value="practicalScore" />
-            <jsp:param name="label" value="Thực hành" />
-        </jsp:include>
-        <th>Thao tác</th>
-    </c:if>
     <c:if test="${variant eq 'results-pass' or variant eq 'results-fail'}">
         <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
             <jsp:param name="sortColumn" value="theoryScore" />
@@ -49,10 +38,6 @@
         <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
             <jsp:param name="sortColumn" value="practicalScore" />
             <jsp:param name="label" value="Thực hành" />
-        </jsp:include>
-        <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
-            <jsp:param name="sortColumn" value="roadTestScore" />
-            <jsp:param name="label" value="Đường trường" />
         </jsp:include>
         <c:if test="${variant eq 'results-fail'}">
             <th>Lý do</th>
