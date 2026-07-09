@@ -2,6 +2,7 @@ package controller.examiner;
 
 import enums.SectionType;
 import enums.ExamSessionStatus;
+import filter.ExaminerFilter;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -104,7 +105,9 @@ public class ExaminerSessionServlet extends HttpServlet {
 
         schedule = hydrateSchedule(schedule, new HashMap<>());
         SectionType examSection = SessionService.getExamSection(schedule, session);
-        
+
+        // Establish the active session so ExaminerFilter recognizes it on subsequent requests
+        httpSession.setAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE, schedule);
         httpSession.setAttribute("activeSessionId", schedule.getSessionId());
         httpSession.setAttribute("isTheory", examSection == SectionType.THEORY);
         httpSession.setAttribute("examSectionName", examSection != null ? examSection.getValue() : null);
