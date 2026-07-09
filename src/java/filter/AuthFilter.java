@@ -42,7 +42,7 @@ public class AuthFilter implements Filter {
 
         // Check if user has permission to access staff pages
         String roleName = roleService.getRoleNameById(user.getRoleId());
-        enums.UserRole role = enums.UserRole.fromValue(roleName);
+        enums.RoleType role = enums.RoleType.fromValue(roleName);
 
         switch (role) {
             case ADMIN, EXAMINER, MANAGING_STAFF, EXAM_STAFF -> {

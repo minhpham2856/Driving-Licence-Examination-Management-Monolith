@@ -93,7 +93,7 @@
                         <c:forEach var="ds" items="${daySessions}">
                             <span class="session-pill">
                                 ${ds.shiftLabel}
-                                (<fmt:formatDate value="${ds.shiftStartTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.shiftEndTime}" pattern="HH:mm"/>)
+                                (<fmt:formatDate value="${ds.startTime}" pattern="HH:mm"/>–<fmt:formatDate value="${ds.endTime}" pattern="HH:mm"/>)
                                 - <c:choose><c:when test="${ds.examTypeName eq 'Theory'}">Lý thuyết</c:when><c:when test="${ds.examTypeName eq 'Practical'}">Thực hành</c:when><c:when test="${ds.examTypeName eq 'OnRoad'}">Đường trường</c:when><c:otherwise>${ds.examTypeName}</c:otherwise></c:choose>
                                     </span>
                         </c:forEach>

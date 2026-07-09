@@ -2,7 +2,7 @@ package service;
 
 import dto.EnrollmentDTO;
 import dto.ServiceResult;
-import enums.ExamSection;
+import enums.SectionType;
 import model.User;
 
 import java.sql.Date;
@@ -28,16 +28,16 @@ public interface CallService {
             String reasonForTaking);
 
     ServiceResult<Void> callCandidate(int sessionId, Integer sbd, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination);
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination);
 
-    ServiceResult<Integer> callNextCandidate(int sessionId, User user, Integer actionUserId, ExamSection examSection,
+    ServiceResult<Integer> callNextCandidate(int sessionId, User user, Integer actionUserId, SectionType examSection,
             boolean isTheory, String sectionName, String callDestination);
 
     ServiceResult<Integer> callSelectedCandidates(int sessionId, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination, int[] sbds);
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination, int[] sbds);
 
     ServiceResult<Void> callScoreEntryCandidate(int sessionId, Integer sbd, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination, boolean scoreEntry);
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination, boolean scoreEntry);
 
     ServiceResult<Void> adjustScoreDeduction(int sessionId, int sbd, int deductionId, int delta, Integer actionUserId);
 

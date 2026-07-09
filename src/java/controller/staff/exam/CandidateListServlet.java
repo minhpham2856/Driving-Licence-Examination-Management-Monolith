@@ -70,7 +70,7 @@ public class CandidateListServlet extends BaseStaffExamServlet {
 
         SessionViewDTO sessionView = sessionId > 0 ? sessionService.getSessionById(sessionId) : null;
 
-        String shiftLabel = sessionView != null ? sessionView.getCaLabel() : "";
+        String shiftLabel = sessionView != null ? sessionView.getSessionLabel() : "";
 
         String licenseCode = sessionView != null && sessionView.getLicenseCode() != null
 
@@ -116,7 +116,7 @@ public class CandidateListServlet extends BaseStaffExamServlet {
 
             item.setLicenseClass(licenseCode);
 
-            item.setCaLabel(shiftLabel);
+            item.setsessionLabel(shiftLabel);
 
             String sectionStatus = row.getSectionStatus();
 

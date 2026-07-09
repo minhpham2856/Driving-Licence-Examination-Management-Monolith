@@ -1,14 +1,14 @@
 package dto;
 
-import enums.ExamSection;
-import enums.SessionCa;
+import enums.SectionType;
+import enums.SessionType;
 
 public class AssignmentDTO {
 
     private int sessionExaminerId;
     private int examSessionId;
     private int areaId;
-    private ExamSection examSection;
+    private SectionType examSection;
     private int examinerUserId;
     private int assignedBy;
     private String examinerName;
@@ -17,7 +17,7 @@ public class AssignmentDTO {
     private String areaType;
     private String examTypeName;
     private boolean morningSession;
-    private String caLabel;
+    private String sessionLabel;
 
     public int getSessionExaminerId() {
         return sessionExaminerId;
@@ -43,11 +43,11 @@ public class AssignmentDTO {
         this.areaId = areaId;
     }
 
-    public ExamSection getExamSection() {
+    public SectionType getExamSection() {
         return examSection;
     }
 
-    public void setExamSection(ExamSection examSection) {
+    public void setExamSection(SectionType examSection) {
         this.examSection = examSection;
     }
 
@@ -115,11 +115,11 @@ public class AssignmentDTO {
         this.morningSession = morningSession;
     }
 
-    public String getCaLabel() {
-        return caLabel;
+    public String getSessionLabel() {
+        return sessionLabel;
     }
 
-    public void setCaLabel(String caLabel) {
-        this.caLabel = caLabel;
+    public void setsessionLabel(String sessionLabel) {
+        this.sessionLabel = sessionLabel;
     }
 }

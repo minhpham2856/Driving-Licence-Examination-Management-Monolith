@@ -7,10 +7,6 @@ public class TheoryScoreDTO {
     private int finalScore;
     private Timestamp calculatedAt;
     public TheoryScoreDTO() {}
-    public TheoryScoreDTO(int id, int examPaperId, int totalRawScore, int finalScore, Timestamp calculatedAt) {
-        this.id = id; this.examPaperId = examPaperId; this.totalRawScore = totalRawScore;
-        this.finalScore = finalScore; this.calculatedAt = calculatedAt;
-    }
     public int getId() { return id; }
     public void setId(int v) { this.id = v; }
     public int getExamPaperId() { return examPaperId; }

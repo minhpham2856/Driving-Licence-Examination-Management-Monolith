@@ -40,7 +40,7 @@ public class ManagingDashboardServlet extends HttpServlet {
                 continue;
             }
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("shiftLabel", session.getCaLabel());
+            row.put("shiftLabel", session.getSessionLabel());
             row.put("licenseClass", session.getLicenseCode() != null ? session.getLicenseCode() : "-");
             if (session.getExamDate() != null) {
                 synchronized (DATE_FMT) {

@@ -1,13 +1,14 @@
 package controller.staff.exam;
+
 import dto.ServiceResult;
-import dto.AllocateResultDTO;import dto.CallBoardDTO;
+import dto.AllocateResultDTO;
+import dto.CallBoardDTO;
 import dto.EnrollmentDTO;
 import dto.SessionViewDTO;
 import enums.AuditAction;
 import enums.AuditEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import controller.staff.exam.BaseStaffExamServlet;
 import model.ExamArea;
 import model.User;
 import service.AuditService;
@@ -30,8 +30,10 @@ import service.impl.ExamAreaServiceImpl;
 import service.impl.RegistrationServiceImpl;
 import service.impl.SessionServiceImpl;
 import service.impl.AllocationServiceImpl;
+
 @WebServlet("/views/staff/exam/allocation")
 public class AllocationServlet extends BaseStaffExamServlet {
+
     private static final String CALL_BOARD_CONTEXT_KEY = "candidateCallBoards";
     private final AuditService AuditService = new AuditServiceImpl();
     private final RegistrationService regService = new RegistrationServiceImpl();
@@ -39,6 +41,7 @@ public class AllocationServlet extends BaseStaffExamServlet {
     private final SessionService sessionService = new SessionServiceImpl();
     private final AllocationService allocationService = new AllocationServiceImpl();
     private final PhotoService photoService = new PhotoServiceImpl();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -95,6 +98,7 @@ public class AllocationServlet extends BaseStaffExamServlet {
                     }
                 } else if (regIdStr != null) {
                     int regId = Integer.parseInt(regIdStr);
+                    
                     // Find matching profile in session
                     EnrollmentDTO profile = null;
                     for (EnrollmentDTO c : qList) {
@@ -212,9 +216,11 @@ public class AllocationServlet extends BaseStaffExamServlet {
         request.setAttribute("activeTheoryRooms", areaService.getActiveTheoryRooms());
         request.getRequestDispatcher("/views/staff/exam/allocation.jsp").forward(request, response);
     }
+
     private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details) {
         addAuditLog(session, action, entity, details, 0);
     }
+
     private void addAuditLog(HttpSession session, AuditAction action, AuditEntity entity, String details, int recordId) {
         try {
             AuditService.logAction(((User) session.getAttribute("user")).getUserId(), action, entity, details, recordId);
@@ -222,19 +228,21 @@ public class AllocationServlet extends BaseStaffExamServlet {
             e.printStackTrace();
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
     }
+
     @SuppressWarnings("unchecked")
     private CallBoardDTO getCallBoardState(int examSessionId) {
         if (examSessionId <= 0) {
             return null;
         }
         jakarta.servlet.ServletContext ctx = getServletContext();
-        Map<Integer, CallBoardDTO> boards =
-                (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
+        Map<Integer, CallBoardDTO> boards
+                = (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);
         if (boards == null) {
             synchronized (ctx) {
                 boards = (Map<Integer, CallBoardDTO>) ctx.getAttribute(CALL_BOARD_CONTEXT_KEY);

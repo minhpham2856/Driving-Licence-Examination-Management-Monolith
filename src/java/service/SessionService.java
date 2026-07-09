@@ -4,11 +4,11 @@ import dto.AssignmentDTO;
 import dto.ServiceResult;
 import dto.SessionViewDTO;
 import dto.SessionStartDTO;
-import enums.ExamSection;
+import enums.SectionType;
 import model.ExaminerSchedule;
 import model.Session;
-
 import java.util.List;
+import model.ExamSection;
 
 public interface SessionService {
 
@@ -26,9 +26,9 @@ public interface SessionService {
 
     Session getById(int sessionId);
 
-    ExamSection getExamSection(ExaminerSchedule schedule, Session session);
+    SectionType getExamSection(ExaminerSchedule schedule, Session session);
 
-    model.ExamSection getExamSectionModel(ExaminerSchedule schedule, Session session);
+    ExamSection getExamSectionModel(ExaminerSchedule schedule, Session session);
 
     int getActiveSessionId();
 

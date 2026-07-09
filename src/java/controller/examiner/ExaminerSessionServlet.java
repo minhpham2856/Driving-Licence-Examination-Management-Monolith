@@ -1,6 +1,6 @@
 package controller.examiner;
 
-import enums.ExamSection;
+import enums.SectionType;
 import enums.ExamSessionStatus;
 
 import jakarta.servlet.ServletException;
@@ -103,10 +103,10 @@ public class ExaminerSessionServlet extends HttpServlet {
         }
 
         schedule = hydrateSchedule(schedule, new HashMap<>());
-        ExamSection examSection = SessionService.getExamSection(schedule, session);
+        SectionType examSection = SessionService.getExamSection(schedule, session);
         
         httpSession.setAttribute("activeSessionId", schedule.getSessionId());
-        httpSession.setAttribute("isTheory", examSection == ExamSection.THEORY);
+        httpSession.setAttribute("isTheory", examSection == SectionType.THEORY);
         httpSession.setAttribute("examSectionName", examSection != null ? examSection.getValue() : null);
         
         response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");

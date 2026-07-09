@@ -1,6 +1,6 @@
 package util;
 
-import enums.ExamSection;
+import enums.SectionType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -47,11 +47,11 @@ public final class ExamQueue {
         return queueTheory;
     }
 
-    public static Lane laneFor(ExamSection section) {
-        if (section == null || section == ExamSection.THEORY) {
+    public static Lane laneFor(SectionType section) {
+        if (section == null || section == SectionType.THEORY) {
             return Lane.LY_THUYET;
         }
-        if (section == ExamSection.ROAD) {
+        if (section == SectionType.ROAD) {
             return Lane.THUC_HANH_TREN_DUONG;
         }
         return Lane.THUC_HANH_TRONG_HINH;

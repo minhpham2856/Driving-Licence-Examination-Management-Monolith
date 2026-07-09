@@ -153,7 +153,7 @@ public class UploadServlet extends BaseStaffExamServlet {
                     uploadedFile = "danh_sach.csv";
                 }
                 SessionViewDTO importSession = sessionService.getSessionById(selectedSessionId);
-                String sessionLabel = importSession != null ? importSession.getCaLabel() : ("SessionId " + selectedSessionId);
+                String sessionLabel = importSession != null ? importSession.getSessionLabel() : ("SessionId " + selectedSessionId);
                 String auditDetails = "Import CSV \"" + uploadedFile + "\": nhập " + importedCount
                         + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
                         + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");
@@ -310,7 +310,7 @@ public class UploadServlet extends BaseStaffExamServlet {
             user.setEmail(finalEmail);
             user.setPasswordHash(UsernameGenerator.randomPassword(10));
             user.setActive(true);
-            user.setRoleId(roleService.getRoleIdByName(enums.UserRole.REGISTRANT.getValue()));
+            user.setRoleId(roleService.getRoleIdByName(enums.RoleType.REGISTRANT.getValue()));
             if (!regService.insertUser(user)) {
                 return null;
             }

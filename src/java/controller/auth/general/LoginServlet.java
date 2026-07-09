@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import enums.UserRole;
+import enums.RoleType;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
 @WebServlet("/login")
@@ -62,7 +62,7 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             String roleName = roleService.getRoleNameById(user.getRoleId());
-            if (UserRole.fromValue(roleName) == UserRole.REGISTRANT) {
+            if (RoleType.fromValue(roleName) == RoleType.REGISTRANT) {
                 response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
             } else {
                 request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");

@@ -1,13 +1,13 @@
 package enums;
 
-public enum ExamSection {
+public enum SectionType {
     THEORY("Lý thuyết"),
     LAYOUT("Thực hành trong hình"),
     ROAD("Thực hành trên đường");
 
     private final String value;
 
-    private ExamSection(String value) {
+    private SectionType(String value) {
         this.value = value;
     }
 
@@ -15,11 +15,11 @@ public enum ExamSection {
         return value;
     }
 
-    public static ExamSection fromValue(String value) {
+    public static SectionType fromValue(String value) {
         if (value == null) {
             return null;
         }
-        for (ExamSection section : values()) {
+        for (SectionType section : values()) {
             if (section.getValue().equals(value)) {
                 return section;
             }

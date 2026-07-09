@@ -47,7 +47,7 @@ public class CandidateRowDTO {
     private String username;
     private String cccd;
     private String licenseClass;
-    private String caLabel;
+    private String sessionLabel;
 
     public int getSbd() {
         return sbd;
@@ -393,11 +393,11 @@ public class CandidateRowDTO {
         this.licenseClass = licenseClass;
     }
 
-    public String getCaLabel() {
-        return caLabel;
+    public String getSessionLabel() {
+        return sessionLabel;
     }
 
-    public void setCaLabel(String caLabel) {
-        this.caLabel = caLabel;
+    public void setsessionLabel(String sessionLabel) {
+        this.sessionLabel = sessionLabel;
     }
 }

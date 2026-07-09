@@ -1,7 +1,6 @@
 package dto;
 
-import enums.ExamSection;
-import enums.SessionCa;
+import enums.SectionType;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -12,10 +11,10 @@ public class SessionViewDTO {
     private int id;
     private boolean morningSession;
     private int licenseTypeId;
-    private ExamSection examSection;
+    private SectionType examSection;
     private Date examDate;
-    private Time shiftStartTime;
-    private Time shiftEndTime;
+    private Time startTime;
+    private Time endTime;
     private int areaId;
     private String status;
     private int maxCandidates;
@@ -24,7 +23,7 @@ public class SessionViewDTO {
     private String licenseCode;
     private String examTypeName;
     private String areaName;
-    private String caLabel;
+    private String sessionLabel;
 
     public SessionViewDTO() {
     }
@@ -45,12 +44,12 @@ public class SessionViewDTO {
         this.morningSession = morningSession;
     }
 
-    public String getCaLabel() {
-        return caLabel;
+    public String getSessionLabel() {
+        return sessionLabel;
     }
 
-    public void setCaLabel(String caLabel) {
-        this.caLabel = caLabel;
+    public void setSessionLabel(String sessionLabel) {
+        this.sessionLabel = sessionLabel;
     }
 
     public int getLicenseTypeId() {
@@ -61,11 +60,11 @@ public class SessionViewDTO {
         this.licenseTypeId = licenseTypeId;
     }
 
-    public ExamSection getExamSection() {
+    public SectionType getExamSection() {
         return examSection;
     }
 
-    public void setExamSection(ExamSection examSection) {
+    public void setExamSection(SectionType examSection) {
         this.examSection = examSection;
     }
 
@@ -78,19 +77,19 @@ public class SessionViewDTO {
     }
 
     public Time getShiftStartTime() {
-        return shiftStartTime;
+        return startTime;
     }
 
-    public void setShiftStartTime(Time shiftStartTime) {
-        this.shiftStartTime = shiftStartTime;
+    public void setShiftStartTime(Time startTime) {
+        this.startTime = startTime;
     }
 
     public Time getShiftEndTime() {
-        return shiftEndTime;
+        return endTime;
     }
 
-    public void setShiftEndTime(Time shiftEndTime) {
-        this.shiftEndTime = shiftEndTime;
+    public void setShiftEndTime(Time endTime) {
+        this.endTime = endTime;
     }
 
     public int getAreaId() {

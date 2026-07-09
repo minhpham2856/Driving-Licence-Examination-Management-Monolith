@@ -1,6 +1,6 @@
 package controller.examiner;
 
-import enums.ExamSection;
+import enums.SectionType;
 import model.User;
 import service.CallService;
 import service.ExamViewService;
@@ -140,7 +140,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
             HttpSession session, int sessionId, String action, Integer sbd, User user,
             boolean isTheory, String sectionName) throws IOException {
         
-        ExamSection examSection = ExamSection.fromValue(sectionName);
+        SectionType examSection = SectionType.fromValue(sectionName);
         String destination = resolveCallDestination(session);
         
         switch (action) {

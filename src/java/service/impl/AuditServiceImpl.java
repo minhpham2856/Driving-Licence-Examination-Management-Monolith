@@ -11,7 +11,7 @@ import enums.AuditEntity;
 import model.Audit;
 import model.Profile;
 import model.User;
-import enums.UserRole;
+import enums.RoleType;
 import service.AuditService;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -338,14 +338,14 @@ public class AuditServiceImpl implements AuditService {
     }
 
     private String mapRoleKey(int roleId) {
-        UserRole role = UserRole.fromValue(roleService.getRoleNameById(roleId));
-        if (role == UserRole.ADMIN) {
+        RoleType role = RoleType.fromValue(roleService.getRoleNameById(roleId));
+        if (role == RoleType.ADMIN) {
             return "admin";
         }
-        if (role == UserRole.EXAM_STAFF) {
+        if (role == RoleType.EXAM_STAFF) {
             return "coi";
         }
-        if (role == UserRole.EXAMINER) {
+        if (role == RoleType.EXAMINER) {
             return "cham";
         }
         return "coi";

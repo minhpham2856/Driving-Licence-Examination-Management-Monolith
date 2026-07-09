@@ -11,7 +11,7 @@ import dao.ExamDAO;
 import dao.impl.ExamDAOImpl;
 import dao.DeductionRecordViewDAO;
 import dao.impl.DeductionRecordViewDAOImpl;
-import enums.SessionCa;
+import enums.SessionType;
 import model.Audit;
 import dto.EnrollmentDTO;
 import service.RegistrationService;

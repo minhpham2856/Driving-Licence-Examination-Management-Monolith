@@ -23,7 +23,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import service.DocxService;
 import service.ExamViewService;
-import enums.SessionCa;
+import enums.SessionType;
 
 import java.io.IOException;
 import java.io.InputStream;

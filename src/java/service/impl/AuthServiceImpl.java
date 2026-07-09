@@ -39,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(password);
         user.setActive(true);
         RoleService roleService = new RoleServiceImpl();
-        user.setRoleId(roleService.getRoleIdByName(enums.UserRole.REGISTRANT.getValue()));
+        user.setRoleId(roleService.getRoleIdByName(enums.RoleType.REGISTRANT.getValue()));
         if (!userDAO.insert(user)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
                     "Không thể đăng ký tài khoản. Vui lòng thử lại.");

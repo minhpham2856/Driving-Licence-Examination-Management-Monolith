@@ -2,23 +2,18 @@ package dto;
 
 public class SessionStartDTO {
 
-    private String caLabel;
+    private String sessionLabel;
     private int examinerCount;
 
     public SessionStartDTO() {
     }
 
-    public SessionStartDTO(String caLabel, int examinerCount) {
-        this.caLabel = caLabel;
-        this.examinerCount = examinerCount;
+    public String getSessionLabel() {
+        return sessionLabel;
     }
 
-    public String getCaLabel() {
-        return caLabel;
-    }
-
-    public void setCaLabel(String caLabel) {
-        this.caLabel = caLabel;
+    public void setsessionLabel(String sessionLabel) {
+        this.sessionLabel = sessionLabel;
     }
 
     public int getExaminerCount() {

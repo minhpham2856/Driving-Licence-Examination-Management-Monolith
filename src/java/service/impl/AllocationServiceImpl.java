@@ -20,7 +20,7 @@ import dto.SessionViewDTO;
 import dto.UserRowDTO;
 import dto.AllocateResultDTO;
 import enums.ErrorType;
-import enums.ExamSection;
+import enums.SectionType;
 import model.ExamArea;
 import model.ExamDevice;
 import model.ExaminerSchedule;
@@ -190,7 +190,7 @@ public class AllocationServiceImpl implements AllocationService {
         if (schedule.getExamSectionId() != null) {
             model.ExamSection section = sectionDAO.getById(schedule.getExamSectionId());
             if (section != null) {
-                ExamSection examSection = examSectionFromDbName(section.getSectionName());
+                SectionType examSection = examSectionFromDbName(section.getSectionName());
                 slot.setExamSection(examSection);
                 slot.setExamTypeName(examSection.getValue());
             }
@@ -290,8 +290,8 @@ public class AllocationServiceImpl implements AllocationService {
         return profiles;
     }
 
-    private static ExamSection examSectionFromDbName(String sectionName) {
-        ExamSection section = ExamSection.fromValue(sectionName);
-        return section != null ? section : ExamSection.THEORY;
+    private static SectionType examSectionFromDbName(String sectionName) {
+        SectionType section = SectionType.fromValue(sectionName);
+        return section != null ? section : SectionType.THEORY;
     }
 }

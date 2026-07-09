@@ -38,7 +38,7 @@ public class StaffExamDashboardServlet extends BaseStaffExamServlet {
         }
         SessionViewDTO SessionViewDTO = sessionId > 0 ? sessionService.getSessionById(sessionId) : null;
         if (SessionViewDTO != null) {
-            request.setAttribute("activeSessionShift", SessionViewDTO.getCaLabel());
+            request.setAttribute("activeSessionShift", SessionViewDTO.getSessionLabel());
             ExamSessionStatus status = ExamSessionStatus.fromValue(SessionViewDTO.getStatus());
             if (status == ExamSessionStatus.IN_PROGRESS) {
                 request.setAttribute("activeSessionStatus", "Đang diễn ra");

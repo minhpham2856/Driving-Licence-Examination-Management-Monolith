@@ -16,7 +16,7 @@ import dto.ServiceResult;
 import enums.ErrorType;
 import enums.RegistrationStatus;
 import enums.Sex;
-import enums.UserRole;
+import enums.RoleType;
 import model.Document;
 import model.ExamRegistration;
 import model.Licence;
@@ -93,17 +93,17 @@ public class UserServiceImpl implements UserService {
 
     private String mapRoleKey(int roleId) {
         String roleName = roleService.getRoleNameById(roleId);
-        UserRole role = UserRole.fromValue(roleName);
-        if (role == UserRole.ADMIN) {
+        RoleType role = RoleType.fromValue(roleName);
+        if (role == RoleType.ADMIN) {
             return "admin";
         }
-        if (role == UserRole.EXAM_STAFF) {
+        if (role == RoleType.EXAM_STAFF) {
             return "coi_thi";
         }
-        if (role == UserRole.EXAMINER) {
+        if (role == RoleType.EXAMINER) {
             return "cham_thi";
         }
-        if (role == UserRole.CANDIDATE || role == UserRole.REGISTRANT) {
+        if (role == RoleType.CANDIDATE || role == RoleType.REGISTRANT) {
             return "candidate";
         }
         return "candidate";

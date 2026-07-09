@@ -1,88 +1,112 @@
 package controller.examiner;
 
+import dto.CandidateRowDTO;
+import filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.HttpServlet;
 import service.ExamViewService;
-import dto.CandidateRowDTO;
 import service.impl.ExamViewServiceImpl;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import static util.FormatUtil.text;
 
 @WebServlet("/views/examiner/dashboard")
 public class ExaminerDashboardServlet extends HttpServlet {
 
-    private final ExamViewService viewDataService = new ExamViewServiceImpl();
+    private final ExamViewService examViewService = new ExamViewServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
+        // Read session information prepared by ExaminerFilter
+        Integer sessionId = (Integer) request.getAttribute(ExaminerFilter.ATTR_ACTIVE_SESSION_ID);
+        boolean isTheory = Boolean.TRUE.equals(request.getAttribute(ExaminerFilter.ATTR_SECTION_THEORY));
+        String sectionName = (String) request.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
-        Integer sbd = null;
-        try {
-            if (request.getParameter("sbd") != null) {
-                sbd = Integer.valueOf(request.getParameter("sbd").trim());
-            }
-        } catch (NumberFormatException e) {
-            // ignore
-        }
-        
+        // Read optional search and candidate selection parameters
+        Integer candidateNumber = getCandidateNumber(request);
         String search = request.getParameter("q");
 
-        if (sessionId != null && sessionId > 0) {
-            boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
-            String sectionName = resolveSectionName(session);
+        // Load all candidates for the current session
+        List<CandidateRowDTO> candidates
+                = examViewService.loadCandidateRows(sessionId, isTheory, sectionName);
 
-            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+        // Apply search filter when a keyword is provided
+        if (text(search) != null) {
+            candidates = filterCandidates(candidates, search.trim());
 
-            if (search != null && !search.isBlank()) {
-                String q = search.trim().toLowerCase(java.util.Locale.ROOT);
-                List<CandidateRowDTO> filtered = new java.util.ArrayList<>();
-                for (CandidateRowDTO row : candidates) {
-                    String sbdVal = String.valueOf(row.getSbd());
-                    String name = row.getFullName() != null ? row.getFullName() : "";
-                    String gov = row.getGovernmentId() != null ? row.getGovernmentId() : "";
-                    if (sbdVal.toLowerCase(java.util.Locale.ROOT).contains(q)
-                            || name.toLowerCase(java.util.Locale.ROOT).contains(q)
-                            || gov.toLowerCase(java.util.Locale.ROOT).contains(q)) {
-                        filtered.add(row);
-                    }
-                }
-                candidates = filtered;
-                request.setAttribute("searchActive", true);
-                request.setAttribute("searchQuery", search.trim());
-            }
+            request.setAttribute("searchActive", true);
+            request.setAttribute("searchQuery", search.trim());
+        }
 
-            request.setAttribute("candidates", candidates);
-            request.setAttribute("candidateQueue", candidates);
-            request.setAttribute("examSummary", viewDataService.buildCandidateSummary(sessionId, isTheory, sectionName));
+        // Provide candidate list and summary for the dashboard
+        request.setAttribute("candidates", candidates);
+        request.setAttribute("candidateQueue", candidates);
+        request.setAttribute(
+                "examSummary",
+                examViewService.buildCandidateSummary(sessionId, isTheory, sectionName)
+        );
 
-            if (sbd != null && sbd > 0) {
-                CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
-                if (candidate != null) {
-                    request.setAttribute("candidate", candidate);
-                }
+        // Load detailed information for the selected candidate
+        if (candidateNumber != null && candidateNumber > 0) {
+            CandidateRowDTO candidate
+                    = examViewService.getCandidateViewRow(sessionId, candidateNumber, isTheory, sectionName);
+
+            if (candidate != null) {
+                request.setAttribute("candidate", candidate);
             }
         }
 
+        // Display the dashboard page
         request.getRequestDispatcher("/views/examiner/dashboard.jsp").forward(request, response);
     }
 
-    private String resolveSectionName(HttpSession session) {
-        if (session == null) {
+    // Parse the candidate number from the request
+    private Integer getCandidateNumber(HttpServletRequest request) {
+
+        String value = request.getParameter("sbd");
+
+        if (text(value) == null) {
             return null;
         }
-        Object name = session.getAttribute("examSectionName");
-        return name != null ? String.valueOf(name) : null;
+
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    // Filter candidates by SBD, full name or government ID
+    private List<CandidateRowDTO> filterCandidates(List<CandidateRowDTO> candidates, String keyword) {
+
+        String query = keyword.toLowerCase(Locale.ROOT);
+        List<CandidateRowDTO> filtered = new ArrayList<>();
+
+        for (CandidateRowDTO row : candidates) {
+
+            String sbd = String.valueOf(row.getSbd()).toLowerCase(Locale.ROOT);
+            String name = row.getFullName() == null
+                    ? ""
+                    : row.getFullName().toLowerCase(Locale.ROOT);
+            String governmentId = row.getGovernmentId() == null
+                    ? ""
+                    : row.getGovernmentId().toLowerCase(Locale.ROOT);
+
+            // Match against SBD, candidate name or government ID
+            if (sbd.contains(query)
+                    || name.contains(query)
+                    || governmentId.contains(query)) {
+                filtered.add(row);
+            }
+        }
+
+        return filtered;
     }
 }

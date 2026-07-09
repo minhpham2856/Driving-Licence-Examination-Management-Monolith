@@ -26,7 +26,7 @@ import dto.EnrollmentDTO;
 import dto.ServiceResult;
 import dto.SessionViewDTO;
 import enums.AuditAction;
-import enums.ExamSection;
+import enums.SectionType;
 import enums.AuditEntity;
 import enums.CandidateStatus;
 import enums.ErrorType;
@@ -190,7 +190,7 @@ public class CallServiceImpl implements CallService {
 
     @Override
     public ServiceResult<Void> callCandidate(int sessionId, Integer sbd, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination) {
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination) {
         if (sbd == null || sbd <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
         }
@@ -213,7 +213,7 @@ public class CallServiceImpl implements CallService {
 
     @Override
     public ServiceResult<Integer> callNextCandidate(int sessionId, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination) {
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination) {
         Lane lane = ExamQueue.laneFor(examSection);
         Integer queued = ExamQueue.peekFirst(lane);
         if (queued != null && queued > 0) {
@@ -238,7 +238,7 @@ public class CallServiceImpl implements CallService {
 
     @Override
     public ServiceResult<Integer> callSelectedCandidates(int sessionId, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination, int[] sbds) {
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination, int[] sbds) {
         if (sbds == null || sbds.length == 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Chưa chọn thí sinh.");
         }
@@ -260,7 +260,7 @@ public class CallServiceImpl implements CallService {
 
     @Override
     public ServiceResult<Void> callScoreEntryCandidate(int sessionId, Integer sbd, User user, Integer actionUserId,
-            ExamSection examSection, boolean isTheory, String sectionName, String callDestination,
+            SectionType examSection, boolean isTheory, String sectionName, String callDestination,
             boolean scoreEntry) {
         if (sbd == null || sbd <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
@@ -682,8 +682,8 @@ public class CallServiceImpl implements CallService {
     private void enqueueNextSection(int sessionId, EnrollmentDTO reg) {
         int sbd = reg.getSbd();
         SessionViewDTO session = sessionService.getSessionById(sessionId);
-        enums.ExamSection examSection = session != null && session.getExamSection() != null
-                ? session.getExamSection() : enums.ExamSection.THEORY;
+        enums.SectionType examSection = session != null && session.getExamSection() != null
+                ? session.getExamSection() : enums.SectionType.THEORY;
         Lane current = ExamQueue.laneFor(examSection);
         ExamQueue.remove(current, sbd);
         Candidate candidate = candidateDAO.getById(reg.getId());
@@ -795,7 +795,7 @@ public class CallServiceImpl implements CallService {
         if (sessionSectionId != null && sessionSectionId > 0) {
             return sessionSectionId;
         }
-        model.ExamSection section = sectionDAO.getBySectionName(enums.ExamSection.LAYOUT.getValue());
+        model.ExamSection section = sectionDAO.getBySectionName(enums.SectionType.LAYOUT.getValue());
         if (section != null) {
             return section.getExamSectionId();
         }
