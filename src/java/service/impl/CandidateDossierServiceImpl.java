@@ -10,8 +10,10 @@ import service.CandidateQueueQueryService;
 import service.ExamStaffSessionQueryService;
 import service.ProcedureFeeQueryService;
 import util.examstaff.DossierLabelUtil;
+import util.examstaff.LicenseClassRules;
 
 import java.util.List;
+import java.util.Locale;
 
 public class CandidateDossierServiceImpl implements CandidateDossierService {
 
@@ -36,7 +38,13 @@ public class CandidateDossierServiceImpl implements CandidateDossierService {
         ProcedureFeeResultDTO fees = procedureFeeQueryService.resolveProcedureFees(profile);
         SessionDTO examSession = sessionQueryService.findBySessionId(profile.getExamSessionId());
 
-        String licenseCode = profile.getLicenseCode() != null ? profile.getLicenseCode() : profile.getClazz();
+        String rawLicenseCode = profile.getLicenseCode() != null ? profile.getLicenseCode() : profile.getClazz();
+        String normalized = LicenseClassRules.normalizeManaged(rawLicenseCode);
+        if (normalized == null || normalized.isBlank()) {
+            normalized = rawLicenseCode != null ? rawLicenseCode.trim().toUpperCase(Locale.ROOT) : null;
+        }
+        profile.setLicenseCode(normalized);
+        String licenseCode = normalized;
         view.setProfile(profile);
         view.setExamSession(examSession);
         view.setFees(fees);

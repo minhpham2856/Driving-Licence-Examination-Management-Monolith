@@ -152,15 +152,15 @@
                         </div>
                     </c:if>
 
-                    <!-- Card 2: Hạng B -->
+                    <!-- Card 2: Hạng B1 -->
                     <c:if test="${showOToCon and showTu3To6Thang}">
                         <c:set var="hasResults" value="true" scope="page" />
                         <div class="category-card">
                             <div class="category-card__header">
-                                <img src="${pageContext.request.contextPath}/assets/imgs/card_b1_icon.svg" alt="B" class="category-card__icon">
+                                <img src="${pageContext.request.contextPath}/assets/imgs/card_b1_icon.svg" alt="B1" class="category-card__icon">
                             </div>
                             <div class="category-card__body">
-                                <h2 class="category-card__title">Hạng B</h2>
+                                <h2 class="category-card__title">Hạng B1</h2>
                                 <p class="category-card__desc">Xe số tự động chở người đến 9 chỗ. Không được hành nghề lái xe.</p>
                             </div>
                             <div class="category-card__footer">

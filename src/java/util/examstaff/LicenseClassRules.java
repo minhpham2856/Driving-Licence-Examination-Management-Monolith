@@ -8,18 +8,20 @@ public final class LicenseClassRules {
     }
 
     public static boolean isMotorcycle(String licenseCode) {
-        if (licenseCode == null || licenseCode.isBlank()) {
+        String code = normalizeManaged(licenseCode);
+        if (code.isEmpty()) {
             return false;
         }
-        String code = licenseCode.trim().toUpperCase(Locale.ROOT);
         return "A1".equals(code) || "A".equals(code);
     }
 
-    public static boolean requiresRoadTest(String licenseCode) {
+    public static String normalizeManaged(String licenseCode) {
         if (licenseCode == null || licenseCode.isBlank()) {
-            return false;
+            return "";
         }
-        String lc = licenseCode.trim().toUpperCase(Locale.ROOT);
-        return "B1".equals(lc) || "B".equals(lc) || "B2".equals(lc);
+        return switch (licenseCode.trim().toUpperCase(Locale.ROOT)) {
+            case "A1", "A", "B1" -> licenseCode.trim().toUpperCase(Locale.ROOT);
+            default -> "";
+        };
     }
 }
