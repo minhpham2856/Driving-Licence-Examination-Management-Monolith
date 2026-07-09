@@ -1,14 +1,14 @@
 package controller.staff.exam;
 
+import controller.staff.exam.http.AuditFilterSupport;
 import dto.user.AuditDTO;
 import model.Profile;
 import model.User;
+import controller.staff.exam.module.ExamStaffWebModule;
+import service.ExamStaffServices;
 import service.StaffAuditExportService;
 import service.StaffAuditQueryService;
-import service.impl.StaffAuditExportServiceImpl;
-import service.impl.StaffAuditQueryServiceImpl;
 import util.SessionUserHelper;
-import util.examstaff.AuditFilterHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,8 +26,10 @@ import java.util.Locale;
 @WebServlet("/views/staff/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
 
-    private final StaffAuditQueryService auditQueryService = new StaffAuditQueryServiceImpl();
-    private final StaffAuditExportService auditExportService = new StaffAuditExportServiceImpl();
+    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+
+    private final StaffAuditQueryService auditQueryService = SERVICES.auditQuery();
+    private final StaffAuditExportService auditExportService = SERVICES.auditExport();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -39,7 +41,7 @@ public class AuditExportServlet extends HttpServlet {
         }
 
         int userId = SessionUserHelper.resolveUserId(session);
-        String filterDate = AuditFilterHelper.resolveFilterDate(request);
+        String filterDate = AuditFilterSupport.resolveFilterDate(request);
         List<AuditDTO> personalLogs = loadLogs(userId, filterDate);
         var procedureKpi = auditQueryService.getStaffProcedureKpi(userId, filterDate);
 

@@ -1,6 +1,8 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.ExamStaffHttpSupport;
+import controller.pub.binder.PublicCallViewBinder;
+import controller.staff.exam.adapter.CallBoardHttpFacade;
+import controller.staff.exam.http.ExamStaffHttpSupport;
 import dto.examstaff.PublicCallSnapshotDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,9 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.view.CallBoardState;
-import dao.CallBoardDAO;
-import dao.impl.ServletContextCallBoardDAO;
-import service.CallBoardSyncService;
+import controller.staff.exam.module.ExamStaffWebModule;
 import service.ExamStaffServices;
 import service.PublicCallQueryService;
 import util.Utf8EncodingHelper;
@@ -20,17 +20,19 @@ import java.io.IOException;
 @WebServlet("/views/public/public-call")
 public class PublicCallServlet extends HttpServlet {
 
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+
+    private static final ExamStaffServices SERVICES = MODULE.services();
+
     private final PublicCallQueryService publicCallQueryService;
-    private final CallBoardSyncService callBoardSyncService;
+    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
     public PublicCallServlet() {
-        this(ExamStaffServices.get().publicCallQuery(), ExamStaffServices.get().callBoardSync());
+        this(SERVICES.publicCallQuery());
     }
 
-    PublicCallServlet(PublicCallQueryService publicCallQueryService,
-            CallBoardSyncService callBoardSyncService) {
+    PublicCallServlet(PublicCallQueryService publicCallQueryService) {
         this.publicCallQueryService = publicCallQueryService;
-        this.callBoardSyncService = callBoardSyncService;
     }
 
     @Override
@@ -39,22 +41,15 @@ public class PublicCallServlet extends HttpServlet {
 
         Utf8EncodingHelper.apply(request, response);
 
-        int sessionId = ExamStaffHttpSupport.resolveActiveSessionId(request);
-        CallBoardDAO callBoardDAO = new ServletContextCallBoardDAO(getServletContext());
-        CallBoardState board = callBoardSyncService.getState(callBoardDAO, sessionId);
+        int sessionId = SERVICES.selection().resolveActiveSessionId(
+                ExamStaffHttpSupport.parseSessionIdParam(request),
+                ExamStaffHttpSupport.readSelectedSessionId(request),
+                callBoardHttp.dao(getServletContext()).getActiveSessionId());
+        CallBoardState board = callBoardHttp.getState(getServletContext(), sessionId);
         PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(
                 sessionId, request.getServletContext().getRealPath("/"), board);
 
-        boolean hasSession = snapshot.getSessionId() > 0;
-        request.setAttribute("noActiveSession", !hasSession);
-        request.setAttribute("sessionId", hasSession ? snapshot.getSessionId() : null);
-        request.setAttribute("currentSession", snapshot.getCurrentSession());
-        request.setAttribute("callingCandidate", snapshot.getCallingCandidate());
-        request.setAttribute("nextCandidate", snapshot.getNextCandidate());
-        request.setAttribute("isCallingActive", snapshot.isCallingActive());
-        request.setAttribute("shiftEnded", snapshot.isShiftEnded());
-        request.setAttribute("waitingQueue", snapshot.getWaitingQueue());
-
+        PublicCallViewBinder.bind(request, snapshot);
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);
     }
 }

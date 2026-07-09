@@ -1,6 +1,12 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.ExamStaffHttpSupport;
+import controller.staff.exam.adapter.ExamStaffSelectionFacade;
+import controller.staff.exam.binder.ExamStaffPageBinder;
+import controller.staff.exam.http.ExamStaffHttpSupport;
+import controller.staff.exam.module.ExamStaffWebModule;
+import controller.staff.exam.page.ExamStaffPageFacade;
+import dto.examstaff.CandidateQueueSnapshotDTO;
+import dto.examstaff.ExamStaffQueueRefreshInput;
 import dto.examstaff.SessionSelectRequestDTO;
 import dto.examstaff.SessionSelectResultDTO;
 import enums.ExamStaffMessage;
@@ -9,8 +15,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import service.CandidateQueueService;
+import service.ExamStaffServices;
 import service.SessionSelectService;
-import service.impl.SessionSelectServiceImpl;
 import util.Utf8EncodingHelper;
 
 import java.io.IOException;
@@ -18,7 +25,13 @@ import java.io.IOException;
 @WebServlet("/views/staff/examstaff/select-session")
 public class SessionSelectServlet extends HttpServlet {
 
-    private final SessionSelectService sessionSelectService = new SessionSelectServiceImpl();
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+
+    private static final ExamStaffServices SERVICES = MODULE.services();
+
+    private final SessionSelectService sessionSelectService = SERVICES.sessionSelect();
+    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
+    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -48,19 +61,18 @@ public class SessionSelectServlet extends HttpServlet {
                 return;
             }
 
-            ExamStaffViewHelper.applySessionIdFromRequest(request, httpSession,
-                    ExamStaffViewHelper.loadAllSessions());
+            selectionFacade.applySessionIdFromRequest(request, httpSession,
+                    selectionFacade.loadAllSessions());
 
             if (result.isClearProcedureOnExamChange()) {
-                ExamStaffViewHelper.clearProcedureStateOnExamChange(request, httpSession,
-                        result.getPreviousExamId(), result.getPreviousSessionId(),
+                ExamStaffPageBinder.clearProcedureStateOnExamChange(httpSession,
                         result.getNewExamId(), result.getNewSessionId());
             } else if (result.isClearCandidateCache()) {
-                ExamStaffViewHelper.clearCandidateCache(httpSession);
+                selectionFacade.clearCandidateCache(httpSession);
             }
 
-            ExamStaffViewHelper.refreshCandidateQueue(httpSession, result.getExamId(),
-                    result.getSessionId(), selectRequest.getWebRoot(), ExamStaffViewHelper.loadAllSessions());
+            refreshCandidateQueue(httpSession, result.getExamId(),
+                    result.getSessionId(), selectRequest.getWebRoot(), selectionFacade.loadAllSessions());
 
             httpSession.setAttribute("examStaffQueueRevision", System.currentTimeMillis());
             httpSession.setAttribute("examStaffSessionJustChanged", Boolean.TRUE);
@@ -85,5 +97,25 @@ public class SessionSelectServlet extends HttpServlet {
                             + (e.getMessage() != null ? e.getMessage() : ExamStaffMessage.UNKNOWN_ERROR.getText()));
             response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard"));
         }
+    }
+
+    private void refreshCandidateQueue(HttpSession session, int examId, int sessionId,
+            String webRoot, java.util.List<dto.SessionDTO> allSessions) {
+        if (session == null) {
+            return;
+        }
+        ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
+        input.setExamId(examId);
+        input.setSessionId(sessionId);
+        input.setWebRoot(webRoot);
+        input.setAllSessions(allSessions);
+        input.setSelectedSessionId((Integer) session.getAttribute("selectedSessionId"));
+        @SuppressWarnings("unchecked")
+        java.util.List<String> order = (java.util.List<String>) session.getAttribute("callQueueOrder");
+        input.setCallQueueOrder(order);
+        input.setCallQueueOrderSessionId((Integer) session.getAttribute("callQueueOrderSessionId"));
+
+        CandidateQueueSnapshotDTO snapshot = candidateQueueService.refreshQueue(input);
+        ExamStaffPageBinder.publishQueue(null, session, snapshot);
     }
 }

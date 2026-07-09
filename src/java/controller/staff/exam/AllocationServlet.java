@@ -1,11 +1,20 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.AllocationActionResultBinder;
-import controller.staff.exam.support.AllocationStageViewBinder;
+import controller.staff.exam.adapter.CallBoardHttpFacade;
+import controller.staff.exam.adapter.ExamStaffSelectionFacade;
+import controller.staff.exam.adapter.StaffAuditLogSupport;
+import controller.staff.exam.binder.AllocationActionResultBinder;
+import controller.staff.exam.binder.AllocationStageViewBinder;
+import controller.staff.exam.binder.ExamStaffPageBinder;
+import controller.staff.exam.http.ExamStaffHttpSupport;
+import controller.staff.exam.module.ExamStaffWebModule;
+import controller.staff.exam.page.ExamStaffPageFacade;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.AllocationActionResultDTO;
 import dto.examstaff.AllocationCandidateActionRequest;
+import dto.examstaff.CandidateQueueSnapshotDTO;
 import dto.examstaff.CandidateCallBoardStateDTO;
+import dto.examstaff.ExamStaffQueueRefreshInput;
 import dto.SessionDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,10 +22,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import dao.impl.ServletContextCallBoardDAO;
 import service.AllocationActionService;
 import service.AllocationStageViewService;
-import service.CandidateCallBoardService;
+import service.CandidateQueueService;
 import service.ExamAreaQueryService;
 import service.ExamStaffServices;
 import util.ExamRegistrationSort;
@@ -31,30 +39,37 @@ import java.util.List;
         "/views/staff/examstaff/allocation-waiting",
         "/views/staff/examstaff/allocation-theory",
         "/views/staff/examstaff/allocation-practical",
-        "/views/staff/examstaff/allocation-road",
         "/views/staff/examstaff/allocation-results-pass",
-        "/views/staff/examstaff/allocation-results-fail"
+        "/views/staff/examstaff/allocation-results-fail",
+        "/views/staff/examstaff/allocation-results-suspended"
 })
 public class AllocationServlet extends HttpServlet {
 
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+
+    private static final ExamStaffServices SERVICES = MODULE.services();
+
     private final ExamAreaQueryService areaQueryService;
-    private final CandidateCallBoardService callBoardService;
     private final AllocationStageViewService allocationStageViewService;
     private final AllocationActionService allocationActionService;
+    private final CandidateQueueService candidateQueueService;
+    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
+    private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
+    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
     public AllocationServlet() {
-        this(ExamStaffServices.get().examAreas(), ExamStaffServices.get().callBoard(),
-                ExamStaffServices.get().allocationStageView(), ExamStaffServices.get().allocationActions());
+        this(SERVICES.examAreas(),
+                SERVICES.allocationStageView(), SERVICES.allocationActions(), SERVICES.candidateQueue());
     }
 
     AllocationServlet(ExamAreaQueryService areaQueryService,
-            CandidateCallBoardService callBoardService,
             AllocationStageViewService allocationStageViewService,
-            AllocationActionService allocationActionService) {
+            AllocationActionService allocationActionService,
+            CandidateQueueService candidateQueueService) {
         this.areaQueryService = areaQueryService;
-        this.callBoardService = callBoardService;
         this.allocationStageViewService = allocationStageViewService;
         this.allocationActionService = allocationActionService;
+        this.candidateQueueService = candidateQueueService;
     }
 
     @Override
@@ -72,37 +87,37 @@ public class AllocationServlet extends HttpServlet {
             request.removeAttribute("warningMsg");
             request.removeAttribute("alertMsg");
 
-            ExamStaffViewHelper.applyNoCacheHeaders(response);
+            ExamStaffHttpSupport.applyNoCacheHeaders(response);
             String webRoot = request.getServletContext().getRealPath("/");
 
-            int urlSessionId = ExamStaffViewHelper.parseSessionIdParam(request);
+            int urlSessionId = ExamStaffHttpSupport.parseSessionIdParam(request);
             if (Boolean.TRUE.equals(session.getAttribute("examStaffSessionJustChanged"))) {
                 session.removeAttribute("examStaffSessionJustChanged");
-                ExamStaffViewHelper.clearCandidateCache(session);
+                selectionFacade.clearCandidateCache(session);
             }
             if (urlSessionId > 0) {
                 Integer loadedSession = (Integer) session.getAttribute("examStaffLoadedSessionId");
                 Integer loadedExam = (Integer) session.getAttribute("examStaffLoadedExamId");
                 if (loadedSession == null || loadedSession != urlSessionId) {
-                    ExamStaffViewHelper.clearCandidateCache(session);
+                    selectionFacade.clearCandidateCache(session);
                 } else if (loadedExam != null && loadedExam > 0) {
-                    SessionDTO urlSession = ExamStaffViewHelper.resolveSessionById(
-                            urlSessionId, ExamStaffViewHelper.loadAllSessions());
+                    SessionDTO urlSession = selectionFacade.findSessionById(
+                            selectionFacade.loadAllSessions(), urlSessionId);
                     if (urlSession != null && urlSession.getExamId() > 0
                             && urlSession.getExamId() != loadedExam) {
-                        ExamStaffViewHelper.clearCandidateCache(session);
+                        selectionFacade.clearCandidateCache(session);
                     }
                 }
-                ExamStaffViewHelper.applySessionIdFromRequest(request, session,
-                        ExamStaffViewHelper.loadAllSessions());
+                selectionFacade.applySessionIdFromRequest(request, session,
+                        selectionFacade.loadAllSessions());
             }
 
-            ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+            ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                     request, session, webRoot);
             int examId = pageCtx.getExamId();
             int sessionId = pageCtx.getSessionId();
             List<ExamRegistrationDTO> qList = new ArrayList<>(pageCtx.getCandidates());
-            ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+            publishCandidateQueue(request, session, qList, examId, sessionId);
             session.setAttribute("lastLoadedSessionId", sessionId);
             request.setAttribute("allocationActiveSessionId", sessionId);
 
@@ -132,9 +147,8 @@ public class AllocationServlet extends HttpServlet {
                 AllocationActionResultDTO overviewResult = allocationActionService.autoAllocateOnOverview(
                         sessionId, stage);
                 if (overviewResult.getAllocatedCount() > 0) {
-                    qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
-                            pageCtx.getAllSessions());
-                    ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+                    qList = refreshCandidateQueue(session, examId, sessionId, webRoot, pageCtx.getAllSessions());
+                    publishCandidateQueue(request, session, qList, examId, sessionId);
                 }
             }
 
@@ -142,10 +156,9 @@ public class AllocationServlet extends HttpServlet {
                 try {
                     if ("autoAllocate".equals(action)) {
                         AllocationActionResultDTO allocResult = allocationActionService.executeAutoAllocate(sessionId);
-                        AllocationActionResultBinder.apply(request, session, allocResult);
+                        AllocationActionResultBinder.apply(request, session, allocResult, auditLogSupport);
                         if (allocResult.getAllocatedCount() > 0) {
-                            qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
-                                    pageCtx.getAllSessions());
+                            qList = refreshCandidateQueue(session, examId, sessionId, webRoot, pageCtx.getAllSessions());
                         }
                         stage = AllocationStageHelper.STAGE_THEORY;
                         servletPath = allocResult.getRedirectServletPath();
@@ -166,10 +179,10 @@ public class AllocationServlet extends HttpServlet {
                             }
                             AllocationActionResultDTO actionResult = allocationActionService.executeCandidateAction(
                                     actionRequest);
-                            AllocationActionResultBinder.apply(request, session, actionResult);
+                            AllocationActionResultBinder.apply(request, session, actionResult, auditLogSupport);
                             if (actionResult.isSyncCallBoard()) {
                                 boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
-                                callBoardService.sync(new ServletContextCallBoardDAO(getServletContext()),
+                                callBoardHttp.sync(getServletContext(),
                                         sessionId, actionResult.getCallingSbd(), null, shiftEnded);
                             }
                             servletPath = actionResult.getRedirectServletPath();
@@ -185,10 +198,9 @@ public class AllocationServlet extends HttpServlet {
                     request.setAttribute("errorMsg", "Lỗi xử lý: " + e.getMessage());
                 }
 
-                ExamStaffViewHelper.clearCandidateCache(session);
-                qList = ExamStaffViewHelper.refreshCandidateQueue(session, examId, sessionId, webRoot,
-                        pageCtx.getAllSessions());
-                ExamStaffViewHelper.publishCandidateQueue(request, session, qList, examId, sessionId);
+                selectionFacade.clearCandidateCache(session);
+                qList = refreshCandidateQueue(session, examId, sessionId, webRoot, pageCtx.getAllSessions());
+                publishCandidateQueue(request, session, qList, examId, sessionId);
                 session.setAttribute("lastLoadedSessionId", sessionId);
 
                 if (shouldRedirectAfterAction(action)) {
@@ -199,12 +211,12 @@ public class AllocationServlet extends HttpServlet {
                 }
             }
 
-            ExamStaffViewHelper.consumeFlash(session, "allocationFlashMsg", request, "alertMsg");
-            ExamStaffViewHelper.consumeFlash(session, "allocationFlashError", request, "errorMsg");
-            ExamStaffViewHelper.consumeFlash(session, "allocationFlashWarn", request, "warningMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "allocationFlashMsg", request, "alertMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "allocationFlashError", request, "errorMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "allocationFlashWarn", request, "warningMsg");
 
-            CandidateCallBoardStateDTO state = callBoardService.getState(
-                    new ServletContextCallBoardDAO(getServletContext()), sessionId);
+            CandidateCallBoardStateDTO state = callBoardHttp.getBoardState(
+                    getServletContext(), sessionId);
             if (state != null) {
                 String callingSbd = (String) session.getAttribute("callingSbd");
                 if (callingSbd != null) {
@@ -228,8 +240,8 @@ public class AllocationServlet extends HttpServlet {
                 request.setAttribute("activeTheoryRooms", List.of());
             }
 
-            ExamStaffViewHelper.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
-            ExamStaffViewHelper.consumeFlash(session, "sessionSelectError", request, "sessionSelectError");
+            ExamStaffHttpSupport.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "sessionSelectError", request, "sessionSelectError");
 
             request.getRequestDispatcher(jspPath).forward(request, response);
         } catch (Exception e) {
@@ -258,6 +270,39 @@ public class AllocationServlet extends HttpServlet {
             ExamRegistrationSort.Spec sortSpec) {
         AllocationStageViewBinder.bind(request,
                 allocationStageViewService.buildView(qList, stage, resultFilter, searchQ, page, pageSize, sortSpec));
+    }
+
+    private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, int sessionId,
+            String webRoot, List<SessionDTO> allSessions) {
+        if (session == null) {
+            return List.of();
+        }
+        ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
+        input.setExamId(examId);
+        input.setSessionId(sessionId);
+        input.setWebRoot(webRoot);
+        input.setAllSessions(allSessions);
+        input.setSelectedSessionId((Integer) session.getAttribute("selectedSessionId"));
+        @SuppressWarnings("unchecked")
+        List<String> order = (List<String>) session.getAttribute("callQueueOrder");
+        input.setCallQueueOrder(order);
+        input.setCallQueueOrderSessionId((Integer) session.getAttribute("callQueueOrderSessionId"));
+
+        CandidateQueueSnapshotDTO snapshot = candidateQueueService.refreshQueue(input);
+        ExamStaffPageBinder.publishQueue(null, session, snapshot);
+        return snapshot.getFullQueue();
+    }
+
+    private void publishCandidateQueue(HttpServletRequest request, HttpSession session,
+            List<ExamRegistrationDTO> qList, int examId, int sessionId) {
+        CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(qList, examId, sessionId);
+        SessionDTO current = selectionFacade.findSessionById(selectionFacade.loadAllSessions(), sessionId);
+        if (current == null && examId > 0) {
+            current = selectionFacade.representativeSessionForExam(
+                    selectionFacade.loadAllSessions(), examId);
+        }
+        ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
+                snapshot.getProcedureDone(), examId, sessionId, current);
     }
 
     @Override

@@ -2,13 +2,13 @@ package controller.staff.exam;
 
 import service.ExamReportStatsService;
 import service.StaffReportExportService;
-import controller.staff.exam.support.ReportProcedureStatusBinder;
-import controller.staff.exam.support.ReportStatsBinder;
+import controller.staff.exam.binder.ReportProcedureStatusBinder;
+import controller.staff.exam.binder.ReportStatsBinder;
+import controller.staff.exam.module.ExamStaffWebModule;
+import controller.staff.exam.page.ExamStaffPageFacade;
 import service.ExamReportProcedureStatusService;
-import service.impl.ExamReportProcedureStatusServiceImpl;
+import service.ExamStaffServices;
 import dto.examstaff.ExamReportProcedureStatusDTO;
-import service.impl.ExamReportStatsServiceImpl;
-import service.impl.StaffReportExportServiceImpl;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.ExamReportStatsDTO;
 import dto.SessionDTO;
@@ -31,9 +31,11 @@ import java.util.Locale;
 @WebServlet("/views/staff/examstaff/report")
 public class ReportServlet extends HttpServlet {
 
-    private final ExamReportStatsService reportStatsService = new ExamReportStatsServiceImpl();
-    private final StaffReportExportService reportExportService = new StaffReportExportServiceImpl();
-    private final ExamReportProcedureStatusService procedureStatusService = new ExamReportProcedureStatusServiceImpl();
+    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+
+    private final ExamReportStatsService reportStatsService = SERVICES.reportStats();
+    private final StaffReportExportService reportExportService = SERVICES.reportExport();
+    private final ExamReportProcedureStatusService procedureStatusService = SERVICES.reportProcedureStatus();
 
     // Xu ly yeu cau GET
     @Override
@@ -41,7 +43,7 @@ public class ReportServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
-        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+        ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, webRoot);
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");

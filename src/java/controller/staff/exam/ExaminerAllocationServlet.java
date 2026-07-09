@@ -1,15 +1,18 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.ExaminerAllocationViewBinder;
-import controller.staff.exam.support.StaffAuditLogSupport;
+import controller.staff.exam.adapter.ExamStaffSelectionFacade;
+import controller.staff.exam.adapter.StaffAuditLogSupport;
+import controller.staff.exam.binder.ExaminerAllocationViewBinder;
+import controller.staff.exam.http.ExamStaffHttpSupport;
+import controller.staff.exam.module.ExamStaffWebModule;
+import controller.staff.exam.page.ExamStaffPageFacade;
 import dto.SessionDTO;
 import dto.examstaff.ExaminerAllocationActionResultDTO;
 import dto.examstaff.ExaminerAllocationViewDTO;
 import model.User;
+import service.ExamStaffServices;
 import service.ExaminerAllocationDeskService;
 import service.ExaminerAllocationService;
-import service.impl.ExaminerAllocationDeskServiceImpl;
-import service.impl.ExaminerAllocationServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -23,14 +26,20 @@ import java.util.List;
 @WebServlet("/views/staff/examstaff/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
 
-    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
-    private final ExaminerAllocationDeskService deskService = new ExaminerAllocationDeskServiceImpl();
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+
+    private static final ExamStaffServices SERVICES = MODULE.services();
+
+    private final ExaminerAllocationService allocationService = SERVICES.examinerAllocation();
+    private final ExaminerAllocationDeskService deskService = SERVICES.examinerAllocationDesk();
+    private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
+    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        ExamStaffViewHelper.applyNoCacheHeaders(response);
+        ExamStaffHttpSupport.applyNoCacheHeaders(response);
         HttpSession session = request.getSession();
 
         request.removeAttribute("errorMsg");
@@ -47,15 +56,15 @@ public class ExaminerAllocationServlet extends HttpServlet {
             session.removeAttribute("sessionControlError");
         }
 
-        ExamStaffViewHelper.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
+        ExamStaffHttpSupport.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
 
-        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+        ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, getServletContext().getRealPath("/"), false);
         List<SessionDTO> allSessions = pageCtx.getAllSessions();
         int examId = pageCtx.getExamId();
         int sessionId = pageCtx.getSessionId();
 
-        SessionDTO pickedFromUrl = ExamStaffViewHelper.resolveSessionFromRequest(request, session, allSessions);
+        SessionDTO pickedFromUrl = selectionFacade.resolveSessionFromRequest(request, session, allSessions);
         if (pickedFromUrl != null) {
             examId = pickedFromUrl.getExamId();
             sessionId = pickedFromUrl.getId();
@@ -66,7 +75,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             currentSession = pickedFromUrl;
         }
         if (currentSession == null && examId > 0) {
-            currentSession = ExamStaffViewHelper.representativeSessionForExam(allSessions, examId);
+            currentSession = selectionFacade.representativeSessionForExam(allSessions, examId);
             if (currentSession != null) {
                 sessionId = currentSession.getId();
             }
@@ -128,7 +137,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {
-        StaffAuditLogSupport.persist(session, action, details);
+        auditLogSupport.persist(session, action, details);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package controller.staff.exam.support;
+package controller.staff.exam.binder;
 
 import dto.examstaff.ExamReportStatsDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +17,7 @@ public final class ReportStatsBinder {
         request.setAttribute("passedCount", stats.getPassedCount());
         request.setAttribute("failedCount", stats.getFailedCount());
         request.setAttribute("absentCount", stats.getAbsentCount());
+        request.setAttribute("suspendedCount", stats.getSuspendedCount());
         request.setAttribute("passRate", stats.getPassRate());
         request.setAttribute("licenseStats", stats.getLicenseStats());
         request.setAttribute("a1Count", stats.getA1Count());
@@ -37,9 +38,6 @@ public final class ReportStatsBinder {
         request.setAttribute("practicalCount", stats.getPracticalCount());
         request.setAttribute("practicalPassed", stats.getPracticalPassed());
         request.setAttribute("practicalFailed", stats.getPracticalFailed());
-        request.setAttribute("roadCount", stats.getRoadCount());
-        request.setAttribute("roadPassed", stats.getRoadPassed());
-        request.setAttribute("roadFailed", stats.getRoadFailed());
         request.setAttribute("infractions", stats.getInfractions());
     }
 }

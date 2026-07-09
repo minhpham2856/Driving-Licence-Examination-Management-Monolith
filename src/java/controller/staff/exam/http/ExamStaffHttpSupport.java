@@ -1,10 +1,8 @@
-package controller.staff.exam.support;
+package controller.staff.exam.http;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import dao.CallBoardDAO;
-import dao.impl.ServletContextCallBoardDAO;
 
 public final class ExamStaffHttpSupport {
 
@@ -46,21 +44,16 @@ public final class ExamStaffHttpSupport {
         return 0;
     }
 
-    public static int resolveActiveSessionId(HttpServletRequest request) {
-        int fromParam = parseSessionIdParam(request);
-        if (fromParam > 0) {
-            return fromParam;
-        }
+    public static Integer readSelectedSessionId(HttpServletRequest request) {
         HttpSession session = request != null ? request.getSession(false) : null;
-        if (session != null) {
-            Object selected = session.getAttribute("selectedSessionId");
-            if (selected instanceof Integer id && id > 0) {
-                return id;
-            }
+        if (session == null) {
+            return null;
         }
-        CallBoardDAO callBoardDAO = new ServletContextCallBoardDAO(request.getServletContext());
-        Integer active = callBoardDAO.getActiveSessionId();
-        return active != null ? active : 0;
+        Object selected = session.getAttribute("selectedSessionId");
+        if (selected instanceof Integer id && id > 0) {
+            return id;
+        }
+        return null;
     }
 
     public static void consumeFlash(HttpSession session, String sessionKey,

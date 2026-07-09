@@ -1,8 +1,7 @@
-package controller.staff.exam.support;
+package controller.staff.exam.adapter;
 
 import jakarta.servlet.http.HttpSession;
 import service.StaffAuditLogService;
-import service.impl.StaffAuditLogServiceImpl;
 import util.SessionUserHelper;
 
 import java.text.SimpleDateFormat;
@@ -13,28 +12,29 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * HTTP adapter ghi nhật ký exam staff — delegate {@link StaffAuditLogService}, không gọi DAO trực tiếp.
+ * HTTP adapter ghi nhat ky exam staff; delegate StaffAuditLogService, khong goi DAO truc tiep.
  */
 public final class StaffAuditLogSupport {
 
-    private static final StaffAuditLogService AUDIT_LOG = new StaffAuditLogServiceImpl();
+    private final StaffAuditLogService auditLogService;
 
-    private StaffAuditLogSupport() {
+    public StaffAuditLogSupport(StaffAuditLogService auditLogService) {
+        this.auditLogService = auditLogService;
     }
 
-    public static void persist(HttpSession session, String action, String details) {
+    public void persist(HttpSession session, String action, String details) {
         persist(session, action, details, 0);
     }
 
-    public static void persist(HttpSession session, String action, String details, int recordId) {
-        AUDIT_LOG.logAction(SessionUserHelper.resolveUserId(session), action, details, recordId);
+    public void persist(HttpSession session, String action, String details, int recordId) {
+        auditLogService.logAction(SessionUserHelper.resolveUserId(session), action, details, recordId);
     }
 
-    public static void persistWithSessionFeed(HttpSession session, String action, String details) {
+    public void persistWithSessionFeed(HttpSession session, String action, String details) {
         persistWithSessionFeed(session, action, details, 0);
     }
 
-    public static void persistWithSessionFeed(HttpSession session, String action, String details, int recordId) {
+    public void persistWithSessionFeed(HttpSession session, String action, String details, int recordId) {
         appendSessionFeed(session, action, details);
         persist(session, action, details, recordId);
     }

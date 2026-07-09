@@ -1,18 +1,52 @@
-package controller.pub.support;
+package controller.pub.binder;
 
 import dto.examstaff.PublicCallSnapshotDTO;
 import util.JsonUtil;
+import dto.SessionDTO;
+import dto.exam.ExamRegistrationDTO;
 
 import java.text.SimpleDateFormat;
+import java.util.Locale;
+import util.examstaff.LicenseClassRules;
 
 public final class PublicCallJsonBinder {
 
     private PublicCallJsonBinder() {
     }
 
+    private static String normalizeLicenseForPublicCall(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String normalized = LicenseClassRules.normalizeManaged(raw);
+        if (normalized != null && !normalized.isBlank()) {
+            return normalized;
+        }
+        return raw.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static void normalizeSession(SessionDTO s) {
+        if (s == null) return;
+        s.setLicenseCode(normalizeLicenseForPublicCall(s.getLicenseCode()));
+    }
+
+    private static void normalizeCandidate(ExamRegistrationDTO c) {
+        if (c == null) return;
+        c.setLicenseCode(normalizeLicenseForPublicCall(c.getLicenseCode()));
+    }
+
     public static String toStateJson(PublicCallSnapshotDTO snapshot) {
         if (snapshot == null) {
             return "{}";
+        }
+
+        normalizeSession(snapshot.getCurrentSession());
+        normalizeCandidate(snapshot.getCallingCandidate());
+        normalizeCandidate(snapshot.getNextCandidate());
+        if (snapshot.getWaitingQueue() != null) {
+            for (ExamRegistrationDTO c : snapshot.getWaitingQueue()) {
+                normalizeCandidate(c);
+            }
         }
 
         StringBuilder json = new StringBuilder(512);

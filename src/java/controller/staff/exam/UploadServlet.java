@@ -1,18 +1,24 @@
 package controller.staff.exam;
 
 import service.ExamStaffSessionQueryService;
-import service.impl.ExamStaffSessionQueryServiceImpl;
+import service.ExamStaffPageService;
+import controller.staff.exam.adapter.ExamStaffSelectionFacade;
+import controller.staff.exam.adapter.StaffAuditLogSupport;
+import controller.staff.exam.binder.ExamStaffPageBinder;
+import controller.staff.exam.module.ExamStaffWebModule;
+import controller.staff.exam.page.ExamStaffPageFacade;
+import service.ExamStaffServices;
 
 import dto.exam.ExamRegistrationDTO;
 
 import dto.SessionDTO;
 
-import controller.staff.exam.support.ExamStaffPageBinder;
-import controller.staff.exam.support.StaffAuditLogSupport;
 import service.CandidateDstsImportService;
-import service.impl.CandidateDstsImportServiceImpl;
+import service.CandidateQueueService;
 import dto.examstaff.CandidateDstsImportCommitResultDTO;
 import dto.examstaff.CandidateDstsImportPreviewDTO;
+import dto.examstaff.CandidateQueueSnapshotDTO;
+import dto.examstaff.ExamStaffQueueRefreshInput;
 import util.CandidateDstsCsvSamples;
 
 import jakarta.servlet.ServletException;
@@ -25,8 +31,10 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @WebServlet("/views/staff/examstaff/upload")
@@ -35,8 +43,16 @@ import java.util.Map;
                  maxRequestSize = 1024 * 1024 * 30)
 public class UploadServlet extends HttpServlet {
 
-    private final ExamStaffSessionQueryService sessionQueryService = new ExamStaffSessionQueryServiceImpl();
-    private final CandidateDstsImportService importService = new CandidateDstsImportServiceImpl();
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+
+    private static final ExamStaffServices SERVICES = MODULE.services();
+
+    private final ExamStaffSessionQueryService sessionQueryService = SERVICES.sessionQuery();
+    private final ExamStaffPageService pageService = SERVICES.page();
+    private final CandidateDstsImportService importService = SERVICES.importCandidates();
+    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
+    private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
+    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
     // Xu ly yeu cau GET
     @Override
@@ -61,7 +77,7 @@ public class UploadServlet extends HttpServlet {
             Integer selectedSessionId = (Integer) session.getAttribute("selectedImportSessionId");
             if (selectedSessionId == null || selectedSessionId <= 0) {
                 List<SessionDTO> allSessions = sessionQueryService.listAllSessions();
-                int examId = ExamStaffViewHelper.resolveExamId(request, session, allSessions, 0);
+                int examId = selectionFacade.resolveExamId(request, session, allSessions, 0);
                 selectedSessionId = resolveImportSessionId(request, session, allSessions, examId);
             }
 
@@ -83,9 +99,9 @@ public class UploadServlet extends HttpServlet {
                 Integer selectedExamId = (Integer) session.getAttribute("selectedExamId");
                 int examId = selectedExamId != null && selectedExamId > 0
                         ? selectedExamId
-                        : ExamStaffViewHelper.resolveExamId(request, session, sessionQueryService.listAllSessions(), 0);
+                        : selectionFacade.resolveExamId(request, session, sessionQueryService.listAllSessions(), 0);
                 String webRoot = request.getServletContext().getRealPath("/");
-                ExamStaffViewHelper.refreshCandidateQueue(session, examId, selectedSessionId, webRoot,
+                refreshCandidateQueue(session, examId, selectedSessionId, webRoot,
                         sessionQueryService.listAllSessions());
                 if (selectedSessionId > 0) {
                     SessionDTO importSessionDto = sessionQueryService.findBySessionId(selectedSessionId);
@@ -104,9 +120,9 @@ public class UploadServlet extends HttpServlet {
                     uploadedFile = "danh_sach.xlsx";
                 }
                 SessionDTO importSession = sessionQueryService.findBySessionId(selectedSessionId);
-                String sessionLabel = importSession != null ? importSession.getSessionName() : ("SessionId " + selectedSessionId);
+                String sessionLabel = buildSessionAuditLabel(importSession, selectedSessionId);
                 String auditDetails = "Import DSTS \"" + uploadedFile + "\": nhập " + importedCount
-                        + " thí sinh vào ca " + sessionLabel + " (SessionId=" + selectedSessionId + ")"
+                        + " thí sinh vào " + sessionLabel
                 // add audit log
                         + (skippedCount > 0 ? ", bỏ qua " + skippedCount + " dòng" : "");
                 addAuditLog(session, "IMPORT Candidates", auditDetails, selectedSessionId);
@@ -116,12 +132,18 @@ public class UploadServlet extends HttpServlet {
             }
         }
 
-        ExamStaffViewHelper.ExamStaffPageContext pageCtx = ExamStaffViewHelper.prepareExamStaffPage(
+        ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, request.getServletContext().getRealPath("/"), false);
         int examId = pageCtx.getExamId();
         int sessionId = pageCtx.getSessionId();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
-        ExamStaffViewHelper.bindImportExamAttributes(request, currentSession, examId);
+        if (currentSession == null && examId > 0) {
+            int primarySessionId = pageService.resolvePrimarySessionId(pageCtx.getAllSessions(), examId);
+            if (primarySessionId > 0) {
+                currentSession = pageService.findSessionById(primarySessionId, pageCtx.getAllSessions());
+            }
+        }
+        ExamStaffPageBinder.bindImportExam(request, currentSession, examId);
         session.setAttribute("selectedImportSessionId", sessionId);
 
         request.getRequestDispatcher("/views/staff/examstaff/upload.jsp").forward(request, response);
@@ -138,7 +160,7 @@ public class UploadServlet extends HttpServlet {
         session.removeAttribute("validImportCount");
 
         List<SessionDTO> allSessions = sessionQueryService.listAllSessions();
-        int examId = ExamStaffViewHelper.resolveExamId(request, session, allSessions, 0);
+        int examId = selectionFacade.resolveExamId(request, session, allSessions, 0);
         int selectedSessionId = resolveImportSessionId(request, session, allSessions, examId);
         session.setAttribute("selectedImportSessionId", selectedSessionId);
         if (selectedSessionId > 0) {
@@ -181,16 +203,51 @@ public class UploadServlet extends HttpServlet {
     }
 
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
-        StaffAuditLogSupport.persistWithSessionFeed(session, action, details, recordId);
+        auditLogSupport.persistWithSessionFeed(session, action, details, recordId);
     }
 
-    private static int resolveImportSessionId(HttpServletRequest request, HttpSession session,
+    private String buildSessionAuditLabel(SessionDTO session, int fallbackSessionId) {
+        if (session == null) {
+            return "ca thi #" + fallbackSessionId;
+        }
+        String name = session.getSessionName() != null && !session.getSessionName().isBlank()
+                ? session.getSessionName().trim()
+                : "ca thi #" + fallbackSessionId;
+        if (session.getExamDate() == null) {
+            return "ca " + name;
+        }
+        String date = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"))
+                .format(session.getExamDate());
+        return "ca " + name + " - ngày " + date;
+    }
+
+    private void refreshCandidateQueue(HttpSession session, int examId, int sessionId,
+            String webRoot, List<SessionDTO> allSessions) {
+        if (session == null) {
+            return;
+        }
+        ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
+        input.setExamId(examId);
+        input.setSessionId(sessionId);
+        input.setWebRoot(webRoot);
+        input.setAllSessions(allSessions);
+        input.setSelectedSessionId((Integer) session.getAttribute("selectedSessionId"));
+        @SuppressWarnings("unchecked")
+        List<String> order = (List<String>) session.getAttribute("callQueueOrder");
+        input.setCallQueueOrder(order);
+        input.setCallQueueOrderSessionId((Integer) session.getAttribute("callQueueOrderSessionId"));
+
+        CandidateQueueSnapshotDTO snapshot = candidateQueueService.refreshQueue(input);
+        ExamStaffPageBinder.publishQueue(null, session, snapshot);
+    }
+
+    private int resolveImportSessionId(HttpServletRequest request, HttpSession session,
             List<SessionDTO> allSessions, int examId) {
         String sessionParam = request.getParameter("examSessionId");
         if (sessionParam != null && !sessionParam.isBlank()) {
             try {
                 int paramSessionId = Integer.parseInt(sessionParam.trim());
-                SessionDTO paramSession = ExamStaffViewHelper.findSessionById(allSessions, paramSessionId);
+                SessionDTO paramSession = selectionFacade.findSessionById(allSessions, paramSessionId);
                 if (paramSession != null) {
                     return paramSessionId;
                 }
@@ -208,7 +265,7 @@ public class UploadServlet extends HttpServlet {
             }
         }
         if (examId > 0) {
-            return ExamStaffViewHelper.resolvePrimarySessionId(allSessions, examId);
+            return selectionFacade.resolvePrimarySessionId(allSessions, examId);
         }
         return 0;
     }

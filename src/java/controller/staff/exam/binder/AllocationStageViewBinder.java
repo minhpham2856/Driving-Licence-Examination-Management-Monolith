@@ -1,4 +1,4 @@
-package controller.staff.exam.support;
+package controller.staff.exam.binder;
 
 import dto.examstaff.AllocationStageViewDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +13,6 @@ public final class AllocationStageViewBinder {
             return;
         }
         request.setAttribute("allocationPracticalStageIds", view.getPracticalStageIds());
-        request.setAttribute("allocationNoRoadTestIds", view.getNoRoadTestIds());
         request.setAttribute("allocationStageCounts", view.getStageCounts());
         request.setAttribute("allocationStageList", view.getStageList());
         request.setAttribute("allocationPageSlice", view.getPageSlice());

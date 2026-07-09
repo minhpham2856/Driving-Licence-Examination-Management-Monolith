@@ -1,4 +1,4 @@
-package controller.staff.exam.support;
+package controller.staff.exam.binder;
 
 import dto.examstaff.ExamStaffDashboardViewDTO;
 import jakarta.servlet.http.HttpServletRequest;

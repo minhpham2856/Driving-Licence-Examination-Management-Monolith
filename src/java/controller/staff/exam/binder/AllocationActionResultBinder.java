@@ -1,5 +1,6 @@
-package controller.staff.exam.support;
+package controller.staff.exam.binder;
 
+import controller.staff.exam.adapter.StaffAuditLogSupport;
 import dto.examstaff.AllocationActionResultDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -9,7 +10,8 @@ public final class AllocationActionResultBinder {
     private AllocationActionResultBinder() {
     }
 
-    public static void apply(HttpServletRequest request, HttpSession session, AllocationActionResultDTO result) {
+    public static void apply(HttpServletRequest request, HttpSession session,
+            AllocationActionResultDTO result, StaffAuditLogSupport auditLogSupport) {
         if (request == null || result == null) {
             return;
         }
@@ -25,8 +27,8 @@ public final class AllocationActionResultBinder {
         if (session != null && result.isSyncCallBoard() && result.getCallingSbd() != null) {
             session.setAttribute("callingSbd", result.getCallingSbd());
         }
-        if (session != null && result.hasAuditLog()) {
-            StaffAuditLogSupport.persist(session, result.getAuditAction(), result.getAuditDetails(),
+        if (session != null && result.hasAuditLog() && auditLogSupport != null) {
+            auditLogSupport.persist(session, result.getAuditAction(), result.getAuditDetails(),
                     result.getAuditRecordId());
         }
     }

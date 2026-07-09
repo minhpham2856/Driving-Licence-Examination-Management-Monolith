@@ -6,8 +6,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import controller.staff.exam.adapter.ExamStaffSelectionFacade;
+import controller.staff.exam.module.ExamStaffWebModule;
+import service.ExamStaffServices;
 import service.CandidatePhotoLookupService;
-import service.impl.CandidatePhotoLookupServiceImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,7 +17,12 @@ import java.nio.file.Files;
 @WebServlet("/views/staff/examstaff/candidate-photo")
 public class CandidatePhotoServlet extends HttpServlet {
 
-    private final CandidatePhotoLookupService photoLookupService = new CandidatePhotoLookupServiceImpl();
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+
+    private static final ExamStaffServices SERVICES = MODULE.services();
+
+    private final CandidatePhotoLookupService photoLookupService = SERVICES.photoLookup();
+    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,8 +34,8 @@ public class CandidatePhotoServlet extends HttpServlet {
             return;
         }
 
-        int examId = ExamStaffViewHelper.resolveExamId(request, request.getSession(), null, 0);
-        int sessionId = ExamStaffViewHelper.resolveSessionId(request, request.getSession(), null, 0);
+        int examId = selectionFacade.resolveExamId(request, request.getSession(), null, 0);
+        int sessionId = selectionFacade.resolveSessionId(request, request.getSession(), null, 0);
         CandidatePhotoStreamDTO photo = photoLookupService.resolvePhoto(
                 request.getServletContext().getRealPath("/"), examId, sessionId, sbd.trim());
 

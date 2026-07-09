@@ -1,6 +1,9 @@
 package controller.staff.exam;
 
-import controller.staff.exam.support.StaffAuditPageBinder;
+import controller.staff.exam.binder.StaffAuditPageBinder;
+import controller.staff.exam.http.AuditFilterSupport;
+import controller.staff.exam.module.ExamStaffWebModule;
+import controller.staff.exam.page.ExamStaffPageFacade;
 import dto.examstaff.StaffAuditPageViewDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,10 +12,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.StaffAuditPageService;
-import service.impl.StaffAuditPageServiceImpl;
+import service.ExamStaffServices;
 import util.SessionUserHelper;
 import util.examstaff.AllocationStageHelper;
-import util.examstaff.AuditFilterHelper;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -21,7 +23,9 @@ import java.nio.charset.StandardCharsets;
 @WebServlet("/views/staff/examstaff/audit")
 public class AuditServlet extends HttpServlet {
 
-    private final StaffAuditPageService auditPageService = new StaffAuditPageServiceImpl();
+    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+
+    private final StaffAuditPageService auditPageService = SERVICES.auditPage();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -29,7 +33,7 @@ public class AuditServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         if ("true".equals(request.getParameter("exportExcel"))) {
-            String filterDate = AuditFilterHelper.resolveFilterDate(request);
+            String filterDate = AuditFilterSupport.resolveFilterDate(request);
             String target = request.getContextPath() + "/views/staff/examstaff/audit-export";
             if (filterDate != null && !filterDate.isBlank()) {
                 target += "?filterDate=" + URLEncoder.encode(filterDate, StandardCharsets.UTF_8);
@@ -39,8 +43,8 @@ public class AuditServlet extends HttpServlet {
         }
 
         int userId = SessionUserHelper.resolveUserId(session);
-        String filterDate = AuditFilterHelper.resolveFilterDate(request);
-        String filterKey = AuditFilterHelper.normalizeFilterKey(filterDate);
+        String filterDate = AuditFilterSupport.resolveFilterDate(request);
+        String filterKey = AuditFilterSupport.normalizeFilterKey(filterDate);
 
         Integer prevUserId = (Integer) session.getAttribute("auditPageUserId");
         String prevFilter = (String) session.getAttribute("auditPageFilterDate");
@@ -56,7 +60,7 @@ public class AuditServlet extends HttpServlet {
         session.setAttribute("auditPageUserId", userId);
         session.setAttribute("auditPageFilterDate", view.getFilterKey());
 
-        ExamStaffViewHelper.prepareExamStaffPage(request, session,
+        ExamStaffPageFacade.prepareExamStaffPage(request, session,
                 request.getServletContext().getRealPath("/"));
 
         StaffAuditPageBinder.bind(request, view);

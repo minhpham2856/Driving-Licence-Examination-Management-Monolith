@@ -1,4 +1,4 @@
-package controller.staff.exam.support;
+package controller.staff.exam.binder;
 
 import dto.SessionDTO;
 import dto.exam.ExamRegistrationDTO;
@@ -10,20 +10,55 @@ import jakarta.servlet.http.HttpSession;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import util.examstaff.LicenseClassRules;
 
 /**
- * Chỉ bind request/session attributes. Không tạo *Impl và không chứa nghiệp vụ.
- * Dữ liệu đã được service/helper chuẩn bị sẵn.
+ * Chi bind request/session attributes. Khong tao *Impl va khong chua nghiep vu.
+ * Du lieu da duoc service/helper chuan bi san.
  */
 public final class ExamStaffPageBinder {
 
     private ExamStaffPageBinder() {
     }
 
+    private static String normalizeLicenseForExamstaff(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String normalized = LicenseClassRules.normalizeManaged(raw);
+        if (normalized != null && !normalized.isBlank()) {
+            return normalized;
+        }
+        // Fallback: giữ nguyên giá trị (trim + upper) khi không thuộc tập đã biết.
+        return raw.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static void normalizeSession(SessionDTO s) {
+        if (s == null) return;
+        s.setLicenseCode(normalizeLicenseForExamstaff(s.getLicenseCode()));
+    }
+
+    private static void normalizeCandidate(ExamRegistrationDTO c) {
+        if (c == null) return;
+        c.setLicenseCode(normalizeLicenseForExamstaff(c.getLicenseCode()));
+    }
+
     public static void bindPickerView(HttpServletRequest request, ExamStaffPickerViewDTO picker) {
         if (request == null || picker == null) {
             return;
         }
+        if (picker.getExamOptions() != null) {
+            for (SessionDTO s : picker.getExamOptions()) {
+                normalizeSession(s);
+            }
+        }
+        if (picker.getAllSessions() != null) {
+            for (SessionDTO s : picker.getAllSessions()) {
+                normalizeSession(s);
+            }
+        }
+        normalizeSession(picker.getCurrentSession());
         request.setAttribute("examOptions", picker.getExamOptions());
         request.setAttribute("allSessions", picker.getAllSessions());
         request.setAttribute("currentSession", picker.getCurrentSession());
@@ -66,6 +101,11 @@ public final class ExamStaffPageBinder {
             done = List.of();
         }
 
+        normalizeSession(currentSession);
+        for (ExamRegistrationDTO c : qList) normalizeCandidate(c);
+        for (ExamRegistrationDTO c : active) normalizeCandidate(c);
+        for (ExamRegistrationDTO c : done) normalizeCandidate(c);
+
         if (session != null) {
             session.setAttribute("candidateQueue", qList);
             session.setAttribute("activeCallQueue", active);
@@ -101,6 +141,8 @@ public final class ExamStaffPageBinder {
         if (request == null) {
             return;
         }
+        normalizeCandidate(callingCandidate);
+        normalizeSession(currentSession);
         request.setAttribute("callingCandidate", callingCandidate);
         request.setAttribute("suspendedCount", suspendedCount);
         if (currentSession != null) {
@@ -124,6 +166,7 @@ public final class ExamStaffPageBinder {
             return;
         }
         if (currentSession != null) {
+            normalizeSession(currentSession);
             request.setAttribute("currentSession", currentSession);
             if (currentSession.getLicenseCode() != null && !currentSession.getLicenseCode().isBlank()) {
                 request.setAttribute("importExamLicense", currentSession.getLicenseCode());
