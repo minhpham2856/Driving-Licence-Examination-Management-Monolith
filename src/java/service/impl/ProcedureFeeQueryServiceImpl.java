@@ -13,7 +13,7 @@ import util.ProcedureFeeTotals;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Locale;
 public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
 
     private final FeeDAO feeDAO = new FeeDAOImpl();
@@ -30,23 +30,23 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
         if (licenseCode == null || licenseCode.isBlank()) {
             licenseCode = profile.getClazz();
         }
-        boolean requiresRoadTest = profile.isRequiresRoadTest();
-
         Payment payment = paymentDAO.getByCandidateId(profile.getId());
         List<Fee> feeLines = new ArrayList<>();
         boolean feesFromPayment = false;
         if (payment != null && payment.getPaymentId() > 0) {
             feeLines = feeDAO.getFeesByPaymentId(payment.getPaymentId());
+            feeLines = filterApplicableFees(profile, feeLines);
             feesFromPayment = feeLines != null && !feeLines.isEmpty();
         }
         if (feeLines == null || feeLines.isEmpty()) {
-            feeLines = feeDAO.getProcedureFees(licenseCode, requiresRoadTest);
+            feeLines = feeDAO.getProcedureFees(licenseCode, false);
+            feeLines = filterApplicableFees(profile, feeLines);
             feesFromPayment = false;
         }
 
         double feeTotal = ProcedureFeeTotals.resolvePaidAmount(payment, feeLines);
         if (feeTotal <= 0) {
-            feeTotal = feeDAO.sumProcedureFees(licenseCode, requiresRoadTest);
+            feeTotal = feeLines.stream().mapToDouble(Fee::getAmount).sum();
         }
 
         result.setFeeLines(feeLines);
@@ -54,4 +54,47 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
         result.setFeesFromPayment(feesFromPayment);
         return result;
     }
+
+    private static List<Fee> filterApplicableFees(ExamRegistrationDTO profile, List<Fee> feeLines) {
+        if (feeLines == null || feeLines.isEmpty() || profile == null) {
+            return feeLines != null ? feeLines : new ArrayList<>();
+        }
+        List<Fee> filtered = new ArrayList<>();
+        boolean skipsTheory = profile.skipsTheory();
+        boolean skipsPractical = profile.skipsPractical();
+        for (Fee fee : feeLines) {
+            if (fee == null) {
+                continue;
+            }
+            String name = normalize(fee.getFeeName());
+            if (skipsTheory && containsAny(name, "ly thuyet")) {
+                continue;
+            }
+            if (skipsPractical && containsAny(name, "trong hinh", "sa hinh", "thuc hanh trong", "thuc hanh")) {
+                continue;
+            }
+            filtered.add(fee);
+        }
+        return filtered;
+    }
+
+    private static String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
+    }
+
+    private static boolean containsAny(String haystack, String... needles) {
+        for (String needle : needles) {
+            if (haystack.contains(needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

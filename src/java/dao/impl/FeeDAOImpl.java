@@ -48,16 +48,27 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         boolean motorcycle = isMotorcycleGroup(licenceClass);
         List<Fee> applicable = new ArrayList<>();
         String sql = """
-                SELECT f.FeeId, f.FeeName, f.FeeType, lf.Amount, f.IsActive
-                FROM Licence_Fee lf
-                INNER JOIN Fee f ON f.FeeId = lf.FeeId
-                LEFT JOIN Licence l ON lf.LicenceId = l.LicenceId
+                SELECT f.FeeId, f.FeeName, f.FeeType, f.IsActive,
+                       COALESCE(lf_pick.Amount, 0) AS Amount
+                FROM Fee f
+                OUTER APPLY (
+                    SELECT TOP 1 lf.Amount
+                    FROM Licence_Fee lf
+                    LEFT JOIN Licence l ON lf.LicenceId = l.LicenceId
+                    WHERE lf.FeeId = f.FeeId
+                      AND (lf.LicenceId IS NULL OR l.LicenceClass = ?)
+                    ORDER BY CASE
+                        WHEN l.LicenceClass = ? THEN 0
+                        WHEN lf.LicenceId IS NULL THEN 1
+                        ELSE 2
+                    END
+                ) lf_pick
                 WHERE f.IsActive = 1
-                  AND (lf.LicenceId IS NULL OR l.LicenceClass = ?)
                 ORDER BY f.FeeType, f.FeeName
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, licenceClass);
+            ps.setString(2, licenceClass);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Fee fee = mapRow(rs);
@@ -131,9 +142,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
             }
             if (containsAny(name, "trong hinh", "sa hinh", "thuc hanh trong")) {
                 return !motorcycle;
-            }
-            if (containsAny(name, "tren duong", "duong truong")) {
-                return requiresRoadTest && !motorcycle;
             }
             return true;
         }

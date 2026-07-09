@@ -139,7 +139,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         boolean ok = allocationService.assignExaminer(slot);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("Da phan cong giam khao vao phong " + area.getAreaName() + ".");
+            result.setAlertMsg("Đã phân công giám khảo vào phòng " + area.getAreaName() + ".");
             result.setAuditAction("ASSIGN Examiner");
             result.setAuditDetails("Phan cong giam khao userId=" + examinerUserId
                     + " ca " + targetSessionId + ", phong " + area.getAreaName());

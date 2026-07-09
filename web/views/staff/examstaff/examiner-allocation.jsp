@@ -83,7 +83,6 @@
                                 <option value="${ds.id}">${ds.sessionName} (<c:choose>
                                     <c:when test="${ds.examTypeName eq 'Theory' or fn:contains(ds.examTypeName, 'Lý thuyết')}">Lý thuyết</c:when>
                                     <c:when test="${ds.examTypeName eq 'Practical' or fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành')}">Sa hình</c:when>
-                                    <c:when test="${ds.examTypeName eq 'OnRoad' or fn:contains(ds.examTypeName, 'Đường')}">Đường trường</c:when>
                                     <c:otherwise>${ds.examTypeName}</c:otherwise>
                                 </c:choose>)</option>
                             </c:forEach>

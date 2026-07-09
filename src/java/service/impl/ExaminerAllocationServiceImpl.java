@@ -271,11 +271,16 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         if (c == null || c.isAbsent()) {
             return false;
         }
+        boolean hasCapturedPhoto = c.isValidCapturedPhoto()
+                || (c.getPhotoUrl() != null && !c.getPhotoUrl().isBlank());
+        if (!c.isPaymentCompleted() || !hasCapturedPhoto || c.isSuspended()) {
+            return false;
+        }
         String theory = c.getTheoryPassed();
         if (theory == null || theory.isBlank()) {
             theory = "none";
         }
-        return c.isProcedureComplete() && "none".equalsIgnoreCase(theory);
+        return "none".equalsIgnoreCase(theory);
     }
 
     private boolean isAlreadyAllocated(ExamRegistrationDTO c) {
