@@ -55,7 +55,7 @@
                             <c:choose>
                                 <c:when test="${c.skipsPractical}"><span class="allocation-na">Bảo lưu</span></c:when>
                                 <c:when test="${c.practicalScore != null}"><span class="allocation-score allocation-score--pass">${c.practicalScore}</span></c:when>
-                                <c:otherwise><span class="allocation-na">—</span></c:otherwise>
+                                <c:otherwise><span class="allocation-na">&mdash;</span></c:otherwise>
                             </c:choose>
                         </td>
                     </tr>

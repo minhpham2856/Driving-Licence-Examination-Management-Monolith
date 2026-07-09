@@ -51,14 +51,21 @@
                         <td>${c.clazz}</td>
                         <td>
                             <c:choose>
-                                <c:when test="${c.absent}">—</c:when>
-                                <c:otherwise><span class="allocation-score allocation-score--${c.theoryPassed eq 'passed' ? 'pass' : 'fail'}">${c.theoryScore}</span></c:otherwise>
+                                <c:when test="${c.absent}"><span class="allocation-na">&mdash;</span></c:when>
+                                <c:when test="${c.skipsTheory}"><span class="allocation-na">Bảo lưu</span></c:when>
+                                <c:when test="${c.theoryScore != null}">
+                                    <span class="allocation-score allocation-score--${c.theoryPassed eq 'passed' ? 'pass' : 'fail'}">${c.theoryScore}</span>
+                                </c:when>
+                                <c:otherwise><span class="allocation-na">&mdash;</span></c:otherwise>
                             </c:choose>
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${c.absent}">—</c:when>
-                                <c:when test="${c.practicalScore != null}"><span class="allocation-score allocation-score--${c.practicalPassed eq 'passed' ? 'pass' : 'fail'}">${c.practicalScore}</span></c:when>
+                                <c:when test="${c.absent}"><span class="allocation-na">&mdash;</span></c:when>
+                                <c:when test="${c.skipsPractical}"><span class="allocation-na">Bảo lưu</span></c:when>
+                                <c:when test="${c.practicalScore != null}">
+                                    <span class="allocation-score allocation-score--${c.practicalPassed eq 'passed' ? 'pass' : 'fail'}">${c.practicalScore}</span>
+                                </c:when>
                                 <c:otherwise><span class="allocation-na">Chưa thi</span></c:otherwise>
                             </c:choose>
                         </td>

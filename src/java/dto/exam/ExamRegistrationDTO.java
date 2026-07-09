@@ -400,9 +400,19 @@ public class ExamRegistrationDTO {
         return Boolean.FALSE.equals(takeTheory);
     }
 
+    /** JSP EL: {@code ${profile.skipsTheory}} */
+    public boolean isSkipsTheory() {
+        return skipsTheory();
+    }
+
     /** Chỉ thi lại lý thuyết — bảo lưu thực hành/sa hình. */
     public boolean skipsPractical() {
         return Boolean.FALSE.equals(takePractical);
+    }
+
+    /** JSP EL: {@code ${profile.skipsPractical}} */
+    public boolean isSkipsPractical() {
+        return skipsPractical();
     }
 
     public Date getExamDate() {
@@ -497,6 +507,12 @@ public class ExamRegistrationDTO {
         if ("failed".equalsIgnoreCase(theoryPassed)) {
             return true;
         }
+        if (skipsTheory()) {
+            if ("failed".equalsIgnoreCase(practicalPassed)) {
+                return true;
+            }
+            return "passed".equalsIgnoreCase(practicalPassed);
+        }
         if (skipsPractical() && "passed".equalsIgnoreCase(theoryPassed)) {
             return true;
         }
@@ -514,6 +530,9 @@ public class ExamRegistrationDTO {
         }
         if (isAbsent()) {
             return false;
+        }
+        if (skipsTheory()) {
+            return "passed".equalsIgnoreCase(practicalPassed);
         }
         if (!"passed".equalsIgnoreCase(theoryPassed)) {
             return false;

@@ -18,7 +18,7 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
     private final ReportInfractionViewDAO infractionViewDAO = new ReportInfractionViewDAOImpl();
 
     @Override
-    public ExamReportStatsDTO computeStats(List<ExamRegistrationDTO> candidates) {
+    public ExamReportStatsDTO computeStats(List<ExamRegistrationDTO> candidates, int examId) {
         ExamReportStatsDTO stats = new ExamReportStatsDTO();
         List<ExamRegistrationDTO> qList = candidates != null ? candidates : List.of();
         stats.setTotalCandidates(qList.size());
@@ -49,12 +49,14 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
                 continue;
             }
             String tPass = reg.getTheoryPassed();
-            if ("passed".equalsIgnoreCase(tPass)) {
-                theoryCount++;
-                theoryPassed++;
-            } else if ("failed".equalsIgnoreCase(tPass)) {
-                theoryCount++;
-                theoryFailed++;
+            if (!reg.skipsTheory()) {
+                if ("passed".equalsIgnoreCase(tPass)) {
+                    theoryCount++;
+                    theoryPassed++;
+                } else if ("failed".equalsIgnoreCase(tPass)) {
+                    theoryCount++;
+                    theoryFailed++;
+                }
             }
             if (!reg.skipsPractical()) {
                 String pPass = reg.getPracticalPassed();
@@ -120,7 +122,7 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
         stats.setB1Completed(b1.completed);
         stats.setB1Passed(b1.passed);
         stats.setB1Failed(b1.failed);
-        stats.setInfractions(infractionViewDAO.findTopInfractions(3));
+        stats.setInfractions(infractionViewDAO.findTopInfractions(examId, 3));
         return stats;
     }
 

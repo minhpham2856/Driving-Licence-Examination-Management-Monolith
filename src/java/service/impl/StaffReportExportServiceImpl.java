@@ -170,14 +170,19 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
             r.createCell(col++).setCellValue(nullToEmpty(reg.getCccd()));
             r.createCell(col++).setCellValue(nullToEmpty(reg.getClazz()));
             r.createCell(col++).setCellValue(nullToEmpty(reg.getAllocatedAreaName()));
-            writeScoreCell(r.createCell(col++), reg.getTheoryScore());
-            r.createCell(col++).setCellValue(ReportExportLabels.formatSectionResult(reg.getTheoryPassed()));
+            if (reg.skipsTheory()) {
+                r.createCell(col++).setBlank();
+                r.createCell(col++).setCellValue(ReportExportLabels.formatTheoryResult(reg));
+            } else {
+                writeScoreCell(r.createCell(col++), reg.getTheoryScore());
+                r.createCell(col++).setCellValue(ReportExportLabels.formatTheoryResult(reg));
+            }
             if (reg.skipsPractical()) {
                 r.createCell(col++).setBlank();
-                r.createCell(col++).setBlank();
+                r.createCell(col++).setCellValue(ReportExportLabels.formatPracticalResult(reg));
             } else {
                 writeScoreCell(r.createCell(col++), reg.getPracticalScore());
-                r.createCell(col++).setCellValue(ReportExportLabels.formatSectionResult(reg.getPracticalPassed()));
+                r.createCell(col++).setCellValue(ReportExportLabels.formatPracticalResult(reg));
             }
             String finalResult = ReportExportLabels.formatFinalResult(reg);
             r.createCell(col++).setCellValue(finalResult);

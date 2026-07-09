@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
     <jsp:param name="pageTitle" value="Phòng thi lý thuyết" />
     <jsp:param name="breadcrumbLabel" value="Lý thuyết" />
@@ -44,21 +45,6 @@
                             <span class="badge-pill-status badge-pill-status--success">Lệ phí</span>
                         </td>
                         <td>
-                            <c:choose>
-                                <c:when test="${not empty c.allocatedAreaName}">
-                                    <strong>${c.allocatedAreaName}</strong>
-                                </c:when>
-                                <c:when test="${not empty c.allocatedAreaId}">
-                                    <c:forEach var="room" items="${activeTheoryRooms}">
-                                        <c:if test="${room.id eq c.allocatedAreaId}">
-                                            <strong>${room.areaName}</strong>
-                                        </c:if>
-                                    </c:forEach>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="allocation-room-pending">—</span>
-                                </c:otherwise>
-                            </c:choose>
                             <c:if test="${not empty activeTheoryRooms}">
                                 <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form allocation-inline-form--room-change">
                                     <input type="hidden" name="action" value="allocateRoom">
@@ -69,11 +55,18 @@
                                     <c:if test="${empty layoutSessionId and allocationActiveSessionId gt 0}"><input type="hidden" name="sessionId" value="${allocationActiveSessionId}"></c:if>
                                     <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
                                     <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi phòng">
+                                        <c:if test="${empty c.allocatedAreaId}">
+                                            <option value="" disabled selected>—</option>
+                                        </c:if>
                                         <c:forEach var="room" items="${activeTheoryRooms}">
-                                            <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${room.areaName}</option>
+                                            <c:set var="roomLabel" value="${fn:replace(room.areaName, 'Phòng thi lý thuyết ', '')}" />
+                                            <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${roomLabel}</option>
                                         </c:forEach>
                                     </select>
                                 </form>
+                            </c:if>
+                            <c:if test="${empty activeTheoryRooms}">
+                                <span class="allocation-room-pending">—</span>
                             </c:if>
                         </td>
                         <td>

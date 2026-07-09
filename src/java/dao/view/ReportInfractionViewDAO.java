@@ -5,5 +5,5 @@ import java.util.Map;
 
 public interface ReportInfractionViewDAO {
 
-    List<Map<String, Object>> findTopInfractions(int limit);
+    List<Map<String, Object>> findTopInfractions(int examId, int limit);
 }

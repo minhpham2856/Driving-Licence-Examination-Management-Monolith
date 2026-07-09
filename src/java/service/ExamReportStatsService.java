@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ExamReportStatsService {
 
-    ExamReportStatsDTO computeStats(List<ExamRegistrationDTO> candidates);
+    ExamReportStatsDTO computeStats(List<ExamRegistrationDTO> candidates, int examId);
 }

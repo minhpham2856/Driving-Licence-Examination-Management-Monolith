@@ -114,16 +114,18 @@
                         <td>${c.clazz}</td>
                         <td>
                             <c:choose>
+                                <c:when test="${c.skipsTheory}">Bảo lưu</c:when>
                                 <c:when test="${c.theoryPassed eq 'passed'}">Đạt</c:when>
                                 <c:when test="${c.theoryPassed eq 'failed'}">Trượt</c:when>
-                                <c:otherwise>—</c:otherwise>
+                                <c:otherwise>&mdash;</c:otherwise>
                             </c:choose>
                         </td>
                         <td>
                             <c:choose>
+                                <c:when test="${c.skipsPractical}">Bảo lưu</c:when>
                                 <c:when test="${c.practicalPassed eq 'passed'}">Đạt</c:when>
                                 <c:when test="${c.practicalPassed eq 'failed'}">Trượt</c:when>
-                                <c:otherwise>—</c:otherwise>
+                                <c:otherwise>&mdash;</c:otherwise>
                             </c:choose>
                         </td>
                         <td>

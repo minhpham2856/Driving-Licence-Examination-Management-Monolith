@@ -1799,7 +1799,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         String licenseForPass = AllocationPassRules.normalizeLicense(er.getLicenseCode(), er.getClazz());
 
         int tScoreVal = rs.getInt("theoryScore");
-        if (isAbsent || rs.wasNull()) {
+        if (isAbsent || rs.wasNull() || er.skipsTheory()) {
             er.setTheoryScore(null);
             er.setTheoryPassed("none");
         } else {
@@ -1808,16 +1808,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         }
 
         int pScoreVal = rs.getInt("practicalScore");
-        if (isAbsent || rs.wasNull()) {
+        if (isAbsent || rs.wasNull() || er.skipsPractical()) {
             er.setPracticalScore(null);
             er.setPracticalPassed("none");
         } else {
             er.setPracticalScore(pScoreVal);
-            if (er.skipsPractical()) {
-                er.setPracticalPassed("none");
-            } else {
-                er.setPracticalPassed(AllocationPassRules.isPracticalPassed(pScoreVal) ? "passed" : "failed");
-            }
+            er.setPracticalPassed(AllocationPassRules.isPracticalPassed(pScoreVal) ? "passed" : "failed");
         }
 
         return er;

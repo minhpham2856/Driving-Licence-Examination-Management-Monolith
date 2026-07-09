@@ -20,7 +20,26 @@ public final class ReportExportLabels {
         }
         return passed;
     }
-    // format final result
+
+    public static String formatTheoryResult(ExamRegistrationDTO reg) {
+        if (reg == null) {
+            return "";
+        }
+        if (reg.isSkipsTheory()) {
+            return "Bảo lưu";
+        }
+        return formatSectionResult(reg.getTheoryPassed());
+    }
+
+    public static String formatPracticalResult(ExamRegistrationDTO reg) {
+        if (reg == null) {
+            return "";
+        }
+        if (reg.isSkipsPractical()) {
+            return "Bảo lưu";
+        }
+        return formatSectionResult(reg.getPracticalPassed());
+    }
 
     public static String formatFinalResult(ExamRegistrationDTO reg) {
         if (reg == null) {

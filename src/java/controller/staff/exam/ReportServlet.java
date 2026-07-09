@@ -45,6 +45,7 @@ public class ReportServlet extends HttpServlet {
         String webRoot = request.getServletContext().getRealPath("/");
         ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, webRoot);
+        int examId = pageCtx.getExamId();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
         SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
         ExamReportProcedureStatusDTO procedureStatus = procedureStatusService.analyze(qList, webRoot);
@@ -52,7 +53,7 @@ public class ReportServlet extends HttpServlet {
         int missingPhotoCount = procedureStatus.getMissingPhotoCount();
 
         request.setAttribute("candidateList", qList);
-        ReportStatsBinder.bind(request, reportStatsService.computeStats(qList));
+        ReportStatsBinder.bind(request, reportStatsService.computeStats(qList, examId));
 
         boolean exportExcel = "true".equals(request.getParameter("exportExcel"));
         boolean exportPdf = "true".equals(request.getParameter("exportPdf"));
@@ -62,7 +63,7 @@ public class ReportServlet extends HttpServlet {
         }
 
         if (exportExcel && !exportBlocked) {
-            streamExcel(response, request, currentSession, qList);
+            streamExcel(response, request, currentSession, qList, examId);
             return;
         }
         if (exportPdf && !exportBlocked) {
@@ -76,7 +77,7 @@ public class ReportServlet extends HttpServlet {
     }
 
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
-            SessionDTO currentSession, List<ExamRegistrationDTO> qList) throws IOException {
+            SessionDTO currentSession, List<ExamRegistrationDTO> qList, int examId) throws IOException {
         String token = ReportExportLabels.safeFileToken(
                 currentSession != null ? currentSession.getSessionName() : "ca_thi");
         String datePart = new SimpleDateFormat("ddMMyyyy", Locale.forLanguageTag("vi-VN")).format(new Date());
@@ -85,7 +86,7 @@ public class ReportServlet extends HttpServlet {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 
-        ExamReportStatsDTO stats = reportStatsService.computeStats(qList);
+        ExamReportStatsDTO stats = reportStatsService.computeStats(qList, examId);
         String exporterName = resolveExporterName(request.getSession());
 
         reportExportService.exportExamReport(

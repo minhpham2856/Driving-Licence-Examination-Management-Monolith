@@ -29,6 +29,7 @@
         });
     }
 
+    function reloadForSession(sessionId) {
         var path = window.location.pathname;
         var next = path + '?sessionId=' + encodeURIComponent(sessionId) + '&_=' + Date.now();
         window.location.replace(next);

@@ -13,31 +13,54 @@ import java.util.Map;
 
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
+    private static final String TOP_INFRACTIONS_SQL = """
+            SELECT TOP (?) sd.[Reason] AS deductionReason,
+                   SUM(dr.OccurrenceCount) AS countVal
+            FROM DeductionRecord dr
+            INNER JOIN ScoreDeduction sd ON sd.ScoreDeductionId = dr.ScoreDeductionId
+            INNER JOIN ExamScore es ON es.ExamScoreId = dr.ExamScoreId
+            INNER JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
+            INNER JOIN ExamResult er ON er.ExamResultId = es.ExamResultId
+            INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = er.ExamEnrollmentId
+            INNER JOIN [Session] s ON s.SessionId = ee.SessionId
+            WHERE s.ExamId = ?
+              AND dr.OccurrenceCount > 0
+              AND (
+                  sec.SectionName LIKE N'%Thực hành%'
+                  OR sec.SectionName LIKE '%Practical%'
+                  OR sec.SectionName LIKE N'%Sa hình%'
+                  OR sec.SectionName LIKE N'%Sa hinh%'
+              )
+            GROUP BY sd.ScoreDeductionId, sd.[Reason]
+            ORDER BY countVal DESC
+            """;
+
     @Override
-    public List<Map<String, Object>> findTopInfractions(int limit) {
-        List<Map<String, Object>> infractions = new ArrayList<>();
+    public List<Map<String, Object>> findTopInfractions(int examId, int limit) {
+        if (examId <= 0) {
+            return List.of();
+        }
         int top = limit > 0 ? limit : 3;
-        String sql = "select top " + top + " sd.[Reason] as deductionReason, count(*) as countVal "
-                + "from Score_Deduction sdd "
-                + "join ScoreDeduction sd on sd.ScoreDeductionId = sdd.ScoreDeductionId "
-                + "group by sd.[Reason] "
-                + "order by countVal desc";
+        List<Map<String, Object>> infractions = new ArrayList<>();
         try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            int totalInfractions = 0;
-            while (rs.next()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("reason", rs.getString("deductionReason"));
-                int cnt = rs.getInt("countVal");
-                map.put("count", cnt);
-                totalInfractions += cnt;
-                infractions.add(map);
-            }
-            for (Map<String, Object> map : infractions) {
-                int cnt = (int) map.get("count");
-                double pct = totalInfractions > 0 ? ((double) cnt / totalInfractions) * 100.0 : 0.0;
-                map.put("percentage", pct);
+             PreparedStatement ps = conn.prepareStatement(TOP_INFRACTIONS_SQL)) {
+            ps.setInt(1, top);
+            ps.setInt(2, examId);
+            try (ResultSet rs = ps.executeQuery()) {
+                int totalInfractions = 0;
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("reason", rs.getString("deductionReason"));
+                    int cnt = rs.getInt("countVal");
+                    map.put("count", cnt);
+                    totalInfractions += cnt;
+                    infractions.add(map);
+                }
+                for (Map<String, Object> map : infractions) {
+                    int cnt = (int) map.get("count");
+                    double pct = totalInfractions > 0 ? ((double) cnt / totalInfractions) * 100.0 : 0.0;
+                    map.put("percentage", pct);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
