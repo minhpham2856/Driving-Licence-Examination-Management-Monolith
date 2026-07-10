@@ -5,7 +5,7 @@ import shared.Attributes;
 import shared.model.Profile;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
-import static auth.util.FormatUtil.formatString;
+import static shared.util.FormatUtil.formatString;
 import auth.dto.ServiceResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -62,7 +62,7 @@ public class RegisterServlet extends HttpServlet {
 
         // validate government id
         if (!ValidationUtil.isValidCccd(govIdNo)) {
-            forwardWithError(request, response, "Số CCCD phải gồm đúng 12 chữ số.");
+            forwardWithError(request, response, "Số căn cước phải gồm đúng 12 chữ số.");
             return;
         }
 
