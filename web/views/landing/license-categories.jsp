@@ -169,7 +169,7 @@
                         <c:set var="lc" value="${licence.licenceClass}" />
 
                         <c:choose>
-                            <c:when test="${lc eq 'A1' or lc eq 'A2' or lc eq 'A3' or lc eq 'A4'}">
+                            <c:when test="${lc eq 'A1' or lc eq 'A'}">
                                 <c:set var="vType" value="xe-may" />
                                 <c:set var="durationCat" value="duoi-3-thang" />
                                 <c:set var="iconSuffix" value="${lc eq 'A1' ? 'a1' : 'a2'}" />
@@ -193,53 +193,17 @@
                                 <c:set var="conditionLabel" value="" />
                                 <c:set var="conditionValue" value="" />
                             </c:when>
-                            <c:when test="${lc eq 'B2' or lc eq 'C1'}">
-                                <c:set var="vType" value="o-to-con" />
-                                <c:set var="durationCat" value="tu-3-6-thang" />
-                                <c:set var="iconSuffix" value="b2" />
-                                <c:set var="badgeCls" value="category-card__badge--green" />
-                                <c:set var="badgeText" value="Chuyên nghiệp" />
-                                <c:set var="durationText" value="3.5 tháng" />
-                                <c:set var="tuition" value="11.500.000" />
-                                <c:set var="examFee" value="14.500.000" />
-                                <c:set var="conditionLabel" value="" />
-                                <c:set var="conditionValue" value="" />
-                            </c:when>
-                            <c:when test="${lc eq 'C'}">
-                                <c:set var="vType" value="xe-tai-khach" />
-                                <c:set var="durationCat" value="tu-3-6-thang" />
-                                <c:set var="iconSuffix" value="c" />
-                                <c:set var="badgeCls" value="" />
-                                <c:set var="badgeText" value="" />
-                                <c:set var="durationText" value="5 tháng" />
-                                <c:set var="tuition" value="12.500.000" />
-                                <c:set var="examFee" value="16.000.000" />
-                                <c:set var="conditionLabel" value="" />
-                                <c:set var="conditionValue" value="" />
-                            </c:when>
-                            <c:when test="${lc eq 'D1'}">
-                                <c:set var="vType" value="xe-tai-khach" />
-                                <c:set var="durationCat" value="other" />
-                                <c:set var="iconSuffix" value="d" />
-                                <c:set var="badgeCls" value="" />
-                                <c:set var="badgeText" value="" />
-                                <c:set var="durationText" value="—" />
-                                <c:set var="tuition" value="6.000.000" />
-                                <c:set var="examFee" value="8.500.000" />
-                                <c:set var="conditionLabel" value="Điều kiện:" />
-                                <c:set var="conditionValue" value="Nâng hạng" />
-                            </c:when>
                             <c:otherwise>
-                                <c:set var="vType" value="xe-tai-khach" />
+                                <c:set var="vType" value="other" />
                                 <c:set var="durationCat" value="other" />
                                 <c:set var="iconSuffix" value="f" />
                                 <c:set var="badgeCls" value="" />
                                 <c:set var="badgeText" value="" />
                                 <c:set var="durationText" value="—" />
-                                <c:set var="tuition" value="9.000.000" />
-                                <c:set var="examFee" value="12.000.000" />
-                                <c:set var="conditionLabel" value="Yêu cầu:" />
-                                <c:set var="conditionValue" value="Nâng hạng" />
+                                <c:set var="tuition" value="" />
+                                <c:set var="examFee" value="" />
+                                <c:set var="conditionLabel" value="" />
+                                <c:set var="conditionValue" value="" />
                             </c:otherwise>
                         </c:choose>
 

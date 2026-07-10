@@ -24,7 +24,6 @@ public class CandidateRowDTO {
     private Integer examScore;
     private Integer scoreTheory;
     private Integer scorePractical;
-    private Integer scoreOnRoad;
     private boolean passed;
     private String resultLabel;
     private String vehicleName;
@@ -180,14 +179,6 @@ public class CandidateRowDTO {
 
     public void setScorePractical(Integer scorePractical) {
         this.scorePractical = scorePractical;
-    }
-
-    public Integer getScoreOnRoad() {
-        return scoreOnRoad;
-    }
-
-    public void setScoreOnRoad(Integer scoreOnRoad) {
-        this.scoreOnRoad = scoreOnRoad;
     }
 
     public boolean isPassed() {

@@ -16,14 +16,12 @@ public final class ExamQueue {
 
     public static final Queue<Integer> queueTheory = new ConcurrentLinkedQueue<>();
     public static final Queue<Integer> queueLayout = new ConcurrentLinkedQueue<>();
-    public static final Queue<Integer> queueRoad = new ConcurrentLinkedQueue<>();
 
     public enum Lane {
-        LY_THUYET, THUC_HANH_TRONG_HINH, THUC_HANH_TREN_DUONG
+        LY_THUYET, THUC_HANH_TRONG_HINH
     }
     private static final Object LOCK_THEORY = new Object();
     private static final Object LOCK_LAYOUT = new Object();
-    private static final Object LOCK_ROAD = new Object();
     private static final Map<Lane, AtomicReference<Integer>> ACTIVE = new EnumMap<>(Lane.class);
     private static final Map<Lane, AtomicReference<Integer>> CALLED = new EnumMap<>(Lane.class);
 
@@ -41,18 +39,12 @@ public final class ExamQueue {
         if (lane == Lane.THUC_HANH_TRONG_HINH) {
             return queueLayout;
         }
-        if (lane == Lane.THUC_HANH_TREN_DUONG) {
-            return queueRoad;
-        }
         return queueTheory;
     }
 
     public static Lane laneFor(SectionType section) {
         if (section == null || section == SectionType.THEORY) {
             return Lane.LY_THUYET;
-        }
-        if (section == SectionType.ROAD) {
-            return Lane.THUC_HANH_TREN_DUONG;
         }
         return Lane.THUC_HANH_TRONG_HINH;
     }
@@ -196,9 +188,6 @@ public final class ExamQueue {
     private static Object lockFor(Lane lane) {
         if (lane == Lane.THUC_HANH_TRONG_HINH) {
             return LOCK_LAYOUT;
-        }
-        if (lane == Lane.THUC_HANH_TREN_DUONG) {
-            return LOCK_ROAD;
         }
         return LOCK_THEORY;
     }

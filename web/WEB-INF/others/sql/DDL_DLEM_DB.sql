@@ -160,8 +160,8 @@ GO
 CREATE TABLE ExamArea (
     ExamAreaId INT PRIMARY KEY IDENTITY(1,1),
     AreaName NVARCHAR(100) NOT NULL,
-    AreaType NVARCHAR(50) NOT NULL, -- Phòng thủ tục | Phòng thi | Sân thi | Đường thi
-    Capacity INT NULL,              -- NULL cho Đường thi
+    AreaType NVARCHAR(50) NOT NULL, -- Phòng thủ tục | Phòng thi | Sân thi
+    Capacity INT NULL,
     [Location] NVARCHAR(255) NOT NULL,
     ExamZoneId INT NOT NULL REFERENCES ExamZone(ExamZoneId),
     CHECK (Capacity IS NULL OR Capacity > 0)
@@ -232,7 +232,6 @@ CREATE TABLE Candidate (
 	-- tracking
     TakeTheory BIT,
     TakeLayout BIT,
-    TakeRoad BIT,
 	TakeNo INT NOT NULL, -- lần thi thứ ?
     ReasonForTaking NVARCHAR(355),
     PhotoImageUrl NVARCHAR(500),

@@ -2,8 +2,7 @@ package enums;
 
 public enum SectionType {
     THEORY("Lý thuyết"),
-    LAYOUT("Thực hành trong hình"),
-    ROAD("Thực hành trên đường");
+    LAYOUT("Thực hành trong hình");
 
     private final String value;
 

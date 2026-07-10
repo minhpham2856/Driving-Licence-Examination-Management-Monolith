@@ -58,8 +58,20 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     public List<EnrollmentDTO> getCandidatesBySession(int sessionId) {
-        List<ExamEnrollment> enrollments = enrollmentDAO.getBySessionId(sessionId);
-        if (enrollments.isEmpty()) {
+        return toEnrollmentDtoList(enrollmentDAO.getBySessionId(sessionId));
+    }
+
+    @Override
+    public List<EnrollmentDTO> searchCandidatesBySession(int sessionId, String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return new ArrayList<>();
+        }
+        return toEnrollmentDtoList(enrollmentDAO.searchBySession(sessionId, keyword));
+    }
+
+    // Builds EnrollmentDTOs from enrollments by joining their Candidate details.
+    private List<EnrollmentDTO> toEnrollmentDtoList(List<ExamEnrollment> enrollments) {
+        if (enrollments == null || enrollments.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -355,7 +367,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         candidate.setAddress("");
         candidate.setTakeTheory(true);
         candidate.setTakeLayout(true);
-        candidate.setTakeRoad(true);
         candidate.setTakeNo(1);
         candidate.setReasonForTaking("Import CSV");
         candidate.setAbsent(!dto.isPresent());
@@ -400,18 +411,5 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public User getUserByUsername(String username) {
         return new UserDAOImpl().getByUsername(username);
-    }
-
-    @Override
-    public ServiceResult<Void> updateRoadScore(int candidateId, int score, String passed) {
-        if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
-        }
-        boolean passedFlag = "passed".equalsIgnoreCase(passed);
-        if (!examScoreService.upsertSectionScore(candidateId, SectionType.ROAD,
-                score, passedFlag)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm thực hành trên đường.");
-        }
-        return ServiceResult.ok(null);
     }
 }

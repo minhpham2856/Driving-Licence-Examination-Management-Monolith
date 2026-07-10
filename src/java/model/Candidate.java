@@ -11,7 +11,6 @@ public class Candidate {
     private String address;
     private Boolean takeTheory;
     private Boolean takeLayout;
-    private Boolean takeRoad;
     private int takeNo;
     private String reasonForTaking;
     private String photoImageUrl;
@@ -21,7 +20,7 @@ public class Candidate {
     }
     public Candidate(int candidateId, String candidateNumber, String fullName, Timestamp dateOfBirth,
             String phoneNumber, boolean sex, String governmentIdNumber, String address,
-            Boolean takeTheory, Boolean takeLayout, Boolean takeRoad,
+            Boolean takeTheory, Boolean takeLayout,
             int takeNo, String reasonForTaking, String photoImageUrl,
             boolean isAbsent, boolean isSuspended) {
         this.candidateId = candidateId;
@@ -34,7 +33,6 @@ public class Candidate {
         this.address = address;
         this.takeTheory = takeTheory;
         this.takeLayout = takeLayout;
-        this.takeRoad = takeRoad;
         this.takeNo = takeNo;
         this.reasonForTaking = reasonForTaking;
         this.photoImageUrl = photoImageUrl;
@@ -100,12 +98,6 @@ public class Candidate {
     }
     public void setTakeLayout(Boolean takeLayout) {
         this.takeLayout = takeLayout;
-    }
-    public Boolean getTakeRoad() {
-        return takeRoad;
-    }
-    public void setTakeRoad(Boolean takeRoad) {
-        this.takeRoad = takeRoad;
     }
     public int getTakeNo() {
         return takeNo;

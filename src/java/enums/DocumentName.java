@@ -8,7 +8,6 @@ public enum DocumentName {
     AUDIT("nhat-ky"),
     BB1("bb1-ly-thuyet"),
     BB2("bb2-thuc-hanh-trong-hinh"),
-    BB3("bb3-thuc-hanh-tren-duong"),
     DEFAULT("tai-lieu");
 
     private final String value;
@@ -55,9 +54,6 @@ public enum DocumentName {
             case "bb2":
             case "bb2-thuc-hanh-trong-hinh":
                 return BB2;
-            case "bb3":
-            case "bb3-thuc-hanh-tren-duong":
-                return BB3;
             default:
                 DocumentName byValue = fromValue(normalized);
                 return byValue != null ? byValue : DEFAULT;

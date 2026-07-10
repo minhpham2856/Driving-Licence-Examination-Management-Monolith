@@ -286,10 +286,6 @@
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-practical') ? ' is-active' : ''}"><span class="submenu-dot"></span> TH / Sa hình</a>
 
-                <a href="${ctx}/views/staff/examstaff/allocation-road${sessionQuery}"
-
-                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-road') ? ' is-active' : ''}"><span class="submenu-dot"></span> Đường trường</a>
-
                 <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sessionQuery}"
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-pass') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Đỗ</a>

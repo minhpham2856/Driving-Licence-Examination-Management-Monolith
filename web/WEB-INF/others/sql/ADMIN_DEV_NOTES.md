@@ -41,7 +41,7 @@ dao/ExamZoneDAO.java + impl              -- CRUD + search
 ## Validation gợi ý
 
 - **ExamZone:** `ZoneName`, `Location` bắt buộc; không xóa zone còn `ExamArea` con
-- **ExamArea:** `ExamZoneId` bắt buộc; `Capacity` bắt buộc trừ `Đường thi`; `AreaType` ∈ `ExamAreaType`
+- **ExamArea:** `ExamZoneId` bắt buộc; `Capacity` bắt buộc; `AreaType` ∈ `ExamAreaType` (Phòng thủ tục | Phòng thi | Sân thi)
 - **ExamDevice:** `DeviceType` ∈ enum `DeviceType`; `ExamAreaId` phải khớp loại (VD: Máy tính → `Phòng thi`; Mô tô → `Sân thi`)
 
 ## Trung tâm loại 3 (A1, A, B1)

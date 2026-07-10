@@ -9,11 +9,12 @@ import java.util.Map;
 
 public interface ExamViewService {
 
-    List<CandidateRowDTO> filterCandidateRows(List<CandidateRowDTO> rows, String searchQuery);
-
     List<CandidateRowDTO> loadCandidateRows(int sessionId);
 
     List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName);
+
+    List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName,
+            String searchQuery);
 
     ExamStatsDTO buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
 
