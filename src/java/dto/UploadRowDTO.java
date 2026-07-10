@@ -125,6 +125,14 @@ public class UploadRowDTO {
         this.candidateNo = candidateNo;
     }
 
+    // Display value for the preview table: "Hạng-SBD" (e.g. B2-0145).
+    public String getSbd() {
+        if (licenseCode == null || licenseCode.isEmpty()) {
+            return String.format("%04d", candidateNo);
+        }
+        return licenseCode + "-" + String.format("%04d", candidateNo);
+    }
+
     public boolean isDuplicate() {
         return isDuplicate;
     }

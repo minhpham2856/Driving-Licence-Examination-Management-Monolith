@@ -30,4 +30,7 @@ public interface AuditService {
     Map<Long, String> loadChangerNames(List<Audit> audits);
 
     List<Map<String, Object>> searchLogs(String keyword, int limit);
+
+    // Personal audit logs for one user, optionally restricted to a single day.
+    List<Audit> getLogsByUser(int userId, String dateFilter);
 }
