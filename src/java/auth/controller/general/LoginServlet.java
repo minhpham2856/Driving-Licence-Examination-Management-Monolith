@@ -5,7 +5,7 @@ import shared.Attributes;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
-import static auth.util.FormatUtil.formatString;
+import static shared.util.FormatUtil.formatString;
 import shared.enums.RoleType;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
