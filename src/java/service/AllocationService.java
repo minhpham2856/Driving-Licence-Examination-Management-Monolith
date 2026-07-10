@@ -7,6 +7,7 @@ import dto.SessionViewDTO;
 import dto.UserRowDTO;
 import model.ExamArea;
 import model.ExamDevice;
+import model.ExamEnrollment;
 
 import java.sql.Date;
 import java.util.List;
@@ -22,6 +23,16 @@ public interface AllocationService {
     List<SessionViewDTO> getSessionsByExamDate(Date date);
 
     List<ExamArea> getAreasBySessionId(int sessionId);
+
+    // Candidate-room allocation (ported from the examstaff branch).
+    // Main models candidates per session as ExamEnrollment; there is no
+    // candidate-to-theory-room column, so autoAllocate computes a capacity
+    // balanced plan and reports it rather than persisting a room link.
+    List<ExamArea> getActiveTheoryRooms();
+
+    List<ExamEnrollment> getCandidatesBySession(int sessionId);
+
+    ServiceResult<Boolean> checkInCandidate(int candidateId);
 
     ExamArea getAreaById(int id);
 

@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import model.ExamSection;
 
 public class SessionServiceImpl implements SessionService {
@@ -171,6 +173,20 @@ public class SessionServiceImpl implements SessionService {
     @Override
     public List<SessionViewDTO> getActiveSessions() {
         return buildSessionViewDTOList(sessionDAO.findActive());
+    @Override
+    public int getAssignedExaminerCount(int sessionId) {
+        List<ExaminerSchedule> assignments = assignmentDAO.getBySessionId(sessionId);
+        if (assignments == null) {
+            return 0;
+        }
+        Set<Integer> examinerIds = new HashSet<Integer>();
+        for (ExaminerSchedule schedule : assignments) {
+            if (schedule.getExaminerId() > 0) {
+                examinerIds.add(schedule.getExaminerId());
+            }
+        }
+        return examinerIds.size();
+    }
     }
 
     @Override
