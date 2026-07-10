@@ -1,79 +1,84 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-
-<jsp:include page="/views/layout/header.jsp">
-    <jsp:param name="title" value="Lái Vui - Quên mật khẩu" />
-</jsp:include>
-
-<!-- Link custom stylesheet for the forgot password page -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/forgot-password.css">
-
-<main class="recovery-page-main">
-    <!-- Ambient Blur Background Overlays (matching Figma specs!) -->
-    <div class="recovery-ambient-glow"></div>
-    <div class="recovery-ambient-glow-left"></div>
-    
-    <!-- Central Card -->
-    <div class="recovery-card">
-        <div class="recovery-card__content">
-            
-            <!-- Top visual illustration key badge -->
-            <div class="recovery-card__badge">
-                <span class="material-symbols-outlined" style="font-size:28px">vpn_key</span>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lái Vui - Quên mật khẩu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="${ctx}/assets/css/landing/forgot-password.css">
+</head>
+<body class="auth-split-body">
+<main class="auth-split">
+    <aside class="auth-split__visual auth-split__visual--login"
+           style="background-image: url('${ctx}/assets/imgs/smiling_professional_driver.png');">
+        <div class="auth-split__overlay"></div>
+        <div class="auth-split__gradient"></div>
+        <div class="auth-split__visual-inner">
+            <a href="${ctx}/home" class="auth-split__brand">
+                <img src="${ctx}/assets/imgs/LOGO.png" alt="Lái Vui" width="36" height="36">
+                <span>Lái Vui</span>
+            </a>
+            <div class="auth-split__copy">
+                <h1 class="auth-split__heading">Khôi phục<br><span>truy cập an toàn.</span></h1>
+                <p class="auth-split__sub">Nhập email đã đăng ký để nhận mật khẩu tạm thời.</p>
+                <a href="${ctx}/home" class="auth-split__home-link">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                    Về trang chủ
+                </a>
             </div>
-            
-            <!-- Header elements -->
-            <div class="recovery-card__header-wrap">
-                <h2 class="recovery-card__title">Quên mật khẩu?</h2>
-                <p class="recovery-card__subtitle">Nhập địa chỉ email của bạn để nhận liên kết khôi phục mật khẩu.</p>
-            </div>
-            
-            <!-- JSTL server-side warning blocks -->
+        </div>
+    </aside>
+
+    <section class="auth-split__form-pane">
+        <div class="auth-split__form-inner">
+            <header class="auth-split__form-header">
+                <h2>Quên mật khẩu?</h2>
+                <p>Nhập địa chỉ email để nhận thông tin khôi phục.</p>
+            </header>
+
             <c:if test="${not empty error}">
-                <div style="width: 100%; background-color: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 12px 16px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 8px; box-sizing: border-box; text-align: left;">
-                    <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;">error</span>
-                    <c:out value="${error}" />
+                <div class="auth-alert auth-alert--error" role="alert">
+                    <span class="material-symbols-outlined" aria-hidden="true">error</span>
+                    <span><c:out value="${error}" /></span>
                 </div>
             </c:if>
             <c:if test="${not empty success}">
-                <div style="width: 100%; background-color: #F0FDF4; border: 1px solid #86EFAC; color: #166534; padding: 12px 16px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 8px; box-sizing: border-box; text-align: left;">
-                    <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0;">check_circle</span>
-                    <c:out value="${success}" />
+                <div class="auth-alert auth-alert--success" role="status">
+                    <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                    <span><c:out value="${success}" /></span>
                 </div>
             </c:if>
-            
-            <!-- Recovery Action Form without Javascript -->
-            <form class="recovery-form" action="${pageContext.request.contextPath}/forgot-password" method="POST">
-                
-                <!-- Email Input Field -->
+
+            <form class="recovery-form" action="${ctx}/forgot-password" method="POST" autocomplete="on">
                 <div class="form-group">
-                    <label class="form-label" for="email">Địa chỉ Email</label>
+                    <label class="form-label" for="email">Địa chỉ email</label>
                     <div class="input-icon-wrapper">
-                        <span class="input-icon">
-                            <span class="material-symbols-outlined" style="font-size:18px">mail</span>
-                        </span>
-                        <input class="form-input" type="email" id="email" name="email" placeholder="example@gmail.com" required>
+                        <span class="input-icon material-symbols-outlined" aria-hidden="true">mail</span>
+                        <input class="form-input" type="email" id="email" name="email"
+                               placeholder="example@gmail.com" required autocomplete="email">
                     </div>
                 </div>
-                
-                <button type="submit" class="btn-submit-recovery">Gửi link khôi phục</button>
+                <button type="submit" class="btn-submit-recovery">Gửi thông tin khôi phục</button>
             </form>
-            
-            <!-- Alternate Switch Options -->
+
             <div class="alternate-actions-wrap">
-                <a href="login.jsp" class="alternate-action-link">
-                    <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
+                <a href="${ctx}/login" class="alternate-action-link">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
                     Quay lại đăng nhập
                 </a>
-                
-                <a href="register.jsp" class="alternate-action-link alternate-action-link--register">
-                    Bạn chưa có tài khoản? <span>Đăng ký ngay</span>
+                <a href="${ctx}/register" class="alternate-action-link">
+                    Chưa có tài khoản? <strong>Đăng ký ngay</strong>
                 </a>
             </div>
-            
         </div>
-    </div>
+    </section>
 </main>
-
-<jsp:include page="/views/layout/footer.jsp" />
+</body>
+</html>
