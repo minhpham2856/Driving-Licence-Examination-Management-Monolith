@@ -1,10 +1,10 @@
 package service;
 
-import enums.ExamSection;
+import enums.SectionType;
 
 public interface ExamScoreService {
 
     boolean upsertTheoryCorrectCount(int candidateId, int correct, int passThreshold);
 
-    boolean upsertSectionScore(int candidateId, ExamSection section, double score, boolean passed);
+    boolean upsertSectionScore(int candidateId, SectionType section, double score, boolean passed);
 }

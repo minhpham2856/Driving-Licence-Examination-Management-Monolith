@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import enums.UserRole;
+import enums.RoleType;
 
 public class UserDAOImpl extends DBContext implements UserDAO {
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
@@ -196,7 +196,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                 + "ORDER BY u.Username";
         List<User> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, UserRole.EXAMINER.getValue());
+            ps.setString(1, RoleType.EXAMINER.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSetToUser(rs));
@@ -268,16 +268,16 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
     private static String mapRoleFilterToDbName(String filter) {
         if ("admin".equals(filter)) {
-            return UserRole.ADMIN.getValue();
+            return RoleType.ADMIN.getValue();
         }
         if ("coi_thi".equals(filter)) {
-            return UserRole.EXAM_STAFF.getValue();
+            return RoleType.EXAM_STAFF.getValue();
         }
         if ("cham_thi".equals(filter)) {
-            return UserRole.EXAMINER.getValue();
+            return RoleType.EXAMINER.getValue();
         }
         if ("candidate".equals(filter)) {
-            return UserRole.CANDIDATE.getValue();
+            return RoleType.CANDIDATE.getValue();
         }
         return filter;
     }

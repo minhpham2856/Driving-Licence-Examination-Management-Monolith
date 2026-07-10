@@ -6,7 +6,7 @@ public class ExaminerSchedule {
 
     private int examinerScheduleId;
     private int sessionId;
-    private int examinerId;
+    private int examinerId; // user id of examiner
     private Integer examSectionId;
     private Integer examAreaId;
     private Integer assignedBy;

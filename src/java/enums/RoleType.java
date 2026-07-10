@@ -1,6 +1,6 @@
 package enums;
 
-public enum UserRole {
+public enum RoleType {
     ADMIN("Quản trị viên"),
     EXAMINER("Sát hạch viên"),
     MANAGING_STAFF("Cán bộ quản lý"),
@@ -10,7 +10,7 @@ public enum UserRole {
 
     private final String value;
 
-    private UserRole(String value) {
+    private RoleType(String value) {
         this.value = value;
     }
 
@@ -18,11 +18,11 @@ public enum UserRole {
         return value;
     }
 
-    public static UserRole fromValue(String value) {
+    public static RoleType fromValue(String value) {
         if (value == null) {
             return null;
         }
-        for (UserRole role : values()) {
+        for (RoleType role : values()) {
             if (role.getValue().equals(value)) {
                 return role;
             }

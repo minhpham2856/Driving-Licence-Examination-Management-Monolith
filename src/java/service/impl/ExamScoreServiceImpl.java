@@ -8,7 +8,7 @@ import dao.impl.ExamEnrollmentDAOImpl;
 import dao.impl.ExamResultDAOImpl;
 import dao.impl.ExamScoreDAOImpl;
 import dao.impl.ExamSectionDAOImpl;
-import enums.ExamSection;
+import enums.SectionType;
 import model.ExamEnrollment;
 import model.ExamResult;
 import model.ExamScore;
@@ -25,11 +25,11 @@ public class ExamScoreServiceImpl implements ExamScoreService {
 
     @Override
     public boolean upsertTheoryCorrectCount(int candidateId, int correct, int passThreshold) {
-        return upsertSectionScore(candidateId, ExamSection.THEORY, correct, correct >= passThreshold);
+        return upsertSectionScore(candidateId, SectionType.THEORY, correct, correct >= passThreshold);
     }
 
     @Override
-    public boolean upsertSectionScore(int candidateId, ExamSection section, double score, boolean passed) {
+    public boolean upsertSectionScore(int candidateId, SectionType section, double score, boolean passed) {
         if (candidateId <= 0 || section == null || score < 0) {
             return false;
         }

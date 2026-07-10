@@ -2,7 +2,7 @@ package controller.staff.managing;
 
 import dto.ServiceResult;
 import dto.CreateUserResultDTO;
-import enums.UserRole;
+import enums.RoleType;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -312,8 +312,8 @@ public class CreateUserServlet extends HttpServlet {
             return false;
         }
         String roleName = roleService.getRoleNameById(user.getRoleId());
-        UserRole role = UserRole.fromValue(roleName);
-        if (role != UserRole.MANAGING_STAFF && role != UserRole.ADMIN) {
+        RoleType role = RoleType.fromValue(roleName);
+        if (role != RoleType.MANAGING_STAFF && role != RoleType.ADMIN) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }

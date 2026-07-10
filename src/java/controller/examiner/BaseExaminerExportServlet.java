@@ -32,7 +32,7 @@ abstract class BaseExaminerExportServlet extends HttpServlet {
         }
 
         ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
-        boolean isTheory = ExaminerFilter.isTheorySession(session);
+        boolean isTheory = ExaminerFilter.isTheory(session);
         String sectionName = (String) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION_NAME);
 
         return new ExportContextDTO(activeSessionId, schedule, isTheory, sectionName);

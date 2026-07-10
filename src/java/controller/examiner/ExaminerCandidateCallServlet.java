@@ -1,6 +1,6 @@
 package controller.examiner;
 
-import enums.ExamSection;
+import enums.SectionType;
 import model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -40,7 +40,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
             String sectionName = resolveSectionName(session);
 
             List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
-            ExamSection examSection = ExamSection.fromValue(sectionName);
+            SectionType examSection = SectionType.fromValue(sectionName);
             candidates = viewDataService.orderCandidateRowsByQueue(candidates, examSection);
 
             request.setAttribute("candidates", candidates);
@@ -87,7 +87,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
             int userId = user.getUserId();
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
-            ExamSection examSection = ExamSection.fromValue(sectionName);
+            SectionType examSection = SectionType.fromValue(sectionName);
             
             String[] rawSbds = request.getParameterValues("selectedSbd");
             int[] sbds = parseSbdParams(rawSbds);
@@ -115,7 +115,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         int userId = user.getUserId();
         boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
         String sectionName = resolveSectionName(session);
-        ExamSection examSection = ExamSection.fromValue(sectionName);
+        SectionType examSection = SectionType.fromValue(sectionName);
         String destination = resolveCallDestination(session);
 
         switch (action) {

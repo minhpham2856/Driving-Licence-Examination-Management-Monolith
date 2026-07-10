@@ -1,6 +1,6 @@
 package filter;
 import model.User;
-import enums.UserRole;
+import enums.RoleType;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
 import jakarta.servlet.*;
@@ -28,7 +28,7 @@ public class AdminFilter implements Filter {
         }
         // 2. Use the service to check the role name dynamically
         String roleName = roleService.getRoleNameById(u.getRoleId());
-        if (UserRole.fromValue(roleName) != UserRole.ADMIN) {
+        if (RoleType.fromValue(roleName) != RoleType.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

@@ -1,12 +1,12 @@
 package enums;
 
-public enum SessionCa {
+public enum SessionType {
     MORNING("Ca sáng"),
     AFTERNOON("Ca chiều");
 
     private final String value;
 
-    SessionCa(String value) {
+    SessionType(String value) {
         this.value = value;
     }
 
@@ -14,11 +14,11 @@ public enum SessionCa {
         return value;
     }
 
-    public static SessionCa fromValue(String value) {
+    public static SessionType fromValue(String value) {
         if (value == null) {
             return null;
         }
-        for (SessionCa ca : values()) {
+        for (SessionType ca : values()) {
             if (ca.getValue().equals(value)) {
                 return ca;
             }

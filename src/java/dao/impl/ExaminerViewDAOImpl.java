@@ -1,7 +1,7 @@
 package dao.impl;
 
 import dbconnection.DBContext;
-import enums.ExamSection;
+import enums.SectionType;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -176,7 +176,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sectionName != null && !sectionName.isBlank()
-                    ? sectionName.trim() : ExamSection.LAYOUT.getValue());
+                    ? sectionName.trim() : SectionType.LAYOUT.getValue());
             ps.setInt(2, sessionId);
             ps.setInt(3, sessionId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -281,7 +281,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
             ps.setInt(1, candidateId);
             ps.setInt(2, sessionId);
             ps.setString(3, sectionName != null && !sectionName.isBlank()
-                    ? sectionName.trim() : ExamSection.LAYOUT.getValue());
+                    ? sectionName.trim() : SectionType.LAYOUT.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     summary.put("currentScore", (int) Math.round(rs.getDouble("Score")));

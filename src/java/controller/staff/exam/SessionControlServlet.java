@@ -90,7 +90,7 @@ public class SessionControlServlet extends BaseStaffExamServlet {
 
                         AuditAction.UPDATE, AuditEntity.EXAM_SESSION,
 
-                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + data.getCaLabel()
+                        "Bắt đầu ca thi SessionId=" + sessionId + " - " + data.getSessionLabel()
 
                                 + " (" + data.getExaminerCount() + " sát hạch viên)",
 

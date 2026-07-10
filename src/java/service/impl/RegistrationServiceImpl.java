@@ -17,7 +17,7 @@ import dto.UploadRowDTO;
 import java.sql.Date;
 import enums.CandidateStatus;
 import enums.ErrorType;
-import enums.ExamSection;
+import enums.SectionType;
 import enums.PaymentStatus;
 import model.Candidate;
 import model.ExamDevice;
@@ -228,14 +228,14 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
         if (theoryScore != null) {
             boolean passed = "passed".equalsIgnoreCase(theoryResult);
-            if (!examScoreService.upsertSectionScore(candidateId, ExamSection.THEORY,
+            if (!examScoreService.upsertSectionScore(candidateId, SectionType.THEORY,
                     theoryScore, passed)) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm lý thuyết.");
             }
         }
         if (practicalScore != null) {
             boolean passed = "passed".equalsIgnoreCase(practicalResult);
-            if (!examScoreService.upsertSectionScore(candidateId, ExamSection.LAYOUT,
+            if (!examScoreService.upsertSectionScore(candidateId, SectionType.LAYOUT,
                     practicalScore, passed)) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm thực hành.");
             }
@@ -408,7 +408,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         boolean passedFlag = "passed".equalsIgnoreCase(passed);
-        if (!examScoreService.upsertSectionScore(candidateId, ExamSection.ROAD,
+        if (!examScoreService.upsertSectionScore(candidateId, SectionType.ROAD,
                 score, passedFlag)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm thực hành trên đường.");
         }

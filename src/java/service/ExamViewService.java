@@ -3,7 +3,7 @@ package service;
 import dto.CallStatsDTO;
 import dto.EnrollmentDTO;
 import dto.CandidateRowDTO;
-import enums.ExamSection;
+import enums.SectionType;
 import java.util.List;
 import java.util.Map;
 
@@ -47,5 +47,5 @@ public interface ExamViewService {
     boolean isCallEligible(int sessionId, EnrollmentDTO reg, boolean isTheory, String sectionName);
 
     List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows,
-            ExamSection examSection);
+            SectionType examSection);
 }

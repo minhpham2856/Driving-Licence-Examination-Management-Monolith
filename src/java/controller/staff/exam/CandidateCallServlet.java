@@ -16,12 +16,10 @@ import service.impl.PhotoServiceImpl;
 import dto.CallBoardDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
-import controller.staff.exam.BaseStaffExamServlet;
 import java.io.IOException;
 import java.util.List;
 
@@ -101,7 +99,7 @@ public class CandidateCallServlet extends BaseStaffExamServlet {
                 }
             }
         } else if ("moveToBottom".equals(qAction) || "absent".equals(qAction) || "autoAbsent".equals(qAction)) {
-            // UC-03 Normal Flow 3.0: Move candidate to bottom of the wait queue
+            // Move candidate to bottom of the wait queue
             if (candidateQueue != null && qSbd != null) {
                 int foundIdx = -1;
                 for (int i = 0; i < candidateQueue.size(); i++) {
@@ -306,7 +304,7 @@ public class CandidateCallServlet extends BaseStaffExamServlet {
         view.put("cccd", c.getGovIdNo());
         view.put("licenseClass", SessionViewDTO != null && SessionViewDTO.getLicenseCode() != null
                 ? "Hạng " + SessionViewDTO.getLicenseCode() : "Chưa rõ");
-        view.put("shiftLabel", SessionViewDTO != null ? SessionViewDTO.getCaLabel() : "Chưa xếp khóa");
+        view.put("shiftLabel", SessionViewDTO != null ? SessionViewDTO.getSessionLabel() : "Chưa xếp khóa");
         view.put("faceMatchRate", "99.8%");
         return view;
     }

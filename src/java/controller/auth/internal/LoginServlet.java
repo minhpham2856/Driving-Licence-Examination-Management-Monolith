@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import enums.UserRole;
+import enums.RoleType;
 import service.RoleService;
 import service.impl.RoleServiceImpl;
 
@@ -63,7 +63,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", user);
             // switch dashboards based on role
             String roleName = roleService.getRoleNameById(user.getRoleId());
-            UserRole role = UserRole.fromValue(roleName);
+            RoleType role = RoleType.fromValue(roleName);
             if (null == role) {
                 request.setAttribute("error", "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
                 request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);

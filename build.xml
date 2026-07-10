@@ -13,9 +13,9 @@
     <import file="nbproject/build-impl.xml"/>
     <!--
 
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
+    There exist several targetS which are by default empty and which can be 
+    used for execution of your tasks. These targetS are usually executed 
+    before and after some main targetS. They are: 
 
       -pre-init:                 called before initialization of project properties 
       -post-init:                called after initialization of project properties 
@@ -45,7 +45,7 @@
     nbproject/build-impl.xml file. 
 
 
-    Other way how to customize the build is by overriding existing main targets.
+    Other way how to customize the build is by overriding existing main targetS.
     The target of interest are: 
 
       init-macrodef-javac:    defines macro for javac compilation

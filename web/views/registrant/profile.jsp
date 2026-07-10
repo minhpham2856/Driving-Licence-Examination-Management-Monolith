@@ -247,7 +247,7 @@
                 </div>
             </section>
 
-            <%-- Right side: Summary widgets --%>
+            <%-- Right side: Summary widgetS --%>
             <div class="dashboard-sidebar-column">
                 
                 <%-- Widget 1: Profile Photo Card --%>

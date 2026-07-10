@@ -34,7 +34,7 @@ import util.ExamQueue.Lane;
 import enums.DeviceStatus;
 import enums.DeviceType;
 import enums.CandidateStatus;
-import enums.ExamSection;
+import enums.SectionType;
 import service.RegistrationService;
 import enums.ViolationReason;
 import java.sql.Date;
@@ -484,13 +484,13 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     @Override
     public List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows,
-            ExamSection examSection) {
+            SectionType examSection) {
         return orderRowsByQueue(rows, ExamQueue.laneFor(examSection));
     }
 
-    private static ExamSection examSectionFromName(String sectionName) {
-        ExamSection section = ExamSection.fromValue(sectionName);
-        return section != null ? section : ExamSection.THEORY;
+    private static SectionType examSectionFromName(String sectionName) {
+        SectionType section = SectionType.fromValue(sectionName);
+        return section != null ? section : SectionType.THEORY;
     }
 
     private CandidateRowDTO buildCandidateRow(EnrollmentDTO reg, boolean isTheory,

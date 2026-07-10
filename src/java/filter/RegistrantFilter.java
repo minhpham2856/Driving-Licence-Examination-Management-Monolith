@@ -1,6 +1,6 @@
 package filter;
 
-import enums.UserRole;
+import enums.RoleType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,8 +33,8 @@ public class RegistrantFilter implements Filter {
             return;
         }
         String roleName = roleService.getRoleNameById(user.getRoleId());
-        UserRole role = UserRole.fromValue(roleName);
-        if (role != UserRole.REGISTRANT && role != UserRole.CANDIDATE) {
+        RoleType role = RoleType.fromValue(roleName);
+        if (role != RoleType.REGISTRANT && role != RoleType.CANDIDATE) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

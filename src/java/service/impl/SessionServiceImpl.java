@@ -21,9 +21,9 @@ import dto.ServiceResult;
 import dto.SessionViewDTO;
 import dto.SessionStartDTO;
 import enums.ErrorType;
-import enums.ExamSection;
+import enums.SectionType;
 import enums.ExamSessionStatus;
-import enums.SessionCa;
+import enums.SessionType;
 import model.Exam;
 import model.ExamArea;
 import model.ExaminerSchedule;
@@ -32,13 +32,13 @@ import model.Profile;
 import model.Session;
 import model.User;
 import service.SessionService;
-
 import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import model.ExamSection;
 
 public class SessionServiceImpl implements SessionService {
 
@@ -62,10 +62,10 @@ public class SessionServiceImpl implements SessionService {
         if (!canStartSession(examSession.getStatus())) {
             if (isSessionInProgress(examSession.getStatus())) {
                 return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                        "Ca thi \"" + examSession.getCaLabel() + "\" đã bắt đầu diễn ra.");
+                        "Ca thi \"" + examSession.getSessionLabel() + "\" đã bắt đầu diễn ra.");
             }
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Ca thi \"" + examSession.getCaLabel()
+                    "Ca thi \"" + examSession.getSessionLabel()
                     + "\" không thể bắt đầu (trạng thái: " + examSession.getStatus() + ").");
         }
         List<ExaminerSchedule> assignments = assignmentDAO.getBySessionId(sessionId);
@@ -97,7 +97,7 @@ public class SessionServiceImpl implements SessionService {
         }
         if (!isSessionInProgress(examSession.getStatus())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Ca thi \"" + examSession.getCaLabel()
+                    "Ca thi \"" + examSession.getSessionLabel()
                     + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
         }
         if (!sessionDAO.updateStatus(sessionId, ExamSessionStatus.COMPLETED.getValue())) {
@@ -117,21 +117,21 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public ExamSection getExamSection(ExaminerSchedule schedule, Session session) {
+    public SectionType getExamSection(ExaminerSchedule schedule, Session session) {
         Integer sectionId = getSectionId(schedule, session);
         if (sectionId == null) {
-            return ExamSection.THEORY;
+            return SectionType.THEORY;
         }
         model.ExamSection section = sectionDAO.getById(sectionId);
         if (section == null || section.getSectionName() == null) {
-            return ExamSection.THEORY;
+            return SectionType.THEORY;
         }
-        ExamSection mapped = ExamSection.fromValue(section.getSectionName());
-        return mapped != null ? mapped : ExamSection.THEORY;
+        SectionType mapped = SectionType.fromValue(section.getSectionName());
+        return mapped != null ? mapped : SectionType.THEORY;
     }
 
     @Override
-    public model.ExamSection getExamSectionModel(ExaminerSchedule schedule, Session session) {
+    public ExamSection getExamSectionModel(ExaminerSchedule schedule, Session session) {
         Integer sectionId = getSectionId(schedule, session);
         if (sectionId == null) {
             return null;
@@ -189,7 +189,7 @@ public class SessionServiceImpl implements SessionService {
         SessionViewDTO dto = new SessionViewDTO();
         dto.setId(session.getSessionId());
         dto.setMorningSession(session.isMorningSession());
-        dto.setCaLabel(session.isMorningSession() ? SessionCa.MORNING.getValue() : SessionCa.AFTERNOON.getValue());
+        dto.setSessionLabel(session.isMorningSession() ? SessionType.MORNING.getValue() : SessionType.AFTERNOON.getValue());
         dto.setStatus(session.getStatus());
         if (session.getStartTime() != null) {
             dto.setExamDate(new Date(session.getStartTime().getTime()));
@@ -227,15 +227,15 @@ public class SessionServiceImpl implements SessionService {
         if (sectionId != null) {
             model.ExamSection section = sectionDAO.getById(sectionId);
             if (section != null) {
-                ExamSection examSection = examSectionFromDbName(section.getSectionName());
+                SectionType examSection = examSectionFromDbName(section.getSectionName());
                 dto.setExamSection(examSection);
                 dto.setExamTypeName(examSection.getValue());
             }
         }
         if (dto.getExamSection() == null) {
-            dto.setExamSection(ExamSection.THEORY);
+            dto.setExamSection(SectionType.THEORY);
             if (dto.getExamTypeName() == null) {
-                dto.setExamTypeName(ExamSection.THEORY.getValue());
+                dto.setExamTypeName(SectionType.THEORY.getValue());
             }
         }
         dto.setRegisteredCount(sessionDAO.countEnrollments(session.getSessionId()));
@@ -290,7 +290,7 @@ public class SessionServiceImpl implements SessionService {
         if (schedule.getExamSectionId() != null) {
             model.ExamSection section = sectionDAO.getById(schedule.getExamSectionId());
             if (section != null) {
-                ExamSection examSection = examSectionFromDbName(section.getSectionName());
+                SectionType examSection = examSectionFromDbName(section.getSectionName());
                 slot.setExamSection(examSection);
                 slot.setExamTypeName(examSection.getValue());
             }
@@ -298,8 +298,8 @@ public class SessionServiceImpl implements SessionService {
         Session session = sessions.get(schedule.getSessionId());
         if (session != null) {
             slot.setMorningSession(session.isMorningSession());
-            slot.setCaLabel(session.isMorningSession()
-                    ? SessionCa.MORNING.getValue() : SessionCa.AFTERNOON.getValue());
+            slot.setsessionLabel(session.isMorningSession()
+                    ? SessionType.MORNING.getValue() : SessionType.AFTERNOON.getValue());
             if (slot.getExamSection() == null) {
                 SessionViewDTO SessionViewDTO = buildSessionViewDTO(session);
                 if (SessionViewDTO != null) {
@@ -370,9 +370,9 @@ public class SessionServiceImpl implements SessionService {
         return ExamSessionStatus.fromValue(status) == ExamSessionStatus.IN_PROGRESS;
     }
 
-    private static ExamSection examSectionFromDbName(String sectionName) {
-        ExamSection section = ExamSection.fromValue(sectionName);
-        return section != null ? section : ExamSection.THEORY;
+    private static SectionType examSectionFromDbName(String sectionName) {
+        SectionType section = SectionType.fromValue(sectionName);
+        return section != null ? section : SectionType.THEORY;
     }
 
     private Integer getSectionId(ExaminerSchedule schedule, Session session) {
@@ -386,7 +386,10 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private SessionStartDTO buildSessionStartDto(boolean morningSession, int examinerCount) {
-        String caLabel = morningSession ? SessionCa.MORNING.getValue() : SessionCa.AFTERNOON.getValue();
-        return new SessionStartDTO(caLabel, examinerCount);
+        String sessionLabel = morningSession ? SessionType.MORNING.getValue() : SessionType.AFTERNOON.getValue();
+        SessionStartDTO dto = new SessionStartDTO();
+        dto.setsessionLabel(sessionLabel);
+        dto.setExaminerCount(examinerCount);
+        return dto;
     }
 }
