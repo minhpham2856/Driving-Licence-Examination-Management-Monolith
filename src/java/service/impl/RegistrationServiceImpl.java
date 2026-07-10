@@ -62,14 +62,17 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (enrollments.isEmpty()) {
             return new ArrayList<>();
         }
+
         List<Integer> candidateIds = new ArrayList<>();
         for (ExamEnrollment enrollment : enrollments) {
             candidateIds.add(enrollment.getCandidateId());
         }
+
         Map<Integer, Candidate> candidates = new HashMap<>();
         for (Candidate candidate : candidateDAO.getAllByIds(candidateIds)) {
             candidates.put(candidate.getCandidateId(), candidate);
         }
+
         List<EnrollmentDTO> list = new ArrayList<>();
         for (ExamEnrollment enrollment : enrollments) {
             Candidate candidate = candidates.get(enrollment.getCandidateId());

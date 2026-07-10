@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -12,11 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <jsp:include page="/views/staff/managing/components/staff-managing-styles.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/staff/managing/components/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-managingstaff.jsp">
     <jsp:param name="activeSidebar" value="hoc-vien" />
 </jsp:include>
 
@@ -26,7 +27,7 @@
         <nav class="breadcrumbs">
             <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
             <span class="breadcrumbs__separator">/</span>
-            <a href="${pageContext.request.contextPath}/views/staff/managing/dashboard">Dashboard quản lý</a>
+            <a href="${pageContext.request.contextPath}/views/staff/managing/dashboard.jsp">Dashboard quản lý</a>
             <span class="breadcrumbs__separator">/</span>
             <span class="breadcrumbs__current">Danh sách học viên</span>
         </nav>

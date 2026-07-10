@@ -8,17 +8,11 @@
     <c:if test="${param.saved eq '1'}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã lưu.</p>
     </c:if>
-    <c:if test="${not empty param.presentDone}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã điểm danh SBD ${param.presentDone}.</p>
+    <c:if test="${not empty param.suspended}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã đình chỉ SBD ${param.suspended}.</p>
     </c:if>
-    <c:if test="${not empty param.undoPresent}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tác điểm danh SBD ${param.undoPresent}.</p>
-    </c:if>
-    <c:if test="${not empty param.wrongInfoDone}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã chuyển SBD ${param.wrongInfoDone} xuống phòng thủ tục.</p>
-    </c:if>
-    <c:if test="${not empty param.violationDone}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã đình chỉ SBD ${param.violationDone}. Xem chi tiết vi phạm để in/tải biên bản.</p>
+    <c:if test="${not empty param.undoSuspended}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tác đình chỉ SBD ${param.undoSuspended}.</p>
     </c:if>
     <c:if test="${not empty param.called}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã gọi SBD ${param.called}.</p>
@@ -26,17 +20,11 @@
     <c:if test="${not empty param.calledBatch}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã gọi ${param.calledBatch} thí sinh.</p>
     </c:if>
-    <c:if test="${param.error eq 'presentFailed'}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">Không điểm danh được<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
+    <c:if test="${not empty param.absentDone}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã đánh dấu vắng SBD ${param.absentDone}.</p>
     </c:if>
-    <c:if test="${param.error eq 'undoPresentFailed'}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">Không hoàn tác điểm danh được<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
-    </c:if>
-    <c:if test="${param.error eq 'wrongInfoFailed'}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">Không chuyển phòng thủ tục được<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
-    </c:if>
-    <c:if test="${param.error eq 'recordFailed'}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">Không ghi nhận vi phạm được.</p>
+    <c:if test="${not empty param.undoAbsent}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tác vắng SBD ${param.undoAbsent}.</p>
     </c:if>
     <c:if test="${not empty param.maintenanceDone}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã chuyển thiết bị ${param.maintenanceDone} sang bảo trì.</p>
@@ -66,17 +54,29 @@
     <c:if test="${param.error eq 'saveFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không lưu được biên bản vi phạm.</p>
     </c:if>
+    <c:if test="${param.error eq 'undoFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không hoàn tác được đình chỉ.</p>
+    </c:if>
+    <c:if test="${param.error eq 'undoAbsentFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không hoàn tác được vắng thi<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
+    </c:if>
     <c:if test="${param.error eq 'noSbd'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không tìm thấy thí sinh.</p>
     </c:if>
     <c:if test="${param.error eq 'alreadySuspended'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Thí sinh đã bị đình chỉ.</p>
     </c:if>
+    <c:if test="${param.error eq 'notSuspended'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Thí sinh chưa bị đình chỉ.</p>
+    </c:if>
     <c:if test="${param.error eq 'noSession'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Chưa có ca thi đang diễn ra.</p>
     </c:if>
     <c:if test="${param.error eq 'callSelectedFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Chọn ít nhất một thí sinh để gọi.</p>
+    </c:if>
+    <c:if test="${param.error eq 'absentFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không đánh dấu vắng được<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
     </c:if>
     <c:if test="${param.error eq 'maintenanceFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không chuyển được thiết bị sang bảo trì.</p>
@@ -108,10 +108,10 @@
     <c:if test="${param.error eq 'theoryNoResultEdit'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Phần thi lý thuyết không được phép sửa kết quả.</p>
     </c:if>
-    <c:if test="${not empty profileError}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">${profileError}</p>
-    </c:if>
     <c:if test="${not empty violationError}">
         <p class="examiner-flash-bar examiner-flash-bar--error">${violationError}</p>
+    </c:if>
+    <c:if test="${not empty undoError}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">${undoError}</p>
     </c:if>
 </div>

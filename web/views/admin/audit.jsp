@@ -1,7 +1,115 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<%
+    // Setup rich fallbacks if the controller has not populated the request attributes (for standalone frontend preview)
+    if (request.getAttribute("logs") == null && session.getAttribute("logs") == null) {
+        java.util.List<java.util.HashMap<String, Object>> mockList = new java.util.ArrayList<>();
+        
+        java.util.HashMap<String, Object> l1 = new java.util.HashMap<>();
+        l1.put("id", "1");
+        l1.put("timestamp", "24/05/2026 21:45");
+        l1.put("username", "admin.haiqh");
+        l1.put("fullName", "Quách Hoàng Hải");
+        l1.put("avatarClass", "");
+        l1.put("roleKey", "admin");
+        l1.put("role", "Quản trị viên");
+        l1.put("actionKey", "success");
+        l1.put("action", "Đăng nhập");
+        l1.put("module", "Bảo mật");
+        l1.put("details", "Đăng nhập thành công vào trang quản trị hệ thống.");
+        l1.put("ip", "192.168.1.2");
+        l1.put("ipAddress", "192.168.1.2");
+        l1.put("device", "Windows 11 / Chrome 124");
+        l1.put("status", "Thành công");
+        l1.put("statusKey", "success");
+        mockList.add(l1);
+        
+        java.util.HashMap<String, Object> l2 = new java.util.HashMap<>();
+        l2.put("id", "2");
+        l2.put("timestamp", "24/05/2026 21:30");
+        l2.put("username", "admin.haiqh");
+        l2.put("fullName", "Quách Hoàng Hải");
+        l2.put("avatarClass", "");
+        l2.put("roleKey", "admin");
+        l2.put("role", "Quản trị viên");
+        l2.put("actionKey", "warning");
+        l2.put("action", "Khóa tài khoản");
+        l2.put("module", "Tài khoản");
+        l2.put("details", "Khóa tài khoản sát hạch viên Lê Thị Hằng (@examiner.lehang) do nghi vấn quy chế.");
+        l2.put("ip", "192.168.1.2");
+        l2.put("ipAddress", "192.168.1.2");
+        l2.put("device", "Windows 11 / Chrome 124");
+        l2.put("status", "Cảnh báo");
+        l2.put("statusKey", "warning");
+        mockList.add(l2);
+        
+        java.util.HashMap<String, Object> l3 = new java.util.HashMap<>();
+        l3.put("id", "3");
+        l3.put("timestamp", "24/05/2026 20:15");
+        l3.put("username", "proctor.nguyenan");
+        l3.put("fullName", "Nguyễn Văn An");
+        l3.put("avatarClass", "user-avatar--teal");
+        l3.put("roleKey", "coi");
+        l3.put("role", "Cán bộ coi thi");
+        l3.put("actionKey", "success");
+        l3.put("action", "Kích hoạt máy");
+        l3.put("module", "Máy thi");
+        l3.put("details", "Đồng bộ IP tĩnh và kích hoạt kết nối client cho máy thi MC-102.");
+        l3.put("ip", "192.168.10.15");
+        l3.put("ipAddress", "192.168.10.15");
+        l3.put("device", "Linux Ubuntu / Firefox 125");
+        l3.put("status", "Thành công");
+        l3.put("statusKey", "success");
+        mockList.add(l3);
+
+        java.util.HashMap<String, Object> l4 = new java.util.HashMap<>();
+        l4.put("id", "4");
+        l4.put("timestamp", "24/05/2026 19:50");
+        l4.put("username", "examiner.lehang");
+        l4.put("fullName", "Lê Thị Hằng");
+        l4.put("avatarClass", "user-avatar--purple");
+        l4.put("roleKey", "cham");
+        l4.put("role", "sát hạch viên");
+        l4.put("actionKey", "danger");
+        l4.put("action", "Sửa đổi điểm");
+        l4.put("module", "Sát hạch");
+        l4.put("details", "CẢNH BÁO: Phát hiện chỉnh sửa điểm thi thực hành sa hình của thí sinh SBD-045.");
+        l4.put("ip", "192.168.15.54");
+        l4.put("ipAddress", "192.168.15.54");
+        l4.put("device", "Mac OS / Safari 17.2");
+        l4.put("status", "Nguy hiểm");
+        l4.put("statusKey", "danger");
+        mockList.add(l4);
+
+        java.util.HashMap<String, Object> l5 = new java.util.HashMap<>();
+        l5.put("id", "5");
+        l5.put("timestamp", "24/05/2026 18:20");
+        l5.put("username", "admin.haiqh");
+        l5.put("fullName", "Quách Hoàng Hải");
+        l5.put("avatarClass", "");
+        l5.put("roleKey", "admin");
+        l5.put("role", "Quản trị viên");
+        l5.put("actionKey", "info");
+        l5.put("action", "Cấu hình lệ phí");
+        l5.put("module", "Lệ phí");
+        l5.put("details", "Cập nhật biểu phí sát hạch lý thuyết hạng GPLX B2 lên 100.000 đ.");
+        l5.put("ip", "192.168.1.2");
+        l5.put("ipAddress", "192.168.1.2");
+        l5.put("device", "Windows 11 / Chrome 124");
+        l5.put("status", "Thông tin");
+        l5.put("statusKey", "info");
+        mockList.add(l5);
+        
+        request.setAttribute("logs", mockList);
+        request.setAttribute("totalOperations", 524);
+        request.setAttribute("dataCorrections", 42);
+        request.setAttribute("riskOperations", 3);
+        request.setAttribute("successRate", "99.4%");
+    }
+%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,12 +124,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- External Layout Stylesheets -->
-    <jsp:include page="/views/admin/components/admin-styles.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
 <%-- Inject the admin sidebar template --%>
-<jsp:include page="/views/admin/components/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-admin.jsp">
     <jsp:param name="activeSidebar" value="audit" />
 </jsp:include>
 
@@ -120,7 +229,7 @@
                 </svg>
                 Bộ lọc tìm kiếm nhật ký
             </h2>
-            <form action="${pageContext.request.contextPath}/admin/audit" method="GET">
+            <form action="" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.1fr 1.75fr 1.5fr;">
                     <!-- Keyword Search -->
                     <div class="input-group">
@@ -171,7 +280,7 @@
                                 </svg>
                                 Tìm kiếm
                             </button>
-                            <a href="${pageContext.request.contextPath}/admin/audit" class="btn-reset">Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/views/admin/audit.jsp" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -12,11 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <jsp:include page="/views/staff/managing/components/staff-managing-styles.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
-<jsp:include page="/views/staff/managing/components/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-managingstaff.jsp">
     <jsp:param name="activeSidebar" value="dashboard" />
 </jsp:include>
 
@@ -154,7 +155,7 @@
                                     <c:when test="${not empty upcomingExams}">
                                         <c:forEach var="exam" items="${upcomingExams}">
                                             <tr>
-                                                <td style="font-weight: 700; color: #0052cc;">${exam.shiftLabel}</td>
+                                                <td style="font-weight: 700; color: #0052cc;">${exam.sessionName}</td>
                                                 <td style="text-align: center;">
                                                     <span class="role-badge role-badge--admin" style="padding: 2px 8px; font-size: 0.75rem;">Hạng ${exam.licenseClass}</span>
                                                 </td>

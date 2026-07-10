@@ -1,11 +1,11 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<jsp:include page="/views/landing/components/header.jsp">
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:include page="/views/layout/header.jsp">
     <jsp:param name="title" value="Lái Vui - Quy trình thi" />
     <jsp:param name="activeNav" value="quy-trinh" />
 </jsp:include>
 
 <!-- Link custom stylesheet for this page -->
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/process.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/process.css">
 
 <main class="public-main process-page">
     <!-- Hero Section -->

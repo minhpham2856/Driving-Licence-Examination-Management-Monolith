@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 
@@ -15,13 +15,10 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@700;800&display=swap" rel="stylesheet">
-   
-        <jsp:include page="/views/exam/components/exam-styles.jsp">
-            <jsp:param name="pageCss" value="exam-questions.css" />
-        </jsp:include>
-</head>
+        <link href="${pageContext.request.contextPath}/assets/css/exam-questions.css" rel="stylesheet">
+    </head>
     <body>
-        <jsp:include page="/views/exam/components/header-exam-time.jsp">
+        <jsp:include page="/views/layout/header-exam-time.jsp">
             <jsp:param name="timeLeft" value="${timeLeft}" />
         </jsp:include>
 
@@ -41,9 +38,6 @@
                 </div>
 
                 <aside class="question-sidebar" data-node-id="115:889" data-name="Aside - Right Panel: Question Navigator Sidebar (approx 25%)">
-                    <c:if test="${not empty faceMatchRate}">
-                        <p class="face-match-result">Kết quả quét mặt: ${faceMatchRate}% khớp hồ sơ</p>
-                    </c:if>
                     <form class="question-sidebar-form" action="${pageContext.request.contextPath}/exam/submit" method="post">
                         <div class="question-grid-area" data-node-id="115:898" data-name="Question Grid Area">
                             <table class="question-table">
@@ -89,7 +83,6 @@
                         </div>
 
                         <div class="submit-panel" data-node-id="115:1565" data-name="CTA Footer">
-                            <button type="submit" formaction="${pageContext.request.contextPath}/exam/save" formmethod="post" class="submit-panel__button submit-panel__button--secondary">LƯU BÀI</button>
                             <button type="submit" class="submit-panel__button" data-node-id="115:1566">NỘP BÀI</button>
                         </div>
                     </form>
@@ -103,7 +96,7 @@
             </div>
         </div>
 
-        <jsp:include page="/views/exam/components/footer-exam.jsp">
+        <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText" value="Phần thi kết thúc khi thí sinh chọn “NỘP BÀI” hoặc khi hết thời gian làm bài" />
 </body>

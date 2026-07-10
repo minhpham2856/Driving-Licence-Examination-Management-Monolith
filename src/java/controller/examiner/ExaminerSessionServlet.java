@@ -2,10 +2,12 @@ package controller.examiner;
 
 import enums.ExamSection;
 import enums.ExamSessionStatus;
-import filter.ExaminerFilter;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Exam;
@@ -32,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet("/views/examiner/session")
-public class ExaminerSessionServlet extends BaseExaminerServlet {
+public class ExaminerSessionServlet extends HttpServlet {
 
     private final ScheduleService ScheduleService = new ScheduleServiceImpl();
     private final SessionService SessionService = new SessionServiceImpl();
@@ -43,8 +45,9 @@ public class ExaminerSessionServlet extends BaseExaminerServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession httpSession = requireSession(request, response);
+        HttpSession httpSession = request.getSession(false);
         if (httpSession == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/login");
             return;
         }
         User user = (User) httpSession.getAttribute("user");
@@ -68,8 +71,9 @@ public class ExaminerSessionServlet extends BaseExaminerServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession httpSession = requireSession(request, response);
+        HttpSession httpSession = request.getSession(false);
         if (httpSession == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/login");
             return;
         }
         User user = (User) httpSession.getAttribute("user");
@@ -100,7 +104,11 @@ public class ExaminerSessionServlet extends BaseExaminerServlet {
 
         schedule = hydrateSchedule(schedule, new HashMap<>());
         ExamSection examSection = SessionService.getExamSection(schedule, session);
-        applyExaminerSessionContext(httpSession, schedule, session, examSection);
+        
+        httpSession.setAttribute("activeSessionId", schedule.getSessionId());
+        httpSession.setAttribute("isTheory", examSection == ExamSection.THEORY);
+        httpSession.setAttribute("examSectionName", examSection != null ? examSection.getValue() : null);
+        
         response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
     }
 

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -6,8 +6,11 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Gọi thí sinh" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/candidate-call" scope="request" />
-<c:set var="detailUrl" value="${ctx}/views/examiner/candidate-details-edit" scope="request" />
-<c:set var="violationDetailUrl" value="${ctx}/views/examiner/violation-detail" scope="request" />
+<c:set var="detailViewUrl" value="${ctx}/views/examiner/candidate-details-edit" scope="request" />
+<c:set var="detailEditUrl" value="${ctx}/views/examiner/candidate-details-edit" scope="request" />
+<c:set var="violationConfirmUrl" value="${ctx}/views/examiner/violation-confirm" scope="request" />
+<c:set var="violationUndoUrl" value="${ctx}/views/examiner/violation-undo" scope="request" />
+<c:set var="resultUrl" value="${ctx}/views/examiner/result-details-edit" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -25,7 +28,7 @@
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
-        <jsp:include page="/views/examiner/components/sidebar.jsp">
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="candidate-call" />
         </jsp:include>
 
@@ -33,7 +36,7 @@
         <div class="examiner-shell">
 
             <!--header-->
-            <jsp:include page="/views/examiner/components/header.jsp" />
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <!--main content-->
             <main class="examiner-main examiner-main--dashboard">
@@ -55,8 +58,11 @@
                     <input type="hidden" name="action" value="callSelected">
                     <jsp:include page="/views/examiner/components/candidate-list.jsp">
                         <jsp:param name="title" value="Danh sách thí sinh" />
-                        <jsp:param name="layoutCallQueue" value="true" />
                         <jsp:param name="showCheckboxCall" value="true" />
+                        <jsp:param name="showStatus" value="true" />
+                        <jsp:param name="actionAbsent" value="true" />
+                        <jsp:param name="actionSuspend" value="true" />
+                        <jsp:param name="actionCall" value="true" />
                     </jsp:include>
                 </form>
             </main>

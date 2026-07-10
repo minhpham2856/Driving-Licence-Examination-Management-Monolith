@@ -1,7 +1,80 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<%
+    // Setup rich fallbacks if the controller has not populated the request attributes (for standalone frontend preview)
+    if (request.getAttribute("accounts") == null && session.getAttribute("accounts") == null) {
+        java.util.List<java.util.HashMap<String, Object>> mockList = new java.util.ArrayList<>();
+        
+        java.util.HashMap<String, Object> u1 = new java.util.HashMap<>();
+        u1.put("id", "1");
+        u1.put("username", "admin.haiqh");
+        u1.put("fullName", "Quách Hoàng Hải");
+        u1.put("email", "haiqh.admin@laivui.gov.vn");
+        u1.put("phone", "0987.654.321");
+        u1.put("role", "admin");
+        u1.put("department", "Phòng Quản lý Sát hạch");
+        u1.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*90)); // 90 days ago
+        u1.put("status", "active");
+        mockList.add(u1);
+        
+        java.util.HashMap<String, Object> u2 = new java.util.HashMap<>();
+        u2.put("id", "2");
+        u2.put("username", "proctor.nguyenan");
+        u2.put("fullName", "Nguyễn Văn An");
+        u2.put("email", "annv.coithi@laivui.gov.vn");
+        u2.put("phone", "0912.345.678");
+        u2.put("role", "coi_thi");
+        u2.put("department", "Trung tâm Sát hạch Miền Bắc");
+        u2.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*45)); // 45 days ago
+        u2.put("status", "active");
+        mockList.add(u2);
+        
+        java.util.HashMap<String, Object> u3 = new java.util.HashMap<>();
+        u3.put("id", "3");
+        u3.put("username", "examiner.lehang");
+        u3.put("fullName", "Lê Thị Hằng");
+        u3.put("email", "hanglt.chamthi@laivui.gov.vn");
+        u3.put("phone", "0904.888.999");
+        u3.put("role", "cham_thi");
+        u3.put("department", "Hội đồng Sát hạch Sở GTVT");
+        u3.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*30)); // 30 days ago
+        u3.put("status", "locked");
+        mockList.add(u3);
+
+        java.util.HashMap<String, Object> u4 = new java.util.HashMap<>();
+        u4.put("id", "4");
+        u4.put("username", "proctor.hoangnam");
+        u4.put("fullName", "Trần Hoàng Nam");
+        u4.put("email", "namth.coithi@laivui.gov.vn");
+        u4.put("phone", "0977.123.456");
+        u4.put("role", "coi_thi");
+        u4.put("department", "Trung tâm Sát hạch Miền Nam");
+        u4.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*15)); // 15 days ago
+        u4.put("status", "active");
+        mockList.add(u4);
+
+        java.util.HashMap<String, Object> u5 = new java.util.HashMap<>();
+        u5.put("id", "5");
+        u5.put("username", "candidate.thuytrang");
+        u5.put("fullName", "Nguyễn Thủy Trang");
+        u5.put("email", "trangnt.candidate@gmail.com");
+        u5.put("phone", "0868.999.888");
+        u5.put("role", "candidate");
+        u5.put("department", "Thí sinh Tự do");
+        u5.put("createdAt", new java.util.Date(System.currentTimeMillis() - 1000L*60*60*24*5)); // 5 days ago
+        u5.put("status", "inactive");
+        mockList.add(u5);
+        
+        request.setAttribute("accounts", mockList);
+        request.setAttribute("totalAccounts", 5);
+        request.setAttribute("adminCount", 1);
+        request.setAttribute("coiThiCount", 2);
+        request.setAttribute("chamThiCount", 1);
+    }
+%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,12 +89,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- External Layout Stylesheets -->
-    <jsp:include page="/views/admin/components/admin-styles.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
 </head>
 <body class="has-side-nav-bar">
 
 <%-- Inject the admin sidebar template --%>
-<jsp:include page="/views/admin/components/sidebar.jsp">
+<jsp:include page="/views/layout/sidebar-admin.jsp">
     <jsp:param name="activeSidebar" value="tai-khoan" />
 </jsp:include>
 
@@ -120,7 +194,7 @@
                 </svg>
                 Bộ lọc tìm kiếm
             </h2>
-            <form action="${pageContext.request.contextPath}/admin/accounts" method="GET">
+            <form action="" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2fr 1.25fr 1.25fr 1.5fr;">
                     <div class="input-group">
                         <label for="searchKeyword" class="input-label">Tìm kiếm tài khoản</label>
@@ -154,7 +228,7 @@
                                 </svg>
                                 Lọc
                             </button>
-                            <a href="${pageContext.request.contextPath}/admin/accounts" class="btn-reset">Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/views/admin/accounts.jsp" class="btn-reset">Đặt lại</a>
                         </div>
                     </div>
                 </div>

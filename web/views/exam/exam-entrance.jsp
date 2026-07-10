@@ -1,4 +1,4 @@
-﻿
+
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -15,22 +15,16 @@
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@800&display=swap"
             rel="stylesheet">
-        
-        <jsp:include page="/views/exam/components/exam-styles.jsp">
-            <jsp:param name="pageCss" value="exam-entrance.css" />
-        </jsp:include>
+        <link href="${pageContext.request.contextPath}/assets/css/exam-entrance.css" rel="stylesheet">
 
     </head>
 
     <body>
-        <jsp:include page="/views/exam/components/header-exam-time.jsp">
+        <jsp:include page="/views/layout/header-exam-time.jsp">
             <jsp:param name="timeLeft" value="${not empty timeLeft ? timeLeft : '08:22:38'}" />
         </jsp:include>
 
         <main class="entrance-shell">
-            <c:if test="${not empty param.msg}">
-                <div class="entrance-error" role="alert">${param.msg}</div>
-            </c:if>
             <section class="entrance-panel" aria-label="Nhập số báo danh">
                 <form class="sbd-card" action="${pageContext.request.contextPath}/exam/entrance" method="post">
                     <label class="sbd-label" for="sbdInput">SỐ BÁO DANH (SBD)</label>
@@ -76,7 +70,7 @@
             </section>
         </main>
 
-        <jsp:include page="/views/exam/components/footer-exam.jsp">
+        <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText"
                        value="Sử dụng bàn phím trên màn hình hoặc bàn phím số bên phải của máy tính" />

@@ -1,42 +1,57 @@
 package controller.examiner;
-import filter.ExaminerFilter;
+
 import model.User;
 import service.CallService;
 import service.ExamViewService;
+import dto.CandidateRowDTO;
 import service.impl.CallServiceImpl;
 import service.impl.ExamViewServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Collections;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
 @WebServlet(urlPatterns = {
     "/views/examiner/result-details",
     "/views/examiner/result-details-edit"
 })
-public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
+public class ExaminerResultDetailsServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
-    protected final CallService ScheduleService = new CallServiceImpl();
+    protected final CallService callService = new CallServiceImpl();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = request.getSession(false);
         if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        Integer sessionId = getActiveSessionId(session);
+
+        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
         String path = stripContextPath(request);
-        Integer sbd = parseSbdParam(request.getParameter("sbd"));
+        Integer sbd = null;
+        try {
+            if (request.getParameter("sbd") != null) {
+                sbd = Integer.parseInt(request.getParameter("sbd").trim());
+            }
+        } catch (NumberFormatException e) {}
+        
         String search = request.getParameter("q");
         String action = request.getParameter("action");
+
         if (sessionId != null && sessionId > 0) {
-            if (isTheorySection(session)) {
+            if (Boolean.TRUE.equals(session.getAttribute("isTheory"))) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
             }
+
             if ("/views/examiner/result-details-edit".equals(path) && "adjustDeduction".equals(action)) {
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + path + "?error=noSbd");
@@ -48,114 +63,111 @@ public class ExaminerResultDetailsServlet extends BaseExaminerServlet {
                     deductionId = Integer.parseInt(request.getParameter("deductionId"));
                     delta = Integer.parseInt(request.getParameter("delta"));
                 } catch (Exception e) {
-                    response.sendRedirect(request.getContextPath() + path + "?sbd="
-                            + encodeSbd(sbd) + "&error=invalidDeduction");
+                    response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
                     return;
                 }
-                if (!ScheduleService.adjustScoreDeduction(sessionId, sbd, deductionId, delta,
-                        ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + path + "?sbd="
-                            + encodeSbd(sbd) + "&error=deductionFailed");
+                if (!callService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
                     return;
                 }
-                response.sendRedirect(request.getContextPath() + path + "?sbd="
-                        + encodeSbd(sbd));
+                response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd));
                 return;
             }
-            if ("/views/examiner/result-details-edit".equals(path)) {
-                Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd);
-                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+
+            if (sbd != null) {
+                boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
+                String sectionName = resolveSectionName(session);
+
+                if ("/views/examiner/result-details-edit".equals(path)) {
+                    Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, sbd, sectionName);
+                    if (data != null) {
+                        for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
+                            request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+                        }
+                    }
+                } else {
+                    request.setAttribute("candidateQueue", viewDataService.loadCandidateRows(sessionId, isTheory, sectionName));
+                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+                    if (candidate != null) {
+                        request.setAttribute("candidate", candidate);
+                    }
                 }
-                if (sbd == null || request.getAttribute("candidate") == null) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/result-details");
-                    return;
-                }
-                request.setAttribute("theoryMaxScore", viewDataService.theoryMaxQuestions());
-                request.setAttribute("theoryPassScore", viewDataService.theoryPassThreshold());
-                request.setAttribute("pageUrl", request.getContextPath() + "/views/examiner/result-details-edit");
-                Object candidateObj = request.getAttribute("candidate");
-                if (candidateObj != null) {
-                    request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
-                }
-            } else {
-                applyCandidateListAttributes(request, session, viewDataService, sessionId, sbd, search);
             }
         }
-        String jsp = "/views/examiner/result-details-edit".equals(path)
-                ? "/views/examiner/result-details-edit.jsp"
-                : "/views/examiner/result-details.jsp";
+
+        String jsp = switch (path) {
+            case "/views/examiner/result-details" -> "/views/examiner/result-details.jsp";
+            case "/views/examiner/result-details-edit" -> "/views/examiner/result-details-edit.jsp";
+            default -> "/views/examiner/result-details.jsp";
+        };
         request.getRequestDispatcher(jsp).forward(request, response);
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = requireSession(request, response);
+        HttpSession session = request.getSession(false);
         if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        Integer sessionId = getActiveSessionId(session);
+
+        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
         if (sessionId == null || sessionId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+
         String path = stripContextPath(request);
         if ("/views/examiner/result-details-edit".equals(path)) {
-            if (isTheorySection(session)) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
-                return;
-            }
-            Integer sbd = parseSbdParam(request.getParameter("sbd"));
-            User user = (User) session.getAttribute("user");
-            String password = request.getParameter("password");
-            String reason = request.getParameter("reason");
-            String reasonDetail = request.getParameter("reasonDetail");
+            Integer sbd = null;
+            try {
+                if (request.getParameter("sbd") != null) {
+                    sbd = Integer.parseInt(request.getParameter("sbd").trim());
+                }
+            } catch (NumberFormatException e) {}
+
             if (sbd == null) {
-                forwardScoreFormError(request, response, sessionId, null, reason, reasonDetail, "Thiếu SBD.");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/result-details?error=noSbd");
                 return;
             }
-            if (reason == null || reason.isBlank()) {
-                forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Vui lòng nhập lý do.");
+
+            String reason = request.getParameter("reasonCode");
+            String reasonDetail = request.getParameter("reasonDetail");
+            String password = request.getParameter("confirmPassword");
+            User user = (User) session.getAttribute("user");
+            if (!callService.logPracticalScoreEditReason(sessionId, sbd, user, password, reason, reasonDetail, user.getUserId()).isSuccess()) {
+                request.setAttribute("editError", "Lưu lý do thất bại. Vui lòng kiểm tra lại mật khẩu xác nhận.");
+                doGet(request, response);
                 return;
             }
-            if (password == null || password.isBlank()) {
-                forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Vui lòng nhập mật khẩu.");
-                return;
-            }
-            if (!ScheduleService.verifyPassword(user, password)) {
-                forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Mật khẩu không đúng.");
-                return;
-            }
-            if (!ScheduleService.logPracticalScoreEditReason(sessionId, sbd, user, password, reason,
-                    reasonDetail, user.getUserId()).isSuccess()) {
-                forwardScoreFormError(request, response, sessionId, sbd, reason, reasonDetail, "Lỗi");
-                return;
-            }
-            response.sendRedirect(request.getContextPath() + "/views/examiner/result-details-edit?sbd="
-                    + encodeSbd(sbd) + "&saved=1");
+            
+            response.sendRedirect(request.getContextPath() + "/views/examiner/result-details?sbd="
+                    + urlEncode(sbd) + "&reasonSaved=1");
             return;
         }
+
         doGet(request, response);
     }
-    private void forwardScoreFormError(HttpServletRequest request, HttpServletResponse response,
-            int sessionId, Integer sbd, String reason, String reasonDetail,
-            String errorMessage) throws ServletException, IOException {
-        Map<String, Object> data = viewDataService.getResultDetailsEditData(sessionId, sbd);
-        for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-            request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
+
+    private String stripContextPath(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String ctx = request.getContextPath();
+        if (ctx != null && !ctx.isEmpty() && uri.startsWith(ctx)) {
+            return uri.substring(ctx.length());
         }
-        request.setAttribute("scoreError", errorMessage);
-        request.setAttribute("formReason", reason);
-        request.setAttribute("formReasonDetail", reasonDetail);
-        request.setAttribute("pageUrl", request.getContextPath() + "/views/examiner/result-details-edit");
-        Object candidateObj = request.getAttribute("candidate");
-        if (candidateObj != null) {
-            request.setAttribute("singleCandidateList", Collections.singletonList(candidateObj));
-        }
-        request.getRequestDispatcher("/views/examiner/result-details-edit.jsp").forward(request, response);
+        return uri;
     }
 
-    private boolean isTheorySection(HttpSession session) {
-        return ExaminerFilter.isTheorySession(session);
+    private String resolveSectionName(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object name = session.getAttribute("examSectionName");
+        return name != null ? String.valueOf(name) : null;
+    }
+
+    private String urlEncode(int value) {
+        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
     }
 }

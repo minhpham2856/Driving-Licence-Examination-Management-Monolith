@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -6,7 +6,8 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Vi phạm" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/violations" scope="request" />
-<c:set var="violationDetailUrl" value="${ctx}/views/examiner/violation-detail" scope="request" />
+<c:set var="violationConfirmUrl" value="${ctx}/views/examiner/violation-confirm" scope="request" />
+<c:set var="violationUndoUrl" value="${ctx}/views/examiner/violation-undo" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -24,7 +25,7 @@
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveSession or not examinerHasActiveSession ? ' examiner-portal--inactive' : ''}">
 
         <!--sidebar-->
-        <jsp:include page="/views/examiner/components/sidebar.jsp">
+        <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="violations" />
         </jsp:include>
 
@@ -32,7 +33,7 @@
         <div class="examiner-shell">
 
             <!--header-->
-            <jsp:include page="/views/examiner/components/header.jsp" />
+            <jsp:include page="/views/layout/header-examiner.jsp" />
 
             <!--main content-->
             <main class="examiner-main examiner-main--dashboard">
@@ -52,8 +53,7 @@
                     <jsp:param name="title" value="Danh sách thí sinh" />
                     <jsp:param name="badgeText" value="Tổng: ${fn:length(candidates)} thí sinh" />
                     <jsp:param name="showStatus" value="true" />
-                    <jsp:param name="showAddress" value="false" />
-                    <jsp:param name="actionViewViolation" value="true" />
+                    <jsp:param name="actionSuspend" value="true" />
                 </jsp:include>
             </main>
         </div>
