@@ -1,5 +1,3 @@
-
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -16,7 +14,6 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Roboto:wght@800&display=swap"
             rel="stylesheet">
         <link href="${pageContext.request.contextPath}/assets/css/exam-entrance.css" rel="stylesheet">
-
     </head>
 
     <body>
@@ -27,13 +24,22 @@
         <main class="entrance-shell">
             <section class="entrance-panel" aria-label="Nhập số báo danh">
                 <form class="sbd-card" action="${pageContext.request.contextPath}/exam/entrance" method="post">
+
+                    <c:if test="${not empty error}">
+                        <p style="margin:0 0 12px; padding:10px 14px; border-radius:10px; text-align:center;
+                                  background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
+                                  color:#b91c1c; font-weight:600; font-size:0.9rem;">
+                            ${error}
+                        </p>
+                    </c:if>
+
                     <label class="sbd-label" for="sbdInput">SỐ BÁO DANH (SBD)</label>
 
                     <div class="sbd-input-wrap">
-                        <input id="sbdInput" name="sbd" class="sbd-input" type="text" inputmode="numeric"
-                               autocomplete="off" maxlength="6" value="${not empty param.sbd ? param.sbd : ''}"
-                               placeholder="">
-                        <button type="button" class="sbd-input-action" aria-label="Xóa ký tự cuối">
+                        <input id="sbdInput" name="sbd" class="sbd-input" type="text"
+                               autocomplete="off" maxlength="20" value="${not empty param.sbd ? param.sbd : ''}"
+                               placeholder="VD: SBD-202611">
+                        <button type="button" class="sbd-input-action" aria-label="Xóa ký tự cuối" onclick="backspaceSbd()">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 6h7l7 6-7 6H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path>
@@ -44,17 +50,17 @@
                     </div>
 
                     <div class="keypad" aria-label="Bàn phím số">
-                        <button type="button" class="key">1</button>
-                        <button type="button" class="key">2</button>
-                        <button type="button" class="key">3</button>
-                        <button type="button" class="key">4</button>
-                        <button type="button" class="key">5</button>
-                        <button type="button" class="key">6</button>
-                        <button type="button" class="key">7</button>
-                        <button type="button" class="key">8</button>
-                        <button type="button" class="key">9</button>
-                        <button type="button" class="key key--danger">XÓA</button>
-                        <button type="button" class="key">0</button>
+                        <button type="button" class="key" onclick="pressKey('1')">1</button>
+                        <button type="button" class="key" onclick="pressKey('2')">2</button>
+                        <button type="button" class="key" onclick="pressKey('3')">3</button>
+                        <button type="button" class="key" onclick="pressKey('4')">4</button>
+                        <button type="button" class="key" onclick="pressKey('5')">5</button>
+                        <button type="button" class="key" onclick="pressKey('6')">6</button>
+                        <button type="button" class="key" onclick="pressKey('7')">7</button>
+                        <button type="button" class="key" onclick="pressKey('8')">8</button>
+                        <button type="button" class="key" onclick="pressKey('9')">9</button>
+                        <button type="button" class="key key--danger" onclick="backspaceSbd()">XÓA</button>
+                        <button type="button" class="key" onclick="pressKey('0')">0</button>
                         <button type="submit" class="key key--primary">OK</button>
                     </div>
 
@@ -73,8 +79,22 @@
         <jsp:include page="/views/layout/footer-exam.jsp">
             <jsp:param name="noticeTitle" value="Lưu ý:" />
             <jsp:param name="noticeText"
-                       value="Sử dụng bàn phím trên màn hình hoặc bàn phím số bên phải của máy tính" />
+                       value="Nhập đúng số báo danh (VD: SBD-202611) rồi bấm OK. Có thể dùng bàn phím số bên phải." />
         </jsp:include>
+
+        <script>
+            // Bàn phím trên màn hình chỉ nhập phần số; giữ nguyên tiền tố chữ nếu người dùng gõ tay.
+            function pressKey(d){
+                var input = document.getElementById('sbdInput');
+                input.value = input.value + d;
+                input.focus();
+            }
+            function backspaceSbd(){
+                var input = document.getElementById('sbdInput');
+                input.value = input.value.slice(0, -1);
+                input.focus();
+            }
+        </script>
     </body>
 
 </html>

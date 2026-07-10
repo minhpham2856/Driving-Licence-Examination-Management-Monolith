@@ -19,7 +19,7 @@
     <body>
 
         <jsp:include page="../layout/header-exam-time.jsp">
-            <jsp:param name="timeLeft" value="08:22:38" />
+            <jsp:param name="timeLeft" value="00:00:00" />
         </jsp:include>
 
         <main class="exam-results-main">
@@ -30,27 +30,27 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="info-label">SBD:</span>
-                            <span class="info-value">${not empty candidate.sbd ? candidate.sbd : '123'}</span>
+                            <span class="info-value">${candidate.sbd}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Hạng:</span>
-                            <span class="info-value">${not empty candidate.licenseClass ? candidate.licenseClass : 'B'}</span>
+                            <span class="info-value">${candidate.licenseClass}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Họ & Tên:</span>
-                            <span class="info-value">${not empty candidate.fullName ? candidate.fullName : 'Nguyễn Văn An'}</span>
+                            <span class="info-label">Họ &amp; Tên:</span>
+                            <span class="info-value">${candidate.fullName}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Địa chỉ:</span>
-                            <span class="info-value">${not empty candidate.address ? candidate.address : 'Hà Nội'}</span>
+                            <span class="info-value">${empty candidate.address ? '—' : candidate.address}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Số CC:</span>
-                            <span class="info-value">${not empty candidate.citizenId ? candidate.citizenId : '0123456789098'}</span>
+                            <span class="info-value">${candidate.citizenId}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Ngày sinh:</span>
-                            <span class="info-value">${not empty candidate.dob ? candidate.dob : '20/2/2000'}</span>
+                            <span class="info-value">${candidate.dob}</span>
                         </div>
                     </div>
                 </section>
@@ -59,9 +59,8 @@
                 <section class="info-card" data-name="Kết quả thi card">
                     <div class="results-header-row">
                         <h2 class="card-title" style="margin-bottom: 0;">Kết quả thi</h2>
-                        <c:set var="isPassed" value="${result.status eq 'PASSED' || (not empty result.score && result.score >= 32)}" />
                         <c:choose>
-                            <c:when test="${isPassed}">
+                            <c:when test="${result.passed}">
                                 <div class="status-badge status-badge--pass">ĐẠT</div>
                             </c:when>
                             <c:otherwise>
@@ -69,37 +68,46 @@
                             </c:otherwise>
                         </c:choose>
                     </div>
-                    <div class="info-grid">
+
+                    <c:if test="${result.criticalFailed}">
+                        <p style="margin:0.75rem 0 0; padding:0.6rem 0.9rem; border-radius:8px;
+                                  background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
+                                  color:#b91c1c; font-weight:600; font-size:0.85rem;">
+                            Không đạt do sai câu điểm liệt (dù tổng số câu đúng có thể đã đủ).
+                        </p>
+                    </c:if>
+
+                    <div class="info-grid" style="margin-top: 1rem;">
                         <div class="info-item">
                             <span class="info-label">Điểm:</span>
-                            <span class="info-value">${not empty result.score ? result.score : '32'}/${not empty result.totalQuestions ? result.totalQuestions : '35'}</span>
+                            <span class="info-value">${result.score}/${result.totalQuestions}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Số câu trả lời đúng:</span>
-                            <span class="info-value">${not empty result.correctCount ? result.correctCount : '32'}/${not empty result.totalQuestions ? result.totalQuestions : '35'}</span>
+                            <span class="info-value">${result.correctCount}/${result.totalQuestions}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Giờ làm bài:</span>
-                            <span class="info-value">${not empty result.startTime ? result.startTime : '14h20p'}</span>
+                            <span class="info-value">${result.startTime}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Số câu trả lời sai:</span>
-                            <span class="info-value">${not empty result.incorrectCount ? result.incorrectCount : '3'}/${not empty result.totalQuestions ? result.totalQuestions : '35'}</span>
+                            <span class="info-value">${result.incorrectCount}/${result.totalQuestions}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Giờ nộp bài:</span>
-                            <span class="info-value">${not empty result.endTime ? result.endTime : '14h36p'}</span>
+                            <span class="info-value">${result.endTime}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Số câu không trả lời:</span>
-                            <span class="info-value">${not empty result.unansweredCount ? result.unansweredCount : '0'}/${not empty result.totalQuestions ? result.totalQuestions : '35'}</span>
+                            <span class="info-value">${result.unansweredCount}/${result.totalQuestions}</span>
                         </div>
                     </div>
                 </section>
 
                 <!-- Actions and Notices -->
                 <div class="action-container">
-                    <a href="${ctx}/candidate/dashboard" class="exit-btn">Thoát</a>
+                    <a href="${ctx}/exam/entrance" class="exit-btn">Thoát</a>
                     <p class="notice-text">Thí sinh di chuyển tới bàn ký tên</p>
                 </div>
             </div>
