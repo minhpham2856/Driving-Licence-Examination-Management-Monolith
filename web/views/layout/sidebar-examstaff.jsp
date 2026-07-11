@@ -22,12 +22,6 @@
 
         </c:when>
 
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'upload') or fn:contains(pageContext.request.requestURI, 'tai-ds')}">
-
-            <c:set var="activeSidebar" value="tai-ds" />
-
-        </c:when>
-
         <c:when test="${fn:contains(pageContext.request.requestURI, 'examiner-allocation') or fn:contains(pageContext.request.requestURI, 'giam-khao')}">
 
             <c:set var="activeSidebar" value="phan-bo-giam-khao" />
@@ -229,19 +223,7 @@
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">grid_view</span>
 
-            <span class="side-nav-bar__label">Tổng quan ca thi</span>
-
-        </a>
-
-        <a href="${ctx}/views/staff/examstaff/upload${sessionQuery}"
-
-           class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
-
-           <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
-
-            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">upload_file</span>
-
-            <span class="side-nav-bar__label">Tải danh sách thi</span>
+            <span class="side-nav-bar__label">Tổng quan kỳ thi</span>
 
         </a>
 
