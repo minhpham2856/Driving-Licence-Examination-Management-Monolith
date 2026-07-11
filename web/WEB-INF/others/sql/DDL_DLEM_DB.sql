@@ -2,11 +2,11 @@
 -- Database Schema
 -- Driving License Examination Management System
 -- DB: DLEM_DB_2
--- Ghi chú examstaff / public-call:
---   - Session.IsMorningSession thay SessionName (nhãn UI suy ra)
---   - ExamZone + ExamArea.ExamZoneId
---   - Candidate.Email cho import DSTS / thủ tục
---   - ExamEnrollment.AllocatedExamAreaId giữ cho phân bổ phòng LT
+-- Ghi chú examstaff / public-call (schema DLEM_DB_2):
+--   - Một kỳ thi = một hàng Exam (StartTime/EndTime trên Exam)
+--   - StartTime: managing staff gán khi tạo kỳ; EndTime: NULL cho đến khi examstaff kết thúc kỳ
+--   - sessionId trên URL/UI = ExamId
+--   - Trạng thái LT/TH trên ExamEnrollmentSection
 -- ============================================
 
 USE master;
@@ -89,44 +89,22 @@ CREATE TABLE Exam (
     ExamId INT PRIMARY KEY IDENTITY(1,1),
     ExamCode NVARCHAR(50) NOT NULL UNIQUE,
     ExamDate DATETIME NOT NULL,
-    CentreName NVARCHAR(255) NOT NULL,
-    [Status] NVARCHAR(50) NOT NULL,
-    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
-);
-GO
-
--- Ca thi: chỉ ca sáng / ca chiều; phần thi lấy từ Session_ExamSection
-CREATE TABLE [Session] (
-    SessionId INT PRIMARY KEY IDENTITY(1,1),
-    IsMorningSession BIT NOT NULL, -- 1 = Ca sáng, 0 = Ca chiều
     StartTime DATETIME NOT NULL,
-    EndTime DATETIME NOT NULL,
+    EndTime DATETIME NULL,
     [Status] NVARCHAR(50) NOT NULL,
-    ExamId INT NOT NULL REFERENCES Exam(ExamId),
-    CHECK (EndTime > StartTime)
+    CentreName NVARCHAR(255) NOT NULL,
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+    CHECK (EndTime IS NULL OR EndTime > StartTime)
 );
 GO
 
 CREATE TABLE ExamSection (
     ExamSectionId INT PRIMARY KEY IDENTITY(1,1),
-    SectionName NVARCHAR(100) NOT NULL UNIQUE
-);
-GO
-
-CREATE TABLE Licence_ExamSection (
-    LicenceExamSectionId INT PRIMARY KEY IDENTITY(1,1),
+    SectionType NVARCHAR(100) NOT NULL,
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
-    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
     DurationMinutes INT NULL,
-    UNIQUE (LicenceId, ExamSectionId)
-);
-GO
-
-CREATE TABLE Session_ExamSection (
-    SessionExamSectionId INT PRIMARY KEY IDENTITY(1,1),
-    SessionId INT NOT NULL REFERENCES [Session](SessionId),
-    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
-    UNIQUE (SessionId, ExamSectionId)
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    UNIQUE (ExamId, SectionType)
 );
 GO
 
@@ -143,33 +121,31 @@ GO
 CREATE TABLE ExamArea (
     ExamAreaId INT PRIMARY KEY IDENTITY(1,1),
     AreaName NVARCHAR(100) NOT NULL,
-    AreaType NVARCHAR(50) NOT NULL, -- Phòng thủ tục | Phòng thi | Sân thi | Đường thi
-    Capacity INT NULL,              -- NULL cho Đường thi
+    AreaType NVARCHAR(50) NOT NULL,
+    Capacity INT NULL,
     [Location] NVARCHAR(255) NOT NULL,
     ExamZoneId INT NOT NULL REFERENCES ExamZone(ExamZoneId),
     CHECK (Capacity IS NULL OR Capacity > 0)
 );
 GO
 
-CREATE TABLE Session_ExamArea (
-    SessionExamAreaId INT PRIMARY KEY IDENTITY(1,1),
-    SessionId INT NOT NULL REFERENCES [Session](SessionId),
+CREATE TABLE Exam_ExamArea (
+    ExamExamAreaId INT PRIMARY KEY IDENTITY(1,1),
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
     ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId),
-    UNIQUE (SessionId, ExamAreaId)
+    UNIQUE (ExamId, ExamAreaId)
 );
 GO
 
 CREATE TABLE ExaminerSchedule (
     ExaminerScheduleId INT PRIMARY KEY IDENTITY(1,1),
-    SessionId INT NOT NULL REFERENCES [Session](SessionId),
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
     ExaminerId INT NOT NULL REFERENCES [User](UserId),
     ExamSectionId INT NULL REFERENCES ExamSection(ExamSectionId),
     ExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
     AssignedBy INT NULL REFERENCES [User](UserId),
     AssignedAt DATETIME NULL DEFAULT GETDATE(),
-    UNIQUE (SessionId, ExaminerId),
-    FOREIGN KEY (SessionId, ExamSectionId) REFERENCES Session_ExamSection(SessionId, ExamSectionId),
-    FOREIGN KEY (SessionId, ExamAreaId) REFERENCES Session_ExamArea(SessionId, ExamAreaId)
+    UNIQUE (ExamId, ExaminerId)
 );
 GO
 
@@ -182,7 +158,7 @@ CREATE TABLE ExamDevice (
 );
 GO
 
--- Thí sinh ngày thi (import DSTS) — tách biệt User/Profile
+-- Thí sinh ngày thi (tách biệt User/Profile)
 CREATE TABLE Candidate (
     CandidateId INT PRIMARY KEY IDENTITY(1,1),
     CandidateNumber NVARCHAR(50) NOT NULL,
@@ -195,7 +171,6 @@ CREATE TABLE Candidate (
     Address NVARCHAR(500),
     TakeTheory BIT,
     TakeLayout BIT,
-    TakeRoad BIT,
     TakeNo INT NOT NULL,
     ReasonForTaking NVARCHAR(355),
     PhotoImageUrl NVARCHAR(500),
@@ -207,12 +182,25 @@ GO
 CREATE TABLE ExamEnrollment (
     ExamEnrollmentId INT PRIMARY KEY IDENTITY(1,1),
     CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
-    SessionId INT NOT NULL REFERENCES [Session](SessionId),
-    SectionStatus NVARCHAR(50) NOT NULL,
-    SignaturePrinted BIT NOT NULL DEFAULT 0,
-    AllocatedExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId), -- phân bổ phòng LT (examstaff)
+    ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    AllocatedExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
     ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
-    UNIQUE (CandidateId, SessionId)
+    UNIQUE (CandidateId, ExamId)
+);
+GO
+
+CREATE TABLE ExamEnrollmentSection (
+    ExamEnrollmentSectionId INT PRIMARY KEY IDENTITY(1,1),
+    ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
+    ExamSectionId INT NOT NULL REFERENCES ExamSection(ExamSectionId),
+    ExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
+    ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
+    Status NVARCHAR(50) NOT NULL DEFAULT N'Pending',
+    AllocatedAt DATETIME NULL,
+    AllocatedBy INT NULL REFERENCES [User](UserId),
+    StartedAt DATETIME NULL,
+    CompletedAt DATETIME NULL,
+    UNIQUE (ExamEnrollmentId, ExamSectionId)
 );
 GO
 
@@ -284,8 +272,7 @@ GO
 -- ============================== EXAM COMPONENTS ==============================
 CREATE TABLE TheoryPaper (
     TheoryPaperId INT PRIMARY KEY IDENTITY(1,1),
-    ExamEnrollmentId INT NOT NULL REFERENCES ExamEnrollment(ExamEnrollmentId),
-    ExamDeviceId INT NOT NULL REFERENCES ExamDevice(ExamDeviceId),
+    ExamEnrollmentSectionId INT NOT NULL REFERENCES ExamEnrollmentSection(ExamEnrollmentSectionId),
     StartedAt DATETIME,
     SubmittedAt DATETIME,
     CHECK (SubmittedAt IS NULL OR SubmittedAt >= StartedAt)
@@ -354,4 +341,10 @@ CREATE TABLE Audit (
     Details NVARCHAR(MAX),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
+GO
+
+-- Migration (DB đã tạo trước khi EndTime nullable):
+-- ALTER TABLE Exam ALTER COLUMN EndTime DATETIME NULL;
+-- ALTER TABLE Exam DROP CONSTRAINT CK__Exam__*;  -- tên constraint tùy instance
+-- ALTER TABLE Exam ADD CONSTRAINT CK_Exam_EndTimeAfterStart CHECK (EndTime IS NULL OR EndTime > StartTime);
 GO
