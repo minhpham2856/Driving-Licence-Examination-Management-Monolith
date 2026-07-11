@@ -215,7 +215,7 @@
                                             <c:forEach var="hist" items="${examHistory}">
                                                 <tr>
                                                     <td style="color: #64748b; font-weight: 500;">${hist.registerDate}</td>
-                                                    <td style="font-weight: 700; color: #0052cc;">${hist.sessionName}</td>
+                                                    <td style="font-weight: 700; color: #0052cc;">${hist.examName}</td>
                                                     <td style="text-align: center;">
                                                         <span class="role-badge role-badge--coi">Hạng ${hist.licenseClass}</span>
                                                     </td>

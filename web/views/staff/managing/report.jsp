@@ -116,12 +116,12 @@
             <form action="" method="GET">
                 <div class="filter-grid" style="grid-template-columns: 2.5fr 2fr 1.5fr;">
                     <div class="input-group">
-                        <label for="filterSession" class="input-label">Đợt thi sát hạch</label>
-                        <select id="filterSession" name="filterSession" class="input-field">
+                        <label for="filterExam" class="input-label">Đợt thi sát hạch</label>
+                        <select id="filterExam" name="filterExam" class="input-field">
                             <option value="">Tất cả các đợt thi</option>
-                            <option value="k240" ${param.filterSession eq 'k240' ? 'selected' : ''}>Khóa thi A1 - K240 (28/05/2026)</option>
-                            <option value="k115" ${param.filterSession eq 'k115' ? 'selected' : ''}>Khóa thi B2 - K115 (15/06/2026)</option>
-                            <option value="k30" ${param.filterSession eq 'k30' ? 'selected' : ''}>Khóa thi A2 - K30 (28/06/2026)</option>
+                            <option value="k240" ${param.filterExam eq 'k240' ? 'selected' : ''}>Khóa thi A1 - K240 (28/05/2026)</option>
+                            <option value="k115" ${param.filterExam eq 'k115' ? 'selected' : ''}>Khóa thi B2 - K115 (15/06/2026)</option>
+                            <option value="k30" ${param.filterExam eq 'k30' ? 'selected' : ''}>Khóa thi A2 - K30 (28/06/2026)</option>
                         </select>
                     </div>
 
@@ -180,7 +180,7 @@
                             <c:when test="${not empty reportData}">
                                 <c:forEach var="row" items="${reportData}">
                                     <tr>
-                                        <td style="font-weight: 700; color: #0052cc;">${row.sessionName}</td>
+                                        <td style="font-weight: 700; color: #0052cc;">${row.examName}</td>
                                         <td style="text-align: center;">
                                             <span class="role-badge role-badge--admin" style="padding: 2px 8px; font-size: 0.75rem;">Hạng ${row.licenseClass}</span>
                                         </td>

@@ -155,7 +155,7 @@
                                     <c:when test="${not empty upcomingExams}">
                                         <c:forEach var="exam" items="${upcomingExams}">
                                             <tr>
-                                                <td style="font-weight: 700; color: #0052cc;">${exam.sessionName}</td>
+                                                <td style="font-weight: 700; color: #0052cc;">${exam.examName}</td>
                                                 <td style="text-align: center;">
                                                     <span class="role-badge role-badge--admin" style="padding: 2px 8px; font-size: 0.75rem;">Hạng ${exam.licenseClass}</span>
                                                 </td>
