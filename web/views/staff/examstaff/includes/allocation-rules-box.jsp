@@ -38,6 +38,7 @@
                     <li>Không mắc <strong>lỗi liệt</strong> trong quá trình thi.</li>
                     <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại sa hình</strong>.</li>
                 </ol>
+                <p class="examstaff-rules-doc__note">Điểm do <strong>giám khảo</strong> chấm — examstaff chỉ theo dõi và phân sân thi.</p>
             </c:when>
 
             <c:when test="${variant eq 'results'}">
@@ -55,7 +56,7 @@
                         <p class="examstaff-rules-doc__card-text">Đạt tối thiểu <strong>80 điểm</strong>, không mắc lỗi liệt.</p>
                     </div>
                 </div>
-                <p class="examstaff-rules-doc__note">Lưu ý: Lý thuyết không sai câu điểm liệt. Bảo lưu phần thi theo hồ sơ đăng ký.</p>
+                <p class="examstaff-rules-doc__note">Lưu ý: Lý thuyết không sai câu điểm liệt. Bảo lưu phần thi theo hồ sơ đăng ký. Điểm do <strong>giám khảo</strong> chấm — examstaff chỉ theo dõi.</p>
             </c:when>
 
             <c:otherwise>
@@ -64,7 +65,7 @@
                     <li>Hạng <strong>A / A1</strong>: tối thiểu <strong>36 / 40</strong> câu đúng.</li>
                     <li>Hạng <strong>B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
                 </ul>
-                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một phòng thi lý thuyết</strong>.</p>
+                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một phòng thi lý thuyết</strong>. Điểm do <strong>giám khảo</strong> chấm — examstaff chỉ theo dõi.</p>
             </c:otherwise>
         </c:choose>
     </div>

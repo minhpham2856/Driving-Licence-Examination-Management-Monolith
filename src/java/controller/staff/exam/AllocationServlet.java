@@ -175,8 +175,6 @@ public class AllocationServlet extends HttpServlet {
                             actionRequest.setProfile(profile);
                             if ("allocateRoom".equals(action) || "allocatePracticalRoom".equals(action)) {
                                 actionRequest.setAreaId(Integer.parseInt(request.getParameter("areaId")));
-                            } else if (action != null && action.startsWith("submit") && action.endsWith("Score")) {
-                                actionRequest.setScore(Integer.parseInt(request.getParameter("score")));
                             }
                             AllocationActionResultDTO actionResult = allocationActionService.executeCandidateAction(
                                     actionRequest);

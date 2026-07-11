@@ -300,8 +300,8 @@ public final class AllocationStageHelper {
             return "/views/staff/examstaff/allocation";
         }
         return switch (action) {
-            case "allocateRoom", "submitTheoryScore" -> "/views/staff/examstaff/allocation-theory";
-            case "allocatePracticalRoom", "submitPracticalScore" -> "/views/staff/examstaff/allocation-practical";
+            case "allocateRoom" -> "/views/staff/examstaff/allocation-theory";
+            case "allocatePracticalRoom" -> "/views/staff/examstaff/allocation-practical";
             case "quickComplete", "checkin" -> "/views/staff/examstaff/allocation-waiting";
             default -> "/views/staff/examstaff/allocation";
         };
@@ -313,8 +313,8 @@ public final class AllocationStageHelper {
             return STAGE_OVERVIEW;
         }
         return switch (action) {
-            case "allocateRoom", "submitTheoryScore" -> STAGE_THEORY;
-            case "allocatePracticalRoom", "submitPracticalScore" -> STAGE_PRACTICAL;
+            case "allocateRoom" -> STAGE_THEORY;
+            case "allocatePracticalRoom" -> STAGE_PRACTICAL;
             case "quickComplete", "checkin" -> STAGE_WAITING;
             default -> STAGE_OVERVIEW;
         };

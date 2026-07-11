@@ -71,14 +71,21 @@
                             </c:if>
                         </td>
                         <td>
-                            <c:set var="lic" value="${c.clazz}" />
-                            <c:set var="demo" value="45" />
-                            <c:if test="${lic eq 'A' or lic eq 'A1'}"><c:set var="demo" value="36" /></c:if>
-                            <c:if test="${lic eq 'C' or lic eq 'C1'}"><c:set var="demo" value="50" /></c:if>
-                            <c:if test="${lic eq 'D' or lic eq 'D1' or lic eq 'D2' or lic eq 'E'}"><c:set var="demo" value="56" /></c:if>
-                            <c:set var="scoreSessionId" value="${not empty layoutSessionId ? layoutSessionId : allocationActiveSessionId}" />
-                            <c:set var="scoreSessionQuery" value="${scoreSessionId gt 0 ? '&amp;sessionId='.concat(scoreSessionId) : ''}" />
-                            <a href="${ctx}${allocationListPath}?action=submitTheoryScore&amp;id=${c.id}&amp;score=${demo}${scoreSessionQuery}${extra}" class="allocation-table-action allocation-table-action--theory">Chấm LT (Auto)</a>
+                            <c:choose>
+                                <c:when test="${not empty c.theoryScore}">
+                                    <span class="allocation-score">${c.theoryScore}</span>
+                                    <span class="es-text-muted-sm">
+                                        <c:choose>
+                                            <c:when test="${c.theoryPassed eq 'passed'}">Đạt</c:when>
+                                            <c:when test="${c.theoryPassed eq 'failed'}">Không đạt</c:when>
+                                            <c:otherwise>Đã chấm</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="es-text-muted-sm">Chờ giám khảo chấm</span>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
                     </tr>
                 </c:forEach>

@@ -4,12 +4,10 @@ import dto.AutoAllocateResultDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.AllocationActionResultDTO;
 import dto.examstaff.AllocationCandidateActionRequest;
-import dto.examstaff.AllocationScoreResultDTO;
 import enums.ExamSection;
 import model.ExamArea;
 import service.AllocationActionService;
 import service.AllocationRegistrationService;
-import service.AllocationScoreService;
 import service.ExamAreaQueryService;
 import service.ExamRegistrationService;
 import service.ExaminerAllocationService;
@@ -23,7 +21,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final ExamAreaQueryService areaQueryService = new ExamAreaQueryServiceImpl();
-    private final AllocationScoreService allocationScoreService = new AllocationScoreServiceImpl();
     private final AllocationRegistrationService allocationRegistrationService = new AllocationRegistrationServiceImpl();
     private final ExaminerAllocationService examinerAllocationService = new ExaminerAllocationServiceImpl();
 
@@ -93,8 +90,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
             case "callCandidate" -> handleCallCandidate(result, profile);
             case "allocateRoom" -> handleAllocateRoom(result, request, profile, regId, sessionId);
             case "allocatePracticalRoom" -> handleAllocatePracticalRoom(result, request, profile, regId, sessionId);
-            case "submitTheoryScore" -> handleTheoryScore(result, profile, regId, sessionId, request.getScore());
-            case "submitPracticalScore" -> handlePracticalScore(result, profile, regId, sessionId, request.getScore());
             case "quickComplete" -> handleQuickComplete(result, profile, regId, sessionId);
             default -> result.setErrorMsg("Thao tác không hỗ trợ: " + action);
         }
@@ -217,34 +212,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         }
     }
 
-    private void handleTheoryScore(AllocationActionResultDTO result, ExamRegistrationDTO profile,
-            int regId, int sessionId, int score) {
-        AllocationScoreResultDTO scoreResult =
-                allocationScoreService.submitTheoryScore(profile, sessionId, score);
-        applyScoreResult(result, scoreResult, regId);
-        if (!scoreResult.isSaved()
-                || !"passed".equalsIgnoreCase(scoreResult.getPassedFlag())
-                || profile == null
-                || profile.skipsPractical()) {
-            return;
-        }
-        int enrollSessionId = profile.getExamSessionId() > 0 ? profile.getExamSessionId() : sessionId;
-        AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocatePracticalCandidate(
-                enrollSessionId, regId);
-        if (allocResult != null && allocResult.allocatedCount > 0) {
-            result.setAllocatedCount(allocResult.allocatedCount);
-            result.setAlertMsg("Đã đỗ lý thuyết và tự động phân sân thực hành cho SBD "
-                    + profile.getSbd() + ".");
-        } else if (allocResult != null && allocResult.errorMsg != null && result.getErrorMsg() == null) {
-            result.setWarningMsg(allocResult.errorMsg);
-        }
-    }
-
-    private void handlePracticalScore(AllocationActionResultDTO result, ExamRegistrationDTO profile,
-            int regId, int sessionId, int score) {
-        applyScoreResult(result, allocationScoreService.submitPracticalScore(profile, sessionId, score), regId);
-    }
-
     private void handleQuickComplete(AllocationActionResultDTO result, ExamRegistrationDTO profile,
             int regId, int sessionId) {
         allocationRegistrationService.quickCompleteProcedure(profile, regId);
@@ -256,16 +223,5 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         }
         result.setAuditAction("UPDATE ExamRegistrationDTO");
         result.setAuditDetails("Hoàn thành nhanh thủ tục (FaceID + lệ phí) cho SBD " + profile.getSbd());
-    }
-
-    private static void applyScoreResult(AllocationActionResultDTO result,
-            AllocationScoreResultDTO scoreResult, int regId) {
-        if (scoreResult.getErrorMessage() != null) {
-            result.setErrorMsg(scoreResult.getErrorMessage());
-        } else if (scoreResult.isSaved()) {
-            result.setAuditAction("UPDATE ExamScore");
-            result.setAuditDetails(scoreResult.getAuditDetail());
-            result.setAuditRecordId(regId);
-        }
     }
 }

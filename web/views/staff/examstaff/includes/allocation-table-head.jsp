@@ -21,7 +21,7 @@
     <c:if test="${variant eq 'theory'}">
         <th>Hồ sơ</th>
         <th>Phòng thi</th>
-        <th>Thao tác</th>
+        <th>Điểm LT</th>
     </c:if>
     <c:if test="${variant eq 'practical'}">
         <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
@@ -29,7 +29,7 @@
             <jsp:param name="label" value="Lý thuyết" />
         </jsp:include>
         <th>Sân thi</th>
-        <th>Thao tác</th>
+        <th>Điểm TH</th>
     </c:if>
     <c:if test="${variant eq 'results-pass' or variant eq 'results-fail'}">
         <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">

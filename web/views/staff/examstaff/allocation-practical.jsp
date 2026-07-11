@@ -61,7 +61,23 @@
                                 <span class="allocation-room-pending" title="Phân giám khảo vào sân thực hành trước">—</span>
                             </c:if>
                         </td>
-                        <td><a href="${ctx}${allocationListPath}?action=submitPracticalScore&amp;id=${c.id}&amp;score=90${extra}" class="allocation-table-action allocation-table-action--practical">Chấm TH (Auto)</a></td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${not empty c.practicalScore}">
+                                    <span class="allocation-score">${c.practicalScore}</span>
+                                    <span class="es-text-muted-sm">
+                                        <c:choose>
+                                            <c:when test="${c.practicalPassed eq 'passed'}">Đạt</c:when>
+                                            <c:when test="${c.practicalPassed eq 'failed'}">Không đạt</c:when>
+                                            <c:otherwise>Đã chấm</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="es-text-muted-sm">Chờ giám khảo chấm</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
                     </tr>
                 </c:forEach>
                 <c:if test="${pg.totalItems eq 0}"><tr><td colspan="7" class="allocation-stage-table__empty">Không có thí sinh.</td></tr></c:if>

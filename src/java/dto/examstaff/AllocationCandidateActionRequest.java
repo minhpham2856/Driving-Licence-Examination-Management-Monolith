@@ -9,7 +9,6 @@ public class AllocationCandidateActionRequest {
     private int sessionId;
     private ExamRegistrationDTO profile;
     private int areaId;
-    private int score;
 
     public String getAction() {
         return action;
@@ -49,13 +48,5 @@ public class AllocationCandidateActionRequest {
 
     public void setAreaId(int areaId) {
         this.areaId = areaId;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
     }
 }
