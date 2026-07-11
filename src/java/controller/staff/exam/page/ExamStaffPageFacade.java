@@ -98,7 +98,7 @@ public final class ExamStaffPageFacade {
 
         if (ExamStaffHttpSupport.parseSessionIdParam(request) > 0 && ctx.getExamId() <= 0 && request != null) {
             request.setAttribute("sessionSelectError",
-                    "Khong tim thay ky thi (sessionId=" + urlSessionId + ").");
+                    "Không tìm thấy kỳ thi (mã " + urlSessionId + ").");
         }
 
         if (ctx.getExamId() > 0 && ctx.getSessionId() > 0 && session != null) {

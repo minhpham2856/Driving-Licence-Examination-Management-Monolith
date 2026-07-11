@@ -62,6 +62,7 @@ public class ProcedureServlet extends HttpServlet {
             List<SessionDTO> bootstrapSessions = selectionFacade.loadAllSessions();
             int boardSessionId = selectionFacade.resolveSessionId(request, session, bootstrapSessions, 0);
             session.removeAttribute("shiftEnded");
+            session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), boardSessionId);
             response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
             return;
@@ -270,7 +271,8 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
         if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.ALREADY_PAID) {
-            showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, qList, false);
+            boolean openPrint = "true".equals(request.getParameter("printAfterPayment"));
+            showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, qList, openPrint);
             return;
         }
         if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PAYMENT_FAILED) {

@@ -63,6 +63,11 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
+    public boolean updatePracticalAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName) {
+        return dao.updatePracticalAllocatedRoom(candidateId, sessionId, areaId, areaName);
+    }
+
+    @Override
     public String validateUniqueTheoryAllocation(int candidateId, int sessionId) {
         return dao.validateUniqueTheoryAllocation(candidateId, sessionId);
     }
@@ -112,37 +117,6 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     @Override
     public boolean insert(ExamRegistrationDTO reg) {
         return dao.insert(reg);
-    }
-
-    @Override
-    public boolean insertFromDstsImport(ExamRegistrationDTO reg) {
-        return dao.insertFromDstsImport(reg);
-    }
-
-    @Override
-    public boolean ensureExamEnrollmentForSession(int candidateId, int sessionId) {
-        return dao.ensureExamEnrollmentForSession(candidateId, sessionId);
-    }
-
-    @Override
-    public boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical) {
-        return dao.ensureExamEnrollmentsForImport(candidateId, examId, takeTheory, takePractical);
-    }
-
-    @Override
-    public java.util.Set<String> findAvailableSectionKindsForExam(int examId) {
-        return dao.findAvailableSectionKindsForExam(examId);
-    }
-
-    @Override
-    public Integer findCandidateIdByGovIdAndExam(String govId, int examId) {
-        return dao.findCandidateIdByGovIdAndExam(govId, examId);
-    }
-
-    @Override
-    public Integer findCandidateIdByGovId(String govId) {
-        return dao.findCandidateIdByGovId(govId);
     }
 
     @Override

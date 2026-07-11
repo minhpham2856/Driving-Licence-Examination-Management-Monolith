@@ -2,6 +2,8 @@
     'use strict';
 
     var SCROLL_KEY = 'scrollProcedureDesk';
+    var DOSSIER_PRINT_WIN = 'examstaffDossierPrint';
+    var DOSSIER_PRINT_PENDING_KEY = 'examstaffDossierPrintPending';
 
     function markProcedureDeskScroll() {
         try {
@@ -51,6 +53,33 @@
         });
     }
 
+    /**
+     * Popup blocker chặn window.open sau reload. Mở sẵn cửa sổ mang tên cố định
+     * ngay lúc bấm Đóng tiền (còn user gesture), rồi sau thanh toán điều hướng cửa sổ đó.
+     */
+    function bindPaymentPrintPreopen() {
+        document.querySelectorAll('#procedure-desk form').forEach(function (form) {
+            var actionInput = form.querySelector('input[name="action"][value="confirmPayment"]');
+            if (!actionInput) {
+                return;
+            }
+            form.addEventListener('submit', function () {
+                var cb = form.querySelector('input[name="printAfterPayment"]');
+                var sbdInput = form.querySelector('input[name="sbd"]');
+                if (!cb || !cb.checked || !sbdInput || !sbdInput.value) {
+                    try {
+                        sessionStorage.removeItem(DOSSIER_PRINT_PENDING_KEY);
+                    } catch (e) {  }
+                    return;
+                }
+                try {
+                    sessionStorage.setItem(DOSSIER_PRINT_PENDING_KEY, sbdInput.value.trim());
+                } catch (e) {  }
+                window.open('about:blank', DOSSIER_PRINT_WIN);
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('select[data-auto-submit]').forEach(function (sel) {
             sel.addEventListener('change', function () {
@@ -59,11 +88,17 @@
             });
         });
         bindProcedureNavigation();
+        bindPaymentPrintPreopen();
         initFormChangeChecking();
         initWebcamCapture();
         scrollToProcedureDeskIfNeeded();
         maybeOpenDossierPrint();
     });
+
+    function dossierPrintUrl(ctx, sbd) {
+        return (ctx || '') + '/views/staff/examstaff/candidate-dossier?sbd='
+            + encodeURIComponent(sbd) + '&print=true';
+    }
 
     function maybeOpenDossierPrint() {
         var desk = document.getElementById('procedure-desk');
@@ -72,15 +107,26 @@
         }
         var sbd = desk.getAttribute('data-open-dossier-print');
         if (!sbd) {
+            try {
+                sessionStorage.removeItem(DOSSIER_PRINT_PENDING_KEY);
+            } catch (e) {  }
             return;
         }
         desk.removeAttribute('data-open-dossier-print');
+        try {
+            sessionStorage.removeItem(DOSSIER_PRINT_PENDING_KEY);
+        } catch (e) {  }
+
         var ctx = desk.getAttribute('data-ctx') || '';
-        window.open(
-            ctx + '/views/staff/examstaff/candidate-dossier?sbd=' + encodeURIComponent(sbd) + '&print=true',
-            '_blank',
-            'noopener'
-        );
+        var url = dossierPrintUrl(ctx, sbd);
+        var win = window.open(url, DOSSIER_PRINT_WIN);
+        if (!win || win.closed) {
+            var printLink = document.querySelector('#procedure-desk a.procedure-btn--print');
+            if (printLink) {
+                printLink.focus();
+                printLink.setAttribute('title', 'Trình duyệt chặn popup — bấm để in hồ sơ');
+            }
+        }
     }
 
     function initFormChangeChecking() {

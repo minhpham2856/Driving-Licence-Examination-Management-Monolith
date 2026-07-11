@@ -88,6 +88,8 @@ public interface ExamRegistrationService {
      */
     boolean updateAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName);
 
+    boolean updatePracticalAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName);
+
     /**
      * @return thông báo lỗi nếu thí sinh đã có phòng ở ca khác trong cùng kỳ thi; null nếu hợp lệ
      */
@@ -169,26 +171,6 @@ public interface ExamRegistrationService {
      * @return true nếu thêm thành công
      */
     boolean insert(ExamRegistrationDTO reg);
-
-    /**
-     * Thêm thí sinh import DSTS trực tiếp vào Candidate + ExamEnrollment.
-     *
-     * @param reg đối tượng ExamRegistrationDTO đã validate
-     * @return true nếu thêm thành công
-     */
-    boolean insertFromDstsImport(ExamRegistrationDTO reg);
-
-    boolean ensureExamEnrollmentForSession(int candidateId, int sessionId);
-
-    boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical);
-
-    /** Các loại phần thi có ca trong kỳ theo luồng hiện tại: Theory / Practical. */
-    java.util.Set<String> findAvailableSectionKindsForExam(int examId);
-
-    Integer findCandidateIdByGovIdAndExam(String govId, int examId);
-
-    Integer findCandidateIdByGovId(String govId);
 
     /**
      * Lấy danh sách tất cả đăng ký thi.
