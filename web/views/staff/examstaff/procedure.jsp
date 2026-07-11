@@ -49,7 +49,7 @@
                 <div style="background-color: rgba(0, 82, 204, 0.05); border: 1px solid rgba(0, 82, 204, 0.15); border-radius: 12px; padding: 10px 16px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="background-color: #0052cc; color: #ffffff; font-family: monospace; font-weight: 800; font-size: 0.78rem; padding: 2px 8px; border-radius: 6px;">SBD: ${profile.candidateNumber}</span>
-                        <span style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">Đang lập hồ sơ cho: <strong style="color: #0f172a;">${profile.fullName}</strong> (Hạng ${not empty requestScope.currentSession ? requestScope.currentSession.licenseCode : ''})</span>
+                        <span style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">Đang lập hồ sơ cho: <strong style="color: #0f172a;">${profile.fullName}</strong> (Hạng ${not empty requestScope.currentExam ? requestScope.currentExam.licenseCode : ''})</span>
                     </div>
 
                     <form action="procedure" method="GET" style="display: flex; align-items: center; gap: 6px; margin: 0;">
@@ -73,7 +73,7 @@
                     <c:set var="cName" value="${profile.fullName}" />
                     <c:set var="cDob" value="${profile.dob}" />
                     <c:set var="cCccd" value="${profile.govIdNo}" />
-                    <c:set var="cClass" value="${not empty requestScope.currentSession ? requestScope.currentSession.licenseCode : ''}" />
+                    <c:set var="cClass" value="${not empty requestScope.currentExam ? requestScope.currentExam.licenseCode : ''}" />
 
                     <c:set var="currentStep" value="${not empty param.step ? param.step : requestScope.step}" />
                     <c:if test="${empty currentStep}">
@@ -409,7 +409,7 @@
                                         <c:forEach var="c" items="${sessionScope.candidateQueue}">
                                             <c:if test="${not (c.validCapturedPhoto and c.paymentCompleted)}">
                                                 <option value="${c.candidateNumber}">
-                                                    ${c.candidateNumber} - ${c.fullName} (Hạng ${not empty requestScope.currentSession ? requestScope.currentSession.licenseCode : ''})
+                                                    ${c.candidateNumber} - ${c.fullName} (Hạng ${not empty requestScope.currentExam ? requestScope.currentExam.licenseCode : ''})
                                                 </option>
                                             </c:if>
                                         </c:forEach>

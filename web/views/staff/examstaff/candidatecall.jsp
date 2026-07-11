@@ -51,15 +51,15 @@
 
             <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 6px; background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Ca thi:</span>
+                    <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Kỳ thi:</span>
                     <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">
-                        <c:out value="${currentSession.sessionLabel}" /> (<c:out value="${currentSession.licenseCode}" />)
+                        <c:out value="${currentExam.examLabel}" /> (<c:out value="${currentExam.licenseCode}" />)
                     </span>
                 </div>
                 <a href="procedure#procedure-desk" class="btn-export" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     Bàn làm thủ tục
                 </a>
-                <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId != null ? sessionScope.selectedSessionId : 2}"
+                <a href="${pageContext.request.contextPath}/views/public/public-call?examId=${sessionScope.selectedExamId != null ? sessionScope.selectedExamId : 2}"
                    target="_blank" rel="noopener"
                    class="btn-filter" style="height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #0f172a; border-color: #0f172a; color: #ffffff;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
@@ -221,7 +221,7 @@
                                             ${callingCandidate.fullName}
                                         </div>
                                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
-                                            <span class="role-badge role-badge--coi" style="font-size: 0.72rem; padding: 2px 8px;">Hạng ${not empty currentSession ? currentSession.licenseCode : ''}</span>
+                                            <span class="role-badge role-badge--coi" style="font-size: 0.72rem; padding: 2px 8px;">Hạng ${not empty currentExam ? currentExam.licenseCode : ''}</span>
                                             <span style="font-size: 0.75rem; color: #64748b; font-family: monospace;">CCCD: ${callingCandidate.govIdNo}</span>
                                         </div>
 
@@ -229,7 +229,7 @@
                                             <div style="margin-top: 1rem; padding: 10px 12px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; text-align: left; width: 100%;">
                                                 <span style="font-size: 0.68rem; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em;">Chuẩn bị tiếp theo (hiển thị TV)</span>
                                                 <div style="margin-top: 4px; font-family: monospace; font-weight: 800; color: #059669; font-size: 1rem;">${requestScope.nextCallingCandidate.candidateNumber}</div>
-                                                <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">${requestScope.nextCallingCandidate.fullName} &mdash; Hạng ${not empty currentSession ? currentSession.licenseCode : ''}</div>
+                                                <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">${requestScope.nextCallingCandidate.fullName} &mdash; Hạng ${not empty currentExam ? currentExam.licenseCode : ''}</div>
                                             </div>
                                         </c:if>
 
@@ -257,7 +257,7 @@
                                                     Vắng tạm thời
                                                 </a>
 
-                                                <a href="candidate-call?action=endShift" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; font-size: 0.8rem; border-color: #cbd5e1; color: #64748b;" title="Đóng ca thi hiện tại">
+                                                <a href="candidate-call?action=endShift" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; font-size: 0.8rem; border-color: #cbd5e1; color: #64748b;" title="Đóng kỳ thi hiện tại">
                                                     Đóng ca
                                                 </a>
                                             </div>
@@ -319,7 +319,7 @@
                                 <path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             </svg>
                             <span style="font-weight: 700; font-size: 0.9rem; color: #475569;">Hàng đợi trống</span>
-                            <span style="font-size: 0.78rem; max-width: 250px;">Không có thí sinh nào trong hàng đợi của ca thi này.</span>
+                            <span style="font-size: 0.78rem; max-width: 250px;">Không có thí sinh nào trong hàng đợi của kỳ thi này.</span>
                         </div>
                     </c:when>
 
@@ -350,7 +350,7 @@
                                                     </c:if>
                                                 </td>
                                                 <td style="font-weight: 700; color: #0f172a;">${candidate.fullName}</td>
-                                                <td style="text-align: center;"><span class="role-badge role-badge--coi" style="font-size: 0.65rem; padding: 1px 4px;">${not empty currentSession ? currentSession.licenseCode : ''}</span></td>
+                                                <td style="text-align: center;"><span class="role-badge role-badge--coi" style="font-size: 0.65rem; padding: 1px 4px;">${not empty currentExam ? currentExam.licenseCode : ''}</span></td>
                                                 <td style="text-align: center; font-family: monospace; color: #475569;">${candidate.govIdNo}</td>
                                                 <td style="text-align: right;">
                                                     <div style="display: inline-flex; gap: 4px;">
@@ -403,7 +403,7 @@
                                 <tr>
                                     <td style="font-weight: 800; color: #dc2626; font-family: monospace;">${c.candidateNumber}</td>
                                     <td style="font-weight: 700; color: #0f172a;">${c.fullName}</td>
-                                    <td style="text-align: center;"><span class="role-badge role-badge--admin" style="font-size: 0.65rem; padding: 1px 4px; background-color: #fee2e2; color: #991b1b;">${not empty currentSession ? currentSession.licenseCode : ''}</span></td>
+                                    <td style="text-align: center;"><span class="role-badge role-badge--admin" style="font-size: 0.65rem; padding: 1px 4px; background-color: #fee2e2; color: #991b1b;">${not empty currentExam ? currentExam.licenseCode : ''}</span></td>
                                     <td style="text-align: center; font-family: monospace; color: #475569;">${c.govIdNo}</td>
                                     <td style="text-align: center;">
                                         <span class="action-badge action-badge--danger" style="font-weight: 700;">Vắng mặt (Trượt)</span>

@@ -1,7 +1,7 @@
 package controller.staff.examstaff;
 
 import dto.AssignmentDTO;
-import dto.SessionViewDTO;
+import dto.ExamViewDTO;
 import dto.UserRowDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,9 +13,7 @@ import model.ExamArea;
 import model.ExamDevice;
 import model.User;
 import service.AllocationService;
-import service.SessionService;
 import service.impl.AllocationServiceImpl;
-import service.impl.SessionServiceImpl;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -34,7 +32,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
     // Controller talks to the service layer only. No DAO or DB access here.
     private final AllocationService allocationService = new AllocationServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -45,11 +42,11 @@ public class ExaminerAllocationServlet extends HttpServlet {
         request.removeAttribute("alertMsg");
 
         // Surface any flash messages left by the session-control flow.
-        String sessionControlMsg = (String) session.getAttribute("sessionControlMsg");
+        String examControlMsg = (String) session.getAttribute("examControlMsg");
         String sessionControlError = (String) session.getAttribute("sessionControlError");
-        if (sessionControlMsg != null) {
-            request.setAttribute("alertMsg", sessionControlMsg);
-            session.removeAttribute("sessionControlMsg");
+        if (examControlMsg != null) {
+            request.setAttribute("alertMsg", examControlMsg);
+            session.removeAttribute("examControlMsg");
         }
         if (sessionControlError != null) {
             request.setAttribute("errorMsg", sessionControlError);
@@ -57,29 +54,29 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
 
         // 0. Load all sessions for the session dropdown.
-        List<SessionViewDTO> allSessions = sessionService.getAllSessions();
-        request.setAttribute("allSessions", allSessions);
+        List<ExamViewDTO> allExams = allocationService.getAllExams();
+        request.setAttribute("allExams", allExams);
 
         // 1. Resolve the selected session id (request param wins, then session).
-        String sessIdParam = request.getParameter("sessionId");
-        int sessionId = 2; // Default session, matching the branch default.
+        String sessIdParam = request.getParameter("examId");
+        int examId = 2; // Default session, matching the branch default.
         if (sessIdParam != null && !sessIdParam.isEmpty()) {
             try {
-                sessionId = Integer.parseInt(sessIdParam);
+                examId = Integer.parseInt(sessIdParam);
             } catch (NumberFormatException e) {
                 // Keep the default when the param is not a valid number.
             }
-        } else if (session.getAttribute("selectedSessionId") != null) {
-            sessionId = (Integer) session.getAttribute("selectedSessionId");
+        } else if (session.getAttribute("selectedExamId") != null) {
+            examId = (Integer) session.getAttribute("selectedExamId");
         }
-        session.setAttribute("selectedSessionId", sessionId);
+        session.setAttribute("selectedExamId", examId);
 
         // Current session details for the header.
-        SessionViewDTO currentSession = sessionService.getSessionById(sessionId);
-        request.setAttribute("currentSession", currentSession);
+        ExamViewDTO currentExam = allocationService.getExamById(examId);
+        request.setAttribute("currentExam", currentExam);
 
         // Map of session id -> exam date (used to resolve busy examiners by day).
-        Map<Integer, Date> sessionDates = buildSessionDateMap(allSessions);
+        Map<Integer, Date> sessionDates = buildSessionDateMap(allExams);
 
         // Map of examiner id -> examiner record (used to validate an assignment).
         List<UserRowDTO> allExaminers = allocationService.getActiveExaminers();
@@ -88,16 +85,16 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         // 2. Handle assignment actions (assign / remove).
         String action = request.getParameter("action");
-        if (action != null && currentSession != null) {
+        if (action != null && currentExam != null) {
             handleAction(request, session, action, examinerMap);
         }
 
-        if (currentSession != null) {
-            Date examDate = currentSession.getExamDate();
+        if (currentExam != null) {
+            Date examDate = currentExam.getExamDate();
 
             // Sessions on the same exam date (for the day-level view).
-            List<SessionViewDTO> daySessions = allocationService.getSessionsByExamDate(examDate);
-            request.setAttribute("daySessions", daySessions);
+            List<ExamViewDTO> dayExams = allocationService.getExamsByExamDate(examDate);
+            request.setAttribute("dayExams", dayExams);
 
             // Assignments for the whole day and for just the selected session.
             List<AssignmentDTO> dayAssignments =
@@ -105,7 +102,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("dayAssignments", dayAssignments);
 
             List<AssignmentDTO> sessionAssignments =
-                    allocationService.getAssignmentsBySessionId(sessionId);
+                    allocationService.getAssignmentsByExamId(examId);
             request.setAttribute("sessionAssignments", sessionAssignments);
 
             // Split examiners into available / busy for the selected day.
@@ -123,7 +120,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             request.setAttribute("busyExaminers", busyExaminers);
 
             // Areas (rooms) belonging to the selected session.
-            List<ExamArea> sessionAreas = allocationService.getAreasBySessionId(sessionId);
+            List<ExamArea> sessionAreas = allocationService.getAreasByExamId(examId);
             request.setAttribute("sessionAreas", sessionAreas);
 
             // Devices grouped by area (branch's devicesByArea map).
@@ -136,10 +133,10 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
             // Areas grouped by each day session (branch's areasBySession map).
             Map<Integer, List<ExamArea>> areasBySession = new HashMap<>();
-            if (daySessions != null) {
-                for (SessionViewDTO ds : daySessions) {
+            if (dayExams != null) {
+                for (ExamViewDTO ds : dayExams) {
                     areasBySession.put(ds.getId(),
-                            allocationService.getAreasBySessionId(ds.getId()));
+                            allocationService.getAreasByExamId(ds.getId()));
                 }
             }
             request.setAttribute("areasBySession", areasBySession);
@@ -153,18 +150,18 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         try {
             if ("assign".equals(action)) {
-                int targetSessionId = Integer.parseInt(request.getParameter("targetSessionId"));
+                int targetExamId = Integer.parseInt(request.getParameter("targetExamId"));
                 int areaId = Integer.parseInt(request.getParameter("areaId"));
                 int examinerUserId = Integer.parseInt(request.getParameter("examinerUserId"));
 
-                SessionViewDTO targetSession = sessionService.getSessionById(targetSessionId);
+                ExamViewDTO targetExam = allocationService.getExamById(targetExamId);
                 ExamArea area = allocationService.getAreaById(areaId);
                 UserRowDTO examiner = examinerMap.get(examinerUserId);
-                if (targetSession == null || area == null || examiner == null) {
+                if (targetExam == null || area == null || examiner == null) {
                     request.setAttribute("errorMsg", "Dữ liệu phân công không hợp lệ.");
                     return;
                 }
-                if (!allocationService.isAreaInSession(targetSessionId, areaId)) {
+                if (!allocationService.isAreaInExam(targetExamId, areaId)) {
                     request.setAttribute("errorMsg",
                             "Phòng thi không thuộc ca thi đã chọn (Session_ExamArea).");
                     return;
@@ -173,7 +170,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
                 // Only the foreign keys are persisted; display fields are derived
                 // when assignments are read back via AllocationService.
                 AssignmentDTO slot = new AssignmentDTO();
-                slot.setExamSessionId(targetSessionId);
+                slot.setExamId(targetExamId);
                 slot.setAreaId(areaId);
                 slot.setExaminerUserId(examinerUserId);
                 slot.setAssignedBy(resolveStaffId(session));
@@ -205,12 +202,12 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
     }
 
-    private Map<Integer, Date> buildSessionDateMap(List<SessionViewDTO> sessions) {
+    private Map<Integer, Date> buildSessionDateMap(List<ExamViewDTO> sessions) {
         Map<Integer, Date> map = new HashMap<>();
         if (sessions == null) {
             return map;
         }
-        for (SessionViewDTO s : sessions) {
+        for (ExamViewDTO s : sessions) {
             map.put(s.getId(), s.getExamDate());
         }
         return map;
