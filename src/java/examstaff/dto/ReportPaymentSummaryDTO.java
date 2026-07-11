@@ -1,7 +1,7 @@
 package examstaff.dto;
 
-import model.Fee;
-import model.Payment;
+import examstaff.model.Fee;
+import examstaff.model.Payment;
 
 import java.util.List;
 

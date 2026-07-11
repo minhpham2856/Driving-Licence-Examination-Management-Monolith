@@ -1,7 +1,7 @@
 package examstaff.dto;
 
-import dto.staff.StaffProcedureKpiDTO;
-import dto.user.AuditDTO;
+import examstaff.dto.staff.StaffProcedureKpiDTO;
+import examstaff.dto.user.AuditDTO;
 import examstaff.util.AllocationStageHelper;
 
 import java.util.List;

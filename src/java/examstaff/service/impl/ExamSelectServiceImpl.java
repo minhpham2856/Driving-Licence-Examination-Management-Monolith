@@ -1,6 +1,6 @@
 package examstaff.service.impl;
 
-import dto.ExamSummaryDTO;
+import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamSelectRequestDTO;
 import examstaff.dto.ExamSelectResultDTO;
 import examstaff.enums.ExamStaffMessage;

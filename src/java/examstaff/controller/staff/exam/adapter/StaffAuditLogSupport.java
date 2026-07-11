@@ -2,7 +2,7 @@ package examstaff.controller.staff.exam.adapter;
 
 import jakarta.servlet.http.HttpSession;
 import examstaff.service.StaffAuditLogService;
-import util.SessionUserHelper;
+import examstaff.util.SessionUserHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
