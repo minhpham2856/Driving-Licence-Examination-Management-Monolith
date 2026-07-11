@@ -20,6 +20,7 @@ public class CandidateCallActionResultDTO {
     private boolean clearCallingSbd;
     private boolean reloadQueue;
     private boolean shiftEnded;
+    private boolean shiftPaused;
     private boolean redirectToCallPage;
     private boolean syncQueueOrder;
     private boolean moveRestoredToFront;
@@ -73,6 +74,14 @@ public class CandidateCallActionResultDTO {
 
     public void setShiftEnded(boolean shiftEnded) {
         this.shiftEnded = shiftEnded;
+    }
+
+    public boolean isShiftPaused() {
+        return shiftPaused;
+    }
+
+    public void setShiftPaused(boolean shiftPaused) {
+        this.shiftPaused = shiftPaused;
     }
 
     public boolean isRedirectToCallPage() {

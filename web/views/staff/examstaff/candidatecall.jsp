@@ -14,14 +14,22 @@
         <header class="page-header page-header--toolbar">
             <p class="examiner-page-desc">Điều hành hàng đợi gọi thủ tục; phát loa qua màn hình TV riêng.</p>
             <div class="call-page-actions">
-                <c:if test="${sessionScope.shiftEnded ne 'true'}">
-                    <a href="candidatecall?action=endShift" class="call-toolbar-btn call-toolbar-btn--danger"
-                       onclick="return confirm('Kết thúc ca thi? Tất cả thí sinh chưa làm thủ tục sẽ bị đình chỉ.');">
+                <c:if test="${sessionScope.shiftEnded ne 'true' and sessionScope.shiftPaused ne 'true'}">
+                    <a href="candidatecall?action=pauseShift" class="call-toolbar-btn call-toolbar-btn--warn"
+                       onclick="return confirm('Tạm dừng kỳ thi? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng.');">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+                            <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+                        </svg>
+                        Tạm dừng kỳ thi
+                    </a>
+                    <a href="candidatecall?action=closeExam" class="call-toolbar-btn call-toolbar-btn--danger"
+                       onclick="return confirm('Đóng kỳ thi? Tất cả thí sinh chưa làm thủ tục trong hàng đợi sẽ bị đánh vắng.');">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
                             <path d="M9 9h6v6H9z" fill="currentColor"/>
                         </svg>
-                        Đóng ca
+                        Đóng kỳ thi
                     </a>
                 </c:if>
             </div>
@@ -102,11 +110,28 @@
                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #991b1b;">Ca làm việc đã kết thúc</h3>
-                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 290px; line-height: 1.5;">Hàng đợi điều hành phòng chờ chính đã được dọn dẹp sạch sẽ. Tất cả thí sinh còn lại đã được giải phóng.</p>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #991b1b;">Kỳ thi đã đóng</h3>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Hàng đợi gọi thủ tục đã dừng. Các thí sinh chưa làm thủ tục đã được đánh vắng theo quy định.</p>
 
                             <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #0052cc, #003d9b); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
-                                Khởi động ca làm việc mới
+                                Mở lại hàng đợi gọi thi
+                            </a>
+                        </div>
+                    </c:when>
+
+                    <c:when test="${sessionScope.shiftPaused eq 'true'}">
+                        <div class="waiting-list-pane" style="text-align: center; padding: 3rem 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                            <div style="background-color: #fef3c7; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; color: #d97706; border: 1px solid rgba(217, 119, 6, 0.25);">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="7" y="5" width="4" height="14" rx="1" fill="currentColor"/>
+                                    <rect x="13" y="5" width="4" height="14" rx="1" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #92400e;">Kỳ thi tạm dừng</h3>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục.</p>
+
+                            <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
+                                Tiếp tục kỳ thi
                             </a>
                         </div>
                     </c:when>
@@ -214,7 +239,7 @@
                                                     Vắng
                                                 </a>
                                                 <a href="candidatecall?action=permanentAbsent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(239, 68, 68, 0.25); color: #dc2626; background: rgba(239, 68, 68, 0.04); font-size: 0.8rem;" title="Đình chỉ thi"
-                                                   onclick="return confirm('Đình chỉ thí sinh ${callingCandidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại trong ca.');">
+                                                   onclick="return confirm('Đình chỉ thí sinh ${callingCandidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">
                                                     Đình chỉ
                                                 </a>
                                             </div>
@@ -300,7 +325,7 @@
                                                         <a href="procedure?sbd=${candidate.sbd}#procedure-desk" class="btn-filter" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">Hồ sơ</a>
                                                         <a href="candidatecall?action=absent&amp;sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #d97706; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);" title="Đẩy xuống cuối hàng chờ">Vắng</a>
                                                         <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #dc2626; border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.04);" title="Đình chỉ thi"
-                                                           onclick="return confirm('Đình chỉ ${candidate.sbd}?');">Đình chỉ</a>
+                                                           onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -357,7 +382,7 @@
                                                         <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}"
                                                            class="procedure-done-btn procedure-done-btn--suspend"
                                                            title="Đình chỉ thi"
-                                                           onclick="return confirm('Đình chỉ ${candidate.sbd}?');">Đình chỉ</a>
+                                                           onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
                                                         <a href="procedure?sbd=${candidate.sbd}&amp;action=resetProcedure"
                                                            class="procedure-done-btn procedure-done-btn--delete"
                                                            title="Xóa hồ sơ thủ tục, làm lại từ đầu"

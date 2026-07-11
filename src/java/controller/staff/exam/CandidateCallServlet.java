@@ -77,6 +77,7 @@ public class CandidateCallServlet extends HttpServlet {
 
         if (view.isResumeShift()) {
             session.removeAttribute("shiftEnded");
+            session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), pageCtx.getSessionId());
             response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
             return;
@@ -115,6 +116,7 @@ public class CandidateCallServlet extends HttpServlet {
         command.setCalledByStaffId(SessionUserHelper.resolveUserId(session));
         command.setWebRoot(webRoot);
         command.setShiftEnded(isShiftEnded(session));
+        command.setShiftPaused(isShiftPaused(session));
         command.setCallingSbd((String) session.getAttribute("callingSbd"));
         command.setLastLoadedExamId((Integer) session.getAttribute("lastLoadedExamId"));
         @SuppressWarnings("unchecked")
@@ -148,6 +150,12 @@ public class CandidateCallServlet extends HttpServlet {
         }
         if (view.isShiftEnded()) {
             session.setAttribute("shiftEnded", "true");
+            session.removeAttribute("shiftPaused");
+        }
+        if (view.isShiftPaused()) {
+            session.setAttribute("shiftPaused", "true");
+        } else if (view.isResumeShift() || view.isShiftEnded()) {
+            session.removeAttribute("shiftPaused");
         }
         if (view.isClearProcedureJustPaidSbd()) {
             session.removeAttribute("procedureJustPaidSbd");
@@ -159,6 +167,9 @@ public class CandidateCallServlet extends HttpServlet {
     }
 
     private void applyBoardOp(int boardSessionId, CandidateCallPageViewDTO view) {
+        if (view.isPauseBoard()) {
+            callBoardHttp.pauseShift(getServletContext(), boardSessionId, view.getFullQueue());
+        }
         if (view.isReleaseDesk()) {
             callBoardHttp.releaseDeskAndCall(
                     getServletContext(), boardSessionId, view.getReleaseDeskCallingSbd(),
@@ -235,5 +246,9 @@ public class CandidateCallServlet extends HttpServlet {
 
     private static boolean isShiftEnded(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftEnded"));
+    }
+
+    private static boolean isShiftPaused(HttpSession session) {
+        return session != null && "true".equals(session.getAttribute("shiftPaused"));
     }
 }

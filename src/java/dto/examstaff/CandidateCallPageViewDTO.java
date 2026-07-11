@@ -18,6 +18,8 @@ public class CandidateCallPageViewDTO {
     private String callingSbd;
     private boolean clearCallingSbd;
     private boolean shiftEnded;
+    private boolean shiftPaused;
+    private boolean pauseBoard;
     private boolean clearProcedureJustPaidSbd;
     private boolean persistQueueOrder;
     private CandidateCallActionResultDTO.AlertType alertType = CandidateCallActionResultDTO.AlertType.NONE;
@@ -107,6 +109,22 @@ public class CandidateCallPageViewDTO {
 
     public void setShiftEnded(boolean shiftEnded) {
         this.shiftEnded = shiftEnded;
+    }
+
+    public boolean isShiftPaused() {
+        return shiftPaused;
+    }
+
+    public void setShiftPaused(boolean shiftPaused) {
+        this.shiftPaused = shiftPaused;
+    }
+
+    public boolean isPauseBoard() {
+        return pauseBoard;
+    }
+
+    public void setPauseBoard(boolean pauseBoard) {
+        this.pauseBoard = pauseBoard;
     }
 
     public boolean isClearProcedureJustPaidSbd() {

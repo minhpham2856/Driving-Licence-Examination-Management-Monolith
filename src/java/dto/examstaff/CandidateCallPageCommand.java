@@ -18,6 +18,7 @@ public class CandidateCallPageCommand {
     private int calledByStaffId;
     private String webRoot;
     private boolean shiftEnded;
+    private boolean shiftPaused;
     private String callingSbd;
     private Integer lastLoadedExamId;
     private List<String> callQueueOrder;
@@ -96,6 +97,14 @@ public class CandidateCallPageCommand {
 
     public void setShiftEnded(boolean shiftEnded) {
         this.shiftEnded = shiftEnded;
+    }
+
+    public boolean isShiftPaused() {
+        return shiftPaused;
+    }
+
+    public void setShiftPaused(boolean shiftPaused) {
+        this.shiftPaused = shiftPaused;
     }
 
     public String getCallingSbd() {

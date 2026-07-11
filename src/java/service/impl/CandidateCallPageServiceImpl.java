@@ -61,7 +61,12 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             return view;
         }
 
-        List<ExamRegistrationDTO> fullQueue = loadFullQueue(command, examId, shiftEnded);
+        boolean shiftPaused = command.isShiftPaused();
+        List<ExamRegistrationDTO> fullQueue = loadFullQueue(command, examId, shiftEnded, shiftPaused);
+
+        if (action != null && shiftPaused && "startCall".equals(action)) {
+            action = null;
+        }
 
         if (action != null) {
             CandidateCallActionResultDTO actionResult = callWorkflow.executeAction(
@@ -75,6 +80,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
 
             applyActionResult(view, actionResult);
             shiftEnded = actionResult.isShiftEnded() || shiftEnded;
+            shiftPaused = actionResult.isShiftPaused() || shiftPaused;
             if (actionResult.isClearCallingSbd()) {
                 callingSbd = null;
             } else if (actionResult.getCallingSbd() != null) {
@@ -83,7 +89,12 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
 
             if (actionResult.isReloadQueue()) {
                 command.setShiftEnded(shiftEnded);
-                fullQueue = loadFullQueue(command, examId, shiftEnded);
+                command.setShiftPaused(shiftPaused);
+                fullQueue = loadFullQueue(command, examId, shiftEnded, shiftPaused);
+            }
+
+            if (actionResult.isSyncQueueOrder()) {
+                view.setPersistQueueOrder(true);
             }
 
             if (actionResult.isMoveRestoredToFront() && command.getSbd() != null) {
@@ -113,7 +124,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         boolean releaseDesk = false;
         String releaseDeskCallingSbd = null;
 
-        if (advancedSbd != null && !advancedSbd.isBlank()) {
+        if (!shiftPaused && advancedSbd != null && !advancedSbd.isBlank()) {
             if (callingSbd != null && !advancedSbd.equals(callingSbd)) {
                 callingSbd = advancedSbd;
                 activeQueue = queueService.filterPendingForCall(fullQueue);
@@ -122,7 +133,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
                 releaseDeskCallingSbd = advancedSbd;
                 view.setClearProcedureJustPaidSbd(true);
             }
-        } else if (callingSbd != null) {
+        } else if (!shiftPaused && callingSbd != null) {
             callingSbd = null;
             view.setClearCallingSbd(true);
         } else {
@@ -142,7 +153,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         boolean syncBoard = false;
         String boardCallingSbd = callingSbd;
 
-        if (!shiftEnded) {
+        if (!shiftEnded && !shiftPaused) {
             DeskRelease release = releaseDeskIfProcedureDone(command.getBoard(), fullQueue, callingSbd);
             if (release.applied) {
                 callingSbd = release.callingSbd;
@@ -160,6 +171,9 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             // Giống ExamStaffViewHelper.syncCallingSbd: luôn sync board khi ca chưa kết thúc.
             syncBoard = true;
             boardCallingSbd = callingSbd;
+        } else if (shiftEnded) {
+            syncBoard = true;
+            boardCallingSbd = null;
         }
 
         view.setFullQueue(fullQueue);
@@ -172,6 +186,10 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             view.setClearCallingSbd(false);
         }
         view.setShiftEnded(shiftEnded);
+        view.setShiftPaused(shiftPaused);
+        if (shiftPaused && "pauseShift".equals(action)) {
+            view.setPauseBoard(true);
+        }
         view.setReleaseDesk(releaseDesk);
         view.setReleaseDeskCallingSbd(releaseDeskCallingSbd);
         view.setSyncBoard(syncBoard);
@@ -192,8 +210,8 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
     }
 
     private List<ExamRegistrationDTO> loadFullQueue(CandidateCallPageCommand command, int examId,
-            boolean shiftEnded) {
-        if (shiftEnded) {
+            boolean shiftEnded, boolean shiftPaused) {
+        if (shiftEnded || shiftPaused) {
             Integer lastLoadedExam = command.getLastLoadedExamId();
             if (lastLoadedExam != null && lastLoadedExam == examId
                     && command.getCachedQueue() != null && !command.getCachedQueue().isEmpty()) {
@@ -225,6 +243,9 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         }
         if (result.isShiftEnded()) {
             view.setShiftEnded(true);
+        }
+        if (result.isShiftPaused()) {
+            view.setShiftPaused(true);
         }
     }
 

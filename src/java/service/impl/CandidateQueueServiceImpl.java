@@ -258,16 +258,10 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
     private List<ExamRegistrationDTO> loadCandidates(int examId, int sessionId, List<SessionDTO> allSessions) {
         try {
             if (examId <= 0 && sessionId > 0) {
-                SessionDTO picked = resolveSession(sessionId, allSessions);
-                if (picked != null && picked.getExamId() > 0) {
-                    examId = picked.getExamId();
-                }
+                examId = sessionId;
             }
             if (examId > 0) {
                 return new ArrayList<>(queueQuery.listByExamId(examId));
-            }
-            if (sessionId > 0) {
-                return new ArrayList<>(queueQuery.listBySessionId(sessionId));
             }
         } catch (Exception e) {
             e.printStackTrace();

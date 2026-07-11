@@ -48,6 +48,10 @@ public final class ExamStaffCandidateMapper {
             dto.setAllocatedAreaId(row.getAllocatedAreaId());
             dto.setAllocatedAreaName(row.getAllocatedAreaName());
         }
+        if (row.getPracticalAllocatedAreaId() != null) {
+            dto.setPracticalAllocatedAreaId(row.getPracticalAllocatedAreaId());
+            dto.setPracticalAllocatedAreaName(row.getPracticalAllocatedAreaName());
+        }
         if (row.getTheoryScore() != null) {
             dto.setTheoryScore(row.getTheoryScore());
         }

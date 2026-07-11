@@ -59,7 +59,8 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
                     result, sbd, fullQueue, permanentAbsents, calledByStaffId);
             case "undoAbsent" -> handleUndoAbsent(
                     result, sbd, fullQueue, permanentAbsents, boardSessionId);
-            case "endShift" -> handleEndShift(result, fullQueue, permanentAbsents);
+            case "endShift", "closeExam" -> handleEndShift(result, fullQueue, permanentAbsents);
+            case "pauseShift" -> handlePauseShift(result, fullQueue);
             case "startShift" -> result.setRedirectToCallPage(true);
             default -> {
             }
@@ -150,8 +151,18 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
 
         result.setClearCallingSbd(true);
         result.setShiftEnded(true);
+        result.setShiftPaused(false);
         result.setReloadQueue(true);
         result.setActiveQueue(activeQueue);
+    }
+
+    private void handlePauseShift(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> fullQueue) {
+        result.setClearCallingSbd(true);
+        result.setShiftPaused(true);
+        result.setShiftEnded(false);
+        result.setSyncQueueOrder(true);
+        result.setFullQueue(fullQueue);
+        result.setActiveQueue(queueService.filterPendingForCall(fullQueue));
     }
 
     private void promoteCaller(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> activeQueue,
