@@ -1,17 +1,26 @@
-/DLEM/nbproject/private/
-/Driving-Licence-Examination-Management-Monolith/nbproject/private/
-private/
-/build/
+# IDE / NetBeans
+nbproject/private/
 /nbproject/private
 nbproject/private/private.properties
+/DLEM/nbproject/private/
+/Driving-Licence-Examination-Management-Monolith/nbproject/private/
+
+# Build / compile output
+build/
+/build/
+out/
+/out/
+outbound/
+/outbound/
+dist/
 /dist/
+
+# Local / secrets / generated
+private/
 .env
+candidate-photos/
 AGENTS.md
 skills-lock.json
 sources.txt
 .agents/
-
-private/
-build/
-out/
-candidate-photos/
+.cursor/
