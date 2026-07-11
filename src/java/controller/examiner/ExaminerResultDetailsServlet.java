@@ -1,6 +1,7 @@
 package controller.examiner;
 
 import model.User;
+import filter.ExaminerFilter;
 import service.CallService;
 import service.ExamViewService;
 import dto.CandidateRowDTO;
@@ -34,7 +35,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String path = stripContextPath(request);
         Integer sbd = null;
         try {
@@ -46,7 +47,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         String search = request.getParameter("q");
         String action = request.getParameter("action");
 
-        if (sessionId != null && sessionId > 0) {
+        if (activeExamId != null && activeExamId > 0) {
             if (Boolean.TRUE.equals(session.getAttribute("isTheory"))) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
@@ -66,7 +67,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
                     return;
                 }
-                if (!callService.adjustScoreDeduction(sessionId, sbd, deductionId, delta, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
+                if (!callService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
                     return;
                 }
@@ -79,15 +80,15 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                 String sectionName = resolveSectionName(session);
 
                 if ("/views/examiner/result-details-edit".equals(path)) {
-                    Map<String, Object> data = viewDataService.getScoreEntryData(sessionId, sbd, sectionName);
+                    Map<String, Object> data = viewDataService.getScoreEntryData(activeExamId, sbd, sectionName);
                     if (data != null) {
                         for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                             request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                         }
                     }
                 } else {
-                    request.setAttribute("candidateQueue", viewDataService.loadCandidateRows(sessionId, isTheory, sectionName));
-                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+                    request.setAttribute("candidateQueue", viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName));
+                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
                     if (candidate != null) {
                         request.setAttribute("candidate", candidate);
                     }
@@ -112,8 +113,8 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
-        if (sessionId == null || sessionId <= 0) {
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -136,7 +137,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             String reasonDetail = request.getParameter("reasonDetail");
             String password = request.getParameter("confirmPassword");
             User user = (User) session.getAttribute("user");
-            if (!callService.logPracticalScoreEditReason(sessionId, sbd, user, password, reason, reasonDetail, user.getUserId()).isSuccess()) {
+            if (!callService.logPracticalScoreEditReason(activeExamId, sbd, user, password, reason, reasonDetail, user.getUserId()).isSuccess()) {
                 request.setAttribute("editError", "Lưu lý do thất bại. Vui lòng kiểm tra lại mật khẩu xác nhận.");
                 doGet(request, response);
                 return;

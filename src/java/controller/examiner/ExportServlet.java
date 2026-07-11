@@ -162,8 +162,8 @@ public class ExportServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
-        Integer activeSessionId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_SESSION_ID);
-        if (activeSessionId == null || activeSessionId <= 0) {
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
@@ -171,7 +171,7 @@ public class ExportServlet extends HttpServlet {
         SectionType section = (SectionType) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION);
         boolean isTheory = section == SectionType.THEORY;
         String sectionName = section.getValue();
-        return new ExportContextDTO(activeSessionId, schedule, isTheory, sectionName);
+        return new ExportContextDTO(activeExamId, schedule, isTheory, sectionName);
     }
 
     private void prepareExcelDownload(HttpServletResponse response, String filename) {

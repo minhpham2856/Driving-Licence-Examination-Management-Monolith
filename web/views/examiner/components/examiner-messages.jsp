@@ -70,7 +70,7 @@
         <p class="examiner-flash-bar examiner-flash-bar--error">Thí sinh chưa bị đình chỉ.</p>
     </c:if>
     <c:if test="${param.error eq 'noSession'}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">Chưa có ca thi đang diễn ra.</p>
+        <p class="examiner-flash-bar examiner-flash-bar--error">Chưa có kỳ thi đang diễn ra.</p>
     </c:if>
     <c:if test="${param.error eq 'callSelectedFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Chọn ít nhất một thí sinh để gọi.</p>

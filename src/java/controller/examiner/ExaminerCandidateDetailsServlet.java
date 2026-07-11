@@ -1,6 +1,7 @@
 package controller.examiner;
 
 import model.User;
+import filter.ExaminerFilter;
 import service.CallService;
 import service.ExamViewService;
 import dto.CandidateRowDTO;
@@ -39,7 +40,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String path = stripContextPath(request);
         Integer sbd = null;
         try {
@@ -50,22 +51,22 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         
         String search = request.getParameter("q");
 
-        if (sessionId != null && sessionId > 0) {
+        if (activeExamId != null && activeExamId > 0) {
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
 
-            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
             request.setAttribute("candidates", candidates);
             request.setAttribute("candidateQueue", candidates);
 
             if (sbd != null && sbd > 0) {
-                CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+                CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
                 if (candidate != null) {
                     request.setAttribute("candidate", candidate);
                 }
                 
                 if ("/views/examiner/candidate-paper".equals(path)) {
-                    Map<String, Object> ansData = viewDataService.getPaperAnswersData(sessionId, sbd, request.getContextPath());
+                    Map<String, Object> ansData = viewDataService.getPaperAnswersData(activeExamId, sbd, request.getContextPath());
                     if (ansData != null) {
                         for (Map.Entry<String, Object> mapEntry : ansData.entrySet()) {
                             request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
@@ -92,8 +93,8 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
-        if (sessionId == null || sessionId <= 0) {
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -123,7 +124,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             }
 
             dto.ServiceResult<Void> result = callService.updateCandidateProfile(
-                    sessionId,
+                    activeExamId,
                     sbd,
                     ((User) session.getAttribute("user")).getUserId(),
                     request.getParameter("fullName"),
@@ -143,10 +144,10 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
 
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
-            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(sessionId, isTheory, sectionName);
+            List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
             request.setAttribute("candidates", candidates);
             request.setAttribute("candidateQueue", candidates);
-            CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+            CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
             if (candidate != null) {
                 request.setAttribute("candidate", candidate);
             }

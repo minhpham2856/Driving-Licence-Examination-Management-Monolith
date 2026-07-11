@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServlet;
+import filter.ExaminerFilter;
 import service.ExamViewService;
 import dto.CandidateRowDTO;
 import service.impl.ExamViewServiceImpl;
@@ -33,7 +34,7 @@ public class ExaminerMiscServlet extends HttpServlet {
             return;
         }
 
-        Integer sessionId = (Integer) session.getAttribute("activeSessionId");
+        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String path = stripContextPath(request);
         Integer sbd = null;
         try {
@@ -44,9 +45,9 @@ public class ExaminerMiscServlet extends HttpServlet {
         
         String search = request.getParameter("q");
 
-        if (sessionId != null && sessionId > 0) {
+        if (activeExamId != null && activeExamId > 0) {
             if ("/views/examiner/audit".equals(path)) {
-                Map<String, Object> data = viewDataService.getAuditLogsData(sessionId, request.getParameter("page"), search);
+                Map<String, Object> data = viewDataService.getAuditLogsData(activeExamId, request.getParameter("page"), search);
                 if (data != null) {
                     for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                         request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
@@ -57,7 +58,7 @@ public class ExaminerMiscServlet extends HttpServlet {
                 String sectionName = resolveSectionName(session);
                 
                 if (sbd != null && sbd > 0) {
-                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(sessionId, sbd, isTheory, sectionName);
+                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
                     if (candidate != null) {
                         request.setAttribute("candidate", candidate);
                     }

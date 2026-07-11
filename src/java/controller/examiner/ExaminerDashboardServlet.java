@@ -25,7 +25,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
             throws ServletException, IOException {
 
         // Read session information prepared by ExaminerFilter
-        Integer sessionId = (Integer) request.getAttribute(ExaminerFilter.ATTR_ACTIVE_SESSION_ID);
+        Integer examId = (Integer) request.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         SectionType section = (SectionType) request.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION);
         boolean isTheory = section == THEORY;
         String sectionName = section.getValue();
@@ -36,7 +36,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
 
         // Load candidate rows for the current session, filtered at the database when searching
         List<CandidateRowDTO> candidates
-                = examViewService.loadCandidateRows(sessionId, isTheory, sectionName, text(search));
+                = examViewService.loadCandidateRows(examId, isTheory, sectionName, text(search));
 
         // Flag that a search is active so the view can show the query and a clear button
         if (text(search) != null) {
@@ -49,13 +49,13 @@ public class ExaminerDashboardServlet extends HttpServlet {
         request.setAttribute("candidateQueue", candidates);
         request.setAttribute(
                 "examSummary",
-                examViewService.buildCandidateSummary(sessionId, isTheory, sectionName)
+                examViewService.buildCandidateSummary(examId, isTheory, sectionName)
         );
 
         // Load detailed information for the selected candidate
         if (candidateNumber != null && candidateNumber > 0) {
             CandidateRowDTO candidate
-                    = examViewService.getCandidateViewRow(sessionId, candidateNumber, isTheory, sectionName);
+                    = examViewService.getCandidateViewRow(examId, candidateNumber, isTheory, sectionName);
 
             if (candidate != null) {
                 request.setAttribute("candidate", candidate);
