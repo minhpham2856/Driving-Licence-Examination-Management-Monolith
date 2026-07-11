@@ -9,7 +9,6 @@ import service.impl.CandidateDossierServiceImpl;
 import service.impl.CandidateCallRecordServiceImpl;
 import service.impl.CandidateCallWorkflowServiceImpl;
 import service.impl.CandidateCallingServiceImpl;
-import service.impl.CandidateDstsImportServiceImpl;
 import service.impl.CandidatePhotoLookupServiceImpl;
 import service.impl.CandidatePhotoServiceImpl;
 import service.impl.CandidateQueueServiceImpl;
@@ -59,7 +58,6 @@ public final class ExamStaffServices {
     private final CandidatePhotoLookupService candidatePhotoLookupService;
     private final CandidatePhotoService candidatePhotoService;
     private final CandidateDossierService candidateDossierService;
-    private final CandidateDstsImportService candidateDstsImportService;
     private final ProcedureWorkflowService procedureWorkflowService;
     private final SessionSelectService sessionSelectService;
     private final ExamSessionControlService examSessionControlService;
@@ -100,8 +98,6 @@ public final class ExamStaffServices {
         this.candidatePhotoLookupService = new CandidatePhotoLookupServiceImpl();
         this.candidatePhotoService = new CandidatePhotoServiceImpl();
         this.candidateDossierService = new CandidateDossierServiceImpl();
-        this.candidateDstsImportService = new CandidateDstsImportServiceImpl(
-                new ExamRegistrationServiceImpl(), this.sessionQueryService);
         this.procedureWorkflowService = new ProcedureWorkflowServiceImpl(
                 new ExamRegistrationServiceImpl(),
                 new ProcedurePaymentServiceImpl(),
@@ -194,10 +190,6 @@ public final class ExamStaffServices {
 
     public CandidateDossierService dossiers() {
         return candidateDossierService;
-    }
-
-    public CandidateDstsImportService importCandidates() {
-        return candidateDstsImportService;
     }
 
     public ProcedureWorkflowService procedures() {
