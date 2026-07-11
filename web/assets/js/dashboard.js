@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const sessionSelect = document.getElementById('sessionId');
-    if (sessionSelect) {
-        sessionSelect.addEventListener('change', function () { this.form.submit(); });
+    const examSelect = document.getElementById('examId');
+    if (examSelect) {
+        examSelect.addEventListener('change', function () { this.form.submit(); });
     }
 });

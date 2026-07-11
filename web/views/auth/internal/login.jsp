@@ -27,7 +27,7 @@
 
 
                 <!-- Right Side: Login Form -->
-                <div class="login-form-panel" style="width: 100%;">
+                <div class="login-form-panel">
                     <div>
                         <div class="login-form-panel__header">
                             <h2 class="login-form-panel__title">Cổng xác thực nhân sự</h2>
