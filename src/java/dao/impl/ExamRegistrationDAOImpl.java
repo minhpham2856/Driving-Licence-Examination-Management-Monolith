@@ -9,7 +9,7 @@ import dao.ExamRegistrationDAO;
 import dto.exam.ExamRegistrationDTO;
 
 import model.ExamRegistration;
-import util.examstaff.AllocationPassRules;
+import examstaff.util.AllocationPassRules;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

@@ -11,8 +11,8 @@ import dao.impl.ExaminerAssignmentDAOImpl;
 import dto.ExamSummaryDTO;
 import java.sql.Timestamp;
 import java.util.List;
-import util.examstaff.ExamScheduleRules;
-import util.examstaff.ExaminerAssignmentRules;
+import examstaff.util.ExamScheduleRules;
+import examstaff.util.ExaminerAssignmentRules;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 

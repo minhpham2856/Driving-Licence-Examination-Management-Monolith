@@ -16,7 +16,7 @@ import model.ExamArea;
 import model.ExamSection;
 import model.Licence;
 import model.Session;
-import util.examstaff.SessionLabel;
+import examstaff.util.SessionLabel;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;

@@ -22,7 +22,7 @@ public class Session {
         this.endTime = endTime;
         this.status = status;
         this.examId = examId;
-        this.sessionName = util.examstaff.SessionLabel.shiftLabel(morningSession);
+        this.sessionName = examstaff.util.SessionLabel.shiftLabel(morningSession);
     }
 
     public int getId() {
@@ -77,7 +77,7 @@ public class Session {
         if (sessionName != null && !sessionName.isBlank()) {
             return sessionName;
         }
-        return util.examstaff.SessionLabel.shiftLabel(morningSession);
+        return examstaff.util.SessionLabel.shiftLabel(morningSession);
     }
 
     public void setSessionName(String sessionName) {
