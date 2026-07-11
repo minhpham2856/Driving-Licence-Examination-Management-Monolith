@@ -7,6 +7,8 @@ public class Exam {
     private int examId;
     private String examCode;
     private Timestamp examDate;
+    private Timestamp startTime;
+    private Timestamp endTime;
     private String centreName;
     private String status;
     private int licenceId;
@@ -15,10 +17,13 @@ public class Exam {
     public Exam() {
     }
 
-    public Exam(int examId, String examCode, Timestamp examDate, String centreName, String status, int licenceId) {
+    public Exam(int examId, String examCode, Timestamp examDate, Timestamp startTime,
+            Timestamp endTime, String centreName, String status, int licenceId) {
         this.examId = examId;
         this.examCode = examCode;
         this.examDate = examDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.centreName = centreName;
         this.status = status;
         this.licenceId = licenceId;
@@ -46,6 +51,22 @@ public class Exam {
 
     public void setExamDate(Timestamp examDate) {
         this.examDate = examDate;
+    }
+
+    public Timestamp getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Timestamp startTime) {
+        this.startTime = startTime;
+    }
+
+    public Timestamp getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Timestamp endTime) {
+        this.endTime = endTime;
     }
 
     public String getCentreName() {

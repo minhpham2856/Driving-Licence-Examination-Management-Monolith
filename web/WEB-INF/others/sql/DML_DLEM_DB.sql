@@ -24,14 +24,11 @@ DELETE FROM ExamRegistration;
 DELETE FROM Document;
 DELETE FROM Profile;
 DELETE FROM ExaminerSchedule;
-DELETE FROM Session_ExamArea;
-DELETE FROM Session_ExamSection;
 DELETE FROM Licence_ExamSection;
 DELETE FROM Licence_Question;
 DELETE FROM Question;
 DELETE FROM QuestionCategory;
 DELETE FROM ExamDevice;
-DELETE FROM [Session];
 DELETE FROM Exam;
 DELETE FROM ExamArea;
 DELETE FROM ExamZone;
@@ -149,11 +146,14 @@ GO
 -- ============================================
 -- 7. KỲ THI (khoá thi) — chỉ hạng A1, A, B1
 -- ============================================
-INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], LicenceId) VALUES
-(N'A1-20260601', '2026-06-01 07:00:00', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Mở',          (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
-(N'A-20260610',  '2026-06-10 07:00:00', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
-(N'B1-20260601', '2026-06-01 07:00:00', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Mở',          (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'B1-20260608', '2026-06-08 07:00:00', N'Trung tâm Sát hạch Lái Vui – Đà Nẵng', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'));
+INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], LicenceId, StartTime, EndTime) VALUES
+(N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
+(N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  NULL, NULL),
+(N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
+(N'B1-20260601-1300', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 13:00:00', '2026-06-01 16:00:00'),
+(N'B1-20260608-0730', '2026-06-08', N'Trung tâm Sát hạch Lái Vui – Đà Nẵng', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-08 07:30:00', '2026-06-08 09:00:00');
 GO
 
 -- ============================================
@@ -176,31 +176,12 @@ INSERT INTO Licence_ExamSection (LicenceId, ExamSectionId, DurationMinutes) VALU
 ((SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 2, 18);
 GO
 
--- ============================================
--- 10. CA THI (IsMorningSession: 1 = Ca sáng, 0 = Ca chiều)
--- Phần thi gắn qua Session_ExamSection; UI chỉ hiển thị Ca sáng / Ca chiều.
--- ============================================
-INSERT INTO [Session] (IsMorningSession, StartTime, EndTime, [Status], ExamId) VALUES
-(1, '2026-06-01 07:30:00', '2026-06-01 09:00:00', N'Đang diễn ra', (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601')),
-(1, '2026-06-01 09:30:00', '2026-06-01 11:30:00', N'Chưa diễn ra',  (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601')),
-(0, '2026-06-01 13:00:00', '2026-06-01 16:00:00', N'Chưa diễn ra',  (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601')),
-(1, '2026-06-01 07:30:00', '2026-06-01 09:00:00', N'Đang diễn ra', (SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601')),
-(1, '2026-06-01 10:00:00', '2026-06-01 11:30:00', N'Chưa diễn ra',  (SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601')),
-(1, '2026-06-08 07:30:00', '2026-06-08 09:00:00', N'Chưa diễn ra',  (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260608'));
-GO
 
 -- ============================================
--- 11. CA ↔ PHẦN THI
--- Tra cứu SessionId: ExamCode + IsMorningSession + StartTime (phân biệt nhiều ca cùng buổi)
+
 -- ============================================
-INSERT INTO Session_ExamSection (SessionId, ExamSectionId) VALUES
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), 1),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 09:30:00'), 2),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 0 AND s.StartTime = '2026-06-01 13:00:00'), 3),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), 1),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 10:00:00'), 2),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260608' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-08 07:30:00'), 1);
-GO
+
+-- ============================================
 
 -- ============================================
 -- 12. KHU VỰC THI (ExamZone) — trung tâm loại 3
@@ -224,36 +205,29 @@ INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location], ExamZoneId) VALU
 GO
 
 -- ============================================
--- 14. CA ↔ ĐỊA ĐIỂM THI
+
 -- ============================================
-INSERT INTO Session_ExamArea (SessionId, ExamAreaId) VALUES
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 09:30:00'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1')),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 10:00:00'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260608' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-08 07:30:00'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1'));
-GO
 
 -- ============================================
 -- 15. PHÂN CÔNG SÁT HẠCH VIÊN
 -- ============================================
-INSERT INTO ExaminerSchedule (SessionId, ExamSectionId, ExamAreaId, ExaminerId, AssignedBy, AssignedAt) VALUES
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'),
+INSERT INTO ExaminerSchedule (ExamId, ExamSectionId, ExamAreaId, ExaminerId, AssignedBy, AssignedAt) VALUES
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
  (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:00:00'),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 09:30:00'),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0930'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
  (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:05:00'),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_dung'),
  (SELECT UserId FROM [User] WHERE Username = N'exam_minh'), '2026-05-25 08:15:00'),
-((SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260608' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-08 07:30:00'),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260608-0730'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Lý thuyết'),
  (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
@@ -375,29 +349,29 @@ GO
 -- ============================================
 -- 19. GHI DANH CA THI
 -- ============================================
-INSERT INTO ExamEnrollment (CandidateId, SessionId, SectionStatus, SignaturePrinted, ExamDeviceId) VALUES
+INSERT INTO ExamEnrollment (CandidateId, ExamId, SectionStatus, SignaturePrinted, ExamDeviceId) VALUES
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'001' AND FullName = N'Nguyễn Văn An'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chờ ký', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-04')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chờ ký', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-04')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'002' AND FullName = N'Trần Thị Bình'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-01')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-01')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'003' AND FullName = N'Lê Văn Chính'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Đang thi', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-02')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Đang thi', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-02')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'046' AND FullName = N'Phạm Minh Đức'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-05')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-05')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'048' AND FullName = N'Nguyễn Thị Hoa'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chưa thi', 0, NULL),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chưa thi', 0, NULL),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'049' AND FullName = N'Trần Văn Khoa'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chưa thi', 0, NULL),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chưa thi', 0, NULL),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'123' AND FullName = N'Hoàng Văn Em'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chưa thi', 0, NULL),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chưa thi', 0, NULL),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'456' AND FullName = N'Vũ Thị Phương'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'B1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-06')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), N'Chờ ký', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-06')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'010' AND FullName = N'Phạm Thị Dung'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Đã thi', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-11')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'), N'Đã thi', 1, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-11')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'011' AND FullName = N'Đỗ Văn Hải'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Đang thi', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-12')),
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'), N'Đang thi', 0, (SELECT ExamDeviceId FROM ExamDevice WHERE DeviceName = N'MT-LT-12')),
 ((SELECT CandidateId FROM Candidate WHERE CandidateNumber = N'012' AND FullName = N'Ngô Thị Kim'),
- (SELECT s.SessionId FROM [Session] s JOIN Exam e ON e.ExamId = s.ExamId WHERE e.ExamCode = N'A1-20260601' AND s.IsMorningSession = 1 AND s.StartTime = '2026-06-01 07:30:00'), N'Chưa thi', 0, NULL);
+ (SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'), N'Chưa thi', 0, NULL);
 GO
 
 -- ============================================
@@ -1272,7 +1246,7 @@ SELECT
     @Sbd001DeviceId = ec.ExamDeviceId
 FROM ExamEnrollment ec
 JOIN Candidate c ON c.CandidateId = ec.CandidateId
-JOIN [Session] s ON s.SessionId = ec.SessionId
+JOIN Exam e ON e.ExamId = ec.ExamId
 WHERE c.CandidateNumber = N'001'
   AND EXISTS (
     SELECT 1 FROM [Session] s

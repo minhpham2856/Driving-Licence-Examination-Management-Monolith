@@ -1,6 +1,6 @@
 package enums;
 
-public enum ExamSessionStatus {
+public enum ExamStatus {
     NOT_STARTED("Chưa diễn ra"),
     IN_PROGRESS("Đang diễn ra"),
     COMPLETED("Hoàn tất"),
@@ -8,7 +8,7 @@ public enum ExamSessionStatus {
 
     private final String value;
 
-    private ExamSessionStatus(String value) {
+    private ExamStatus(String value) {
         this.value = value;
     }
 
@@ -16,11 +16,11 @@ public enum ExamSessionStatus {
         return value;
     }
 
-    public static ExamSessionStatus fromValue(String value) {
+    public static ExamStatus fromValue(String value) {
         if (value == null) {
             return null;
         }
-        for (ExamSessionStatus status : values()) {
+        for (ExamStatus status : values()) {
             if (status.getValue().equals(value)) {
                 return status;
             }
@@ -29,7 +29,7 @@ public enum ExamSessionStatus {
     }
 
     public static boolean isEnded(String value) {
-        ExamSessionStatus status = fromValue(value);
+        ExamStatus status = fromValue(value);
         return status == COMPLETED || status == CANCELLED;
     }
 }
