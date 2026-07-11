@@ -46,7 +46,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         }
 
         int examId = command.getExamId();
-        int boardSessionId = command.getBoardSessionId();
+        int boardExamId = command.getBoardExamId();
         boolean shiftEnded = command.isShiftEnded();
         String callingSbd = command.getCallingSbd();
         List<ExamRegistrationDTO> permanentAbsents = command.getPermanentAbsents();
@@ -70,7 +70,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
 
         if (action != null) {
             CandidateCallActionResultDTO actionResult = callWorkflow.executeAction(
-                    action, command.getSbd(), fullQueue, permanentAbsents, boardSessionId,
+                    action, command.getSbd(), fullQueue, permanentAbsents, boardExamId,
                     shiftEnded, command.getCalledByStaffId());
 
             if (actionResult.isRedirectToCallPage()) {
@@ -194,8 +194,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         view.setReleaseDeskCallingSbd(releaseDeskCallingSbd);
         view.setSyncBoard(syncBoard);
         view.setBoardCallingSbd(boardCallingSbd);
-        view.setPublishExamId(examId);
-        view.setPublishSessionId(boardSessionId);
+        view.setPublishExamId(boardExamId > 0 ? boardExamId : examId);
 
         boolean showSuspended = "suspended".equals(command.getView())
                 || "suspended".equals(command.getReturnView());
@@ -221,15 +220,15 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
 
         ExamStaffQueueRefreshInput refresh = new ExamStaffQueueRefreshInput();
         refresh.setExamId(examId);
-        int sessionId = command.getBoardSessionId();
-        refresh.setSessionId(sessionId);
-        if (sessionId > 0) {
-            refresh.setSelectedSessionId(sessionId);
+        int boardExamId = command.getBoardExamId();
+        if (boardExamId > 0) {
+            refresh.setExamId(boardExamId);
+            refresh.setSelectedExamId(boardExamId);
         }
         refresh.setWebRoot(command.getWebRoot());
         refresh.setAllSessions(sessionQuery.listAllSessions());
         refresh.setCallQueueOrder(command.getCallQueueOrder());
-        refresh.setCallQueueOrderSessionId(command.getCallQueueOrderSessionId());
+        refresh.setCallQueueOrderExamId(command.getCallQueueOrderExamId());
         CandidateQueueSnapshotDTO snapshot = queueService.refreshQueue(refresh);
         return snapshot.getFullQueue() != null ? snapshot.getFullQueue() : new ArrayList<>();
     }

@@ -1,7 +1,7 @@
 package service.impl;
 
 import dto.ExaminerSlotDTO;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.examstaff.ExamStaffDashboardViewDTO;
 import service.ExamStaffDashboardService;
 import service.ExamStaffSessionQueryService;
@@ -27,13 +27,12 @@ public class ExamStaffDashboardServiceImpl implements ExamStaffDashboardService 
     }
 
     @Override
-    public ExamStaffDashboardViewDTO buildView(List<SessionDTO> allSessions, int examId) {
+    public ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allSessions, int examId) {
         ExamStaffDashboardViewDTO view = new ExamStaffDashboardViewDTO();
-        List<SessionDTO> daySessions = sessionQuery.listSessionsForExam(allSessions, examId);
-        view.setDaySessions(daySessions);
+        List<ExamSummaryDTO> daySessions = sessionQuery.listSessionsForExam(allSessions, examId);
 
         Set<Integer> assignedExaminerIds = new HashSet<>();
-        for (SessionDTO daySession : daySessions) {
+        for (ExamSummaryDTO daySession : daySessions) {
             List<ExaminerSlotDTO> slots = allocationService.getAssignmentsBySessionId(daySession.getId());
             if (slots == null) {
                 continue;

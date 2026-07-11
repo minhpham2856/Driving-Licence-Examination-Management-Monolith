@@ -9,9 +9,6 @@
 <c:if test="${not empty requestScope.errorMsg}">
     <div class="allocation-alert allocation-alert--error"><span>${requestScope.errorMsg}</span></div>
 </c:if>
-<c:if test="${not empty requestScope.warningMsg}">
-    <div class="allocation-alert allocation-alert--warn"><span>${requestScope.warningMsg}</span></div>
-</c:if>
 <c:if test="${not empty requestScope.alertMsg}">
     <div class="allocation-alert allocation-alert--info"><span>${requestScope.alertMsg}</span></div>
 </c:if>

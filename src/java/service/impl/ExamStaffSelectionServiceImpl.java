@@ -1,6 +1,6 @@
 package service.impl;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.examstaff.ExamStaffPageTransitionInput;
 import dto.examstaff.ExamStaffPageTransitionStateDTO;
 import dto.examstaff.ExamStaffSelectionResolveInput;
@@ -28,20 +28,15 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         if (input == null) {
             return 0;
         }
+        if (input.getUrlExamId() > 0) {
+            return input.getUrlExamId();
+        }
         Integer selectedExam = input.getSelectedExamId();
         if (selectedExam != null && selectedExam > 0) {
             return selectedExam;
         }
-
-        int sessionId = input.getUrlSessionId();
-        if (sessionId <= 0 && input.getSelectedSessionId() != null && input.getSelectedSessionId() > 0) {
-            sessionId = input.getSelectedSessionId();
-        }
-        if (sessionId > 0) {
-            SessionDTO current = pageService.findSessionById(sessionId, input.getAllSessions());
-            if (current != null && current.getExamId() > 0) {
-                return current.getExamId();
-            }
+        if (input.getDefaultExamId() > 0) {
+            return input.getDefaultExamId();
         }
 
         String examIdParam = input.getExamIdParam();
@@ -55,35 +50,9 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
             }
         }
 
-        if (input.getDefaultExamId() > 0) {
-            return input.getDefaultExamId();
-        }
-
-        List<SessionDTO> allSessions = input.getAllSessions();
+        List<ExamSummaryDTO> allSessions = input.getAllSessions();
         if (allSessions != null && !allSessions.isEmpty()) {
             return pageService.resolveDefaultExamId(allSessions);
-        }
-        return 0;
-    }
-
-    @Override
-    public int resolveSessionId(ExamStaffSelectionResolveInput input) {
-        if (input == null) {
-            return 0;
-        }
-        if (input.getUrlSessionId() > 0) {
-            return input.getUrlSessionId();
-        }
-        Integer selected = input.getSelectedSessionId();
-        if (selected != null && selected > 0) {
-            return selected;
-        }
-        if (input.getDefaultSessionId() > 0) {
-            return input.getDefaultSessionId();
-        }
-        Integer examId = input.getSelectedExamId();
-        if (examId != null && examId > 0 && input.getAllSessions() != null) {
-            return pageService.resolvePrimarySessionId(input.getAllSessions(), examId);
         }
         return 0;
     }
@@ -94,7 +63,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         if (examId > 0) {
             return examId;
         }
-        List<SessionDTO> allSessions = input.getAllSessions();
+        List<ExamSummaryDTO> allSessions = input.getAllSessions();
         if (allSessions == null || allSessions.isEmpty()) {
             allSessions = pageService.listAllSessions();
             input.setAllSessions(allSessions);
@@ -103,11 +72,11 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
     }
 
     @Override
-    public int resolveExamFromSessionUrl(int urlSessionId, List<SessionDTO> allSessions) {
-        if (urlSessionId <= 0) {
+    public int resolveExamFromSessionUrl(int urlExamId, List<ExamSummaryDTO> allSessions) {
+        if (urlExamId <= 0) {
             return 0;
         }
-        SessionDTO picked = pageService.findSessionById(urlSessionId, allSessions);
+        ExamSummaryDTO picked = pageService.findExamById(urlExamId, allSessions);
         if (picked == null || picked.getExamId() <= 0) {
             return 0;
         }
@@ -115,51 +84,50 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
     }
 
     @Override
-    public ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentSessionId,
-            List<SessionDTO> allSessions) {
+    public ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentExamId,
+            List<ExamSummaryDTO> allSessions) {
         ExamStaffSelectionStateDTO state = new ExamStaffSelectionStateDTO();
-        state.setExamId(examId);
         if (examId <= 0) {
             return state;
         }
 
-        int sessionId = currentSessionId != null ? currentSessionId : 0;
-        if (sessionId <= 0) {
-            sessionId = ExamStaffSessionRules.resolvePrimarySessionId(allSessions, examId);
+        int resolved = currentExamId != null ? currentExamId : 0;
+        if (resolved <= 0) {
+            resolved = ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
         } else if (allSessions != null) {
-            SessionDTO picked = ExamStaffSessionRules.findSessionById(allSessions, sessionId);
+            ExamSummaryDTO picked = ExamStaffSessionRules.findExamById(allSessions, resolved);
             if (picked == null || picked.getExamId() != examId) {
-                sessionId = ExamStaffSessionRules.resolvePrimarySessionId(allSessions, examId);
+                resolved = ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
             }
         }
-        state.setSessionId(sessionId);
+        state.setExamId(resolved > 0 ? resolved : examId);
         return state;
     }
 
     @Override
     public ExamStaffPageTransitionStateDTO preparePageTransition(ExamStaffPageTransitionInput input) {
         ExamStaffPageTransitionStateDTO state = new ExamStaffPageTransitionStateDTO();
-        if (input == null || input.getUrlSessionId() <= 0) {
+        if (input == null || input.getUrlExamId() <= 0) {
             return state;
         }
 
-        List<SessionDTO> allSessions = input.getAllSessions();
-        SessionDTO urlSession = pageService.findSessionById(input.getUrlSessionId(), allSessions);
-        if (urlSession == null || urlSession.getExamId() <= 0) {
+        List<ExamSummaryDTO> allSessions = input.getAllSessions();
+        ExamSummaryDTO urlExam = pageService.findExamById(input.getUrlExamId(), allSessions);
+        if (urlExam == null || urlExam.getExamId() <= 0) {
             return state;
         }
 
-        state.setExamId(urlSession.getExamId());
-        state.setSessionId(input.getUrlSessionId());
+        state.setExamId(input.getUrlExamId());
         state.setPersistSelection(true);
 
-        Integer loadedSessionId = input.getLoadedSessionId();
-        if (loadedSessionId == null || loadedSessionId != input.getUrlSessionId()) {
+        Integer loadedExamId = input.getLoadedExamId();
+        if (loadedExamId == null || loadedExamId != input.getUrlExamId()) {
             state.setClearCandidateCache(true);
         }
 
         Integer previousExamId = input.getPreviousExamId();
-        if (previousExamId != null && previousExamId > 0 && !previousExamId.equals(urlSession.getExamId())) {
+        if (previousExamId != null && previousExamId > 0 && !previousExamId.equals(urlExam.getExamId())
+                && !previousExamId.equals(input.getUrlExamId())) {
             state.setClearProcedureState(true);
         }
 
@@ -167,16 +135,16 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
     }
 
     @Override
-    public int resolveActiveSessionId(int urlSessionId, Integer selectedSessionId,
-            Integer runtimeActiveSessionId) {
-        if (urlSessionId > 0) {
-            return urlSessionId;
+    public int resolveActiveExamId(int urlExamId, Integer selectedExamId,
+            Integer runtimeActiveExamId) {
+        if (urlExamId > 0) {
+            return urlExamId;
         }
-        if (selectedSessionId != null && selectedSessionId > 0) {
-            return selectedSessionId;
+        if (selectedExamId != null && selectedExamId > 0) {
+            return selectedExamId;
         }
-        if (runtimeActiveSessionId != null && runtimeActiveSessionId > 0) {
-            return runtimeActiveSessionId;
+        if (runtimeActiveExamId != null && runtimeActiveExamId > 0) {
+            return runtimeActiveExamId;
         }
         return 0;
     }

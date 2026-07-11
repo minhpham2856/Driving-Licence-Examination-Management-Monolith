@@ -39,7 +39,7 @@ public class ExamSectionDAOImpl extends DBContext implements ExamSectionDAO {
         return list;
     }
     @Override
-    public List<ExamSection> findBySessionId(int sessionId) {
+    public List<ExamSection> findByExamId(int sessionId) {
         List<ExamSection> list = new ArrayList<>();
         String sql = BASE_SELECT
                 + " INNER JOIN Session_ExamSection ses ON ses.ExamSectionId = ExamSection.ExamSectionId"

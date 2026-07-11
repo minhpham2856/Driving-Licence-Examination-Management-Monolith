@@ -3,15 +3,12 @@ package dto.examstaff;
 public class AllocationActionResultDTO {
 
     private String errorMsg;
-    private String warningMsg;
     private String alertMsg;
     private String auditAction;
     private String auditDetails;
     private int auditRecordId;
     private int allocatedCount;
     private String redirectServletPath;
-    private boolean syncCallBoard;
-    private String callingSbd;
 
     public String getErrorMsg() {
         return errorMsg;
@@ -19,14 +16,6 @@ public class AllocationActionResultDTO {
 
     public void setErrorMsg(String errorMsg) {
         this.errorMsg = errorMsg;
-    }
-
-    public String getWarningMsg() {
-        return warningMsg;
-    }
-
-    public void setWarningMsg(String warningMsg) {
-        this.warningMsg = warningMsg;
     }
 
     public String getAlertMsg() {
@@ -75,22 +64,6 @@ public class AllocationActionResultDTO {
 
     public void setRedirectServletPath(String redirectServletPath) {
         this.redirectServletPath = redirectServletPath;
-    }
-
-    public boolean isSyncCallBoard() {
-        return syncCallBoard;
-    }
-
-    public void setSyncCallBoard(boolean syncCallBoard) {
-        this.syncCallBoard = syncCallBoard;
-    }
-
-    public String getCallingSbd() {
-        return callingSbd;
-    }
-
-    public void setCallingSbd(String callingSbd) {
-        this.callingSbd = callingSbd;
     }
 
     public boolean hasAuditLog() {

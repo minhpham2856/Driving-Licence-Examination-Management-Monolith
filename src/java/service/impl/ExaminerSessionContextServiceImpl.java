@@ -65,7 +65,7 @@ public class ExaminerSessionContextServiceImpl implements ExaminerSessionContext
         // Cache the slot object for use by controllers and export servlets
         session.setAttribute(ATTR_SLOT, slot);
         // Cache the database session ID for quick access
-        session.setAttribute(ATTR_ACTIVE_SESSION_ID, slot.getExamSessionId());
+        session.setAttribute(ATTR_ACTIVE_SESSION_ID, slot.getExamId());
         // Cache the human-readable section name for display in the UI
         session.setAttribute(ATTR_EXAM_SECTION_NAME, resolveSectionName(slot));
         // Cache the section type enum for branching logic (theory vs score-based)

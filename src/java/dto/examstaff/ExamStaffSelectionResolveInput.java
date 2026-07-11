@@ -1,25 +1,23 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
 import java.util.List;
 
 public class ExamStaffSelectionResolveInput {
 
-    private int urlSessionId;
+    private int urlExamId;
     private String examIdParam;
     private Integer selectedExamId;
-    private Integer selectedSessionId;
-    private List<SessionDTO> allSessions;
+    private List<ExamSummaryDTO> allSessions;
     private int defaultExamId;
-    private int defaultSessionId;
 
-    public int getUrlSessionId() {
-        return urlSessionId;
+    public int getUrlExamId() {
+        return urlExamId;
     }
 
-    public void setUrlSessionId(int urlSessionId) {
-        this.urlSessionId = urlSessionId;
+    public void setUrlExamId(int urlExamId) {
+        this.urlExamId = urlExamId;
     }
 
     public String getExamIdParam() {
@@ -38,19 +36,11 @@ public class ExamStaffSelectionResolveInput {
         this.selectedExamId = selectedExamId;
     }
 
-    public Integer getSelectedSessionId() {
-        return selectedSessionId;
-    }
-
-    public void setSelectedSessionId(Integer selectedSessionId) {
-        this.selectedSessionId = selectedSessionId;
-    }
-
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return allSessions;
     }
 
-    public void setAllSessions(List<SessionDTO> allSessions) {
+    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
         this.allSessions = allSessions;
     }
 
@@ -60,13 +50,5 @@ public class ExamStaffSelectionResolveInput {
 
     public void setDefaultExamId(int defaultExamId) {
         this.defaultExamId = defaultExamId;
-    }
-
-    public int getDefaultSessionId() {
-        return defaultSessionId;
-    }
-
-    public void setDefaultSessionId(int defaultSessionId) {
-        this.defaultSessionId = defaultSessionId;
     }
 }

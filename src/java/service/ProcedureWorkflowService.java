@@ -1,6 +1,6 @@
 package service;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.ProcedurePaymentOutcomeDTO;
 import dto.examstaff.ProcedurePhotoSaveOutcomeDTO;
@@ -31,7 +31,7 @@ public interface ProcedureWorkflowService {
             String base64Data, List<ExamRegistrationDTO> queue);
 
     ProcedurePaymentOutcomeDTO confirmPayment(ExamRegistrationDTO profile, String sbd,
-            int examId, String webRoot, List<SessionDTO> allSessions);
+            int examId, String webRoot, List<ExamSummaryDTO> allSessions);
 
     ProcedureResetOutcomeDTO resetProcedure(String sbd, int examId, String webRoot);
 

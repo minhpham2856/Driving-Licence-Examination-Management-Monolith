@@ -16,11 +16,6 @@ public class CandidateQueueQueryServiceImpl implements CandidateQueueQueryServic
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
     @Override
-    public List<ExamRegistrationDTO> listBySessionId(int sessionId) {
-        return ExamStaffCandidateMapper.toDtoList(candidateViewDAO.findBySessionId(sessionId));
-    }
-
-    @Override
     public List<ExamRegistrationDTO> listByExamId(int examId) {
         return ExamStaffCandidateMapper.toDtoList(candidateViewDAO.findByExamId(examId));
     }

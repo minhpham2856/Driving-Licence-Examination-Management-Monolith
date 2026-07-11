@@ -4,7 +4,7 @@ import controller.staff.exam.adapter.ExamStaffSelectionFacade;
 import controller.staff.exam.binder.ExamStaffPageBinder;
 import controller.staff.exam.http.ExamStaffHttpSupport;
 import controller.staff.exam.module.ExamStaffWebModule;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.CandidateQueueSnapshotDTO;
 import dto.examstaff.ExamStaffPageContextDTO;
@@ -40,14 +40,12 @@ public final class ExamStaffPageFacade {
 
     public static final class ExamStaffPageContext {
         private final int examId;
-        private final int sessionId;
-        private final List<SessionDTO> allSessions;
+        private final List<ExamSummaryDTO> allSessions;
         private final List<ExamRegistrationDTO> candidates;
 
-        public ExamStaffPageContext(int examId, int sessionId, List<SessionDTO> allSessions,
+        public ExamStaffPageContext(int examId, int fallbackExamId, List<ExamSummaryDTO> allSessions,
                 List<ExamRegistrationDTO> candidates) {
-            this.examId = examId;
-            this.sessionId = sessionId;
+            this.examId = examId > 0 ? examId : fallbackExamId;
             this.allSessions = allSessions != null ? allSessions : List.of();
             this.candidates = candidates != null ? candidates : List.of();
         }
@@ -56,11 +54,7 @@ public final class ExamStaffPageFacade {
             return examId;
         }
 
-        public int getSessionId() {
-            return sessionId;
-        }
-
-        public List<SessionDTO> getAllSessions() {
+        public List<ExamSummaryDTO> getAllSessions() {
             return allSessions;
         }
 
@@ -77,32 +71,32 @@ public final class ExamStaffPageFacade {
     public static ExamStaffPageContext prepareExamStaffPage(HttpServletRequest request, HttpSession session,
             String webRoot, boolean loadCandidates) {
         applyUtf8Request(request);
-        int urlSessionId = ExamStaffHttpSupport.parseSessionIdParam(request);
-        if (urlSessionId > 0 && session != null) {
+        int urlExamId = ExamStaffHttpSupport.parseExamIdParam(request);
+        if (urlExamId > 0 && session != null) {
             ExamStaffPageTransitionStateDTO transition = selection().preparePageTransition(
-                    buildPageTransitionInput(session, urlSessionId));
+                    buildPageTransitionInput(session, urlExamId));
             if (transition.isClearCandidateCache()) {
                 SELECTION_FACADE.clearCandidateCache(session);
             }
             if (transition.isClearProcedureState()) {
                 ExamStaffPageBinder.clearProcedureStateOnExamChange(session,
-                        transition.getExamId(), transition.getSessionId());
+                        transition.getExamId(), transition.getExamId());
             }
             if (transition.isPersistSelection()) {
-                ExamStaffPageBinder.persistExamSelection(session, transition.getSessionId(), transition.getExamId());
+                ExamStaffPageBinder.persistExamSelection(session, transition.getExamId(), transition.getExamId());
             }
         }
 
-        ExamStaffPagePrepareInput input = buildPagePrepareInput(request, session, webRoot, loadCandidates, urlSessionId);
+        ExamStaffPagePrepareInput input = buildPagePrepareInput(request, session, webRoot, loadCandidates, urlExamId);
         ExamStaffPageContextDTO ctx = page().preparePageContext(input);
 
-        if (ExamStaffHttpSupport.parseSessionIdParam(request) > 0 && ctx.getExamId() <= 0 && request != null) {
+        if (ExamStaffHttpSupport.parseExamIdParam(request) > 0 && ctx.getExamId() <= 0 && request != null) {
             request.setAttribute("sessionSelectError",
-                    "Không tìm thấy kỳ thi (mã " + urlSessionId + ").");
+                    "Không tìm thấy kỳ thi (mã " + urlExamId + ").");
         }
 
-        if (ctx.getExamId() > 0 && ctx.getSessionId() > 0 && session != null) {
-            ExamStaffPageBinder.persistExamSelection(session, ctx.getSessionId(), ctx.getExamId());
+        if (ctx.getExamId() > 0 && session != null) {
+            ExamStaffPageBinder.persistExamSelection(session, ctx.getExamId(), ctx.getExamId());
         }
 
         if (ctx.getPickerView() != null) {
@@ -110,50 +104,46 @@ public final class ExamStaffPageFacade {
         }
 
         CandidateQueueSnapshotDTO snapshot = MODULE.services().candidateQueue().buildSnapshot(
-                ctx.getCandidates(), ctx.getExamId(), ctx.getSessionId());
+                ctx.getCandidates(), ctx.getExamId(), ctx.getExamId());
         ExamStaffPageBinder.publishQueue(request, session, snapshot);
 
-        return new ExamStaffPageContext(ctx.getExamId(), ctx.getSessionId(),
+        return new ExamStaffPageContext(ctx.getExamId(), ctx.getExamId(),
                 ctx.getAllSessions(), ctx.getCandidates());
     }
 
     private static ExamStaffPagePrepareInput buildPagePrepareInput(HttpServletRequest request, HttpSession session,
-            String webRoot, boolean loadCandidates, int urlSessionId) {
+            String webRoot, boolean loadCandidates, int urlExamId) {
         ExamStaffPagePrepareInput input = new ExamStaffPagePrepareInput();
-        input.setUrlSessionId(urlSessionId);
+        input.setUrlExamId(urlExamId);
         input.setWebRoot(webRoot);
         input.setLoadCandidates(loadCandidates);
-        input.setHasSessionIdParam(ExamStaffHttpSupport.parseSessionIdParam(request) > 0);
-        input.setAllSessions(SELECTION_FACADE.loadAllSessions());
+        input.setHasExamIdParam(ExamStaffHttpSupport.parseExamIdParam(request) > 0);
+        input.setAllSessions(SELECTION_FACADE.loadAllExams());
         if (request != null) {
             input.setExamIdParam(request.getParameter("examId"));
         }
         if (session != null) {
-            input.setPreviousExamId((Integer) session.getAttribute("selectedExamId"));
-            input.setPreviousSessionId((Integer) session.getAttribute("selectedSessionId"));
-            input.setSelectedExamId((Integer) session.getAttribute("selectedExamId"));
-            input.setSelectedSessionId((Integer) session.getAttribute("selectedSessionId"));
-            input.setLoadedExamId((Integer) session.getAttribute("examStaffLoadedExamId"));
-            input.setLoadedSessionId((Integer) session.getAttribute("examStaffLoadedSessionId"));
+            input.setPreviousExamId(ExamStaffPageBinder.readSelectedExamId(session));
+            input.setSelectedExamId(ExamStaffPageBinder.readSelectedExamId(session));
+            input.setLoadedExamId(ExamStaffPageBinder.readLoadedExamId(session));
             @SuppressWarnings("unchecked")
             List<ExamRegistrationDTO> cached = (List<ExamRegistrationDTO>) session.getAttribute("candidateQueue");
             input.setCachedQueue(cached);
             @SuppressWarnings("unchecked")
             List<String> order = (List<String>) session.getAttribute("callQueueOrder");
             input.setCallQueueOrder(order);
-            input.setCallQueueOrderSessionId((Integer) session.getAttribute("callQueueOrderSessionId"));
+            input.setCallQueueOrderExamId(ExamStaffPageBinder.readCallQueueOrderExamId(session));
         }
         return input;
     }
 
-    private static ExamStaffPageTransitionInput buildPageTransitionInput(HttpSession session, int urlSessionId) {
+    private static ExamStaffPageTransitionInput buildPageTransitionInput(HttpSession session, int urlExamId) {
         ExamStaffPageTransitionInput input = new ExamStaffPageTransitionInput();
-        input.setUrlSessionId(urlSessionId);
-        input.setAllSessions(SELECTION_FACADE.loadAllSessions());
+        input.setUrlExamId(urlExamId);
+        input.setAllSessions(SELECTION_FACADE.loadAllExams());
         if (session != null) {
-            input.setPreviousExamId((Integer) session.getAttribute("selectedExamId"));
-            input.setPreviousSessionId((Integer) session.getAttribute("selectedSessionId"));
-            input.setLoadedSessionId((Integer) session.getAttribute("examStaffLoadedSessionId"));
+            input.setPreviousExamId(ExamStaffPageBinder.readSelectedExamId(session));
+            input.setLoadedExamId(ExamStaffPageBinder.readLoadedExamId(session));
         }
         return input;
     }

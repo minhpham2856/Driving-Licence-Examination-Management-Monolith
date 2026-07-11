@@ -2,7 +2,7 @@ package controller.pub.binder;
 
 import dto.examstaff.PublicCallSnapshotDTO;
 import util.JsonUtil;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 
 import java.text.SimpleDateFormat;
@@ -25,13 +25,17 @@ public final class PublicCallJsonBinder {
         return raw.trim().toUpperCase(Locale.ROOT);
     }
 
-    private static void normalizeSession(SessionDTO s) {
-        if (s == null) return;
-        s.setLicenseCode(normalizeLicenseForPublicCall(s.getLicenseCode()));
+    private static void normalizeExam(ExamSummaryDTO exam) {
+        if (exam == null) {
+            return;
+        }
+        exam.setLicenseCode(normalizeLicenseForPublicCall(exam.getLicenseCode()));
     }
 
     private static void normalizeCandidate(ExamRegistrationDTO c) {
-        if (c == null) return;
+        if (c == null) {
+            return;
+        }
         c.setLicenseCode(normalizeLicenseForPublicCall(c.getLicenseCode()));
     }
 
@@ -40,7 +44,7 @@ public final class PublicCallJsonBinder {
             return "{}";
         }
 
-        normalizeSession(snapshot.getCurrentSession());
+        normalizeExam(snapshot.getCurrentExam());
         normalizeCandidate(snapshot.getCallingCandidate());
         normalizeCandidate(snapshot.getNextCandidate());
         if (snapshot.getWaitingQueue() != null) {
@@ -51,16 +55,16 @@ public final class PublicCallJsonBinder {
 
         StringBuilder json = new StringBuilder(512);
         json.append('{');
-        JsonUtil.appendJsonField(json, "sessionId", snapshot.getSessionId(), true);
+        JsonUtil.appendJsonField(json, "examId", snapshot.getExamId(), true);
         JsonUtil.appendJsonField(json, "isCallingActive", snapshot.isCallingActive(), true);
         JsonUtil.appendJsonField(json, "deskBusy", snapshot.isDeskBusy(), true);
         JsonUtil.appendJsonField(json, "shiftEnded", snapshot.isShiftEnded(), true);
         JsonUtil.appendJsonField(json, "examPaused", snapshot.isExamPaused(), true);
         JsonUtil.appendJsonField(json, "updatedAtMs", snapshot.getUpdatedAtMs(), true);
 
-        if (snapshot.getCurrentSession() != null && snapshot.getCurrentSession().getExamDate() != null) {
+        if (snapshot.getCurrentExam() != null && snapshot.getCurrentExam().getExamDate() != null) {
             String examDate = new SimpleDateFormat("dd/MM/yyyy")
-                    .format(snapshot.getCurrentSession().getExamDate());
+                    .format(snapshot.getCurrentExam().getExamDate());
             JsonUtil.appendJsonField(json, "examDate", examDate, true);
         } else {
             json.append("\"examDate\":null,");

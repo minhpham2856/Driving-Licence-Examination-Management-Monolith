@@ -5,7 +5,7 @@ import dbconnection.DBContext;
 
 import dao.ExamSessionDAO;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
 import model.Session;
 import java.sql.*;
@@ -74,14 +74,14 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
-    public SessionDTO getById(int id) {
+    public ExamSummaryDTO getById(int id) {
         if (id <= 0) {
             return null;
         }
         return fetchOne(EXAM_SELECT + " WHERE e.ExamId = ?", id);
     }
 
-    private SessionDTO fetchOne(String sql, int examId) {
+    private ExamSummaryDTO fetchOne(String sql, int examId) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -96,7 +96,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
-    public List<SessionDTO> getActiveSessions() {
+    public List<ExamSummaryDTO> getActiveSessions() {
         return fetchList(EXAM_SELECT
                 + " WHERE e.[Status] IN (N'Chưa diễn ra', N'Mở', N'Đang diễn ra', "
                 + "'Scheduled', 'Open', 'InProgress')"
@@ -104,28 +104,28 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     @Override
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return fetchList(EXAM_SELECT
                 + " ORDER BY CAST(e.ExamDate AS DATE) DESC, CAST(e.StartTime AS TIME) DESC");
     }
 
     @Override
-    public List<SessionDTO> getAllSessionsBasic() {
+    public List<ExamSummaryDTO> getAllSessionsBasic() {
         return getAllSessions();
     }
 
     @Override
-    public List<SessionDTO> getExamDayPickerOptions() {
+    public List<ExamSummaryDTO> getExamDayPickerOptions() {
         return fetchList(EXAM_SELECT
                 + " ORDER BY CAST(e.ExamDate AS DATE) DESC, l.LicenceClass");
     }
 
     @Override
-    public List<SessionDTO> getSessionsByExamDate(Date examDate) {
+    public List<ExamSummaryDTO> getSessionsByExamDate(Date examDate) {
         if (examDate == null) {
             return List.of();
         }
-        List<SessionDTO> list = new ArrayList<>();
+        List<ExamSummaryDTO> list = new ArrayList<>();
         String sql = EXAM_SELECT + " WHERE CAST(e.ExamDate AS DATE) = ? ORDER BY CAST(e.StartTime AS TIME)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setDate(1, examDate);
@@ -167,8 +167,8 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return false;
     }
 
-    private List<SessionDTO> fetchList(String sql) {
-        List<SessionDTO> list = new ArrayList<>();
+    private List<ExamSummaryDTO> fetchList(String sql) {
+        List<ExamSummaryDTO> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -180,8 +180,8 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return list;
     }
 
-    private SessionDTO mapResultSetToExamSession(ResultSet rs) throws SQLException {
-        SessionDTO es = new SessionDTO();
+    private ExamSummaryDTO mapResultSetToExamSession(ResultSet rs) throws SQLException {
+        ExamSummaryDTO es = new ExamSummaryDTO();
         es.setId(rs.getInt("id"));
         es.setExamId(rs.getInt("examId"));
         es.setMorningSession(rs.getBoolean("isMorningSession"));

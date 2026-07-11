@@ -12,7 +12,7 @@
 </jsp:include>
 
         <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Thí sinh đình chỉ được ghi TRƯỢT và không được gọi lại trong ca thi này.</p>
+            <p class="examiner-page-desc">Thí sinh đình chỉ được ghi TRƯỢT và không được gọi lại trong kỳ thi này.</p>
             <div class="call-page-actions">
                 <a href="candidatecall" class="call-toolbar-btn">Quay lại gọi thủ tục</a>
             </div>

@@ -18,7 +18,7 @@ public final class ExamStaffCandidateMapper {
         }
         ExamRegistrationDTO dto = new ExamRegistrationDTO();
         dto.setId(row.getCandidateId());
-        dto.setExamSessionId(row.getExamSessionId());
+        dto.setExamId(row.getExamId());
         dto.setExamEnrollmentId(row.getExamEnrollmentId());
         dto.setCandidateNo(row.getCandidateNo());
         dto.setRegistrationType(row.getRegistrationType());

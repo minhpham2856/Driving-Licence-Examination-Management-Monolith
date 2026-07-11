@@ -456,13 +456,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     @Override
-    public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
-        // Luồng road test đã bị loại khỏi examstaff/public-call.
-        // Giữ method để tương thích interface cũ nhưng không còn ghi điểm đường trường.
-        return true;
-    }
-
-    @Override
     public boolean updateProfile(int id, String fullName, Date dob, String govIdNo, String email, String phoneNo) {
         String sqlCand = """
                 UPDATE Candidate
@@ -636,7 +629,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     public boolean insert(ExamRegistrationDTO reg) {
         try {
             getConnection().setAutoCommit(false);
-            SessionContext ctx = loadSessionContext(reg.getExamSessionId());
+            SessionContext ctx = loadSessionContext(reg.getExamId());
             if (ctx == null) {
                 getConnection().rollback();
                 return false;
@@ -683,7 +676,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             int examEnrollmentId;
             try (PreparedStatement ps = getConnection().prepareStatement(sqlEc, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, candidateId);
-                ps.setInt(2, reg.getExamSessionId());
+                ps.setInt(2, reg.getExamId());
                 ps.executeUpdate();
                 try (ResultSet gk = ps.getGeneratedKeys()) {
                     if (!gk.next()) {
@@ -1326,7 +1319,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     private ExamRegistrationDTO mapResultSetToExamRegistration(ResultSet rs) throws SQLException {
         ExamRegistrationDTO er = new ExamRegistrationDTO();
         er.setId(rs.getInt("id"));
-        er.setExamSessionId(rs.getInt("examSessionId"));
+        er.setExamId(rs.getInt("examSessionId"));
         try {
             er.setExamEnrollmentId(rs.getInt("examEnrollmentId"));
         } catch (SQLException ignored) {

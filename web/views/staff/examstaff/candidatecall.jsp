@@ -190,8 +190,8 @@
                                         <p style="margin: 0.75rem 0 0; font-size: 0.78rem; color: #64748b; line-height: 1.45;">
                                             Loa gọi tên phát trên
                                             <c:choose>
-                                                <c:when test="${not empty sessionScope.selectedSessionId}">
-                                                    <a href="${pageContext.request.contextPath}/views/public/public-call?sessionId=${sessionScope.selectedSessionId}"
+                                                <c:when test="${not empty sessionScope.selectedExamId}">
+                                                    <a href="${pageContext.request.contextPath}/views/public/public-call?examId=${sessionScope.selectedExamId}"
                                                        target="_blank" rel="noopener"
                                                        style="font-weight: 700; color: #0052cc; text-decoration: none;">màn hình TV</a>.
                                                 </c:when>
@@ -291,7 +291,7 @@
                                 <path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             </svg>
                             <span style="font-weight: 700; font-size: 0.9rem; color: #475569;">Hàng đợi trống</span>
-                            <span style="font-size: 0.78rem; max-width: 250px;">Không có thí sinh nào trong hàng đợi của ca thi này.</span>
+                            <span style="font-size: 0.78rem; max-width: 250px;">Không có thí sinh nào trong hàng đợi của kỳ thi này.</span>
                         </div>
                     </c:when>
 

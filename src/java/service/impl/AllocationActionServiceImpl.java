@@ -7,7 +7,6 @@ import dto.examstaff.AllocationCandidateActionRequest;
 import enums.ExamSection;
 import model.ExamArea;
 import service.AllocationActionService;
-import service.AllocationRegistrationService;
 import service.ExamAreaQueryService;
 import service.ExamRegistrationService;
 import service.ExaminerAllocationService;
@@ -21,7 +20,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final ExamAreaQueryService areaQueryService = new ExamAreaQueryServiceImpl();
-    private final AllocationRegistrationService allocationRegistrationService = new AllocationRegistrationServiceImpl();
     private final ExaminerAllocationService examinerAllocationService = new ExaminerAllocationServiceImpl();
 
     @Override
@@ -47,32 +45,6 @@ public class AllocationActionServiceImpl implements AllocationActionService {
     }
 
     @Override
-    public AllocationActionResultDTO executeAutoAllocate(int sessionId) {
-        AllocationActionResultDTO result = new AllocationActionResultDTO();
-        AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocateSession(sessionId);
-
-        if (allocResult.errorMsg != null) {
-            result.setErrorMsg(allocResult.errorMsg);
-        } else if (allocResult.warningMsg != null) {
-            result.setWarningMsg(allocResult.warningMsg);
-        }
-
-        result.setAllocatedCount(allocResult.allocatedCount);
-        if (allocResult.allocatedCount > 0) {
-            result.setAlertMsg("Tự động phân bổ thành công " + allocResult.allocatedCount
-                    + " thí sinh vào phòng thi lý thuyết!");
-            result.setAuditAction("ALLOCATE Candidates");
-            result.setAuditDetails("Tự động phân bổ " + allocResult.allocatedCount
-                    + " thí sinh vào phòng thi lý thuyết.");
-        } else if (allocResult.errorMsg == null) {
-            result.setWarningMsg("Không có thí sinh nào đã hoàn thành thủ tục hồ sơ cần phân phòng!");
-        }
-
-        result.setRedirectServletPath("/views/staff/examstaff/allocation-theory");
-        return result;
-    }
-
-    @Override
     public AllocationActionResultDTO executeCandidateAction(AllocationCandidateActionRequest request) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
         if (request == null || request.getProfile() == null || request.getAction() == null) {
@@ -83,14 +55,11 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         String action = request.getAction();
         ExamRegistrationDTO profile = request.getProfile();
         int regId = request.getRegId();
-        int sessionId = request.getSessionId();
+        int sessionId = request.getExamId();
 
         switch (action) {
-            case "checkin" -> handleCheckin(profile, regId);
-            case "callCandidate" -> handleCallCandidate(result, profile);
             case "allocateRoom" -> handleAllocateRoom(result, request, profile, regId, sessionId);
             case "allocatePracticalRoom" -> handleAllocatePracticalRoom(result, request, profile, regId, sessionId);
-            case "quickComplete" -> handleQuickComplete(result, profile, regId, sessionId);
             default -> result.setErrorMsg("Thao tác không hỗ trợ: " + action);
         }
 
@@ -117,21 +86,10 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         return null;
     }
 
-    private void handleCheckin(ExamRegistrationDTO profile, int regId) {
-        if (regService.updatePresent(regId, true)) {
-            profile.setIsPresent(true);
-        }
-    }
-
-    private void handleCallCandidate(AllocationActionResultDTO result, ExamRegistrationDTO profile) {
-        result.setSyncCallBoard(true);
-        result.setCallingSbd(profile.getSbd());
-    }
-
     private void handleAllocateRoom(AllocationActionResultDTO result, AllocationCandidateActionRequest request,
             ExamRegistrationDTO profile, int regId, int sessionId) {
         int areaId = request.getAreaId();
-        int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamSessionId();
+        int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamId();
         if (enrollSessionId <= 0) {
             result.setErrorMsg("Không xác định được kỳ thi để đổi phòng.");
             return;
@@ -173,7 +131,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
     private void handleAllocatePracticalRoom(AllocationActionResultDTO result,
             AllocationCandidateActionRequest request, ExamRegistrationDTO profile, int regId, int sessionId) {
         int areaId = request.getAreaId();
-        int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamSessionId();
+        int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamId();
         if (enrollSessionId <= 0) {
             result.setErrorMsg("Không xác định được kỳ thi để đổi sân thi.");
             return;
@@ -210,18 +168,5 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         } else {
             result.setErrorMsg("Không lưu được sân thi cho SBD " + profile.getSbd() + ".");
         }
-    }
-
-    private void handleQuickComplete(AllocationActionResultDTO result, ExamRegistrationDTO profile,
-            int regId, int sessionId) {
-        allocationRegistrationService.quickCompleteProcedure(profile, regId);
-        int enrollSessionId = profile.getExamSessionId() > 0 ? profile.getExamSessionId() : sessionId;
-        AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocateCandidate(
-                enrollSessionId, regId);
-        if (allocResult != null && allocResult.allocatedCount > 0) {
-            result.setAlertMsg("Hoàn thành thủ tục và tự động phân phòng cho SBD " + profile.getSbd());
-        }
-        result.setAuditAction("UPDATE ExamRegistrationDTO");
-        result.setAuditDetails("Hoàn thành nhanh thủ tục (FaceID + lệ phí) cho SBD " + profile.getSbd());
     }
 }

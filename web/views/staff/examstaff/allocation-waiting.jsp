@@ -4,7 +4,7 @@
     <jsp:param name="pageTitle" value="Phòng chờ chính" />
     <jsp:param name="breadcrumbLabel" value="Phòng chờ" />
     <jsp:param name="showSearch" value="true" />
-    <jsp:param name="sessionId" value="${param.sessionId}" />
+    <jsp:param name="examId" value="${param.examId}" />
 </jsp:include>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />

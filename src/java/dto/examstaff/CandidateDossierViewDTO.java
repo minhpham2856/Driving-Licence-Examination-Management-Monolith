@@ -1,12 +1,12 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 
 public class CandidateDossierViewDTO {
 
     private ExamRegistrationDTO profile;
-    private SessionDTO examSession;
+    private ExamSummaryDTO examSession;
     private ProcedureFeeResultDTO fees;
     private boolean hasPhotoFile;
     private String dossierTitle;
@@ -20,11 +20,11 @@ public class CandidateDossierViewDTO {
         this.profile = profile;
     }
 
-    public SessionDTO getExamSession() {
+    public ExamSummaryDTO getExamSession() {
         return examSession;
     }
 
-    public void setExamSession(SessionDTO examSession) {
+    public void setExamSession(ExamSummaryDTO examSession) {
         this.examSession = examSession;
     }
 

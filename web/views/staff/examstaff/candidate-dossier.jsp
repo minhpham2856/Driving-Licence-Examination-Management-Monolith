@@ -54,7 +54,7 @@
             <div class="dossier-field"><span>Thi lấy giấy phép lái xe hạng:</span><strong>${profile.clazz}</strong></div>
             <c:if test="${not empty examSession}">
                 <div class="dossier-field"><span>Ngày sát hạch:</span><strong><fmt:formatDate value="${examSession.examDate}" pattern="dd/MM/yyyy"/></strong></div>
-                <div class="dossier-field"><span>Ca thi:</span><strong>${examSession.sessionName}</strong></div>
+                <div class="dossier-field"><span>Kỳ thi:</span><strong>${examSession.sessionName}</strong></div>
             </c:if>
         </div>
     </section>

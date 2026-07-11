@@ -1,6 +1,6 @@
 package dao;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
 import model.Session;
 import java.sql.Date;
@@ -10,7 +10,7 @@ import java.util.List;
 public interface ExamSessionDAO {
 
     // Lay dang ky theo id
-    SessionDTO getById(int id);
+    ExamSummaryDTO getById(int id);
     // Lay model dang ky theo id
 
     // Lay active sessions
@@ -18,18 +18,18 @@ public interface ExamSessionDAO {
     // Lay tat ca sessions
 
     // Lay tat ca sessions basic
-    List<SessionDTO> getActiveSessions();
+    List<ExamSummaryDTO> getActiveSessions();
     // Lay exam day picker options
 
     // Lay sessions by exam date
-    List<SessionDTO> getAllSessions();
+    List<ExamSummaryDTO> getAllSessions();
     // Cap nhat status
 
-    List<SessionDTO> getAllSessionsBasic();
+    List<ExamSummaryDTO> getAllSessionsBasic();
 
-    List<SessionDTO> getExamDayPickerOptions();
+    List<ExamSummaryDTO> getExamDayPickerOptions();
 
-    List<SessionDTO> getSessionsByExamDate(Date examDate);
+    List<ExamSummaryDTO> getSessionsByExamDate(Date examDate);
 
     boolean updateStatus(int sessionId, String status);
 

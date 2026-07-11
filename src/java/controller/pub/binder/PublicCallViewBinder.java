@@ -1,6 +1,6 @@
 package controller.pub.binder;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.PublicCallSnapshotDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,13 +23,17 @@ public final class PublicCallViewBinder {
         return raw.trim().toUpperCase(Locale.ROOT);
     }
 
-    private static void normalizeSession(SessionDTO s) {
-        if (s == null) return;
-        s.setLicenseCode(normalizeLicenseForPublicCall(s.getLicenseCode()));
+    private static void normalizeExam(ExamSummaryDTO exam) {
+        if (exam == null) {
+            return;
+        }
+        exam.setLicenseCode(normalizeLicenseForPublicCall(exam.getLicenseCode()));
     }
 
     private static void normalizeCandidate(ExamRegistrationDTO c) {
-        if (c == null) return;
+        if (c == null) {
+            return;
+        }
         c.setLicenseCode(normalizeLicenseForPublicCall(c.getLicenseCode()));
     }
 
@@ -37,7 +41,7 @@ public final class PublicCallViewBinder {
         if (request == null || snapshot == null) {
             return;
         }
-        normalizeSession(snapshot.getCurrentSession());
+        normalizeExam(snapshot.getCurrentExam());
         normalizeCandidate(snapshot.getCallingCandidate());
         normalizeCandidate(snapshot.getNextCandidate());
         if (snapshot.getWaitingQueue() != null) {
@@ -46,10 +50,10 @@ public final class PublicCallViewBinder {
             }
         }
 
-        boolean hasSession = snapshot.getSessionId() > 0;
-        request.setAttribute("noActiveSession", !hasSession);
-        request.setAttribute("sessionId", hasSession ? snapshot.getSessionId() : null);
-        request.setAttribute("currentSession", snapshot.getCurrentSession());
+        boolean hasExam = snapshot.getExamId() > 0;
+        request.setAttribute("noActiveExam", !hasExam);
+        request.setAttribute("examId", hasExam ? snapshot.getExamId() : null);
+        request.setAttribute("currentExam", snapshot.getCurrentExam());
         request.setAttribute("callingCandidate", snapshot.getCallingCandidate());
         request.setAttribute("nextCandidate", snapshot.getNextCandidate());
         request.setAttribute("isCallingActive", snapshot.isCallingActive());

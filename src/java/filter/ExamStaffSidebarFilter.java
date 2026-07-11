@@ -1,6 +1,7 @@
 package filter;
 
 import controller.staff.exam.adapter.ExamStaffSelectionFacade;
+import controller.staff.exam.binder.ExamStaffPageBinder;
 import controller.staff.exam.http.ExamStaffHttpSupport;
 import controller.staff.exam.module.ExamStaffWebModule;
 import jakarta.servlet.FilterChain;
@@ -25,14 +26,14 @@ public class ExamStaffSidebarFilter extends HttpFilter {
             throws IOException, ServletException {
         ExamStaffHttpSupport.applyNoCacheHeaders(response);
         HttpSession session = request.getSession(false);
-        int urlSessionId = ExamStaffHttpSupport.parseSessionIdParam(request);
-        if (session != null && urlSessionId > 0) {
-            Integer loadedSession = (Integer) session.getAttribute("examStaffLoadedSessionId");
-            if (loadedSession == null || loadedSession != urlSessionId) {
+        int urlExamId = ExamStaffHttpSupport.parseExamIdParam(request);
+        if (session != null && urlExamId > 0) {
+            Integer loadedExam = ExamStaffPageBinder.readLoadedExamId(session);
+            if (loadedExam == null || loadedExam != urlExamId) {
                 selectionFacade.clearCandidateCache(session);
             }
-            selectionFacade.applySessionIdFromRequest(request, session,
-                    selectionFacade.loadAllSessions());
+            selectionFacade.applyExamIdFromRequest(request, session,
+                    selectionFacade.loadAllExams());
         }
         selectionFacade.bindSidebarIfNeeded(request, session);
         chain.doFilter(request, response);

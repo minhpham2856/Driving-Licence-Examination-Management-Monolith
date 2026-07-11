@@ -37,7 +37,7 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         }
         List<ExamArea> examRooms = examAreaDAO.getAreasBySessionId(examId);
         Set<Integer> staffed = ExaminerAssignmentRules.staffedTheoryAreaIds(
-                assignmentDAO.getBySessionId(examId));
+                assignmentDAO.getByExamId(examId));
         return ExaminerAssignmentRules.filterTheoryRoomsWithStaff(examRooms, staffed);
     }
 
@@ -48,7 +48,7 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         }
         List<ExamArea> examRooms = examAreaDAO.getAreasBySessionId(examId);
         Set<Integer> staffed = ExaminerAssignmentRules.staffedPracticalAreaIds(
-                assignmentDAO.getBySessionId(examId));
+                assignmentDAO.getByExamId(examId));
         return ExaminerAssignmentRules.filterPracticalRoomsWithStaff(examRooms, staffed);
     }
 

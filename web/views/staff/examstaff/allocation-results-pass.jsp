@@ -1,26 +1,26 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<c:set var="passLayoutSessionId" value="${param.sessionId}" />
-<c:if test="${empty passLayoutSessionId and not empty requestScope.examStaffLoadedSessionId}">
-    <c:set var="passLayoutSessionId" value="${requestScope.examStaffLoadedSessionId}" />
+<c:set var="passLayoutExamId" value="${param.examId}" />
+<c:if test="${empty passLayoutExamId and not empty requestScope.examStaffLoadedExamId}">
+    <c:set var="passLayoutExamId" value="${requestScope.examStaffLoadedExamId}" />
 </c:if>
-<c:if test="${empty passLayoutSessionId and not empty sessionScope.selectedSessionId}">
-    <c:set var="passLayoutSessionId" value="${sessionScope.selectedSessionId}" />
+<c:if test="${empty passLayoutExamId and not empty sessionScope.selectedExamId}">
+    <c:set var="passLayoutExamId" value="${sessionScope.selectedExamId}" />
 </c:if>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
     <jsp:param name="pageTitle" value="Kết quả — Đỗ" />
     <jsp:param name="breadcrumbLabel" value="Đỗ" />
     <jsp:param name="showSearch" value="true" />
-    <jsp:param name="sessionId" value="${passLayoutSessionId}" />
+    <jsp:param name="examId" value="${passLayoutExamId}" />
 </jsp:include>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="pg" value="${allocationPageSlice}" />
 <c:set var="rowStart" value="${empty pg ? 0 : pg.rowOffset}" />
 <c:set var="passTotal" value="${empty pg ? 0 : pg.totalItems}" />
 <c:set var="sq" value="" />
-<c:set var="navSessionId" value="${not empty param.sessionId ? param.sessionId : requestScope.examStaffLoadedSessionId}" />
-<c:if test="${not empty navSessionId}">
-    <c:set var="sq" value="?sessionId=${navSessionId}" />
+<c:set var="navExamId" value="${not empty param.examId ? param.examId : requestScope.examStaffLoadedExamId}" />
+<c:if test="${not empty navExamId}">
+    <c:set var="sq" value="?examId=${navExamId}" />
 </c:if>
 <nav class="allocation-result-subnav">
     <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sq}" class="allocation-result-subnav__tab is-active">Đỗ</a>

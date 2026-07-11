@@ -50,29 +50,13 @@ public final class AllocationStageHelper {
         public int getPractical() {
             return practical;
         }
-        // Lay fail
 
-        public int getPass() {
-            return pass;
-        // Lay pass count
-        }
-
-        public int getFail() {
-        // Lay fail count
-            return fail;
-        }
-
-        // Lay total
         public int getPassCount() {
             return pass;
         }
 
         public int getFailCount() {
             return fail;
-        }
-
-        public int getSuspended() {
-            return suspended;
         }
 
         public int getSuspendedCount() {
@@ -111,34 +95,18 @@ public final class AllocationStageHelper {
 
         public int getPage() {
             return page;
-        // Lay row offset
         }
 
-        public int getPageSize() {
-        // Co previous page hay khong
-            return pageSize;
-        }
-
-        // Co next page hay khong
         public int getTotalItems() {
             return totalItems;
         }
 
-    // Xac dinh stage from servlet path
         public int getTotalPages() {
             return totalPages;
         }
 
         public int getRowOffset() {
             return (page - 1) * pageSize;
-        }
-
-        public boolean hasPreviousPage() {
-            return page > 1;
-        }
-
-        public boolean hasNextPage() {
-            return page < totalPages;
         }
     }
 
@@ -204,16 +172,7 @@ public final class AllocationStageHelper {
         return "/views/staff/examstaff/allocation.jsp";
     }
 
-    public static String buildExtraQuery(int page, int pageSize, String searchQuery, String sessionIdParam) {
-        return buildExtraQuery(page, pageSize, searchQuery, sessionIdParam, null, null, null);
-    }
-
-    public static String buildExtraQuery(int page, int pageSize, String searchQuery, String sessionIdParam,
-            String sortColumn, String sortDir) {
-        return buildExtraQuery(page, pageSize, searchQuery, sessionIdParam, sortColumn, sortDir, null);
-    }
-
-    public static String buildExtraQuery(int page, int pageSize, String searchQuery, String sessionIdParam,
+    public static String buildExtraQuery(int page, int pageSize, String searchQuery, String examIdParam,
             String sortColumn, String sortDir, Integer areaFilterId) {
         StringBuilder sb = new StringBuilder();
         if (page > 1) {
@@ -225,8 +184,8 @@ public final class AllocationStageHelper {
         if (searchQuery != null && !searchQuery.isBlank()) {
             sb.append("&q=").append(urlEncode(searchQuery.trim()));
         }
-        if (sessionIdParam != null && !sessionIdParam.isBlank()) {
-            sb.append("&sessionId=").append(urlEncode(sessionIdParam.trim()));
+        if (examIdParam != null && !examIdParam.isBlank()) {
+            sb.append("&examId=").append(urlEncode(examIdParam.trim()));
         }
         if (sortColumn != null && !sortColumn.isBlank()
                 && !util.ExamRegistrationSort.DEFAULT_COLUMN.equals(sortColumn)) {
@@ -282,44 +241,17 @@ public final class AllocationStageHelper {
         }
         return out;
     }
-    // infer stage from action
-
-    public static String normalizeStage(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return STAGE_OVERVIEW;
-        }
-        return switch (raw.trim().toLowerCase(Locale.ROOT)) {
-            case STAGE_WAITING, STAGE_THEORY, STAGE_PRACTICAL, STAGE_RESULTS -> raw.trim().toLowerCase(Locale.ROOT);
-            default -> STAGE_OVERVIEW;
-        };
-    }
 
     public static String inferServletPathFromAction(String action) {
-    // parse page
         if (action == null) {
             return "/views/staff/examstaff/allocation";
         }
         return switch (action) {
             case "allocateRoom" -> "/views/staff/examstaff/allocation-theory";
             case "allocatePracticalRoom" -> "/views/staff/examstaff/allocation-practical";
-            case "quickComplete", "checkin" -> "/views/staff/examstaff/allocation-waiting";
             default -> "/views/staff/examstaff/allocation";
         };
-    // parse page size
     }
-
-    public static String inferStageFromAction(String action) {
-        if (action == null) {
-            return STAGE_OVERVIEW;
-        }
-        return switch (action) {
-            case "allocateRoom" -> STAGE_THEORY;
-            case "allocatePracticalRoom" -> STAGE_PRACTICAL;
-            case "quickComplete", "checkin" -> STAGE_WAITING;
-            default -> STAGE_OVERVIEW;
-        };
-    }
-    // normalize result filter
 
     public static int parsePage(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -346,20 +278,6 @@ public final class AllocationStageHelper {
         } catch (NumberFormatException e) {
             return DEFAULT_PAGE_SIZE;
         }
-    }
-
-    public static String normalizeResultFilter(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return RESULT_PASS;
-        }
-        String v = raw.trim().toLowerCase(Locale.ROOT);
-        if (RESULT_FAIL.equals(v)) {
-            return RESULT_FAIL;
-        }
-        if (RESULT_SUSPENDED.equals(v)) {
-            return RESULT_SUSPENDED;
-        }
-        return RESULT_PASS;
     }
 
     // in stage

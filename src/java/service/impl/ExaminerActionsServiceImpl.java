@@ -437,7 +437,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return false;
         }
-        ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment e = enrollmentDAO.getByExamAndCandidate(sessionId, reg.getId());
         boolean updated = false;
         if (e != null) {
             e.setSectionStatus(SectionStatus.CHO_KY.getDisplayName());
@@ -460,7 +460,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (reg == null || !SectionStatus.isAwaitingSignature(reg.getSectionStatus())) {
             return false;
         }
-        ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment e = enrollmentDAO.getByExamAndCandidate(sessionId, reg.getId());
         boolean updated = false;
         if (e != null) {
             e.setSignaturePrinted(true);
@@ -484,7 +484,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
         if (!reg.isSignaturePrinted()) {
             return "needSignaturePrint";
         }
-        ExamEnrollment e = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment e = enrollmentDAO.getByExamAndCandidate(sessionId, reg.getId());
         boolean completed = false;
         if (e != null) {
             e.setSectionStatus(SectionStatus.DA_THI.getDisplayName());
@@ -502,7 +502,7 @@ public class ExaminerActionsServiceImpl implements ExaminerActionsService {
     }
     private void enqueueNextSection(int sessionId, CandidateEnrollmentDTO reg) {
         int sbd = reg.getSbd();
-        SessionDTO session = sessionViewSupport.toDto(sessionId);
+        ExamSummaryDTO session = sessionViewSupport.toDto(sessionId);
         String sectionName = session != null ? session.getExamTypeName() : null;
         boolean isTheory = enums.ExamSection.isTheory(sectionName);
         Lane current = ExamQueue.resolveLane(isTheory, sectionName);

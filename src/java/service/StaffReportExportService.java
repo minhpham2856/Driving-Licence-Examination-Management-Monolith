@@ -1,6 +1,6 @@
 package service;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.ExamReportStatsDTO;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface StaffReportExportService {
 
-    void exportExamReport(OutputStream out, SessionDTO session,
+    void exportExamReport(OutputStream out, ExamSummaryDTO session,
             List<ExamRegistrationDTO> candidates, ExamReportStatsDTO stats,
             String exporterName) throws IOException;
 }

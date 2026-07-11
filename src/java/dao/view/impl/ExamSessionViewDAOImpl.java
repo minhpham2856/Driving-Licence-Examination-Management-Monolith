@@ -7,7 +7,6 @@ import model.view.ExamSessionSummary;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,36 +55,11 @@ public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionView
     }
 
     @Override
-    public List<ExamSessionSummary> findAllBasicOrdered() {
-        return findAllOrdered();
-    }
-
-    @Override
-    public ExamSessionSummary findBySessionId(int sessionId) {
+    public ExamSessionSummary findByExamId(int sessionId) {
         if (sessionId <= 0) {
             return null;
         }
         return fetchOne(EXAM_SELECT + " WHERE e.ExamId = ?", sessionId);
-    }
-
-    @Override
-    public List<ExamSessionSummary> findByExamDate(Date examDate) {
-        if (examDate == null) {
-            return List.of();
-        }
-        List<ExamSessionSummary> list = new ArrayList<>();
-        String sql = EXAM_SELECT + " WHERE CAST(e.ExamDate AS DATE) = ? ORDER BY CAST(e.StartTime AS TIME)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setDate(1, examDate);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRow(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
     }
 
     private List<ExamSessionSummary> fetchList(String sql) {
@@ -117,8 +91,10 @@ public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionView
 
     private static ExamSessionSummary mapRow(ResultSet rs) throws SQLException {
         ExamSessionSummary row = new ExamSessionSummary();
-        row.setSessionId(rs.getInt("sessionId"));
         row.setExamId(rs.getInt("examId"));
+        if (row.getExamId() <= 0) {
+            row.setExamId(rs.getInt("sessionId"));
+        }
         row.setMorningSession(rs.getBoolean("isMorningSession"));
         row.setSessionName(rs.getString("sessionName"));
         row.setLicenseTypeId(rs.getInt("licenseTypeId"));

@@ -35,9 +35,8 @@ public class CandidatePhotoServlet extends HttpServlet {
         }
 
         int examId = selectionFacade.resolveExamId(request, request.getSession(), null, 0);
-        int sessionId = selectionFacade.resolveSessionId(request, request.getSession(), null, 0);
         CandidatePhotoStreamDTO photo = photoLookupService.resolvePhoto(
-                request.getServletContext().getRealPath("/"), examId, sessionId, sbd.trim());
+                request.getServletContext().getRealPath("/"), examId, examId, sbd.trim());
 
         if (photo.getStatus() != CandidatePhotoStreamDTO.Status.FOUND) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);

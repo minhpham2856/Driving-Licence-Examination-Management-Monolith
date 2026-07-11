@@ -94,12 +94,6 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
     }
 
     @Override
-    public boolean updateRoadScore(int id, Integer roadScore, String roadPassed) {
-        // Legacy shim cho contract cũ; DAO hiện no-op cho luồng road đã bị loại.
-        return dao.updateRoadScore(id, roadScore, roadPassed);
-    }
-
-    @Override
     public boolean updateProfile(int id, String fullName, java.sql.Date dob, String govIdNo, String email, String phoneNo) {
         return dao.updateProfile(id, fullName, dob, govIdNo, email, phoneNo);
     }

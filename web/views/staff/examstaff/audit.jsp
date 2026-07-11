@@ -72,15 +72,15 @@
             </div>
 
             <form id="auditFilterForm" action="${pageContext.request.contextPath}/views/staff/examstaff/audit" method="GET" style="display: flex; align-items: center; gap: 10px; margin: 0;">
-                <c:if test="${not empty param.sessionId}">
-                    <input type="hidden" name="sessionId" value="${param.sessionId}" />
+                <c:if test="${not empty param.examId}">
+                    <input type="hidden" name="examId" value="${param.examId}" />
                 </c:if>
                 <input type="date" id="dateFilter" name="filterDate" value="${param.filterDate}" style="height: 38px; padding: 0 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #334155; outline: none; background-color: #ffffff; cursor: pointer;">
                 <button type="submit" class="btn-filter" style="height: 38px; padding: 0 1.25rem; font-size: 0.82rem; border-radius: 8px; font-weight: 700; background: linear-gradient(135deg, #0052cc, #003d9b); border: none; color: #ffffff; cursor: pointer; transition: all 0.2s;">
                     Lọc kết quả
                 </button>
                 <c:if test="${not empty param.filterDate}">
-                    <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit<c:if test='${not empty param.sessionId}'>?sessionId=${param.sessionId}</c:if>" data-audit-clear-filter="true" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
+                    <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit<c:if test='${not empty param.examId}'>?examId=${param.examId}</c:if>" data-audit-clear-filter="true" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
                 </c:if>
             </form>
         </div>

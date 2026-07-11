@@ -130,16 +130,6 @@ public interface ExamRegistrationService {
     boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold);
 
     /**
-     * Legacy compatibility shim. Luồng đường trường không còn dùng trong examstaff/public-call.
-     *
-     * @param id mã đăng ký thi
-     * @param roadScore điểm đường trường cũ (bỏ qua)
-     * @param roadPassed kết quả đường trường cũ (bỏ qua)
-     * @return luôn trả về true để không làm vỡ contract cũ
-     */
-    boolean updateRoadScore(int id, Integer roadScore, String roadPassed);
-
-    /**
      * Cập nhật thông tin hồ sơ cơ bản của đăng ký thi.
      *
      * @param id       mã đăng ký thi

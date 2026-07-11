@@ -1,34 +1,31 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
 public class ExamStaffPagePrepareInput {
 
-    private int urlSessionId;
+    private int urlExamId;
     private Integer previousExamId;
-    private Integer previousSessionId;
     private Integer selectedExamId;
-    private Integer selectedSessionId;
     private Integer loadedExamId;
-    private Integer loadedSessionId;
     private String examIdParam;
-    private boolean hasSessionIdParam;
+    private boolean hasExamIdParam;
     private boolean loadCandidates;
     private String webRoot;
-    private List<SessionDTO> allSessions;
+    private List<ExamSummaryDTO> allSessions;
     private List<ExamRegistrationDTO> cachedQueue;
     private List<String> callQueueOrder;
-    private Integer callQueueOrderSessionId;
+    private Integer callQueueOrderExamId;
 
-    public int getUrlSessionId() {
-        return urlSessionId;
+    public int getUrlExamId() {
+        return urlExamId;
     }
 
-    public void setUrlSessionId(int urlSessionId) {
-        this.urlSessionId = urlSessionId;
+    public void setUrlExamId(int urlExamId) {
+        this.urlExamId = urlExamId;
     }
 
     public Integer getPreviousExamId() {
@@ -39,28 +36,12 @@ public class ExamStaffPagePrepareInput {
         this.previousExamId = previousExamId;
     }
 
-    public Integer getPreviousSessionId() {
-        return previousSessionId;
-    }
-
-    public void setPreviousSessionId(Integer previousSessionId) {
-        this.previousSessionId = previousSessionId;
-    }
-
     public Integer getSelectedExamId() {
         return selectedExamId;
     }
 
     public void setSelectedExamId(Integer selectedExamId) {
         this.selectedExamId = selectedExamId;
-    }
-
-    public Integer getSelectedSessionId() {
-        return selectedSessionId;
-    }
-
-    public void setSelectedSessionId(Integer selectedSessionId) {
-        this.selectedSessionId = selectedSessionId;
     }
 
     public Integer getLoadedExamId() {
@@ -71,14 +52,6 @@ public class ExamStaffPagePrepareInput {
         this.loadedExamId = loadedExamId;
     }
 
-    public Integer getLoadedSessionId() {
-        return loadedSessionId;
-    }
-
-    public void setLoadedSessionId(Integer loadedSessionId) {
-        this.loadedSessionId = loadedSessionId;
-    }
-
     public String getExamIdParam() {
         return examIdParam;
     }
@@ -87,12 +60,12 @@ public class ExamStaffPagePrepareInput {
         this.examIdParam = examIdParam;
     }
 
-    public boolean isHasSessionIdParam() {
-        return hasSessionIdParam;
+    public boolean isHasExamIdParam() {
+        return hasExamIdParam;
     }
 
-    public void setHasSessionIdParam(boolean hasSessionIdParam) {
-        this.hasSessionIdParam = hasSessionIdParam;
+    public void setHasExamIdParam(boolean hasExamIdParam) {
+        this.hasExamIdParam = hasExamIdParam;
     }
 
     public boolean isLoadCandidates() {
@@ -111,11 +84,11 @@ public class ExamStaffPagePrepareInput {
         this.webRoot = webRoot;
     }
 
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return allSessions;
     }
 
-    public void setAllSessions(List<SessionDTO> allSessions) {
+    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
         this.allSessions = allSessions;
     }
 
@@ -135,11 +108,11 @@ public class ExamStaffPagePrepareInput {
         this.callQueueOrder = callQueueOrder;
     }
 
-    public Integer getCallQueueOrderSessionId() {
-        return callQueueOrderSessionId;
+    public Integer getCallQueueOrderExamId() {
+        return callQueueOrderExamId;
     }
 
-    public void setCallQueueOrderSessionId(Integer callQueueOrderSessionId) {
-        this.callQueueOrderSessionId = callQueueOrderSessionId;
+    public void setCallQueueOrderExamId(Integer callQueueOrderExamId) {
+        this.callQueueOrderExamId = callQueueOrderExamId;
     }
 }

@@ -4,5 +4,5 @@ import java.util.List;
 public interface ExamSectionDAO {
     ExamSection findById(int examSectionId);
     List<ExamSection> findAll();
-    List<ExamSection> findBySessionId(int sessionId);
+    List<ExamSection> findByExamId(int sessionId);
 }

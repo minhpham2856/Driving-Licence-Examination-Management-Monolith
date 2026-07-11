@@ -1,6 +1,6 @@
 package util.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import model.view.ExamSessionSummary;
 
 import java.util.ArrayList;
@@ -11,12 +11,12 @@ public final class ExamSessionSummaryMapper {
     private ExamSessionSummaryMapper() {
     }
 
-    public static SessionDTO toDto(ExamSessionSummary row) {
+    public static ExamSummaryDTO toDto(ExamSessionSummary row) {
         if (row == null) {
             return null;
         }
-        SessionDTO dto = new SessionDTO();
-        dto.setId(row.getSessionId());
+        ExamSummaryDTO dto = new ExamSummaryDTO();
+        dto.setId(row.getExamId());
         dto.setExamId(row.getExamId());
         dto.setMorningSession(row.isMorningSession());
         dto.setSessionName(row.getSessionName());
@@ -39,8 +39,8 @@ public final class ExamSessionSummaryMapper {
         return dto;
     }
 
-    public static List<SessionDTO> toDtoList(List<ExamSessionSummary> rows) {
-        List<SessionDTO> list = new ArrayList<>();
+    public static List<ExamSummaryDTO> toDtoList(List<ExamSessionSummary> rows) {
+        List<ExamSummaryDTO> list = new ArrayList<>();
         if (rows == null) {
             return list;
         }

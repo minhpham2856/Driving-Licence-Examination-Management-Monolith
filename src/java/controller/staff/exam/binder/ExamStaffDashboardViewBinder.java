@@ -12,7 +12,6 @@ public final class ExamStaffDashboardViewBinder {
         if (request == null || view == null) {
             return;
         }
-        request.setAttribute("examSessions", view.getDaySessions());
         request.setAttribute("assignedExaminerUniqueCount", view.getAssignedExaminerUniqueCount());
         request.setAttribute("totalActiveExaminerCount", view.getTotalActiveExaminerCount());
     }

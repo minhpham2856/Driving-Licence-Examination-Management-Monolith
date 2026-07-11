@@ -47,13 +47,12 @@ public class DashboardServlet extends HttpServlet {
                     request, session, webRoot);
 
             int examId = pageCtx.getExamId();
-            int sessionId = pageCtx.getSessionId();
             List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
 
-            session.setAttribute("lastLoadedSessionId", sessionId);
+            session.setAttribute("lastLoadedExamId", examId);
 
             boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
-            syncCallingSbd(session, sessionId, qList, shiftEnded);
+            syncCallingSbd(session, examId, qList, shiftEnded);
 
             ExamStaffDashboardViewDTO dashboardView = dashboardService.buildView(pageCtx.getAllSessions(), examId);
             ExamStaffDashboardViewBinder.bind(request, dashboardView);
@@ -71,9 +70,9 @@ public class DashboardServlet extends HttpServlet {
         }
     }
 
-    private void syncCallingSbd(HttpSession session, int sessionId, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
+    private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         String sessionCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
-        model.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), sessionId);
+        model.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
         String callingSbd = callingService.resolveSyncedCallingSbd(sessionCalling, callBoard, queue);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
@@ -82,6 +81,6 @@ public class DashboardServlet extends HttpServlet {
                 session.removeAttribute("callingSbd");
             }
         }
-        callBoardHttp.sync(getServletContext(), sessionId, callingSbd, queue, shiftEnded);
+        callBoardHttp.sync(getServletContext(), boardExamId, callingSbd, queue, shiftEnded);
     }
 }

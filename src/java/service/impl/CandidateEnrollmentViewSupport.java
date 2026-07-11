@@ -17,7 +17,7 @@ public final class CandidateEnrollmentViewSupport {
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
     public List<CandidateEnrollmentDTO> getCandidatesBySession(int sessionId) {
-        List<ExamEnrollment> enrollments = enrollmentDAO.getBySessionId(sessionId);
+        List<ExamEnrollment> enrollments = enrollmentDAO.getByExamId(sessionId);
         if (enrollments.isEmpty()) {
             return new ArrayList<>();
         }

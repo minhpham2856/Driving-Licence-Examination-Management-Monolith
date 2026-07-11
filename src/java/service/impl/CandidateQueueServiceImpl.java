@@ -1,7 +1,7 @@
 package service.impl;
 
 import util.examstaff.AllocationPassRules;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.CandidateQueueSnapshotDTO;
 import dto.examstaff.ExamStaffQueueRefreshInput;
@@ -40,48 +40,40 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         }
 
         int examId = input.getExamId();
-        int sessionId = input.getSessionId();
-        List<SessionDTO> allSessions = input.getAllSessions();
+        List<ExamSummaryDTO> allSessions = input.getAllSessions();
         if (allSessions == null || allSessions.isEmpty()) {
             allSessions = sessionQuery.listAllSessions();
         }
 
+        if (examId <= 0 && input.getSelectedExamId() != null && input.getSelectedExamId() > 0) {
+            examId = input.getSelectedExamId();
+        }
         if (examId <= 0 && allSessions != null && !allSessions.isEmpty()) {
             examId = util.examstaff.ExamStaffSessionRules.resolveDefaultExamId(allSessions);
         }
-        if (examId <= 0 && sessionId > 0) {
-            SessionDTO picked = resolveSession(sessionId, allSessions);
-            if (picked != null && picked.getExamId() > 0) {
-                examId = picked.getExamId();
-            }
-        }
-        if (examId <= 0 && sessionId <= 0) {
+        if (examId <= 0) {
             return snapshot;
         }
 
-        if (sessionId <= 0 && examId > 0) {
-            sessionId = sessionQuery.resolvePrimarySessionId(allSessions, examId);
-            Integer picked = input.getSelectedSessionId();
-            if (picked != null && picked > 0) {
-                SessionDTO pickedSession = resolveSession(picked, allSessions);
-                if (pickedSession != null && pickedSession.getExamId() == examId) {
-                    sessionId = picked;
-                }
+        Integer selected = input.getSelectedExamId();
+        if (selected != null && selected > 0) {
+            ExamSummaryDTO pickedSession = resolveSession(selected, allSessions);
+            if (pickedSession != null && (pickedSession.getExamId() == examId || pickedSession.getId() == examId)) {
+                examId = selected;
             }
         }
 
-        List<ExamRegistrationDTO> qList = loadCandidates(examId, sessionId, allSessions);
+        List<ExamRegistrationDTO> qList = loadCandidates(examId, examId, allSessions);
         if (input.getWebRoot() != null) {
             queueQuery.normalizePhotoPaths(input.getWebRoot(), qList);
         }
         for (ExamRegistrationDTO c : qList) {
             AllocationPassRules.applyToCandidate(c);
         }
-        qList = applyCallQueueOrder(input.getCallQueueOrder(), input.getCallQueueOrderSessionId(), sessionId, qList);
+        qList = applyCallQueueOrder(input.getCallQueueOrder(), input.getCallQueueOrderExamId(), examId, qList);
 
         snapshot.setResolvedExamId(examId);
-        snapshot.setResolvedSessionId(sessionId);
-        return buildSnapshot(qList, examId, sessionId);
+        return buildSnapshot(qList, examId, examId);
     }
 
     @Override
@@ -91,8 +83,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         snapshot.setFullQueue(qList);
         snapshot.setActiveQueue(filterPendingForCall(qList));
         snapshot.setProcedureDone(listProcedureDoneNewestFirst(qList));
-        snapshot.setResolvedExamId(examId);
-        snapshot.setResolvedSessionId(sessionId);
+        snapshot.setResolvedExamId(examId > 0 ? examId : sessionId);
         return snapshot;
     }
 
@@ -243,7 +234,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
                 }
             }
             if (sessionId > 0) {
-                for (ExamRegistrationDTO c : queueQuery.listBySessionId(sessionId)) {
+                for (ExamRegistrationDTO c : queueQuery.listByExamId(sessionId)) {
                     if (trimmed.equals(c.getSbd())) {
                         return c;
                     }
@@ -255,7 +246,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return null;
     }
 
-    private List<ExamRegistrationDTO> loadCandidates(int examId, int sessionId, List<SessionDTO> allSessions) {
+    private List<ExamRegistrationDTO> loadCandidates(int examId, int sessionId, List<ExamSummaryDTO> allSessions) {
         try {
             if (examId <= 0 && sessionId > 0) {
                 examId = sessionId;
@@ -269,13 +260,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return new ArrayList<>();
     }
 
-    private SessionDTO resolveSession(int sessionId, List<SessionDTO> allSessions) {
-        SessionDTO found = util.examstaff.ExamStaffSessionRules.findSessionById(allSessions, sessionId);
+    private ExamSummaryDTO resolveSession(int sessionId, List<ExamSummaryDTO> allSessions) {
+        ExamSummaryDTO found = util.examstaff.ExamStaffSessionRules.findExamById(allSessions, sessionId);
         if (found != null) {
             return found;
         }
         try {
-            return sessionQuery.findBySessionId(sessionId);
+            return sessionQuery.findByExamId(sessionId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

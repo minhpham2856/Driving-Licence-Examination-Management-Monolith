@@ -35,7 +35,7 @@ public class CandidateEnrollmentDTO {
     }
     public void setSectionStatus(String status) { if (enrollment != null) enrollment.setSectionStatus(status); }
     public boolean isSignaturePrinted() { return enrollment != null && enrollment.isSignaturePrinted(); }
-    public int getExamSessionId() { return enrollment != null ? enrollment.getSessionId() : 0; }
+    public int getExamId() { return enrollment != null ? enrollment.getExamId() : 0; }
     public boolean isPaymentCompleted() { return true; }
     public boolean isValidCapturedPhoto() { return candidate != null && candidate.getPhotoImageUrl() != null && !candidate.getPhotoImageUrl().isEmpty(); }
     public int getAllocatedAreaId() { return 0; }

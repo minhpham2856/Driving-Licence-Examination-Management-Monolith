@@ -9,23 +9,23 @@
 
 <c:set var="breadcrumbLabel" value="${empty param.breadcrumbLabel ? 'Phân bổ' : param.breadcrumbLabel}" />
 
-<c:set var="layoutSessionId" value="${param.sessionId}" />
-<c:if test="${empty layoutSessionId and not empty requestScope.examStaffLoadedSessionId}">
-    <c:set var="layoutSessionId" value="${requestScope.examStaffLoadedSessionId}" />
+<c:set var="layoutExamId" value="${param.examId}" />
+<c:if test="${empty layoutExamId and not empty requestScope.examStaffLoadedExamId}">
+    <c:set var="layoutExamId" value="${requestScope.examStaffLoadedExamId}" />
 </c:if>
-<c:if test="${empty layoutSessionId and not empty sessionScope.selectedSessionId}">
-    <c:set var="layoutSessionId" value="${sessionScope.selectedSessionId}" />
+<c:if test="${empty layoutExamId and not empty sessionScope.selectedExamId}">
+    <c:set var="layoutExamId" value="${sessionScope.selectedExamId}" />
 </c:if>
 
-<c:set var="allocSessionMarker" value="${requestScope.examStaffLoadedSessionId}" />
-<c:if test="${empty allocSessionMarker}">
-    <c:set var="allocSessionMarker" value="${layoutSessionId}" />
+<c:set var="allocExamMarker" value="${requestScope.examStaffLoadedExamId}" />
+<c:if test="${empty allocExamMarker}">
+    <c:set var="allocExamMarker" value="${layoutExamId}" />
 </c:if>
 
 <c:set var="layoutListPath" value="${not empty requestScope.allocationListPath ? requestScope.allocationListPath : pageContext.request.servletPath}" />
 
 <c:url var="allocOverviewUrl" value="/views/staff/examstaff/allocation">
-    <c:if test="${not empty layoutSessionId}"><c:param name="sessionId" value="${layoutSessionId}" /></c:if>
+    <c:if test="${not empty layoutExamId}"><c:param name="examId" value="${layoutExamId}" /></c:if>
 </c:url>
 
 <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
@@ -42,9 +42,9 @@
 
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 
-    <jsp:param name="sessionId" value="${layoutSessionId}" />
+    <jsp:param name="examId" value="${layoutExamId}" />
 
-    <jsp:param name="dataAllocSession" value="${allocSessionMarker}" />
+    <jsp:param name="dataAllocExam" value="${allocExamMarker}" />
 
 </jsp:include>
 
@@ -55,7 +55,7 @@
     <div class="page-actions allocation-page-actions${param.showSearch ne 'true' ? ' allocation-page-actions--end' : ''}">
         <c:if test="${param.showSearch eq 'true'}">
         <form method="get" action="${ctx}${layoutListPath}" class="allocation-search-form" id="allocationSearchForm">
-                <c:if test="${not empty layoutSessionId}"><input type="hidden" name="sessionId" value="${layoutSessionId}"></c:if>
+                <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
                 <c:if test="${not empty sortBy and sortBy ne 'sbd'}"><input type="hidden" name="sort" value="${sortBy}"></c:if>
                 <c:if test="${not empty sortDir and sortDir ne 'asc'}"><input type="hidden" name="dir" value="${sortDir}"></c:if>
             <div class="allocation-search-row">

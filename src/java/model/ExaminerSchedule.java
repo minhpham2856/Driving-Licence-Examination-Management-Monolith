@@ -2,7 +2,7 @@ package model;
 import java.sql.Timestamp;
 public class ExaminerSchedule {
     private int examinerScheduleId;
-    private int sessionId;
+    private int examId;
     private int examinerId;
     private Integer examSectionId;
     private Integer examAreaId;
@@ -10,11 +10,11 @@ public class ExaminerSchedule {
     private Timestamp assignedAt;
     public ExaminerSchedule() {
     }
-    public ExaminerSchedule(int examinerScheduleId, int sessionId, int examinerId,
+    public ExaminerSchedule(int examinerScheduleId, int examId, int examinerId,
                             Integer examSectionId, Integer examAreaId,
                             Integer assignedBy, Timestamp assignedAt) {
         this.examinerScheduleId = examinerScheduleId;
-        this.sessionId = sessionId;
+        this.examId = examId;
         this.examinerId = examinerId;
         this.examSectionId = examSectionId;
         this.examAreaId = examAreaId;
@@ -27,21 +27,24 @@ public class ExaminerSchedule {
     public void setExaminerScheduleId(int examinerScheduleId) {
         this.examinerScheduleId = examinerScheduleId;
     }
-    public int getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    /** Alias schema DLEM_DB_2: ExaminerSchedule.ExamId. */
     public int getExamId() {
-        return sessionId;
+        return examId;
     }
 
     public void setExamId(int examId) {
-        this.sessionId = examId;
+        this.examId = examId;
+    }
+
+    /** @deprecated dùng {@link #getExamId()} */
+    @Deprecated
+    public int getSessionId() {
+        return examId;
+    }
+
+    /** @deprecated dùng {@link #setExamId(int)} */
+    @Deprecated
+    public void setSessionId(int sessionId) {
+        this.examId = sessionId;
     }
     public int getExaminerId() {
         return examinerId;

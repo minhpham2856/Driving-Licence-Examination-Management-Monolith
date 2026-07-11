@@ -4,10 +4,7 @@ import dto.ExaminerSlotDTO;
 
 import dto.UserDTO;
 
-import java.sql.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 // DAO interface for managing examiner-to-session assignments.
 public interface ExaminerAssignmentDAO {
@@ -22,14 +19,8 @@ public interface ExaminerAssignmentDAO {
     boolean remove(String slotKey);
 
     // Returns all assignment slots for a given session.
-    List<ExaminerSlotDTO> getBySessionId(int sessionId);
+    List<ExaminerSlotDTO> getByExamId(int examId);
 
     // Returns the currently in-progress assignments for a specific examiner.
     List<ExaminerSlotDTO> getInProgressAssignmentsForExaminer(int examinerUserId);
-
-    // Returns assignment slots for sessions that occur on the given date.
-    List<ExaminerSlotDTO> getByExamDate(Date examDate, Map<Integer, Date> sessionDates);
-
-    // Returns the set of examiner user IDs who are busy (already assigned)
-    Set<Integer> getBusyExaminerIds(Date examDate, Map<Integer, Date> sessionDates);
 }

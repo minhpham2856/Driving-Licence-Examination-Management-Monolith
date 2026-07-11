@@ -33,11 +33,11 @@ public class CandidateCallDTO {
         this.id = id;
     }
 
-    public int getExamSessionId() {
+    public int getExamId() {
         return examSessionId;
     }
 
-    public void setExamSessionId(int examSessionId) {
+    public void setExamId(int examSessionId) {
         this.examSessionId = examSessionId;
     }
 

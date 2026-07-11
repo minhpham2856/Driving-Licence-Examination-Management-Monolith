@@ -1,6 +1,6 @@
 package controller.staff.exam.binder;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.CandidateQueueSnapshotDTO;
 import dto.examstaff.ExamStaffPickerViewDTO;
@@ -36,7 +36,7 @@ public final class ExamStaffPageBinder {
         return raw.trim().toUpperCase(Locale.ROOT);
     }
 
-    private static void normalizeSession(SessionDTO s) {
+    private static void normalizeSession(ExamSummaryDTO s) {
         if (s == null) return;
         s.setLicenseCode(normalizeLicenseForExamstaff(s.getLicenseCode()));
     }
@@ -51,12 +51,12 @@ public final class ExamStaffPageBinder {
             return;
         }
         if (picker.getExamOptions() != null) {
-            for (SessionDTO s : picker.getExamOptions()) {
+            for (ExamSummaryDTO s : picker.getExamOptions()) {
                 normalizeSession(s);
             }
         }
         if (picker.getAllSessions() != null) {
-            for (SessionDTO s : picker.getAllSessions()) {
+            for (ExamSummaryDTO s : picker.getAllSessions()) {
                 normalizeSession(s);
             }
         }
@@ -64,14 +64,14 @@ public final class ExamStaffPageBinder {
         bindSessionShiftContext(request, picker.getCurrentSession());
         request.setAttribute("examOptions", picker.getExamOptions());
         request.setAttribute("allSessions", picker.getAllSessions());
-        request.setAttribute("currentSession", picker.getCurrentSession());
-        request.setAttribute("selectedExamId", picker.getExamId());
-        request.setAttribute("selectedSessionId", picker.getSelectedSessionId());
-        if (picker.getPickerCommittedSessionId() != null) {
-            request.setAttribute("pickerCommittedSessionId", picker.getPickerCommittedSessionId());
-        }
-        if (picker.getPickerCommittedExamId() != null) {
-            request.setAttribute("pickerCommittedExamId", picker.getPickerCommittedExamId());
+        request.setAttribute("currentExam", picker.getCurrentSession());
+        int selectedExamId = picker.getExamId() > 0
+                ? picker.getExamId()
+                : (picker.getSelectedExamId() != null ? picker.getSelectedExamId() : 0);
+        request.setAttribute("selectedExamId", selectedExamId > 0 ? selectedExamId : null);
+        Integer committedExamId = picker.getPickerCommittedExamId();
+        if (committedExamId != null) {
+            request.setAttribute("pickerCommittedExamId", committedExamId);
         }
     }
 
@@ -81,19 +81,19 @@ public final class ExamStaffPageBinder {
             return;
         }
         publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
-                snapshot.getProcedureDone(), snapshot.getResolvedExamId(), snapshot.getResolvedSessionId(),
+                snapshot.getProcedureDone(), snapshot.getResolvedExamId(), snapshot.getResolvedExamId(),
                 null);
     }
 
     public static void publishQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> qList, List<ExamRegistrationDTO> active,
-            List<ExamRegistrationDTO> done, int examId, int sessionId) {
-        publishQueue(request, session, qList, active, done, examId, sessionId, null);
+            List<ExamRegistrationDTO> done, int examId, int fallbackExamId) {
+        publishQueue(request, session, qList, active, done, examId, fallbackExamId, null);
     }
 
     public static void publishQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> qList, List<ExamRegistrationDTO> active,
-            List<ExamRegistrationDTO> done, int examId, int sessionId, SessionDTO currentSession) {
+            List<ExamRegistrationDTO> done, int examId, int fallbackExamId, ExamSummaryDTO currentExam) {
         if (qList == null) {
             qList = List.of();
         }
@@ -104,7 +104,7 @@ public final class ExamStaffPageBinder {
             done = List.of();
         }
 
-        normalizeSession(currentSession);
+        normalizeSession(currentExam);
         for (ExamRegistrationDTO c : qList) normalizeCandidate(c);
         for (ExamRegistrationDTO c : active) normalizeCandidate(c);
         for (ExamRegistrationDTO c : done) normalizeCandidate(c);
@@ -114,14 +114,10 @@ public final class ExamStaffPageBinder {
             session.setAttribute("activeCallQueue", active);
             session.setAttribute("procedureDoneCandidates", done);
             session.setAttribute("examStaffLoadedExamId", examId);
-            session.setAttribute("examStaffLoadedSessionId", sessionId);
-            if (examId > 0) {
-                session.setAttribute("selectedExamId", examId);
-                session.setAttribute("lastLoadedExamId", examId);
-            }
-            if (sessionId > 0) {
-                session.setAttribute("selectedSessionId", sessionId);
-                session.setAttribute("lastLoadedSessionId", sessionId);
+            int resolvedExamId = examId > 0 ? examId : fallbackExamId;
+            if (resolvedExamId > 0) {
+                session.setAttribute("selectedExamId", resolvedExamId);
+                session.setAttribute("lastLoadedExamId", resolvedExamId);
             }
         }
         if (request != null) {
@@ -129,18 +125,17 @@ public final class ExamStaffPageBinder {
             request.setAttribute("activeCallQueue", active);
             request.setAttribute("procedureDoneCandidates", done);
             request.setAttribute("examStaffLoadedExamId", examId);
-            request.setAttribute("examStaffLoadedSessionId", sessionId);
-            request.setAttribute("selectedExamId", examId);
-            request.setAttribute("selectedSessionId", sessionId > 0 ? sessionId : null);
-            if (currentSession != null) {
-                request.setAttribute("currentSession", currentSession);
-                bindSessionShiftContext(request, currentSession);
+            int resolvedExamId = examId > 0 ? examId : fallbackExamId;
+            request.setAttribute("selectedExamId", resolvedExamId > 0 ? resolvedExamId : null);
+            if (currentExam != null) {
+                request.setAttribute("currentExam", currentExam);
+                bindSessionShiftContext(request, currentExam);
             }
         }
     }
 
     /** Bind cờ UI điều khiển bắt đầu/kết thúc kỳ (dựa trên StartTime trong DB). */
-    public static void bindSessionShiftContext(HttpServletRequest request, SessionDTO session) {
+    public static void bindSessionShiftContext(HttpServletRequest request, ExamSummaryDTO session) {
         if (request == null || session == null) {
             return;
         }
@@ -155,21 +150,20 @@ public final class ExamStaffPageBinder {
     }
 
     public static void bindCandidateCallPage(HttpServletRequest request, int examId,
-            ExamRegistrationDTO callingCandidate, int sessionId, int suspendedCount,
-            SessionDTO currentSession) {
+            ExamRegistrationDTO callingCandidate, int selectedExamId, int suspendedCount,
+            ExamSummaryDTO currentExam) {
         if (request == null) {
             return;
         }
         normalizeCandidate(callingCandidate);
-        normalizeSession(currentSession);
+        normalizeSession(currentExam);
         request.setAttribute("callingCandidate", callingCandidate);
         request.setAttribute("suspendedCount", suspendedCount);
-        if (currentSession != null) {
-            request.setAttribute("currentSession", currentSession);
-            bindSessionShiftContext(request, currentSession);
+        if (currentExam != null) {
+            request.setAttribute("currentExam", currentExam);
+            bindSessionShiftContext(request, currentExam);
         }
-        request.setAttribute("selectedExamId", examId);
-        request.setAttribute("selectedSessionId", sessionId > 0 ? sessionId : null);
+        request.setAttribute("selectedExamId", examId > 0 ? examId : selectedExamId);
     }
 
     public static void bindProcedureFees(HttpServletRequest request, ProcedureFeeResultDTO fees) {
@@ -181,15 +175,65 @@ public final class ExamStaffPageBinder {
         request.setAttribute("feesFromPayment", fees.isFeesFromPayment());
     }
 
-    public static void persistExamSelection(HttpSession session, int sessionId, int examId) {
+    public static Integer readSelectedExamId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Integer selected = (Integer) session.getAttribute("selectedExamId");
+        if (selected != null && selected > 0) {
+            return selected;
+        }
+        selected = (Integer) session.getAttribute("selectedSessionId");
+        if (selected != null && selected > 0) {
+            session.setAttribute("selectedExamId", selected);
+            session.removeAttribute("selectedSessionId");
+            return selected;
+        }
+        return selected;
+    }
+
+    public static Integer readCallQueueOrderExamId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Integer examId = (Integer) session.getAttribute("callQueueOrderExamId");
+        if (examId != null && examId > 0) {
+            return examId;
+        }
+        Integer legacy = (Integer) session.getAttribute("callQueueOrderSessionId");
+        if (legacy != null && legacy > 0) {
+            session.setAttribute("callQueueOrderExamId", legacy);
+            session.removeAttribute("callQueueOrderSessionId");
+            return legacy;
+        }
+        return legacy;
+    }
+
+    public static Integer readLoadedExamId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Integer loaded = (Integer) session.getAttribute("examStaffLoadedExamId");
+        if (loaded != null && loaded > 0) {
+            return loaded;
+        }
+        loaded = (Integer) session.getAttribute("examStaffLoadedSessionId");
+        if (loaded != null && loaded > 0) {
+            session.setAttribute("examStaffLoadedExamId", loaded);
+            session.removeAttribute("examStaffLoadedSessionId");
+            return loaded;
+        }
+        return loaded;
+    }
+
+    public static void persistExamSelection(HttpSession session, int fallbackExamId, int examId) {
         if (session == null) {
             return;
         }
-        if (examId > 0) {
-            session.setAttribute("selectedExamId", examId);
-        }
-        if (sessionId > 0) {
-            session.setAttribute("selectedSessionId", sessionId);
+        int resolvedExamId = examId > 0 ? examId : fallbackExamId;
+        if (resolvedExamId > 0) {
+            session.setAttribute("selectedExamId", resolvedExamId);
+            session.removeAttribute("selectedSessionId");
         }
     }
 
@@ -207,7 +251,7 @@ public final class ExamStaffPageBinder {
         session.removeAttribute("callQueueOrder");
     }
 
-    public static void clearProcedureStateOnExamChange(HttpSession session, int newExamId, int newSessionId) {
+    public static void clearProcedureStateOnExamChange(HttpSession session, int newExamId, int newFallbackExamId) {
         if (session == null) {
             return;
         }
@@ -220,12 +264,12 @@ public final class ExamStaffPageBinder {
         session.removeAttribute("shiftPaused");
         session.removeAttribute("permanentAbsents");
         clearCandidateCache(session);
-        if (newExamId > 0 && newSessionId > 0) {
-            persistExamSelection(session, newSessionId, newExamId);
+        if (newExamId > 0 || newFallbackExamId > 0) {
+            persistExamSelection(session, newFallbackExamId, newExamId);
         }
     }
 
-    public static void syncCallQueueOrder(HttpSession session, int sessionId, List<ExamRegistrationDTO> queue) {
+    public static void syncCallQueueOrder(HttpSession session, int examId, List<ExamRegistrationDTO> queue) {
         if (session == null || queue == null) {
             return;
         }
@@ -236,6 +280,7 @@ public final class ExamStaffPageBinder {
             }
         }
         session.setAttribute("callQueueOrder", order);
-        session.setAttribute("callQueueOrderSessionId", sessionId);
+        session.setAttribute("callQueueOrderExamId", examId);
+        session.removeAttribute("callQueueOrderSessionId");
     }
 }

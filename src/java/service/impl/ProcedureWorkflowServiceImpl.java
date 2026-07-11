@@ -1,7 +1,7 @@
 package service.impl;
 
 import dto.AutoAllocateResultDTO;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.ProcedureFeeResultDTO;
 import dto.examstaff.ProcedurePaymentOutcomeDTO;
@@ -187,7 +187,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
 
     @Override
     public ProcedurePaymentOutcomeDTO confirmPayment(ExamRegistrationDTO profile, String sbd,
-            int examId, String webRoot, List<SessionDTO> allSessions) {
+            int examId, String webRoot, List<ExamSummaryDTO> allSessions) {
         ProcedurePaymentOutcomeDTO outcome = new ProcedurePaymentOutcomeDTO();
 
         if (profile == null) {
@@ -229,9 +229,9 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
             clearAbsentAfterPayment(profile);
         }
 
-        int allocSessionId = profile.getExamSessionId();
+        int allocSessionId = profile.getExamId();
         if (allocSessionId <= 0) {
-            allocSessionId = ExamStaffSessionRules.resolvePrimarySessionId(allSessions, examId);
+            allocSessionId = ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
         }
         AutoAllocateResultDTO allocResult = allocationService.autoAllocateCandidate(
                 allocSessionId, profile.getId());
@@ -239,9 +239,9 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         List<ExamRegistrationDTO> qList = regService.getCandidatesByExam(examId);
         photoService.normalizeQueue(webRoot, qList);
 
-        int boardSessionId = profile.getExamSessionId() > 0
-                ? profile.getExamSessionId()
-                : ExamStaffSessionRules.resolvePrimarySessionId(allSessions, examId);
+        int boardExamId = profile.getExamId() > 0
+                ? profile.getExamId()
+                : ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
 
         String allocDetail = ProcedurePaymentLabels.formatAutoAllocateDetail(allocResult);
         String feeLabel = ProcedurePaymentLabels.formatFeeAmount(feePreview);
@@ -249,7 +249,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         outcome.setStatus(ProcedurePaymentOutcomeDTO.Status.SUCCESS);
         outcome.setProfile(profile);
         outcome.setQueue(qList);
-        outcome.setBoardSessionId(boardSessionId);
+        outcome.setBoardExamId(boardExamId);
         outcome.setFeePreview(feePreview);
         outcome.setAllocResult(allocResult);
         outcome.setPaymentAuditDetail("Thu lệ phí thi " + feeLabel + allocDetail + " cho SBD " + sbd);

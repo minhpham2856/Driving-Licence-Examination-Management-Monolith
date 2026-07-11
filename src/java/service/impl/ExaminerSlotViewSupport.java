@@ -11,7 +11,7 @@ import dao.impl.ProfileDAOImpl;
 import dao.impl.SessionDAOImpl;
 import dao.impl.UserDAOImpl;
 import dto.ExaminerSlotDTO;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.UserDTO;
 import model.ExamArea;
 import model.ExamSection;
@@ -53,7 +53,7 @@ public final class ExaminerSlotViewSupport {
             return null;
         }
         Map<Integer, Session> sessions = new HashMap<>();
-        Session session = sessionDAO.getById(schedule.getSessionId());
+        Session session = sessionDAO.getById(schedule.getExamId());
         if (session != null) {
             sessions.put(session.getId(), session);
         }
@@ -84,7 +84,7 @@ public final class ExaminerSlotViewSupport {
             Map<Integer, User> users, Map<Integer, Profile> profiles) {
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
         slot.setSessionExaminerId(schedule.getExaminerScheduleId());
-        slot.setExamSessionId(schedule.getSessionId());
+        slot.setExamId(schedule.getExamId());
         slot.setExaminerUserId(schedule.getExaminerId());
         if (schedule.getAssignedBy() != null) {
             slot.setAssignedBy(schedule.getAssignedBy());
@@ -104,11 +104,11 @@ public final class ExaminerSlotViewSupport {
                 slot.setExamTypeId(enums.ExamSection.resolveExamTypeId(section.getSectionName()));
             }
         }
-        Session session = sessions.get(schedule.getSessionId());
+        Session session = sessions.get(schedule.getExamId());
         if (session != null) {
             slot.setSessionName(session.getSessionName());
             if (slot.getExamTypeId() == 0) {
-                SessionDTO sessionDto = sessionViewSupport.toDto(session);
+                ExamSummaryDTO sessionDto = sessionViewSupport.toDto(session);
                 if (sessionDto != null) {
                     slot.setExamTypeId(sessionDto.getExamTypeId());
                     if (slot.getExamTypeName() == null) {
@@ -133,7 +133,7 @@ public final class ExaminerSlotViewSupport {
     private Map<Integer, Session> loadSessions(List<ExaminerSchedule> schedules) {
         Map<Integer, Session> sessions = new HashMap<>();
         for (ExaminerSchedule schedule : schedules) {
-            int sessionId = schedule.getSessionId();
+            int sessionId = schedule.getExamId();
             if (!sessions.containsKey(sessionId)) {
                 Session session = sessionDAO.getById(sessionId);
                 if (session != null) {

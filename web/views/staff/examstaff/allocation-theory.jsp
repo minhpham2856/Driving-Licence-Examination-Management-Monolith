@@ -6,7 +6,7 @@
     <jsp:param name="breadcrumbLabel" value="Lý thuyết" />
     <jsp:param name="showSearch" value="true" />
     <jsp:param name="showRoomFilter" value="theory" />
-    <jsp:param name="sessionId" value="${param.sessionId}" />
+    <jsp:param name="examId" value="${param.examId}" />
 </jsp:include>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -52,8 +52,8 @@
                                     <input type="hidden" name="id" value="${c.id}">
                                     <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
                                     <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
-                                    <c:if test="${not empty layoutSessionId}"><input type="hidden" name="sessionId" value="${layoutSessionId}"></c:if>
-                                    <c:if test="${empty layoutSessionId and allocationActiveSessionId gt 0}"><input type="hidden" name="sessionId" value="${allocationActiveSessionId}"></c:if>
+                                    <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
+                                    <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
                                     <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
                                     <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi phòng">
                                         <c:if test="${empty c.allocatedAreaId}">

@@ -55,8 +55,8 @@ public final class ExamEnrollmentMergeUtil {
         if (primary.getExamEnrollmentId() <= 0 && secondary.getExamEnrollmentId() > 0) {
             primary.setExamEnrollmentId(secondary.getExamEnrollmentId());
         }
-        if (primary.getExamSessionId() <= 0 && secondary.getExamSessionId() > 0) {
-            primary.setExamSessionId(secondary.getExamSessionId());
+        if (primary.getExamId() <= 0 && secondary.getExamId() > 0) {
+            primary.setExamId(secondary.getExamId());
         }
         // merge score field
         // merge score field
@@ -68,8 +68,8 @@ public final class ExamEnrollmentMergeUtil {
 
         Integer primaryAreaId = primary.getAllocatedAreaId();
         Integer secondaryAreaId = secondary.getAllocatedAreaId();
-        boolean differentSessions = primary.getExamSessionId() > 0 && secondary.getExamSessionId() > 0
-                && primary.getExamSessionId() != secondary.getExamSessionId();
+        boolean differentSessions = primary.getExamId() > 0 && secondary.getExamId() > 0
+                && primary.getExamId() != secondary.getExamId();
         if (!differentSessions
                 && (primaryAreaId == null || primaryAreaId <= 0)
                 && secondaryAreaId != null && secondaryAreaId > 0) {
@@ -95,7 +95,7 @@ public final class ExamEnrollmentMergeUtil {
     // row priority
             return a;
         }
-        return a.getExamSessionId() <= b.getExamSessionId() ? a : b;
+        return a.getExamId() <= b.getExamId() ? a : b;
     }
 
     private static int rowPriority(ExamRegistrationDTO c) {

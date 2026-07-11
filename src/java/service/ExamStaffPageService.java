@@ -1,6 +1,6 @@
 package service;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.examstaff.ExamStaffPageContextDTO;
 import dto.examstaff.ExamStaffPagePrepareInput;
 import dto.examstaff.ExamStaffPickerViewDTO;
@@ -9,21 +9,19 @@ import java.util.List;
 
 public interface ExamStaffPageService {
 
-    List<SessionDTO> listAllSessions();
+    List<ExamSummaryDTO> listAllSessions();
 
-    SessionDTO findSessionById(int sessionId, List<SessionDTO> allSessions);
+    ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allSessions);
 
-    SessionDTO representativeSessionForExam(List<SessionDTO> allSessions, int examId);
+    ExamSummaryDTO representativeSessionForExam(List<ExamSummaryDTO> allSessions, int examId);
 
-    List<SessionDTO> sessionsForExam(List<SessionDTO> allSessions, int examId);
+    List<ExamSummaryDTO> sessionsForExam(List<ExamSummaryDTO> allSessions, int examId);
 
-    int resolvePrimarySessionId(List<SessionDTO> allSessions, int examId);
+    int resolvePrimaryExamId(List<ExamSummaryDTO> allSessions, int examId);
 
-    int resolveDefaultExamId(List<SessionDTO> allSessions);
+    int resolveDefaultExamId(List<ExamSummaryDTO> allSessions);
 
-    int resolveDefaultSessionId(List<SessionDTO> allSessions);
-
-    ExamStaffPickerViewDTO buildPickerView(List<SessionDTO> allSessions, int examId, int urlSessionId);
+    ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allSessions, int examId, int urlExamId);
 
     ExamStaffPageContextDTO preparePageContext(ExamStaffPagePrepareInput input);
 }

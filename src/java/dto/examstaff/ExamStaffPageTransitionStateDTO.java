@@ -3,7 +3,6 @@ package dto.examstaff;
 public class ExamStaffPageTransitionStateDTO {
 
     private int examId;
-    private int sessionId;
     private boolean clearCandidateCache;
     private boolean clearProcedureState;
     private boolean persistSelection;
@@ -14,14 +13,6 @@ public class ExamStaffPageTransitionStateDTO {
 
     public void setExamId(int examId) {
         this.examId = examId;
-    }
-
-    public int getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
     }
 
     public boolean isClearCandidateCache() {

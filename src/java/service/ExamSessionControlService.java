@@ -6,9 +6,9 @@ import java.sql.Date;
 
 public interface ExamSessionControlService {
 
-    StartResult startSession(int sessionId, int staffUserId);
+    StartResult startExam(int sessionId, int staffUserId);
 
-    EndResult endSession(int sessionId);
+    EndResult endExam(int sessionId);
 
     List<ExaminerSlotDTO> getLoginEligibleAssignments(int examinerUserId);
 

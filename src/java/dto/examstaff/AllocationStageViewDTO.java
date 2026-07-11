@@ -4,23 +4,13 @@ import dto.exam.ExamRegistrationDTO;
 import util.examstaff.AllocationStageHelper;
 
 import java.util.List;
-import java.util.Set;
 
 public class AllocationStageViewDTO {
 
-    private Set<Integer> practicalStageIds;
     private AllocationStageHelper.StageCounts stageCounts;
     private List<ExamRegistrationDTO> stageList;
     private AllocationStageHelper.PageSlice<ExamRegistrationDTO> pageSlice;
     private List<AllocationOverviewHitDTO> overviewSearchHits;
-
-    public Set<Integer> getPracticalStageIds() {
-        return practicalStageIds;
-    }
-
-    public void setPracticalStageIds(Set<Integer> practicalStageIds) {
-        this.practicalStageIds = practicalStageIds;
-    }
 
     public AllocationStageHelper.StageCounts getStageCounts() {
         return stageCounts;

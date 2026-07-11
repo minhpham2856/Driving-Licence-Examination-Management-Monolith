@@ -18,17 +18,9 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
     @Override
     public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,
             String resultFilter, String searchQuery, int page, int pageSize,
-            ExamRegistrationSort.Spec sortSpec) {
-        return buildView(candidates, stage, resultFilter, searchQuery, page, pageSize, sortSpec, null);
-    }
-
-    @Override
-    public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,
-            String resultFilter, String searchQuery, int page, int pageSize,
             ExamRegistrationSort.Spec sortSpec, Integer areaFilterId) {
         AllocationStageViewDTO view = new AllocationStageViewDTO();
         if (candidates == null) {
-            view.setPracticalStageIds(Set.of());
             view.setStageCounts(new AllocationStageHelper.StageCounts());
             view.setStageList(List.of());
             view.setPageSlice(new AllocationStageHelper.PageSlice<>(List.of(), page, pageSize, 0));
@@ -60,7 +52,6 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
         AllocationStageHelper.PageSlice<ExamRegistrationDTO> slice
                 = AllocationStageHelper.paginate(stageFiltered, page, pageSize);
 
-        view.setPracticalStageIds(practicalStageIds);
         view.setStageCounts(AllocationStageHelper.computeCounts(candidates, practicalStageIds));
         view.setStageList(slice.getItems());
         view.setPageSlice(slice);

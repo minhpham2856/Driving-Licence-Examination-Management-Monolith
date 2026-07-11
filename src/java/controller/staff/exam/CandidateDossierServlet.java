@@ -35,7 +35,7 @@ public class CandidateDossierServlet extends HttpServlet {
         }
 
         int examId = selectionFacade.ensureExamId(request, request.getSession(),
-                selectionFacade.loadAllSessions());
+                selectionFacade.loadAllExams());
         CandidateDossierViewDTO view = dossierService.loadDossier(
                 examId, sbd, request.getServletContext().getRealPath("/"));
         if (view.getProfile() == null) {

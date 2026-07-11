@@ -29,7 +29,6 @@ public class CandidateCallPageViewDTO {
     private boolean syncBoard;
     private String boardCallingSbd;
     private int publishExamId;
-    private int publishSessionId;
 
     public String getRedirectPath() {
         return redirectPath;
@@ -199,11 +198,4 @@ public class CandidateCallPageViewDTO {
         this.publishExamId = publishExamId;
     }
 
-    public int getPublishSessionId() {
-        return publishSessionId;
-    }
-
-    public void setPublishSessionId(int publishSessionId) {
-        this.publishSessionId = publishSessionId;
-    }
 }

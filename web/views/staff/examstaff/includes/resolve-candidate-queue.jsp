@@ -2,13 +2,13 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<c:set var="queueUrlSessionId" value="${param.sessionId}" />
-<c:if test="${empty queueUrlSessionId}">
-    <c:set var="queueUrlSessionId" value="${requestScope.selectedSessionId}" />
+<c:set var="queueUrlExamId" value="${param.examId}" />
+<c:if test="${empty queueUrlExamId}">
+    <c:set var="queueUrlExamId" value="${requestScope.selectedExamId}" />
 </c:if>
-<c:set var="queueSessionStale" value="false" />
-<c:if test="${not empty queueUrlSessionId and not empty sessionScope.examStaffLoadedSessionId}">
-    <c:set var="queueSessionStale" value="${queueUrlSessionId != sessionScope.examStaffLoadedSessionId}" />
+<c:set var="queueExamStale" value="false" />
+<c:if test="${not empty queueUrlExamId and not empty sessionScope.examStaffLoadedExamId}">
+    <c:set var="queueExamStale" value="${queueUrlExamId != sessionScope.examStaffLoadedExamId}" />
 </c:if>
 
 <c:choose>
@@ -41,7 +41,7 @@
 
     </c:when>
 
-    <c:when test="${sessionScope.examStaffLoadedExamId != null and not queueSessionStale}">
+    <c:when test="${sessionScope.examStaffLoadedExamId != null and not queueExamStale}">
 
         <c:set var="candidateQueue" value="${sessionScope.candidateQueue}" scope="request" />
 

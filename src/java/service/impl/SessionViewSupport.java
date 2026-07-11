@@ -10,7 +10,7 @@ import dao.impl.ExamDAOImpl;
 import dao.impl.ExamSectionDAOImpl;
 import dao.impl.LicenceDAOImpl;
 import dao.impl.SessionDAOImpl;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import model.Exam;
 import model.ExamArea;
 import model.ExamSection;
@@ -30,15 +30,15 @@ public final class SessionViewSupport {
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
 
-    public SessionDTO toDto(int sessionId) {
+    public ExamSummaryDTO toDto(int sessionId) {
         return toDto(sessionDAO.getById(sessionId));
     }
 
-    public SessionDTO toDto(Session session) {
+    public ExamSummaryDTO toDto(Session session) {
         if (session == null) {
             return null;
         }
-        SessionDTO dto = new SessionDTO();
+        ExamSummaryDTO dto = new ExamSummaryDTO();
         dto.setId(session.getId());
         dto.setExamId(session.getExamId());
         dto.setMorningSession(session.isMorningSession());
@@ -96,13 +96,13 @@ public final class SessionViewSupport {
         return dto;
     }
 
-    public List<SessionDTO> toDtoList(List<Session> sessions) {
-        List<SessionDTO> list = new ArrayList<>();
+    public List<ExamSummaryDTO> toDtoList(List<Session> sessions) {
+        List<ExamSummaryDTO> list = new ArrayList<>();
         if (sessions == null) {
             return list;
         }
         for (Session session : sessions) {
-            SessionDTO dto = toDto(session);
+            ExamSummaryDTO dto = toDto(session);
             if (dto != null) {
                 list.add(dto);
             }

@@ -1,13 +1,13 @@
-﻿(function () {
+(function () {
     'use strict';
 
-    function urlSessionId() {
-        return new URLSearchParams(window.location.search).get('sessionId') || '';
+    function urlExamId() {
+        return new URLSearchParams(window.location.search).get('examId') || '';
     }
 
-    function loadedSessionId() {
+    function loadedExamId() {
         var body = document.body;
-        return body ? (body.getAttribute('data-alloc-session') || '').trim() : '';
+        return body ? (body.getAttribute('data-alloc-exam') || '').trim() : '';
     }
 
     function reloadAllocationPage() {
@@ -29,44 +29,44 @@
         });
     }
 
-    function reloadForSession(sessionId) {
+    function reloadForExam(examId) {
         var path = window.location.pathname;
-        var next = path + '?sessionId=' + encodeURIComponent(sessionId) + '&_=' + Date.now();
+        var next = path + '?examId=' + encodeURIComponent(examId) + '&_=' + Date.now();
         window.location.replace(next);
     }
 
-    function ensureAllocationSessionSynced() {
-        if (!document.body || !document.body.hasAttribute('data-alloc-session')) {
+    function ensureAllocationExamSynced() {
+        if (!document.body || !document.body.hasAttribute('data-alloc-exam')) {
             return false;
         }
-        var fromUrl = urlSessionId();
-        var loaded = loadedSessionId();
+        var fromUrl = urlExamId();
+        var loaded = loadedExamId();
         if (fromUrl && loaded && fromUrl !== loaded) {
-            reloadForSession(fromUrl);
+            reloadForExam(fromUrl);
             return true;
         }
         return false;
     }
 
-    if (ensureAllocationSessionSynced()) {
+    if (ensureAllocationExamSynced()) {
         return;
     }
 
     window.addEventListener('pageshow', function (e) {
-        if (e.persisted && ensureAllocationSessionSynced()) {
+        if (e.persisted && ensureAllocationExamSynced()) {
             return;
         }
         if (e.persisted) {
-            var fromUrl = urlSessionId();
-            var loaded = loadedSessionId();
+            var fromUrl = urlExamId();
+            var loaded = loadedExamId();
             if (fromUrl && loaded && fromUrl !== loaded) {
-                reloadForSession(fromUrl);
+                reloadForExam(fromUrl);
             }
         }
     });
 
     document.addEventListener('DOMContentLoaded', function () {
-        ensureAllocationSessionSynced();
+        ensureAllocationExamSynced();
         bindAllocationRefresh();
 
         var searchForm = document.getElementById('allocationSearchForm');

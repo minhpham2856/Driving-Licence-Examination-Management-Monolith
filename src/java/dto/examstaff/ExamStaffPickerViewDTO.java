@@ -1,40 +1,39 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
 import java.util.List;
 
 public class ExamStaffPickerViewDTO {
 
-    private List<SessionDTO> examOptions;
-    private List<SessionDTO> allSessions;
-    private SessionDTO currentSession;
+    private List<ExamSummaryDTO> examOptions;
+    private List<ExamSummaryDTO> allSessions;
+    private ExamSummaryDTO currentSession;
     private int examId;
-    private Integer selectedSessionId;
-    private Integer pickerCommittedSessionId;
+    private Integer selectedExamId;
     private Integer pickerCommittedExamId;
 
-    public List<SessionDTO> getExamOptions() {
+    public List<ExamSummaryDTO> getExamOptions() {
         return examOptions;
     }
 
-    public void setExamOptions(List<SessionDTO> examOptions) {
+    public void setExamOptions(List<ExamSummaryDTO> examOptions) {
         this.examOptions = examOptions;
     }
 
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return allSessions;
     }
 
-    public void setAllSessions(List<SessionDTO> allSessions) {
+    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
         this.allSessions = allSessions;
     }
 
-    public SessionDTO getCurrentSession() {
+    public ExamSummaryDTO getCurrentSession() {
         return currentSession;
     }
 
-    public void setCurrentSession(SessionDTO currentSession) {
+    public void setCurrentSession(ExamSummaryDTO currentSession) {
         this.currentSession = currentSession;
     }
 
@@ -46,20 +45,12 @@ public class ExamStaffPickerViewDTO {
         this.examId = examId;
     }
 
-    public Integer getSelectedSessionId() {
-        return selectedSessionId;
+    public Integer getSelectedExamId() {
+        return selectedExamId;
     }
 
-    public void setSelectedSessionId(Integer selectedSessionId) {
-        this.selectedSessionId = selectedSessionId;
-    }
-
-    public Integer getPickerCommittedSessionId() {
-        return pickerCommittedSessionId;
-    }
-
-    public void setPickerCommittedSessionId(Integer pickerCommittedSessionId) {
-        this.pickerCommittedSessionId = pickerCommittedSessionId;
+    public void setSelectedExamId(Integer selectedExamId) {
+        this.selectedExamId = selectedExamId;
     }
 
     public Integer getPickerCommittedExamId() {

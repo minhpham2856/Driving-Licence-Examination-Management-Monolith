@@ -41,13 +41,13 @@ public class PublicCallServlet extends HttpServlet {
 
         Utf8EncodingHelper.apply(request, response);
 
-        int sessionId = SERVICES.selection().resolveActiveSessionId(
-                ExamStaffHttpSupport.parseSessionIdParam(request),
-                ExamStaffHttpSupport.readSelectedSessionId(request),
-                callBoardHttp.dao(getServletContext()).getActiveSessionId());
-        CallBoardState board = callBoardHttp.getState(getServletContext(), sessionId);
+        int examId = SERVICES.selection().resolveActiveExamId(
+                ExamStaffHttpSupport.parseExamIdParam(request),
+                ExamStaffHttpSupport.readSelectedExamId(request),
+                callBoardHttp.dao(getServletContext()).getActiveExamId());
+        CallBoardState board = callBoardHttp.getState(getServletContext(), examId);
         PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(
-                sessionId, request.getServletContext().getRealPath("/"), board);
+                examId, request.getServletContext().getRealPath("/"), board);
 
         PublicCallViewBinder.bind(request, snapshot);
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);

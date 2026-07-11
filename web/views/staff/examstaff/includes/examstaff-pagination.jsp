@@ -31,9 +31,9 @@
 
                 <c:if test="${not empty allocationSearchQuery}"><c:param name="q" value="${allocationSearchQuery}" /></c:if>
 
-                <c:if test="${not empty param.sessionId}"><c:param name="sessionId" value="${param.sessionId}" /></c:if>
-                <c:if test="${empty param.sessionId and not empty requestScope.selectedSessionId}">
-                    <c:param name="sessionId" value="${requestScope.selectedSessionId}" />
+                <c:if test="${not empty param.examId}"><c:param name="examId" value="${param.examId}" /></c:if>
+                <c:if test="${empty param.examId and not empty requestScope.selectedExamId}">
+                    <c:param name="examId" value="${requestScope.selectedExamId}" />
                 </c:if>
 
                 <c:if test="${not empty sortBy and sortBy ne 'sbd'}"><c:param name="sort" value="${sortBy}" /></c:if>
@@ -62,9 +62,9 @@
 
                 <c:if test="${not empty allocationSearchQuery}"><c:param name="q" value="${allocationSearchQuery}" /></c:if>
 
-                <c:if test="${not empty param.sessionId}"><c:param name="sessionId" value="${param.sessionId}" /></c:if>
-                <c:if test="${empty param.sessionId and not empty requestScope.selectedSessionId}">
-                    <c:param name="sessionId" value="${requestScope.selectedSessionId}" />
+                <c:if test="${not empty param.examId}"><c:param name="examId" value="${param.examId}" /></c:if>
+                <c:if test="${empty param.examId and not empty requestScope.selectedExamId}">
+                    <c:param name="examId" value="${requestScope.selectedExamId}" />
                 </c:if>
 
                 <c:if test="${not empty sortBy and sortBy ne 'sbd'}"><c:param name="sort" value="${sortBy}" /></c:if>

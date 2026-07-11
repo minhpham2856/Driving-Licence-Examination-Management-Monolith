@@ -58,9 +58,6 @@ public interface ExamRegistrationDAO {
     // Cap nhat so cau dung ly thuyet
     boolean updateTheoryCorrectCount(int id, int correctCount, int passThreshold);
 
-    // Legacy: cap nhat diem phan thi duong truong (khong con dung trong examstaff/public-call)
-    boolean updateRoadScore(int id, Integer roadScore, String roadPassed);
-
     // Cap nhat ho so co ban
     boolean updateProfile(int id, String fullName, java.sql.Date dob, String govIdNo, String email, String phoneNo);
 

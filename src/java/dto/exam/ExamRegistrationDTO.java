@@ -93,11 +93,11 @@ public class ExamRegistrationDTO {
         this.id = id;
     }
 
-    public int getExamSessionId() {
+    public int getExamId() {
         return examSessionId;
     }
 
-    public void setExamSessionId(int examSessionId) {
+    public void setExamId(int examSessionId) {
         this.examSessionId = examSessionId;
     }
 
@@ -566,9 +566,5 @@ public class ExamRegistrationDTO {
             return "passed";
         }
         return practicalPassed == null || practicalPassed.isBlank() ? "none" : practicalPassed.trim();
-    }
-
-    public boolean isRequiresRoadTest() {
-        return false;
     }
 }

@@ -1,19 +1,16 @@
 package service;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
-import java.sql.Date;
 import java.util.List;
 
 public interface ExamStaffSessionQueryService {
 
-    List<SessionDTO> listAllSessions();
+    List<ExamSummaryDTO> listAllSessions();
 
-    SessionDTO findBySessionId(int sessionId);
+    ExamSummaryDTO findByExamId(int examId);
 
-    List<SessionDTO> listSessionsByExamDate(Date examDate);
+    List<ExamSummaryDTO> listSessionsForExam(List<ExamSummaryDTO> allSessions, int examId);
 
-    List<SessionDTO> listSessionsForExam(List<SessionDTO> allSessions, int examId);
-
-    int resolvePrimarySessionId(List<SessionDTO> allSessions, int examId);
+    int resolvePrimaryExamId(List<ExamSummaryDTO> allSessions, int examId);
 }

@@ -1,9 +1,5 @@
-﻿function resolveTargetSessionId() {
-    const sessionSelect = document.getElementById('targetSessionId');
-    if (sessionSelect) {
-        return String(sessionSelect.value || '');
-    }
-    const hiddenTarget = document.querySelector('input[name="targetSessionId"]');
+function resolveTargetExamId() {
+    const hiddenTarget = document.querySelector('input[name="targetExamId"]');
     return hiddenTarget ? String(hiddenTarget.value || '') : '';
 }
 
@@ -13,8 +9,8 @@ function filterSessionAreas() {
         return;
     }
 
-    const sessionId = resolveTargetSessionId();
-    if (!sessionId) {
+    const examId = resolveTargetExamId();
+    if (!examId) {
         return;
     }
 
@@ -27,7 +23,7 @@ function filterSessionAreas() {
             continue;
         }
 
-        const match = String(opt.getAttribute('data-session') || '') === sessionId;
+        const match = String(opt.getAttribute('data-exam') || '') === examId;
         opt.hidden = !match;
         opt.disabled = !match;
         if (match) {
@@ -58,11 +54,6 @@ var CONFIRM_REMOVE_EXAMINER = 'G\u1ee1 ph\u00e2n c\u00f4ng gi\u00e1m kh\u1ea3o n
 
 document.addEventListener('DOMContentLoaded', function () {
     filterSessionAreas();
-
-    const targetSessionSelect = document.getElementById('targetSessionId');
-    if (targetSessionSelect) {
-        targetSessionSelect.addEventListener('change', filterSessionAreas);
-    }
 
     document.querySelectorAll('[data-confirm-remove]').forEach(function (link) {
         link.addEventListener('click', function (e) {

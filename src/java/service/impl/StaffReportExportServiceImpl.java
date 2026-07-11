@@ -5,7 +5,7 @@ import dto.examstaff.ReportPaymentSummaryDTO;
 import service.ReportFeeQueryService;
 import service.StaffReportExportService;
 import dto.exam.ExamRegistrationDTO;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import model.Fee;
 import model.Payment;
 import org.apache.poi.ss.usermodel.Cell;
@@ -31,7 +31,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     private final ReportFeeQueryService feeLookup = new ReportFeeQueryServiceImpl();
 
     @Override
-    public void exportExamReport(OutputStream out, SessionDTO session,
+    public void exportExamReport(OutputStream out, ExamSummaryDTO session,
             List<ExamRegistrationDTO> candidates, ExamReportStatsDTO stats,
             String exporterName) throws IOException {
         List<Map<String, Object>> infractions = stats != null ? stats.getInfractions() : null;
@@ -60,7 +60,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
     private void writeOverviewSheet(Workbook wb, CellStyle headerStyle,
-            SessionDTO session, ExamReportStatsDTO stats, String exporterName) {
+            ExamSummaryDTO session, ExamReportStatsDTO stats, String exporterName) {
         Sheet sheet = wb.createSheet("Tổng quan");
         int row = 0;
         row = writeTitleBlock(sheet, row, headerStyle, "BÁO CÁO TỔNG HỢP CA THI");
@@ -240,7 +240,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
     private void writeFeeSheet(Workbook wb, CellStyle headerStyle,
-            List<ExamRegistrationDTO> candidates, SessionDTO session) {
+            List<ExamRegistrationDTO> candidates, ExamSummaryDTO session) {
         Sheet sheet = wb.createSheet("Thu phí thủ tục");
         Row header = sheet.createRow(0);
         String[] cols = {

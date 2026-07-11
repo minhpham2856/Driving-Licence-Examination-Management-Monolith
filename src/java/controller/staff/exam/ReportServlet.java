@@ -11,7 +11,7 @@ import service.ExamStaffServices;
 import dto.examstaff.ExamReportProcedureStatusDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.ExamReportStatsDTO;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import model.Profile;
 import model.User;
 import util.examstaff.ReportExportLabels;
@@ -47,7 +47,7 @@ public class ReportServlet extends HttpServlet {
                 request, session, webRoot);
         int examId = pageCtx.getExamId();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
-        SessionDTO currentSession = (SessionDTO) request.getAttribute("currentSession");
+        ExamSummaryDTO currentExam = (ExamSummaryDTO) request.getAttribute("currentExam");
         ExamReportProcedureStatusDTO procedureStatus = procedureStatusService.analyze(qList, webRoot);
         ReportProcedureStatusBinder.bind(request, procedureStatus);
         int missingPhotoCount = procedureStatus.getMissingPhotoCount();
@@ -63,7 +63,7 @@ public class ReportServlet extends HttpServlet {
         }
 
         if (exportExcel && !exportBlocked) {
-            streamExcel(response, request, currentSession, qList, examId);
+            streamExcel(response, request, currentExam, qList, examId);
             return;
         }
         if (exportPdf && !exportBlocked) {
@@ -77,11 +77,11 @@ public class ReportServlet extends HttpServlet {
     }
 
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
-            SessionDTO currentSession, List<ExamRegistrationDTO> qList, int examId) throws IOException {
+            ExamSummaryDTO currentExam, List<ExamRegistrationDTO> qList, int examId) throws IOException {
         String token = ReportExportLabels.safeFileToken(
-                currentSession != null ? currentSession.getSessionName() : "ca_thi");
+                currentExam != null ? currentExam.getSessionName() : "ky_thi");
         String datePart = new SimpleDateFormat("ddMMyyyy", Locale.forLanguageTag("vi-VN")).format(new Date());
-        String filename = "bao_cao_ca_thi_" + token + "_" + datePart + ".xlsx";
+        String filename = "bao_cao_ky_thi_" + token + "_" + datePart + ".xlsx";
 
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
@@ -91,7 +91,7 @@ public class ReportServlet extends HttpServlet {
 
         reportExportService.exportExamReport(
                 response.getOutputStream(),
-                currentSession,
+                currentExam,
                 qList,
                 stats,
                 exporterName);

@@ -1,23 +1,22 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
 import java.util.List;
 
 public class ExamStaffPageTransitionInput {
 
-    private int urlSessionId;
+    private int urlExamId;
     private Integer previousExamId;
-    private Integer previousSessionId;
-    private Integer loadedSessionId;
-    private List<SessionDTO> allSessions;
+    private Integer loadedExamId;
+    private List<ExamSummaryDTO> allSessions;
 
-    public int getUrlSessionId() {
-        return urlSessionId;
+    public int getUrlExamId() {
+        return urlExamId;
     }
 
-    public void setUrlSessionId(int urlSessionId) {
-        this.urlSessionId = urlSessionId;
+    public void setUrlExamId(int urlExamId) {
+        this.urlExamId = urlExamId;
     }
 
     public Integer getPreviousExamId() {
@@ -28,27 +27,19 @@ public class ExamStaffPageTransitionInput {
         this.previousExamId = previousExamId;
     }
 
-    public Integer getPreviousSessionId() {
-        return previousSessionId;
+    public Integer getLoadedExamId() {
+        return loadedExamId;
     }
 
-    public void setPreviousSessionId(Integer previousSessionId) {
-        this.previousSessionId = previousSessionId;
+    public void setLoadedExamId(Integer loadedExamId) {
+        this.loadedExamId = loadedExamId;
     }
 
-    public Integer getLoadedSessionId() {
-        return loadedSessionId;
-    }
-
-    public void setLoadedSessionId(Integer loadedSessionId) {
-        this.loadedSessionId = loadedSessionId;
-    }
-
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return allSessions;
     }
 
-    public void setAllSessions(List<SessionDTO> allSessions) {
+    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
         this.allSessions = allSessions;
     }
 }

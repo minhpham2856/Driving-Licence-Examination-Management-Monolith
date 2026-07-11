@@ -34,7 +34,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
     @Override
     public CandidateCallActionResultDTO executeAction(String action, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
-            int boardSessionId, boolean shiftEnded, int calledByStaffId) {
+            int boardExamId, boolean shiftEnded, int calledByStaffId) {
         CandidateCallActionResultDTO result = new CandidateCallActionResultDTO();
         result.setFullQueue(fullQueue);
         result.setShiftEnded(shiftEnded);
@@ -54,11 +54,11 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         switch (action) {
             case "startCall" -> handleStartCall(result, fullQueue, activeQueue, calledByStaffId);
             case "moveToBottom", "absent", "autoAbsent" -> handleAbsentAction(
-                    result, action, sbd, fullQueue, boardSessionId, calledByStaffId);
+                    result, action, sbd, fullQueue, boardExamId, calledByStaffId);
             case "permanentAbsent" -> handlePermanentAbsent(
                     result, sbd, fullQueue, permanentAbsents, calledByStaffId);
             case "undoAbsent" -> handleUndoAbsent(
-                    result, sbd, fullQueue, permanentAbsents, boardSessionId);
+                    result, sbd, fullQueue, permanentAbsents, boardExamId);
             case "endShift", "closeExam" -> handleEndShift(result, fullQueue, permanentAbsents);
             case "pauseShift" -> handlePauseShift(result, fullQueue);
             case "startShift" -> result.setRedirectToCallPage(true);
@@ -79,7 +79,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
     }
 
     private void handleAbsentAction(CandidateCallActionResultDTO result, String action, String sbd,
-            List<ExamRegistrationDTO> fullQueue, int boardSessionId, int calledByStaffId) {
+            List<ExamRegistrationDTO> fullQueue, int boardExamId, int calledByStaffId) {
         if (sbd == null || sbd.isBlank()) {
             return;
         }
@@ -118,7 +118,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
 
     private void handleUndoAbsent(CandidateCallActionResultDTO result, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
-            int boardSessionId) {
+            int boardExamId) {
         ExamRegistrationDTO restored = queueService.findBySbd(fullQueue, sbd);
         if (restored == null && permanentAbsents != null) {
             for (int i = 0; i < permanentAbsents.size(); i++) {
@@ -188,7 +188,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
 
     private void recordCall(ExamRegistrationDTO candidate, String callResult, int calledByStaffId) {
         CandidateCallDTO call = new CandidateCallDTO();
-        call.setExamSessionId(candidate.getExamSessionId());
+        call.setExamId(candidate.getExamId());
         call.setCandidateNo(candidate.getCandidateNo());
         call.setCalledTo(CALLED_TO);
         call.setCalledBy(calledByStaffId);

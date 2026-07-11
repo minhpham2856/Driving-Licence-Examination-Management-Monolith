@@ -1,25 +1,25 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<c:set var="failLayoutSessionId" value="${param.sessionId}" />
-<c:if test="${empty failLayoutSessionId and not empty requestScope.examStaffLoadedSessionId}">
-    <c:set var="failLayoutSessionId" value="${requestScope.examStaffLoadedSessionId}" />
+<c:set var="failLayoutExamId" value="${param.examId}" />
+<c:if test="${empty failLayoutExamId and not empty requestScope.examStaffLoadedExamId}">
+    <c:set var="failLayoutExamId" value="${requestScope.examStaffLoadedExamId}" />
 </c:if>
-<c:if test="${empty failLayoutSessionId and not empty sessionScope.selectedSessionId}">
-    <c:set var="failLayoutSessionId" value="${sessionScope.selectedSessionId}" />
+<c:if test="${empty failLayoutExamId and not empty sessionScope.selectedExamId}">
+    <c:set var="failLayoutExamId" value="${sessionScope.selectedExamId}" />
 </c:if>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
     <jsp:param name="pageTitle" value="Kết quả — Trượt / vắng" />
     <jsp:param name="breadcrumbLabel" value="Trượt" />
     <jsp:param name="showSearch" value="true" />
-    <jsp:param name="sessionId" value="${failLayoutSessionId}" />
+    <jsp:param name="examId" value="${failLayoutExamId}" />
 </jsp:include>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="pg" value="${allocationPageSlice}" />
 <c:set var="rowStart" value="${empty pg ? 0 : pg.rowOffset}" />
 <c:set var="sq" value="" />
-<c:set var="navSessionId" value="${not empty param.sessionId ? param.sessionId : requestScope.examStaffLoadedSessionId}" />
-<c:if test="${not empty navSessionId}">
-    <c:set var="sq" value="?sessionId=${navSessionId}" />
+<c:set var="navExamId" value="${not empty param.examId ? param.examId : requestScope.examStaffLoadedExamId}" />
+<c:if test="${not empty navExamId}">
+    <c:set var="sq" value="?examId=${navExamId}" />
 </c:if>
 <nav class="allocation-result-subnav">
     <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sq}" class="allocation-result-subnav__tab">Đỗ</a>

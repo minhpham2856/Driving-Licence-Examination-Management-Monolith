@@ -1,17 +1,14 @@
 package dto.examstaff;
 
-public class SessionSelectResultDTO {
+public class ExamSelectResultDTO {
 
     private boolean success;
     private int examId;
-    private int sessionId;
     private String errorMessage;
     private boolean clearProcedureOnExamChange;
     private boolean clearCandidateCache;
     private int newExamId;
-    private int newSessionId;
     private Integer previousExamId;
-    private Integer previousSessionId;
 
     public boolean isSuccess() {
         return success;
@@ -27,14 +24,6 @@ public class SessionSelectResultDTO {
 
     public void setExamId(int examId) {
         this.examId = examId;
-    }
-
-    public int getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
     }
 
     public String getErrorMessage() {
@@ -69,27 +58,11 @@ public class SessionSelectResultDTO {
         this.newExamId = newExamId;
     }
 
-    public int getNewSessionId() {
-        return newSessionId;
-    }
-
-    public void setNewSessionId(int newSessionId) {
-        this.newSessionId = newSessionId;
-    }
-
     public Integer getPreviousExamId() {
         return previousExamId;
     }
 
     public void setPreviousExamId(Integer previousExamId) {
         this.previousExamId = previousExamId;
-    }
-
-    public Integer getPreviousSessionId() {
-        return previousSessionId;
-    }
-
-    public void setPreviousSessionId(Integer previousSessionId) {
-        this.previousSessionId = previousSessionId;
     }
 }

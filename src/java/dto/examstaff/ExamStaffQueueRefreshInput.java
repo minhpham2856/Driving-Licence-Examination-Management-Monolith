@@ -1,18 +1,17 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 
 import java.util.List;
 
 public class ExamStaffQueueRefreshInput {
 
     private int examId;
-    private int sessionId;
     private String webRoot;
-    private List<SessionDTO> allSessions;
-    private Integer selectedSessionId;
+    private List<ExamSummaryDTO> allSessions;
+    private Integer selectedExamId;
     private List<String> callQueueOrder;
-    private Integer callQueueOrderSessionId;
+    private Integer callQueueOrderExamId;
 
     public int getExamId() {
         return examId;
@@ -20,14 +19,6 @@ public class ExamStaffQueueRefreshInput {
 
     public void setExamId(int examId) {
         this.examId = examId;
-    }
-
-    public int getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
     }
 
     public String getWebRoot() {
@@ -38,20 +29,20 @@ public class ExamStaffQueueRefreshInput {
         this.webRoot = webRoot;
     }
 
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return allSessions;
     }
 
-    public void setAllSessions(List<SessionDTO> allSessions) {
+    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
         this.allSessions = allSessions;
     }
 
-    public Integer getSelectedSessionId() {
-        return selectedSessionId;
+    public Integer getSelectedExamId() {
+        return selectedExamId;
     }
 
-    public void setSelectedSessionId(Integer selectedSessionId) {
-        this.selectedSessionId = selectedSessionId;
+    public void setSelectedExamId(Integer selectedExamId) {
+        this.selectedExamId = selectedExamId;
     }
 
     public List<String> getCallQueueOrder() {
@@ -62,11 +53,11 @@ public class ExamStaffQueueRefreshInput {
         this.callQueueOrder = callQueueOrder;
     }
 
-    public Integer getCallQueueOrderSessionId() {
-        return callQueueOrderSessionId;
+    public Integer getCallQueueOrderExamId() {
+        return callQueueOrderExamId;
     }
 
-    public void setCallQueueOrderSessionId(Integer callQueueOrderSessionId) {
-        this.callQueueOrderSessionId = callQueueOrderSessionId;
+    public void setCallQueueOrderExamId(Integer callQueueOrderExamId) {
+        this.callQueueOrderExamId = callQueueOrderExamId;
     }
 }

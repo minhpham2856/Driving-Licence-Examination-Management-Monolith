@@ -1,12 +1,12 @@
-package model.view;
+package dto;
 
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** Read model kỳ thi (Exam). */
-public class ExamSessionSummary {
+public class ExamSummaryDTO {
 
+    private int id;
     private int examId;
     private boolean morningSession;
     private String sessionName;
@@ -26,6 +26,17 @@ public class ExamSessionSummary {
     private String examCode;
     private String examTypeName;
     private String areaName;
+
+    public ExamSummaryDTO() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public int getExamId() {
         return examId;
@@ -49,6 +60,15 @@ public class ExamSessionSummary {
 
     public void setSessionName(String sessionName) {
         this.sessionName = sessionName;
+    }
+
+    /** Alias cho JSP/UI mới — cùng giá trị với {@link #getSessionName()}. */
+    public String getExamName() {
+        return sessionName;
+    }
+
+    public void setExamName(String examName) {
+        this.sessionName = examName;
     }
 
     public int getLicenseTypeId() {

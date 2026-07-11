@@ -8,7 +8,7 @@ import dao.ExamSessionDAO;
 import dao.ExaminerAssignmentDAO;
 import dao.impl.ExamSessionDAOImpl;
 import dao.impl.ExaminerAssignmentDAOImpl;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import java.sql.Timestamp;
 import java.util.List;
 import util.examstaff.ExamScheduleRules;
@@ -18,6 +18,8 @@ import java.util.Locale;
 
 public class ExamSessionControlServiceImpl implements ExamSessionControlService {
 
+    public static final String CTX_ACTIVE_EXAM_ID = "examActiveExamId";
+    /** Legacy ServletContext attr — dual-read khi migrate. */
     public static final String CTX_ACTIVE_SESSION_ID = "examActiveSessionId";
 
     private final ExamSessionDAO sessionDAO;
@@ -32,7 +34,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         this.assignmentDAO = assignmentDAO;
     }
 
-    private static String buildSessionLabel(SessionDTO session) {
+    private static String buildSessionLabel(ExamSummaryDTO session) {
         if (session == null) {
             return "kỳ thi";
         }
@@ -48,8 +50,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
     }
 
     @Override
-    public StartResult startSession(int sessionId, int staffUserId) {
-        SessionDTO examSession = sessionDAO.getById(sessionId);
+    public StartResult startExam(int sessionId, int staffUserId) {
+        ExamSummaryDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
             return StartResult.fail("Không tìm thấy kỳ thi.");
         }
@@ -61,7 +63,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
                     + "\" không thể bắt đầu (trạng thái: " + examSession.getStatus() + ").");
         }
 
-        List<ExaminerSlotDTO> assignments = assignmentDAO.getBySessionId(sessionId);
+        List<ExaminerSlotDTO> assignments = assignmentDAO.getByExamId(sessionId);
         String coverageError = ExaminerAssignmentRules.validateStartCoverage(assignments);
         if (coverageError != null) {
             return StartResult.fail(coverageError);
@@ -83,8 +85,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
     }
 
     @Override
-    public EndResult endSession(int sessionId) {
-        SessionDTO examSession = sessionDAO.getById(sessionId);
+    public EndResult endExam(int sessionId) {
+        ExamSummaryDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
             return EndResult.fail("Không tìm thấy kỳ thi.");
         }

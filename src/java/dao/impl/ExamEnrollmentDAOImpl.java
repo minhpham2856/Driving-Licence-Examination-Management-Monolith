@@ -147,11 +147,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public List<ExamEnrollment> getBySessionId(int sessionId) {
-        return getByExamId(sessionId);
-    }
-
-    private List<ExamEnrollment> getByExamId(int examId) {
+    public List<ExamEnrollment> getByExamId(int examId) {
         List<ExamEnrollment> list = new ArrayList<>();
         String sql = ENROLLMENT_SELECT + " WHERE ee.ExamId = ? ORDER BY ee.CandidateId";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -213,9 +209,9 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public boolean assignExamDevice(int regId, int sessionId, int deviceId) {
+    public boolean assignExamDevice(int regId, int examId, int deviceId) {
         ExamEnrollment enrollment = getById(regId);
-        if (enrollment == null || enrollment.getExamId() != sessionId) {
+        if (enrollment == null || enrollment.getExamId() != examId) {
             return false;
         }
         enrollment.setExamDeviceId(deviceId);
@@ -223,10 +219,10 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     }
 
     @Override
-    public ExamEnrollment getBySessionAndCandidate(int sessionId, int candidateId) {
+    public ExamEnrollment getByExamAndCandidate(int examId, int candidateId) {
         String sql = ENROLLMENT_SELECT + " WHERE ee.ExamId = ? AND ee.CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             ps.setInt(2, candidateId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

@@ -6,7 +6,7 @@ import java.util.List;
 /** Trạng thái bảng gọi thí sinh (không phụ thuộc Servlet API). */
 public class CallBoardState {
 
-    private int examSessionId;
+    private int examId;
     private String callingSbd;
     private String nextSbd;
     private boolean shiftEnded;
@@ -16,12 +16,12 @@ public class CallBoardState {
     private boolean deskBusy;
     private String deskSbd;
 
-    public int getExamSessionId() {
-        return examSessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setExamSessionId(int examSessionId) {
-        this.examSessionId = examSessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public String getCallingSbd() {

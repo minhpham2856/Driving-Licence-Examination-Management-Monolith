@@ -10,8 +10,6 @@ public interface AllocationActionService {
 
     AllocationActionResultDTO autoAllocateOnOverview(int sessionId, String stage);
 
-    AllocationActionResultDTO executeAutoAllocate(int sessionId);
-
     AllocationActionResultDTO executeCandidateAction(AllocationCandidateActionRequest request);
 
     ExamRegistrationDTO findCandidate(int regId, int sessionId, List<ExamRegistrationDTO> queue);

@@ -7,7 +7,7 @@ import controller.staff.exam.binder.ExaminerAllocationViewBinder;
 import controller.staff.exam.http.ExamStaffHttpSupport;
 import controller.staff.exam.module.ExamStaffWebModule;
 import controller.staff.exam.page.ExamStaffPageFacade;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.examstaff.ExaminerAllocationActionResultDTO;
 import dto.examstaff.ExaminerAllocationViewDTO;
 import model.User;
@@ -61,32 +61,29 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, getServletContext().getRealPath("/"), false);
-        List<SessionDTO> allSessions = pageCtx.getAllSessions();
+        List<ExamSummaryDTO> allSessions = pageCtx.getAllSessions();
         int examId = pageCtx.getExamId();
-        int sessionId = pageCtx.getSessionId();
 
-        SessionDTO pickedFromUrl = selectionFacade.resolveSessionFromRequest(request, session, allSessions);
+        ExamSummaryDTO pickedFromUrl = selectionFacade.resolveSessionFromRequest(request, session, allSessions);
         if (pickedFromUrl != null) {
-            examId = pickedFromUrl.getExamId();
-            sessionId = pickedFromUrl.getId();
+            examId = pickedFromUrl.getExamId() > 0 ? pickedFromUrl.getExamId() : pickedFromUrl.getId();
         }
 
-        SessionDTO currentSession = sessionId > 0 ? allocationService.getSessionById(sessionId) : null;
-        if (currentSession == null && pickedFromUrl != null) {
-            currentSession = pickedFromUrl;
+        ExamSummaryDTO currentExam = examId > 0 ? allocationService.getSessionById(examId) : null;
+        if (currentExam == null && pickedFromUrl != null) {
+            currentExam = pickedFromUrl;
         }
-        if (currentSession == null && examId > 0) {
-            currentSession = selectionFacade.representativeSessionForExam(allSessions, examId);
-            if (currentSession != null) {
-                sessionId = currentSession.getId();
+        if (currentExam == null && examId > 0) {
+            currentExam = selectionFacade.representativeSessionForExam(allSessions, examId);
+            if (currentExam != null) {
+                examId = currentExam.getExamId() > 0 ? currentExam.getExamId() : currentExam.getId();
             }
         }
 
         request.setAttribute("allSessions", allSessions);
-        request.setAttribute("currentSession", currentSession);
-        ExamStaffPageBinder.bindSessionShiftContext(request, currentSession);
-        request.setAttribute("selectedExamId", examId);
-        request.setAttribute("selectedSessionId", sessionId > 0 ? sessionId : null);
+        request.setAttribute("currentExam", currentExam);
+        ExamStaffPageBinder.bindSessionShiftContext(request, currentExam);
+        request.setAttribute("selectedExamId", examId > 0 ? examId : null);
 
         String action = request.getParameter("action");
         if (action != null && examId > 0) {
@@ -94,7 +91,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
 
         if (examId > 0) {
-            ExaminerAllocationViewDTO view = deskService.buildAllocationView(examId, sessionId, allSessions);
+            ExaminerAllocationViewDTO view = deskService.buildAllocationView(examId, examId, allSessions);
             ExaminerAllocationViewBinder.bind(request, view, examId);
         }
 
@@ -105,10 +102,10 @@ public class ExaminerAllocationServlet extends HttpServlet {
         try {
             ExaminerAllocationActionResultDTO result;
             if ("assign".equals(action)) {
-                int targetSessionId = Integer.parseInt(request.getParameter("targetSessionId"));
+                int targetExamId = Integer.parseInt(request.getParameter("targetExamId"));
                 int areaId = Integer.parseInt(request.getParameter("areaId"));
                 int examinerUserId = Integer.parseInt(request.getParameter("examinerUserId"));
-                result = deskService.assignExaminer(targetSessionId, areaId, examinerUserId, resolveStaffId(session));
+                result = deskService.assignExaminer(targetExamId, areaId, examinerUserId, resolveStaffId(session));
             } else if ("remove".equals(action)) {
                 result = deskService.removeExaminer(request.getParameter("slotKey"));
             } else {

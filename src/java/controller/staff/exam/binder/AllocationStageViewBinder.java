@@ -12,7 +12,6 @@ public final class AllocationStageViewBinder {
         if (request == null || view == null) {
             return;
         }
-        request.setAttribute("allocationPracticalStageIds", view.getPracticalStageIds());
         request.setAttribute("allocationStageCounts", view.getStageCounts());
         request.setAttribute("allocationStageList", view.getStageList());
         request.setAttribute("allocationPageSlice", view.getPageSlice());

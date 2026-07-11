@@ -1,7 +1,6 @@
 package controller.pub;
 
 import controller.pub.binder.PublicCallJsonBinder;
-import controller.pub.binder.PublicCallViewBinder;
 import controller.staff.exam.adapter.CallBoardHttpFacade;
 import controller.staff.exam.http.ExamStaffHttpSupport;
 import dto.examstaff.PublicCallSnapshotDTO;
@@ -39,13 +38,13 @@ public class PublicCallStateServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int sessionId = SERVICES.selection().resolveActiveSessionId(
-                ExamStaffHttpSupport.parseSessionIdParam(request),
-                ExamStaffHttpSupport.readSelectedSessionId(request),
-                callBoardHttp.dao(getServletContext()).getActiveSessionId());
-        CallBoardState board = callBoardHttp.getState(getServletContext(), sessionId);
+        int examId = SERVICES.selection().resolveActiveExamId(
+                ExamStaffHttpSupport.parseExamIdParam(request),
+                ExamStaffHttpSupport.readSelectedExamId(request),
+                callBoardHttp.dao(getServletContext()).getActiveExamId());
+        CallBoardState board = callBoardHttp.getState(getServletContext(), examId);
         PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(
-                sessionId, request.getServletContext().getRealPath("/"), board);
+                examId, request.getServletContext().getRealPath("/"), board);
 
         Utf8EncodingHelper.applyJson(response);
         response.setHeader("Cache-Control", "no-store");

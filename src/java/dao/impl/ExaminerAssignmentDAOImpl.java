@@ -19,10 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 // JDBC implementation of {@link ExaminerAssignmentDAO}.
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
@@ -105,11 +102,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     // Inserts a Session_Examiner row and an audit mapping in a single transaction.
     @Override
     public boolean assign(ExaminerSlotDTO slot) {
-        if (slot == null || slot.getExamSessionId() <= 0 || slot.getExaminerUserId() <= 0) {
+        if (slot == null || slot.getExamId() <= 0 || slot.getExaminerUserId() <= 0) {
             return false;
         }
         // Build the composite entity ID for the audit mapping (sessionId:areaId:examinerId)
-        String entityId = buildMappingEntityId(slot.getExamSessionId(), slot.getAreaId(), slot.getExaminerUserId());
+        String entityId = buildMappingEntityId(slot.getExamId(), slot.getAreaId(), slot.getExaminerUserId());
         String existingAssignmentSql = """
                 SELECT TOP 1 esch.ExaminerScheduleId
                 FROM ExaminerSchedule esch
@@ -154,7 +151,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
                 ps.setInt(1, slot.getExaminerUserId());
-                ps.setInt(2, slot.getExamSessionId());
+                ps.setInt(2, slot.getExamId());
                 ps.setInt(3, slot.getAreaId());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -167,13 +164,13 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
                 String areaType = slot.getAreaType() != null ? slot.getAreaType().trim() : "";
-                ps.setInt(1, slot.getExamSessionId());
+                ps.setInt(1, slot.getExamId());
                 ps.setInt(2, slot.getExaminerUserId());
                 ps.setInt(3, slot.getAreaId());
-                ps.setInt(4, slot.getExamSessionId());
+                ps.setInt(4, slot.getExamId());
                 ps.setString(5, areaType);
                 ps.setString(6, areaType);
-                ps.setInt(7, slot.getExamSessionId());
+                ps.setInt(7, slot.getExamId());
                 ps.setInt(8, assignedBy);
                 ps.executeUpdate();
             }
@@ -274,12 +271,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return false;
     }
 
-    // Retrieves all assignment slots for a specific session, ordered by area name
+    // Retrieves all assignment slots for a specific exam, ordered by area name
     @Override
-    public List<ExaminerSlotDTO> getBySessionId(int sessionId) {
-        // Append WHERE clause to filter by session ID
+    public List<ExaminerSlotDTO> getByExamId(int examId) {
         String sql = SLOT_SELECT + " WHERE esch.ExamId = ? ORDER BY ea.AreaName, esch.ExaminerScheduleId";
-        return querySlots(sql, ps -> ps.setInt(1, sessionId));
+        return querySlots(sql, ps -> ps.setInt(1, examId));
     }
 
     // Retrieves all in-progress assignments for a specific examiner (with valid area mappings)
@@ -300,52 +296,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             }
         }
         return withArea;
-    }
-
-    // Retrieves all assignment slots for sessions occurring on a specific exam date
-    @Override
-    public List<ExaminerSlotDTO> getByExamDate(Date examDate, Map<Integer, Date> sessionDates) {
-        // Return empty list if no exam date is provided
-        if (examDate == null) {
-            return List.of();
-        }
-        // Find all session IDs that match the target exam date
-        List<Integer> sessionIds = new ArrayList<>();
-        for (Map.Entry<Integer, Date> e : sessionDates.entrySet()) {
-            if (examDate.equals(e.getValue())) {
-                sessionIds.add(e.getKey());
-            }
-        }
-        // Return empty list if no sessions fall on this date
-        if (sessionIds.isEmpty()) {
-            return List.of();
-        }
-        // Build a dynamic IN clause with the correct number of placeholders
-        StringBuilder sql = new StringBuilder(SLOT_SELECT + " WHERE esch.ExamId IN (");
-        for (int i = 0; i < sessionIds.size(); i++) {
-            if (i > 0) {
-                sql.append(',');
-            }
-            sql.append('?');
-        }
-        sql.append(") ORDER BY esch.ExamId, ea.AreaName, esch.ExaminerScheduleId");
-        // Execute the query, binding each session ID as a positional parameter
-        return querySlots(sql.toString(), ps -> {
-            for (int i = 0; i < sessionIds.size(); i++) {
-                ps.setInt(i + 1, sessionIds.get(i));
-            }
-        });
-    }
-
-    // Retrieves the set of examiner user IDs who have assignments on a given exam date
-    @Override
-    public Set<Integer> getBusyExaminerIds(Date examDate, Map<Integer, Date> sessionDates) {
-        // Collect all examiner IDs from the date-scoped slot query
-        Set<Integer> busy = new HashSet<>();
-        for (ExaminerSlotDTO slot : getByExamDate(examDate, sessionDates)) {
-            busy.add(slot.getExaminerUserId());
-        }
-        return busy;
     }
 
     // Executes a parameterised slot query and maps result rows to ExaminerSlotDTO objects.
@@ -373,7 +323,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
         // Map the primary Session_Examiner fields
         slot.setSessionExaminerId(rs.getInt("SessionExaminerId"));
-        slot.setExamSessionId(rs.getInt("examSessionId"));
+        slot.setExamId(rs.getInt("examSessionId"));
         slot.setExaminerUserId(rs.getInt("examinerUserId"));
         // Map the session and examiner display fields
         slot.setSessionName(rs.getString("sessionName"));

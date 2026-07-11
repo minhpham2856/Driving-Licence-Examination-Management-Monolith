@@ -22,7 +22,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         CallBoardState updated = CallBoardRules.syncBoard(
                 callBoardDAO.getState(examSessionId), examSessionId, callingSbd, queue, shiftEnded);
         callBoardDAO.saveState(examSessionId, updated);
-        callBoardDAO.setActiveSessionId(examSessionId);
+        callBoardDAO.setActiveExamId(examSessionId);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         CallBoardState updated = CallBoardRules.occupyDesk(
                 callBoardDAO.getState(examSessionId), examSessionId, deskSbd, queue, shiftEnded);
         callBoardDAO.saveState(examSessionId, updated);
-        callBoardDAO.setActiveSessionId(examSessionId);
+        callBoardDAO.setActiveExamId(examSessionId);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         CallBoardState updated = CallBoardRules.releaseDeskAndCall(
                 callBoardDAO.getState(examSessionId), examSessionId, callingSbd, queue, shiftEnded);
         callBoardDAO.saveState(examSessionId, updated);
-        callBoardDAO.setActiveSessionId(examSessionId);
+        callBoardDAO.setActiveExamId(examSessionId);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         CallBoardState updated = CallBoardRules.pauseBoard(
                 callBoardDAO.getState(examSessionId), examSessionId, queue);
         callBoardDAO.saveState(examSessionId, updated);
-        callBoardDAO.setActiveSessionId(examSessionId);
+        callBoardDAO.setActiveExamId(examSessionId);
     }
 
     @Override

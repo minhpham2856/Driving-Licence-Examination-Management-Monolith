@@ -1,14 +1,14 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
 public class PublicCallSnapshotDTO {
 
-    private int sessionId;
-    private SessionDTO currentSession;
+    private int examId;
+    private ExamSummaryDTO currentExam;
     private ExamRegistrationDTO callingCandidate;
     private ExamRegistrationDTO nextCandidate;
     private List<ExamRegistrationDTO> waitingQueue;
@@ -19,20 +19,20 @@ public class PublicCallSnapshotDTO {
     private boolean deskBusy;
     private String deskSbd;
 
-    public int getSessionId() {
-        return sessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
-    public SessionDTO getCurrentSession() {
-        return currentSession;
+    public ExamSummaryDTO getCurrentExam() {
+        return currentExam;
     }
 
-    public void setCurrentSession(SessionDTO currentSession) {
-        this.currentSession = currentSession;
+    public void setCurrentExam(ExamSummaryDTO currentExam) {
+        this.currentExam = currentExam;
     }
 
     public ExamRegistrationDTO getCallingCandidate() {

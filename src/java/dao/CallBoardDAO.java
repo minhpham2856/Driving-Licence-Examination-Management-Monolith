@@ -12,7 +12,7 @@ public interface CallBoardDAO {
 
     void saveState(int examSessionId, CallBoardState state);
 
-    void setActiveSessionId(int examSessionId);
+    void setActiveExamId(int examSessionId);
 
-    Integer getActiveSessionId();
+    Integer getActiveExamId();
 }

@@ -10,7 +10,6 @@ public class CandidateQueueSnapshotDTO {
     private List<ExamRegistrationDTO> activeQueue;
     private List<ExamRegistrationDTO> procedureDone;
     private int resolvedExamId;
-    private int resolvedSessionId;
 
     public List<ExamRegistrationDTO> getFullQueue() {
         return fullQueue;
@@ -42,13 +41,5 @@ public class CandidateQueueSnapshotDTO {
 
     public void setResolvedExamId(int resolvedExamId) {
         this.resolvedExamId = resolvedExamId;
-    }
-
-    public int getResolvedSessionId() {
-        return resolvedSessionId;
-    }
-
-    public void setResolvedSessionId(int resolvedSessionId) {
-        this.resolvedSessionId = resolvedSessionId;
     }
 }

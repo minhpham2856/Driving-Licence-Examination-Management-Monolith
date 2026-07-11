@@ -35,9 +35,9 @@ public class ExaminerSlotDTO {
     // Sets the ExaminerSchedule primary key (populated from DB result set)
     public void setSessionExaminerId(int v) { this.sessionExaminerId = v; }
     // Returns the exam session ID this slot belongs to
-    public int getExamSessionId() { return examSessionId; }
+    public int getExamId() { return examSessionId; }
     // Sets the exam session ID
-    public void setExamSessionId(int v) { this.examSessionId = v; }
+    public void setExamId(int v) { this.examSessionId = v; }
     // Returns the exam area ID assigned to this slot
     public int getAreaId() { return areaId; }
     // Sets the exam area ID

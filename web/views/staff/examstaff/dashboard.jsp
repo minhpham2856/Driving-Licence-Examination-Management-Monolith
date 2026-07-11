@@ -24,7 +24,7 @@
             <div class="examstaff-flash examstaff-flash--error">${requestScope.sessionControlError}</div>
         </c:if>
 
-        <c:if test="${not empty currentSession}">
+        <c:if test="${not empty currentExam}">
         <section class="report-pane dashboard-sessions-panel" aria-label="Điều hành kỳ thi">
             <div class="report-pane__header dashboard-sessions-panel__header">
                 <h2 class="report-pane__title dashboard-sessions-panel__title">Điều hành kỳ thi</h2>
@@ -80,7 +80,7 @@
         <c:set var="processingPercent" value="${totalCandidatesCount gt 0 ? (processingCount * 100.0) / totalCandidatesCount : 0.0}" />
         <c:set var="pendingPercent" value="${totalCandidatesCount gt 0 ? (pendingCount * 100.0) / totalCandidatesCount : 0.0}" />
 
-        <c:if test="${not empty currentSession and totalCandidatesCount == 0}">
+        <c:if test="${not empty currentExam and totalCandidatesCount == 0}">
             <div class="examstaff-flash examstaff-flash--warning">
                 Kỳ thi đang chọn chưa có thí sinh đăng ký. Chọn kỳ thi khác ở sidebar.
             </div>
@@ -93,15 +93,15 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">
-                        Kỳ thi hạng ${not empty currentSession ? currentSession.licenseCode : '—'}
+                        Kỳ thi hạng ${not empty currentExam ? currentExam.licenseCode : '—'}
                     </span>
                     <span class="stat-label">
-                        <c:if test="${not empty currentSession and not empty currentSession.examDate}">
-                            <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>
+                        <c:if test="${not empty currentExam and not empty currentExam.examDate}">
+                            <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy"/>
                         </c:if>
-                        <c:if test="${empty currentSession or empty currentSession.examDate}">—</c:if>
-                        <c:if test="${not empty currentSession}">
-                            — ${currentSession.status}
+                        <c:if test="${empty currentExam or empty currentExam.examDate}">—</c:if>
+                        <c:if test="${not empty currentExam}">
+                            — ${currentExam.status}
                         </c:if>
                     </span>
                 </div>
@@ -338,6 +338,4 @@
 
         </div>
 
-<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
-    <jsp:param name="extraScript" value="/assets/js/dashboard.js" />
-</jsp:include>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

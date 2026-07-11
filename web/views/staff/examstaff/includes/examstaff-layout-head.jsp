@@ -21,10 +21,10 @@
         <jsp:param name="pageCss" value="${param.pageCss}" />
     </jsp:include>
 </head>
-<body class="has-side-nav-bar examstaff-portal"<c:if test="${not empty param.dataAllocSession}"> data-alloc-session="<c:out value='${param.dataAllocSession}' />"</c:if><c:if test="${not empty param.dataAuditBase}"> data-audit-base="<c:out value='${ctx}${param.dataAuditBase}' />"</c:if><c:if test="${not empty param.dataAuditExportBase}"> data-audit-export-base="<c:out value='${ctx}${param.dataAuditExportBase}' />"</c:if><c:if test="${not empty param.bodyAttrs}"> <c:out value="${param.bodyAttrs}" escapeXml="false" /></c:if>>
+<body class="has-side-nav-bar examstaff-portal"<c:if test="${not empty param.dataAllocExam}"> data-alloc-exam="<c:out value='${param.dataAllocExam}' />"</c:if><c:if test="${not empty param.dataAuditBase}"> data-audit-base="<c:out value='${ctx}${param.dataAuditBase}' />"</c:if><c:if test="${not empty param.dataAuditExportBase}"> data-audit-export-base="<c:out value='${ctx}${param.dataAuditExportBase}' />"</c:if><c:if test="${not empty param.bodyAttrs}"> <c:out value="${param.bodyAttrs}" escapeXml="false" /></c:if>>
 <jsp:include page="/views/layout/sidebar-examstaff.jsp">
     <jsp:param name="activeSidebar" value="${param.activeSidebar}" />
-    <jsp:param name="sessionId" value="${param.sessionId}" />
+    <jsp:param name="examId" value="${param.examId}" />
 </jsp:include>
 <c:if test="${param.resolveQueue ne 'false'}">
     <jsp:include page="/views/staff/examstaff/includes/resolve-candidate-queue.jsp" />
@@ -34,6 +34,6 @@
         <jsp:param name="pageTitle" value="${param.pageTitle}" />
         <jsp:param name="sectionTitle" value="${param.sectionTitle}" />
         <jsp:param name="sectionUrl" value="${param.sectionUrl}" />
-        <jsp:param name="sessionId" value="${param.sessionId}" />
+        <jsp:param name="examId" value="${param.examId}" />
     </jsp:include>
     <main class="examstaff-main${not empty param.mainClass ? ' '.concat(param.mainClass) : ''}">

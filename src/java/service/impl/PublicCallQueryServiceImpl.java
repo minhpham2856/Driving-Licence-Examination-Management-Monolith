@@ -1,6 +1,6 @@
 package service.impl;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.PublicCallSnapshotDTO;
 import model.view.CallBoardState;
@@ -36,7 +36,7 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
     @Override
     public PublicCallSnapshotDTO loadSnapshot(int examId, String webRootPath, CallBoardState board) {
         PublicCallSnapshotDTO snapshot = new PublicCallSnapshotDTO();
-        snapshot.setSessionId(examId);
+        snapshot.setExamId(examId);
         snapshot.setWaitingQueue(new ArrayList<>());
         snapshot.setUpdatedAtMs(System.currentTimeMillis());
 
@@ -62,9 +62,9 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
 
         ExamRegistrationDTO callingCandidate = CallQueueRules.findBySbd(queue, callingSbd);
         ExamRegistrationDTO nextCandidate = CallQueueRules.findBySbd(queue, nextSbd);
-        SessionDTO currentSession = sessionQueryService.findBySessionId(examId);
+        ExamSummaryDTO currentExam = sessionQueryService.findByExamId(examId);
 
-        snapshot.setCurrentSession(currentSession);
+        snapshot.setCurrentExam(currentExam);
         snapshot.setCallingCandidate(callingCandidate);
         snapshot.setNextCandidate(nextCandidate);
         snapshot.setWaitingQueue(CallQueueRules.listWaitingTop(queue, 10));

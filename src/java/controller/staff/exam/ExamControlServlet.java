@@ -2,6 +2,7 @@ package controller.staff.exam;
 
 import controller.staff.exam.adapter.StaffAuditLogSupport;
 import controller.staff.exam.adapter.CallBoardHttpFacade;
+import controller.staff.exam.http.ExamStaffHttpSupport;
 import controller.staff.exam.module.ExamStaffWebModule;
 import service.ExamSessionControlService;
 import service.impl.ExamSessionControlServiceImpl;
@@ -17,8 +18,11 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-@WebServlet("/views/staff/examstaff/session-control")
-public class SessionControlServlet extends HttpServlet {
+@WebServlet({
+        "/views/staff/examstaff/exam-control",
+        "/views/staff/examstaff/session-control"
+})
+public class ExamControlServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
 
@@ -33,28 +37,28 @@ public class SessionControlServlet extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
-        int sessionId = parseSessionId(request, session);
+        int examId = parseExamId(request);
         int staffId = SessionUserHelper.resolveUserId(session);
-        String redirect = buildRedirect(request, sessionId);
+        String redirect = buildRedirect(request, examId);
 
-        if ("startSession".equals(action)) {
-            ExamSessionControlService.StartResult result = controlService.startSession(sessionId, staffId);
+        if ("startExam".equals(action) || "startSession".equals(action)) {
+            ExamSessionControlService.StartResult result = controlService.startExam(examId, staffId);
             if (result.isSuccess()) {
-                applyRuntimeStart(getServletContext(), session, sessionId);
+                applyRuntimeStart(getServletContext(), session, examId);
                 auditLogSupport.persist(session, "UPDATE Session",
                         "Bắt đầu " + result.getSessionName()
                                 + " (" + result.getExaminerCount() + " sát hạch viên)",
-                        sessionId);
+                        examId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
                 session.setAttribute("sessionControlError", result.getMessage());
             }
-        } else if ("endSession".equals(action)) {
-            ExamSessionControlService.EndResult result = controlService.endSession(sessionId);
+        } else if ("endExam".equals(action) || "endSession".equals(action)) {
+            ExamSessionControlService.EndResult result = controlService.endExam(examId);
             if (result.isSuccess()) {
-                applyRuntimeEnd(getServletContext(), session, sessionId);
+                applyRuntimeEnd(getServletContext(), session, examId);
                 auditLogSupport.persist(session, "UPDATE Session",
-                        "Kết thúc " + result.getSessionName(), sessionId);
+                        "Kết thúc " + result.getSessionName(), examId);
                 session.setAttribute("sessionControlMsg", result.getMessage());
             } else {
                 session.setAttribute("sessionControlError", result.getMessage());
@@ -70,50 +74,52 @@ public class SessionControlServlet extends HttpServlet {
         doPost(request, response);
     }
 
-    private int parseSessionId(HttpServletRequest request, HttpSession session) {
-        String param = request.getParameter("sessionId");
-        if (param != null && !param.trim().isEmpty()) {
-            try {
-                return Integer.parseInt(param.trim());
-            } catch (NumberFormatException ignored) {
-            }
+    private int parseExamId(HttpServletRequest request) {
+        int examId = ExamStaffHttpSupport.parseExamIdParam(request);
+        if (examId > 0) {
+            return examId;
         }
-        Integer selected = (Integer) session.getAttribute("selectedSessionId");
-        return selected != null ? selected : 2;
+        Integer selectedExamId = ExamStaffHttpSupport.readSelectedExamId(request);
+        return selectedExamId != null ? selectedExamId : 2;
     }
 
-    private String buildRedirect(HttpServletRequest request, int sessionId) {
+    private String buildRedirect(HttpServletRequest request, int examId) {
         String from = request.getParameter("redirect");
         String ctx = request.getContextPath();
         if ("examiner-allocation".equals(from)) {
-            return ctx + "/views/staff/examstaff/examiner-allocation?sessionId=" + sessionId;
+            return ctx + "/views/staff/examstaff/examiner-allocation?examId=" + examId;
         }
-        return ctx + "/views/staff/examstaff/dashboard?sessionId=" + sessionId;
+        return ctx + "/views/staff/examstaff/dashboard?examId=" + examId;
     }
 
-    private void applyRuntimeStart(ServletContext ctx, HttpSession session, int sessionId) {
+    private void applyRuntimeStart(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null) {
-            ctx.setAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_SESSION_ID, sessionId);
+            ctx.setAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_EXAM_ID, examId);
+            ctx.removeAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_SESSION_ID);
         }
         if (session != null) {
-            session.setAttribute("selectedSessionId", sessionId);
+            session.setAttribute("selectedExamId", examId);
             session.removeAttribute("shiftEnded");
             session.removeAttribute("shiftPaused");
             session.removeAttribute("callingSbd");
         }
     }
 
-    private void applyRuntimeEnd(ServletContext ctx, HttpSession session, int sessionId) {
+    private void applyRuntimeEnd(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null) {
-            Integer active = (Integer) ctx.getAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_SESSION_ID);
-            if (active != null && active == sessionId) {
+            Integer active = (Integer) ctx.getAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_EXAM_ID);
+            if (active == null) {
+                active = (Integer) ctx.getAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_SESSION_ID);
+            }
+            if (active != null && active == examId) {
+                ctx.removeAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_EXAM_ID);
                 ctx.removeAttribute(ExamSessionControlServiceImpl.CTX_ACTIVE_SESSION_ID);
             }
-            callBoardHttp.sync(ctx, sessionId, null, null, true);
+            callBoardHttp.sync(ctx, examId, null, null, true);
         }
         if (session != null) {
-            Integer selected = (Integer) session.getAttribute("selectedSessionId");
-            if (selected != null && selected == sessionId) {
+            Integer selected = (Integer) session.getAttribute("selectedExamId");
+            if (selected != null && selected == examId) {
                 session.setAttribute("shiftEnded", "true");
                 session.removeAttribute("callingSbd");
             }

@@ -74,7 +74,7 @@ public class ExaminerPortalFilter extends HttpFilter {
         ExaminerSlotDTO slot = slots.get(0);
         boolean isTheory = ExamSection.isTheory(slot.getExamTypeName());
         session.setAttribute(ATTR_SLOT, slot);
-        session.setAttribute(ATTR_ACTIVE_SESSION_ID, slot.getExamSessionId());
+        session.setAttribute(ATTR_ACTIVE_SESSION_ID, slot.getExamId());
         session.setAttribute(ATTR_EXAM_SECTION_NAME, resolveSectionName(slot));
         session.setAttribute(ATTR_SECTION_THEORY, isTheory);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.TRUE);

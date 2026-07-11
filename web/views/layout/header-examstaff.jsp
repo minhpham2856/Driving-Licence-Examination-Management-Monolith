@@ -6,9 +6,9 @@
 <header class="examiner-header examiner-header--examstaff">
     <div class="examiner-header__title examiner-header__crumb-row">
         <c:url var="dashboardUrl" value="/views/staff/examstaff/dashboard">
-            <c:if test="${not empty param.sessionId}"><c:param name="sessionId" value="${param.sessionId}" /></c:if>
-            <c:if test="${empty param.sessionId and not empty requestScope.selectedSessionId}">
-                <c:param name="sessionId" value="${requestScope.selectedSessionId}" />
+            <c:if test="${not empty param.examId}"><c:param name="examId" value="${param.examId}" /></c:if>
+            <c:if test="${empty param.examId and not empty requestScope.selectedExamId}">
+                <c:param name="examId" value="${requestScope.selectedExamId}" />
             </c:if>
         </c:url>
         <c:choose>
@@ -40,13 +40,13 @@
     </div>
     <div class="examiner-header__meta examiner-header__session">
         <c:choose>
-            <c:when test="${not empty requestScope.currentSession}">
+            <c:when test="${not empty requestScope.currentExam}">
                 <span class="examiner-header__session-license">
-                    Hạng <c:out value="${requestScope.currentSession.licenseCode}" default="—" />
+                    Hạng <c:out value="${requestScope.currentExam.licenseCode}" default="—" />
                 </span>
-                <c:if test="${not empty requestScope.currentSession.examDate}">
+                <c:if test="${not empty requestScope.currentExam.examDate}">
                     <span class="examiner-header__session-date">
-                        <fmt:formatDate value="${requestScope.currentSession.examDate}" pattern="dd/MM/yyyy" />
+                        <fmt:formatDate value="${requestScope.currentExam.examDate}" pattern="dd/MM/yyyy" />
                     </span>
                 </c:if>
             </c:when>

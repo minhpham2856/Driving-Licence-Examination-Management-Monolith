@@ -3,7 +3,6 @@ package service;
 import service.impl.AllocationActionServiceImpl;
 import service.impl.AllocationStageViewServiceImpl;
 import service.impl.CallBoardSyncServiceImpl;
-import service.impl.CandidateCallBoardServiceImpl;
 import service.impl.CandidateCallPageServiceImpl;
 import service.impl.CandidateDossierServiceImpl;
 import service.impl.CandidateCallRecordServiceImpl;
@@ -27,7 +26,7 @@ import service.impl.ProcedureFeeQueryServiceImpl;
 import service.impl.ProcedurePaymentServiceImpl;
 import service.impl.ProcedureWorkflowServiceImpl;
 import service.impl.PublicCallQueryServiceImpl;
-import service.impl.SessionSelectServiceImpl;
+import service.impl.ExamSelectServiceImpl;
 import service.impl.StaffAuditExportServiceImpl;
 import service.impl.StaffAuditLogServiceImpl;
 import service.impl.StaffAuditPageServiceImpl;
@@ -49,7 +48,6 @@ public final class ExamStaffServices {
     private final CandidateCallWorkflowService candidateCallWorkflowService;
     private final CandidateCallPageService candidateCallPageService;
     private final CallBoardSyncService callBoardSyncService;
-    private final CandidateCallBoardService candidateCallBoardService;
     private final PublicCallQueryService publicCallQueryService;
     private final ProcedureFeeQueryService procedureFeeQueryService;
     private final ExamAreaQueryService examAreaQueryService;
@@ -59,7 +57,7 @@ public final class ExamStaffServices {
     private final CandidatePhotoService candidatePhotoService;
     private final CandidateDossierService candidateDossierService;
     private final ProcedureWorkflowService procedureWorkflowService;
-    private final SessionSelectService sessionSelectService;
+    private final ExamSelectService examSelectService;
     private final ExamSessionControlService examSessionControlService;
     private final ExamStaffDashboardService examStaffDashboardService;
     private final StaffAuditPageService staffAuditPageService;
@@ -87,7 +85,6 @@ public final class ExamStaffServices {
                 this.candidateCallWorkflowService, this.candidateCallingService,
                 this.candidateQueueService, this.sessionQueryService);
         this.callBoardSyncService = new CallBoardSyncServiceImpl();
-        this.candidateCallBoardService = new CandidateCallBoardServiceImpl();
         this.publicCallQueryService = new PublicCallQueryServiceImpl(
                 new service.impl.CandidateQueueQueryServiceImpl(), this.sessionQueryService,
                 this.callBoardSyncService);
@@ -104,7 +101,7 @@ public final class ExamStaffServices {
                 this.candidatePhotoService,
                 this.candidateQueueService,
                 new ExaminerAllocationServiceImpl());
-        this.sessionSelectService = new SessionSelectServiceImpl();
+        this.examSelectService = new ExamSelectServiceImpl();
         this.examSessionControlService = new ExamSessionControlServiceImpl(
                 new dao.impl.ExamSessionDAOImpl(), new dao.impl.ExaminerAssignmentDAOImpl());
         this.examStaffDashboardService = new ExamStaffDashboardServiceImpl(
@@ -118,10 +115,6 @@ public final class ExamStaffServices {
         this.staffReportExportService = new StaffReportExportServiceImpl();
         this.examinerAllocationService = new ExaminerAllocationServiceImpl();
         this.examinerAllocationDeskService = new ExaminerAllocationDeskServiceImpl();
-    }
-
-    public ExamStaffSessionQueryService sessionQuery() {
-        return sessionQueryService;
     }
 
     public CandidateQueueService candidateQueue() {
@@ -140,24 +133,12 @@ public final class ExamStaffServices {
         return candidateCallingService;
     }
 
-    public CandidateCallRecordService callRecord() {
-        return candidateCallRecordService;
-    }
-
-    public CandidateCallWorkflowService callWorkflow() {
-        return candidateCallWorkflowService;
-    }
-
     public CandidateCallPageService callPage() {
         return candidateCallPageService;
     }
 
     public CallBoardSyncService callBoardSync() {
         return callBoardSyncService;
-    }
-
-    public CandidateCallBoardService callBoard() {
-        return candidateCallBoardService;
     }
 
     public PublicCallQueryService publicCallQuery() {
@@ -196,8 +177,8 @@ public final class ExamStaffServices {
         return procedureWorkflowService;
     }
 
-    public SessionSelectService sessionSelect() {
-        return sessionSelectService;
+    public ExamSelectService examSelect() {
+        return examSelectService;
     }
 
     public ExamSessionControlService sessionControl() {

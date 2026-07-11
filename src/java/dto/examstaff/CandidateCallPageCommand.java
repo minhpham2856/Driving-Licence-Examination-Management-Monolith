@@ -14,7 +14,7 @@ public class CandidateCallPageCommand {
     private String view;
     private String returnView;
     private int examId;
-    private int boardSessionId;
+    private int boardExamId;
     private int calledByStaffId;
     private String webRoot;
     private boolean shiftEnded;
@@ -22,7 +22,7 @@ public class CandidateCallPageCommand {
     private String callingSbd;
     private Integer lastLoadedExamId;
     private List<String> callQueueOrder;
-    private Integer callQueueOrderSessionId;
+    private Integer callQueueOrderExamId;
     private List<ExamRegistrationDTO> permanentAbsents = new ArrayList<>();
     private List<ExamRegistrationDTO> cachedQueue = new ArrayList<>();
     private CallBoardState board;
@@ -67,12 +67,12 @@ public class CandidateCallPageCommand {
         this.examId = examId;
     }
 
-    public int getBoardSessionId() {
-        return boardSessionId;
+    public int getBoardExamId() {
+        return boardExamId;
     }
 
-    public void setBoardSessionId(int boardSessionId) {
-        this.boardSessionId = boardSessionId;
+    public void setBoardExamId(int boardExamId) {
+        this.boardExamId = boardExamId;
     }
 
     public int getCalledByStaffId() {
@@ -131,12 +131,12 @@ public class CandidateCallPageCommand {
         this.callQueueOrder = callQueueOrder;
     }
 
-    public Integer getCallQueueOrderSessionId() {
-        return callQueueOrderSessionId;
+    public Integer getCallQueueOrderExamId() {
+        return callQueueOrderExamId;
     }
 
-    public void setCallQueueOrderSessionId(Integer callQueueOrderSessionId) {
-        this.callQueueOrderSessionId = callQueueOrderSessionId;
+    public void setCallQueueOrderExamId(Integer callQueueOrderExamId) {
+        this.callQueueOrderExamId = callQueueOrderExamId;
     }
 
     public List<ExamRegistrationDTO> getPermanentAbsents() {

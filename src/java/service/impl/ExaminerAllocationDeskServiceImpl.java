@@ -2,12 +2,11 @@ package service.impl;
 
 import dto.ExaminerSlotDTO;
 import util.examstaff.ExamStaffSessionRules;
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.UserDTO;
 import dto.examstaff.ExaminerAllocationActionResultDTO;
 import dto.examstaff.ExaminerAllocationViewDTO;
 import model.ExamArea;
-import model.ExamDevice;
 import service.ExaminerAllocationDeskService;
 import service.ExaminerAllocationService;
 import util.ExamAreaTypeResolver;
@@ -25,14 +24,13 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
 
     @Override
     public ExaminerAllocationViewDTO buildAllocationView(int examId, int sessionId,
-            List<SessionDTO> allSessions) {
+            List<ExamSummaryDTO> allSessions) {
         ExaminerAllocationViewDTO view = new ExaminerAllocationViewDTO();
-        List<SessionDTO> daySessions = ExamStaffSessionRules.sessionsForExam(allSessions, examId);
-        view.setDaySessions(daySessions);
+        List<ExamSummaryDTO> daySessions = ExamStaffSessionRules.sessionsForExam(allSessions, examId);
 
         List<ExaminerSlotDTO> dayAssignments = new ArrayList<>();
         Set<Integer> busyIds = new HashSet<>();
-        for (SessionDTO ds : daySessions) {
+        for (ExamSummaryDTO ds : daySessions) {
             List<ExaminerSlotDTO> slots = allocationService.getAssignmentsBySessionId(ds.getId());
             dayAssignments.addAll(slots);
             for (ExaminerSlotDTO slot : slots) {
@@ -42,12 +40,6 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
             }
         }
         view.setDayAssignments(dayAssignments);
-
-        if (sessionId > 0) {
-            view.setSessionAssignments(allocationService.getAssignmentsBySessionId(sessionId));
-        } else {
-            view.setSessionAssignments(List.of());
-        }
 
         List<UserDTO> allExaminers = allocationService.getActiveExaminers();
         List<UserDTO> availableExaminers = new ArrayList<>();
@@ -63,35 +55,21 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         view.setAvailableExaminers(availableExaminers);
         view.setBusyExaminers(busyExaminers);
 
-        List<ExamArea> sessionAreas = sessionId > 0
-                ? allocationService.getAvailableAreasForSession(sessionId)
-                : List.of();
-        view.setSessionAreas(sessionAreas);
-
-        Map<Integer, List<ExamDevice>> devicesByArea = new HashMap<>();
-        for (ExamArea area : sessionAreas) {
-            devicesByArea.put(area.getId(), allocationService.getDevicesByAreaId(area.getId()));
-        }
-        view.setDevicesByArea(devicesByArea);
-
-        Map<String, List<ExamArea>> areasBySession = new HashMap<>();
         List<Map<String, Object>> areaAssignOptions = new ArrayList<>();
-        for (SessionDTO ds : daySessions) {
+        for (ExamSummaryDTO ds : daySessions) {
             List<ExamArea> areas = allocationService.getAvailableAreasForSession(ds.getId()).stream()
                     .filter(ExamAreaTypeResolver::isAssignableExamArea)
                     .toList();
-            areasBySession.put(String.valueOf(ds.getId()), areas);
             for (ExamArea area : areas) {
                 Map<String, Object> opt = new HashMap<>();
-                opt.put("sessionId", ds.getId());
-                opt.put("sessionName", ds.getSessionName());
+                opt.put("examId", ds.getId());
+                opt.put("examName", ds.getSessionName());
                 opt.put("areaId", area.getId());
                 opt.put("areaName", area.getAreaName());
                 opt.put("areaType", area.getAreaType());
                 areaAssignOptions.add(opt);
             }
         }
-        view.setAreasBySession(areasBySession);
         view.setAreaAssignOptions(areaAssignOptions);
         return view;
     }
@@ -111,7 +89,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
         Map<Integer, UserDTO> examinerMap = buildExaminerMap();
 
-        SessionDTO targetSession = allocationService.getSessionById(targetSessionId);
+        ExamSummaryDTO targetSession = allocationService.getSessionById(targetSessionId);
         ExamArea area = allocationService.getAreaById(areaId);
         UserDTO examiner = examinerMap.get(examinerUserId);
 
@@ -126,7 +104,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         }
 
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
-        slot.setExamSessionId(targetSessionId);
+        slot.setExamId(targetSessionId);
         slot.setAreaId(areaId);
         slot.setExamTypeId(targetSession.getExamTypeId());
         slot.setExaminerUserId(examinerUserId);
@@ -141,10 +119,11 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         boolean ok = allocationService.assignExaminer(slot);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("Đã phân công giám khảo vào phòng " + area.getAreaName() + ".");
+            result.setAlertMsg("Đã phân công giám khảo " + slot.getExaminerName()
+                    + " vào " + area.getAreaName() + ".");
             result.setAuditAction("ASSIGN Examiner");
-            result.setAuditDetails("Phân công giám khảo userId=" + examinerUserId
-                    + " kỳ " + targetSessionId + ", phòng " + area.getAreaName());
+            result.setAuditDetails(formatAssignAuditDetails(slot.getExaminerName(), area.getAreaName(),
+                    targetSession.getSessionName()));
         } else {
             result.setErrorMsg(
                     "Giám khảo đã được phân công ở phòng khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán mới.");
@@ -160,23 +139,91 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
             return result;
         }
 
+        ExaminerSlotDTO existing = findSlotByKey(slotKey);
         boolean ok = allocationService.removeAssignment(slotKey);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("Đã gỡ phân công giám khảo.");
+            result.setAlertMsg(existing != null
+                    ? "Đã gỡ phân công giám khảo " + resolveSlotExaminerLabel(existing) + "."
+                    : "Đã gỡ phân công giám khảo.");
             result.setAuditAction("REMOVE Examiner");
-            result.setAuditDetails("Gỡ phân công slot=" + slotKey);
+            result.setAuditDetails(formatRemoveAuditDetails(existing));
         } else {
             result.setErrorMsg("Gỡ phân công thất bại. Vui lòng thử lại.");
         }
         return result;
     }
 
+    private ExaminerSlotDTO findSlotByKey(String slotKey) {
+        String[] parts = slotKey.split(":");
+        if (parts.length < 3) {
+            return null;
+        }
+        try {
+            int sessionId = Integer.parseInt(parts[0].trim());
+            int areaId = Integer.parseInt(parts[1].trim());
+            int examinerUserId = Integer.parseInt(parts[2].trim());
+            if (sessionId <= 0) {
+                return null;
+            }
+            for (ExaminerSlotDTO slot : allocationService.getAssignmentsBySessionId(sessionId)) {
+                if (slot.getAreaId() == areaId && slot.getExaminerUserId() == examinerUserId) {
+                    return slot;
+                }
+            }
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+        return null;
+    }
+
+    private static String formatAssignAuditDetails(String examinerName, String areaName, String sessionName) {
+        StringBuilder details = new StringBuilder("Phân công giám khảo ");
+        details.append(blankToDash(examinerName));
+        details.append(" vào ").append(blankToDash(areaName));
+        appendSessionSuffix(details, sessionName);
+        return details.toString();
+    }
+
+    private static String formatRemoveAuditDetails(ExaminerSlotDTO slot) {
+        if (slot == null) {
+            return "Gỡ phân công giám khảo.";
+        }
+        StringBuilder details = new StringBuilder("Gỡ phân công giám khảo ");
+        details.append(resolveSlotExaminerLabel(slot));
+        details.append(" khỏi ").append(blankToDash(slot.getAreaName()));
+        appendSessionSuffix(details, slot.getSessionName());
+        return details.toString();
+    }
+
+    private static void appendSessionSuffix(StringBuilder details, String sessionName) {
+        if (sessionName != null && !sessionName.isBlank()) {
+            details.append(" — kỳ thi ").append(sessionName.trim());
+        }
+    }
+
+    private static String resolveSlotExaminerLabel(ExaminerSlotDTO slot) {
+        if (slot.getExaminerName() != null && !slot.getExaminerName().isBlank()) {
+            return slot.getExaminerName().trim();
+        }
+        if (slot.getExaminerUsername() != null && !slot.getExaminerUsername().isBlank()) {
+            return slot.getExaminerUsername().trim();
+        }
+        return "userId=" + slot.getExaminerUserId();
+    }
+
+    private static String blankToDash(String value) {
+        return value == null || value.isBlank() ? "—" : value.trim();
+    }
+
     private static String resolveExaminerName(UserDTO examiner) {
         if (examiner.getProfile() != null && examiner.getProfile().getFullName() != null
                 && !examiner.getProfile().getFullName().isBlank()) {
-            return examiner.getProfile().getFullName();
+            return examiner.getProfile().getFullName().trim();
         }
-        return examiner.getUsername();
+        if (examiner.getUsername() != null && !examiner.getUsername().isBlank()) {
+            return examiner.getUsername().trim();
+        }
+        return "userId=" + examiner.getId();
     }
 }

@@ -14,15 +14,6 @@ public final class AllocationPassRules {
         return LicenseClassRules.normalizeManaged(raw);
     }
 
-    public static int theoryQuestionTotal(String license) {
-        return switch (licenseGroup(license)) {
-            case MOTORCYCLE -> 40;
-            case CAR -> 50;
-            case TRUCK_C -> 55;
-            case TRUCK_D -> 60;
-        };
-    }
-
     public static int theoryMinCorrect(String license) {
         return switch (licenseGroup(license)) {
             case MOTORCYCLE -> 36;
@@ -42,10 +33,6 @@ public final class AllocationPassRules {
 
     public static boolean isMotorcycle(String license) {
         return licenseGroup(license) == LicenseGroup.MOTORCYCLE;
-    }
-
-    public static boolean hasPracticalScoreToShow(ExamRegistrationDTO c) {
-        return c != null && c.getPracticalScore() != null;
     }
 
     public static boolean isPracticalStageEligible(ExamRegistrationDTO c) {
@@ -70,10 +57,6 @@ public final class AllocationPassRules {
 
     public static String toPassFlag(boolean passed) {
         return passed ? "passed" : "failed";
-    }
-
-    public static int theoryDemoPassScore(String license) {
-        return theoryMinCorrect(license);
     }
 
     public static void applyToCandidate(ExamRegistrationDTO c) {
@@ -103,12 +86,6 @@ public final class AllocationPassRules {
                 c.setPracticalPassed("none");
             }
         }
-    }
-
-    public static String theoryRuleLabel(String license) {
-        int min = theoryMinCorrect(license);
-        int total = theoryQuestionTotal(license);
-        return min + "/" + total + " câu đúng, không sai điểm liệt";
     }
 
     private enum LicenseGroup {

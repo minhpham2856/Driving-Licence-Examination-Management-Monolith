@@ -36,7 +36,7 @@ public final class ExamStaffWebModule {
     }
 
     public CallBoardHttpFacade callBoardHttp() {
-        return new CallBoardHttpFacade(services.callBoardSync(), services.callBoard());
+        return new CallBoardHttpFacade(services.callBoardSync());
     }
 
     public ExamStaffSelectionFacade selectionFacade() {

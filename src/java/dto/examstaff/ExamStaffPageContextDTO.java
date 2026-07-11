@@ -1,6 +1,6 @@
 package dto.examstaff;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
@@ -8,8 +8,7 @@ import java.util.List;
 public class ExamStaffPageContextDTO {
 
     private int examId;
-    private int sessionId;
-    private List<SessionDTO> allSessions;
+    private List<ExamSummaryDTO> allSessions;
     private List<ExamRegistrationDTO> candidates;
     private ExamStaffPickerViewDTO pickerView;
 
@@ -21,19 +20,11 @@ public class ExamStaffPageContextDTO {
         this.examId = examId;
     }
 
-    public int getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public List<SessionDTO> getAllSessions() {
+    public List<ExamSummaryDTO> getAllSessions() {
         return allSessions;
     }
 
-    public void setAllSessions(List<SessionDTO> allSessions) {
+    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
         this.allSessions = allSessions;
     }
 

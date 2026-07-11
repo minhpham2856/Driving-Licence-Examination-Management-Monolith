@@ -18,42 +18,45 @@ public final class ExamStaffHttpSupport {
         response.setDateHeader("Expires", 0);
     }
 
-    public static int parseSessionIdParam(HttpServletRequest request) {
+    /**
+     * Đọc mã kỳ thi từ query/form param {@code examId}.
+     */
+    public static int parseExamIdParam(HttpServletRequest request) {
         if (request == null) {
             return 0;
         }
-        String[] values = request.getParameterValues("sessionId");
-        if (values == null || values.length == 0) {
-            values = request.getParameterValues("examSessionId");
-        }
-        if (values == null || values.length == 0) {
-            return 0;
-        }
-        for (int i = values.length - 1; i >= 0; i--) {
-            if (values[i] == null || values[i].isBlank()) {
-                continue;
-            }
-            try {
-                int parsed = Integer.parseInt(values[i].trim());
-                if (parsed > 0) {
-                    return parsed;
-                }
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return 0;
+        return parsePositiveIntParam(request, "examId");
     }
 
-    public static Integer readSelectedSessionId(HttpServletRequest request) {
+    /** @deprecated dùng {@link #parseExamIdParam(HttpServletRequest)} */
+    @Deprecated
+    public static int parseSessionIdParam(HttpServletRequest request) {
+        return parseExamIdParam(request);
+    }
+
+    public static Integer readSelectedExamId(HttpServletRequest request) {
         HttpSession session = request != null ? request.getSession(false) : null;
         if (session == null) {
             return null;
         }
-        Object selected = session.getAttribute("selectedSessionId");
+        Object selected = session.getAttribute("selectedExamId");
         if (selected instanceof Integer id && id > 0) {
             return id;
         }
+        // bookmark / session cũ
+        selected = session.getAttribute("selectedSessionId");
+        if (selected instanceof Integer id && id > 0) {
+            session.setAttribute("selectedExamId", id);
+            session.removeAttribute("selectedSessionId");
+            return id;
+        }
         return null;
+    }
+
+    /** @deprecated dùng {@link #readSelectedExamId(HttpServletRequest)} */
+    @Deprecated
+    public static Integer readSelectedSessionId(HttpServletRequest request) {
+        return readSelectedExamId(request);
     }
 
     public static void consumeFlash(HttpSession session, String sessionKey,
@@ -112,6 +115,9 @@ public final class ExamStaffHttpSupport {
                         rebuilt.append(key).append('=').append(value);
                         replaced = true;
                     }
+                } else if ("examId".equals(key) && part.startsWith("sessionId=")) {
+                    // bỏ sessionId cũ khi đang upsert examId
+                    continue;
                 } else {
                     if (rebuilt.length() > 0) {
                         rebuilt.append('&');
@@ -127,5 +133,25 @@ public final class ExamStaffHttpSupport {
             rebuilt.append(key).append('=').append(value);
         }
         return base + "?" + rebuilt;
+    }
+
+    private static int parsePositiveIntParam(HttpServletRequest request, String name) {
+        String[] values = request.getParameterValues(name);
+        if (values == null || values.length == 0) {
+            return 0;
+        }
+        for (int i = values.length - 1; i >= 0; i--) {
+            if (values[i] == null || values[i].isBlank()) {
+                continue;
+            }
+            try {
+                int parsed = Integer.parseInt(values[i].trim());
+                if (parsed > 0) {
+                    return parsed;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0;
     }
 }

@@ -1,11 +1,11 @@
 package service;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.examstaff.ExamStaffDashboardViewDTO;
 
 import java.util.List;
 
 public interface ExamStaffDashboardService {
 
-    ExamStaffDashboardViewDTO buildView(List<SessionDTO> allSessions, int examId);
+    ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allSessions, int examId);
 }

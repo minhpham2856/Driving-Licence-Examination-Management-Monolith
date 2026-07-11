@@ -1,6 +1,6 @@
 package service.impl;
 
-import dto.SessionDTO;
+import dto.ExamSummaryDTO;
 import dto.exam.ExamRegistrationDTO;
 import dto.examstaff.CandidateDossierViewDTO;
 import dto.examstaff.ProcedureFeeResultDTO;
@@ -36,7 +36,7 @@ public class CandidateDossierServiceImpl implements CandidateDossierService {
 
         photoService.normalizePhotoPaths(webRoot, List.of(profile));
         ProcedureFeeResultDTO fees = procedureFeeQueryService.resolveProcedureFees(profile);
-        SessionDTO examSession = sessionQueryService.findBySessionId(profile.getExamSessionId());
+        ExamSummaryDTO examSession = sessionQueryService.findByExamId(profile.getExamId());
 
         String rawLicenseCode = profile.getLicenseCode() != null ? profile.getLicenseCode() : profile.getClazz();
         String normalized = LicenseClassRules.normalizeManaged(rawLicenseCode);

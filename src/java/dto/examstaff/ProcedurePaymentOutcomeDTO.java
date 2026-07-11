@@ -18,7 +18,7 @@ public class ProcedurePaymentOutcomeDTO {
     private Status status = Status.PAYMENT_FAILED;
     private ExamRegistrationDTO profile;
     private List<ExamRegistrationDTO> queue;
-    private int boardSessionId;
+    private int boardExamId;
     private ProcedureFeeResultDTO feePreview;
     private AutoAllocateResultDTO allocResult;
     private String paymentAuditDetail;
@@ -48,12 +48,12 @@ public class ProcedurePaymentOutcomeDTO {
         this.queue = queue;
     }
 
-    public int getBoardSessionId() {
-        return boardSessionId;
+    public int getBoardExamId() {
+        return boardExamId;
     }
 
-    public void setBoardSessionId(int boardSessionId) {
-        this.boardSessionId = boardSessionId;
+    public void setBoardExamId(int boardExamId) {
+        this.boardExamId = boardExamId;
     }
 
     public ProcedureFeeResultDTO getFeePreview() {

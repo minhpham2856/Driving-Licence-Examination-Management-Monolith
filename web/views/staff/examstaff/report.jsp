@@ -102,7 +102,7 @@
                                         </c:choose>
                                     </td>
                                     <td class="examiner-table__center">
-                                        <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedSessionId}">&amp;sessionId=${requestScope.selectedSessionId}</c:if>#procedure-desk"
+                                        <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedExamId}">&amp;examId=${requestScope.selectedExamId}</c:if>#procedure-desk"
                                            class="allocation-table-action allocation-table-action--theory">Làm thủ tục</a>
                                     </td>
                                 </tr>

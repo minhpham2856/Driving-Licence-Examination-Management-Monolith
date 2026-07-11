@@ -7,9 +7,9 @@ public interface ExaminerScheduleDAO {
     boolean insert(ExaminerSchedule schedule);
     boolean delete(int examinerScheduleId);
     boolean deleteBySlot(int sessionId, int areaId, int examinerId);
-    List<ExaminerSchedule> getBySessionId(int sessionId);
+    List<ExaminerSchedule> getByExamId(int examId);
     List<ExaminerSchedule> getByExaminerId(int examinerId);
-    List<ExaminerSchedule> getBySessionIds(List<Integer> sessionIds);
+    List<ExaminerSchedule> getByExamIds(List<Integer> examIds);
     List<ExaminerSchedule> findByExamDate(Date examDate);
     Set<Integer> findBusyExaminerIdsByExamDate(Date examDate);
     List<ExaminerSchedule> findInProgressByExaminerId(int examinerUserId);

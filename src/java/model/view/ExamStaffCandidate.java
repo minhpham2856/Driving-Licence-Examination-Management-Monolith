@@ -48,11 +48,11 @@ public class ExamStaffCandidate {
         this.candidateId = candidateId;
     }
 
-    public int getExamSessionId() {
+    public int getExamId() {
         return examSessionId;
     }
 
-    public void setExamSessionId(int examSessionId) {
+    public void setExamId(int examSessionId) {
         this.examSessionId = examSessionId;
     }
 

@@ -20,7 +20,7 @@
             <div class="examiner-alert examiner-alert--error">${errorMsg}</div>
         </c:if>
 
-        <c:if test="${not empty currentSession}">
+        <c:if test="${not empty currentExam}">
         <section class="report-pane dashboard-sessions-panel" aria-label="Phân bổ giám khảo">
             <div class="report-pane__header dashboard-sessions-panel__header">
                 <h2 class="report-pane__title dashboard-sessions-panel__title">Phân bổ giám khảo</h2>
@@ -28,7 +28,7 @@
             <jsp:include page="/views/staff/examstaff/includes/exam-session-summary-line.jsp" />
             <p class="dashboard-sessions-panel__desc es-text-muted-sm" style="margin-top: -0.25rem;">
                 Phân công giám khảo theo phòng / phần thi trong kỳ.
-                <c:if test="${not empty currentSession.examTypeName}">Nội dung: ${currentSession.examTypeName}.</c:if>
+                <c:if test="${not empty currentExam.examTypeName}">Nội dung: ${currentExam.examTypeName}.</c:if>
             </p>
             <jsp:include page="/views/staff/examstaff/includes/exam-session-shift-chip.jsp">
                 <jsp:param name="redirect" value="examiner-allocation" />
@@ -68,9 +68,9 @@
             <div class="examiner-panel-card examiner-panel-card--section">
                 <h3>Phân công mới</h3>
                 <form class="examiner-assign-form" method="get" action="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation">
-                    <input type="hidden" name="sessionId" value="${currentSession.id}">
+                    <input type="hidden" name="examId" value="${currentExam.id}">
                     <input type="hidden" name="action" value="assign">
-                    <input type="hidden" name="targetSessionId" value="${currentSession.id}">
+                    <input type="hidden" name="targetExamId" value="${currentExam.id}">
                     <div>
                         <label for="areaId">Phòng / khu thi</label>
                         <select name="areaId" id="areaId" required>
@@ -80,7 +80,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <c:forEach var="opt" items="${areaAssignOptions}">
-                                        <option value="${opt.areaId}" data-session="${opt.sessionId}" data-type="${opt.areaType}">
+                                        <option value="${opt.areaId}" data-exam="${opt.examId}" data-type="${opt.areaType}">
                                             ${opt.areaName}
                                         </option>
                                     </c:forEach>
@@ -148,7 +148,7 @@
                                         <td>
                                             <c:if test="${a.areaId > 0}">
                                                 <a class="btn-examiner-remove"
-                                                   href="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation?sessionId=${currentSession.id}&action=remove&slotKey=${a.slotKey}"
+                                                   href="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation?examId=${currentExam.id}&action=remove&slotKey=${a.slotKey}"
                                                    data-confirm-remove="true"
                                                    data-confirm-msg="Gỡ phân công giám khảo này?">Gỡ</a>
                                             </c:if>

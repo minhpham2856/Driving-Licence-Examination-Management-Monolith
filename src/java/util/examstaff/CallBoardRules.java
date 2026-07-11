@@ -17,7 +17,7 @@ public final class CallBoardRules {
         boolean wasDeskBusy = state.isDeskBusy();
         String wasDeskSbd = state.getDeskSbd();
 
-        state.setExamSessionId(examSessionId);
+        state.setExamId(examSessionId);
         if (!wasDeskBusy) {
             state.setCallingSbd(emptyToNull(callingSbd));
         }
@@ -43,7 +43,7 @@ public final class CallBoardRules {
             return current;
         }
         CallBoardState state = current != null ? current : new CallBoardState();
-        state.setExamSessionId(examSessionId);
+        state.setExamId(examSessionId);
         state.setDeskBusy(true);
         state.setDeskSbd(emptyToNull(deskSbd));
         if (state.getCallingSbd() == null || state.getCallingSbd().isBlank()) {
@@ -63,7 +63,7 @@ public final class CallBoardRules {
     public static CallBoardState pauseBoard(CallBoardState current, int examSessionId,
             List<ExamRegistrationDTO> queue) {
         CallBoardState state = current != null ? current : new CallBoardState();
-        state.setExamSessionId(examSessionId);
+        state.setExamId(examSessionId);
         state.setCallingSbd(null);
         state.setNextSbd(null);
         state.setDeskBusy(false);
@@ -78,7 +78,7 @@ public final class CallBoardRules {
     public static CallBoardState releaseDeskAndCall(CallBoardState current, int examSessionId,
             String callingSbd, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         CallBoardState state = current != null ? current : new CallBoardState();
-        state.setExamSessionId(examSessionId);
+        state.setExamId(examSessionId);
         state.setDeskBusy(false);
         state.setDeskSbd(null);
         state.setCallingSbd(emptyToNull(callingSbd));

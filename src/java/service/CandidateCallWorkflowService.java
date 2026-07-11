@@ -9,7 +9,7 @@ public interface CandidateCallWorkflowService {
 
     CandidateCallActionResultDTO executeAction(String action, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
-            int boardSessionId, boolean shiftEnded, int calledByStaffId);
+            int boardExamId, boolean shiftEnded, int calledByStaffId);
 
     void recordCallingCandidate(List<ExamRegistrationDTO> activeQueue, String nextSbd, int calledByStaffId);
 }

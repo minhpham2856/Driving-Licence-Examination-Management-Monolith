@@ -6,20 +6,20 @@
 <c:set var="sessionCanStartNow" value="${empty requestScope.sessionCanStartNow or requestScope.sessionCanStartNow}" />
 <c:set var="startEnabled" value="${shiftCanStart and sessionCanStartNow}" />
 <div class="session-shift-chip__actions">
-    <form action="session-control" method="POST" class="session-shift-chip__form"
+    <form action="exam-control" method="POST" class="session-shift-chip__form"
           onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Bắt đầu kỳ thi ${param.sessionName}? Giám khảo đã phân công sẽ có thể đăng nhập.');">
-        <input type="hidden" name="action" value="startSession">
-        <input type="hidden" name="sessionId" value="${param.sessionId}">
+        <input type="hidden" name="action" value="startExam">
+        <input type="hidden" name="examId" value="${param.examId}">
         <input type="hidden" name="redirect" value="${param.redirect}">
         <button type="submit" class="btn-filter session-shift-chip__btn" <c:if test="${not startEnabled}">disabled</c:if>>Bắt đầu</button>
     </form>
     <c:if test="${shiftCanStart and not sessionCanStartNow and not empty requestScope.sessionScheduledStartLabel}">
         <span class="es-text-muted-sm session-shift-chip__hint">Mở từ ${requestScope.sessionScheduledStartLabel}</span>
     </c:if>
-    <form action="session-control" method="POST" class="session-shift-chip__form"
+    <form action="exam-control" method="POST" class="session-shift-chip__form"
           onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Kết thúc kỳ thi ${param.sessionName}? Giám khảo sẽ không đăng nhập được kỳ này nữa.');">
-        <input type="hidden" name="action" value="endSession">
-        <input type="hidden" name="sessionId" value="${param.sessionId}">
+        <input type="hidden" name="action" value="endExam">
+        <input type="hidden" name="examId" value="${param.examId}">
         <input type="hidden" name="redirect" value="${param.redirect}">
         <button type="submit" class="btn-export session-shift-chip__btn session-shift-chip__btn--end" <c:if test="${not shiftInProgress}">disabled</c:if>>Kết thúc</button>
     </form>

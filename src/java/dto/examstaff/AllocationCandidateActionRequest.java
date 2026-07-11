@@ -6,7 +6,7 @@ public class AllocationCandidateActionRequest {
 
     private String action;
     private int regId;
-    private int sessionId;
+    private int examId;
     private ExamRegistrationDTO profile;
     private int areaId;
 
@@ -26,12 +26,12 @@ public class AllocationCandidateActionRequest {
         this.regId = regId;
     }
 
-    public int getSessionId() {
-        return sessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setSessionId(int sessionId) {
-        this.sessionId = sessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public ExamRegistrationDTO getProfile() {

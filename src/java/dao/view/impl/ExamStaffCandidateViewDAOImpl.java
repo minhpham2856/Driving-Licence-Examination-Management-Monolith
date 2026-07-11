@@ -17,11 +17,6 @@ import java.util.Locale;
 public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaffCandidateViewDAO {
 
     @Override
-    public List<ExamStaffCandidate> findBySessionId(int sessionId) {
-        return findByExamId(sessionId);
-    }
-
-    @Override
     public List<ExamStaffCandidate> findByExamId(int examId) {
         if (examId <= 0) {
             return List.of();
@@ -72,7 +67,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     private static ExamStaffCandidate mapRow(ResultSet rs) throws SQLException {
         ExamStaffCandidate row = new ExamStaffCandidate();
         row.setCandidateId(rs.getInt("id"));
-        row.setExamSessionId(rs.getInt("examSessionId"));
+        row.setExamId(rs.getInt("examSessionId"));
         try {
             row.setExamEnrollmentId(rs.getInt("examEnrollmentId"));
         } catch (SQLException ignored) {
