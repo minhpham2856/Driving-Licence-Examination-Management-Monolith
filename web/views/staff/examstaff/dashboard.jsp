@@ -5,7 +5,7 @@
 
 <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
     <jsp:param name="activeSidebar" value="dashboard" />
-    <jsp:param name="pageTitle" value="Tổng quan ngày thi" />
+    <jsp:param name="pageTitle" value="Tổng quan kỳ thi" />
     <jsp:param name="noCache" value="true" />
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
@@ -25,34 +25,16 @@
         </c:if>
 
         <c:if test="${not empty currentSession}">
-        <section class="report-pane dashboard-sessions-panel" aria-label="Các ca trong ngày thi">
+        <section class="report-pane dashboard-sessions-panel" aria-label="Điều hành kỳ thi">
             <div class="report-pane__header dashboard-sessions-panel__header">
-                <h2 class="report-pane__title dashboard-sessions-panel__title">Các ca trong ngày thi</h2>
+                <h2 class="report-pane__title dashboard-sessions-panel__title">Điều hành kỳ thi</h2>
             </div>
-            <p class="dashboard-sessions-panel__desc">
-                Kỳ thi hạng <strong>${currentSession.licenseCode}</strong> —
-                <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>.
-                <strong>${assignedExaminerUniqueCount}/${totalActiveExaminerCount}</strong> giám khảo đã phân công
-                — <a href="examiner-allocation?sessionId=${sessionScope.selectedSessionId}">Phân bổ giám khảo</a>.
-            </p>
-            <div class="dashboard-sessions-panel__chips">
-                <c:forEach var="ds" items="${examSessions}">
-                    <div class="session-shift-chip">
-                        <span class="session-shift-chip__meta">
-                            <strong>${ds.sessionName}</strong>
-                        </span>
-                        <jsp:include page="/views/staff/examstaff/includes/session-shift-controls.jsp">
-                            <jsp:param name="sessionId" value="${ds.id}" />
-                            <jsp:param name="sessionName" value="${ds.sessionName}" />
-                            <jsp:param name="status" value="${ds.status}" />
-                            <jsp:param name="redirect" value="dashboard" />
-                        </jsp:include>
-                    </div>
-                </c:forEach>
-                <c:if test="${empty examSessions}">
-                    <p class="dashboard-sessions-panel__empty">Chưa có ca thi nào được lên lịch cho kỳ thi này.</p>
-                </c:if>
-            </div>
+            <jsp:include page="/views/staff/examstaff/includes/exam-session-summary-line.jsp">
+                <jsp:param name="showAllocatorLink" value="true" />
+            </jsp:include>
+            <jsp:include page="/views/staff/examstaff/includes/exam-session-shift-chip.jsp">
+                <jsp:param name="redirect" value="dashboard" />
+            </jsp:include>
         </section>
         </c:if>
 
@@ -100,11 +82,11 @@
 
         <c:if test="${not empty currentSession and totalCandidatesCount == 0}">
             <div class="examstaff-flash examstaff-flash--warning">
-                Kỳ thi đang chọn chưa có thí sinh đăng ký. Chọn kỳ thi khác ở sidebar hoặc tải danh sách tại «Tải danh sách thi».
+                Kỳ thi đang chọn chưa có thí sinh đăng ký. Chọn kỳ thi khác ở sidebar.
             </div>
         </c:if>
 
-        <section class="metrics-row dashboard-metrics-row" aria-label="Chỉ số ngày thi">
+        <section class="metrics-row dashboard-metrics-row" aria-label="Chỉ số kỳ thi">
             <div class="stat-card">
                 <div class="stat-icon stat-icon--blue">
                     <span class="material-symbols-outlined" aria-hidden="true">event</span>
@@ -118,7 +100,9 @@
                             <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/>
                         </c:if>
                         <c:if test="${empty currentSession or empty currentSession.examDate}">—</c:if>
-                        — ${fn:length(examSessions)} ca thi
+                        <c:if test="${not empty currentSession}">
+                            — ${currentSession.status}
+                        </c:if>
                     </span>
                 </div>
             </div>

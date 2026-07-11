@@ -46,10 +46,12 @@ public final class SessionViewSupport {
         if (session.getStartTime() != null) {
             dto.setExamDate(new Date(session.getStartTime().getTime()));
             dto.setShiftStartTime(new Time(session.getStartTime().getTime()));
+            dto.setScheduledStartAt(session.getStartTime());
             dto.setCreatedAt(session.getStartTime());
         }
         if (session.getEndTime() != null) {
             dto.setShiftEndTime(new Time(session.getEndTime().getTime()));
+            dto.setScheduledEndAt(session.getEndTime());
         }
         Exam exam = examDAO.getById(session.getExamId());
         if (exam != null) {

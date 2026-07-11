@@ -98,6 +98,7 @@ public class SessionControlServlet extends HttpServlet {
         if (session != null) {
             session.setAttribute("selectedSessionId", sessionId);
             session.removeAttribute("shiftEnded");
+            session.removeAttribute("shiftPaused");
             session.removeAttribute("callingSbd");
         }
     }

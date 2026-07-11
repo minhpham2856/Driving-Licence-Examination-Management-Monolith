@@ -29,7 +29,7 @@ public interface ExamSessionControlService {
 
         public static StartResult ok(String sessionName, Date examDate, int examinerCount) {
             return new StartResult(true,
-                    "Đã bắt đầu ca thi \"" + sessionName + "\". "
+                    "Đã bắt đầu kỳ thi \"" + sessionName + "\". "
                             + examinerCount + " sát hạch viên có thể đăng nhập.",
                     sessionName, examDate, examinerCount);
         }
@@ -74,7 +74,7 @@ public interface ExamSessionControlService {
 
         public static EndResult ok(String sessionName, Date examDate) {
             return new EndResult(true,
-                    "Đã kết thúc ca thi \"" + sessionName + "\". sát hạch viên không thể đăng nhập ca này nữa.",
+                    "Đã kết thúc kỳ thi \"" + sessionName + "\". Sát hạch viên không thể đăng nhập kỳ thi này nữa.",
                     sessionName, examDate);
         }
 

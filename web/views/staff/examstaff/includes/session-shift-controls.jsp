@@ -3,16 +3,21 @@
 <c:set var="shiftStatus" value="${param.status}" />
 <c:set var="shiftCanStart" value="${shiftStatus eq 'Chưa diễn ra' or shiftStatus eq 'Mở' or shiftStatus eq 'Scheduled' or shiftStatus eq 'Open'}" />
 <c:set var="shiftInProgress" value="${shiftStatus eq 'Đang diễn ra' or shiftStatus eq 'InProgress'}" />
+<c:set var="sessionCanStartNow" value="${empty requestScope.sessionCanStartNow or requestScope.sessionCanStartNow}" />
+<c:set var="startEnabled" value="${shiftCanStart and sessionCanStartNow}" />
 <div class="session-shift-chip__actions">
     <form action="session-control" method="POST" class="session-shift-chip__form"
-          onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Bắt đầu ca ${param.sessionName}?');">
+          onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Bắt đầu kỳ thi ${param.sessionName}? Giám khảo đã phân công sẽ có thể đăng nhập.');">
         <input type="hidden" name="action" value="startSession">
         <input type="hidden" name="sessionId" value="${param.sessionId}">
         <input type="hidden" name="redirect" value="${param.redirect}">
-        <button type="submit" class="btn-filter session-shift-chip__btn" <c:if test="${not shiftCanStart}">disabled</c:if>>Bắt đầu</button>
+        <button type="submit" class="btn-filter session-shift-chip__btn" <c:if test="${not startEnabled}">disabled</c:if>>Bắt đầu</button>
     </form>
+    <c:if test="${shiftCanStart and not sessionCanStartNow and not empty requestScope.sessionScheduledStartLabel}">
+        <span class="es-text-muted-sm session-shift-chip__hint">Mở từ ${requestScope.sessionScheduledStartLabel}</span>
+    </c:if>
     <form action="session-control" method="POST" class="session-shift-chip__form"
-          onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Kết thúc ca ${param.sessionName}?');">
+          onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Kết thúc kỳ thi ${param.sessionName}? Giám khảo sẽ không đăng nhập được kỳ này nữa.');">
         <input type="hidden" name="action" value="endSession">
         <input type="hidden" name="sessionId" value="${param.sessionId}">
         <input type="hidden" name="redirect" value="${param.redirect}">

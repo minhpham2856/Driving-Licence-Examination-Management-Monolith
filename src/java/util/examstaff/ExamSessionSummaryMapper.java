@@ -25,11 +25,13 @@ public final class ExamSessionSummaryMapper {
         dto.setExamDate(row.getExamDate());
         dto.setShiftStartTime(row.getShiftStartTime());
         dto.setShiftEndTime(row.getShiftEndTime());
+        dto.setScheduledStartAt(row.getScheduledStartAt());
+        dto.setScheduledEndAt(row.getScheduledEndAt());
         dto.setAreaId(row.getAreaId());
         dto.setStatus(row.getStatus());
         dto.setMaxCandidates(row.getMaxCandidates());
         dto.setRegisteredCount(row.getRegisteredCount());
-        dto.setCreatedAt(row.getCreatedAt());
+        dto.setCreatedAt(row.getCreatedAt() != null ? row.getCreatedAt() : row.getScheduledStartAt());
         dto.setLicenseCode(row.getLicenseCode());
         dto.setExamCode(row.getExamCode());
         dto.setExamTypeName(row.getExamTypeName());

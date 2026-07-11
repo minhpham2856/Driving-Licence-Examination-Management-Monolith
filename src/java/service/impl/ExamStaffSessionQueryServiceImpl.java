@@ -7,6 +7,7 @@ import service.ExamStaffSessionQueryService;
 import util.examstaff.ExamSessionSummaryMapper;
 import util.examstaff.ExamStaffSessionRules;
 
+import java.sql.Date;
 import java.util.List;
 
 public class ExamStaffSessionQueryServiceImpl implements ExamStaffSessionQueryService {
@@ -21,6 +22,11 @@ public class ExamStaffSessionQueryServiceImpl implements ExamStaffSessionQuerySe
     @Override
     public SessionDTO findBySessionId(int sessionId) {
         return ExamSessionSummaryMapper.toDto(sessionViewDAO.findBySessionId(sessionId));
+    }
+
+    @Override
+    public List<SessionDTO> listSessionsByExamDate(Date examDate) {
+        return ExamSessionSummaryMapper.toDtoList(sessionViewDAO.findByExamDate(examDate));
     }
 
     @Override

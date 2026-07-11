@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.sql.Timestamp;
+import util.examstaff.ExamScheduleRules;
 import util.examstaff.LicenseClassRules;
 
 /**
@@ -59,6 +61,7 @@ public final class ExamStaffPageBinder {
             }
         }
         normalizeSession(picker.getCurrentSession());
+        bindSessionShiftContext(request, picker.getCurrentSession());
         request.setAttribute("examOptions", picker.getExamOptions());
         request.setAttribute("allSessions", picker.getAllSessions());
         request.setAttribute("currentSession", picker.getCurrentSession());
@@ -131,7 +134,23 @@ public final class ExamStaffPageBinder {
             request.setAttribute("selectedSessionId", sessionId > 0 ? sessionId : null);
             if (currentSession != null) {
                 request.setAttribute("currentSession", currentSession);
+                bindSessionShiftContext(request, currentSession);
             }
+        }
+    }
+
+    /** Bind cờ UI điều khiển bắt đầu/kết thúc kỳ (dựa trên StartTime trong DB). */
+    public static void bindSessionShiftContext(HttpServletRequest request, SessionDTO session) {
+        if (request == null || session == null) {
+            return;
+        }
+        Timestamp scheduledStart = session.getScheduledStartAt() != null
+                ? session.getScheduledStartAt()
+                : session.getCreatedAt();
+        request.setAttribute("sessionCanStartNow", ExamScheduleRules.canStartNow(scheduledStart));
+        if (scheduledStart != null) {
+            request.setAttribute("sessionScheduledStartLabel",
+                    ExamScheduleRules.formatScheduledStart(scheduledStart));
         }
     }
 
@@ -147,6 +166,7 @@ public final class ExamStaffPageBinder {
         request.setAttribute("suspendedCount", suspendedCount);
         if (currentSession != null) {
             request.setAttribute("currentSession", currentSession);
+            bindSessionShiftContext(request, currentSession);
         }
         request.setAttribute("selectedExamId", examId);
         request.setAttribute("selectedSessionId", sessionId > 0 ? sessionId : null);
@@ -159,20 +179,6 @@ public final class ExamStaffPageBinder {
         request.setAttribute("feeLines", fees.getFeeLines());
         request.setAttribute("feeTotal", fees.getFeeTotal());
         request.setAttribute("feesFromPayment", fees.isFeesFromPayment());
-    }
-
-    public static void bindImportExam(HttpServletRequest request, SessionDTO currentSession, int examId) {
-        if (request == null) {
-            return;
-        }
-        if (currentSession != null) {
-            normalizeSession(currentSession);
-            request.setAttribute("currentSession", currentSession);
-            if (currentSession.getLicenseCode() != null && !currentSession.getLicenseCode().isBlank()) {
-                request.setAttribute("importExamLicense", currentSession.getLicenseCode());
-            }
-        }
-        request.setAttribute("selectedExamId", examId);
     }
 
     public static void persistExamSelection(HttpSession session, int sessionId, int examId) {
@@ -211,6 +217,7 @@ public final class ExamStaffPageBinder {
         session.removeAttribute("procedureJustPaid");
         session.removeAttribute("procedureJustPaidSbd");
         session.removeAttribute("shiftEnded");
+        session.removeAttribute("shiftPaused");
         session.removeAttribute("permanentAbsents");
         clearCandidateCache(session);
         if (newExamId > 0 && newSessionId > 0) {

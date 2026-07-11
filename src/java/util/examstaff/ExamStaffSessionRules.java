@@ -25,12 +25,13 @@ public final class ExamStaffSessionRules {
     }
 
     public static int resolvePrimarySessionId(List<SessionDTO> allSessions, int examId) {
-        List<SessionDTO> forExam = sessionsForExam(allSessions, examId);
-        if (forExam.isEmpty()) {
+        if (examId > 0) {
+            return examId;
+        }
+        if (allSessions == null || allSessions.isEmpty()) {
             return 0;
         }
-        forExam.sort(Comparator.comparing(SessionDTO::getId));
-        return forExam.get(0).getId();
+        return allSessions.get(0).getId();
     }
 
     public static SessionDTO findSessionById(List<SessionDTO> allSessions, int sessionId) {
