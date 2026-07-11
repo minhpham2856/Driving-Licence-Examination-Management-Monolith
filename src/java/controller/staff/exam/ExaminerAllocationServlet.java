@@ -2,6 +2,7 @@ package controller.staff.exam;
 
 import controller.staff.exam.adapter.ExamStaffSelectionFacade;
 import controller.staff.exam.adapter.StaffAuditLogSupport;
+import controller.staff.exam.binder.ExamStaffPageBinder;
 import controller.staff.exam.binder.ExaminerAllocationViewBinder;
 import controller.staff.exam.http.ExamStaffHttpSupport;
 import controller.staff.exam.module.ExamStaffWebModule;
@@ -83,6 +84,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
         request.setAttribute("allSessions", allSessions);
         request.setAttribute("currentSession", currentSession);
+        ExamStaffPageBinder.bindSessionShiftContext(request, currentSession);
         request.setAttribute("selectedExamId", examId);
         request.setAttribute("selectedSessionId", sessionId > 0 ? sessionId : null);
 
@@ -114,7 +116,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             }
             applyActionResult(request, session, result);
         } catch (NumberFormatException e) {
-            request.setAttribute("errorMsg", "Du lieu khong hop le.");
+            request.setAttribute("errorMsg", "Dữ liệu không hợp lệ.");
         }
     }
 

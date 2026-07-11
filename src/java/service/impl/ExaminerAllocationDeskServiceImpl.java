@@ -77,7 +77,9 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         Map<String, List<ExamArea>> areasBySession = new HashMap<>();
         List<Map<String, Object>> areaAssignOptions = new ArrayList<>();
         for (SessionDTO ds : daySessions) {
-            List<ExamArea> areas = allocationService.getAvailableAreasForSession(ds.getId());
+            List<ExamArea> areas = allocationService.getAvailableAreasForSession(ds.getId()).stream()
+                    .filter(ExamAreaTypeResolver::isAssignableExamArea)
+                    .toList();
             areasBySession.put(String.valueOf(ds.getId()), areas);
             for (ExamArea area : areas) {
                 Map<String, Object> opt = new HashMap<>();
@@ -114,12 +116,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         UserDTO examiner = examinerMap.get(examinerUserId);
 
         if (targetSession == null || area == null || examiner == null) {
-            result.setErrorMsg("Du lieu phan cong khong hop le.");
+            result.setErrorMsg("Dữ liệu phân công không hợp lệ.");
             return result;
         }
 
-        if (!ExamAreaTypeResolver.areaMatchesSession(area, targetSession)) {
-            result.setErrorMsg("Phòng thi không đúng loại với ca/môn đã chọn.");
+        if (!ExamAreaTypeResolver.isAssignableExamArea(area)) {
+            result.setErrorMsg("Chỉ phân công giám khảo vào phòng lý thuyết hoặc sân thực hành.");
             return result;
         }
 
@@ -141,11 +143,11 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
             result.setSuccess(true);
             result.setAlertMsg("Đã phân công giám khảo vào phòng " + area.getAreaName() + ".");
             result.setAuditAction("ASSIGN Examiner");
-            result.setAuditDetails("Phan cong giam khao userId=" + examinerUserId
-                    + " ca " + targetSessionId + ", phong " + area.getAreaName());
+            result.setAuditDetails("Phân công giám khảo userId=" + examinerUserId
+                    + " kỳ " + targetSessionId + ", phòng " + area.getAreaName());
         } else {
             result.setErrorMsg(
-                    "Giám khảo đã được phân công một phòng ở ca khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán ca mới.");
+                    "Giám khảo đã được phân công ở phòng khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán mới.");
         }
         return result;
     }
@@ -154,18 +156,18 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     public ExaminerAllocationActionResultDTO removeExaminer(String slotKey) {
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
         if (slotKey == null || slotKey.isEmpty()) {
-            result.setErrorMsg("Khong xac dinh duoc phan cong can go.");
+            result.setErrorMsg("Không xác định được phân công cần gỡ.");
             return result;
         }
 
         boolean ok = allocationService.removeAssignment(slotKey);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("Da go phan cong giam khao.");
+            result.setAlertMsg("Đã gỡ phân công giám khảo.");
             result.setAuditAction("REMOVE Examiner");
-            result.setAuditDetails("Go phan cong slot=" + slotKey);
+            result.setAuditDetails("Gỡ phân công slot=" + slotKey);
         } else {
-            result.setErrorMsg("Go phan cong that bai.");
+            result.setErrorMsg("Gỡ phân công thất bại. Vui lòng thử lại.");
         }
         return result;
     }

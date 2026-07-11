@@ -21,25 +21,19 @@
         </c:if>
 
         <c:if test="${not empty currentSession}">
-            <div class="examiner-panel-card examiner-panel-card--spaced">
-                <h3>Kỳ thi hạng ${currentSession.licenseCode} — <fmt:formatDate value="${currentSession.examDate}" pattern="dd/MM/yyyy"/></h3>
-                <p class="es-text-muted-sm" style="margin: 0 0 10px 0;">Các ca trong kỳ thi (phân công giám khảo theo từng ca/môn):</p>
-                <div class="session-shift-list">
-                <c:forEach var="ds" items="${examSessions}">
-                    <div class="session-shift-chip">
-                        <span class="session-shift-chip__meta">
-                            <strong>${ds.sessionName}</strong>
-                        </span>
-                        <jsp:include page="/views/staff/examstaff/includes/session-shift-controls.jsp">
-                            <jsp:param name="sessionId" value="${ds.id}" />
-                            <jsp:param name="sessionName" value="${ds.sessionName}" />
-                            <jsp:param name="status" value="${ds.status}" />
-                            <jsp:param name="redirect" value="examiner-allocation" />
-                        </jsp:include>
-                    </div>
-                </c:forEach>
-                </div>
+        <section class="report-pane dashboard-sessions-panel" aria-label="Phân bổ giám khảo">
+            <div class="report-pane__header dashboard-sessions-panel__header">
+                <h2 class="report-pane__title dashboard-sessions-panel__title">Phân bổ giám khảo</h2>
             </div>
+            <jsp:include page="/views/staff/examstaff/includes/exam-session-summary-line.jsp" />
+            <p class="dashboard-sessions-panel__desc es-text-muted-sm" style="margin-top: -0.25rem;">
+                Phân công giám khảo theo phòng / phần thi trong kỳ.
+                <c:if test="${not empty currentSession.examTypeName}">Nội dung: ${currentSession.examTypeName}.</c:if>
+            </p>
+            <jsp:include page="/views/staff/examstaff/includes/exam-session-shift-chip.jsp">
+                <jsp:param name="redirect" value="examiner-allocation" />
+            </jsp:include>
+        </section>
 
             <div class="examiner-grid">
                 <div class="examiner-panel-card">
@@ -76,20 +70,9 @@
                 <form class="examiner-assign-form" method="get" action="${pageContext.request.contextPath}/views/staff/examstaff/examiner-allocation">
                     <input type="hidden" name="sessionId" value="${currentSession.id}">
                     <input type="hidden" name="action" value="assign">
+                    <input type="hidden" name="targetSessionId" value="${currentSession.id}">
                     <div>
-                        <label for="targetSessionId">Ca / môn thi</label>
-                        <select name="targetSessionId" id="targetSessionId" required>
-                            <c:forEach var="ds" items="${examSessions}">
-                                <option value="${ds.id}">${ds.sessionName} (<c:choose>
-                                    <c:when test="${ds.examTypeName eq 'Theory' or fn:contains(ds.examTypeName, 'Lý thuyết')}">Lý thuyết</c:when>
-                                    <c:when test="${ds.examTypeName eq 'Practical' or fn:contains(ds.examTypeName, 'Sa hình') or fn:contains(ds.examTypeName, 'Thực hành')}">Sa hình</c:when>
-                                    <c:otherwise>${ds.examTypeName}</c:otherwise>
-                                </c:choose>)</option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="areaId">Phòng thi</label>
+                        <label for="areaId">Phòng / khu thi</label>
                         <select name="areaId" id="areaId" required>
                             <c:choose>
                                 <c:when test="${empty areaAssignOptions}">
@@ -132,9 +115,9 @@
                 <table class="examiner-data-table">
                     <thead>
                         <tr>
-                            <th>Ca / môn thi</th>
+                            <th>Phần thi</th>
                             <th>Phòng</th>
-                            <th>Loại thi</th>
+                            <th>Loại khu vực</th>
                             <th>Giám khảo</th>
                             <th></th>
                         </tr>
@@ -150,11 +133,17 @@
                                         <td>${a.sessionName}</td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${not empty a.areaName}">${a.areaName}<div class="area-type-tag">${a.areaType}</div></c:when>
+                                                <c:when test="${not empty a.areaName}">${a.areaName}</c:when>
                                                 <c:otherwise>—</c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td>${a.examTypeName}</td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty a.areaType}">${a.areaType}</c:when>
+                                                <c:when test="${not empty a.examTypeName}">${a.examTypeName}</c:when>
+                                                <c:otherwise>—</c:otherwise>
+                                            </c:choose>
+                                        </td>
                                         <td>${a.examinerName} <span class="es-text-muted-sm">(@${a.examinerUsername})</span></td>
                                         <td>
                                             <c:if test="${a.areaId > 0}">

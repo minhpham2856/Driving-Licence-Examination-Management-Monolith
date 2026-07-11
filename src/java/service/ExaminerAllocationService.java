@@ -39,4 +39,9 @@ public interface ExaminerAllocationService {
     
     AutoAllocateResultDTO autoAllocateSession(int sessionId);
     AutoAllocateResultDTO autoAllocateCandidate(int sessionId, int registrationId);
+
+    /** Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có giám khảo). */
+    AutoAllocateResultDTO autoAllocatePracticalSession(int sessionId);
+
+    AutoAllocateResultDTO autoAllocatePracticalCandidate(int sessionId, int registrationId);
 }
