@@ -18,9 +18,9 @@ public enum SessionType {
         if (value == null) {
             return null;
         }
-        for (SessionType ca : values()) {
-            if (ca.getValue().equals(value)) {
-                return ca;
+        for (SessionType type : values()) {
+            if (type.getValue().equals(value)) {
+                return type;
             }
         }
         return null;

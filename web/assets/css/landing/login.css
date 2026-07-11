@@ -32,7 +32,20 @@
 }
 
 .login-page-main--standalone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Single-column card used by the standalone (no header/footer) login page */
+.login-card-container--standalone {
+  max-width: 540px;
+  min-height: auto;
+  margin: 0 auto;
 }
 
 /* Subtle background accent glow */

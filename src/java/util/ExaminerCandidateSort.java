@@ -56,16 +56,16 @@ public final class ExaminerCandidateSort {
     private static Comparator<CandidateRowDTO> comparatorFor(String column) {
         return switch (column) {
             case "fullName", "address", "governmentId" -> stringComparator(column);
-            case "sbd" -> Comparator.comparingInt(CandidateRowDTO::getSbd);
-            case "dob" -> Comparator.comparing(row -> normalizeString(row.getDobRaw()));
+            case "sbd" -> Comparator.comparingInt(CandidateRowDTO::getCandidateNumber);
+            case "dob" -> Comparator.comparing(row -> normalizeString(row.getDob()));
             case "examDate" -> Comparator.comparing(row -> normalizeString(row.getExamDate()));
             case "status" -> Comparator.comparingInt(ExaminerCandidateSort::statusOrder);
             case "result" -> Comparator.comparingInt(ExaminerCandidateSort::resultOrder);
             case "correct" -> Comparator.comparingInt(CandidateRowDTO::getCorrect);
             case "wrong" -> Comparator.comparingInt(CandidateRowDTO::getWrong);
             case "unanswered" -> Comparator.comparingInt(CandidateRowDTO::getUnanswered);
-            case "examScore" -> Comparator.comparingInt(row -> parseNumeric(row.getExamScore()));
-            default -> Comparator.comparingInt(CandidateRowDTO::getSbd);
+            case "examScore" -> Comparator.comparingInt(row -> row.getExamScore() != null ? row.getExamScore() : -1);
+            default -> Comparator.comparingInt(CandidateRowDTO::getCandidateNumber);
         };
     }
 
@@ -88,31 +88,15 @@ public final class ExaminerCandidateSort {
         return "-".equals(text) ? "" : text.toLowerCase();
     }
 
-    private static int parseNumeric(Object value) {
-        if (value == null) {
-            return -1;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-        String text = String.valueOf(value).trim();
-        if (text.isEmpty() || "-".equals(text)) {
-            return -1;
-        }
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException ignored) {
-            return -1;
-        }
-    }
-
     private static int statusOrder(CandidateRowDTO row) {
-        String status = row.getStatus() != null ? row.getStatus() : "";
-        return switch (status) {
-            case "pending" -> 0;
-            case "testing" -> 1;
-            case "awaiting" -> 2;
-            case "done" -> 3;
+        if (row.getSectionStatus() == null) {
+            return 4;
+        }
+        return switch (row.getSectionStatus()) {
+            case NOT_STARTED -> 0;
+            case IN_PROGRESS -> 1;
+            case AWAITING_SIGNATURE -> 2;
+            case COMPLETED -> 3;
             default -> 4;
         };
     }

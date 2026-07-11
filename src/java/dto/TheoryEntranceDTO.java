@@ -18,11 +18,11 @@ public class TheoryEntranceDTO {
         this.sessionId = sessionId;
     }
 
-    public int getSbd() {
+    public int getCandidateNumber() {
         return sbd;
     }
 
-    public void setSbd(int sbd) {
+    public void setCandidateNumber(int sbd) {
         this.sbd = sbd;
     }
 

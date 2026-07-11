@@ -1,6 +1,6 @@
 package service;
 
-import dto.CallStatsDTO;
+import dto.ExamStatsDTO;
 import dto.EnrollmentDTO;
 import dto.CandidateRowDTO;
 import enums.SectionType;
@@ -15,7 +15,7 @@ public interface ExamViewService {
 
     List<CandidateRowDTO> loadCandidateRows(int sessionId, boolean isTheory, String sectionName);
 
-    CallStatsDTO buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
+    ExamStatsDTO buildCandidateSummary(int sessionId, boolean isTheory, String sectionName);
 
     Map<String, Object> getAuditLogsData(int sessionId, String pageParam);
 

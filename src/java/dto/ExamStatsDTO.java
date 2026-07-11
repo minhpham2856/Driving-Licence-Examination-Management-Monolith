@@ -1,6 +1,6 @@
 package dto;
 
-public class CallStatsDTO {
+public class ExamStatsDTO {
 
     private int total;
     private int done;
