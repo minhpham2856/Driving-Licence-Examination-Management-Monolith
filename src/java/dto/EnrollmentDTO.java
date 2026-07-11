@@ -107,8 +107,8 @@ public class EnrollmentDTO {
         return enrollment != null && enrollment.isSignaturePrinted();
     }
 
-    public int getExamSessionId() {
-        return enrollment != null ? enrollment.getSessionId() : 0;
+    public int getExamId() {
+        return enrollment != null ? enrollment.getExamId() : 0;
     }
 
     public boolean isPaymentCompleted() {

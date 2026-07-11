@@ -1,12 +1,11 @@
 package dto;
 
 import enums.SectionType;
-import enums.SessionType;
 
 public class AssignmentDTO {
 
-    private int sessionExaminerId;
-    private int examSessionId;
+    private int examinerScheduleId;
+    private int examId;
     private int areaId;
     private SectionType examSection;
     private int examinerUserId;
@@ -16,23 +15,23 @@ public class AssignmentDTO {
     private String areaName;
     private String areaType;
     private String examTypeName;
-    private boolean morningSession;
-    private String sessionLabel;
+    private boolean morningShift;
+    private String examLabel;
 
-    public int getSessionExaminerId() {
-        return sessionExaminerId;
+    public int getExaminerScheduleId() {
+        return examinerScheduleId;
     }
 
-    public void setSessionExaminerId(int sessionExaminerId) {
-        this.sessionExaminerId = sessionExaminerId;
+    public void setExaminerScheduleId(int examinerScheduleId) {
+        this.examinerScheduleId = examinerScheduleId;
     }
 
-    public int getExamSessionId() {
-        return examSessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setExamSessionId(int examSessionId) {
-        this.examSessionId = examSessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public int getAreaId() {
@@ -107,19 +106,19 @@ public class AssignmentDTO {
         this.examTypeName = examTypeName;
     }
 
-    public boolean isMorningSession() {
-        return morningSession;
+    public boolean isMorningShift() {
+        return morningShift;
     }
 
-    public void setMorningSession(boolean morningSession) {
-        this.morningSession = morningSession;
+    public void setMorningShift(boolean morningShift) {
+        this.morningShift = morningShift;
     }
 
-    public String getSessionLabel() {
-        return sessionLabel;
+    public String getExamLabel() {
+        return examLabel;
     }
 
-    public void setsessionLabel(String sessionLabel) {
-        this.sessionLabel = sessionLabel;
+    public void setExamLabel(String examLabel) {
+        this.examLabel = examLabel;
     }
 }

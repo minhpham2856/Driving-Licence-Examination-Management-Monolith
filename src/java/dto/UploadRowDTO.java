@@ -6,7 +6,7 @@ public class UploadRowDTO {
 
     private int id;
     private int personId;
-    private int examSessionId;
+    private int examId;
     private String fullName;
     private String govIdNo;
     private String licenseCode;
@@ -37,12 +37,12 @@ public class UploadRowDTO {
         this.personId = personId;
     }
 
-    public int getExamSessionId() {
-        return examSessionId;
+    public int getExamId() {
+        return examId;
     }
 
-    public void setExamSessionId(int examSessionId) {
-        this.examSessionId = examSessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public String getFullName() {

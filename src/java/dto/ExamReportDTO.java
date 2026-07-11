@@ -2,7 +2,7 @@ package dto;
 
 import java.util.List;
 
-// End-of-day exam report for a single session, built by ExamViewService.
+// End-of-day exam report for a single exam, built by ExamViewService.
 // Aggregates candidate results and deduction reasons so the JSP only renders.
 public class ExamReportDTO {
 
