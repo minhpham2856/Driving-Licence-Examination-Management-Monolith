@@ -21,17 +21,17 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @WebServlet(urlPatterns = {
-    "/examiner/export/candidates",
-    "/examiner/export/candidates/xml",
-    "/examiner/export/results",
-    "/examiner/export/results/xml",
-    "/examiner/export/minutes",
-    "/examiner/export/minutes/xml",
-    "/examiner/export/violations",
-    "/examiner/export/violations/xml",
-    "/examiner/export/audit",
-    "/examiner/export/audit/xml",
-    "/examiner/export/docx"
+    "/old_examiner/export/candidates",
+    "/old_examiner/export/candidates/xml",
+    "/old_examiner/export/results",
+    "/old_examiner/export/results/xml",
+    "/old_examiner/export/minutes",
+    "/old_examiner/export/minutes/xml",
+    "/old_examiner/export/violations",
+    "/old_examiner/export/violations/xml",
+    "/old_examiner/export/audit",
+    "/old_examiner/export/audit/xml",
+    "/old_examiner/export/docx"
 })
 public class ExportServlet extends HttpServlet {
 

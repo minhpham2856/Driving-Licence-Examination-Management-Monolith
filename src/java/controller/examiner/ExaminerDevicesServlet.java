@@ -15,7 +15,7 @@ import service.impl.CallServiceImpl;
 import java.io.IOException;
 import java.util.Map;
 
-@WebServlet("/views/examiner/devices")
+@WebServlet("/old_views/examiner/devices")
 public class ExaminerDevicesServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
     protected final CallService callService = new CallServiceImpl();
@@ -39,7 +39,7 @@ public class ExaminerDevicesServlet extends HttpServlet {
                 try {
                     deviceId = Integer.parseInt(request.getParameter("deviceId"));
                 } catch (Exception e) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/devices?error=invalidDevice");
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/devices?error=invalidDevice");
                     return;
                 }
                 boolean updated = false;
@@ -49,10 +49,10 @@ public class ExaminerDevicesServlet extends HttpServlet {
                     updated = callService.setDeviceMaintenance(deviceId, ((User) session.getAttribute("user")).getUserId()).isSuccess();
                 }
                 if (!updated) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/devices?error=updateFailed");
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/devices?error=updateFailed");
                     return;
                 }
-                response.sendRedirect(request.getContextPath() + "/views/examiner/devices");
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/devices");
                 return;
             }
 
@@ -64,6 +64,6 @@ public class ExaminerDevicesServlet extends HttpServlet {
                 }
             }
         }
-        request.getRequestDispatcher("/views/examiner/devices.jsp").forward(request, response);
+        request.getRequestDispatcher("/old_views/examiner/devices.jsp").forward(request, response);
     }
 }

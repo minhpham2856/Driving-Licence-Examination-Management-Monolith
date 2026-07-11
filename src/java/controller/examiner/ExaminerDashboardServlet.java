@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.List;
 import static util.FormatUtil.text;
 
-@WebServlet("/views/examiner/dashboard")
+@WebServlet("/old_views/examiner/dashboard")
 public class ExaminerDashboardServlet extends HttpServlet {
 
     private final ExamViewService examViewService = new ExamViewServiceImpl();
@@ -63,7 +63,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
         }
 
         // Display the dashboard page
-        request.getRequestDispatcher("/views/examiner/dashboard.jsp").forward(request, response);
+        request.getRequestDispatcher("/old_views/examiner/dashboard.jsp").forward(request, response);
     }
 
     // Parse the candidate number from the request

@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/views/examiner/exam")
+@WebServlet("/old_views/examiner/exam")
 public class ExaminerExamServlet extends HttpServlet {
 
     private final ScheduleService scheduleService = new ScheduleServiceImpl();
@@ -58,7 +58,7 @@ public class ExaminerExamServlet extends HttpServlet {
         }
         request.setAttribute("schedules", hydrated);
         request.setAttribute("licencesByExamId", licencesByExamId);
-        request.getRequestDispatcher("/views/examiner/exam-select.jsp").forward(request, response);
+        request.getRequestDispatcher("/old_views/examiner/exam-select.jsp").forward(request, response);
     }
 
     @Override
@@ -73,19 +73,19 @@ public class ExaminerExamServlet extends HttpServlet {
         try {
             examId = Integer.parseInt(request.getParameter("examId"));
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=invalid");
+            response.sendRedirect(request.getContextPath() + "/old_views/examiner/exam?error=invalid");
             return;
         }
 
         ExaminerSchedule schedule = scheduleService.getScheduleByExaminerAndExam(user.getUserId(), examId);
         if (schedule == null) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=denied");
+            response.sendRedirect(request.getContextPath() + "/old_views/examiner/exam?error=denied");
             return;
         }
 
         Exam exam = examService.getById(examId);
         if (exam == null || ExamStatus.fromValue(exam.getStatus()) != ExamStatus.IN_PROGRESS) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=notActive");
+            response.sendRedirect(request.getContextPath() + "/old_views/examiner/exam?error=notActive");
             return;
         }
 
@@ -100,7 +100,7 @@ public class ExaminerExamServlet extends HttpServlet {
         httpSession.setAttribute(ExaminerFilter.ATTR_EXAM_SECTION, examSection);
         httpSession.setAttribute("examSectionName", examSection != null ? examSection.getValue() : null);
 
-        response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
+        response.sendRedirect(request.getContextPath() + "/old_views/examiner/dashboard");
     }
 
     private ExaminerSchedule hydrateSchedule(ExaminerSchedule schedule, Map<Integer, Licence> licencesByExamId) {

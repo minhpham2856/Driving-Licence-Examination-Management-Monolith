@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-    "/views/examiner/violations",
-    "/views/examiner/violation-confirm",
-    "/views/examiner/violation-undo"
+    "/old_views/examiner/violations",
+    "/old_views/examiner/violation-confirm",
+    "/old_views/examiner/violation-undo"
 })
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
@@ -67,7 +67,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
 
-            if ("/views/examiner/violations".equals(path)) {
+            if ("/old_views/examiner/violations".equals(path)) {
                 List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
                 if (search != null && !search.isBlank()) {
                     String q = search.trim().toLowerCase();
@@ -97,7 +97,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                         }
                     }
                 }
-            } else if ("/views/examiner/violation-confirm".equals(path) || "/views/examiner/violation-undo".equals(path)) {
+            } else if ("/old_views/examiner/violation-confirm".equals(path) || "/old_views/examiner/violation-undo".equals(path)) {
                 if (sbd != null && sbd > 0) {
                     Map<String, Object> data = viewDataService.getViolationData(activeExamId, sbd);
                     if (data != null) {
@@ -110,14 +110,14 @@ public class ExaminerViolationsServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/views/examiner/violations" ->
-                "/views/examiner/violations.jsp";
-            case "/views/examiner/violation-confirm" ->
-                "/views/examiner/violation-confirm.jsp";
-            case "/views/examiner/violation-undo" ->
-                "/views/examiner/violation-undo.jsp";
+            case "/old_views/examiner/violations" ->
+                "/old_views/examiner/violations.jsp";
+            case "/old_views/examiner/violation-confirm" ->
+                "/old_views/examiner/violation-confirm.jsp";
+            case "/old_views/examiner/violation-undo" ->
+                "/old_views/examiner/violation-undo.jsp";
             default ->
-                "/views/examiner/violations.jsp";
+                "/old_views/examiner/violations.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
     }
@@ -146,9 +146,9 @@ public class ExaminerViolationsServlet extends HttpServlet {
         } catch (NumberFormatException e) {
         }
 
-        if ("/views/examiner/violation-confirm".equals(path)) {
+        if ("/old_views/examiner/violation-confirm".equals(path)) {
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noCandidateNumber");
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/violations?error=noCandidateNumber");
                 return;
             }
 
@@ -171,7 +171,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     Files.copy(input, destination, StandardCopyOption.REPLACE_EXISTING);
                     evidencePath = "uploads/violations/" + fileName;
                 } catch (Exception e) {
-                    response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd="
+                    response.sendRedirect(request.getContextPath() + "/old_views/examiner/violation-confirm?sbd="
                             + urlEncode(sbd) + "&error=uploadFailed");
                     return;
                 }
@@ -184,7 +184,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     evidencePath);
 
             if (result.isSuccess()) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/violations?sbd="
+                response.sendRedirect(request.getContextPath() + "/old_views/examiner/violations?sbd="
                         + urlEncode(sbd) + "&violationRecorded=1");
                 return;
             }
