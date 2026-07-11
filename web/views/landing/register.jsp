@@ -6,7 +6,7 @@
     <jsp:param name="title" value="Lái Vui - Đăng ký tài khoản" />
 </jsp:include>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/register.css">
 
 <main class="register-page-main">
     <div class="register-card-container">

@@ -4,7 +4,7 @@
     <jsp:param name="title" value="Lái Vui - Trang chủ" />
     <jsp:param name="activeNav" value="gioi-thieu" />
 </jsp:include>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/landing.css">
 
 <main class="public-main" style="padding: 0;">
     <!-- Section 1: Hero / History & Vision -->
