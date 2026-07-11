@@ -38,10 +38,10 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Integer findPrimarySessionAreaId(int sessionId) {
-        String sql = "SELECT TOP 1 ExamAreaId FROM Session_ExamArea WHERE SessionId = ? ORDER BY ExamAreaId";
+    public Integer findPrimaryExamAreaId(int examId) {
+        String sql = "SELECT TOP 1 ExamAreaId FROM Exam_ExamArea WHERE ExamId = ? ORDER BY ExamAreaId";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("ExamAreaId");
@@ -54,7 +54,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<Integer, int[]> loadTheoryStatsBySession(int sessionId) {
+    public Map<Integer, int[]> loadTheoryStatsByExam(int examId) {
         Map<Integer, int[]> stats = new HashMap<>();
         String sql = """
                 SELECT ec.ExamEnrollmentId,
@@ -65,11 +65,11 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 LEFT JOIN TheoryPaper tp ON tp.ExamEnrollmentId = ec.ExamEnrollmentId
                 LEFT JOIN CandidateAnswer ca ON ca.TheoryPaperId = tp.TheoryPaperId
                 LEFT JOIN Question q ON q.QuestionId = ca.QuestionId
-                WHERE ec.SessionId = ?
+                WHERE ec.ExamId = ?
                 GROUP BY ec.ExamEnrollmentId
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     stats.put(rs.getInt("ExamEnrollmentId"), new int[]{
@@ -86,7 +86,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<Integer, Double> loadSectionScoresBySession(int sessionId, String sectionName) {
+    public Map<Integer, Double> loadSectionScoresByExam(int examId, String sectionName) {
         Map<Integer, Double> scores = new HashMap<>();
         String sql = """
                 SELECT ec.ExamEnrollmentId, es.Score
@@ -94,13 +94,13 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamResult er ON er.ExamEnrollmentId = ec.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE ec.SessionId = ?
+                WHERE ec.ExamId = ?
                 """;
         if (sectionName != null && !sectionName.isBlank()) {
             sql += " AND sec.SectionName = ?";
         }
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             if (sectionName != null && !sectionName.isBlank()) {
                 ps.setString(2, sectionName);
             }
@@ -116,16 +116,16 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<Integer, Boolean> loadPassFlagsBySession(int sessionId) {
+    public Map<Integer, Boolean> loadPassFlagsByExam(int examId) {
         Map<Integer, Boolean> flags = new HashMap<>();
         String sql = """
                 SELECT ec.ExamEnrollmentId, er.IsPassed
                 FROM ExamEnrollment ec
                 JOIN ExamResult er ON er.ExamEnrollmentId = ec.ExamEnrollmentId
-                WHERE ec.SessionId = ?
+                WHERE ec.ExamId = ?
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     flags.put(rs.getInt("ExamEnrollmentId"), rs.getBoolean("IsPassed"));
@@ -138,16 +138,16 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<Integer, String> loadDeviceNamesBySession(int sessionId) {
+    public Map<Integer, String> loadDeviceNamesByExam(int examId) {
         Map<Integer, String> names = new HashMap<>();
         String sql = """
                 SELECT ed.ExamDeviceId, ed.DeviceName
                 FROM ExamDevice ed
-                JOIN Session_ExamArea sea ON sea.ExamAreaId = ed.ExamAreaId
-                WHERE sea.SessionId = ?
+                JOIN Exam_ExamArea sea ON sea.ExamAreaId = ed.ExamAreaId
+                WHERE sea.ExamId = ?
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     names.put(rs.getInt("ExamDeviceId"), rs.getString("DeviceName"));
@@ -160,7 +160,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public List<Map<String, Object>> loadScoreDeductionRules(String sectionName, int sessionId) {
+    public List<Map<String, Object>> loadScoreDeductionRules(String sectionName, int examId) {
         List<Map<String, Object>> list = new ArrayList<>();
         String sql = """
                 SELECT sd.ScoreDeductionId, sd.Reason, sd.Points, sd.IsCritical
@@ -168,17 +168,15 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamSection es ON es.ExamSectionId = sd.ExamSectionId
                 WHERE es.SectionName = ?
                   AND (? <= 0 OR sd.LicenceId = (
-                      SELECT e.LicenceId FROM [Session] s
-                      JOIN Exam e ON e.ExamId = s.ExamId
-                      WHERE s.SessionId = ?
+                      SELECT LicenceId FROM Exam WHERE ExamId = ?
                   ))
                 ORDER BY sd.ScoreDeductionId
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sectionName != null && !sectionName.isBlank()
                     ? sectionName.trim() : SectionType.LAYOUT.getValue());
-            ps.setInt(2, sessionId);
-            ps.setInt(3, sessionId);
+            ps.setInt(2, examId);
+            ps.setInt(3, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();
@@ -198,7 +196,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<Integer, int[]> loadDeductionOccurrences(int candidateId, int sessionId) {
+    public Map<Integer, int[]> loadDeductionOccurrences(int candidateId, int examId) {
         Map<Integer, int[]> occurrences = new HashMap<>();
         String sql = """
                 SELECT dr.ScoreDeductionId, dr.OccurrenceCount
@@ -206,11 +204,11 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN DeductionRecord dr ON dr.ExamScoreId = es.ExamScoreId
-                WHERE ee.CandidateId = ? AND ee.SessionId = ?
+                WHERE ee.CandidateId = ? AND ee.ExamId = ?
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
-            ps.setInt(2, sessionId);
+            ps.setInt(2, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     occurrences.put(rs.getInt("ScoreDeductionId"),
@@ -224,7 +222,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<Integer, java.util.Date> loadDeductionRecordedAt(int candidateId, int sessionId) {
+    public Map<Integer, java.util.Date> loadDeductionRecordedAt(int candidateId, int examId) {
         Map<Integer, java.util.Date> recordedAt = new HashMap<>();
         String sql = """
                 SELECT dr.ScoreDeductionId, dr.RecordedAt
@@ -232,11 +230,11 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN DeductionRecord dr ON dr.ExamScoreId = es.ExamScoreId
-                WHERE ee.CandidateId = ? AND ee.SessionId = ?
+                WHERE ee.CandidateId = ? AND ee.ExamId = ?
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
-            ps.setInt(2, sessionId);
+            ps.setInt(2, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Timestamp ts = rs.getTimestamp("RecordedAt");
@@ -252,11 +250,11 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public Map<String, Object> loadScoreSummary(int candidateId, int sessionId, String sectionName) {
+    public Map<String, Object> loadScoreSummary(int candidateId, int examId, String sectionName) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("currentScore", 100);
         summary.put("scoreDisqualified", false);
-        if (candidateId <= 0 || sessionId <= 0) {
+        if (candidateId <= 0 || examId <= 0) {
             return summary;
         }
         String sql = """
@@ -273,13 +271,13 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE ee.CandidateId = ? AND ee.SessionId = ?
+                WHERE ee.CandidateId = ? AND ee.ExamId = ?
                   AND sec.SectionName = ?
                 ORDER BY es.ExamScoreId
                 """;
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
-            ps.setInt(2, sessionId);
+            ps.setInt(2, examId);
             ps.setString(3, sectionName != null && !sectionName.isBlank()
                     ? sectionName.trim() : SectionType.LAYOUT.getValue());
             try (ResultSet rs = ps.executeQuery()) {

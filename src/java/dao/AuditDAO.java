@@ -9,11 +9,11 @@ public interface AuditDAO {
 
     List<Audit> getRecentLogs(int limit);
 
-    List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
+    List<Audit> getLogsForExamPaginated(int examId, int page, int pageSize, String searchQuery);
 
-    int getLogsCountForSession(int sessionId, String searchQuery);
+    int getLogsCountForExam(int examId, String searchQuery);
 
-    List<Audit> getViolationLogsForSession(int sessionId, int limit);
+    List<Audit> getViolationLogsForExam(int examId, int limit);
 
     List<Audit> searchAll(String keyword, int limit);
 
