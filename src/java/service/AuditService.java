@@ -21,11 +21,11 @@ public interface AuditService {
 
     String extractSbdForDisplay(Audit log, Map<Integer, String> sbdByRecordId);
 
-    List<Audit> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
+    List<Audit> getLogsForExamPaginated(int examId, int page, int pageSize, String searchQuery);
 
-    int getLogsCountForSession(int sessionId, String searchQuery);
+    int getLogsCountForExam(int examId, String searchQuery);
 
-    List<Audit> getViolationLogsForSession(int sessionId, int limit);
+    List<Audit> getViolationLogsForExam(int examId, int limit);
 
     Map<Long, String> loadChangerNames(List<Audit> audits);
 

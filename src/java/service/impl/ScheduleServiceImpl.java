@@ -20,4 +20,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ExaminerSchedule getScheduleById(int examinerScheduleId) {
         return dao.getById(examinerScheduleId);
     }
+
+    @Override
+    public ExaminerSchedule getScheduleByExaminerAndExam(int examinerId, int examId) {
+        return dao.getScheduleByExaminerAndExam(examinerId, examId);
+    }
 }

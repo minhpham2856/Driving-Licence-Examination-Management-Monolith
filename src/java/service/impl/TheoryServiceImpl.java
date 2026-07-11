@@ -3,11 +3,9 @@ package service.impl;
 import dao.ExamDAO;
 import dao.ExamEnrollmentDAO;
 import dao.QuestionDAO;
-import dao.SessionDAO;
 import dao.impl.ExamDAOImpl;
 import dao.impl.ExamEnrollmentDAOImpl;
 import dao.impl.QuestionDAOImpl;
-import dao.impl.SessionDAOImpl;
 import dto.EnrollmentDTO;
 import dto.ServiceResult;
 import dto.TheoryEntranceDTO;
@@ -17,10 +15,8 @@ import enums.ErrorType;
 import model.Exam;
 import model.ExamEnrollment;
 import model.Question;
-import model.Session;
 import service.CallService;
 import service.RegistrationService;
-import service.SessionService;
 import service.TheoryService;
 
 import java.text.SimpleDateFormat;
@@ -41,28 +37,29 @@ public class TheoryServiceImpl implements TheoryService {
 
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final QuestionDAO questionDAO = new QuestionDAOImpl();
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final ExamDAO examDAO = new ExamDAOImpl();
     private final RegistrationService registrationService = new RegistrationServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
     private final CallService callService = new CallServiceImpl();
 
     @Override
-    public Integer getActiveSessionId() {
-        int active = sessionService.getActiveSessionId();
-        return active > 0 ? active : null;
+    public Integer getActiveExamId() {
+        List<Exam> active = examDAO.getByStatus(enums.ExamStatus.IN_PROGRESS);
+        if (active != null && !active.isEmpty()) {
+            return active.get(0).getExamId();
+        }
+        return null;
     }
 
     @Override
     public ServiceResult<TheoryEntranceDTO> validateEntrance(int sbd) {
-        Integer sessionId = getActiveSessionId();
-        if (sessionId == null) {
-            return entranceFail(ErrorType.NOT_FOUND, "noSession", "Chưa mở ca thi.");
+        Integer examId = getActiveExamId();
+        if (examId == null) {
+            return entranceFail(ErrorType.NOT_FOUND, "noExam", "Chưa mở kỳ thi.");
         }
         if (sbd <= 0) {
             return entranceFail(ErrorType.VALIDATION_FAILED, "invalidSbd", "Số báo danh không hợp lệ.");
         }
-        EnrollmentDTO reg = findBySbd(sessionId, sbd);
+        EnrollmentDTO reg = findBySbd(examId, sbd);
         if (reg == null) {
             return entranceFail(ErrorType.NOT_FOUND, "notFound", "SBD không tồn tại trong ca thi.");
         }
@@ -78,16 +75,16 @@ public class TheoryServiceImpl implements TheoryService {
         if (CandidateStatus.AWAITING_SIGNATURE.getValue().equals(reg.getSectionStatus())) {
             return entranceFail(ErrorType.VALIDATION_FAILED, "awaiting", "Thí sinh đã nộp bài, chờ ký biên bản.");
         }
-        if (!callService.isPresent(sessionId, sbd)) {
+        if (!callService.isPresent(examId, sbd)) {
             return entranceFail(ErrorType.VALIDATION_FAILED, "notPresent",
                     "Thí sinh chưa được giám khảo điểm danh. Vui lòng liên hệ phòng thi.");
         }
-        if (callService.isInProcedureQueue(sessionId, sbd)) {
+        if (callService.isInProcedureQueue(examId, sbd)) {
             return entranceFail(ErrorType.VALIDATION_FAILED, "procedure",
                     "Thí sinh đang chờ xử lý tại phòng thủ tục.");
         }
         TheoryEntranceDTO data = new TheoryEntranceDTO();
-        data.setSessionId(sessionId);
+        data.setExamId(examId);
         data.setCandidateNumber(sbd);
         data.setFullName(reg.getFullName());
         SimpleDateFormat fmt = new SimpleDateFormat("dd / MM / yyyy");
@@ -97,22 +94,22 @@ public class TheoryServiceImpl implements TheoryService {
             data.setDob(fmt.format(reg.getDob()));
         }
         data.setGovIdNo(reg.getGovIdNo());
-        data.setLicenceClass(loadLicenceClass(sessionId));
+        data.setLicenceClass(loadLicenceClass(examId));
         return ServiceResult.ok(data);
     }
 
     @Override
-    public double scanFace(int sessionId, int sbd) {
-        Random random = new Random(sessionId * 1000L + sbd);
+    public double scanFace(int examId, int sbd) {
+        Random random = new Random(examId * 1000L + sbd);
         double rate = 85.0 + random.nextInt(15);
         synchronized (FACE_RATES) {
-            FACE_RATES.put(sessionId * 100000 + sbd, rate);
+            FACE_RATES.put(examId * 100000 + sbd, rate);
         }
         return rate;
     }
 
     @Override
-    public List<Question> loadExamQuestions(int sessionId, int sbd) {
+    public List<Question> loadExamQuestions(int examId, int sbd) {
         List<Question> all = questionDAO.findAll();
         if (all == null || all.isEmpty()) {
             return new ArrayList<>();
@@ -126,14 +123,14 @@ public class TheoryServiceImpl implements TheoryService {
     }
 
     @Override
-    public void saveDraftAnswers(int sessionId, int sbd, Map<Integer, String> answers) {
+    public void saveDraftAnswers(int examId, int sbd, Map<Integer, String> answers) {
         synchronized (DRAFT_ANSWERS) {
-            DRAFT_ANSWERS.put(draftKey(sessionId, sbd), new LinkedHashMap<>(answers));
+            DRAFT_ANSWERS.put(draftKey(examId, sbd), new LinkedHashMap<>(answers));
         }
     }
 
     @Override
-    public ServiceResult<TheorySubmitDTO> submitExam(int sessionId, int sbd, Map<Integer, String> answers) {
+    public ServiceResult<TheorySubmitDTO> submitExam(int examId, int sbd, Map<Integer, String> answers) {
         ServiceResult<TheoryEntranceDTO> entrance = validateEntrance(sbd);
         if (!entrance.isSuccess()) {
             String errorCode = entrance.getData() != null ? entrance.getData().getErrorCode() : "entranceFailed";
@@ -141,17 +138,17 @@ public class TheoryServiceImpl implements TheoryService {
             data.setErrorCode(errorCode);
             return ServiceResult.fail(entrance.getErrorType(), entrance.getMessage(), data);
         }
-        List<Question> questions = loadExamQuestions(sessionId, sbd);
+        List<Question> questions = loadExamQuestions(examId, sbd);
         if (questions.isEmpty()) {
             TheorySubmitDTO data = new TheorySubmitDTO();
             data.setErrorCode("noQuestions");
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không có câu hỏi cho bài thi.", data);
         }
-        Map<Integer, String> merged = new HashMap<>(getDraftAnswers(sessionId, sbd));
+        Map<Integer, String> merged = new HashMap<>(getDraftAnswers(examId, sbd));
         if (answers != null) {
             merged.putAll(answers);
         }
-        saveDraftAnswers(sessionId, sbd, merged);
+        saveDraftAnswers(examId, sbd, merged);
         int correct = 0;
         for (int i = 0; i < questions.size(); i++) {
             Question q = questions.get(i);
@@ -163,11 +160,11 @@ public class TheoryServiceImpl implements TheoryService {
         }
         boolean passed = correct >= THEORY_PASS;
         synchronized (SECTION_PASS) {
-            SECTION_PASS.put(draftKey(sessionId, sbd), passed);
+            SECTION_PASS.put(draftKey(examId, sbd), passed);
         }
-        EnrollmentDTO reg = findBySbd(sessionId, sbd);
+        EnrollmentDTO reg = findBySbd(examId, sbd);
         if (reg != null) {
-            ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+            ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
             if (enrollment != null) {
                 enrollment.setSectionStatus(CandidateStatus.AWAITING_SIGNATURE.getValue());
                 enrollmentDAO.update(enrollment);
@@ -180,9 +177,9 @@ public class TheoryServiceImpl implements TheoryService {
         return ServiceResult.ok(data);
     }
 
-    private Map<Integer, String> getDraftAnswers(int sessionId, int sbd) {
+    private Map<Integer, String> getDraftAnswers(int examId, int sbd) {
         synchronized (DRAFT_ANSWERS) {
-            Map<Integer, String> saved = DRAFT_ANSWERS.get(draftKey(sessionId, sbd));
+            Map<Integer, String> saved = DRAFT_ANSWERS.get(draftKey(examId, sbd));
             if (saved == null) {
                 return new HashMap<>();
             }
@@ -190,8 +187,8 @@ public class TheoryServiceImpl implements TheoryService {
         }
     }
 
-    private static String draftKey(int sessionId, int sbd) {
-        return sessionId + "-" + sbd;
+    private static String draftKey(int examId, int sbd) {
+        return examId + "-" + sbd;
     }
 
     private ServiceResult<TheoryEntranceDTO> entranceFail(ErrorType type, String errorCode, String message) {
@@ -200,8 +197,8 @@ public class TheoryServiceImpl implements TheoryService {
         return ServiceResult.fail(type, message, data);
     }
 
-    private EnrollmentDTO findBySbd(int sessionId, int sbd) {
-        for (EnrollmentDTO row : registrationService.getCandidatesBySession(sessionId)) {
+    private EnrollmentDTO findBySbd(int examId, int sbd) {
+        for (EnrollmentDTO row : registrationService.getCandidatesByExam(examId)) {
             if (row.getCandidateNumber() == sbd) {
                 return row;
             }
@@ -209,12 +206,8 @@ public class TheoryServiceImpl implements TheoryService {
         return null;
     }
 
-    private String loadLicenceClass(int sessionId) {
-        Session session = sessionDAO.getById(sessionId);
-        if (session == null) {
-            return "-";
-        }
-        Exam exam = examDAO.getById(session.getExamId());
+    private String loadLicenceClass(int examId) {
+        Exam exam = examDAO.getById(examId);
         if (exam == null) {
             return "-";
         }

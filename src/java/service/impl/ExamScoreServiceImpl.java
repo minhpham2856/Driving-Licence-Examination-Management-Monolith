@@ -41,7 +41,7 @@ public class ExamScoreServiceImpl implements ExamScoreService {
         if (examResultId <= 0) {
             return false;
         }
-        model.ExamSection sectionRow = sectionDAO.getBySectionName(section.getValue());
+        model.ExamSection sectionRow = sectionDAO.getBySectionType(section.getValue());
         if (sectionRow == null) {
             return false;
         }

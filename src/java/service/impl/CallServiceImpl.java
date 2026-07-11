@@ -10,7 +10,6 @@ import dao.ExamScoreDAO;
 import dao.ExamSectionDAO;
 import dao.ExaminerViewDAO;
 import dao.ScoreDeductionDAO;
-import dao.SessionDAO;
 import dao.impl.AuditDAOImpl;
 import dao.impl.CandidateDAOImpl;
 import dao.impl.DeductionRecordDAOImpl;
@@ -21,10 +20,8 @@ import dao.impl.ExamScoreDAOImpl;
 import dao.impl.ExamSectionDAOImpl;
 import dao.impl.ExaminerViewDAOImpl;
 import dao.impl.ScoreDeductionDAOImpl;
-import dao.impl.SessionDAOImpl;
 import dto.EnrollmentDTO;
 import dto.ServiceResult;
-import dto.SessionViewDTO;
 import enums.AuditAction;
 import enums.SectionType;
 import enums.AuditEntity;
@@ -44,7 +41,6 @@ import model.User;
 import service.AuditService;
 import service.RegistrationService;
 import service.ExamScoreService;
-import service.SessionService;
 import service.CallService;
 import service.ExamViewService;
 import util.ExamQueue;
@@ -71,7 +67,6 @@ public class CallServiceImpl implements CallService {
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
     private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
     private final ExamScoreDAO examScoreDAO = new ExamScoreDAOImpl();
     private final ExamScoreService examScoreService = new ExamScoreServiceImpl();
@@ -81,76 +76,75 @@ public class CallServiceImpl implements CallService {
     private final ExamViewService dataService = new ExamViewServiceImpl();
     private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
     private final RegistrationService registrationService = new RegistrationServiceImpl();
-    private final SessionService sessionService = new SessionServiceImpl();
 
     @Override
-    public void clearPresent(int sessionId, int sbd) {
-        presentSet(sessionId).remove(sbd);
+    public void clearPresent(int examId, int sbd) {
+        presentSet(examId).remove(sbd);
     }
 
     @Override
-    public void markPresent(int sessionId, int sbd) {
-        presentSet(sessionId).add(sbd);
-        procedureSet(sessionId).remove(sbd);
+    public void markPresent(int examId, int sbd) {
+        presentSet(examId).add(sbd);
+        procedureSet(examId).remove(sbd);
     }
 
     @Override
-    public boolean isPresent(int sessionId, int sbd) {
-        return presentSet(sessionId).contains(sbd);
+    public boolean isPresent(int examId, int sbd) {
+        return presentSet(examId).contains(sbd);
     }
 
     @Override
-    public void sendToProcedure(int sessionId, int sbd) {
-        procedureSet(sessionId).add(sbd);
-        presentSet(sessionId).remove(sbd);
+    public void sendToProcedure(int examId, int sbd) {
+        procedureSet(examId).add(sbd);
+        presentSet(examId).remove(sbd);
         for (Lane lane : Lane.values()) {
             ExamQueue.remove(lane, sbd);
         }
     }
 
     @Override
-    public boolean isInProcedureQueue(int sessionId, int sbd) {
-        return procedureSet(sessionId).contains(sbd);
+    public boolean isInProcedureQueue(int examId, int sbd) {
+        return procedureSet(examId).contains(sbd);
     }
 
     @Override
-    public void removeCandidate(int sessionId, int sbd) {
-        presentSet(sessionId).remove(sbd);
-        procedureSet(sessionId).remove(sbd);
+    public void removeCandidate(int examId, int sbd) {
+        presentSet(examId).remove(sbd);
+        procedureSet(examId).remove(sbd);
     }
 
-    private Set<Integer> presentSet(int sessionId) {
+    private Set<Integer> presentSet(int examId) {
         synchronized (PRESENT) {
-            Set<Integer> set = PRESENT.get(sessionId);
+            Set<Integer> set = PRESENT.get(examId);
             if (set == null) {
                 set = new HashSet<>();
-                PRESENT.put(sessionId, set);
+                PRESENT.put(examId, set);
             }
             return set;
         }
     }
 
-    private Set<Integer> procedureSet(int sessionId) {
+    private Set<Integer> procedureSet(int examId) {
         synchronized (PROCEDURE) {
-            Set<Integer> set = PROCEDURE.get(sessionId);
+            Set<Integer> set = PROCEDURE.get(examId);
             if (set == null) {
                 set = new HashSet<>();
-                PROCEDURE.put(sessionId, set);
+                PROCEDURE.put(examId, set);
             }
             return set;
         }
     }
 
     @Override
-    public EnrollmentDTO getRegistration(int sessionId, int sbd) {
-        return dataService.findRegistration(sessionId, sbd);
+    public EnrollmentDTO getRegistration(int examId, int sbd) {
+        return dataService.findRegistration(examId, sbd);
     }
 
     @Override
-    public ServiceResult<Void> updateCandidateProfile(int sessionId, int sbd, Integer actionUserId, String fullName,
+    public ServiceResult<Void> updateCandidateProfile(int examId, int sbd, Integer actionUserId, String fullName,
             Date dateOfBirth, String governmentIdNumber, String phoneNumber, String address, String sex,
             String reasonForTaking) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
@@ -189,19 +183,19 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> callCandidate(int sessionId, Integer sbd, User user, Integer actionUserId,
+    public ServiceResult<Void> callCandidate(int examId, Integer sbd, User user, Integer actionUserId,
             SectionType examSection, boolean isTheory, String sectionName, String callDestination) {
         if (sbd == null || sbd <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
-        if (!dataService.isCallEligible(sessionId, reg, isTheory, sectionName)) {
+        if (!dataService.isCallEligible(examId, reg, isTheory, sectionName)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện để gọi.");
         }
-        boolean called = insertCall(sessionId, reg, user, actionUserId, callDestination);
+        boolean called = insertCall(examId, reg, user, actionUserId, callDestination);
         if (!called) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi thí sinh.");
         }
@@ -212,22 +206,22 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Integer> callNextCandidate(int sessionId, User user, Integer actionUserId,
+    public ServiceResult<Integer> callNextCandidate(int examId, User user, Integer actionUserId,
             SectionType examSection, boolean isTheory, String sectionName, String callDestination) {
         Lane lane = ExamQueue.laneFor(examSection);
         Integer queued = ExamQueue.peekFirst(lane);
         if (queued != null && queued > 0) {
-            if (callCandidate(sessionId, queued, user, actionUserId, examSection, isTheory, sectionName,
+            if (callCandidate(examId, queued, user, actionUserId, examSection, isTheory, sectionName,
                     callDestination).isSuccess()) {
                 return ServiceResult.ok(queued);
             }
         }
-        List<EnrollmentDTO> all = registrationService.getCandidatesBySession(sessionId);
+        List<EnrollmentDTO> all = registrationService.getCandidatesByExam(examId);
         for (EnrollmentDTO reg : all) {
-            if (!dataService.isCallEligible(sessionId, reg, isTheory, sectionName)) {
+            if (!dataService.isCallEligible(examId, reg, isTheory, sectionName)) {
                 continue;
             }
-            if (insertCall(sessionId, reg, user, actionUserId, callDestination)) {
+            if (insertCall(examId, reg, user, actionUserId, callDestination)) {
                 ExamQueue.setCalledSbd(lane, reg.getCandidateNumber());
                 ExamQueue.setActiveSbd(lane, reg.getCandidateNumber());
                 return ServiceResult.ok(reg.getCandidateNumber());
@@ -237,7 +231,7 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Integer> callSelectedCandidates(int sessionId, User user, Integer actionUserId,
+    public ServiceResult<Integer> callSelectedCandidates(int examId, User user, Integer actionUserId,
             SectionType examSection, boolean isTheory, String sectionName, String callDestination, int[] sbds) {
         if (sbds == null || sbds.length == 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Chưa chọn thí sinh.");
@@ -247,7 +241,7 @@ public class CallServiceImpl implements CallService {
             if (sbd <= 0) {
                 continue;
             }
-            if (callCandidate(sessionId, sbd, user, actionUserId, examSection, isTheory, sectionName,
+            if (callCandidate(examId, sbd, user, actionUserId, examSection, isTheory, sectionName,
                     callDestination).isSuccess()) {
                 count++;
             }
@@ -259,17 +253,17 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> callScoreEntryCandidate(int sessionId, Integer sbd, User user, Integer actionUserId,
+    public ServiceResult<Void> callScoreEntryCandidate(int examId, Integer sbd, User user, Integer actionUserId,
             SectionType examSection, boolean isTheory, String sectionName, String callDestination,
             boolean scoreEntry) {
         if (sbd == null || sbd <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
-        if (!dataService.isScoreQueueEligible(sessionId, reg, isTheory, sectionName)) {
+        EnrollmentDTO reg = getRegistration(examId, sbd);
+        if (!dataService.isScoreQueueEligible(examId, reg, isTheory, sectionName)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện nhập điểm.");
         }
-        boolean called = insertScoreEntryCall(sessionId, reg, user, actionUserId, callDestination);
+        boolean called = insertScoreEntryCall(examId, reg, user, actionUserId, callDestination);
         if (!called) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi nhập điểm.");
         }
@@ -312,18 +306,18 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> changeCandidateVehicle(int sessionId, int sbd, int deviceId, Integer actionUserId) {
-        if (sessionId <= 0 || sbd <= 0 || deviceId <= 0) {
+    public ServiceResult<Void> changeCandidateVehicle(int examId, int sbd, int deviceId, Integer actionUserId) {
+        if (examId <= 0 || sbd <= 0 || deviceId <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thông tin gán xe không hợp lệ.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
-        if (!isDeviceInSession(sessionId, deviceId)) {
+        if (!isDeviceInExam(examId, deviceId)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiết bị không thuộc ca thi.");
         }
-        boolean updated = enrollmentDAO.assignExamDevice(reg.getId(), sessionId, deviceId);
+        boolean updated = enrollmentDAO.assignExamDevice(reg.getId(), examId, deviceId);
         if (!updated) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể gán xe cho thí sinh.");
         }
@@ -335,7 +329,7 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> updateTheoryScore(int sessionId, int sbd, User user, String password, Integer newScore,
+    public ServiceResult<Void> updateTheoryScore(int examId, int sbd, User user, String password, Integer newScore,
             String reasonCode, String reasonDetail, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
@@ -343,7 +337,7 @@ public class CallServiceImpl implements CallService {
         if (!verifyPassword(user, password)) {
             return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
@@ -372,7 +366,7 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> logPracticalScoreEditReason(int sessionId, int sbd, User user, String password,
+    public ServiceResult<Void> logPracticalScoreEditReason(int examId, int sbd, User user, String password,
             String reasonCode, String reasonDetail, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
@@ -380,7 +374,7 @@ public class CallServiceImpl implements CallService {
         if (!verifyPassword(user, password)) {
             return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
@@ -395,9 +389,9 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> recordViolation(int sessionId, int sbd, Integer actionUserId, String reasonCode,
+    public ServiceResult<Void> recordViolation(int examId, int sbd, Integer actionUserId, String reasonCode,
             String reasonDetail, String evidencePath) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended()) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh hoặc thí sinh đã bị đình chỉ.");
         }
@@ -425,15 +419,15 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> markPresent(int sessionId, int sbd, Integer actionUserId) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+    public ServiceResult<Void> markPresent(int examId, int sbd, Integer actionUserId) {
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isAbsent() || reg.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điểm danh.");
         }
         if (CandidateStatus.COMPLETED.getValue().equals(reg.getSectionStatus())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh đã hoàn tất phần thi.");
         }
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment != null && CandidateStatus.fromValue(enrollment.getSectionStatus()) == CandidateStatus.NOT_STARTED) {
             enrollment.setSectionStatus(CandidateStatus.IN_PROGRESS.getValue());
             enrollmentDAO.update(enrollment);
@@ -446,8 +440,8 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> undoPresent(int sessionId, int sbd, Integer actionUserId) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+    public ServiceResult<Void> undoPresent(int examId, int sbd, Integer actionUserId) {
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tác điểm danh.");
         }
@@ -455,7 +449,7 @@ public class CallServiceImpl implements CallService {
                 || CandidateStatus.COMPLETED.getValue().equals(reg.getSectionStatus())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Không thể hoàn tác điểm danh ở trạng thái hiện tại.");
         }
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment != null && CandidateStatus.fromValue(enrollment.getSectionStatus()) == CandidateStatus.IN_PROGRESS) {
             enrollment.setSectionStatus(CandidateStatus.NOT_STARTED.getValue());
             enrollmentDAO.update(enrollment);
@@ -468,8 +462,8 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> sendWrongInfoToProcedure(int sessionId, int sbd, Integer actionUserId) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+    public ServiceResult<Void> sendWrongInfoToProcedure(int examId, int sbd, Integer actionUserId) {
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
@@ -482,16 +476,16 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> adjustScoreDeduction(int sessionId, int sbd, int deductionId, int delta,
+    public ServiceResult<Void> adjustScoreDeduction(int examId, int sbd, int deductionId, int delta,
             Integer actionUserId) {
         if (sbd <= 0 || deductionId <= 0 || delta == 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thông tin điều chỉnh điểm không hợp lệ.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điều chỉnh điểm.");
         }
-        boolean updated = adjustScoreDeductionOccurrence(reg.getId(), sessionId, deductionId, delta);
+        boolean updated = adjustScoreDeductionOccurrence(reg.getId(), examId, deductionId, delta);
         if (!updated) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể điều chỉnh điểm trừ.");
         }
@@ -506,15 +500,15 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> finalizeScoreEntry(int sessionId, int sbd, Integer actionUserId) {
+    public ServiceResult<Void> finalizeScoreEntry(int examId, int sbd, Integer actionUserId) {
         if (sbd <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tất nhập điểm.");
         }
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy đăng ký thi.");
         }
@@ -537,12 +531,12 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> printSignatureForm(int sessionId, int sbd, Integer actionUserId) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+    public ServiceResult<Void> printSignatureForm(int examId, int sbd, Integer actionUserId) {
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || !CandidateStatus.AWAITING_SIGNATURE.getValue().equals(reg.getSectionStatus())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa sẵn sàng in biên bản.");
         }
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy đăng ký thi.");
         }
@@ -559,9 +553,9 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
-    public ServiceResult<Void> completeCandidateSection(int sessionId, int sbd, Integer actionUserId,
+    public ServiceResult<Void> completeCandidateSection(int examId, int sbd, Integer actionUserId,
             Boolean sectionPassedHint) {
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
         }
@@ -571,7 +565,7 @@ public class CallServiceImpl implements CallService {
         if (!reg.isSignaturePrinted()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "needSignaturePrint");
         }
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, reg.getId());
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "completeFailed");
         }
@@ -586,22 +580,22 @@ public class CallServiceImpl implements CallService {
         }
         boolean sectionPassed = sectionPassedHint != null
                 ? sectionPassedHint
-                : computeSectionPassed(sessionId, reg);
+                : computeSectionPassed(examId, reg);
         if (!sectionPassed) {
             removeFromAllQueues(sbd);
         } else {
-            enqueueNextSection(sessionId, reg);
+            enqueueNextSection(examId, reg);
         }
         return ServiceResult.ok(null);
     }
 
     @Override
-    public ServiceResult<Void> recordProcedureCall(int sessionId, int sbd, String result, String callDestination,
+    public ServiceResult<Void> recordProcedureCall(int examId, int sbd, String result, String callDestination,
             Integer actionUserId) {
         if (sbd <= 0) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
         }
-        EnrollmentDTO reg = getRegistration(sessionId, sbd);
+        EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
@@ -609,7 +603,7 @@ public class CallServiceImpl implements CallService {
         audit.setUserId(actionUserId != null ? actionUserId : 0);
         audit.setAction("CALL");
         audit.setEntityName("Candidate");
-        audit.setEntityId(sessionId + "-" + sbd);
+        audit.setEntityId(examId + "-" + sbd);
         String detail = "calledTo=" + (callDestination != null ? callDestination : "")
                 + ";result=" + (result != null ? result : "");
         audit.setReason(detail);
@@ -625,9 +619,12 @@ public class CallServiceImpl implements CallService {
         return ServiceResult.ok(null);
     }
 
-    private boolean isDeviceInSession(int sessionId, int deviceId) {
-        List<Integer> areaIds = sessionDAO.getExamAreaIds(sessionId);
-        for (ExamDevice device : deviceDAO.getAllByAreaIds(areaIds)) {
+    private boolean isDeviceInExam(int examId, int deviceId) {
+        Integer primaryAreaId = examinerDataDAO.findPrimaryExamAreaId(examId);
+        if (primaryAreaId == null || primaryAreaId <= 0) {
+            return false;
+        }
+        for (ExamDevice device : deviceDAO.getDevicesByAreaId(primaryAreaId)) {
             if (device.getExamDeviceId() == deviceId) {
                 return true;
             }
@@ -635,12 +632,12 @@ public class CallServiceImpl implements CallService {
         return false;
     }
 
-    private boolean insertCall(int sessionId, EnrollmentDTO reg, User user, Integer actionUserId,
+    private boolean insertCall(int examId, EnrollmentDTO reg, User user, Integer actionUserId,
             String callDestination) {
         Audit audit = new Audit();
         audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         audit.setAction("CALL");
-        String entityId = sessionId + "-" + reg.getCandidateNo();
+        String entityId = examId + "-" + reg.getCandidateNo();
         String detail = "calledTo=" + callDestination + ";result=Calling";
         audit.setReason(detail);
         audit.setEntityName("Candidate");
@@ -654,12 +651,12 @@ public class CallServiceImpl implements CallService {
         return insertedId > 0;
     }
 
-    private boolean insertScoreEntryCall(int sessionId, EnrollmentDTO reg, User user, Integer actionUserId,
+    private boolean insertScoreEntryCall(int examId, EnrollmentDTO reg, User user, Integer actionUserId,
             String callDestination) {
         Audit audit = new Audit();
         audit.setUserId(user != null && user.getUserId() > 0 ? user.getUserId() : 0);
         audit.setAction("CALL");
-        String entityId = sessionId + "-" + reg.getCandidateNo();
+        String entityId = examId + "-" + reg.getCandidateNo();
         String detail = "calledTo=" + callDestination + ";result=Calling";
         audit.setReason(detail);
         audit.setEntityName("Candidate");
@@ -691,10 +688,10 @@ public class CallServiceImpl implements CallService {
         }
     }
 
-    private boolean computeSectionPassed(int sessionId, EnrollmentDTO reg) {
+    private boolean computeSectionPassed(int examId, EnrollmentDTO reg) {
         int enrollmentId = reg.getEnrollment() != null ? reg.getEnrollment().getExamEnrollmentId() : 0;
         if (enrollmentId > 0) {
-            Map<Integer, Boolean> flags = examinerDataDAO.loadPassFlagsBySession(sessionId);
+            Map<Integer, Boolean> flags = examinerDataDAO.loadPassFlagsByExam(examId);
             Boolean passed = flags.get(enrollmentId);
             if (passed != null) {
                 return passed;
@@ -709,11 +706,10 @@ public class CallServiceImpl implements CallService {
         return true;
     }
 
-    private void enqueueNextSection(int sessionId, EnrollmentDTO reg) {
+    private void enqueueNextSection(int examId, EnrollmentDTO reg) {
         int sbd = reg.getCandidateNumber();
-        SessionViewDTO session = sessionService.getSessionById(sessionId);
-        enums.SectionType examSection = session != null && session.getExamSection() != null
-                ? session.getExamSection() : enums.SectionType.THEORY;
+        // Examiner proctors a single section (THEORY/LAYOUT) per exam.
+        enums.SectionType examSection = enums.SectionType.THEORY;
         Lane current = ExamQueue.laneFor(examSection);
         ExamQueue.remove(current, sbd);
         Candidate candidate = candidateDAO.getById(reg.getId());
@@ -767,15 +763,15 @@ public class CallServiceImpl implements CallService {
         return label;
     }
 
-    private boolean adjustScoreDeductionOccurrence(int candidateId, int sessionId, int scoreDeductionId, int delta) {
-        if (candidateId <= 0 || sessionId <= 0 || scoreDeductionId <= 0 || delta == 0) {
+    private boolean adjustScoreDeductionOccurrence(int candidateId, int examId, int scoreDeductionId, int delta) {
+        if (candidateId <= 0 || examId <= 0 || scoreDeductionId <= 0 || delta == 0) {
             return false;
         }
         ScoreDeduction rule = scoreDeductionDAO.getById(scoreDeductionId);
         if (rule == null) {
             return false;
         }
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, candidateId);
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, candidateId);
         if (enrollment == null) {
             return false;
         }
@@ -791,7 +787,7 @@ public class CallServiceImpl implements CallService {
         }
         int sectionId = rule.getExamSectionId();
         if (sectionId <= 0) {
-            sectionId = loadSessionExamSectionId(sessionId);
+            sectionId = loadExamSectionId(examId);
         }
         if (sectionId <= 0) {
             return false;
@@ -816,12 +812,8 @@ public class CallServiceImpl implements CallService {
         return examScoreDAO.recalculateFromDeductions(examScoreId);
     }
 
-    private int loadSessionExamSectionId(int sessionId) {
-        Integer sessionSectionId = sessionDAO.getExamSectionId(sessionId);
-        if (sessionSectionId != null && sessionSectionId > 0) {
-            return sessionSectionId;
-        }
-        model.ExamSection section = sectionDAO.getBySectionName(enums.SectionType.LAYOUT.getValue());
+    private int loadExamSectionId(int examId) {
+        model.ExamSection section = sectionDAO.getBySectionType(enums.SectionType.LAYOUT.getValue());
         if (section != null) {
             return section.getExamSectionId();
         }

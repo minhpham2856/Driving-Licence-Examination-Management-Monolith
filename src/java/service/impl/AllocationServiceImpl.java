@@ -1,36 +1,36 @@
 package service.impl;
 
 import dao.ExamAreaDAO;
+import dao.ExamDAO;
 import dao.ExamDeviceDAO;
 import dao.ExamEnrollmentDAO;
 import dao.ExamSectionDAO;
 import dao.ExaminerScheduleDAO;
 import dao.ProfileDAO;
-import dao.SessionDAO;
 import dao.UserDAO;
 import dao.impl.ExamAreaDAOImpl;
+import dao.impl.ExamDAOImpl;
 import dao.impl.ExamDeviceDAOImpl;
 import dao.impl.ExamEnrollmentDAOImpl;
 import dao.impl.ExamSectionDAOImpl;
 import dao.impl.ExaminerScheduleDAOImpl;
 import dao.impl.ProfileDAOImpl;
-import dao.impl.SessionDAOImpl;
 import dao.impl.UserDAOImpl;
 import dto.AssignmentDTO;
 import dto.ServiceResult;
-import dto.SessionViewDTO;
+import dto.ExamViewDTO;
 import dto.UserRowDTO;
 import dto.AllocateResultDTO;
 import enums.ErrorType;
+import enums.ExamStatus;
 import enums.SectionType;
+import model.Exam;
 import model.ExamArea;
 import model.ExamDevice;
 import model.ExamEnrollment;
 import model.ExaminerSchedule;
 import model.Profile;
-import model.Session;
 import model.User;
-import service.SessionService;
 import service.AllocationService;
 
 import java.sql.Date;
@@ -42,7 +42,7 @@ import java.util.Set;
 
 public class AllocationServiceImpl implements AllocationService {
 
-    private final SessionDAO sessionDAO = new SessionDAOImpl();
+    private final ExamDAO examDAO = new ExamDAOImpl();
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExaminerScheduleDAO assignmentDAO = new ExaminerScheduleDAOImpl();
@@ -50,40 +50,42 @@ public class AllocationServiceImpl implements AllocationService {
     private final ProfileDAO profileDAO = new ProfileDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
-    private final SessionService sessionControlService = new SessionServiceImpl();
 
     // Default capacity used when an ExamArea has no capacity value set.
     private static final int DEFAULT_ROOM_CAPACITY = 30;
 
     @Override
-    public List<SessionViewDTO> getAllSessions() {
-        return sessionControlService.getAllSessions();
-    }
-
-    @Override
-    public SessionViewDTO getSessionById(int sessionId) {
-        return sessionControlService.getSessionById(sessionId);
-    }
-
-    @Override
-    public List<SessionViewDTO> getSessionsByExamDate(Date date) {
-        List<Session> sessions = sessionDAO.findByExamDate(date);
-        List<SessionViewDTO> list = new ArrayList<>();
-        if (sessions == null) {
-            return list;
-        }
-        for (Session session : sessions) {
-            SessionViewDTO dto = sessionControlService.getSessionById(session.getSessionId());
-            if (dto != null) {
-                list.add(dto);
+    public List<ExamViewDTO> getAllExams() {
+        List<ExamViewDTO> list = new ArrayList<>();
+        for (Exam exam : examDAO.getByStatus(ExamStatus.IN_PROGRESS)) {
+            if (exam != null) {
+                list.add(toExamViewDTO(exam));
             }
         }
         return list;
     }
 
     @Override
-    public List<ExamArea> getAreasBySessionId(int sessionId) {
-        return areaDAO.getAreasBySessionId(sessionId);
+    public ExamViewDTO getExamById(int examId) {
+        Exam exam = examDAO.getById(examId);
+        return exam != null ? toExamViewDTO(exam) : null;
+    }
+
+    @Override
+    public List<ExamViewDTO> getExamsByExamDate(Date date) {
+        List<ExamViewDTO> list = new ArrayList<>();
+        for (Exam exam : examDAO.getByStatus(ExamStatus.IN_PROGRESS)) {
+            if (exam != null && date != null && exam.getExamDate() != null
+                    && exam.getExamDate().equals(date)) {
+                list.add(toExamViewDTO(exam));
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public List<ExamArea> getAreasByExamId(int examId) {
+        return areaDAO.getAreasByExamId(examId);
     }
 
     @Override
@@ -92,8 +94,8 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     @Override
-    public List<ExamEnrollment> getCandidatesBySession(int sessionId) {
-        return enrollmentDAO.getBySessionId(sessionId);
+    public List<ExamEnrollment> getCandidatesByExam(int examId) {
+        return enrollmentDAO.getByExamId(examId);
     }
 
     @Override
@@ -122,8 +124,8 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     @Override
-    public boolean isAreaInSession(int sessionId, int areaId) {
-        return areaDAO.isAreaInSession(sessionId, areaId);
+    public boolean isAreaInExam(int examId, int areaId) {
+        return areaDAO.isAreaInExam(examId, areaId);
     }
 
     @Override
@@ -132,8 +134,8 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     @Override
-    public List<AssignmentDTO> getAssignmentsBySessionId(int sessionId) {
-        return buildAssignmentDTOList(assignmentDAO.getBySessionId(sessionId));
+    public List<AssignmentDTO> getAssignmentsByExamId(int examId) {
+        return buildAssignmentDTOList(assignmentDAO.getByExamId(examId));
     }
 
     @Override
@@ -144,11 +146,18 @@ public class AllocationServiceImpl implements AllocationService {
     @Override
     public boolean assignExaminer(AssignmentDTO slot) {
         ExaminerSchedule schedule = new ExaminerSchedule();
-        schedule.setSessionId(slot.getExamSessionId());
+        schedule.setExamId(slot.getExamId());
         schedule.setExaminerId(slot.getExaminerUserId());
         schedule.setExamAreaId(slot.getAreaId());
         schedule.setAssignedBy(slot.getAssignedBy());
-        schedule.setExamSectionId(sessionDAO.getExamSectionId(slot.getExamSessionId()));
+        Integer sectionId = null;
+        if (slot.getExamTypeName() != null) {
+            model.ExamSection section = sectionDAO.getBySectionType(slot.getExamTypeName());
+            if (section != null) {
+                sectionId = section.getExamSectionId();
+            }
+        }
+        schedule.setExamSectionId(sectionId);
         return assignmentDAO.insert(schedule);
     }
 
@@ -162,17 +171,17 @@ public class AllocationServiceImpl implements AllocationService {
             return false;
         }
         try {
-            int sessionId = Integer.parseInt(parts[0]);
+            int examId = Integer.parseInt(parts[0]);
             int areaId = Integer.parseInt(parts[1]);
             int examinerId = Integer.parseInt(parts[2]);
-            return assignmentDAO.deleteBySlot(sessionId, areaId, examinerId);
+            return assignmentDAO.deleteBySlot(examId, areaId, examinerId);
         } catch (NumberFormatException e) {
             return false;
         }
     }
 
     @Override
-    public ServiceResult<AllocateResultDTO> autoAllocateSession(int sessionId) {
+    public ServiceResult<AllocateResultDTO> autoAllocateExam(int examId) {
         // Ported from the examstaff branch's ExamAutoAllocator. Main models
         // candidates per session as ExamEnrollment and has no candidate-to-room
         // column, so this computes a capacity-balanced distribution plan.
@@ -181,7 +190,7 @@ public class AllocationServiceImpl implements AllocationService {
             return ServiceResult.fail(ErrorType.NOT_CONFIGURED,
                     "Không có phòng thi lý thuyết đang hoạt động để phân bổ.");
         }
-        List<ExamEnrollment> candidates = enrollmentDAO.getBySessionId(sessionId);
+        List<ExamEnrollment> candidates = enrollmentDAO.getByExamId(examId);
         if (candidates == null || candidates.isEmpty()) {
             AllocateResultDTO result = new AllocateResultDTO();
             result.setAllocatedCount(0);
@@ -208,13 +217,13 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     @Override
-    public ServiceResult<AllocateResultDTO> autoAllocateCandidate(int sessionId, int registrationId) {
+    public ServiceResult<AllocateResultDTO> autoAllocateCandidate(int examId, int registrationId) {
         // registrationId from the branch maps to CandidateId in main.
-        ExamEnrollment enrollment = enrollmentDAO.getBySessionAndCandidate(sessionId, registrationId);
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, registrationId);
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND,
                     "Không tìm thấy thí sinh (CandidateId=" + registrationId
-                            + ") trong ca sát hạch " + sessionId + ".");
+                    + ") trong ca sát hạch " + examId + ".");
         }
         List<ExamArea> rooms = areaDAO.getActiveTheoryRooms();
         if (rooms == null || rooms.isEmpty()) {
@@ -231,20 +240,20 @@ public class AllocationServiceImpl implements AllocationService {
         if (schedules == null) {
             return list;
         }
-        Map<Integer, Session> sessions = loadSessionsForSchedules(schedules);
+        Map<Integer, Exam> exams = loadExamsForSchedules(schedules);
         Map<Integer, User> users = loadUsersForSchedules(schedules);
         Map<Integer, Profile> profiles = loadProfilesForUsers(users);
         for (ExaminerSchedule schedule : schedules) {
-            list.add(buildAssignmentDTO(schedule, sessions, users, profiles));
+            list.add(buildAssignmentDTO(schedule, exams, users, profiles));
         }
         return list;
     }
 
-    private AssignmentDTO buildAssignmentDTO(ExaminerSchedule schedule, Map<Integer, Session> sessions,
+    private AssignmentDTO buildAssignmentDTO(ExaminerSchedule schedule, Map<Integer, Exam> exams,
             Map<Integer, User> users, Map<Integer, Profile> profiles) {
         AssignmentDTO slot = new AssignmentDTO();
-        slot.setSessionExaminerId(schedule.getExaminerScheduleId());
-        slot.setExamSessionId(schedule.getSessionId());
+        slot.setExaminerScheduleId(schedule.getExaminerScheduleId());
+        slot.setExamId(schedule.getExamId());
         slot.setExaminerUserId(schedule.getExaminerId());
         if (schedule.getAssignedBy() != null) {
             slot.setAssignedBy(schedule.getAssignedBy());
@@ -260,28 +269,15 @@ public class AllocationServiceImpl implements AllocationService {
         if (schedule.getExamSectionId() != null) {
             model.ExamSection section = sectionDAO.getById(schedule.getExamSectionId());
             if (section != null) {
-                SectionType examSection = examSectionFromDbName(section.getSectionName());
+                SectionType examSection = examSectionFromDbName(section.getSectionType());
                 slot.setExamSection(examSection);
                 slot.setExamTypeName(examSection.getValue());
             }
         }
-        Session session = sessions.get(schedule.getSessionId());
-        if (session != null) {
-            slot.setMorningSession(session.isMorningSession());
-            if (slot.getExamSection() == null) {
-                SessionViewDTO SessionViewDTO = sessionControlService.getSessionById(session.getSessionId());
-                if (SessionViewDTO != null) {
-                    slot.setExamSection(SessionViewDTO.getExamSection());
-                    if (slot.getExamTypeName() == null && SessionViewDTO.getExamSection() != null) {
-                        slot.setExamTypeName(SessionViewDTO.getExamSection().getValue());
-                    }
-                }
-            }
-            // Populate the session label so the day-summary view can show which
-            // session an assignment belongs to without re-querying.
-            SessionViewDTO labelView = sessionControlService.getSessionById(session.getSessionId());
-            if (labelView != null && labelView.getSessionLabel() != null) {
-                slot.setsessionLabel(labelView.getSessionLabel());
+        Exam exam = exams.get(schedule.getExamId());
+        if (exam != null) {
+            if (exam.getExamCode() != null) {
+                slot.setExamLabel(exam.getExamCode());
             }
         }
         User examiner = users.get(schedule.getExaminerId());
@@ -328,18 +324,32 @@ public class AllocationServiceImpl implements AllocationService {
         return dto;
     }
 
-    private Map<Integer, Session> loadSessionsForSchedules(List<ExaminerSchedule> schedules) {
-        Map<Integer, Session> sessions = new HashMap<>();
+    private Map<Integer, Exam> loadExamsForSchedules(List<ExaminerSchedule> schedules) {
+        Map<Integer, Exam> exams = new HashMap<>();
         for (ExaminerSchedule schedule : schedules) {
-            int sessionId = schedule.getSessionId();
-            if (!sessions.containsKey(sessionId)) {
-                Session session = sessionDAO.getById(sessionId);
-                if (session != null) {
-                    sessions.put(sessionId, session);
+            int examId = schedule.getExamId();
+            if (!exams.containsKey(examId)) {
+                Exam exam = examDAO.getById(examId);
+                if (exam != null) {
+                    exams.put(examId, exam);
                 }
             }
         }
-        return sessions;
+        return exams;
+    }
+
+    private static ExamViewDTO toExamViewDTO(Exam exam) {
+        ExamViewDTO dto = new ExamViewDTO();
+        dto.setId(exam.getExamId());
+        dto.setExamDate(new java.sql.Date(exam.getExamDate().getTime()));
+        dto.setShiftStartTime(new java.sql.Time(exam.getStartTime().getTime()));
+        dto.setShiftEndTime(new java.sql.Time(exam.getEndTime().getTime()));
+        dto.setStatus(exam.getStatus());
+        dto.setLicenseTypeId(exam.getLicenceId());
+        if (exam.getExamCode() != null) {
+            dto.setExamLabel(exam.getExamCode());
+        }
+        return dto;
     }
 
     private Map<Integer, User> loadUsersForSchedules(List<ExaminerSchedule> schedules) {

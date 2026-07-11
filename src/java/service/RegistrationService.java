@@ -12,11 +12,11 @@ import java.util.Map;
 
 public interface RegistrationService {
 
-    EnrollmentDTO getBySessionAndSbd(int sessionId, int sbd);
+    EnrollmentDTO getByExamAndSbd(int examId, int sbd);
 
-    List<EnrollmentDTO> getCandidatesBySession(int sessionId);
+    List<EnrollmentDTO> getCandidatesByExam(int examId);
 
-    List<EnrollmentDTO> searchCandidatesBySession(int sessionId, String keyword);
+    List<EnrollmentDTO> searchCandidatesByExam(int examId, String keyword);
 
     ServiceResult<Void> updateProfile(int candidateId, String fullName, Date dateOfBirth,
             String governmentIdNumber, String phoneNumber);
@@ -31,7 +31,7 @@ public interface RegistrationService {
 
     ServiceResult<Void> undoSuspension(int candidateId);
 
-    List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int sessionId);
+    List<Map<String, Object>> findAppliedScoreDeductions(int candidateId, int examId);
 
     ServiceResult<Void> updateScores(int candidateId, Integer theoryScore, String theoryResult,
             Integer practicalScore, String practicalResult);
@@ -46,7 +46,7 @@ public interface RegistrationService {
 
     EnrollmentDTO getById(int candidateId);
 
-    Integer findCandidateIdByGovIdAndSession(String governmentIdNumber, int sessionId);
+    Integer findCandidateIdByGovIdAndExam(String governmentIdNumber, int examId);
 
     ServiceResult<Void> insert(UploadRowDTO dto);
 
