@@ -28,6 +28,7 @@
             <jsp:param name="sortColumn" value="theoryScore" />
             <jsp:param name="label" value="Lý thuyết" />
         </jsp:include>
+        <th>Sân thi</th>
         <th>Thao tác</th>
     </c:if>
     <c:if test="${variant eq 'results-pass' or variant eq 'results-fail'}">

@@ -14,8 +14,10 @@ import service.ExamAreaQueryService;
 import service.ExamRegistrationService;
 import service.ExaminerAllocationService;
 import util.examstaff.AllocationStageHelper;
+import util.examstaff.ExaminerAssignmentRules;
 
 import java.util.List;
+import java.util.Set;
 
 public class AllocationActionServiceImpl implements AllocationActionService {
 
@@ -31,12 +33,19 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         if (sessionId <= 0) {
             return result;
         }
-        if (!AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
-                && !AllocationStageHelper.STAGE_THEORY.equals(stage)) {
-            return result;
+        int allocated = 0;
+        if (AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
+                || AllocationStageHelper.STAGE_THEORY.equals(stage)) {
+            AutoAllocateResultDTO theoryAlloc = examinerAllocationService.autoAllocateSession(sessionId);
+            allocated += theoryAlloc.allocatedCount;
         }
-        AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocateSession(sessionId);
-        result.setAllocatedCount(allocResult.allocatedCount);
+        if (AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
+                || AllocationStageHelper.STAGE_PRACTICAL.equals(stage)) {
+            AutoAllocateResultDTO practicalAlloc =
+                    examinerAllocationService.autoAllocatePracticalSession(sessionId);
+            allocated += practicalAlloc.allocatedCount;
+        }
+        result.setAllocatedCount(allocated);
         return result;
     }
 
@@ -83,6 +92,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
             case "checkin" -> handleCheckin(profile, regId);
             case "callCandidate" -> handleCallCandidate(result, profile);
             case "allocateRoom" -> handleAllocateRoom(result, request, profile, regId, sessionId);
+            case "allocatePracticalRoom" -> handleAllocatePracticalRoom(result, request, profile, regId, sessionId);
             case "submitTheoryScore" -> handleTheoryScore(result, profile, regId, sessionId, request.getScore());
             case "submitPracticalScore" -> handlePracticalScore(result, profile, regId, sessionId, request.getScore());
             case "quickComplete" -> handleQuickComplete(result, profile, regId, sessionId);
@@ -128,25 +138,27 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         int areaId = request.getAreaId();
         int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamSessionId();
         if (enrollSessionId <= 0) {
-            result.setErrorMsg("Không xác định được ca thi để đổi phòng.");
+            result.setErrorMsg("Không xác định được kỳ thi để đổi phòng.");
             return;
         }
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null
                 || !ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(targetArea.getAreaType())) {
-            result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết từ ExamArea.");
+            result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết.");
+            return;
+        }
+
+        Set<Integer> staffedTheoryAreas = ExaminerAssignmentRules.staffedTheoryAreaIds(
+                examinerAllocationService.getAssignmentsBySessionId(enrollSessionId));
+        if (!staffedTheoryAreas.contains(targetArea.getId())) {
+            result.setErrorMsg("Phòng \"" + targetArea.getAreaName()
+                    + "\" chưa được phân công giám khảo trong kỳ thi này.");
             return;
         }
 
         Integer currentAreaId = profile.getAllocatedAreaId();
         if (currentAreaId != null && currentAreaId == areaId) {
-            return;
-        }
-
-        String allocationConflict = regService.validateUniqueTheoryAllocation(regId, enrollSessionId);
-        if (allocationConflict != null) {
-            result.setErrorMsg(allocationConflict);
             return;
         }
 
@@ -158,13 +170,74 @@ public class AllocationActionServiceImpl implements AllocationActionService {
             result.setAuditDetails("Chuyển phòng thi → " + targetArea.getAreaName() + " cho SBD " + profile.getSbd());
             result.setAuditRecordId(regId);
         } else {
-            result.setErrorMsg("Không lưu được phòng thi cho SBD " + profile.getSbd() + ". Kiểm tra đăng ký ca thi.");
+            result.setErrorMsg("Không lưu được phòng thi cho SBD " + profile.getSbd()
+                    + ". Kiểm tra đăng ký kỳ thi.");
+        }
+    }
+
+    private void handleAllocatePracticalRoom(AllocationActionResultDTO result,
+            AllocationCandidateActionRequest request, ExamRegistrationDTO profile, int regId, int sessionId) {
+        int areaId = request.getAreaId();
+        int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamSessionId();
+        if (enrollSessionId <= 0) {
+            result.setErrorMsg("Không xác định được kỳ thi để đổi sân thi.");
+            return;
+        }
+
+        ExamArea targetArea = areaQueryService.findById(areaId);
+        if (targetArea == null || !ExaminerAssignmentRules.isPracticalAreaType(targetArea.getAreaType())) {
+            result.setErrorMsg("Sân thi không hợp lệ — chỉ dùng khu vực loại Thực hành.");
+            return;
+        }
+
+        Set<Integer> staffedPracticalAreas = ExaminerAssignmentRules.staffedPracticalAreaIds(
+                examinerAllocationService.getAssignmentsBySessionId(enrollSessionId));
+        if (!staffedPracticalAreas.contains(targetArea.getId())) {
+            result.setErrorMsg("Sân \"" + targetArea.getAreaName()
+                    + "\" chưa được phân công giám khảo trong kỳ thi này.");
+            return;
+        }
+
+        Integer currentAreaId = profile.getPracticalAllocatedAreaId();
+        if (currentAreaId != null && currentAreaId == areaId) {
+            return;
+        }
+
+        if (regService.updatePracticalAllocatedRoom(regId, enrollSessionId, targetArea.getId(),
+                targetArea.getAreaName())) {
+            profile.setPracticalAllocatedAreaId(targetArea.getId());
+            profile.setPracticalAllocatedAreaName(targetArea.getAreaName());
+            result.setAlertMsg("Đã đổi sân thi → " + targetArea.getAreaName());
+            result.setAuditAction("UPDATE ExamEnrollmentSection");
+            result.setAuditDetails("Chuyển sân thực hành → " + targetArea.getAreaName()
+                    + " cho SBD " + profile.getSbd());
+            result.setAuditRecordId(regId);
+        } else {
+            result.setErrorMsg("Không lưu được sân thi cho SBD " + profile.getSbd() + ".");
         }
     }
 
     private void handleTheoryScore(AllocationActionResultDTO result, ExamRegistrationDTO profile,
             int regId, int sessionId, int score) {
-        applyScoreResult(result, allocationScoreService.submitTheoryScore(profile, sessionId, score), regId);
+        AllocationScoreResultDTO scoreResult =
+                allocationScoreService.submitTheoryScore(profile, sessionId, score);
+        applyScoreResult(result, scoreResult, regId);
+        if (!scoreResult.isSaved()
+                || !"passed".equalsIgnoreCase(scoreResult.getPassedFlag())
+                || profile == null
+                || profile.skipsPractical()) {
+            return;
+        }
+        int enrollSessionId = profile.getExamSessionId() > 0 ? profile.getExamSessionId() : sessionId;
+        AutoAllocateResultDTO allocResult = examinerAllocationService.autoAllocatePracticalCandidate(
+                enrollSessionId, regId);
+        if (allocResult != null && allocResult.allocatedCount > 0) {
+            result.setAllocatedCount(allocResult.allocatedCount);
+            result.setAlertMsg("Đã đỗ lý thuyết và tự động phân sân thực hành cho SBD "
+                    + profile.getSbd() + ".");
+        } else if (allocResult != null && allocResult.errorMsg != null && result.getErrorMsg() == null) {
+            result.setWarningMsg(allocResult.errorMsg);
+        }
     }
 
     private void handlePracticalScore(AllocationActionResultDTO result, ExamRegistrationDTO profile,

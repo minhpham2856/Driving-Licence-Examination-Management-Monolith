@@ -127,6 +127,7 @@ public class AllocationServlet extends HttpServlet {
             if (searchQ == null) {
                 searchQ = "";
             }
+            Integer areaFilterId = AllocationStageHelper.parseAreaFilter(request.getParameter("areaFilter"));
             int page = AllocationStageHelper.parsePage(request.getParameter("page"));
             int pageSize = AllocationStageHelper.parsePageSize(request.getParameter("size"));
             if (urlSessionId > 0 && session != null) {
@@ -172,7 +173,7 @@ public class AllocationServlet extends HttpServlet {
                             actionRequest.setRegId(regId);
                             actionRequest.setSessionId(sessionId);
                             actionRequest.setProfile(profile);
-                            if ("allocateRoom".equals(action)) {
+                            if ("allocateRoom".equals(action) || "allocatePracticalRoom".equals(action)) {
                                 actionRequest.setAreaId(Integer.parseInt(request.getParameter("areaId")));
                             } else if (action != null && action.startsWith("submit") && action.endsWith("Score")) {
                                 actionRequest.setScore(Integer.parseInt(request.getParameter("score")));
@@ -206,7 +207,7 @@ public class AllocationServlet extends HttpServlet {
                 if (shouldRedirectAfterAction(action)) {
                     stashAllocationFlash(session, request);
                     response.sendRedirect(buildRedirectUrl(request, servletPath, sessionId, page, pageSize,
-                            searchQ, sortSpec));
+                            searchQ, sortSpec, areaFilterId));
                     return;
                 }
             }
@@ -225,19 +226,24 @@ public class AllocationServlet extends HttpServlet {
                 state.setShiftEnded("true".equals(session.getAttribute("shiftEnded")));
             }
 
-            publishStageData(request, qList, stage, resultFilter, searchQ, page, pageSize, sortSpec);
+            publishStageData(request, qList, stage, resultFilter, searchQ, page, pageSize, sortSpec, areaFilterId);
 
             request.setAttribute("allocationListPath", servletPath);
             request.setAttribute("allocationExtraQuery", AllocationStageHelper.buildExtraQuery(
                     page, pageSize, searchQ, sessionIdParam,
-                    sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc"));
+                    sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc", areaFilterId));
             request.setAttribute("allocationSearchQuery", searchQ.trim());
+            request.setAttribute("allocationAreaFilter", areaFilterId);
             request.setAttribute("allocationPageSize", pageSize);
             try {
-                request.setAttribute("activeTheoryRooms", areaQueryService.listActiveTheoryRooms());
+                request.setAttribute("activeTheoryRooms",
+                        areaQueryService.listStaffedTheoryRoomsForExam(sessionId > 0 ? sessionId : examId));
+                request.setAttribute("activePracticalAreas",
+                        areaQueryService.listStaffedPracticalAreasForExam(sessionId > 0 ? sessionId : examId));
             } catch (Exception e) {
                 e.printStackTrace();
                 request.setAttribute("activeTheoryRooms", List.of());
+                request.setAttribute("activePracticalAreas", List.of());
             }
 
             ExamStaffHttpSupport.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
@@ -249,12 +255,14 @@ public class AllocationServlet extends HttpServlet {
             request.setAttribute("errorMsg", "Không tải được trang phân bổ: " + e.getMessage());
             publishStageData(request, List.of(), stage, resultFilter, "", 1,
                     AllocationStageHelper.DEFAULT_PAGE_SIZE,
-                    ExamRegistrationSort.parse(null, null));
+                    ExamRegistrationSort.parse(null, null), null);
             request.setAttribute("allocationListPath", servletPath);
             request.setAttribute("allocationSearchQuery", "");
+            request.setAttribute("allocationAreaFilter", null);
             request.setAttribute("allocationExtraQuery", "");
             request.setAttribute("allocationPageSize", AllocationStageHelper.DEFAULT_PAGE_SIZE);
             request.setAttribute("activeTheoryRooms", List.of());
+            request.setAttribute("activePracticalAreas", List.of());
             try {
                 request.getRequestDispatcher(jspPath).forward(request, response);
             } catch (Exception forwardError) {
@@ -267,9 +275,10 @@ public class AllocationServlet extends HttpServlet {
 
     private void publishStageData(HttpServletRequest request, List<ExamRegistrationDTO> qList,
             String stage, String resultFilter, String searchQ, int page, int pageSize,
-            ExamRegistrationSort.Spec sortSpec) {
+            ExamRegistrationSort.Spec sortSpec, Integer areaFilterId) {
         AllocationStageViewBinder.bind(request,
-                allocationStageViewService.buildView(qList, stage, resultFilter, searchQ, page, pageSize, sortSpec));
+                allocationStageViewService.buildView(
+                        qList, stage, resultFilter, searchQ, page, pageSize, sortSpec, areaFilterId));
     }
 
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, int sessionId,
@@ -334,10 +343,10 @@ public class AllocationServlet extends HttpServlet {
     }
 
     private static String buildRedirectUrl(HttpServletRequest request, String servletPath, int sessionId,
-            int page, int pageSize, String searchQ, ExamRegistrationSort.Spec sortSpec) {
+            int page, int pageSize, String searchQ, ExamRegistrationSort.Spec sortSpec, Integer areaFilterId) {
         String extra = AllocationStageHelper.buildExtraQuery(page, pageSize, searchQ,
                 sessionId > 0 ? String.valueOf(sessionId) : null,
-                sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc");
+                sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc", areaFilterId);
         StringBuilder url = new StringBuilder(request.getContextPath()).append(servletPath);
         if (extra != null && !extra.isBlank()) {
             url.append('?').append(extra.startsWith("&") ? extra.substring(1) : extra);

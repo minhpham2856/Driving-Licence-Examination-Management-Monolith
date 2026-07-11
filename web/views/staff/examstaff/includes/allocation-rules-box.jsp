@@ -36,7 +36,7 @@
                 <ol class="examstaff-rules-doc__list">
                     <li>Đạt tối thiểu <strong>80 điểm trên tổng 100 điểm</strong>.</li>
                     <li>Không mắc <strong>lỗi liệt</strong> trong quá trình thi.</li>
-                    <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại sa hình</strong> (hạng A / A1).</li>
+                    <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại sa hình</strong>.</li>
                 </ol>
             </c:when>
 
@@ -64,7 +64,7 @@
                     <li>Hạng <strong>A / A1</strong>: tối thiểu <strong>36 / 40</strong> câu đúng.</li>
                     <li>Hạng <strong>B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
                 </ul>
-                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một ca thi</strong> và <strong>một phòng thi lý thuyết</strong>.</p>
+                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt. Mỗi thí sinh trong một kỳ thi chỉ được phân <strong>một phòng thi lý thuyết</strong>.</p>
             </c:otherwise>
         </c:choose>
     </div>

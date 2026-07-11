@@ -205,14 +205,18 @@ public final class AllocationStageHelper {
     }
 
     public static String buildExtraQuery(int page, int pageSize, String searchQuery, String sessionIdParam) {
-        return buildExtraQuery(page, pageSize, searchQuery, sessionIdParam, null, null);
+        return buildExtraQuery(page, pageSize, searchQuery, sessionIdParam, null, null, null);
     }
 
     public static String buildExtraQuery(int page, int pageSize, String searchQuery, String sessionIdParam,
             String sortColumn, String sortDir) {
+        return buildExtraQuery(page, pageSize, searchQuery, sessionIdParam, sortColumn, sortDir, null);
+    }
+
+    public static String buildExtraQuery(int page, int pageSize, String searchQuery, String sessionIdParam,
+            String sortColumn, String sortDir, Integer areaFilterId) {
         StringBuilder sb = new StringBuilder();
         if (page > 1) {
-    // normalize stage
             sb.append("&page=").append(page);
         }
         if (pageSize != DEFAULT_PAGE_SIZE) {
@@ -222,7 +226,6 @@ public final class AllocationStageHelper {
             sb.append("&q=").append(urlEncode(searchQuery.trim()));
         }
         if (sessionIdParam != null && !sessionIdParam.isBlank()) {
-    // infer servlet path from action
             sb.append("&sessionId=").append(urlEncode(sessionIdParam.trim()));
         }
         if (sortColumn != null && !sortColumn.isBlank()
@@ -233,7 +236,51 @@ public final class AllocationStageHelper {
                 && !"asc".equalsIgnoreCase(sortDir.trim())) {
             sb.append("&dir=").append(urlEncode(sortDir.trim()));
         }
+        if (areaFilterId != null && areaFilterId != 0) {
+            sb.append("&areaFilter=").append(areaFilterId);
+        }
         return sb.toString();
+    }
+
+    /** {@code null}/0 = tất cả; âm = chưa phân phòng/sân; dương = ExamAreaId. */
+    public static Integer parseAreaFilter(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        if ("none".equalsIgnoreCase(trimmed) || "unassigned".equalsIgnoreCase(trimmed)) {
+            return -1;
+        }
+        try {
+            int id = Integer.parseInt(trimmed);
+            return id == 0 ? null : id;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public static List<ExamRegistrationDTO> filterByAllocatedArea(List<ExamRegistrationDTO> list,
+            Integer areaFilterId, boolean practical) {
+        if (list == null || list.isEmpty()) {
+            return list == null ? List.of() : list;
+        }
+        if (areaFilterId == null || areaFilterId == 0) {
+            return list;
+        }
+        boolean unassignedOnly = areaFilterId < 0;
+        List<ExamRegistrationDTO> out = new ArrayList<>();
+        for (ExamRegistrationDTO c : list) {
+            Integer assignedId = practical ? c.getPracticalAllocatedAreaId() : c.getAllocatedAreaId();
+            boolean hasRoom = assignedId != null && assignedId > 0;
+            if (unassignedOnly) {
+                if (!hasRoom) {
+                    out.add(c);
+                }
+            } else if (hasRoom && assignedId.intValue() == areaFilterId.intValue()) {
+                out.add(c);
+            }
+        }
+        return out;
     }
     // infer stage from action
 
@@ -254,7 +301,7 @@ public final class AllocationStageHelper {
         }
         return switch (action) {
             case "allocateRoom", "submitTheoryScore" -> "/views/staff/examstaff/allocation-theory";
-            case "submitPracticalScore" -> "/views/staff/examstaff/allocation-practical";
+            case "allocatePracticalRoom", "submitPracticalScore" -> "/views/staff/examstaff/allocation-practical";
             case "quickComplete", "checkin" -> "/views/staff/examstaff/allocation-waiting";
             default -> "/views/staff/examstaff/allocation";
         };
@@ -267,7 +314,7 @@ public final class AllocationStageHelper {
         }
         return switch (action) {
             case "allocateRoom", "submitTheoryScore" -> STAGE_THEORY;
-            case "submitPracticalScore" -> STAGE_PRACTICAL;
+            case "allocatePracticalRoom", "submitPracticalScore" -> STAGE_PRACTICAL;
             case "quickComplete", "checkin" -> STAGE_WAITING;
             default -> STAGE_OVERVIEW;
         };

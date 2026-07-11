@@ -29,7 +29,7 @@ public class AllocationScoreServiceImpl implements AllocationScoreService {
         if (!registrationService.updateScores(profile.getId(), enrollSessionId,
                 score, passed, null, null)) {
             result.setErrorMessage("Không lưu được điểm lý thuyết cho SBD " + profile.getSbd()
-                    + ". Kiểm tra ExamEnrollment và Session_ExamSection.");
+                    + ". Kiểm tra ExamEnrollment và ExamEnrollmentSection.");
             return result;
         }
         profile.setTheoryScore(score);
@@ -65,7 +65,7 @@ public class AllocationScoreServiceImpl implements AllocationScoreService {
         if (!registrationService.updateScores(profile.getId(), enrollSessionId,
                 null, null, score, passed)) {
             result.setErrorMessage("Không lưu được điểm thực hành/sa hình cho SBD " + profile.getSbd()
-                    + ". Kiểm tra ExamEnrollment và Session_ExamSection.");
+                    + ". Kiểm tra ExamEnrollment và ExamEnrollmentSection.");
             return result;
         }
         profile.setPracticalScore(score);

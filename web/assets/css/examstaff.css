@@ -783,6 +783,32 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     gap: 8px;
 }
 
+.allocation-room-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.allocation-room-filter__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.allocation-room-filter__select {
+    min-width: 140px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.85rem;
+}
+
 .allocation-search-btn {
     flex-shrink: 0;
     width: 38px;

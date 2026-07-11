@@ -19,6 +19,13 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
     public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,
             String resultFilter, String searchQuery, int page, int pageSize,
             ExamRegistrationSort.Spec sortSpec) {
+        return buildView(candidates, stage, resultFilter, searchQuery, page, pageSize, sortSpec, null);
+    }
+
+    @Override
+    public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,
+            String resultFilter, String searchQuery, int page, int pageSize,
+            ExamRegistrationSort.Spec sortSpec, Integer areaFilterId) {
         AllocationStageViewDTO view = new AllocationStageViewDTO();
         if (candidates == null) {
             view.setPracticalStageIds(Set.of());
@@ -42,6 +49,12 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
             String filter = AllocationStageHelper.STAGE_RESULTS.equals(stage) ? resultFilter : null;
             stageFiltered = AllocationStageHelper.filterForStage(candidates, stage, practicalStageIds, filter);
             stageFiltered = AllocationStageHelper.filterSearch(stageFiltered, searchQuery);
+            if (AllocationStageHelper.STAGE_THEORY.equals(stage)
+                    || AllocationStageHelper.STAGE_PRACTICAL.equals(stage)) {
+                stageFiltered = AllocationStageHelper.filterByAllocatedArea(
+                        stageFiltered, areaFilterId,
+                        AllocationStageHelper.STAGE_PRACTICAL.equals(stage));
+            }
         }
         ExamRegistrationSort.sort(stageFiltered, sortSpec);
         AllocationStageHelper.PageSlice<ExamRegistrationDTO> slice

@@ -38,6 +38,9 @@
 
                 <c:if test="${not empty sortBy and sortBy ne 'sbd'}"><c:param name="sort" value="${sortBy}" /></c:if>
                 <c:if test="${not empty sortDir and sortDir ne 'asc'}"><c:param name="dir" value="${sortDir}" /></c:if>
+                <c:if test="${not empty allocationAreaFilter}">
+                    <c:param name="areaFilter" value="${allocationAreaFilter eq -1 ? 'none' : allocationAreaFilter}" />
+                </c:if>
 
                 <c:if test="${not empty param.filterDate}"><c:param name="filterDate" value="${param.filterDate}" /></c:if>
 
@@ -66,6 +69,9 @@
 
                 <c:if test="${not empty sortBy and sortBy ne 'sbd'}"><c:param name="sort" value="${sortBy}" /></c:if>
                 <c:if test="${not empty sortDir and sortDir ne 'asc'}"><c:param name="dir" value="${sortDir}" /></c:if>
+                <c:if test="${not empty allocationAreaFilter}">
+                    <c:param name="areaFilter" value="${allocationAreaFilter eq -1 ? 'none' : allocationAreaFilter}" />
+                </c:if>
 
                 <c:if test="${not empty param.filterDate}"><c:param name="filterDate" value="${param.filterDate}" /></c:if>
 

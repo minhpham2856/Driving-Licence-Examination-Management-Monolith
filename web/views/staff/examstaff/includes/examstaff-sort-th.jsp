@@ -13,6 +13,9 @@
     <c:if test="${empty param.sessionId and not empty requestScope.selectedSessionId}">
         <c:param name="sessionId" value="${requestScope.selectedSessionId}" />
     </c:if>
+    <c:if test="${not empty allocationAreaFilter}">
+        <c:param name="areaFilter" value="${allocationAreaFilter eq -1 ? 'none' : allocationAreaFilter}" />
+    </c:if>
     <c:if test="${not empty pg and pg.page gt 1}"><c:param name="page" value="${pg.page}" /></c:if>
     <c:if test="${not empty param.view}"><c:param name="view" value="${param.view}" /></c:if>
 </c:url>

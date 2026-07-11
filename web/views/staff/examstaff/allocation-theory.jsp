@@ -5,6 +5,7 @@
     <jsp:param name="pageTitle" value="Phòng thi lý thuyết" />
     <jsp:param name="breadcrumbLabel" value="Lý thuyết" />
     <jsp:param name="showSearch" value="true" />
+    <jsp:param name="showRoomFilter" value="theory" />
     <jsp:param name="sessionId" value="${param.sessionId}" />
 </jsp:include>
 
