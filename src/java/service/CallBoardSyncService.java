@@ -19,5 +19,7 @@ public interface CallBoardSyncService {
     void releaseDeskAndCall(CallBoardDAO callBoardDAO, int examSessionId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded);
 
+    void pauseShift(CallBoardDAO callBoardDAO, int examSessionId, List<ExamRegistrationDTO> queue);
+
     List<ExamRegistrationDTO> applyBoardOrder(List<ExamRegistrationDTO> queue, CallBoardState board);
 }

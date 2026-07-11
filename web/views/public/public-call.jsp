@@ -66,7 +66,9 @@
 
       data-msg-queue-empty="Không còn thí sinh chờ gọi"
 
-      data-msg-shift-ended="Ca thi đã kết thúc"
+      data-msg-shift-ended="Kỳ thi đã đóng"
+
+      data-msg-exam-paused="Kỳ thi tạm dừng — chờ tiếp tục"
 
       data-msg-class-prefix="Hạng "
 

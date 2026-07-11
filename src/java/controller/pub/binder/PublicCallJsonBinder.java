@@ -55,6 +55,7 @@ public final class PublicCallJsonBinder {
         JsonUtil.appendJsonField(json, "isCallingActive", snapshot.isCallingActive(), true);
         JsonUtil.appendJsonField(json, "deskBusy", snapshot.isDeskBusy(), true);
         JsonUtil.appendJsonField(json, "shiftEnded", snapshot.isShiftEnded(), true);
+        JsonUtil.appendJsonField(json, "examPaused", snapshot.isExamPaused(), true);
         JsonUtil.appendJsonField(json, "updatedAtMs", snapshot.getUpdatedAtMs(), true);
 
         if (snapshot.getCurrentSession() != null && snapshot.getCurrentSession().getExamDate() != null) {

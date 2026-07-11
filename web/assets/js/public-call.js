@@ -15,7 +15,8 @@
         queueEmpty: msg('msg-queue-empty', 'Kh\u00f4ng c\u00f2n th\u00ed sinh ch\u1edd g\u1ecdi'),
         queueHeadBadge: msg('msg-queue-head-badge', 'Ti\u1ebfp theo'),
         queueCalledBadge: msg('msg-queue-called-badge', '\u0110ang g\u1ecdi'),
-        shiftEnded: msg('msg-shift-ended', 'Ca thi \u0111\u00e3 k\u1ebft th\u00fac'),
+        shiftEnded: msg('msg-shift-ended', 'K\u1ef3 thi \u0111\u00e3 \u0111\u00f3ng'),
+        examPaused: msg('msg-exam-paused', 'K\u1ef3 thi t\u1ea1m d\u1eebng \u2014 ch\u1edd ti\u1ebfp t\u1ee5c'),
         classPrefix: msg('msg-class-prefix', 'H\u1ea1ng '),
         callPrefix: msg('msg-call-prefix', 'M\u1eddi th\u00ed sinh s\u1ed1 b\u00e1o danh '),
         callSuffix: msg('msg-call-suffix', ', nhanh ch\u00f3ng \u0111\u1ebfn b\u00e0n th\u1ee7 t\u1ee5c ch\u00ednh v\u1edbi c\u0103n c\u01b0\u1edbc c\u00f4ng d\u00e2n.'),
@@ -88,7 +89,7 @@
     }
 
     function resolveAnnounceCandidate(state) {
-        if (!state || state.shiftEnded) return null;
+        if (!state || state.shiftEnded || state.examPaused) return null;
         if (state.deskBusy && state.next) return state.next;
         if (state.isCallingActive && state.calling) return state.calling;
         if (state.waitingQueue && state.waitingQueue.length > 0) return state.waitingQueue[0];
@@ -111,6 +112,10 @@
         const queue = state.waitingQueue || [];
         if (state.shiftEnded) {
             queueList.innerHTML = '<li class="tv-queue-empty">' + escHtml(I18N.shiftEnded) + '</li>';
+            return;
+        }
+        if (state.examPaused) {
+            queueList.innerHTML = '<li class="tv-queue-empty">' + escHtml(I18N.examPaused) + '</li>';
             return;
         }
         if (!queue.length) {

@@ -34,41 +34,43 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
     }
 
     @Override
-    public PublicCallSnapshotDTO loadSnapshot(int sessionId, String webRootPath, CallBoardState board) {
+    public PublicCallSnapshotDTO loadSnapshot(int examId, String webRootPath, CallBoardState board) {
         PublicCallSnapshotDTO snapshot = new PublicCallSnapshotDTO();
-        snapshot.setSessionId(sessionId);
+        snapshot.setSessionId(examId);
         snapshot.setWaitingQueue(new ArrayList<>());
         snapshot.setUpdatedAtMs(System.currentTimeMillis());
 
-        if (sessionId <= 0) {
+        if (examId <= 0) {
             return snapshot;
         }
 
-        List<ExamRegistrationDTO> queue = queueQueryService.listBySessionId(sessionId);
+        List<ExamRegistrationDTO> queue = queueQueryService.listByExamId(examId);
         queueQueryService.normalizePhotoPaths(webRootPath, queue);
         queue = callBoardSyncService.applyBoardOrder(queue, board);
 
         String callingSbd = board != null ? board.getCallingSbd() : null;
         String nextSbd = board != null ? board.getNextSbd() : null;
         boolean shiftEnded = board != null && board.isShiftEnded();
+        boolean examPaused = board != null && board.isExamPaused();
         boolean deskBusy = board != null && board.isDeskBusy();
         String deskSbd = board != null ? board.getDeskSbd() : null;
         long updatedAtMs = board != null ? board.getUpdatedAtMs() : System.currentTimeMillis();
 
-        if ((nextSbd == null || nextSbd.isBlank()) && !shiftEnded) {
+        if ((nextSbd == null || nextSbd.isBlank()) && !shiftEnded && !examPaused) {
             nextSbd = CallBoardRules.resolveNextSbd(board, queue);
         }
 
         ExamRegistrationDTO callingCandidate = CallQueueRules.findBySbd(queue, callingSbd);
         ExamRegistrationDTO nextCandidate = CallQueueRules.findBySbd(queue, nextSbd);
-        SessionDTO currentSession = sessionQueryService.findBySessionId(sessionId);
+        SessionDTO currentSession = sessionQueryService.findBySessionId(examId);
 
         snapshot.setCurrentSession(currentSession);
         snapshot.setCallingCandidate(callingCandidate);
         snapshot.setNextCandidate(nextCandidate);
         snapshot.setWaitingQueue(CallQueueRules.listWaitingTop(queue, 10));
-        snapshot.setCallingActive(callingCandidate != null && !shiftEnded);
+        snapshot.setCallingActive(callingCandidate != null && !shiftEnded && !examPaused);
         snapshot.setShiftEnded(shiftEnded);
+        snapshot.setExamPaused(examPaused);
         snapshot.setUpdatedAtMs(updatedAtMs);
         snapshot.setDeskBusy(deskBusy);
         snapshot.setDeskSbd(deskSbd);

@@ -14,6 +14,7 @@ public class PublicCallSnapshotDTO {
     private List<ExamRegistrationDTO> waitingQueue;
     private boolean callingActive;
     private boolean shiftEnded;
+    private boolean examPaused;
     private long updatedAtMs;
     private boolean deskBusy;
     private String deskSbd;
@@ -72,6 +73,14 @@ public class PublicCallSnapshotDTO {
 
     public void setShiftEnded(boolean shiftEnded) {
         this.shiftEnded = shiftEnded;
+    }
+
+    public boolean isExamPaused() {
+        return examPaused;
+    }
+
+    public void setExamPaused(boolean examPaused) {
+        this.examPaused = examPaused;
     }
 
     public long getUpdatedAtMs() {

@@ -54,6 +54,7 @@ public final class PublicCallViewBinder {
         request.setAttribute("nextCandidate", snapshot.getNextCandidate());
         request.setAttribute("isCallingActive", snapshot.isCallingActive());
         request.setAttribute("shiftEnded", snapshot.isShiftEnded());
+        request.setAttribute("examPaused", snapshot.isExamPaused());
         request.setAttribute("waitingQueue", snapshot.getWaitingQueue());
     }
 }

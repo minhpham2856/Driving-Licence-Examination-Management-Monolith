@@ -74,8 +74,16 @@ public final class CallBoardHttpFacade {
         CallBoardState state = getState(ctx, examSessionId);
         if (state != null) {
             state.setShiftEnded(false);
+            state.setExamPaused(false);
             dao(ctx).saveState(examSessionId, state);
         }
+    }
+
+    public void pauseShift(ServletContext ctx, int examSessionId, List<ExamRegistrationDTO> queue) {
+        if (ctx == null || examSessionId <= 0) {
+            return;
+        }
+        syncService.pauseShift(dao(ctx), examSessionId, queue);
     }
 
     public List<ExamRegistrationDTO> applyQueueOrder(List<ExamRegistrationDTO> queue,

@@ -28,6 +28,9 @@ public final class CallBoardRules {
         }
         state.setQueueOrderSbds(CallQueueRules.extractSbdOrder(queue));
         state.setShiftEnded(shiftEnded);
+        if (shiftEnded) {
+            state.setExamPaused(false);
+        }
         state.setDeskBusy(wasDeskBusy);
         state.setDeskSbd(wasDeskSbd);
         state.setUpdatedAtMs(System.currentTimeMillis());
@@ -49,6 +52,25 @@ public final class CallBoardRules {
         state.setNextSbd(CallQueueRules.resolveNextCallingSbd(queue, deskSbd));
         state.setQueueOrderSbds(CallQueueRules.extractSbdOrder(queue));
         state.setShiftEnded(shiftEnded);
+        if (shiftEnded) {
+            state.setExamPaused(false);
+        }
+        state.setUpdatedAtMs(System.currentTimeMillis());
+        return state;
+    }
+
+    /** Tạm dừng gọi thí sinh — giữ thứ tự hàng đợi, không đánh vắng. */
+    public static CallBoardState pauseBoard(CallBoardState current, int examSessionId,
+            List<ExamRegistrationDTO> queue) {
+        CallBoardState state = current != null ? current : new CallBoardState();
+        state.setExamSessionId(examSessionId);
+        state.setCallingSbd(null);
+        state.setNextSbd(null);
+        state.setDeskBusy(false);
+        state.setDeskSbd(null);
+        state.setShiftEnded(false);
+        state.setExamPaused(true);
+        state.setQueueOrderSbds(CallQueueRules.extractSbdOrder(queue));
         state.setUpdatedAtMs(System.currentTimeMillis());
         return state;
     }
@@ -63,6 +85,11 @@ public final class CallBoardRules {
         state.setNextSbd(CallQueueRules.resolveNextCallingSbd(queue, state.getCallingSbd()));
         state.setQueueOrderSbds(CallQueueRules.extractSbdOrder(queue));
         state.setShiftEnded(shiftEnded);
+        if (shiftEnded) {
+            state.setExamPaused(false);
+        } else if (callingSbd != null && !callingSbd.isBlank()) {
+            state.setExamPaused(false);
+        }
         state.setUpdatedAtMs(System.currentTimeMillis());
         return state;
     }

@@ -47,6 +47,14 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
     }
 
     @Override
+    public void pauseShift(CallBoardDAO callBoardDAO, int examSessionId, List<ExamRegistrationDTO> queue) {
+        CallBoardState updated = CallBoardRules.pauseBoard(
+                callBoardDAO.getState(examSessionId), examSessionId, queue);
+        callBoardDAO.saveState(examSessionId, updated);
+        callBoardDAO.setActiveSessionId(examSessionId);
+    }
+
+    @Override
     public List<ExamRegistrationDTO> applyBoardOrder(List<ExamRegistrationDTO> queue, CallBoardState board) {
         if (board == null || board.getQueueOrderSbds() == null || board.getQueueOrderSbds().isEmpty()) {
             return queue;
