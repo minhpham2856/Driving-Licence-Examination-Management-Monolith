@@ -3,106 +3,89 @@ package dao.view.impl;
 import dao.view.ExamSessionViewDAO;
 import dbconnection.DBContext;
 import model.view.ExamSessionSummary;
-import util.examstaff.SessionLabel;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Read model kỳ thi (schema mới: một hàng / Exam, không còn [Session]).
+ * {@code sessionId} trên view = {@code ExamId} để tương thích UI cũ.
+ */
 public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionViewDAO {
 
-    private static final String SESSION_SELECT =
-            "SELECT s.SessionId AS sessionId, "
-            + "s.ExamId AS examId, "
-            + "s.IsMorningSession AS isMorningSession, "
-            + SessionLabel.SQL_WITH_SECTION + " AS sessionName, "
-            + "e.LicenceId AS licenseTypeId, "
-            + "ISNULL(sect.examTypeId, 1) AS examTypeId, "
-            + "CAST(s.StartTime AS DATE) AS examDate, "
-            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
-            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
-            + "ISNULL(sea.ExamAreaId, 0) AS areaId, "
-            + "s.[Status] AS status, "
-            + "ISNULL(ea.Capacity, 100) AS maxCandidates, "
-            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
-            + "s.StartTime AS createdAt, "
-            + "l.LicenceClass AS licenseCode, "
-            + "e.ExamCode AS examCode, "
-            + "sect.examTypeName, "
-            + "ea.AreaName AS areaName "
-            + "FROM [Session] s "
-            + "JOIN Exam e ON e.ExamId = s.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
-            + "LEFT JOIN ( "
-            + "    SELECT ses.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId "
-            + "    FROM Session_ExamArea sea2 "
-            + "    JOIN [Session] ses ON ses.SessionId = sea2.SessionId "
-            + "    GROUP BY ses.SessionId "
-            + ") sea ON sea.SessionId = s.SessionId "
-            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId "
-            + "LEFT JOIN ( "
-            + "    SELECT ses.SessionId, "
-            + "           CASE "
-            + "               WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1 "
-            + "               WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2 "
-            + "               WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4 "
-            + "               ELSE 1 "
-            + "           END AS examTypeId, "
-            + "           MIN(es.SectionName) AS examTypeName "
-            + "    FROM Session_ExamSection ses "
-            + "    JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId "
-            + "    GROUP BY ses.SessionId "
-            + ") sect ON sect.SessionId = s.SessionId";
-
-    private static final String SESSION_SELECT_BASIC =
-            "SELECT s.SessionId AS sessionId, "
-            + "s.ExamId AS examId, "
-            + "s.IsMorningSession AS isMorningSession, "
-            + SessionLabel.SQL_SHIFT_ONLY + " AS sessionName, "
+    private static final String EXAM_SELECT =
+            "SELECT e.ExamId AS sessionId, "
+            + "e.ExamId AS examId, "
+            + "CAST(1 AS BIT) AS isMorningSession, "
+            + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
             + "e.LicenceId AS licenseTypeId, "
             + "1 AS examTypeId, "
-            + "CAST(s.StartTime AS DATE) AS examDate, "
-            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
-            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
-            + "0 AS areaId, "
-            + "s.[Status] AS status, "
-            + "100 AS maxCandidates, "
-            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
-            + "s.StartTime AS createdAt, "
+            + "CAST(e.ExamDate AS DATE) AS examDate, "
+            + "CAST(e.StartTime AS TIME) AS shiftStartTime, "
+            + "CAST(e.EndTime AS TIME) AS shiftEndTime, "
+            + "e.StartTime AS scheduledStartAt, "
+            + "e.EndTime AS scheduledEndAt, "
+            + "ISNULL(ea.ExamAreaId, 0) AS areaId, "
+            + "e.[Status] AS status, "
+            + "ISNULL(ea.Capacity, 100) AS maxCandidates, "
+            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.ExamId = e.ExamId) AS registeredCount, "
+            + "e.StartTime AS createdAt, "
             + "l.LicenceClass AS licenseCode, "
             + "e.ExamCode AS examCode, "
-            + "CAST(NULL AS NVARCHAR(200)) AS examTypeName, "
-            + "CAST(NULL AS NVARCHAR(200)) AS areaName "
-            + "FROM [Session] s "
-            + "JOIN Exam e ON e.ExamId = s.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId";
+            + "N'Lý thuyết + Thực hành' AS examTypeName, "
+            + "ea.AreaName AS areaName "
+            + "FROM Exam e "
+            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
+            + "LEFT JOIN ( "
+            + "    SELECT exa.ExamId, MIN(exa.ExamAreaId) AS ExamAreaId "
+            + "    FROM Exam_ExamArea exa "
+            + "    GROUP BY exa.ExamId "
+            + ") pick ON pick.ExamId = e.ExamId "
+            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = pick.ExamAreaId";
 
     @Override
     public List<ExamSessionSummary> findAllOrdered() {
-        List<ExamSessionSummary> list = fetchList(SESSION_SELECT
-                + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC");
-        if (list.isEmpty()) {
-            return findAllBasicOrdered();
-        }
-        return list;
+        return fetchList(EXAM_SELECT
+                + " ORDER BY CAST(e.ExamDate AS DATE) DESC, e.StartTime DESC");
     }
 
     @Override
     public List<ExamSessionSummary> findAllBasicOrdered() {
-        return fetchList(SESSION_SELECT_BASIC
-                + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC");
+        return findAllOrdered();
     }
 
     @Override
     public ExamSessionSummary findBySessionId(int sessionId) {
-        ExamSessionSummary row = fetchOne(SESSION_SELECT + " WHERE s.SessionId = ?", sessionId);
-        if (row != null) {
-            return row;
+        if (sessionId <= 0) {
+            return null;
         }
-        return fetchOne(SESSION_SELECT_BASIC + " WHERE s.SessionId = ?", sessionId);
+        return fetchOne(EXAM_SELECT + " WHERE e.ExamId = ?", sessionId);
+    }
+
+    @Override
+    public List<ExamSessionSummary> findByExamDate(Date examDate) {
+        if (examDate == null) {
+            return List.of();
+        }
+        List<ExamSessionSummary> list = new ArrayList<>();
+        String sql = EXAM_SELECT + " WHERE CAST(e.ExamDate AS DATE) = ? ORDER BY CAST(e.StartTime AS TIME)";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setDate(1, examDate);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     private List<ExamSessionSummary> fetchList(String sql) {
@@ -118,9 +101,9 @@ public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionView
         return list;
     }
 
-    private ExamSessionSummary fetchOne(String sql, int sessionId) {
+    private ExamSessionSummary fetchOne(String sql, int examId) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, sessionId);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapRow(rs);
@@ -143,12 +126,15 @@ public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionView
         row.setExamDate(rs.getDate("examDate"));
         row.setShiftStartTime(rs.getTime("shiftStartTime"));
         row.setShiftEndTime(rs.getTime("shiftEndTime"));
+        Timestamp scheduledStart = rs.getTimestamp("scheduledStartAt");
+        row.setScheduledStartAt(scheduledStart);
+        row.setScheduledEndAt(rs.getTimestamp("scheduledEndAt"));
         row.setAreaId(rs.getInt("areaId"));
         row.setStatus(rs.getString("status"));
         row.setMaxCandidates(rs.getInt("maxCandidates"));
         row.setRegisteredCount(rs.getInt("registeredCount"));
-        Timestamp created = rs.getTimestamp("createdAt");
-        row.setCreatedAt(rs.wasNull() ? null : created);
+        Timestamp createdAt = rs.getTimestamp("createdAt");
+        row.setCreatedAt(createdAt != null ? createdAt : scheduledStart);
         row.setLicenseCode(rs.getString("licenseCode"));
         row.setExamCode(rs.getString("examCode"));
         row.setExamTypeName(rs.getString("examTypeName"));

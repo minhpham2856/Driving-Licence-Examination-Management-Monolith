@@ -41,6 +41,8 @@ public class ExamRegistrationDTO {
 
     private Integer allocatedAreaId;
     private String allocatedAreaName;
+    private Integer practicalAllocatedAreaId;
+    private String practicalAllocatedAreaName;
     private boolean isCalled;
     private boolean validCapturedPhoto;
     private String address;
@@ -329,6 +331,22 @@ public class ExamRegistrationDTO {
 
     public void setAllocatedAreaName(String allocatedAreaName) {
         this.allocatedAreaName = allocatedAreaName;
+    }
+
+    public Integer getPracticalAllocatedAreaId() {
+        return practicalAllocatedAreaId;
+    }
+
+    public void setPracticalAllocatedAreaId(Integer practicalAllocatedAreaId) {
+        this.practicalAllocatedAreaId = practicalAllocatedAreaId;
+    }
+
+    public String getPracticalAllocatedAreaName() {
+        return practicalAllocatedAreaName;
+    }
+
+    public void setPracticalAllocatedAreaName(String practicalAllocatedAreaName) {
+        this.practicalAllocatedAreaName = practicalAllocatedAreaName;
     }
 
     public boolean isCalled() {

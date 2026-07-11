@@ -22,15 +22,9 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
             INNER JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
             INNER JOIN ExamResult er ON er.ExamResultId = es.ExamResultId
             INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = er.ExamEnrollmentId
-            INNER JOIN [Session] s ON s.SessionId = ee.SessionId
-            WHERE s.ExamId = ?
+            WHERE ee.ExamId = ?
               AND dr.OccurrenceCount > 0
-              AND (
-                  sec.SectionName LIKE N'%Thực hành%'
-                  OR sec.SectionName LIKE '%Practical%'
-                  OR sec.SectionName LIKE N'%Sa hình%'
-                  OR sec.SectionName LIKE N'%Sa hinh%'
-              )
+              AND sec.SectionType IN (N'Practical', N'Thực hành', N'Sa hình', N'Layout', N'TH')
             GROUP BY sd.ScoreDeductionId, sd.[Reason]
             ORDER BY countVal DESC
             """;

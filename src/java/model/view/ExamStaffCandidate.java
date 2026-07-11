@@ -35,6 +35,8 @@ public class ExamStaffCandidate {
     private boolean signaturePrinted;
     private Integer allocatedAreaId;
     private String allocatedAreaName;
+    private Integer practicalAllocatedAreaId;
+    private String practicalAllocatedAreaName;
     private Integer theoryScore;
     private Integer practicalScore;
 
@@ -268,6 +270,22 @@ public class ExamStaffCandidate {
 
     public void setAllocatedAreaName(String allocatedAreaName) {
         this.allocatedAreaName = allocatedAreaName;
+    }
+
+    public Integer getPracticalAllocatedAreaId() {
+        return practicalAllocatedAreaId;
+    }
+
+    public void setPracticalAllocatedAreaId(Integer practicalAllocatedAreaId) {
+        this.practicalAllocatedAreaId = practicalAllocatedAreaId;
+    }
+
+    public String getPracticalAllocatedAreaName() {
+        return practicalAllocatedAreaName;
+    }
+
+    public void setPracticalAllocatedAreaName(String practicalAllocatedAreaName) {
+        this.practicalAllocatedAreaName = practicalAllocatedAreaName;
     }
 
     public Integer getTheoryScore() {

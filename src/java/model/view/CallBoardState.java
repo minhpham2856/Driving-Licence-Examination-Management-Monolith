@@ -10,6 +10,7 @@ public class CallBoardState {
     private String callingSbd;
     private String nextSbd;
     private boolean shiftEnded;
+    private boolean examPaused;
     private long updatedAtMs;
     private List<String> queueOrderSbds = new ArrayList<>();
     private boolean deskBusy;
@@ -45,6 +46,14 @@ public class CallBoardState {
 
     public void setShiftEnded(boolean shiftEnded) {
         this.shiftEnded = shiftEnded;
+    }
+
+    public boolean isExamPaused() {
+        return examPaused;
+    }
+
+    public void setExamPaused(boolean examPaused) {
+        this.examPaused = examPaused;
     }
 
     public long getUpdatedAtMs() {

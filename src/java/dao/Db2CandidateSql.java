@@ -18,7 +18,7 @@ public final class Db2CandidateSql {
     private static final String CANDIDATE_SELECT_HEAD = """
             SELECT
               c.CandidateId AS id,
-              ee.SessionId AS examSessionId,
+              ee.ExamId AS examSessionId,
               ee.ExamEnrollmentId AS examEnrollmentId,
               CAST(0 AS INT) AS personId,
               COALESCE(
@@ -41,7 +41,8 @@ public final class Db2CandidateSql {
               CAST(c.DateOfBirth AS DATE) AS dateOfBirth,
             """;
 
-    private static final String CANDIDATE_SELECT_TAIL = """
+    private static final String CANDIDATE_SELECT_TAIL =
+            """
               c.PhoneNumber AS phoneNo,
               COALESCE(NULLIF(LTRIM(RTRIM(c.Email)), N''), u.Email) AS email,
               c.PhotoImageUrl AS photoUrl,
@@ -51,19 +52,26 @@ public final class Db2CandidateSql {
               c.ReasonForTaking AS reasonForTaking,
               c.TakeTheory AS takeTheory,
               c.TakeLayout AS takePractical,
-              CAST(s.StartTime AS DATE) AS examDate,
-              ee.SectionStatus AS sectionStatus,
-              CAST(ISNULL(ee.SignaturePrinted, 0) AS BIT) AS signaturePrinted,
-              allocArea.ExamAreaId AS allocatedAreaId,
-              allocArea.AreaName AS allocatedAreaName,
-            """;
+              CAST(ex.ExamDate AS DATE) AS examDate,
+              """
+            + Db2ExamSchemaSql.THEORY_STATUS_EXPR + " AS sectionStatus,\n"
+            + Db2ExamSchemaSql.SIGNATURE_PRINTED_EXPR + " AS signaturePrinted,\n"
+            + Db2ExamSchemaSql.ALLOCATED_AREA_EXPR + " AS allocatedAreaId,\n"
+            + Db2ExamSchemaSql.ALLOCATED_AREA_NAME_EXPR + " AS allocatedAreaName,\n"
+            + Db2ExamSchemaSql.PRACTICAL_ALLOCATED_AREA_EXPR + " AS practicalAllocatedAreaId,\n"
+            + Db2ExamSchemaSql.PRACTICAL_ALLOCATED_AREA_NAME_EXPR + " AS practicalAllocatedAreaName,\n";
 
-    private static final String CANDIDATE_FROM_JOIN = """
+    private static final String CANDIDATE_FROM_JOIN =
+            """
             FROM Candidate c
             INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-            INNER JOIN [Session] s ON s.SessionId = ee.SessionId
-            INNER JOIN Exam ex ON ex.ExamId = s.ExamId
+            INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
             INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
+            """
+            + Db2ExamSchemaSql.JOIN_THEORY_SECTION
+            + Db2ExamSchemaSql.JOIN_PRACTICAL_SECTION
+            + Db2ExamSchemaSql.JOIN_ALLOCATED_AREA
+            + """
             LEFT JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
             LEFT JOIN [User] u ON u.UserId = prof.UserId
             LEFT JOIN (
@@ -76,17 +84,21 @@ public final class Db2CandidateSql {
                 )
                 GROUP BY p1.ExamEnrollmentId
             ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
-            LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = ee.ExamDeviceId
+            LEFT JOIN ExamDevice dev ON dev.ExamDeviceId = COALESCE(theoryEes.ExamDeviceId, ee.ExamDeviceId)
             LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = ee.AllocatedExamAreaId
             """;
 
-    private static final String CANDIDATE_SCORE_JOINS = """
+    private static final String CANDIDATE_SCORE_JOINS =
+            """
             LEFT JOIN (
                 SELECT er.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
                 FROM ExamResult er
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE sec.SectionName LIKE N'%Lý thuyết%' OR sec.SectionName LIKE '%Theory%'
+                WHERE sec.SectionType IN ("""
+            + Db2ExamSchemaSql.THEORY_SECTION_TYPES
+            + """
+                )
                 GROUP BY er.ExamEnrollmentId
             ) theory ON theory.ExamEnrollmentId = ee.ExamEnrollmentId
             LEFT JOIN (
@@ -94,7 +106,10 @@ public final class Db2CandidateSql {
                 FROM ExamResult er
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%' OR sec.SectionName LIKE N'%Sa hình%'
+                WHERE sec.SectionType IN ("""
+            + Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES
+            + """
+                )
                 GROUP BY er.ExamEnrollmentId
             ) practical ON practical.ExamEnrollmentId = ee.ExamEnrollmentId
             """;

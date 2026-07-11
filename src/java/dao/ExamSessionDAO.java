@@ -4,6 +4,7 @@ import dto.SessionDTO;
 
 import model.Session;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface ExamSessionDAO {
@@ -31,4 +32,7 @@ public interface ExamSessionDAO {
     List<SessionDTO> getSessionsByExamDate(Date examDate);
 
     boolean updateStatus(int sessionId, String status);
+
+    /** Cập nhật trạng thái và ghi thời điểm kết thúc kỳ thi (EndTime). */
+    boolean finishSession(int sessionId, String status, Timestamp endTime);
 }

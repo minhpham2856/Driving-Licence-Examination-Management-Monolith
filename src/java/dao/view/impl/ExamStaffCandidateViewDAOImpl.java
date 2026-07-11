@@ -18,13 +18,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
 
     @Override
     public List<ExamStaffCandidate> findBySessionId(int sessionId) {
-        List<ExamStaffCandidate> list = query(Db2CandidateSql.CANDIDATE_SELECT,
-                " WHERE ee.SessionId = ? ORDER BY candidateNo", sessionId);
-        if (!list.isEmpty()) {
-            return list;
-        }
-        return query(Db2CandidateSql.CANDIDATE_SELECT_MINIMAL,
-                " WHERE ee.SessionId = ? ORDER BY candidateNo", sessionId);
+        return findByExamId(sessionId);
     }
 
     @Override
@@ -38,10 +32,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
             list = query(Db2CandidateSql.CANDIDATE_SELECT_MINIMAL,
                     " WHERE ex.ExamId = ? ORDER BY candidateNo, ee.ExamEnrollmentId", examId);
         }
-        if (!list.isEmpty()) {
-            return deduplicateByCandidate(list);
-        }
-        return loadByExamSessions(examId);
+        return list;
     }
 
     @Override
@@ -56,34 +47,6 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
             }
         }
         return null;
-    }
-
-    private List<ExamStaffCandidate> loadByExamSessions(int examId) {
-        List<ExamStaffCandidate> combined = new ArrayList<>();
-        Connection conn = getConnection();
-        if (conn == null) {
-            return combined;
-        }
-        String sessionSql = "SELECT SessionId FROM [Session] WHERE ExamId = ? ORDER BY StartTime";
-        try (PreparedStatement ps = conn.prepareStatement(sessionSql)) {
-            ps.setInt(1, examId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    combined.addAll(findBySessionId(rs.getInt("SessionId")));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return deduplicateByCandidate(combined);
-    }
-
-    private static List<ExamStaffCandidate> deduplicateByCandidate(List<ExamStaffCandidate> rows) {
-        java.util.Map<Integer, ExamStaffCandidate> byId = new java.util.LinkedHashMap<>();
-        for (ExamStaffCandidate row : rows) {
-            byId.putIfAbsent(row.getCandidateId(), row);
-        }
-        return new ArrayList<>(byId.values());
     }
 
     private List<ExamStaffCandidate> query(String selectSql, String whereSql, int bindInt) {
@@ -158,6 +121,15 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         if (!rs.wasNull()) {
             row.setAllocatedAreaId(areaIdVal);
             row.setAllocatedAreaName(rs.getString("allocatedAreaName"));
+        }
+        try {
+            int pracAreaId = rs.getInt("practicalAllocatedAreaId");
+            if (!rs.wasNull()) {
+                row.setPracticalAllocatedAreaId(pracAreaId);
+                row.setPracticalAllocatedAreaName(rs.getString("practicalAllocatedAreaName"));
+            }
+        } catch (SQLException ignored) {
+            // older selects may omit practical area
         }
         try {
             int theory = rs.getInt("theoryScore");

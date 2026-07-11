@@ -26,6 +26,8 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
                     e.setExamId(rs.getInt("ExamId"));
                     e.setExamCode(rs.getString("ExamCode"));
                     e.setExamDate(rs.getTimestamp("ExamDate"));
+                    e.setStartTime(rs.getTimestamp("StartTime"));
+                    e.setEndTime(rs.getTimestamp("EndTime"));
                     e.setCentreName(rs.getString("CentreName"));
                     e.setStatus(rs.getString("Status"));
                     e.setLicenceId(rs.getInt("LicenceId"));

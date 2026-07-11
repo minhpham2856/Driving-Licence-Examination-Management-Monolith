@@ -100,8 +100,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 INNER JOIN Fee f ON f.FeeId = pf.FeeId
                 INNER JOIN Payment p ON p.PaymentId = pf.PaymentId
                 INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                INNER JOIN [Session] s ON s.SessionId = ee.SessionId
-                INNER JOIN Exam e ON e.ExamId = s.ExamId
+                INNER JOIN Exam e ON e.ExamId = ee.ExamId
                 INNER JOIN Licence lic ON lic.LicenceId = e.LicenceId
                 LEFT JOIN Licence_Fee lf_spec
                     ON lf_spec.FeeId = f.FeeId AND lf_spec.LicenceId = lic.LicenceId

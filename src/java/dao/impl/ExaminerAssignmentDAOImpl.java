@@ -57,9 +57,10 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     private static final String SLOT_SELECT =
             "SELECT esch.ExaminerScheduleId AS SessionExaminerId, "
-            + "esch.SessionId AS examSessionId, "
+            + "esch.ExamId AS examSessionId, "
             + "esch.ExaminerId AS examinerUserId, "
-            + util.examstaff.SessionLabel.SQL_WITH_SECTION + " AS sessionName, "
+            + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
             + "eu.Username AS examinerUsername, "
             + "ep.FullName AS examinerName, "
             + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
@@ -67,23 +68,21 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "ea.AreaName AS areaName, "
             + "ea.AreaType AS areaType, "
             + "CASE "
-            + "    WHEN sect.examTypeName LIKE N'%Thực hành%' OR sect.examTypeName LIKE N'%Sa hình%' OR sect.examTypeName LIKE '%Practical%' THEN 2 "
-            + "    WHEN sect.examTypeName LIKE N'%Đường%' OR sect.examTypeName LIKE '%Road%' THEN 4 "
+            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%' "
+            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%' "
+            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2 "
+            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%' "
+            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4 "
             + "    ELSE 1 "
             + "END AS examTypeId, "
-            + "sect.examTypeName "
+            + "COALESCE(esect.SectionType, ea.AreaType) AS examTypeName "
             + "FROM ExaminerSchedule esch "
-            + "JOIN [Session] s ON s.SessionId = esch.SessionId "
+            + "JOIN Exam e ON e.ExamId = esch.ExamId "
+            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
             + "JOIN [User] eu ON eu.UserId = esch.ExaminerId "
             + "LEFT JOIN Profile ep ON ep.UserId = eu.UserId "
             + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId "
-            + "LEFT JOIN ( "
-            + "    SELECT ses.SessionId, "
-            + "           MIN(es.SectionName) AS examTypeName "
-            + "    FROM Session_ExamSection ses "
-            + "    JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId "
-            + "    GROUP BY ses.SessionId "
-            + ") sect ON sect.SessionId = s.SessionId";
+            + "LEFT JOIN ExamSection esect ON esect.ExamSectionId = esch.ExamSectionId";
 
     // Retrieves all active examiner users with their profiles from the database
     @Override
@@ -114,20 +113,31 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         String existingAssignmentSql = """
                 SELECT TOP 1 esch.ExaminerScheduleId
                 FROM ExaminerSchedule esch
-                INNER JOIN [Session] s ON s.SessionId = esch.SessionId
-                INNER JOIN [Session] target ON target.SessionId = ?
                 WHERE esch.ExaminerId = ?
-                  AND s.ExamId = target.ExamId
-                  AND esch.SessionId <> ?
+                  AND esch.ExamId = ?
+                  AND esch.ExamAreaId <> ?
                 """;
-        // SQL: insert the examiner assignment into Session_Examiner
         String insertAssignment = """
-                INSERT INTO ExaminerSchedule (SessionId, ExaminerId, ExamAreaId, ExamSectionId, AssignedBy, AssignedAt)
-                SELECT ?, ?, ?, (
-                    SELECT TOP 1 ses.ExamSectionId
-                    FROM Session_ExamSection ses
-                    WHERE ses.SessionId = ?
-                ), ?, GETDATE()
+                INSERT INTO ExaminerSchedule (ExamId, ExaminerId, ExamAreaId, ExamSectionId, AssignedBy, AssignedAt)
+                VALUES (?, ?, ?, COALESCE((
+                    SELECT TOP 1 es.ExamSectionId
+                    FROM ExamSection es
+                    WHERE es.ExamId = ?
+                      AND (
+                        (? = N'Lý thuyết' AND es.SectionType = N'Lý thuyết')
+                        OR (? = N'Thực hành' AND (
+                            es.SectionType LIKE N'%Thực hành%'
+                            OR es.SectionType LIKE N'%Sa hình%'
+                            OR es.SectionType LIKE N'%Đường%'
+                        ))
+                      )
+                    ORDER BY es.ExamSectionId
+                ), (
+                    SELECT TOP 1 es.ExamSectionId
+                    FROM ExamSection es
+                    WHERE es.ExamId = ?
+                    ORDER BY es.ExamSectionId
+                )), ?, GETDATE())
                 """;
         // SQL: delete any existing audit mapping for this entity (idempotent cleanup)
         String deleteMapping = """
@@ -143,9 +153,9 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             // Begin transaction — both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
-                ps.setInt(1, slot.getExamSessionId());
-                ps.setInt(2, slot.getExaminerUserId());
-                ps.setInt(3, slot.getExamSessionId());
+                ps.setInt(1, slot.getExaminerUserId());
+                ps.setInt(2, slot.getExamSessionId());
+                ps.setInt(3, slot.getAreaId());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         getConnection().rollback();
@@ -156,11 +166,15 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             // Step 1: insert the Session_Examiner row
             try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
+                String areaType = slot.getAreaType() != null ? slot.getAreaType().trim() : "";
                 ps.setInt(1, slot.getExamSessionId());
                 ps.setInt(2, slot.getExaminerUserId());
                 ps.setInt(3, slot.getAreaId());
                 ps.setInt(4, slot.getExamSessionId());
-                ps.setInt(5, assignedBy);
+                ps.setString(5, areaType);
+                ps.setString(6, areaType);
+                ps.setInt(7, slot.getExamSessionId());
+                ps.setInt(8, assignedBy);
                 ps.executeUpdate();
             }
             // Step 2: delete any stale audit mapping for this entity ID
@@ -221,7 +235,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Rebuild the audit entity ID from the parsed components
         String entityId = buildMappingEntityId(sessionId, areaId, examinerId);
         // SQL: delete the Session_Examiner row
-        String deleteAssignment = "DELETE FROM ExaminerSchedule WHERE SessionId = ? AND ExaminerId = ?";
+        String deleteAssignment = "DELETE FROM ExaminerSchedule WHERE ExamId = ? AND ExaminerId = ?";
         // SQL: delete the audit mapping row
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
@@ -264,7 +278,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     @Override
     public List<ExaminerSlotDTO> getBySessionId(int sessionId) {
         // Append WHERE clause to filter by session ID
-        String sql = SLOT_SELECT + " WHERE esch.SessionId = ? ORDER BY ea.AreaName, esch.ExaminerScheduleId";
+        String sql = SLOT_SELECT + " WHERE esch.ExamId = ? ORDER BY ea.AreaName, esch.ExaminerScheduleId";
         return querySlots(sql, ps -> ps.setInt(1, sessionId));
     }
 
@@ -273,8 +287,8 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     public List<ExaminerSlotDTO> getInProgressAssignmentsForExaminer(int examinerUserId) {
         // Append WHERE clause to filter by examiner and in-progress session status
         String sql = SLOT_SELECT
-                + " WHERE esch.ExaminerId = ? AND s.[Status] = 'InProgress'"
-                + " ORDER BY esch.SessionId DESC, esch.ExaminerScheduleId";
+                + " WHERE esch.ExaminerId = ? AND e.[Status] = N'Đang diễn ra'"
+                + " ORDER BY esch.ExamId DESC, esch.ExaminerScheduleId";
         // Execute the query
         List<ExaminerSlotDTO> slots = querySlots(sql, ps -> ps.setInt(1, examinerUserId));
         // Filter out slots without a valid area mapping (legacy or incomplete assignments)
@@ -307,14 +321,14 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             return List.of();
         }
         // Build a dynamic IN clause with the correct number of placeholders
-        StringBuilder sql = new StringBuilder(SLOT_SELECT + " WHERE esch.SessionId IN (");
+        StringBuilder sql = new StringBuilder(SLOT_SELECT + " WHERE esch.ExamId IN (");
         for (int i = 0; i < sessionIds.size(); i++) {
             if (i > 0) {
                 sql.append(',');
             }
             sql.append('?');
         }
-        sql.append(") ORDER BY esch.SessionId, ea.AreaName, esch.ExaminerScheduleId");
+        sql.append(") ORDER BY esch.ExamId, ea.AreaName, esch.ExaminerScheduleId");
         // Execute the query, binding each session ID as a positional parameter
         return querySlots(sql.toString(), ps -> {
             for (int i = 0; i < sessionIds.size(); i++) {

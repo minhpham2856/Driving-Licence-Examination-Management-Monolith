@@ -45,7 +45,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 SELECT 1
                 FROM ExamEnrollment ee
                 INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
-                WHERE ee.SessionId = ?
+                WHERE ee.ExamId = ?
                   AND (
                         TRY_CAST(a.EntityId AS INT) = c.CandidateId
                         OR a.NewValue LIKE N'%' + c.CandidateNumber + N'%'

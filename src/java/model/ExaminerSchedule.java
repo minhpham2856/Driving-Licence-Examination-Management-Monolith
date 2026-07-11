@@ -30,8 +30,18 @@ public class ExaminerSchedule {
     public int getSessionId() {
         return sessionId;
     }
+
     public void setSessionId(int sessionId) {
         this.sessionId = sessionId;
+    }
+
+    /** Alias schema DLEM_DB_2: ExaminerSchedule.ExamId. */
+    public int getExamId() {
+        return sessionId;
+    }
+
+    public void setExamId(int examId) {
+        this.sessionId = examId;
     }
     public int getExaminerId() {
         return examinerId;

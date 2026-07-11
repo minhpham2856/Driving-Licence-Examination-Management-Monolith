@@ -4,6 +4,8 @@ public class Exam {
     private int examId;
     private String examCode;
     private Timestamp examDate;
+    private Timestamp startTime;
+    private Timestamp endTime;
     private String centreName;
     private String status;
     private int licenceId;
@@ -34,6 +36,18 @@ public class Exam {
     }
     public void setExamDate(Timestamp examDate) {
         this.examDate = examDate;
+    }
+    public Timestamp getStartTime() {
+        return startTime;
+    }
+    public void setStartTime(Timestamp startTime) {
+        this.startTime = startTime;
+    }
+    public Timestamp getEndTime() {
+        return endTime;
+    }
+    public void setEndTime(Timestamp endTime) {
+        this.endTime = endTime;
     }
     public String getCentreName() {
         return centreName;

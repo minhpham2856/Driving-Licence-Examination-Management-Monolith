@@ -164,8 +164,8 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     public List<ExamArea> getAreasBySessionId(int sessionId) {
         List<ExamArea> list = new ArrayList<>();
         String sql = "SELECT ea.* FROM ExamArea ea "
-                   + "JOIN Session_ExamArea sea ON ea.ExamAreaId = sea.ExamAreaId "
-                   + "WHERE sea.SessionId = ? ORDER BY ea.AreaName";
+                   + "JOIN Exam_ExamArea exa ON ea.ExamAreaId = exa.ExamAreaId "
+                   + "WHERE exa.ExamId = ? ORDER BY ea.AreaName";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, sessionId);
@@ -179,7 +179,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public boolean isAreaInSession(int sessionId, int examAreaId) {
-        String sql = "SELECT COUNT(*) FROM Session_ExamArea WHERE SessionId = ? AND ExamAreaId = ?";
+        String sql = "SELECT COUNT(*) FROM Exam_ExamArea WHERE ExamId = ? AND ExamAreaId = ?";
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, sessionId);

@@ -15,6 +15,8 @@ public class SessionDTO {
     private Date examDate;
     private Time shiftStartTime;
     private Time shiftEndTime;
+    private Timestamp scheduledStartAt;
+    private Timestamp scheduledEndAt;
     private int areaId;
     private String status;
     private int maxCandidates;
@@ -98,6 +100,22 @@ public class SessionDTO {
 
     public void setShiftEndTime(Time shiftEndTime) {
         this.shiftEndTime = shiftEndTime;
+    }
+
+    public Timestamp getScheduledStartAt() {
+        return scheduledStartAt;
+    }
+
+    public void setScheduledStartAt(Timestamp scheduledStartAt) {
+        this.scheduledStartAt = scheduledStartAt;
+    }
+
+    public Timestamp getScheduledEndAt() {
+        return scheduledEndAt;
+    }
+
+    public void setScheduledEndAt(Timestamp scheduledEndAt) {
+        this.scheduledEndAt = scheduledEndAt;
     }
 
     public int getAreaId() {

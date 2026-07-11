@@ -12,25 +12,58 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-// JDBC implementation of ExamSessionDAO for managing exam sessions.
+/**
+ * JDBC implementation of ExamSessionDAO.
+ * Schema DLEM_DB_2: một kỳ thi = một {@link model.Exam}; {@code sessionId} = {@code ExamId}.
+ */
 public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
 
-    // Retrieves a basic Session model by primary key (no joins, no DTO mapping).
+    private static final String EXAM_SELECT =
+            "SELECT e.ExamId AS id, "
+            + "e.ExamId AS examId, "
+            + "CAST(1 AS BIT) AS isMorningSession, "
+            + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
+            + "e.LicenceId AS licenseTypeId, "
+            + "1 AS examTypeId, "
+            + "CAST(e.ExamDate AS DATE) AS examDate, "
+            + "CAST(e.StartTime AS TIME) AS shiftStartTime, "
+            + "CAST(e.EndTime AS TIME) AS shiftEndTime, "
+            + "e.StartTime AS scheduledStartAt, "
+            + "e.EndTime AS scheduledEndAt, "
+            + "ISNULL(ea.ExamAreaId, 0) AS areaId, "
+            + "e.[Status] AS status, "
+            + "ISNULL(ea.Capacity, 100) AS maxCandidates, "
+            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.ExamId = e.ExamId) AS registeredCount, "
+            + "e.StartTime AS createdAt, "
+            + "l.LicenceClass AS licenseCode, "
+            + "e.ExamCode AS examCode, "
+            + "N'Lý thuyết + Thực hành' AS examTypeName, "
+            + "ea.AreaName AS areaName "
+            + "FROM Exam e "
+            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
+            + "LEFT JOIN ( "
+            + "    SELECT exa.ExamId, MIN(exa.ExamAreaId) AS ExamAreaId "
+            + "    FROM Exam_ExamArea exa "
+            + "    GROUP BY exa.ExamId "
+            + ") pick ON pick.ExamId = e.ExamId "
+            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = pick.ExamAreaId";
+
     @Override
     public Session findById(int id) {
-        String sql = "SELECT * FROM [Session] WHERE SessionId = ?";
+        String sql = "SELECT ExamId, StartTime, EndTime, [Status] FROM Exam WHERE ExamId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Session s = new Session();
-                    s.setId(rs.getInt("SessionId"));
-                    s.setMorningSession(rs.getBoolean("IsMorningSession"));
+                    s.setId(rs.getInt("ExamId"));
+                    s.setMorningSession(true);
                     s.setStartTime(rs.getTimestamp("StartTime"));
                     s.setEndTime(rs.getTimestamp("EndTime"));
                     s.setStatus(rs.getString("Status"));
                     s.setExamId(rs.getInt("ExamId"));
-                    s.setSessionName(util.examstaff.SessionLabel.shiftLabel(s.isMorningSession()));
+                    s.setSessionName(util.examstaff.SessionLabel.shiftLabel(true));
                     return s;
                 }
             }
@@ -40,116 +73,17 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return null;
     }
 
-    private static final String SESSION_SELECT =
-            "SELECT s.SessionId AS id, "
-            + "s.ExamId AS examId, "
-            + "s.IsMorningSession AS isMorningSession, "
-            + util.examstaff.SessionLabel.SQL_WITH_SECTION + " AS sessionName, "
-            + "e.LicenceId AS licenseTypeId, "
-            + "ISNULL(sect.examTypeId, 1) AS examTypeId, "
-            + "CAST(s.StartTime AS DATE) AS examDate, "
-            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
-            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
-            + "ISNULL(sea.ExamAreaId, 0) AS areaId, "
-            + "s.[Status] AS status, "
-            + "ISNULL(ea.Capacity, 100) AS maxCandidates, "
-            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
-            + "s.StartTime AS createdAt, "
-            + "l.LicenceClass AS licenseCode, "
-            + "e.ExamCode AS examCode, "
-            + "sect.examTypeName, "
-            + "ea.AreaName AS areaName "
-            + "FROM [Session] s "
-            + "JOIN Exam e ON e.ExamId = s.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
-            + "LEFT JOIN ( "
-            + "    SELECT ses.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId "
-            + "    FROM Session_ExamArea sea2 "
-            + "    JOIN [Session] ses ON ses.SessionId = sea2.SessionId "
-            + "    GROUP BY ses.SessionId "
-            + ") sea ON sea.SessionId = s.SessionId "
-            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId "
-            + "LEFT JOIN ( "
-            + "    SELECT ses.SessionId, "
-            + "           MIN(es.ExamSectionId) AS examSectionId, "
-            + "           CASE "
-            + "               WHEN MIN(es.SectionName) LIKE N'%Lý thuyết%' OR MIN(es.SectionName) LIKE '%Theory%' THEN 1 "
-            + "               WHEN MIN(es.SectionName) LIKE N'%Thực hành%' OR MIN(es.SectionName) LIKE N'%Sa hình%' OR MIN(es.SectionName) LIKE '%Practical%' THEN 2 "
-            + "               WHEN MIN(es.SectionName) LIKE N'%Đường%' OR MIN(es.SectionName) LIKE '%Road%' THEN 4 "
-            + "               ELSE 1 "
-            + "           END AS examTypeId, "
-            + "           MIN(es.SectionName) AS examTypeName "
-            + "    FROM Session_ExamSection ses "
-            + "    JOIN ExamSection es ON es.ExamSectionId = ses.ExamSectionId "
-            + "    GROUP BY ses.SessionId "
-            + ") sect ON sect.SessionId = s.SessionId";
-
-    private static final String SESSION_SELECT_BASIC =
-            "SELECT s.SessionId AS id, "
-            + "s.ExamId AS examId, "
-            + "s.IsMorningSession AS isMorningSession, "
-            + util.examstaff.SessionLabel.SQL_SHIFT_ONLY + " AS sessionName, "
-            + "e.LicenceId AS licenseTypeId, "
-            + "1 AS examTypeId, "
-            + "CAST(s.StartTime AS DATE) AS examDate, "
-            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
-            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
-            + "0 AS areaId, "
-            + "s.[Status] AS status, "
-            + "100 AS maxCandidates, "
-            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
-            + "s.StartTime AS createdAt, "
-            + "l.LicenceClass AS licenseCode, "
-            + "e.ExamCode AS examCode, "
-            + "CAST(NULL AS NVARCHAR(200)) AS examTypeName, "
-            + "CAST(NULL AS NVARCHAR(200)) AS areaName "
-            + "FROM [Session] s "
-            + "JOIN Exam e ON e.ExamId = s.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId";
-
-    /** Một ca đại diện mỗi ExamId — query tối giản cho dropdown. */
-    private static final String EXAM_DAY_PICKER_SELECT =
-            "SELECT s.SessionId AS id, "
-            + "s.ExamId AS examId, "
-            + "s.IsMorningSession AS isMorningSession, "
-            + util.examstaff.SessionLabel.SQL_SHIFT_ONLY + " AS sessionName, "
-            + "e.LicenceId AS licenseTypeId, "
-            + "1 AS examTypeId, "
-            + "CAST(s.StartTime AS DATE) AS examDate, "
-            + "CAST(s.StartTime AS TIME) AS shiftStartTime, "
-            + "CAST(s.EndTime AS TIME) AS shiftEndTime, "
-            + "0 AS areaId, "
-            + "s.[Status] AS status, "
-            + "100 AS maxCandidates, "
-            + "(SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.SessionId = s.SessionId) AS registeredCount, "
-            + "s.StartTime AS createdAt, "
-            + "l.LicenceClass AS licenseCode, "
-            + "e.ExamCode AS examCode, "
-            + "CAST(NULL AS NVARCHAR(200)) AS examTypeName, "
-            + "CAST(NULL AS NVARCHAR(200)) AS areaName "
-            + "FROM [Session] s "
-            + "INNER JOIN ( "
-            + "    SELECT ExamId, MIN(SessionId) AS SessionId "
-            + "    FROM [Session] "
-            + "    GROUP BY ExamId "
-            + ") pick ON pick.SessionId = s.SessionId "
-            + "JOIN Exam e ON e.ExamId = s.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId";
-
-    // Retrieves a rich SessionDTO by primary key with all joined fields.
     @Override
     public SessionDTO getById(int id) {
-        SessionDTO session = fetchSessionById(SESSION_SELECT, id);
-        if (session != null) {
-            return session;
+        if (id <= 0) {
+            return null;
         }
-        return fetchSessionById(SESSION_SELECT_BASIC, id);
+        return fetchOne(EXAM_SELECT + " WHERE e.ExamId = ?", id);
     }
 
-    private SessionDTO fetchSessionById(String selectSql, int id) {
-        String sql = selectSql + " WHERE s.SessionId = ?";
+    private SessionDTO fetchOne(String sql, int examId) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, id);
+            ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToExamSession(rs);
@@ -161,81 +95,38 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return null;
     }
 
-    // Returns sessions with status Scheduled, Open, or InProgress,
     @Override
     public List<SessionDTO> getActiveSessions() {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT
-                + " WHERE s.[Status] IN ('Scheduled', 'Open', 'InProgress')"
-                + " ORDER BY CAST(s.StartTime AS DATE), CAST(s.StartTime AS TIME)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToExamSession(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return fetchList(EXAM_SELECT
+                + " WHERE e.[Status] IN (N'Chưa diễn ra', N'Mở', N'Đang diễn ra', "
+                + "'Scheduled', 'Open', 'InProgress')"
+                + " ORDER BY CAST(e.ExamDate AS DATE), CAST(e.StartTime AS TIME)");
     }
 
-    // Returns all sessions ordered by start time descending.
     @Override
     public List<SessionDTO> getAllSessions() {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT
-                + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToExamSession(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if (list.isEmpty()) {
-            list.addAll(getAllSessionsBasic());
-        }
-        return list;
+        return fetchList(EXAM_SELECT
+                + " ORDER BY CAST(e.ExamDate AS DATE) DESC, CAST(e.StartTime AS TIME) DESC");
     }
 
     @Override
     public List<SessionDTO> getAllSessionsBasic() {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT_BASIC
-                + " ORDER BY CAST(s.StartTime AS DATE) DESC, CAST(s.StartTime AS TIME) DESC";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToExamSession(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return getAllSessions();
     }
 
     @Override
     public List<SessionDTO> getExamDayPickerOptions() {
-        List<SessionDTO> list = new ArrayList<>();
-        String sql = EXAM_DAY_PICKER_SELECT
-                + " ORDER BY CAST(s.StartTime AS DATE) DESC, l.LicenceClass";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapResultSetToExamSession(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return fetchList(EXAM_SELECT
+                + " ORDER BY CAST(e.ExamDate AS DATE) DESC, l.LicenceClass");
     }
 
-    // Returns sessions scheduled on a specific date.
     @Override
     public List<SessionDTO> getSessionsByExamDate(Date examDate) {
+        if (examDate == null) {
+            return List.of();
+        }
         List<SessionDTO> list = new ArrayList<>();
-        String sql = SESSION_SELECT + " WHERE CAST(s.StartTime AS DATE) = ? ORDER BY CAST(s.StartTime AS TIME)";
+        String sql = EXAM_SELECT + " WHERE CAST(e.ExamDate AS DATE) = ? ORDER BY CAST(e.StartTime AS TIME)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setDate(1, examDate);
             try (ResultSet rs = ps.executeQuery()) {
@@ -251,7 +142,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
 
     @Override
     public boolean updateStatus(int sessionId, String status) {
-        String sql = "UPDATE [Session] SET [Status] = ? WHERE SessionId = ?";
+        String sql = "UPDATE Exam SET [Status] = ? WHERE ExamId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, sessionId);
@@ -260,6 +151,33 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public boolean finishSession(int sessionId, String status, Timestamp endTime) {
+        String sql = "UPDATE Exam SET [Status] = ?, EndTime = ? WHERE ExamId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setTimestamp(2, endTime != null ? endTime : new Timestamp(System.currentTimeMillis()));
+            ps.setInt(3, sessionId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private List<SessionDTO> fetchList(String sql) {
+        List<SessionDTO> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSetToExamSession(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     private SessionDTO mapResultSetToExamSession(ResultSet rs) throws SQLException {
@@ -273,12 +191,16 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         es.setExamDate(rs.getDate("examDate"));
         es.setShiftStartTime(rs.getTime("shiftStartTime"));
         es.setShiftEndTime(rs.getTime("shiftEndTime"));
+        Timestamp scheduledStart = rs.getTimestamp("scheduledStartAt");
+        es.setScheduledStartAt(rs.wasNull() ? null : scheduledStart);
+        Timestamp scheduledEnd = rs.getTimestamp("scheduledEndAt");
+        es.setScheduledEndAt(rs.wasNull() ? null : scheduledEnd);
         es.setAreaId(rs.getInt("areaId"));
         es.setStatus(rs.getString("status"));
         es.setMaxCandidates(rs.getInt("maxCandidates"));
         es.setRegisteredCount(rs.getInt("registeredCount"));
         Timestamp created = rs.getTimestamp("createdAt");
-        es.setCreatedAt(rs.wasNull() ? null : created);
+        es.setCreatedAt(rs.wasNull() ? scheduledStart : created);
         es.setLicenseCode(rs.getString("licenseCode"));
         es.setExamCode(rs.getString("examCode"));
         es.setExamTypeName(rs.getString("examTypeName"));

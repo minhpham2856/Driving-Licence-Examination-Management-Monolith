@@ -33,8 +33,11 @@ public interface ExamRegistrationDAO {
     // Gan may tinh cho thi sinh
     boolean updateComputer(int id, String computerCode);
 
-    // Cap nhat phong da phan bo
+    // Cap nhat phong da phan bo (ly thuyet)
     boolean updateAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName);
+
+    // Cap nhat san/phong thuc hanh
+    boolean updatePracticalAllocatedRoom(int candidateId, int sessionId, int areaId, String areaName);
 
     /**
      * Kiem tra thi sinh da co phong o ca khac trong cung ky thi chua.
@@ -73,25 +76,6 @@ public interface ExamRegistrationDAO {
 
     // Them dang ky thi (qua Profile)
     boolean insert(ExamRegistrationDTO reg);
-
-    // Import DSTS vao Candidate + ExamEnrollment
-    boolean insertFromDstsImport(ExamRegistrationDTO reg);
-
-    // Tao ExamEnrollment neu thieu (import / ghi de trung CCCD trong ca)
-    boolean ensureExamEnrollmentForSession(int candidateId, int sessionId);
-
-    // Ghi danh tat ca ca thi trong ky ma thi sinh tham gia (theo TakeTheory/TakeLayout)
-    boolean ensureExamEnrollmentsForImport(int candidateId, int examId,
-            Boolean takeTheory, Boolean takePractical);
-
-    /** Các loại phần thi có ca trong kỳ theo luồng hiện tại: Theory / Practical. */
-    java.util.Set<String> findAvailableSectionKindsForExam(int examId);
-
-    // Tim CandidateId theo CCCD trong mot ky thi
-    Integer findCandidateIdByGovIdAndExam(String govId, int examId);
-
-    // Tim CandidateId theo CCCD (toan he thong — tranh tao ban ghi Candidate trung)
-    Integer findCandidateIdByGovId(String govId);
 
     // Lay tat ca dang ky
     List<ExamRegistrationDTO> getAllCandidates();
