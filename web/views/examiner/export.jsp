@@ -5,15 +5,9 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Xuất dữ liệu" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
-<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
-<c:set var="exportMinutesUrl" value="${ctx}/examiner/export/minutes" />
+<c:set var="exportResultUrl" value="${ctx}/examiner/export/result" />
 <c:set var="exportViolationsUrl" value="${ctx}/examiner/export/violations" />
 <c:set var="exportAuditUrl" value="${ctx}/examiner/export/audit" />
-<c:set var="exportCandidatesXmlUrl" value="${ctx}/examiner/export/candidates/xml" />
-<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" />
-<c:set var="exportMinutesXmlUrl" value="${ctx}/examiner/export/minutes/xml" />
-<c:set var="exportViolationsXmlUrl" value="${ctx}/examiner/export/violations/xml" />
-<c:set var="exportAuditXmlUrl" value="${ctx}/examiner/export/audit/xml" />
 <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
@@ -65,11 +59,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="${exportCandidatesXmlUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">XML</span>
-                            </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=candidates" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -86,40 +76,11 @@
                             </div>
                         </div>
                         <div class="export-row__actions">
-                            <a href="${exportResultsUrl}" class="export-btn">
+                            <a href="${exportResultUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="${exportResultsXmlUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">XML</span>
-                            </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">docx</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="export-row">
-                        <div class="export-row__left">
-                            <div class="export-row__icon export-row__icon--blue">
-                                <span class="material-symbols-outlined">description</span>
-                            </div>
-                            <div class="export-row__info">
-                                <p class="export-row__title">Biên bản thi</p>
-                            </div>
-                        </div>
-                        <div class="export-row__actions">
-                            <a href="${exportMinutesUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">excel</span>
-                            </a>
-                            <a href="${exportMinutesXmlUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">XML</span>
-                            </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=result" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -140,11 +101,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="${exportViolationsXmlUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">XML</span>
-                            </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=violations" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>
@@ -165,11 +122,7 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
-                            <a href="${exportAuditXmlUrl}" class="export-btn">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="export-btn__text">XML</span>
-                            </a>
-                            <a href="${exportDocxUrl}" class="export-btn">
+                            <a href="${exportDocxUrl}?type=audit" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">docx</span>
                             </a>

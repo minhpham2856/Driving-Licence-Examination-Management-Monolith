@@ -1,6 +1,7 @@
 package auth.controller.general;
 
 import auth.dto.ServiceResult;
+import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
 import jakarta.servlet.ServletException;
@@ -26,18 +27,19 @@ public class ChangePasswordServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute(Attributes.Session.USER) == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession userSession = request.getSession(false);
-        User sessionUser = userSession == null ? null : (User) userSession.getAttribute("user");
+        User sessionUser = userSession == null ? null
+                : (User) userSession.getAttribute(Attributes.Session.USER);
         if (sessionUser == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -53,12 +55,12 @@ public class ChangePasswordServlet extends HttpServlet {
                 auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
                         "Đổi mật khẩu tài khoản", sessionUser.getUserId());
             }
-            request.setAttribute("messageType", "success");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
         } else {
-            request.setAttribute("messageType", "danger");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
         }
-        request.setAttribute("message", result.getMessage());
-        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
+        request.setAttribute(Attributes.Request.MESSAGE, result.getMessage());
+        request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
 }
 
