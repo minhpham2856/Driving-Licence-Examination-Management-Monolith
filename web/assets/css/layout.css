@@ -1,5 +1,5 @@
 /* ========================================================
-   Layout shell — public header / sidebar / footer
+   Layout shell - public header / sidebar / footer
    ======================================================== */
 
 /* Fix global body flex breaking vertical page stack */
@@ -71,7 +71,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 
 
 /* ========================================================
-   Site Footer — Figma node 1:2457
+   Site Footer - Figma node 1:2457
    ======================================================== */
 .site-footer {
     width: 100%;
@@ -82,10 +82,10 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 .site-footer__container {
-    max-width: 1280px;
+    max-width: none;
     width: 100%;
-    margin: 0 auto;
-    padding: 48px 32px;
+    margin: 0;
+    padding: 48px 28px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -219,7 +219,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 /* ========================================================
-   SideNavBar — Figma node 4:4
+   SideNavBar - Figma node 4:4
    ======================================================== */
 .side-nav-bar {
     width: 260px;
@@ -276,6 +276,13 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     object-fit: cover;
     display: block;
     pointer-events: none;
+}
+
+.side-nav-bar--examiner .side-nav-bar__logo-img {
+    width: 48px;
+    height: auto;
+    max-height: 56px;
+    object-fit: contain;
 }
 
 .side-nav-bar__brand-title-wrap {
@@ -572,7 +579,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     grid-template-columns: minmax(140px, 1.35fr) minmax(120px, 1fr) repeat(2, minmax(108px, 0.9fr));
 }
 
-/* Bộ lọc đợt thi (register-exam): 2 hàng — tìm kiếm rộng, hàng dưới địa điểm + ngày */
+/* Bộ lọc đợt thi (register-exam): 2 hàng - tìm kiếm rộng, hàng dưới địa điểm + ngày */
 .registrant-filter__fields--session {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem 1.25rem;
@@ -874,7 +881,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     }
 }
 
-/* Legacy alias — giữ tương thích nếu còn class cũ */
+/* Legacy alias - giữ tương thích nếu còn class cũ */
 .registrant-filter-bar {
     margin-bottom: 1rem;
 }
@@ -901,5 +908,37 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 .register-exam-sbd-hint {
     font-size: 0.8rem;
     line-height: 1.5;
+}
+
+/* Form xác nhận đăng ký (cột tóm tắt bên phải) */
+.register-exam-confirm-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+}
+
+.register-exam-date-hint {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+/* My-exams: card cột phải */
+.exam-details-card--right {
+    height: 100%;
+}
+
+/* Track profile / form titles trong panel registrant */
+.r-form-title {
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Upload: slot thiếu file */
+.upload-slot__message--missing {
+    background: rgba(185, 28, 28, 0.88);
 }
 
