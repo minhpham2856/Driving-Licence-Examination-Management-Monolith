@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface CandidateAttendanceService {
 
-    boolean markTemporaryAbsent(int candidateId);
-
     boolean markPermanentAbsent(int candidateId);
 
     boolean restoreAbsentCandidate(ExamRegistrationDTO profile);

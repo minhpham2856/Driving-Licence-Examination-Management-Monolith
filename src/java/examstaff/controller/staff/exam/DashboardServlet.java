@@ -5,7 +5,6 @@ import examstaff.controller.staff.exam.binder.ExamStaffDashboardViewBinder;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
-import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ExamStaffDashboardViewDTO;
 import jakarta.servlet.ServletException;
@@ -15,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import examstaff.service.CandidateCallingService;
-import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.ExamStaffDashboardService;
 
@@ -31,7 +29,6 @@ public class DashboardServlet extends HttpServlet {
 
     private final ExamStaffDashboardService dashboardService = SERVICES.dashboard();
     private final CandidateCallingService callingService = SERVICES.calling();
-    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
     @Override
@@ -54,13 +51,13 @@ public class DashboardServlet extends HttpServlet {
             boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
             syncCallingSbd(session, examId, qList, shiftEnded);
 
-            ExamStaffDashboardViewDTO dashboardView = dashboardService.buildView(pageCtx.getAllSessions(), examId);
+            ExamStaffDashboardViewDTO dashboardView = dashboardService.buildView(pageCtx.getAllExams(), examId);
             ExamStaffDashboardViewBinder.bind(request, dashboardView);
 
-            ExamStaffHttpSupport.consumeFlash(session, "sessionControlMsg", request, "sessionControlMsg");
-            ExamStaffHttpSupport.consumeFlash(session, "sessionControlError", request, "sessionControlError");
-            ExamStaffHttpSupport.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
-            ExamStaffHttpSupport.consumeFlash(session, "sessionSelectError", request, "sessionSelectError");
+            ExamStaffHttpSupport.consumeFlash(session, "examControlMsg", request, "examControlMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "examControlError", request, "examControlError");
+            ExamStaffHttpSupport.consumeFlash(session, "examSelectMsg", request, "examSelectMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "examSelectError", request, "examSelectError");
 
             request.getRequestDispatcher("/views/staff/examstaff/dashboard.jsp").forward(request, response);
         } catch (Exception e) {
@@ -71,9 +68,9 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        String sessionCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
+        String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
         examstaff.model.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
-        String callingSbd = callingService.resolveSyncedCallingSbd(sessionCalling, callBoard, queue);
+        String callingSbd = callingService.resolveSyncedCallingSbd(httpCalling, callBoard, queue);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
                 session.setAttribute("callingSbd", callingSbd);

@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 public class ExamStaffCandidate {
 
     private int candidateId;
-    private int examSessionId;
+    private int examId;
     private int examEnrollmentId;
     private int candidateNo;
     private String registrationType;
@@ -49,11 +49,11 @@ public class ExamStaffCandidate {
     }
 
     public int getExamId() {
-        return examSessionId;
+        return examId;
     }
 
-    public void setExamId(int examSessionId) {
-        this.examSessionId = examSessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public int getExamEnrollmentId() {

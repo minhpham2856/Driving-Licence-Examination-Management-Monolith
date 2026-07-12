@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%-- Dòng tóm tắt kỳ thi: hạng — mã — ngày — giờ — trạng thái (dùng chung dashboard / phân bổ giám khảo). --%>
-<p class="dashboard-sessions-panel__desc">
+<p class="dashboard-exam-panel__desc">
     Kỳ thi hạng <strong>${currentExam.licenseCode}</strong>
     <c:if test="${not empty currentExam.examCode}"> — <strong>${currentExam.examCode}</strong></c:if>
     — <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy"/>.

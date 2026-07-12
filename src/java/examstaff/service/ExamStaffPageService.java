@@ -9,19 +9,17 @@ import java.util.List;
 
 public interface ExamStaffPageService {
 
-    List<ExamSummaryDTO> listAllSessions();
+    List<ExamSummaryDTO> listAllExams();
 
-    ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allSessions);
+    ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allExams);
 
-    ExamSummaryDTO representativeSessionForExam(List<ExamSummaryDTO> allSessions, int examId);
+    ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId);
 
-    List<ExamSummaryDTO> sessionsForExam(List<ExamSummaryDTO> allSessions, int examId);
+    int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId);
 
-    int resolvePrimaryExamId(List<ExamSummaryDTO> allSessions, int examId);
+    int resolveDefaultExamId(List<ExamSummaryDTO> allExams);
 
-    int resolveDefaultExamId(List<ExamSummaryDTO> allSessions);
-
-    ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allSessions, int examId, int urlExamId);
+    ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allExams, int examId, int urlExamId);
 
     ExamStaffPageContextDTO preparePageContext(ExamStaffPagePrepareInput input);
 }

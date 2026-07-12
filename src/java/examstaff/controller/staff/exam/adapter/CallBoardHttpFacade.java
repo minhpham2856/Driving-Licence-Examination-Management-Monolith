@@ -22,50 +22,50 @@ public final class CallBoardHttpFacade {
         return new ServletContextCallBoardDAO(ctx);
     }
 
-    public CallBoardState getState(ServletContext ctx, int examSessionId) {
-        if (ctx == null || examSessionId <= 0) {
+    public CallBoardState getState(ServletContext ctx, int examId) {
+        if (ctx == null || examId <= 0) {
             return null;
         }
-        return syncService.getState(dao(ctx), examSessionId);
+        return syncService.getState(dao(ctx), examId);
     }
 
-    public void sync(ServletContext ctx, int examSessionId, String callingSbd,
+    public void sync(ServletContext ctx, int examId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        if (ctx == null || examSessionId <= 0) {
+        if (ctx == null || examId <= 0) {
             return;
         }
-        syncService.sync(dao(ctx), examSessionId, callingSbd, queue, shiftEnded);
+        syncService.sync(dao(ctx), examId, callingSbd, queue, shiftEnded);
     }
 
-    public void occupyDesk(ServletContext ctx, int examSessionId, String deskSbd,
+    public void occupyDesk(ServletContext ctx, int examId, String deskSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        if (ctx == null || examSessionId <= 0) {
+        if (ctx == null || examId <= 0) {
             return;
         }
-        syncService.occupyDesk(dao(ctx), examSessionId, deskSbd, queue, shiftEnded);
+        syncService.occupyDesk(dao(ctx), examId, deskSbd, queue, shiftEnded);
     }
 
-    public void releaseDeskAndCall(ServletContext ctx, int examSessionId, String callingSbd,
+    public void releaseDeskAndCall(ServletContext ctx, int examId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        if (ctx == null || examSessionId <= 0) {
+        if (ctx == null || examId <= 0) {
             return;
         }
-        syncService.releaseDeskAndCall(dao(ctx), examSessionId, callingSbd, queue, shiftEnded);
+        syncService.releaseDeskAndCall(dao(ctx), examId, callingSbd, queue, shiftEnded);
     }
 
-    public void resumeShift(ServletContext ctx, int examSessionId) {
-        CallBoardState state = getState(ctx, examSessionId);
+    public void resumeShift(ServletContext ctx, int examId) {
+        CallBoardState state = getState(ctx, examId);
         if (state != null) {
             state.setShiftEnded(false);
             state.setExamPaused(false);
-            dao(ctx).saveState(examSessionId, state);
+            dao(ctx).saveState(examId, state);
         }
     }
 
-    public void pauseShift(ServletContext ctx, int examSessionId, List<ExamRegistrationDTO> queue) {
-        if (ctx == null || examSessionId <= 0) {
+    public void pauseShift(ServletContext ctx, int examId, List<ExamRegistrationDTO> queue) {
+        if (ctx == null || examId <= 0) {
             return;
         }
-        syncService.pauseShift(dao(ctx), examSessionId, queue);
+        syncService.pauseShift(dao(ctx), examId, queue);
     }
 }

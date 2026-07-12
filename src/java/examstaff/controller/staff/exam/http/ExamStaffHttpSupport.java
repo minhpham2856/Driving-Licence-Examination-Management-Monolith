@@ -28,12 +28,6 @@ public final class ExamStaffHttpSupport {
         return parsePositiveIntParam(request, "examId");
     }
 
-    /** @deprecated dùng {@link #parseExamIdParam(HttpServletRequest)} */
-    @Deprecated
-    public static int parseSessionIdParam(HttpServletRequest request) {
-        return parseExamIdParam(request);
-    }
-
     public static Integer readSelectedExamId(HttpServletRequest request) {
         HttpSession session = request != null ? request.getSession(false) : null;
         if (session == null) {
@@ -43,31 +37,18 @@ public final class ExamStaffHttpSupport {
         if (selected instanceof Integer id && id > 0) {
             return id;
         }
-        // bookmark / session cũ
-        selected = session.getAttribute("selectedSessionId");
-        if (selected instanceof Integer id && id > 0) {
-            session.setAttribute("selectedExamId", id);
-            session.removeAttribute("selectedSessionId");
-            return id;
-        }
         return null;
     }
 
-    /** @deprecated dùng {@link #readSelectedExamId(HttpServletRequest)} */
-    @Deprecated
-    public static Integer readSelectedSessionId(HttpServletRequest request) {
-        return readSelectedExamId(request);
-    }
-
-    public static void consumeFlash(HttpSession session, String sessionKey,
+    public static void consumeFlash(HttpSession session, String flashKey,
             HttpServletRequest request, String attributeName) {
-        if (session == null || request == null || sessionKey == null) {
+        if (session == null || request == null || flashKey == null) {
             return;
         }
-        Object value = session.getAttribute(sessionKey);
+        Object value = session.getAttribute(flashKey);
         if (value != null) {
             request.setAttribute(attributeName, value);
-            session.removeAttribute(sessionKey);
+            session.removeAttribute(flashKey);
         }
     }
 
@@ -115,9 +96,6 @@ public final class ExamStaffHttpSupport {
                         rebuilt.append(key).append('=').append(value);
                         replaced = true;
                     }
-                } else if ("examId".equals(key) && part.startsWith("sessionId=")) {
-                    // bỏ sessionId cũ khi đang upsert examId
-                    continue;
                 } else {
                     if (rebuilt.length() > 0) {
                         rebuilt.append('&');

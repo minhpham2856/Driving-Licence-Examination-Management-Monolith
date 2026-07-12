@@ -291,8 +291,8 @@ public final class AuditExportLabels {
 
         }
 
-        String normalized = detail.replaceAll("\\s*SessionId=\\d+\\s*-\\s*", " ");
-        normalized = normalized.replaceAll("\\s*SessionId=\\d+", "");
+        String normalized = detail.replaceAll("\\s*ExamId=\\d+\\s*-\\s*", " ");
+        normalized = normalized.replaceAll("\\s*ExamId=\\d+", "");
         normalized = normalized.replaceAll("(?i)\\buserId=(\\d+)", "mã người dùng $1");
         normalized = normalized.replaceAll("(?i)\\bslot=([\\d:]+)", "phân công $1");
         normalized = normalized.replaceAll("\\s{2,}", " ").trim();

@@ -14,12 +14,12 @@ import examstaff.service.impl.CandidateQueueServiceImpl;
 import examstaff.service.impl.ExamAreaQueryServiceImpl;
 import examstaff.service.impl.ExamReportProcedureStatusServiceImpl;
 import examstaff.service.impl.ExamReportStatsServiceImpl;
-import examstaff.service.ExamSessionControlService;
-import examstaff.service.impl.ExamSessionControlServiceImpl;
+import examstaff.service.ExamControlService;
+import examstaff.service.impl.ExamControlServiceImpl;
 import examstaff.service.impl.ExamStaffDashboardServiceImpl;
 import examstaff.service.impl.ExamStaffPageServiceImpl;
 import examstaff.service.impl.ExamStaffSelectionServiceImpl;
-import examstaff.service.impl.ExamStaffSessionQueryServiceImpl;
+import examstaff.service.impl.ExamStaffExamQueryServiceImpl;
 import examstaff.service.impl.ExaminerAllocationDeskServiceImpl;
 import examstaff.service.impl.ExaminerAllocationServiceImpl;
 import examstaff.service.impl.ExamRegistrationServiceImpl;
@@ -40,7 +40,7 @@ import examstaff.service.impl.StaffReportExportServiceImpl;
  */
 public final class ExamStaffServices {
 
-    private final ExamStaffSessionQueryService sessionQueryService;
+    private final ExamStaffExamQueryService examQueryService;
     private final CandidateQueueService candidateQueueService;
     private final ExamStaffPageService examStaffPageService;
     private final ExamStaffSelectionService examStaffSelectionService;
@@ -59,7 +59,7 @@ public final class ExamStaffServices {
     private final CandidateDossierService candidateDossierService;
     private final ProcedureWorkflowService procedureWorkflowService;
     private final ExamSelectService examSelectService;
-    private final ExamSessionControlService examSessionControlService;
+    private final ExamControlService examControlService;
     private final ExamStaffDashboardService examStaffDashboardService;
     private final StaffAuditPageService staffAuditPageService;
     private final StaffAuditQueryService staffAuditQueryService;
@@ -72,10 +72,10 @@ public final class ExamStaffServices {
     private final ExaminerAllocationDeskService examinerAllocationDeskService;
 
     public ExamStaffServices() {
-        this.sessionQueryService = new ExamStaffSessionQueryServiceImpl();
+        this.examQueryService = new ExamStaffExamQueryServiceImpl();
         this.candidateQueueService = new CandidateQueueServiceImpl();
         this.examStaffPageService = new ExamStaffPageServiceImpl(
-                this.sessionQueryService, this.candidateQueueService);
+                this.examQueryService, this.candidateQueueService);
         this.examStaffSelectionService = new ExamStaffSelectionServiceImpl(this.examStaffPageService);
         this.candidateCallingService = new CandidateCallingServiceImpl(this.candidateQueueService);
         this.candidateCallRecordService = new CandidateCallRecordServiceImpl();
@@ -84,10 +84,10 @@ public final class ExamStaffServices {
                 new examstaff.service.impl.CandidateAttendanceServiceImpl());
         this.candidateCallPageService = new CandidateCallPageServiceImpl(
                 this.candidateCallWorkflowService, this.candidateCallingService,
-                this.candidateQueueService, this.sessionQueryService);
+                this.candidateQueueService, this.examQueryService);
         this.callBoardSyncService = new CallBoardSyncServiceImpl();
         this.publicCallQueryService = new PublicCallQueryServiceImpl(
-                new examstaff.service.impl.CandidateQueueQueryServiceImpl(), this.sessionQueryService,
+                new examstaff.service.impl.CandidateQueueQueryServiceImpl(), this.examQueryService,
                 this.callBoardSyncService);
         this.procedureFeeQueryService = new ProcedureFeeQueryServiceImpl();
         this.examAreaQueryService = new ExamAreaQueryServiceImpl();
@@ -103,10 +103,10 @@ public final class ExamStaffServices {
                 this.candidateQueueService,
                 new ExaminerAllocationServiceImpl());
         this.examSelectService = new ExamSelectServiceImpl();
-        this.examSessionControlService = new ExamSessionControlServiceImpl(
-                new examstaff.dao.impl.ExamSessionDAOImpl(), new examstaff.dao.impl.ExaminerAssignmentDAOImpl());
+        this.examControlService = new ExamControlServiceImpl(
+                new examstaff.dao.impl.ExamDAOImpl(), new examstaff.dao.impl.ExaminerAssignmentDAOImpl());
         this.examStaffDashboardService = new ExamStaffDashboardServiceImpl(
-                this.sessionQueryService, new ExaminerAllocationServiceImpl());
+                this.examQueryService, new ExaminerAllocationServiceImpl());
         this.staffAuditPageService = new StaffAuditPageServiceImpl();
         this.staffAuditQueryService = new StaffAuditQueryServiceImpl();
         this.staffAuditExportService = new StaffAuditExportServiceImpl();
@@ -182,8 +182,8 @@ public final class ExamStaffServices {
         return examSelectService;
     }
 
-    public ExamSessionControlService sessionControl() {
-        return examSessionControlService;
+    public ExamControlService examControl() {
+        return examControlService;
     }
 
     public ExamStaffDashboardService dashboard() {

@@ -7,16 +7,10 @@ import examstaff.model.Audit;
 import examstaff.service.StaffAuditLogService;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 public class StaffAuditLogServiceImpl implements StaffAuditLogService {
 
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
-
-    @Override
-    public void logAction(int userId, String action, String details) {
-        logAction(userId, action, details, 0);
-    }
 
     @Override
     public void logAction(int userId, String action, String details, int recordId) {

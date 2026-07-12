@@ -11,13 +11,13 @@ public final class CallBoardRules {
     private CallBoardRules() {
     }
 
-    public static CallBoardState syncBoard(CallBoardState current, int examSessionId,
+    public static CallBoardState syncBoard(CallBoardState current, int examId,
             String callingSbd, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         CallBoardState state = current != null ? current : new CallBoardState();
         boolean wasDeskBusy = state.isDeskBusy();
         String wasDeskSbd = state.getDeskSbd();
 
-        state.setExamId(examSessionId);
+        state.setExamId(examId);
         if (!wasDeskBusy) {
             state.setCallingSbd(emptyToNull(callingSbd));
         }
@@ -37,13 +37,13 @@ public final class CallBoardRules {
         return state;
     }
 
-    public static CallBoardState occupyDesk(CallBoardState current, int examSessionId, String deskSbd,
+    public static CallBoardState occupyDesk(CallBoardState current, int examId, String deskSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         if (deskSbd == null || deskSbd.isBlank()) {
             return current;
         }
         CallBoardState state = current != null ? current : new CallBoardState();
-        state.setExamId(examSessionId);
+        state.setExamId(examId);
         state.setDeskBusy(true);
         state.setDeskSbd(emptyToNull(deskSbd));
         if (state.getCallingSbd() == null || state.getCallingSbd().isBlank()) {
@@ -60,10 +60,10 @@ public final class CallBoardRules {
     }
 
     /** Tạm dừng gọi thí sinh — giữ thứ tự hàng đợi, không đánh vắng. */
-    public static CallBoardState pauseBoard(CallBoardState current, int examSessionId,
+    public static CallBoardState pauseBoard(CallBoardState current, int examId,
             List<ExamRegistrationDTO> queue) {
         CallBoardState state = current != null ? current : new CallBoardState();
-        state.setExamId(examSessionId);
+        state.setExamId(examId);
         state.setCallingSbd(null);
         state.setNextSbd(null);
         state.setDeskBusy(false);
@@ -75,10 +75,10 @@ public final class CallBoardRules {
         return state;
     }
 
-    public static CallBoardState releaseDeskAndCall(CallBoardState current, int examSessionId,
+    public static CallBoardState releaseDeskAndCall(CallBoardState current, int examId,
             String callingSbd, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         CallBoardState state = current != null ? current : new CallBoardState();
-        state.setExamId(examSessionId);
+        state.setExamId(examId);
         state.setDeskBusy(false);
         state.setDeskSbd(null);
         state.setCallingSbd(emptyToNull(callingSbd));

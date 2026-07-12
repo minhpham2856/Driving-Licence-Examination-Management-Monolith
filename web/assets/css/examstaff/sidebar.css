@@ -1,17 +1,17 @@
 /* Exam staff sidebar extras (base nav styles from examiner/sidebar.css) */
-.side-nav-bar--examstaff .side-nav-bar__session-picker {
+.side-nav-bar--examstaff .side-nav-bar__exam-picker {
     padding: 0 16px 12px;
     margin: 0;
     border-bottom: 1px solid #c3c6d6;
 }
 
-.side-nav-bar--examstaff .side-nav-bar__session-form {
+.side-nav-bar--examstaff .side-nav-bar__exam-form {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.side-nav-bar--examstaff .side-nav-bar__session-label {
+.side-nav-bar--examstaff .side-nav-bar__exam-label {
     font-size: 11px;
     line-height: 14px;
     font-weight: 700;
@@ -20,7 +20,7 @@
     color: #64748b;
 }
 
-.side-nav-bar--examstaff .side-nav-bar__session-select {
+.side-nav-bar--examstaff .side-nav-bar__exam-select {
     width: 100%;
     height: 36px;
     padding: 0 10px;
@@ -32,7 +32,7 @@
     font-weight: 600;
 }
 
-.side-nav-bar--examstaff .side-nav-bar__session-apply {
+.side-nav-bar--examstaff .side-nav-bar__exam-apply {
     height: 34px;
     padding: 0 12px;
     border-radius: 4px;
@@ -44,7 +44,7 @@
     cursor: pointer;
 }
 
-.side-nav-bar--examstaff .side-nav-bar__session-apply:disabled {
+.side-nav-bar--examstaff .side-nav-bar__exam-apply:disabled {
     opacity: 0.45;
     cursor: not-allowed;
 }

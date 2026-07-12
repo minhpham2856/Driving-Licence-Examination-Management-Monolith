@@ -1,8 +1,9 @@
 package examstaff.controller.staff.exam.adapter;
 
+import examstaff.util.SessionUserHelper;
+
 import jakarta.servlet.http.HttpSession;
 import examstaff.service.StaffAuditLogService;
-import examstaff.util.SessionUserHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,25 +36,25 @@ public final class StaffAuditLogSupport {
     }
 
     public void persistWithSessionFeed(HttpSession session, String action, String details, int recordId) {
-        appendSessionFeed(session, action, details);
+        appendExamFeed(session, action, details);
         persist(session, action, details, recordId);
     }
 
     @SuppressWarnings("unchecked")
-    private static void appendSessionFeed(HttpSession session, String action, String details) {
+    private static void appendExamFeed(HttpSession session, String action, String details) {
         if (session == null) {
             return;
         }
-        List<Map<String, String>> sessionAuditLogs
-                = (List<Map<String, String>>) session.getAttribute("sessionAuditLogs");
-        if (sessionAuditLogs == null) {
-            sessionAuditLogs = new ArrayList<>();
-            session.setAttribute("sessionAuditLogs", sessionAuditLogs);
+        List<Map<String, String>> examAuditLogs
+                = (List<Map<String, String>>) session.getAttribute("examAuditLogs");
+        if (examAuditLogs == null) {
+            examAuditLogs = new ArrayList<>();
+            session.setAttribute("examAuditLogs", examAuditLogs);
         }
         Map<String, String> audit = new HashMap<>();
         audit.put("time", new SimpleDateFormat("HH:mm").format(new Date()));
         audit.put("action", action);
         audit.put("details", details);
-        sessionAuditLogs.add(0, audit);
+        examAuditLogs.add(0, audit);
     }
 }

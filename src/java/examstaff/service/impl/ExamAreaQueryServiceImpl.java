@@ -26,16 +26,11 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
     }
 
     @Override
-    public List<ExamArea> listActiveTheoryRooms() {
-        return examAreaDAO.getActiveTheoryRooms();
-    }
-
-    @Override
     public List<ExamArea> listStaffedTheoryRoomsForExam(int examId) {
         if (examId <= 0) {
             return List.of();
         }
-        List<ExamArea> examRooms = examAreaDAO.getAreasBySessionId(examId);
+        List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
         Set<Integer> staffed = ExaminerAssignmentRules.staffedTheoryAreaIds(
                 assignmentDAO.getByExamId(examId));
         return ExaminerAssignmentRules.filterTheoryRoomsWithStaff(examRooms, staffed);
@@ -46,7 +41,7 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         if (examId <= 0) {
             return List.of();
         }
-        List<ExamArea> examRooms = examAreaDAO.getAreasBySessionId(examId);
+        List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
         Set<Integer> staffed = ExaminerAssignmentRules.staffedPracticalAreaIds(
                 assignmentDAO.getByExamId(examId));
         return ExaminerAssignmentRules.filterPracticalRoomsWithStaff(examRooms, staffed);

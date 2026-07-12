@@ -30,7 +30,7 @@ public final class ExamStaffSelectionFacade {
     }
 
     public List<ExamSummaryDTO> loadAllExams() {
-        return page().listAllSessions();
+        return page().listAllExams();
     }
 
     public void clearCandidateCache(HttpSession session) {
@@ -38,12 +38,12 @@ public final class ExamStaffSelectionFacade {
     }
 
     public int applyExamIdFromRequest(HttpServletRequest request, HttpSession session,
-            List<ExamSummaryDTO> allSessions) {
+            List<ExamSummaryDTO> allExams) {
         int examId = ExamStaffHttpSupport.parseExamIdParam(request);
         if (examId <= 0) {
-            return resolveExamId(request, session, allSessions, 0);
+            return resolveExamId(request, session, allExams, 0);
         }
-        int resolvedExamId = selection().resolveExamFromSessionUrl(examId, allSessions);
+        int resolvedExamId = selection().resolveExamFromUrl(examId, allExams);
         if (resolvedExamId <= 0) {
             return 0;
         }
@@ -52,37 +52,36 @@ public final class ExamStaffSelectionFacade {
     }
 
     public int resolveExamId(HttpServletRequest request, HttpSession session,
-            List<ExamSummaryDTO> allSessions, int defaultId) {
-        return selection().resolveExamId(buildSelectionInput(request, session, allSessions, defaultId));
+            List<ExamSummaryDTO> allExams, int defaultId) {
+        return selection().resolveExamId(buildSelectionInput(request, session, allExams, defaultId));
     }
 
-    public int ensureExamId(HttpServletRequest request, HttpSession session, List<ExamSummaryDTO> allSessions) {
-        ExamStaffSelectionResolveInput input = buildSelectionInput(request, session, allSessions, 0);
+    public int ensureExamId(HttpServletRequest request, HttpSession session, List<ExamSummaryDTO> allExams) {
+        ExamStaffSelectionResolveInput input = buildSelectionInput(request, session, allExams, 0);
         int examId = selection().ensureExamId(input);
         if (examId > 0 && session != null) {
-            int primaryExamId = page().resolvePrimaryExamId(input.getAllSessions(), examId);
+            int primaryExamId = page().resolvePrimaryExamId(input.getAllExams(), examId);
             ExamStaffPageBinder.persistExamSelection(session, primaryExamId, examId);
         }
         return examId;
     }
 
-    public void syncExamSelection(HttpSession session, List<ExamSummaryDTO> allSessions, int examId) {
+    public void syncExamSelection(HttpSession session, List<ExamSummaryDTO> allExams, int examId) {
         if (session == null || examId <= 0) {
             return;
         }
         Integer currentExamId = ExamStaffPageBinder.readSelectedExamId(session);
-        ExamStaffSelectionStateDTO state = selection().syncExamSelection(examId, currentExamId, allSessions);
+        ExamStaffSelectionStateDTO state = selection().syncExamSelection(examId, currentExamId, allExams);
         session.setAttribute("selectedExamId", state.getExamId() > 0 ? state.getExamId() : examId);
-        session.removeAttribute("selectedSessionId");
     }
 
     public void bindSidebarIfNeeded(HttpServletRequest request, HttpSession session) {
         if (request == null || request.getAttribute("examOptions") != null) {
             return;
         }
-        List<ExamSummaryDTO> allSessions = loadAllExams();
-        int examId = resolveExamId(request, session, allSessions, 0);
-        ExamStaffPageBinder.bindPickerView(request, page().buildPickerView(allSessions, examId, 0));
+        List<ExamSummaryDTO> allExams = loadAllExams();
+        int examId = resolveExamId(request, session, allExams, 0);
+        ExamStaffPageBinder.bindPickerView(request, page().buildPickerView(allExams, examId, 0));
         if (session != null) {
             @SuppressWarnings("unchecked")
             List<ExamSummaryDTO> options = (List<ExamSummaryDTO>) request.getAttribute("examOptions");
@@ -92,25 +91,25 @@ public final class ExamStaffSelectionFacade {
         }
     }
 
-    public ExamSummaryDTO findExamById(List<ExamSummaryDTO> allSessions, int examId) {
-        return page().findExamById(examId, allSessions);
+    public ExamSummaryDTO findExamById(List<ExamSummaryDTO> allExams, int examId) {
+        return page().findExamById(examId, allExams);
     }
 
-    public ExamSummaryDTO representativeSessionForExam(List<ExamSummaryDTO> allSessions, int examId) {
-        return page().representativeSessionForExam(allSessions, examId);
+    public ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId) {
+        return page().representativeExam(allExams, examId);
     }
 
-    public int resolvePrimaryExamId(List<ExamSummaryDTO> allSessions, int examId) {
-        return page().resolvePrimaryExamId(allSessions, examId);
+    public int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId) {
+        return page().resolvePrimaryExamId(allExams, examId);
     }
 
-    public ExamSummaryDTO resolveSessionFromRequest(HttpServletRequest request, HttpSession httpSession,
-            List<ExamSummaryDTO> allSessions) {
+    public ExamSummaryDTO resolveExamFromRequest(HttpServletRequest request, HttpSession httpSession,
+            List<ExamSummaryDTO> allExams) {
         int examId = ExamStaffHttpSupport.parseExamIdParam(request);
         if (examId <= 0) {
             return null;
         }
-        ExamSummaryDTO picked = findExamById(allSessions, examId);
+        ExamSummaryDTO picked = findExamById(allExams, examId);
         if (picked != null && picked.getExamId() > 0) {
             ExamStaffPageBinder.persistExamSelection(httpSession, examId, picked.getExamId());
             return picked;
@@ -119,10 +118,10 @@ public final class ExamStaffSelectionFacade {
     }
 
     private ExamStaffSelectionResolveInput buildSelectionInput(HttpServletRequest request, HttpSession session,
-            List<ExamSummaryDTO> allSessions, int defaultExamId) {
+            List<ExamSummaryDTO> allExams, int defaultExamId) {
         ExamStaffSelectionResolveInput input = new ExamStaffSelectionResolveInput();
         input.setUrlExamId(ExamStaffHttpSupport.parseExamIdParam(request));
-        input.setAllSessions(allSessions);
+        input.setAllExams(allExams);
         input.setDefaultExamId(defaultExamId);
         if (request != null) {
             input.setExamIdParam(request.getParameter("examId"));

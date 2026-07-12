@@ -67,7 +67,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     private static ExamStaffCandidate mapRow(ResultSet rs) throws SQLException {
         ExamStaffCandidate row = new ExamStaffCandidate();
         row.setCandidateId(rs.getInt("id"));
-        row.setExamId(rs.getInt("examSessionId"));
+        row.setExamId(rs.getInt("examId"));
         try {
             row.setExamEnrollmentId(rs.getInt("examEnrollmentId"));
         } catch (SQLException ignored) {

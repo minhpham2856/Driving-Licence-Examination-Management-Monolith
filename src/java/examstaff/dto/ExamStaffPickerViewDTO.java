@@ -7,8 +7,8 @@ import java.util.List;
 public class ExamStaffPickerViewDTO {
 
     private List<ExamSummaryDTO> examOptions;
-    private List<ExamSummaryDTO> allSessions;
-    private ExamSummaryDTO currentSession;
+    private List<ExamSummaryDTO> allExams;
+    private ExamSummaryDTO currentExam;
     private int examId;
     private Integer selectedExamId;
     private Integer pickerCommittedExamId;
@@ -21,20 +21,20 @@ public class ExamStaffPickerViewDTO {
         this.examOptions = examOptions;
     }
 
-    public List<ExamSummaryDTO> getAllSessions() {
-        return allSessions;
+    public List<ExamSummaryDTO> getAllExams() {
+        return allExams;
     }
 
-    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
-        this.allSessions = allSessions;
+    public void setAllExams(List<ExamSummaryDTO> allExams) {
+        this.allExams = allExams;
     }
 
-    public ExamSummaryDTO getCurrentSession() {
-        return currentSession;
+    public ExamSummaryDTO getCurrentExam() {
+        return currentExam;
     }
 
-    public void setCurrentSession(ExamSummaryDTO currentSession) {
-        this.currentSession = currentSession;
+    public void setCurrentExam(ExamSummaryDTO currentExam) {
+        this.currentExam = currentExam;
     }
 
     public int getExamId() {

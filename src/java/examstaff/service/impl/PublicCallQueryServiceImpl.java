@@ -6,7 +6,7 @@ import examstaff.dto.PublicCallSnapshotDTO;
 import examstaff.model.view.CallBoardState;
 import examstaff.service.CallBoardSyncService;
 import examstaff.service.CandidateQueueQueryService;
-import examstaff.service.ExamStaffSessionQueryService;
+import examstaff.service.ExamStaffExamQueryService;
 import examstaff.service.PublicCallQueryService;
 import examstaff.util.CallBoardRules;
 import examstaff.util.CallQueueRules;
@@ -17,19 +17,19 @@ import java.util.List;
 public class PublicCallQueryServiceImpl implements PublicCallQueryService {
 
     private final CandidateQueueQueryService queueQueryService;
-    private final ExamStaffSessionQueryService sessionQueryService;
+    private final ExamStaffExamQueryService examQueryService;
     private final CallBoardSyncService callBoardSyncService;
 
     public PublicCallQueryServiceImpl() {
-        this(new CandidateQueueQueryServiceImpl(), new ExamStaffSessionQueryServiceImpl(),
+        this(new CandidateQueueQueryServiceImpl(), new ExamStaffExamQueryServiceImpl(),
                 new CallBoardSyncServiceImpl());
     }
 
     public PublicCallQueryServiceImpl(CandidateQueueQueryService queueQueryService,
-            ExamStaffSessionQueryService sessionQueryService,
+            ExamStaffExamQueryService examQueryService,
             CallBoardSyncService callBoardSyncService) {
         this.queueQueryService = queueQueryService;
-        this.sessionQueryService = sessionQueryService;
+        this.examQueryService = examQueryService;
         this.callBoardSyncService = callBoardSyncService;
     }
 
@@ -72,7 +72,7 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
 
         ExamRegistrationDTO callingCandidate = CallQueueRules.findBySbd(queue, callingSbd);
         ExamRegistrationDTO nextCandidate = CallQueueRules.findBySbd(queue, nextSbd);
-        ExamSummaryDTO currentExam = sessionQueryService.findByExamId(examId);
+        ExamSummaryDTO currentExam = examQueryService.findByExamId(examId);
 
         snapshot.setCurrentExam(currentExam);
         snapshot.setCallingCandidate(callingCandidate);

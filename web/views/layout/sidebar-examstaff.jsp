@@ -144,15 +144,15 @@
 
     </c:if>
 
-    <div class="side-nav-bar__session-picker">
+    <div class="side-nav-bar__exam-picker">
 
-        <form method="GET" action="${ctx}/views/staff/examstaff/select-exam" class="side-nav-bar__session-form">
+        <form method="GET" action="${ctx}/views/staff/examstaff/select-exam" class="side-nav-bar__exam-form">
 
             <input type="hidden" name="redirect" value="<c:out value='${sidebarRedirect}' />" />
 
-            <label class="side-nav-bar__session-label" for="examId">Kỳ thi</label>
+            <label class="side-nav-bar__exam-label" for="examId">Kỳ thi</label>
 
-            <select id="examId" name="examId" class="side-nav-bar__session-select"
+            <select id="examId" name="examId" class="side-nav-bar__exam-select"
 
                     aria-label="Chọn kỳ thi" data-exam-picker="true"
 
@@ -201,7 +201,7 @@
 
             </select>
 
-            <button type="submit" class="side-nav-bar__session-apply" data-session-apply="true"
+            <button type="submit" class="side-nav-bar__exam-apply" data-exam-apply="true"
 
                     data-loading-label="Đang tải..."
 

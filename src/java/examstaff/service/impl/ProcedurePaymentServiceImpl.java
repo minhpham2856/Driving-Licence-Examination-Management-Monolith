@@ -46,13 +46,7 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         return recordCashPayment(profile.getId(), enrollmentId, total);
     }
 
-    @Override
-    public int resolveEnrollmentId(int candidateId) {
-        return paymentDAO.resolveEnrollmentId(candidateId);
-    }
-
-    @Override
-    public boolean recordCashPayment(int candidateId, int enrollmentId, double totalAmount) {
+    private boolean recordCashPayment(int candidateId, int enrollmentId, double totalAmount) {
         Payment payment = new Payment();
         payment.setExamEnrollmentId(enrollmentId);
         payment.setTotalAmount(totalAmount);
@@ -63,10 +57,5 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
             return true;
         }
         return registrationService.updatePayment(candidateId, true);
-    }
-
-    @Override
-    public boolean clearCompletedPayments(int candidateId) {
-        return registrationService.clearCompletedPayments(candidateId);
     }
 }

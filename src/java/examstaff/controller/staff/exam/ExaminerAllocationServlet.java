@@ -46,43 +46,43 @@ public class ExaminerAllocationServlet extends HttpServlet {
         request.removeAttribute("errorMsg");
         request.removeAttribute("alertMsg");
 
-        String sessionControlMsg = (String) session.getAttribute("sessionControlMsg");
-        String sessionControlError = (String) session.getAttribute("sessionControlError");
-        if (sessionControlMsg != null) {
-            request.setAttribute("alertMsg", sessionControlMsg);
-            session.removeAttribute("sessionControlMsg");
+        String examControlMsg = (String) session.getAttribute("examControlMsg");
+        String examControlError = (String) session.getAttribute("examControlError");
+        if (examControlMsg != null) {
+            request.setAttribute("alertMsg", examControlMsg);
+            session.removeAttribute("examControlMsg");
         }
-        if (sessionControlError != null) {
-            request.setAttribute("errorMsg", sessionControlError);
-            session.removeAttribute("sessionControlError");
+        if (examControlError != null) {
+            request.setAttribute("errorMsg", examControlError);
+            session.removeAttribute("examControlError");
         }
 
-        ExamStaffHttpSupport.consumeFlash(session, "sessionSelectMsg", request, "sessionSelectMsg");
+        ExamStaffHttpSupport.consumeFlash(session, "examSelectMsg", request, "examSelectMsg");
 
         ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, getServletContext().getRealPath("/"), false);
-        List<ExamSummaryDTO> allSessions = pageCtx.getAllSessions();
+        List<ExamSummaryDTO> allExams = pageCtx.getAllExams();
         int examId = pageCtx.getExamId();
 
-        ExamSummaryDTO pickedFromUrl = selectionFacade.resolveSessionFromRequest(request, session, allSessions);
+        ExamSummaryDTO pickedFromUrl = selectionFacade.resolveExamFromRequest(request, session, allExams);
         if (pickedFromUrl != null) {
             examId = pickedFromUrl.getExamId() > 0 ? pickedFromUrl.getExamId() : pickedFromUrl.getId();
         }
 
-        ExamSummaryDTO currentExam = examId > 0 ? allocationService.getSessionById(examId) : null;
+        ExamSummaryDTO currentExam = examId > 0 ? allocationService.getExamById(examId) : null;
         if (currentExam == null && pickedFromUrl != null) {
             currentExam = pickedFromUrl;
         }
         if (currentExam == null && examId > 0) {
-            currentExam = selectionFacade.representativeSessionForExam(allSessions, examId);
+            currentExam = selectionFacade.representativeExam(allExams, examId);
             if (currentExam != null) {
                 examId = currentExam.getExamId() > 0 ? currentExam.getExamId() : currentExam.getId();
             }
         }
 
-        request.setAttribute("allSessions", allSessions);
+        request.setAttribute("allExams", allExams);
         request.setAttribute("currentExam", currentExam);
-        ExamStaffPageBinder.bindSessionShiftContext(request, currentExam);
+        ExamStaffPageBinder.bindExamShiftContext(request, currentExam);
         request.setAttribute("selectedExamId", examId > 0 ? examId : null);
 
         String action = request.getParameter("action");
@@ -91,7 +91,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
 
         if (examId > 0) {
-            ExaminerAllocationViewDTO view = deskService.buildAllocationView(examId, examId, allSessions);
+            ExaminerAllocationViewDTO view = deskService.buildAllocationView(examId, examId, allExams);
             ExaminerAllocationViewBinder.bind(request, view, examId);
         }
 

@@ -5,27 +5,21 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 /** Read model kỳ thi (Exam). */
-public class ExamSessionSummary {
+public class ExamSummaryRow {
 
     private int examId;
-    private boolean morningSession;
-    private String sessionName;
-    private int licenseTypeId;
+    private String examName;
     private int examTypeId;
     private Date examDate;
     private Time shiftStartTime;
     private Time shiftEndTime;
     private Timestamp scheduledStartAt;
     private Timestamp scheduledEndAt;
-    private int areaId;
     private String status;
-    private int maxCandidates;
-    private int registeredCount;
     private Timestamp createdAt;
     private String licenseCode;
     private String examCode;
     private String examTypeName;
-    private String areaName;
 
     public int getExamId() {
         return examId;
@@ -35,28 +29,12 @@ public class ExamSessionSummary {
         this.examId = examId;
     }
 
-    public boolean isMorningSession() {
-        return morningSession;
+    public String getExamName() {
+        return examName;
     }
 
-    public void setMorningSession(boolean morningSession) {
-        this.morningSession = morningSession;
-    }
-
-    public String getSessionName() {
-        return sessionName;
-    }
-
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
-    }
-
-    public int getLicenseTypeId() {
-        return licenseTypeId;
-    }
-
-    public void setLicenseTypeId(int licenseTypeId) {
-        this.licenseTypeId = licenseTypeId;
+    public void setExamName(String examName) {
+        this.examName = examName;
     }
 
     public int getExamTypeId() {
@@ -107,36 +85,12 @@ public class ExamSessionSummary {
         this.scheduledEndAt = scheduledEndAt;
     }
 
-    public int getAreaId() {
-        return areaId;
-    }
-
-    public void setAreaId(int areaId) {
-        this.areaId = areaId;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public int getMaxCandidates() {
-        return maxCandidates;
-    }
-
-    public void setMaxCandidates(int maxCandidates) {
-        this.maxCandidates = maxCandidates;
-    }
-
-    public int getRegisteredCount() {
-        return registeredCount;
-    }
-
-    public void setRegisteredCount(int registeredCount) {
-        this.registeredCount = registeredCount;
     }
 
     public Timestamp getCreatedAt() {
@@ -169,13 +123,5 @@ public class ExamSessionSummary {
 
     public void setExamTypeName(String examTypeName) {
         this.examTypeName = examTypeName;
-    }
-
-    public String getAreaName() {
-        return areaName;
-    }
-
-    public void setAreaName(String areaName) {
-        this.areaName = areaName;
     }
 }

@@ -18,7 +18,7 @@ public final class Db2CandidateSql {
     private static final String CANDIDATE_SELECT_HEAD = """
             SELECT
               c.CandidateId AS id,
-              ee.ExamId AS examSessionId,
+              ee.ExamId AS examId,
               ee.ExamEnrollmentId AS examEnrollmentId,
               CAST(0 AS INT) AS personId,
               COALESCE(

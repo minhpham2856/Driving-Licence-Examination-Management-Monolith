@@ -79,7 +79,7 @@ public class ReportServlet extends HttpServlet {
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
             ExamSummaryDTO currentExam, List<ExamRegistrationDTO> qList, int examId) throws IOException {
         String token = ReportExportLabels.safeFileToken(
-                currentExam != null ? currentExam.getSessionName() : "ky_thi");
+                currentExam != null ? currentExam.getExamName() : "ky_thi");
         String datePart = new SimpleDateFormat("ddMMyyyy", Locale.forLanguageTag("vi-VN")).format(new Date());
         String filename = "bao_cao_ky_thi_" + token + "_" + datePart + ".xlsx";
 

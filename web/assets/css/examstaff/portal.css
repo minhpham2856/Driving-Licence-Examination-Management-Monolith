@@ -233,7 +233,7 @@ body.examstaff-portal .page-header--toolbar .call-page-actions {
     flex-shrink: 0;
 }
 
-body.examstaff-portal .call-session-chip {
+body.examstaff-portal .call-exam-chip {
     background: #ffffff;
     border: 1px solid #c3c6d6;
     border-radius: 4px;
@@ -241,7 +241,7 @@ body.examstaff-portal .call-session-chip {
     font-size: 13px;
 }
 
-body.examstaff-portal .call-session-chip__label {
+body.examstaff-portal .call-exam-chip__label {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -250,49 +250,49 @@ body.examstaff-portal .call-session-chip__label {
 }
 
 /* Dashboard — các ca trong ngày thi (không dùng examiner-card: overflow:hidden làm co panel trong flex) */
-body.examstaff-portal .dashboard-sessions-panel {
+body.examstaff-portal .dashboard-exam-panel {
     flex-shrink: 0;
     overflow: visible;
     padding: 1.25rem 1.5rem 1.5rem;
     margin-bottom: 0;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__header {
+body.examstaff-portal .dashboard-exam-panel__header {
     border-bottom: 1px solid #e2e8f0;
     padding-bottom: 0.75rem;
     margin-bottom: 0.75rem;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__title {
+body.examstaff-portal .dashboard-exam-panel__title {
     font-size: 1.125rem;
     line-height: 1.4;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__desc {
+body.examstaff-portal .dashboard-exam-panel__desc {
     margin: 0 0 1rem;
     font-size: 0.875rem;
     line-height: 1.5;
     color: #475569;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__desc a {
+body.examstaff-portal .dashboard-exam-panel__desc a {
     color: #0052cc;
     font-weight: 600;
     text-decoration: none;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__desc a:hover {
+body.examstaff-portal .dashboard-exam-panel__desc a:hover {
     text-decoration: underline;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__chips,
-body.examstaff-portal .session-shift-list {
+body.examstaff-portal .dashboard-exam-panel__chips,
+body.examstaff-portal .exam-shift-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-body.examstaff-portal .dashboard-sessions-panel__empty {
+body.examstaff-portal .dashboard-exam-panel__empty {
     margin: 0;
     padding: 0.75rem 1rem;
     width: 100%;
@@ -309,7 +309,7 @@ body.examstaff-portal .dashboard-metrics-row {
 }
 
 /* Ca thi trên dashboard */
-body.examstaff-portal .session-shift-chip {
+body.examstaff-portal .exam-shift-chip {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -324,39 +324,39 @@ body.examstaff-portal .session-shift-chip {
     box-sizing: border-box;
 }
 
-body.examstaff-portal .session-shift-chip__meta {
+body.examstaff-portal .exam-shift-chip__meta {
     flex: 1;
     min-width: 0;
     color: #334155;
 }
 
-body.examstaff-portal .session-shift-chip__actions {
+body.examstaff-portal .exam-shift-chip__actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
 }
 
-body.examstaff-portal .session-shift-chip__form {
+body.examstaff-portal .exam-shift-chip__form {
     margin: 0;
     display: inline-flex;
 }
 
-body.examstaff-portal .session-shift-chip .btn-filter,
-body.examstaff-portal .session-shift-chip .btn-export,
-body.examstaff-portal .session-shift-chip__btn {
+body.examstaff-portal .exam-shift-chip .btn-filter,
+body.examstaff-portal .exam-shift-chip .btn-export,
+body.examstaff-portal .exam-shift-chip__btn {
     height: 28px;
     padding: 0 10px;
     font-size: 12px;
     border-radius: 6px;
 }
 
-body.examstaff-portal .session-shift-chip__btn--end {
+body.examstaff-portal .exam-shift-chip__btn--end {
     color: #b91c1c;
     border-color: #fecaca;
 }
 
-body.examstaff-portal .session-shift-chip__btn:disabled {
+body.examstaff-portal .exam-shift-chip__btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
     pointer-events: none;
@@ -388,7 +388,7 @@ body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-sep {
     font-size: 13px;
 }
 
-body.examstaff-portal .examiner-header__session {
+body.examstaff-portal .examiner-header__exam {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -398,7 +398,7 @@ body.examstaff-portal .examiner-header__session {
     border-radius: 8px;
 }
 
-body.examstaff-portal .examiner-header__session-license {
+body.examstaff-portal .examiner-header__exam-license {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -407,7 +407,7 @@ body.examstaff-portal .examiner-header__session-license {
     white-space: nowrap;
 }
 
-body.examstaff-portal .examiner-header__session-date {
+body.examstaff-portal .examiner-header__exam-date {
     font-size: 13px;
     font-weight: 600;
     font-family: "JetBrains Mono", ui-monospace, monospace;

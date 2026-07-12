@@ -10,29 +10,29 @@
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-        <c:if test="${not empty requestScope.sessionSelectMsg}">
-            <div class="examstaff-flash examstaff-flash--success">${requestScope.sessionSelectMsg}</div>
+        <c:if test="${not empty requestScope.examSelectMsg}">
+            <div class="examstaff-flash examstaff-flash--success">${requestScope.examSelectMsg}</div>
         </c:if>
-        <c:if test="${not empty requestScope.sessionSelectError}">
-            <div class="examstaff-flash examstaff-flash--error">${requestScope.sessionSelectError}</div>
+        <c:if test="${not empty requestScope.examSelectError}">
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.examSelectError}</div>
         </c:if>
 
-        <c:if test="${not empty requestScope.sessionControlMsg}">
-            <div class="examstaff-flash examstaff-flash--success">${requestScope.sessionControlMsg}</div>
+        <c:if test="${not empty requestScope.examControlMsg}">
+            <div class="examstaff-flash examstaff-flash--success">${requestScope.examControlMsg}</div>
         </c:if>
-        <c:if test="${not empty requestScope.sessionControlError}">
-            <div class="examstaff-flash examstaff-flash--error">${requestScope.sessionControlError}</div>
+        <c:if test="${not empty requestScope.examControlError}">
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.examControlError}</div>
         </c:if>
 
         <c:if test="${not empty currentExam}">
-        <section class="report-pane dashboard-sessions-panel" aria-label="Điều hành kỳ thi">
-            <div class="report-pane__header dashboard-sessions-panel__header">
-                <h2 class="report-pane__title dashboard-sessions-panel__title">Điều hành kỳ thi</h2>
+        <section class="report-pane dashboard-exam-panel" aria-label="Điều hành kỳ thi">
+            <div class="report-pane__header dashboard-exam-panel__header">
+                <h2 class="report-pane__title dashboard-exam-panel__title">Điều hành kỳ thi</h2>
             </div>
-            <jsp:include page="/views/staff/examstaff/includes/exam-session-summary-line.jsp">
+            <jsp:include page="/views/staff/examstaff/includes/exam-summary-line.jsp">
                 <jsp:param name="showAllocatorLink" value="true" />
             </jsp:include>
-            <jsp:include page="/views/staff/examstaff/includes/exam-session-shift-chip.jsp">
+            <jsp:include page="/views/staff/examstaff/includes/exam-shift-chip.jsp">
                 <jsp:param name="redirect" value="dashboard" />
             </jsp:include>
         </section>

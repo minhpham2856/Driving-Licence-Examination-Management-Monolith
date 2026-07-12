@@ -1,4 +1,3 @@
-// Forced recompilation trigger
 package examstaff.service.impl;
 
 
@@ -26,7 +25,7 @@ import examstaff.dto.UserDTO;
 
 import examstaff.model.ExamArea;
 import examstaff.enums.ExamSection;
-import examstaff.service.ExamStaffSessionQueryService;
+import examstaff.service.ExamStaffExamQueryService;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.util.ExamAreaTypeResolver;
 
@@ -42,14 +41,14 @@ import examstaff.util.ExaminerAssignmentRules;
 
 public class ExaminerAllocationServiceImpl implements ExaminerAllocationService {
 
-    private final ExamStaffSessionQueryService sessionQuery = new ExamStaffSessionQueryServiceImpl();
+    private final ExamStaffExamQueryService examQuery = new ExamStaffExamQueryServiceImpl();
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
     private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
 
     @Override
-    public ExamSummaryDTO getSessionById(int sessionId) {
-        return sessionQuery.findByExamId(sessionId);
+    public ExamSummaryDTO getExamById(int examId) {
+        return examQuery.findByExamId(examId);
     }
 
     @Override
@@ -63,11 +62,11 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     }
 
     @Override
-    public List<ExamArea> getAvailableAreasForSession(int sessionId) {
-        if (sessionId <= 0) {
+    public List<ExamArea> getAvailableAreasForExam(int examId) {
+        if (examId <= 0) {
             return List.of();
         }
-        List<ExamArea> linked = areaDAO.getAreasBySessionId(sessionId);
+        List<ExamArea> linked = areaDAO.getAreasByExamId(examId);
         if (!linked.isEmpty()) {
             return linked;
         }
@@ -79,8 +78,8 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     }
 
     @Override
-    public List<ExaminerSlotDTO> getAssignmentsBySessionId(int sessionId) {
-        return assignmentDAO.getByExamId(sessionId);
+    public List<ExaminerSlotDTO> getAssignmentsByExamId(int examId) {
+        return assignmentDAO.getByExamId(examId);
     }
 
     @Override
@@ -94,32 +93,32 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     }
 
     @Override
-    public AutoAllocateResultDTO autoAllocateSession(int sessionId) {
-        return autoAllocate(sessionId, null);
+    public AutoAllocateResultDTO autoAllocateExam(int examId) {
+        return autoAllocate(examId, null);
     }
 
     @Override
-    public AutoAllocateResultDTO autoAllocateCandidate(int sessionId, int registrationId) {
-        return autoAllocate(sessionId, registrationId);
+    public AutoAllocateResultDTO autoAllocateCandidate(int examId, int registrationId) {
+        return autoAllocate(examId, registrationId);
     }
 
     @Override
-    public AutoAllocateResultDTO autoAllocatePracticalSession(int sessionId) {
-        return autoAllocatePractical(sessionId);
+    public AutoAllocateResultDTO autoAllocatePracticalExam(int examId) {
+        return autoAllocatePractical(examId);
     }
 
-    private AutoAllocateResultDTO autoAllocate(int sessionId, Integer targetRegId) {
+    private AutoAllocateResultDTO autoAllocate(int examId, Integer targetRegId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
-        if (sessionId <= 0 && targetRegId == null) {
+        if (examId <= 0 && targetRegId == null) {
             result.errorMsg = "Chưa chọn kỳ thi để phân bổ phòng.";
             return result;
         }
 
-        int examId = resolveExamId(sessionId);
-        int effectiveSessionId = sessionId > 0 ? sessionId : examId;
+        int resolvedExamId = resolveExamId(examId);
+        int effectiveExamId = examId > 0 ? examId : resolvedExamId;
 
-        List<ExamArea> examRooms = effectiveSessionId > 0
-                ? areaDAO.getAreasBySessionId(effectiveSessionId)
+        List<ExamArea> examRooms = effectiveExamId > 0
+                ? areaDAO.getAreasByExamId(effectiveExamId)
                 : List.of();
         List<ExamArea> theoryRoomsForExam = examRooms.stream()
                 .filter(ExaminerAssignmentRules::isTheoryRoom)
@@ -133,7 +132,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
 
         Set<Integer> staffedTheoryAreaIds = ExaminerAssignmentRules.staffedTheoryAreaIds(
-                effectiveSessionId > 0 ? assignmentDAO.getByExamId(effectiveSessionId) : List.of());
+                effectiveExamId > 0 ? assignmentDAO.getByExamId(effectiveExamId) : List.of());
         List<ExamArea> eligibleTheoryRooms = ExaminerAssignmentRules.filterTheoryRoomsWithStaff(
                 theoryRoomsForExam, staffedTheoryAreaIds);
         if (eligibleTheoryRooms.isEmpty()) {
@@ -142,9 +141,9 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             return result;
         }
 
-        List<ExamRegistrationDTO> allCandidates = examId > 0
-                ? registrationDAO.getCandidatesByExam(examId)
-                : registrationDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> allCandidates = resolvedExamId > 0
+                ? registrationDAO.getCandidatesByExam(resolvedExamId)
+                : registrationDAO.getCandidatesByExam(examId);
         Map<Integer, Integer> roomOccupancy = buildRoomOccupancy(allCandidates, eligibleTheoryRooms);
 
         List<ExamRegistrationDTO> readyCandidates = new ArrayList<>();
@@ -169,12 +168,12 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 c -> c.getLicenseCode() != null ? c.getLicenseCode() : ""));
 
         for (ExamRegistrationDTO c : readyCandidates) {
-            int enrollSessionId = c.getExamId() > 0 ? c.getExamId() : sessionId;
-            if (enrollSessionId <= 0) {
+            int enrollExamId = c.getExamId() > 0 ? c.getExamId() : examId;
+            if (enrollExamId <= 0) {
                 continue;
             }
 
-            String allocationConflict = registrationDAO.validateUniqueTheoryAllocation(c.getId(), enrollSessionId);
+            String allocationConflict = registrationDAO.validateUniqueTheoryAllocation(c.getId(), enrollExamId);
             if (allocationConflict != null) {
                 if (targetRegId != null && c.getId() == targetRegId) {
                     result.errorMsg = allocationConflict;
@@ -188,7 +187,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 continue;
             }
 
-            if (registrationDAO.updateAllocatedRoom(c.getId(), enrollSessionId, room.getId(), room.getAreaName())) {
+            if (registrationDAO.updateAllocatedRoom(c.getId(), enrollExamId, room.getId(), room.getAreaName())) {
                 c.setAllocatedAreaId(room.getId());
                 c.setAllocatedAreaName(room.getAreaName());
                 roomOccupancy.merge(room.getId(), 1, Integer::sum);
@@ -199,18 +198,18 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return result;
     }
 
-    private AutoAllocateResultDTO autoAllocatePractical(int sessionId) {
+    private AutoAllocateResultDTO autoAllocatePractical(int examId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
-        if (sessionId <= 0) {
+        if (examId <= 0) {
             result.errorMsg = "Chưa chọn kỳ thi để phân bổ sân thực hành.";
             return result;
         }
 
-        int examId = resolveExamId(sessionId);
-        int effectiveSessionId = sessionId > 0 ? sessionId : examId;
+        int resolvedExamId = resolveExamId(examId);
+        int effectiveExamId = examId > 0 ? examId : resolvedExamId;
 
-        List<ExamArea> examRooms = effectiveSessionId > 0
-                ? areaDAO.getAreasBySessionId(effectiveSessionId)
+        List<ExamArea> examRooms = effectiveExamId > 0
+                ? areaDAO.getAreasByExamId(effectiveExamId)
                 : List.of();
         List<ExamArea> practicalYards = examRooms.stream()
                 .filter(ExaminerAssignmentRules::isPracticalRoom)
@@ -221,7 +220,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
 
         Set<Integer> staffedPracticalAreaIds = ExaminerAssignmentRules.staffedPracticalAreaIds(
-                effectiveSessionId > 0 ? assignmentDAO.getByExamId(effectiveSessionId) : List.of());
+                effectiveExamId > 0 ? assignmentDAO.getByExamId(effectiveExamId) : List.of());
         List<ExamArea> eligibleYards = ExaminerAssignmentRules.filterPracticalRoomsWithStaff(
                 practicalYards, staffedPracticalAreaIds);
         if (eligibleYards.isEmpty()) {
@@ -230,9 +229,9 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             return result;
         }
 
-        List<ExamRegistrationDTO> allCandidates = examId > 0
-                ? registrationDAO.getCandidatesByExam(examId)
-                : registrationDAO.getCandidatesBySession(sessionId);
+        List<ExamRegistrationDTO> allCandidates = resolvedExamId > 0
+                ? registrationDAO.getCandidatesByExam(resolvedExamId)
+                : registrationDAO.getCandidatesByExam(examId);
         Map<Integer, Integer> yardOccupancy = buildPracticalOccupancy(allCandidates, eligibleYards);
 
         List<ExamRegistrationDTO> readyCandidates = new ArrayList<>();
@@ -257,8 +256,8 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 continue;
             }
 
-            int enrollSessionId = c.getExamId() > 0 ? c.getExamId() : sessionId;
-            if (enrollSessionId <= 0) {
+            int enrollExamId = c.getExamId() > 0 ? c.getExamId() : examId;
+            if (enrollExamId <= 0) {
                 continue;
             }
 
@@ -268,7 +267,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             }
 
             if (registrationDAO.updatePracticalAllocatedRoom(
-                    c.getId(), enrollSessionId, yard.getId(), yard.getAreaName())) {
+                    c.getId(), enrollExamId, yard.getId(), yard.getAreaName())) {
                 c.setPracticalAllocatedAreaId(yard.getId());
                 c.setPracticalAllocatedAreaName(yard.getAreaName());
                 yardOccupancy.merge(yard.getId(), 1, Integer::sum);
@@ -279,15 +278,15 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return result;
     }
 
-    private int resolveExamId(int sessionId) {
-        if (sessionId <= 0) {
+    private int resolveExamId(int examId) {
+        if (examId <= 0) {
             return 0;
         }
-        ExamSummaryDTO session = sessionQuery.findByExamId(sessionId);
+        ExamSummaryDTO session = examQuery.findByExamId(examId);
         if (session != null && session.getExamId() > 0) {
             return session.getExamId();
         }
-        return sessionId;
+        return examId;
     }
 
     private Map<Integer, Integer> buildRoomOccupancy(List<ExamRegistrationDTO> allCandidates, List<ExamArea> rooms) {

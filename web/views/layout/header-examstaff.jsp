@@ -38,14 +38,14 @@
             </c:otherwise>
         </c:choose>
     </div>
-    <div class="examiner-header__meta examiner-header__session">
+    <div class="examiner-header__meta examiner-header__exam">
         <c:choose>
             <c:when test="${not empty requestScope.currentExam}">
-                <span class="examiner-header__session-license">
+                <span class="examiner-header__exam-license">
                     Hạng <c:out value="${requestScope.currentExam.licenseCode}" default="—" />
                 </span>
                 <c:if test="${not empty requestScope.currentExam.examDate}">
-                    <span class="examiner-header__session-date">
+                    <span class="examiner-header__exam-date">
                         <fmt:formatDate value="${requestScope.currentExam.examDate}" pattern="dd/MM/yyyy" />
                     </span>
                 </c:if>

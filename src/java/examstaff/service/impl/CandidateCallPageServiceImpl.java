@@ -11,7 +11,7 @@ import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateCallWorkflowService;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
-import examstaff.service.ExamStaffSessionQueryService;
+import examstaff.service.ExamStaffExamQueryService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,21 +21,21 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
     private final CandidateCallWorkflowService callWorkflow;
     private final CandidateCallingService callingService;
     private final CandidateQueueService queueService;
-    private final ExamStaffSessionQueryService sessionQuery;
+    private final ExamStaffExamQueryService examQuery;
 
     public CandidateCallPageServiceImpl() {
         this(new CandidateCallWorkflowServiceImpl(), new CandidateCallingServiceImpl(),
-                new CandidateQueueServiceImpl(), new ExamStaffSessionQueryServiceImpl());
+                new CandidateQueueServiceImpl(), new ExamStaffExamQueryServiceImpl());
     }
 
     public CandidateCallPageServiceImpl(CandidateCallWorkflowService callWorkflow,
             CandidateCallingService callingService,
             CandidateQueueService queueService,
-            ExamStaffSessionQueryService sessionQuery) {
+            ExamStaffExamQueryService examQuery) {
         this.callWorkflow = callWorkflow;
         this.callingService = callingService;
         this.queueService = queueService;
-        this.sessionQuery = sessionQuery;
+        this.examQuery = examQuery;
     }
 
     @Override
@@ -200,7 +200,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
                 || "suspended".equals(command.getReturnView());
         view.setShowSuspended(showSuspended);
         if (showSuspended) {
-            view.setSuspendedList(queueService.listSuspendedInSession(fullQueue));
+            view.setSuspendedList(queueService.listSuspendedInExam(fullQueue));
         }
 
         String nextSbd = queueService.resolveNextCallingSbd(fullQueue, callingSbd);
@@ -226,7 +226,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             refresh.setSelectedExamId(boardExamId);
         }
         refresh.setWebRoot(command.getWebRoot());
-        refresh.setAllSessions(sessionQuery.listAllSessions());
+        refresh.setAllExams(examQuery.listAllExams());
         refresh.setCallQueueOrder(command.getCallQueueOrder());
         refresh.setCallQueueOrderExamId(command.getCallQueueOrderExamId());
         CandidateQueueSnapshotDTO snapshot = queueService.refreshQueue(refresh);

@@ -13,7 +13,7 @@ public final class CandidateDossierViewBinder {
             return;
         }
         request.setAttribute("profile", view.getProfile());
-        request.setAttribute("examSession", view.getExamSession());
+        request.setAttribute("examSummary", view.getExam());
         request.setAttribute("hasPhotoFile", view.isHasPhotoFile());
         request.setAttribute("payment", null);
         if (view.getFees() != null) {

@@ -59,8 +59,8 @@ public class ProcedureServlet extends HttpServlet {
         String webRoot = request.getServletContext().getRealPath("/");
 
         if ("startShift".equals(request.getParameter("action"))) {
-            List<ExamSummaryDTO> bootstrapSessions = selectionFacade.loadAllExams();
-            int boardExamId = selectionFacade.resolveExamId(request, session, bootstrapSessions, 0);
+            List<ExamSummaryDTO> bootstrapExams = selectionFacade.loadAllExams();
+            int boardExamId = selectionFacade.resolveExamId(request, session, bootstrapExams, 0);
             session.removeAttribute("shiftEnded");
             session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), boardExamId);
@@ -72,7 +72,7 @@ public class ProcedureServlet extends HttpServlet {
         ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, webRoot);
         int examId = pageCtx.getExamId();
-        List<ExamSummaryDTO> allSessions = pageCtx.getAllSessions();
+        List<ExamSummaryDTO> allExams = pageCtx.getAllExams();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
 
         String sbdParam = resolveSbdParam(request, session);
@@ -102,7 +102,7 @@ public class ProcedureServlet extends HttpServlet {
             if (finishedSbd == null || finishedSbd.isBlank()) {
                 finishedSbd = (String) session.getAttribute("callingSbd");
             }
-            advanceToNextCandidate(session, qList, webRoot, examId, allSessions, finishedSbd);
+            advanceToNextCandidate(session, qList, webRoot, examId, allExams, finishedSbd);
             response.sendRedirect("candidatecall");
             return;
         }
@@ -149,7 +149,7 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         if ("confirmPayment".equals(pAction) && profile != null) {
-            processPayment(request, response, session, profile, sbdParam, qList, webRoot, allSessions, examId);
+            processPayment(request, response, session, profile, sbdParam, qList, webRoot, allExams, examId);
             return;
         }
 
@@ -164,10 +164,10 @@ public class ProcedureServlet extends HttpServlet {
                 return;
             }
             ProcedurePaymentOutcomeDTO outcome = procedureWorkflow.confirmPayment(
-                    profile, sbdParam, examId, webRoot, allSessions);
+                    profile, sbdParam, examId, webRoot, allExams);
             applyPaymentOutcome(request, session, sbdParam, outcome, examId);
             if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.SUCCESS) {
-                selectionFacade.syncExamSelection(session, allSessions, examId);
+                selectionFacade.syncExamSelection(session, allExams, examId);
                 showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, outcome.getQueue(), false);
                 return;
             }
@@ -194,9 +194,9 @@ public class ProcedureServlet extends HttpServlet {
         if ("saveCapturedPhoto".equals(action)) {
             HttpSession session = request.getSession();
             String webRoot = request.getServletContext().getRealPath("/");
-            List<ExamSummaryDTO> allSessions = selectionFacade.loadAllExams();
-            int examId = selectionFacade.ensureExamId(request, session, allSessions);
-            List<ExamRegistrationDTO> qList = refreshCandidateQueue(session, examId, webRoot, allSessions);
+            List<ExamSummaryDTO> allExams = selectionFacade.loadAllExams();
+            int examId = selectionFacade.ensureExamId(request, session, allExams);
+            List<ExamRegistrationDTO> qList = refreshCandidateQueue(session, examId, webRoot, allExams);
             String sbdParam = resolveSbd(request, session);
             handleSaveCapturedPhoto(request, response, session, sbdParam, qList, webRoot, examId);
             return;
@@ -246,10 +246,10 @@ public class ProcedureServlet extends HttpServlet {
 
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam,
-            List<ExamRegistrationDTO> qList, String webRoot, List<ExamSummaryDTO> allSessions, int examId)
+            List<ExamRegistrationDTO> qList, String webRoot, List<ExamSummaryDTO> allExams, int examId)
             throws IOException {
         ProcedurePaymentOutcomeDTO outcome = procedureWorkflow.confirmPayment(
-                profile, sbdParam, examId, webRoot, allSessions);
+                profile, sbdParam, examId, webRoot, allExams);
 
         if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PROFILE_NOT_FOUND) {
             response.sendRedirect("candidatecall");
@@ -287,7 +287,7 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         applyPaymentOutcome(request, session, sbdParam, outcome, examId);
-        selectionFacade.syncExamSelection(session, allSessions, examId);
+        selectionFacade.syncExamSelection(session, allExams, examId);
         session.setAttribute("lastLoadedExamId", outcome.getBoardExamId());
 
         boolean openPrint = "true".equals(request.getParameter("printAfterPayment"));
@@ -366,14 +366,14 @@ public class ProcedureServlet extends HttpServlet {
             ExamStaffPageBinder.bindProcedureFees(request, procedureFeeService.resolveProcedureFees(profile));
         }
         String webRoot = request.getServletContext().getRealPath("/");
-        List<ExamSummaryDTO> allSessions = selectionFacade.loadAllExams();
-        int examId = selectionFacade.ensureExamId(request, httpSession, allSessions);
-        int boardExamId = selectionFacade.resolveExamId(request, httpSession, allSessions, 0);
+        List<ExamSummaryDTO> allExams = selectionFacade.loadAllExams();
+        int examId = selectionFacade.ensureExamId(request, httpSession, allExams);
+        int boardExamId = selectionFacade.resolveExamId(request, httpSession, allExams, 0);
         if (boardExamId <= 0) {
             boardExamId = examId;
         }
 
-        qList = refreshQueueFromDb(httpSession, webRoot, examId, allSessions);
+        qList = refreshQueueFromDb(httpSession, webRoot, examId, allExams);
         publishCandidateQueue(request, httpSession, qList, examId);
         bindCandidateCallPageAttributes(request, httpSession, examId, qList);
         boolean shiftEnded = isShiftEnded(httpSession);
@@ -393,11 +393,11 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private List<ExamRegistrationDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examId,
-            List<ExamSummaryDTO> allSessions) {
-        selectionFacade.syncExamSelection(session, allSessions, examId);
-        List<ExamRegistrationDTO> qList = refreshCandidateQueue(session, examId, webRoot, allSessions);
+            List<ExamSummaryDTO> allExams) {
+        selectionFacade.syncExamSelection(session, allExams, examId);
+        List<ExamRegistrationDTO> qList = refreshCandidateQueue(session, examId, webRoot, allExams);
         session.setAttribute("lastLoadedExamId",
-                selectionFacade.resolvePrimaryExamId(allSessions, examId));
+                selectionFacade.resolvePrimaryExamId(allExams, examId));
         return qList;
     }
 
@@ -429,16 +429,16 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private void advanceToNextCandidate(HttpSession session, List<ExamRegistrationDTO> qList,
-            String webRoot, int examId, List<ExamSummaryDTO> allSessions, String finishedSbd) {
+            String webRoot, int examId, List<ExamSummaryDTO> allExams, String finishedSbd) {
         session.setAttribute("lastSelectedSbd", null);
         session.setAttribute("procedureStep", "1");
         session.removeAttribute("procedureJustPaid");
         session.removeAttribute("procedureJustPaidSbd");
 
-        qList = refreshCandidateQueue(session, examId, webRoot, allSessions);
-        int boardExamId = selectionFacade.resolvePrimaryExamId(allSessions, examId);
+        qList = refreshCandidateQueue(session, examId, webRoot, allExams);
+        int boardExamId = selectionFacade.resolvePrimaryExamId(allExams, examId);
         publishCandidateQueue(null, session, qList, examId);
-        selectionFacade.syncExamSelection(session, allSessions, examId);
+        selectionFacade.syncExamSelection(session, allExams, examId);
         session.setAttribute("lastLoadedExamId", boardExamId);
 
         String nextSbd = candidateQueueService.resolveNextCallingSbd(qList, finishedSbd);
@@ -455,7 +455,7 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, String webRoot,
-            List<ExamSummaryDTO> allSessions) {
+            List<ExamSummaryDTO> allExams) {
         int selectedExamId = 0;
         if (session != null) {
             Integer picked = (Integer) session.getAttribute("selectedExamId");
@@ -466,18 +466,18 @@ public class ProcedureServlet extends HttpServlet {
         if (selectedExamId <= 0) {
             selectedExamId = examId;
         }
-        return refreshCandidateQueue(session, examId, selectedExamId, webRoot, allSessions);
+        return refreshCandidateQueue(session, examId, selectedExamId, webRoot, allExams);
     }
 
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, int queueExamId,
-            String webRoot, List<ExamSummaryDTO> allSessions) {
+            String webRoot, List<ExamSummaryDTO> allExams) {
         if (session == null) {
             return List.of();
         }
         ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
         input.setExamId(queueExamId > 0 ? queueExamId : examId);
         input.setWebRoot(webRoot);
-        input.setAllSessions(allSessions);
+        input.setAllExams(allExams);
         input.setSelectedExamId(ExamStaffPageBinder.readSelectedExamId(session));
         @SuppressWarnings("unchecked")
         List<String> order = (List<String>) session.getAttribute("callQueueOrder");
@@ -494,7 +494,7 @@ public class ProcedureServlet extends HttpServlet {
         CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(qList, examId, examId);
         ExamSummaryDTO current = selectionFacade.findExamById(selectionFacade.loadAllExams(), examId);
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeSessionForExam(
+            current = selectionFacade.representativeExam(
                     selectionFacade.loadAllExams(), examId);
         }
         ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
@@ -511,10 +511,10 @@ public class ProcedureServlet extends HttpServlet {
         ExamSummaryDTO current = selectionFacade.findExamById(
                 selectionFacade.loadAllExams(), resolvedExamId);
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeSessionForExam(
+            current = selectionFacade.representativeExam(
                     selectionFacade.loadAllExams(), examId);
         }
-        int suspendedCount = candidateQueueService.listSuspendedInSession(qList).size();
+        int suspendedCount = candidateQueueService.listSuspendedInExam(qList).size();
         ExamStaffPageBinder.bindCandidateCallPage(request, examId, calling, resolvedExamId, suspendedCount, current);
     }
 
@@ -533,9 +533,9 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> qList, boolean shiftEnded) {
-        String sessionCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
+        String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
         CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
-        String callingSbd = callingService.resolveSyncedCallingSbd(sessionCalling, callBoard, qList);
+        String callingSbd = callingService.resolveSyncedCallingSbd(httpCalling, callBoard, qList);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
                 session.setAttribute("callingSbd", callingSbd);

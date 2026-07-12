@@ -87,7 +87,7 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
 
-        applySessionSideEffects(session, view);
+        applyCallSideEffects(session, view);
         applyBoardOp(pageCtx.getExamId(), view);
         bindCandidateCallPageAttributes(request, session, view.getPublishExamId(), view.getFullQueue());
         publishCandidateQueue(request, session, view.getFullQueue(), view.getPublishExamId());
@@ -142,7 +142,7 @@ public class CandidateCallServlet extends HttpServlet {
         return command;
     }
 
-    private void applySessionSideEffects(HttpSession session, CandidateCallPageViewDTO view) {
+    private void applyCallSideEffects(HttpSession session, CandidateCallPageViewDTO view) {
         if (view.isClearCallingSbd()) {
             session.removeAttribute("callingSbd");
         } else if (view.getCallingSbd() != null) {
@@ -192,10 +192,10 @@ public class CandidateCallServlet extends HttpServlet {
         examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
                 selectionFacade.loadAllExams(), resolvedExamId);
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeSessionForExam(
+            current = selectionFacade.representativeExam(
                     selectionFacade.loadAllExams(), examId);
         }
-        int suspendedCount = candidateQueueService.listSuspendedInSession(queue).size();
+        int suspendedCount = candidateQueueService.listSuspendedInExam(queue).size();
         ExamStaffPageBinder.bindCandidateCallPage(request, examId, calling, resolvedExamId, suspendedCount, current);
     }
 
@@ -219,7 +219,7 @@ public class CandidateCallServlet extends HttpServlet {
         examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
                 selectionFacade.loadAllExams(), examId);
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeSessionForExam(
+            current = selectionFacade.representativeExam(
                     selectionFacade.loadAllExams(), examId);
         }
         ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),

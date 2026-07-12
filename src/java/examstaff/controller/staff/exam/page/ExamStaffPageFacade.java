@@ -40,13 +40,13 @@ public final class ExamStaffPageFacade {
 
     public static final class ExamStaffPageContext {
         private final int examId;
-        private final List<ExamSummaryDTO> allSessions;
+        private final List<ExamSummaryDTO> allExams;
         private final List<ExamRegistrationDTO> candidates;
 
-        public ExamStaffPageContext(int examId, int fallbackExamId, List<ExamSummaryDTO> allSessions,
+        public ExamStaffPageContext(int examId, int fallbackExamId, List<ExamSummaryDTO> allExams,
                 List<ExamRegistrationDTO> candidates) {
             this.examId = examId > 0 ? examId : fallbackExamId;
-            this.allSessions = allSessions != null ? allSessions : List.of();
+            this.allExams = allExams != null ? allExams : List.of();
             this.candidates = candidates != null ? candidates : List.of();
         }
 
@@ -54,8 +54,8 @@ public final class ExamStaffPageFacade {
             return examId;
         }
 
-        public List<ExamSummaryDTO> getAllSessions() {
-            return allSessions;
+        public List<ExamSummaryDTO> getAllExams() {
+            return allExams;
         }
 
         public List<ExamRegistrationDTO> getCandidates() {
@@ -91,7 +91,7 @@ public final class ExamStaffPageFacade {
         ExamStaffPageContextDTO ctx = page().preparePageContext(input);
 
         if (ExamStaffHttpSupport.parseExamIdParam(request) > 0 && ctx.getExamId() <= 0 && request != null) {
-            request.setAttribute("sessionSelectError",
+            request.setAttribute("examSelectError",
                     "Không tìm thấy kỳ thi (mã " + urlExamId + ").");
         }
 
@@ -108,7 +108,7 @@ public final class ExamStaffPageFacade {
         ExamStaffPageBinder.publishQueue(request, session, snapshot);
 
         return new ExamStaffPageContext(ctx.getExamId(), ctx.getExamId(),
-                ctx.getAllSessions(), ctx.getCandidates());
+                ctx.getAllExams(), ctx.getCandidates());
     }
 
     private static ExamStaffPagePrepareInput buildPagePrepareInput(HttpServletRequest request, HttpSession session,
@@ -117,8 +117,7 @@ public final class ExamStaffPageFacade {
         input.setUrlExamId(urlExamId);
         input.setWebRoot(webRoot);
         input.setLoadCandidates(loadCandidates);
-        input.setHasExamIdParam(ExamStaffHttpSupport.parseExamIdParam(request) > 0);
-        input.setAllSessions(SELECTION_FACADE.loadAllExams());
+        input.setAllExams(SELECTION_FACADE.loadAllExams());
         if (request != null) {
             input.setExamIdParam(request.getParameter("examId"));
         }
@@ -140,7 +139,7 @@ public final class ExamStaffPageFacade {
     private static ExamStaffPageTransitionInput buildPageTransitionInput(HttpSession session, int urlExamId) {
         ExamStaffPageTransitionInput input = new ExamStaffPageTransitionInput();
         input.setUrlExamId(urlExamId);
-        input.setAllSessions(SELECTION_FACADE.loadAllExams());
+        input.setAllExams(SELECTION_FACADE.loadAllExams());
         if (session != null) {
             input.setPreviousExamId(ExamStaffPageBinder.readSelectedExamId(session));
             input.setLoadedExamId(ExamStaffPageBinder.readLoadedExamId(session));

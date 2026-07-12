@@ -14,9 +14,9 @@ public interface ExamStaffSelectionService {
 
     int ensureExamId(ExamStaffSelectionResolveInput input);
 
-    int resolveExamFromSessionUrl(int urlExamId, List<ExamSummaryDTO> allSessions);
+    int resolveExamFromUrl(int urlExamId, List<ExamSummaryDTO> allExams);
 
-    ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentExamId, List<ExamSummaryDTO> allSessions);
+    ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentExamId, List<ExamSummaryDTO> allExams);
 
     ExamStaffPageTransitionStateDTO preparePageTransition(ExamStaffPageTransitionInput input);
 

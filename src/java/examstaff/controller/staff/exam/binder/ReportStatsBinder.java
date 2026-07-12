@@ -20,18 +20,6 @@ public final class ReportStatsBinder {
         request.setAttribute("suspendedCount", stats.getSuspendedCount());
         request.setAttribute("passRate", stats.getPassRate());
         request.setAttribute("licenseStats", stats.getLicenseStats());
-        request.setAttribute("a1Count", stats.getA1Count());
-        request.setAttribute("a1Completed", stats.getA1Completed());
-        request.setAttribute("a1Passed", stats.getA1Passed());
-        request.setAttribute("a1Failed", stats.getA1Failed());
-        request.setAttribute("aCount", stats.getACount());
-        request.setAttribute("aCompleted", stats.getACompleted());
-        request.setAttribute("aPassed", stats.getAPassed());
-        request.setAttribute("aFailed", stats.getAFailed());
-        request.setAttribute("b1Count", stats.getB1Count());
-        request.setAttribute("b1Completed", stats.getB1Completed());
-        request.setAttribute("b1Passed", stats.getB1Passed());
-        request.setAttribute("b1Failed", stats.getB1Failed());
         request.setAttribute("theoryCount", stats.getTheoryCount());
         request.setAttribute("theoryPassed", stats.getTheoryPassed());
         request.setAttribute("theoryFailed", stats.getTheoryFailed());

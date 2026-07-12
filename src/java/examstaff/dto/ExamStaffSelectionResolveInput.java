@@ -9,7 +9,7 @@ public class ExamStaffSelectionResolveInput {
     private int urlExamId;
     private String examIdParam;
     private Integer selectedExamId;
-    private List<ExamSummaryDTO> allSessions;
+    private List<ExamSummaryDTO> allExams;
     private int defaultExamId;
 
     public int getUrlExamId() {
@@ -36,12 +36,12 @@ public class ExamStaffSelectionResolveInput {
         this.selectedExamId = selectedExamId;
     }
 
-    public List<ExamSummaryDTO> getAllSessions() {
-        return allSessions;
+    public List<ExamSummaryDTO> getAllExams() {
+        return allExams;
     }
 
-    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
-        this.allSessions = allSessions;
+    public void setAllExams(List<ExamSummaryDTO> allExams) {
+        this.allExams = allExams;
     }
 
     public int getDefaultExamId() {

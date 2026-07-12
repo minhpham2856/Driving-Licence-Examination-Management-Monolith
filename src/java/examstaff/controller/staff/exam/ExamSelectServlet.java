@@ -21,10 +21,7 @@ import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
-@WebServlet({
-        "/views/staff/examstaff/select-exam",
-        "/views/staff/examstaff/select-session"
-})
+@WebServlet("/views/staff/examstaff/select-exam")
 public class ExamSelectServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
@@ -57,7 +54,7 @@ public class ExamSelectServlet extends HttpServlet {
 
             ExamSelectResultDTO result = examSelectService.processSelection(selectRequest);
             if (!result.isSuccess()) {
-                httpSession.setAttribute("sessionSelectError", result.getErrorMessage());
+                httpSession.setAttribute("examSelectError", result.getErrorMessage());
                 response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard"));
                 return;
             }
@@ -76,8 +73,8 @@ public class ExamSelectServlet extends HttpServlet {
                     selectRequest.getWebRoot(), selectionFacade.loadAllExams());
 
             httpSession.setAttribute("examStaffQueueRevision", System.currentTimeMillis());
-            httpSession.setAttribute("examStaffSessionJustChanged", Boolean.TRUE);
-            httpSession.setAttribute("sessionSelectMsg", ExamStaffMessage.SESSION_SELECTED.getText());
+            httpSession.setAttribute("examStaffExamJustChanged", Boolean.TRUE);
+            httpSession.setAttribute("examSelectMsg", ExamStaffMessage.EXAM_SELECTED.getText());
 
             String redirect = ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard");
             redirect = ExamStaffHttpSupport.stripQueryString(redirect);
@@ -93,22 +90,22 @@ public class ExamSelectServlet extends HttpServlet {
             response.sendRedirect(redirect);
         } catch (Exception e) {
             e.printStackTrace();
-            httpSession.setAttribute("sessionSelectError",
-                    ExamStaffMessage.SESSION_CHANGE_ERROR_PREFIX.getText()
+            httpSession.setAttribute("examSelectError",
+                    ExamStaffMessage.EXAM_CHANGE_ERROR_PREFIX.getText()
                             + (e.getMessage() != null ? e.getMessage() : ExamStaffMessage.UNKNOWN_ERROR.getText()));
             response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard"));
         }
     }
 
     private void refreshCandidateQueue(HttpSession session, int examId,
-            String webRoot, java.util.List<examstaff.dto.ExamSummaryDTO> allSessions) {
+            String webRoot, java.util.List<examstaff.dto.ExamSummaryDTO> allExams) {
         if (session == null) {
             return;
         }
         ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
         input.setExamId(examId);
         input.setWebRoot(webRoot);
-        input.setAllSessions(allSessions);
+        input.setAllExams(allExams);
         input.setSelectedExamId(ExamStaffPageBinder.readSelectedExamId(session));
         @SuppressWarnings("unchecked")
         java.util.List<String> order = (java.util.List<String>) session.getAttribute("callQueueOrder");

@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface AllocationActionService {
 
-    AllocationActionResultDTO autoAllocateOnOverview(int sessionId, String stage);
+    AllocationActionResultDTO autoAllocateOnOverview(int examId, String stage);
 
     AllocationActionResultDTO executeCandidateAction(AllocationCandidateActionRequest request);
 
-    ExamRegistrationDTO findCandidate(int regId, int sessionId, List<ExamRegistrationDTO> queue);
+    ExamRegistrationDTO findCandidate(int regId, int examId, List<ExamRegistrationDTO> queue);
 }

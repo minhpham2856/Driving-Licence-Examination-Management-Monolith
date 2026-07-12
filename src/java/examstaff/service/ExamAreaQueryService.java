@@ -6,8 +6,6 @@ import java.util.List;
 
 public interface ExamAreaQueryService {
 
-    List<ExamArea> listActiveTheoryRooms();
-
     /** Phòng LT gắn kỳ và đã có giám khảo — dùng dropdown phân phòng thí sinh. */
     List<ExamArea> listStaffedTheoryRoomsForExam(int examId);
 

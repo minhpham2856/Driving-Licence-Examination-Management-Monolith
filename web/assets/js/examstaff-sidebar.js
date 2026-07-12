@@ -40,7 +40,7 @@
 
     function getBtn(sel) {
         var form = sel.form;
-        return form ? form.querySelector("[data-session-apply]") : null;
+        return form ? form.querySelector("[data-exam-apply]") : null;
     }
 
     function syncApplyButton(sel) {
@@ -95,7 +95,7 @@
             form.dataset.examApplyBound = "1";
             form.addEventListener("submit", function (e) {
                 e.preventDefault();
-                var btn = form.querySelector("[data-session-apply]");
+                var btn = form.querySelector("[data-exam-apply]");
                 if (!btn || btn.disabled) {
                     return;
                 }

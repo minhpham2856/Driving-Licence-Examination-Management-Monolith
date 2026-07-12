@@ -6,7 +6,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 public class CandidateDossierViewDTO {
 
     private ExamRegistrationDTO profile;
-    private ExamSummaryDTO examSession;
+    private ExamSummaryDTO examSummary;
     private ProcedureFeeResultDTO fees;
     private boolean hasPhotoFile;
     private String dossierTitle;
@@ -20,12 +20,12 @@ public class CandidateDossierViewDTO {
         this.profile = profile;
     }
 
-    public ExamSummaryDTO getExamSession() {
-        return examSession;
+    public ExamSummaryDTO getExam() {
+        return examSummary;
     }
 
-    public void setExamSession(ExamSummaryDTO examSession) {
-        this.examSession = examSession;
+    public void setExam(ExamSummaryDTO examSummary) {
+        this.examSummary = examSummary;
     }
 
     public ProcedureFeeResultDTO getFees() {

@@ -13,33 +13,6 @@ import java.util.Locale;
 public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     @Override
-    public List<Fee> getActiveFees() {
-        List<Fee> fees = new ArrayList<>();
-        String sql = """
-                SELECT f.FeeId, f.FeeName, f.FeeType, f.IsActive,
-                       COALESCE(lf.Amount, 0) AS Amount
-                FROM Fee f
-                OUTER APPLY (
-                    SELECT TOP 1 lf.Amount
-                    FROM Licence_Fee lf
-                    WHERE lf.FeeId = f.FeeId
-                    ORDER BY CASE WHEN lf.LicenceId IS NULL THEN 1 ELSE 0 END
-                ) lf
-                WHERE f.IsActive = 1
-                ORDER BY f.FeeType, f.FeeName
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                fees.add(mapRow(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return fees;
-    }
-
-    @Override
     public List<Fee> getProcedureFees(String licenseCode, boolean requiresRoadTest) {
         if (licenseCode == null || licenseCode.isBlank()) {
             return List.of();
@@ -81,13 +54,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
             e.printStackTrace();
         }
         return applicable;
-    }
-
-    @Override
-    public double sumProcedureFees(String licenseCode, boolean requiresRoadTest) {
-        return getProcedureFees(licenseCode, requiresRoadTest).stream()
-                .mapToDouble(Fee::getAmount)
-                .sum();
     }
 
     @Override

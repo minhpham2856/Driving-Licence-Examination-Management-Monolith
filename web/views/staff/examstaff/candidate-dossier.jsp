@@ -52,9 +52,9 @@
             <div class="dossier-field"><span>Số định danh / CCCD:</span><strong>${profile.cccd}</strong></div>
             <div class="dossier-field"><span>Số báo danh (SBD):</span><strong>${profile.sbd}</strong></div>
             <div class="dossier-field"><span>Thi lấy giấy phép lái xe hạng:</span><strong>${profile.clazz}</strong></div>
-            <c:if test="${not empty examSession}">
-                <div class="dossier-field"><span>Ngày sát hạch:</span><strong><fmt:formatDate value="${examSession.examDate}" pattern="dd/MM/yyyy"/></strong></div>
-                <div class="dossier-field"><span>Kỳ thi:</span><strong>${examSession.sessionName}</strong></div>
+            <c:if test="${not empty exam}">
+                <div class="dossier-field"><span>Ngày sát hạch:</span><strong><fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy"/></strong></div>
+                <div class="dossier-field"><span>Kỳ thi:</span><strong>${exam.examName}</strong></div>
             </c:if>
         </div>
     </section>

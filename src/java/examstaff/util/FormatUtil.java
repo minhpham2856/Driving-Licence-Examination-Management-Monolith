@@ -24,17 +24,4 @@ public final class FormatUtil {
             return 0;
         }
     }
-
-    public static String buildCandidateNumber(String licenseCode, int candidateNo) {
-        if (candidateNo <= 0) {
-            return "000";
-        }
-        return candidateNo < 1000
-                ? String.format("%03d", candidateNo)
-                : String.valueOf(candidateNo);
-    }
-
-    public static String formatSbd(int candidateNo) {
-        return buildCandidateNumber(null, candidateNo);
-    }
 }

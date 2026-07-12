@@ -1,101 +1,9 @@
 package examstaff.util;
 
-
-
-
-import examstaff.dao.AuditLogDAO;
-
-import examstaff.dao.impl.AuditLogDAOImpl;
-
-import examstaff.model.Audit;
-import jakarta.servlet.http.HttpSession;
-
-import java.sql.Timestamp;
-import java.util.List;
-
+/** Helper tên entity / action cho audit log examstaff. */
 public final class AuditLogHelper {
 
-    private static final AuditLogDAO DAO = new AuditLogDAOImpl();
-
     private AuditLogHelper() {
-    }
-
-    public static void persist(HttpSession session, String action, String details) {
-        persist(session, action, details, 0);
-    }
-
-    public static void persist(HttpSession session, String action, String details, int recordId) {
-        persistStatic(session, action, details, recordId);
-    }
-
-    public static void persistStatic(HttpSession session, String action, String details, int recordId) {
-        insertLog(session, action, details, null, details, null, null, recordId);
-    }
-
-    public static void persistChange(HttpSession session, String action, String details,
-            String oldValue, String newValue, String reason, int recordId) {
-        insertLog(session, action, details, oldValue, newValue, reason, null, recordId);
-    }
-
-    public static void persistFieldChanges(HttpSession session, String action, String contextDetails,
-            List<AuditChangeDetails.FieldChange> changes, String reason, int recordId) {
-        if (changes == null || changes.isEmpty()) {
-            return;
-        }
-        for (AuditChangeDetails.FieldChange change : changes) {
-            String detailsJson = AuditChangeDetails.toJson(List.of(change));
-            insertLog(session, action, contextDetails, null, null, reason, detailsJson, recordId);
-        }
-    }
-
-    private static void insertLog(HttpSession session, String action, String contextDetails,
-            String oldValue, String newValue, String reason, String detailsJson, int recordId) {
-        try {
-            int userId = SessionUserHelper.resolveUserId(session);
-
-            Audit log = new Audit();
-            log.setEntityName(examstaff.enums.AuditEntity.resolveLabel(resolveEntityName(action, contextDetails)));
-            log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
-            log.setAction(normalizeAction(action));
-            log.setOldValue(oldValue);
-            log.setNewValue(newValue);
-            String reasonText = reason;
-            if ((reasonText == null || reasonText.isBlank()) && detailsJson != null && !detailsJson.isBlank()) {
-                reasonText = detailsJson;
-            } else if (reasonText != null && detailsJson != null && !detailsJson.isBlank()) {
-                reasonText = reasonText + " | " + detailsJson;
-            }
-            if ((reasonText == null || reasonText.isBlank()) && contextDetails != null && !contextDetails.isBlank()) {
-                reasonText = contextDetails;
-            }
-            log.setReason(reasonText);
-            log.setDetails(detailsJson);
-            log.setUserId(userId);
-            log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            DAO.insert(log);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void persistWarning(HttpSession session, String details, String reason, int recordId) {
-        try {
-            int userId = SessionUserHelper.resolveUserId(session);
-
-            Audit log = new Audit();
-            log.setEntityName(examstaff.enums.AuditEntity.resolveLabel("Candidate"));
-            log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
-            log.setAction("WARNING");
-            log.setNewValue(details);
-            log.setReason(reason);
-            log.setDetails(AuditChangeDetails.toJson(List.of(
-                    new AuditChangeDetails.FieldChange("Trạng thái", "Hoạt động bình thường", "Đình chỉ"))));
-            log.setUserId(userId);
-            log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            DAO.insert(log);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static String resolveEntityName(String action, String details) {
@@ -128,8 +36,9 @@ public final class AuditLogHelper {
         if (upper.contains("EXAMREGISTRATION") || upper.contains("ALLOCATE")) {
             return "Candidate";
         }
-        if (upper.contains("SESSION")) {
-            return "Session";
+        if (upper.contains("EXAM") && !upper.contains("EXAMINER") && !upper.contains("EXAMREGISTRATION")
+                && !upper.contains("EXAMSCORE") && !upper.contains("EXAMDEVICE")) {
+            return "Exam";
         }
         return "Candidate";
     }
@@ -157,5 +66,3 @@ public final class AuditLogHelper {
         return "UPDATE";
     }
 }
-
-
