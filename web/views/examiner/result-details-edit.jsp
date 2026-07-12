@@ -8,8 +8,7 @@
 <c:set var="backUrl" value="${ctx}/views/examiner/result-details" scope="request" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
 <c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
-<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" scope="request" />
-<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" scope="request" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/result" scope="request" />
 <c:set var="currentScore" value="${requestScope.currentScore}" />
 <c:set var="maxScore" value="${empty theoryMaxScore ? 35 : theoryMaxScore}" />
 <c:set var="inputScore" value="${not empty formNewScore ? formNewScore : (not empty currentScore ? currentScore : '')}" />
@@ -58,7 +57,6 @@
                     <jsp:param name="btnBack" value="left" />
                     <jsp:param name="btnPrintInfo" value="left" />
                     <jsp:param name="btnExportExcel" value="left" />
-                    <jsp:param name="btnExportXml" value="left" />
                     <jsp:param name="btnViewPaper" value="left" />
                     <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>

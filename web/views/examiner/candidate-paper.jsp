@@ -9,8 +9,7 @@
 </c:if>
 <c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
-<c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" scope="request" />
-<c:set var="exportResultsXmlUrl" value="${ctx}/examiner/export/results/xml" scope="request" />
+<c:set var="exportResultsUrl" value="${ctx}/examiner/export/result" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
