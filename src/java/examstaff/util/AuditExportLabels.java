@@ -1,8 +1,8 @@
 package examstaff.util;
 
-import dto.user.AuditDTO;
+import examstaff.dto.user.AuditDTO;
 
-import enums.AuditEntity;
+import examstaff.enums.AuditEntity;
 
 import java.util.Locale;
 

@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamSelectService;
 import examstaff.service.ExamStaffServices;
-import util.Utf8EncodingHelper;
+import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
@@ -101,7 +101,7 @@ public class ExamSelectServlet extends HttpServlet {
     }
 
     private void refreshCandidateQueue(HttpSession session, int examId,
-            String webRoot, java.util.List<dto.ExamSummaryDTO> allSessions) {
+            String webRoot, java.util.List<examstaff.dto.ExamSummaryDTO> allSessions) {
         if (session == null) {
             return;
         }

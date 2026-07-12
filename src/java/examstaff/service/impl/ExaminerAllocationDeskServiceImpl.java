@@ -1,15 +1,15 @@
 package examstaff.service.impl;
 
-import dto.ExaminerSlotDTO;
+import examstaff.dto.ExaminerSlotDTO;
 import examstaff.util.ExamStaffSessionRules;
-import dto.ExamSummaryDTO;
-import dto.UserDTO;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.user.UserDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
-import model.ExamArea;
+import examstaff.model.ExamArea;
 import examstaff.service.ExaminerAllocationDeskService;
 import examstaff.service.ExaminerAllocationService;
-import util.ExamAreaTypeResolver;
+import examstaff.util.ExamAreaTypeResolver;
 
 import java.util.ArrayList;
 import java.util.HashMap;

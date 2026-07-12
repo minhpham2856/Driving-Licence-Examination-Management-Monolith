@@ -1,9 +1,9 @@
 package examstaff.service.impl;
 
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.service.CandidateAttendanceService;
-import service.ExamRegistrationService;
-import service.impl.ExamRegistrationServiceImpl;
+import examstaff.service.ExamRegistrationService;
+import examstaff.service.impl.ExamRegistrationServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
