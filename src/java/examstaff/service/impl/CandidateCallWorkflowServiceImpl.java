@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
 import examstaff.dto.candidate.CandidateCallDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.service.CandidateAttendanceService;
 import examstaff.service.CandidateCallRecordService;

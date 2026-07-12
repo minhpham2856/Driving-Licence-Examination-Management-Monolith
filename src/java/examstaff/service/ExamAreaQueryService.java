@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.model.ExamArea;
+import model.ExamArea;
 
 import java.util.List;
 

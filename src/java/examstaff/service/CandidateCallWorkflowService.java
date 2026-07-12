@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 
 import java.util.List;

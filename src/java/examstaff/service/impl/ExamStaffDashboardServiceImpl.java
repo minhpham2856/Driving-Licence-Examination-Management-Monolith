@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
-import examstaff.dto.ExaminerSlotDTO;
-import examstaff.dto.ExamSummaryDTO;
+import dto.ExaminerSlotDTO;
+import dto.ExamSummaryDTO;
 import examstaff.dto.ExamStaffDashboardViewDTO;
 import examstaff.service.ExamStaffDashboardService;
 import examstaff.service.ExamStaffSessionQueryService;

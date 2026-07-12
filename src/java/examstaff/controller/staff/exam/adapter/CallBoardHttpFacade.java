@@ -2,7 +2,7 @@ package examstaff.controller.staff.exam.adapter;
 
 import examstaff.dao.CallBoardDAO;
 import examstaff.dao.impl.ServletContextCallBoardDAO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 import jakarta.servlet.ServletContext;
 import examstaff.model.view.CallBoardState;
 import examstaff.service.CallBoardSyncService;

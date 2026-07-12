@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.model.Fee;
+import model.Fee;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package examstaff.util;
 
-import examstaff.model.Fee;
-import examstaff.model.Payment;
+import model.Fee;
+import model.Payment;
 
 import java.util.List;
 

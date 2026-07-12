@@ -1,10 +1,10 @@
 package examstaff.service.impl;
 
-import examstaff.dao.ExamAreaDAO;
-import examstaff.dao.ExaminerAssignmentDAO;
-import examstaff.dao.impl.ExamAreaDAOImpl;
-import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
-import examstaff.model.ExamArea;
+import dao.ExamAreaDAO;
+import dao.ExaminerAssignmentDAO;
+import dao.impl.ExamAreaDAOImpl;
+import dao.impl.ExaminerAssignmentDAOImpl;
+import model.ExamArea;
 import examstaff.service.ExamAreaQueryService;
 import examstaff.util.ExaminerAssignmentRules;
 

@@ -2,33 +2,33 @@
 package examstaff.service.impl;
 
 
-import examstaff.dao.ExamAreaDAO;
+import dao.ExamAreaDAO;
 
-import examstaff.dao.ExamRegistrationDAO;
+import dao.ExamRegistrationDAO;
 
-import examstaff.dao.ExaminerAssignmentDAO;
+import dao.ExaminerAssignmentDAO;
 
-import examstaff.dao.impl.ExamAreaDAOImpl;
+import dao.impl.ExamAreaDAOImpl;
 
-import examstaff.dao.impl.ExamRegistrationDAOImpl;
+import dao.impl.ExamRegistrationDAOImpl;
 
-import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
+import dao.impl.ExaminerAssignmentDAOImpl;
 
 import examstaff.dto.AutoAllocateResultDTO;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 
-import examstaff.dto.ExaminerSlotDTO;
+import dto.ExaminerSlotDTO;
 
-import examstaff.dto.ExamSummaryDTO;
+import dto.ExamSummaryDTO;
 
-import examstaff.dto.user.UserDTO;
+import dto.UserDTO;
 
-import examstaff.model.ExamArea;
-import examstaff.enums.SectionType;
+import model.ExamArea;
+import enums.ExamSection;
 import examstaff.service.ExamStaffSessionQueryService;
 import examstaff.service.ExaminerAllocationService;
-import examstaff.util.ExamAreaTypeResolver;
+import util.ExamAreaTypeResolver;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +73,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
         // Kỳ thi luôn gồm LT + TH — fallback lấy cả hai loại phòng/sân.
         List<ExamArea> areas = new ArrayList<>(areaDAO.getAvailableAreasByType(
-                examstaff.enums.SectionType.THEORY.getValue()));
+                ExamSection.LY_THUYET.getDisplayName()));
         areas.addAll(areaDAO.getAvailableAreasByType(ExamAreaTypeResolver.PRACTICAL_AREA_TYPE));
         return areas;
     }

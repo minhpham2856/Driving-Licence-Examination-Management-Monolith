@@ -1,7 +1,7 @@
 package examstaff.service;
 
-import examstaff.dto.staff.StaffProcedureKpiDTO;
-import examstaff.dto.user.AuditDTO;
+import dto.staff.StaffProcedureKpiDTO;
+import dto.user.AuditDTO;
 
 import java.util.List;
 

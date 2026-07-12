@@ -1,7 +1,7 @@
 package examstaff.dto;
 
 import examstaff.dto.AutoAllocateResultDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 

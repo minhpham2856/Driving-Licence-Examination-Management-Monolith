@@ -14,15 +14,15 @@ import examstaff.service.impl.CandidateQueueServiceImpl;
 import examstaff.service.impl.ExamAreaQueryServiceImpl;
 import examstaff.service.impl.ExamReportProcedureStatusServiceImpl;
 import examstaff.service.impl.ExamReportStatsServiceImpl;
-import examstaff.service.ExamSessionControlService;
-import examstaff.service.impl.ExamSessionControlServiceImpl;
+import service.ExamSessionControlService;
+import service.impl.ExamSessionControlServiceImpl;
 import examstaff.service.impl.ExamStaffDashboardServiceImpl;
 import examstaff.service.impl.ExamStaffPageServiceImpl;
 import examstaff.service.impl.ExamStaffSelectionServiceImpl;
 import examstaff.service.impl.ExamStaffSessionQueryServiceImpl;
 import examstaff.service.impl.ExaminerAllocationDeskServiceImpl;
 import examstaff.service.impl.ExaminerAllocationServiceImpl;
-import examstaff.service.impl.ExamRegistrationServiceImpl;
+import service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.impl.ProcedureFeeQueryServiceImpl;
 import examstaff.service.impl.ProcedurePaymentServiceImpl;
 import examstaff.service.impl.ProcedureWorkflowServiceImpl;
@@ -104,7 +104,7 @@ public final class ExamStaffServices {
                 new ExaminerAllocationServiceImpl());
         this.examSelectService = new ExamSelectServiceImpl();
         this.examSessionControlService = new ExamSessionControlServiceImpl(
-                new examstaff.dao.impl.ExamSessionDAOImpl(), new examstaff.dao.impl.ExaminerAssignmentDAOImpl());
+                new dao.impl.ExamSessionDAOImpl(), new dao.impl.ExaminerAssignmentDAOImpl());
         this.examStaffDashboardService = new ExamStaffDashboardServiceImpl(
                 this.sessionQueryService, new ExaminerAllocationServiceImpl());
         this.staffAuditPageService = new StaffAuditPageServiceImpl();

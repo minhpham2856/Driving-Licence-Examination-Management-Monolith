@@ -1,9 +1,9 @@
 package examstaff.service.impl;
 
-import examstaff.dao.AuditLogDAO;
-import examstaff.dao.impl.AuditLogDAOImpl;
-import examstaff.enums.AuditEntity;
-import examstaff.model.Audit;
+import dao.AuditLogDAO;
+import dao.impl.AuditLogDAOImpl;
+import enums.AuditEntity;
+import model.Audit;
 import examstaff.service.StaffAuditLogService;
 
 import java.sql.Timestamp;
@@ -35,14 +35,14 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     }
 
     static String resolveEntityName(String action, String details) {
-        String resolved = examstaff.util.AuditLogHelper.resolveEntityName(action, details);
+        String resolved = util.AuditLogHelper.resolveEntityName(action, details);
         if ("Payment".equalsIgnoreCase(resolved)) {
-            return examstaff.enums.AuditEntity.PAYMENT.getValue();
+            return AuditEntity.THANH_TOAN.getDisplayName();
         }
         return resolved;
     }
 
     static String normalizeAction(String rawAct) {
-        return examstaff.util.AuditLogHelper.normalizeAction(rawAct);
+        return util.AuditLogHelper.normalizeAction(rawAct);
     }
 }
