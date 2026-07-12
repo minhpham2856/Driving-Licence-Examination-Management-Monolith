@@ -1,10 +1,10 @@
 package examstaff.service;
 
 import examstaff.dto.AutoAllocateResultDTO;
-import dto.ExaminerSlotDTO;
-import dto.ExamSummaryDTO;
-import dto.UserDTO;
-import model.ExamArea;
+import examstaff.dto.ExaminerSlotDTO;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.UserDTO;
+import examstaff.model.ExamArea;
 
 import java.util.List;
 

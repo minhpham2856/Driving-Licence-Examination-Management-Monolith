@@ -1,8 +1,8 @@
 package examstaff.service.impl;
 
 import examstaff.util.AllocationPassRules;
-import dto.ExamSummaryDTO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.service.CandidateQueueQueryService;

@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import dto.user.AuditDTO;
+import examstaff.dto.user.AuditDTO;
 
 import java.io.IOException;
 import java.io.OutputStream;

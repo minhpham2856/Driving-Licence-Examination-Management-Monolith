@@ -1,14 +1,14 @@
 package examstaff.controller.staff.exam;
 
 import examstaff.controller.staff.exam.http.AuditFilterSupport;
-import dto.user.AuditDTO;
-import model.Profile;
-import model.User;
+import examstaff.dto.user.AuditDTO;
+import examstaff.model.Profile;
+import examstaff.model.User;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.StaffAuditExportService;
 import examstaff.service.StaffAuditQueryService;
-import util.SessionUserHelper;
+import examstaff.util.SessionUserHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

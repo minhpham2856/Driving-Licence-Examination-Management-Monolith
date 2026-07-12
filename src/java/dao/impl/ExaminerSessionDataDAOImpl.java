@@ -292,7 +292,7 @@ public class ExaminerSessionDataDAOImpl extends DBContext implements ExaminerSes
         Map<String, Object> meta = new LinkedHashMap<>();
         // SQL: join Session to Exam and extract date/time components
         String sql =
-                "SELECT " + examstaff.util.SessionLabel.SQL_SHIFT_ONLY + " AS SessionName, "
+                "SELECT " + util.SessionLabel.SQL_SHIFT_ONLY + " AS SessionName, "
                 + "e.ExamCode, "
                 + "CAST(s.StartTime AS DATE) AS examDate, "
                 + "CAST(s.StartTime AS TIME) AS startTime, "

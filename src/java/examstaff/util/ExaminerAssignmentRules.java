@@ -1,8 +1,8 @@
 package examstaff.util;
 
-import dto.ExaminerSlotDTO;
-import enums.ExamSection;
-import model.ExamArea;
+import examstaff.dto.ExaminerSlotDTO;
+import examstaff.enums.ExamSection;
+import examstaff.model.ExamArea;
 
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +34,7 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
-        if (util.ExamAreaTypeResolver.PRACTICAL_AREA_TYPE.equalsIgnoreCase(normalized)) {
+        if (examstaff.util.ExamAreaTypeResolver.PRACTICAL_AREA_TYPE.equalsIgnoreCase(normalized)) {
             return true;
         }
         String lower = normalized.toLowerCase();

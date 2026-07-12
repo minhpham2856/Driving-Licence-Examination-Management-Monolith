@@ -25,7 +25,7 @@ import service.ExaminerActionsService;
 import service.ExaminerDataService;
 import util.ExamQueue;
 import util.ExamQueue.Lane;
-import examstaff.util.CallAuditFormatter;
+import util.CallAuditFormatter;
 import service.AuditLogService;
 import java.sql.Date;
 import java.util.ArrayList;

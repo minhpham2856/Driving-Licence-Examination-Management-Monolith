@@ -1,7 +1,7 @@
 package examstaff.dao.view.impl;
 
 import examstaff.dao.view.ExamSessionViewDAO;
-import dbconnection.DBContext;
+import examstaff.dbconnection.DBContext;
 import examstaff.model.view.ExamSessionSummary;
 
 import java.sql.PreparedStatement;

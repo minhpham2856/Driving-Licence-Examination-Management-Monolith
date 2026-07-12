@@ -132,7 +132,7 @@ public class SessionDAOImpl extends DBContext implements SessionDAO {
         session.setEndTime(rs.getTimestamp("EndTime"));
         session.setStatus(rs.getString("Status"));
         session.setExamId(rs.getInt("ExamId"));
-        session.setSessionName(examstaff.util.SessionLabel.shiftLabel(session.isMorningSession()));
+        session.setSessionName(util.SessionLabel.shiftLabel(session.isMorningSession()));
         return session;
     }
 }

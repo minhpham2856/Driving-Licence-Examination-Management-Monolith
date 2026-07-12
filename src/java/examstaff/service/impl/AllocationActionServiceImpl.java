@@ -1,15 +1,15 @@
 package examstaff.service.impl;
 
 import examstaff.dto.AutoAllocateResultDTO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
-import enums.ExamSection;
-import model.ExamArea;
+import examstaff.enums.ExamSection;
+import examstaff.model.ExamArea;
 import examstaff.service.AllocationActionService;
 import examstaff.service.ExamAreaQueryService;
-import service.ExamRegistrationService;
-import service.impl.ExamRegistrationServiceImpl;
+import examstaff.service.ExamRegistrationService;
+import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.util.AllocationStageHelper;
 import examstaff.util.ExaminerAssignmentRules;

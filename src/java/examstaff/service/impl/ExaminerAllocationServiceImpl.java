@@ -2,33 +2,33 @@
 package examstaff.service.impl;
 
 
-import dao.ExamAreaDAO;
+import examstaff.dao.ExamAreaDAO;
 
-import dao.ExamRegistrationDAO;
+import examstaff.dao.ExamRegistrationDAO;
 
-import dao.ExaminerAssignmentDAO;
+import examstaff.dao.ExaminerAssignmentDAO;
 
-import dao.impl.ExamAreaDAOImpl;
+import examstaff.dao.impl.ExamAreaDAOImpl;
 
-import dao.impl.ExamRegistrationDAOImpl;
+import examstaff.dao.impl.ExamRegistrationDAOImpl;
 
-import dao.impl.ExaminerAssignmentDAOImpl;
+import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
 
 import examstaff.dto.AutoAllocateResultDTO;
 
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 
-import dto.ExaminerSlotDTO;
+import examstaff.dto.ExaminerSlotDTO;
 
-import dto.ExamSummaryDTO;
+import examstaff.dto.ExamSummaryDTO;
 
-import dto.UserDTO;
+import examstaff.dto.UserDTO;
 
-import model.ExamArea;
-import enums.ExamSection;
+import examstaff.model.ExamArea;
+import examstaff.enums.ExamSection;
 import examstaff.service.ExamStaffSessionQueryService;
 import examstaff.service.ExaminerAllocationService;
-import util.ExamAreaTypeResolver;
+import examstaff.util.ExamAreaTypeResolver;
 
 import java.util.ArrayList;
 import java.util.Collections;

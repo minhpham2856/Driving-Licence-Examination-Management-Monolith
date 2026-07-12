@@ -1,7 +1,7 @@
 package examstaff.dao.impl;
 
 
-import dbconnection.DBContext;
+import examstaff.dbconnection.DBContext;
 
 import examstaff.dao.CandidateCallDAO;
 

@@ -1,7 +1,7 @@
 package examstaff.service;
 
 import examstaff.dao.CallBoardDAO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.model.view.CallBoardState;
 
 import java.util.List;
