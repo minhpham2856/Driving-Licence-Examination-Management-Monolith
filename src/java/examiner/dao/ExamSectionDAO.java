@@ -1,6 +1,6 @@
 package examiner.dao;
 
-import examiner.model.ExamSection;
+import shared.model.ExamSection;
 
 public interface ExamSectionDAO {
 
@@ -8,3 +8,4 @@ public interface ExamSectionDAO {
 
     ExamSection getBySectionType(String sectionType);
 }
+

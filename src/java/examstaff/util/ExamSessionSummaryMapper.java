@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.model.view.ExamSessionSummary;
+import examstaff.dto.view.ExamSessionSummary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,3 +50,4 @@ public final class ExamSessionSummaryMapper {
         return list;
     }
 }
+

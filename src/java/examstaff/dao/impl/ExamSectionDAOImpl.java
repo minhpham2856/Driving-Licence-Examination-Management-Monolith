@@ -1,7 +1,7 @@
 package examstaff.dao.impl;
 import examstaff.dao.ExamSectionDAO;
-import dbconnection.DBContext;
-import examstaff.model.ExamSection;
+import shared.dbconnection.DBContext;
+import shared.model.ExamSection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -80,7 +80,7 @@ public class ExamSectionDAOImpl extends DBContext implements ExamSectionDAO {
                 if (rs.next()) return map(rs);
             }
         } catch (SQLException e) {
-            // Fallback: tìm theo SectionName nếu schema không có SectionType
+            // Fallback: tÃ¬m theo SectionName náº¿u schema khÃ´ng cÃ³ SectionType
             String sql2 = BASE_SELECT + " WHERE SectionName LIKE ?";
             try (PreparedStatement ps2 = getConnection().prepareStatement(sql2)) {
                 ps2.setString(1, "%" + sectionType + "%");
@@ -94,4 +94,5 @@ public class ExamSectionDAOImpl extends DBContext implements ExamSectionDAO {
         return null;
     }
 }
+
 

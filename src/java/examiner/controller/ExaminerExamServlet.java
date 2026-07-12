@@ -10,12 +10,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import examiner.model.Exam;
-import examiner.model.ExamArea;
-import examiner.model.ExaminerSchedule;
-import examiner.model.ExamSection;
-import examiner.model.Licence;
-import examiner.model.User;
+import shared.model.Exam;
+import shared.model.ExamArea;
+import shared.model.ExaminerSchedule;
+import shared.model.ExamSection;
+import shared.model.Licence;
+import shared.model.User;
 import examiner.service.ExamAreaService;
 import examiner.service.ExamService;
 import examiner.service.ExamSectionService;
@@ -120,3 +120,4 @@ public class ExaminerExamServlet extends HttpServlet {
         return schedule;
     }
 }
+

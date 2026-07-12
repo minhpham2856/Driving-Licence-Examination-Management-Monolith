@@ -2,7 +2,7 @@ package examstaff.dao;
 
 import examstaff.dto.ExamSummaryDTO;
 
-import examstaff.model.Session;
+import examstaff.dto.Session;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
@@ -33,6 +33,7 @@ public interface ExamSessionDAO {
 
     boolean updateStatus(int sessionId, String status);
 
-    /** Cập nhật trạng thái và ghi thời điểm kết thúc kỳ thi (EndTime). */
+    /** Cáº­p nháº­t tráº¡ng thÃ¡i vÃ  ghi thá»i Ä‘iá»ƒm káº¿t thÃºc ká»³ thi (EndTime). */
     boolean finishSession(int sessionId, String status, Timestamp endTime);
 }
+

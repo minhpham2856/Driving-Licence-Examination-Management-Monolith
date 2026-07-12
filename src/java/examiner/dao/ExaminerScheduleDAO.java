@@ -1,6 +1,6 @@
 package examiner.dao;
 
-import examiner.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 import java.sql.Date;
 import java.util.List;
 import java.util.Set;
@@ -25,3 +25,4 @@ public interface ExaminerScheduleDAO {
 
     ExaminerSchedule getScheduleByExaminerAndExam(int examinerId, int examId);
 }
+

@@ -1,6 +1,6 @@
 package examiner.dao;
 
-import examiner.model.Profile;
+import shared.model.Profile;
 import java.util.List;
 
 public interface ProfileDAO {
@@ -15,3 +15,4 @@ public interface ProfileDAO {
 
     List<Profile> getAllByUserIds(List<Integer> userIds);
 }
+

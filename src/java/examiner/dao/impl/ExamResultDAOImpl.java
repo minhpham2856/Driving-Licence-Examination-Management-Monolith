@@ -4,9 +4,9 @@ package examiner.dao.impl;
 
 import examiner.dao.ExamResultDAO;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
-import examiner.model.ExamResult;
+import shared.model.ExamResult;
 
 import java.sql.PreparedStatement;
 
@@ -131,4 +131,5 @@ public class ExamResultDAOImpl extends DBContext implements ExamResultDAO {
     }
 
 }
+
 

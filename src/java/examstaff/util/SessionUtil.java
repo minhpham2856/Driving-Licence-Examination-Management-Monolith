@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.model.User;
+import shared.model.User;
 import examstaff.service.RoleService;
 import examstaff.service.impl.RoleServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,3 +63,4 @@ public final class SessionUtil {
         s.setAttribute(FLASH_MSG, message);
     }
 }
+

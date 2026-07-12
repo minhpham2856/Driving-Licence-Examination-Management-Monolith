@@ -1,20 +1,21 @@
 package auth.controller.general;
 
-import dto.ServiceResult;
 import auth.dto.RegisterResultDTO;
+import shared.model.Profile;
+import auth.service.AuthService;
+import auth.service.impl.AuthServiceImpl;
+import static auth.util.FormatUtil.formatString;
+import auth.dto.ServiceResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import auth.model.Profile;
-import auth.service.AuthService;
-import auth.service.impl.AuthServiceImpl;
-import util.CredentialsUtil;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import auth.util.ValidationUtil;
 
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
@@ -30,54 +31,68 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String govIdNo = trim(request.getParameter("govIdNo"));
-        String fullName = trim(request.getParameter("fullName"));
-        String phoneNo = trim(request.getParameter("phoneNo"));
-        String dateOfBirth = trim(request.getParameter("dateOfBirth"));
-        String address = trim(request.getParameter("address"));
-        String email = trim(request.getParameter("email"));
+
+        // get form values
+        String govIdNo = formatString(request.getParameter("govIdNo"));
+        String fullName = formatString(request.getParameter("fullName"));
+        String phoneNo = formatString(request.getParameter("phoneNo"));
+        String dateOfBirth = formatString(request.getParameter("dateOfBirth"));
+        String address = formatString(request.getParameter("address"));
+        String email = formatString(request.getParameter("email"));
         String sexParam = request.getParameter("sex");
         String terms = request.getParameter("terms");
 
-        if (CredentialsUtil.isBlank(govIdNo) || CredentialsUtil.isBlank(fullName)
-                || CredentialsUtil.isBlank(phoneNo) || CredentialsUtil.isBlank(dateOfBirth)
-                || CredentialsUtil.isBlank(address) || CredentialsUtil.isBlank(email)) {
-            request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin.");
-            forwardRegister(request, response);
-            return;
-        }
-        if (terms == null) {
-            request.setAttribute("error", "Bạn phải đồng ý với Điều khoản và Chính sách bảo mật.");
-            forwardRegister(request, response);
-            return;
-        }
-        if (!CredentialsUtil.isValidCccd(govIdNo)) {
-            request.setAttribute("error", "Số CCCD phải gồm đúng 12 chữ số.");
-            forwardRegister(request, response);
-            return;
-        }
-        if (!CredentialsUtil.isValidPhone(phoneNo)) {
-            request.setAttribute("error", "Số điện thoại phải bắt đầu bằng 0 và gồm đúng 10 chữ số.");
-            forwardRegister(request, response);
-            return;
-        }
-        if (!CredentialsUtil.isValidEmail(email)) {
-            request.setAttribute("error", "Địa chỉ email không hợp lệ.");
-            forwardRegister(request, response);
-            return;
-        }
-        LocalDate dob = CredentialsUtil.parseIsoDate(dateOfBirth).orElse(null);
-        if (dob == null) {
-            request.setAttribute("error", "Ngày sinh không hợp lệ.");
-            forwardRegister(request, response);
-            return;
-        }
-        if (dob.isAfter(LocalDate.now())) {
-            request.setAttribute("error", "Ngày sinh không được nằm trong tương lai.");
-            forwardRegister(request, response);
+        // validate required fields
+        if (ValidationUtil.isBlank(govIdNo)
+                || ValidationUtil.isBlank(fullName)
+                || ValidationUtil.isBlank(phoneNo)
+                || ValidationUtil.isBlank(dateOfBirth)
+                || ValidationUtil.isBlank(address)
+                || ValidationUtil.isBlank(email)) {
+            forwardWithError(request, response, "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin.");
             return;
         }
 
+        // validate terms agreement
+        if (terms == null) {
+            forwardWithError(request, response, "Báº¡n pháº£i Ä‘á»“ng Ã½ vá»›i Äiá»u khoáº£n vÃ  ChÃ­nh sÃ¡ch báº£o máº­t.");
+            return;
+        }
+
+        // validate government id
+        if (!ValidationUtil.isValidCccd(govIdNo)) {
+            forwardWithError(request, response, "Sá»‘ CCCD pháº£i gá»“m Ä‘Ãºng 12 chá»¯ sá»‘.");
+            return;
+        }
+
+        // validate phone number
+        if (!ValidationUtil.isValidPhone(phoneNo)) {
+            forwardWithError(request, response, "Sá»‘ Ä‘iá»‡n thoáº¡i khÃ´ng há»£p lá»‡.");
+            return;
+        }
+
+        // validate email
+        if (!ValidationUtil.isValidEmail(email)) {
+            forwardWithError(request, response, "Äá»‹a chá»‰ email khÃ´ng há»£p lá»‡.");
+            return;
+        }
+
+        // parse date of birth
+        LocalDate dob = ValidationUtil.parseDate(dateOfBirth);
+
+        // validate date format
+        if (dob == null) {
+            forwardWithError(request, response, "NgÃ y sinh khÃ´ng há»£p lá»‡.");
+            return;
+        }
+
+        // validate future date
+        if (dob.isAfter(LocalDate.now())) {
+            forwardWithError(request, response, "NgÃ y sinh khÃ´ng thá»ƒ chá»n.");
+            return;
+        }
+
+        // build profile
         Profile profile = new Profile();
         profile.setGovernmentIdNumber(govIdNo);
         profile.setFullName(fullName);
@@ -86,34 +101,41 @@ public class RegisterServlet extends HttpServlet {
         profile.setSex("1".equals(sexParam));
         profile.setDateOfBirth(Timestamp.valueOf(dob.atStartOfDay()));
 
+        // register account
         ServiceResult<RegisterResultDTO> result = authService.register(profile, email);
+
+        // registration failed
         if (!result.isSuccess()) {
-            request.setAttribute("error", result.getMessage());
-            forwardRegister(request, response);
+            forwardWithError(request, response, result.getMessage());
             return;
         }
+
+        // get registration result
         RegisterResultDTO data = result.getData();
+
+        // store success message
         HttpSession session = request.getSession();
+
         if (data.isEmailSent()) {
             session.setAttribute("successMessage",
-                    "Đăng ký thành công! Kiểm tra email để lấy tên đăng nhập và mật khẩu.");
+                    "ÄÄƒng kÃ½ thÃ nh cÃ´ng! Kiá»ƒm tra email Ä‘á»ƒ láº¥y thÃ´ng tin Ä‘Äƒng nháº­p.");
         } else {
-            session.setAttribute("successMessage",
-                    "Đăng ký thành công! Không gửi được email - vui lòng lưu thông tin đăng nhập bên dưới.");
+            session.setAttribute(
+                    "successMessage",
+                    "ÄÄƒng kÃ½ thÃ nh cÃ´ng! KhÃ´ng gá»­i Ä‘Æ°á»£c email - vui lÃ²ng lÆ°u thÃ´ng tin Ä‘Äƒng nháº­p bÃªn dÆ°á»›i.");
             session.setAttribute("registrationUsername", data.getUsername());
             session.setAttribute("registrationPassword", data.getPassword());
         }
+
+        // redirect to login page
         response.sendRedirect(request.getContextPath() + "/login");
     }
 
-    private static String trim(String value) {
-        return value == null ? "" : value.trim();
-    }
-
-    private void forwardRegister(HttpServletRequest request, HttpServletResponse response)
+    // forward back to register page with an error
+    private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
+        request.setAttribute("error", errorMessage);
         request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);
     }
 }
-
 

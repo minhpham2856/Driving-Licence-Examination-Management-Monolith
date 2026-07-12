@@ -1,7 +1,7 @@
 package examstaff.dao;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.ExamRegistration;
+import shared.model.ExamRegistration;
 import java.util.List;
 
 public interface ExamRegistrationDAO {
@@ -15,7 +15,7 @@ public interface ExamRegistrationDAO {
 
     boolean updateStatusWithReviewNote(int examRegistrationId, String status, String message, int actorUserId);
 
-    // --- CleanMyBranch methods (examiner/examstaff flow, ưu tiên) ---
+    // --- CleanMyBranch methods (examiner/examstaff flow, Æ°u tiÃªn) ---
 
     // Lay model dang ky theo id
     ExamRegistration findById(int id);
@@ -127,3 +127,4 @@ public interface ExamRegistrationDAO {
     // Hoan tat phan thi / thu tuc
     boolean completeSection(int candidateId, int sessionId);
 }
+

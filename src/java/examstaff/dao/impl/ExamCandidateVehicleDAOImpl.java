@@ -3,7 +3,7 @@ package examstaff.dao.impl;
 
 import examstaff.dao.ExamCandidateVehicleDAO;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 
 import java.sql.PreparedStatement;

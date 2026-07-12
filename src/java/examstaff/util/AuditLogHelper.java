@@ -7,8 +7,8 @@ import examstaff.dao.AuditLogDAO;
 
 import examstaff.dao.impl.AuditLogDAOImpl;
 
-import examstaff.model.Audit;
-import examstaff.model.User;
+import shared.model.Audit;
+import shared.model.User;
 import jakarta.servlet.http.HttpSession;
 
 import java.sql.Timestamp;
@@ -92,7 +92,7 @@ public final class AuditLogHelper {
             log.setNewValue(details);
             log.setReason(reason);
             log.setDetails(AuditChangeDetails.toJson(List.of(
-                    new AuditChangeDetails.FieldChange("Trạng thái", "Hoạt động bình thường", "Đình chỉ"))));
+                    new AuditChangeDetails.FieldChange("Tráº¡ng thÃ¡i", "Hoáº¡t Ä‘á»™ng bÃ¬nh thÆ°á»ng", "ÄÃ¬nh chá»‰"))));
             log.setUserId(userId);
             log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             DAO.insert(log);
@@ -105,10 +105,10 @@ public final class AuditLogHelper {
         String upper = action != null ? action.toUpperCase() : "";
         String detailUpper = details != null ? details.toUpperCase() : "";
 
-        if (upper.contains("SCOREENTRY") || detailUpper.contains("HÀNG ĐỢI")) {
+        if (upper.contains("SCOREENTRY") || detailUpper.contains("HÃ€NG Äá»¢I")) {
             return "ScoreEntryQueue";
         }
-        if (upper.contains("EXAMDEVICE") || detailUpper.contains("THIẾT BỊ")) {
+        if (upper.contains("EXAMDEVICE") || detailUpper.contains("THIáº¾T Bá»Š")) {
             return "ExamDevice";
         }
         if (upper.contains("IMPORT")) {
@@ -123,9 +123,9 @@ public final class AuditLogHelper {
         if (upper.contains("EXAMINER") || upper.contains("ASSIGN") || upper.contains("REMOVE")) {
             return "ExaminerSchedule";
         }
-        if (detailUpper.contains("ĐIỂM") || detailUpper.contains("DIEM")
-                || upper.contains("EXAMSCORE") || detailUpper.contains("LÝ THUYẾT")
-                || detailUpper.contains("THỰC HÀNH") || detailUpper.contains("ĐƯỜNG TRƯỜNG")) {
+        if (detailUpper.contains("ÄIá»‚M") || detailUpper.contains("DIEM")
+                || upper.contains("EXAMSCORE") || detailUpper.contains("LÃ THUYáº¾T")
+                || detailUpper.contains("THá»°C HÃ€NH") || detailUpper.contains("ÄÆ¯á»œNG TRÆ¯á»œNG")) {
             return "ExamScore";
         }
         if (upper.contains("EXAMREGISTRATION") || upper.contains("ALLOCATE")) {
@@ -160,5 +160,6 @@ public final class AuditLogHelper {
         return "UPDATE";
     }
 }
+
 
 

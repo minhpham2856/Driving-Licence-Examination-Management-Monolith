@@ -1,6 +1,6 @@
 package examiner.dao;
 
-import examiner.model.DeductionRecord;
+import shared.model.DeductionRecord;
 
 import java.util.List;
 import java.util.Map;
@@ -20,3 +20,4 @@ public interface DeductionRecordDAO {
     // to ScoreDeduction). Returns rows with keys "reason" and "count".
     List<Map<String, Object>> getTopReasons(int limit);
 }
+

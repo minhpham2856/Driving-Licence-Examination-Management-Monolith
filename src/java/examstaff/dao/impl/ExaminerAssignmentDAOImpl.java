@@ -2,13 +2,13 @@ package examstaff.dao.impl;
 
 
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dto.ExaminerSlotDTO;
 
 import examstaff.enums.UserRole;
-import examstaff.model.Profile;
+import shared.model.Profile;
 import examstaff.dto.user.UserDTO;
 
 import examstaff.service.RoleService;
@@ -57,7 +57,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "esch.ExamId AS examSessionId, "
             + "esch.ExaminerId AS examinerUserId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
+            + "  N'Háº¡ng ' + l.LicenceClass + N' â€” ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
             + "eu.Username AS examinerUsername, "
             + "ep.FullName AS examinerName, "
             + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
@@ -65,10 +65,10 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "ea.AreaName AS areaName, "
             + "ea.AreaType AS areaType, "
             + "CASE "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%' "
+            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thá»±c hÃ nh%' "
+            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hÃ¬nh%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2 "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%' "
+            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%ÄÆ°á»ng%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4 "
             + "    ELSE 1 "
             + "END AS examTypeId, "
@@ -121,11 +121,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                     FROM ExamSection es
                     WHERE es.ExamId = ?
                       AND (
-                        (? = N'Lý thuyết' AND es.SectionType = N'Lý thuyết')
-                        OR (? = N'Thực hành' AND (
-                            es.SectionType LIKE N'%Thực hành%'
-                            OR es.SectionType LIKE N'%Sa hình%'
-                            OR es.SectionType LIKE N'%Đường%'
+                        (? = N'LÃ½ thuyáº¿t' AND es.SectionType = N'LÃ½ thuyáº¿t')
+                        OR (? = N'Thá»±c hÃ nh' AND (
+                            es.SectionType LIKE N'%Thá»±c hÃ nh%'
+                            OR es.SectionType LIKE N'%Sa hÃ¬nh%'
+                            OR es.SectionType LIKE N'%ÄÆ°á»ng%'
                         ))
                       )
                     ORDER BY es.ExamSectionId
@@ -147,7 +147,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 VALUES (?, 'ASSIGN', ?, ?, ?, GETDATE())
                 """;
         try {
-            // Begin transaction — both assignment and audit mapping must succeed together
+            // Begin transaction â€” both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
                 ps.setInt(1, slot.getExaminerUserId());
@@ -191,7 +191,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(4, slot.getAreaName() != null ? slot.getAreaName() : String.valueOf(slot.getAreaId()));
                 ps.executeUpdate();
             }
-            // Commit the transaction — all three operations succeeded
+            // Commit the transaction â€” all three operations succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -236,7 +236,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // SQL: delete the audit mapping row
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
-            // Begin transaction — both deletions must succeed together
+            // Begin transaction â€” both deletions must succeed together
             getConnection().setAutoCommit(false);
             // Step 1: delete the Session_Examiner row
             try (PreparedStatement ps = getConnection().prepareStatement(deleteAssignment)) {
@@ -250,7 +250,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            // Commit the transaction — both deletions succeeded
+            // Commit the transaction â€” both deletions succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -283,7 +283,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     public List<ExaminerSlotDTO> getInProgressAssignmentsForExaminer(int examinerUserId) {
         // Append WHERE clause to filter by examiner and in-progress session status
         String sql = SLOT_SELECT
-                + " WHERE esch.ExaminerId = ? AND e.[Status] = N'Đang diễn ra'"
+                + " WHERE esch.ExaminerId = ? AND e.[Status] = N'Äang diá»…n ra'"
                 + " ORDER BY esch.ExamId DESC, esch.ExaminerScheduleId";
         // Execute the query
         List<ExaminerSlotDTO> slots = querySlots(sql, ps -> ps.setInt(1, examinerUserId));
@@ -312,7 +312,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 }
             }
         } catch (SQLException e) {
-            // Log the error — caller receives the partially-populated list
+            // Log the error â€” caller receives the partially-populated list
             e.printStackTrace();
         }
         return list;
@@ -337,12 +337,12 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Attempt to read the area ID from the ExamArea LEFT JOIN
         int areaId = rs.getInt("areaId");
         if (!rs.wasNull()) {
-            // Area was found via the join — use the direct values
+            // Area was found via the join â€” use the direct values
             slot.setAreaId(areaId);
             slot.setAreaName(rs.getString("areaName"));
             slot.setAreaType(rs.getString("areaType"));
         } else {
-            // Area join returned null — fall back to parsing the audit mapping entity ID
+            // Area join returned null â€” fall back to parsing the audit mapping entity ID
             String mappingEntityId = rs.getString("mappingEntityId");
             int[] parsed = parseMappingEntityId(mappingEntityId);
             if (parsed != null) {
@@ -429,7 +429,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Check if a Profile record exists for this user (LEFT JOIN may return null)
         Integer profileId = (Integer) rs.getObject("ProfileId");
         if (profileId != null) {
-            // Profile exists — create and populate the nested Profile object
+            // Profile exists â€” create and populate the nested Profile object
             Profile profile = new Profile();
             profile.setProfileId(profileId);
             profile.setUserId(rs.getInt("UserId"));
@@ -455,5 +455,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
+
 
 

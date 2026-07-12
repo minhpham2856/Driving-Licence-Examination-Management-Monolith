@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 import examstaff.dao.ExaminerScheduleDAO;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.enums.ExamSessionStatus;
-import examstaff.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -219,7 +219,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return schedule;
     }
 
-    // --- mainTest-only methods (thêm từ union interface) ---
+    // --- mainTest-only methods (thÃªm tá»« union interface) ---
 
     @Override
     public List<ExaminerSchedule> findByExaminerId(int examinerUserId) {
@@ -256,4 +256,5 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return null;
     }
 }
+
 

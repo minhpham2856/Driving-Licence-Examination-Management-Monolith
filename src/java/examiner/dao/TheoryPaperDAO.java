@@ -1,8 +1,9 @@
 package examiner.dao;
 
-import examiner.model.TheoryPaper;
+import shared.model.TheoryPaper;
 
 public interface TheoryPaperDAO {
 
     TheoryPaper getByExamEnrollmentId(int examEnrollmentId);
 }
+

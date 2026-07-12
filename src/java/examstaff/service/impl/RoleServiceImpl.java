@@ -1,9 +1,9 @@
 package examstaff.service.impl;
 import examstaff.dto.*;
-import examstaff.model.*;
+import shared.model.*;
 import examstaff.dao.RoleDAO;
 import examstaff.dao.impl.RoleDAOImpl;
-import examstaff.model.Role;
+import shared.model.Role;
 import examstaff.service.RoleService;
 public class RoleServiceImpl implements RoleService {
     private final RoleDAO roleDAO;
@@ -28,3 +28,4 @@ public class RoleServiceImpl implements RoleService {
         return role != null ? role.getRoleId() : 0;
     }
 }
+

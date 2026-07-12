@@ -1,7 +1,7 @@
 package examiner.dao.impl;
 import examiner.dao.RoleDAO;
-import dbconnection.DBContext;
-import examiner.model.Role;
+import shared.dbconnection.DBContext;
+import shared.model.Role;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,3 +40,4 @@ public class RoleDAOImpl extends DBContext implements RoleDAO {
         return null;
     }
 }
+

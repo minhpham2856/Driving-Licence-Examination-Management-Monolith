@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.model.Role;
+import shared.model.Role;
 
 public interface RoleService {
 
@@ -10,3 +10,4 @@ public interface RoleService {
 
     int getRoleIdByName(String roleName);
 }
+

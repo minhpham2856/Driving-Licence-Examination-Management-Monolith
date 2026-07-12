@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 import java.util.*;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.ProfileDAO;
-import examstaff.model.Profile;
+import shared.model.Profile;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -154,3 +154,4 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         return list;
     }
 }
+

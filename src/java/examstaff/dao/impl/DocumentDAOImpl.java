@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
 import examstaff.dao.DocumentDAO;
-import dbconnection.DBContext;
-import examstaff.model.Document;
+import shared.dbconnection.DBContext;
+import shared.model.Document;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -36,3 +36,4 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 }
+

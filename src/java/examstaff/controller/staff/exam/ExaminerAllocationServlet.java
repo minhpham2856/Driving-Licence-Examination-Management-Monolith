@@ -10,7 +10,7 @@ import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
-import examstaff.model.User;
+import shared.model.User;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.ExaminerAllocationDeskService;
 import examstaff.service.ExaminerAllocationService;
@@ -113,7 +113,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
             }
             applyActionResult(request, session, result);
         } catch (NumberFormatException e) {
-            request.setAttribute("errorMsg", "Dữ liệu không hợp lệ.");
+            request.setAttribute("errorMsg", "Dá»¯ liá»‡u khÃ´ng há»£p lá»‡.");
         }
     }
 
@@ -145,3 +145,4 @@ public class ExaminerAllocationServlet extends HttpServlet {
         doGet(request, response);
     }
 }
+

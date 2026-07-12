@@ -1,6 +1,6 @@
 package examiner.service;
 
-import examiner.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 
 import java.util.List;
 
@@ -12,3 +12,4 @@ public interface ScheduleService {
 
     ExaminerSchedule getScheduleByExaminerAndExam(int examinerId, int examId);
 }
+

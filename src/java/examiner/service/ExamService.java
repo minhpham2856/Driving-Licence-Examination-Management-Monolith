@@ -1,8 +1,9 @@
 package examiner.service;
 
-import examiner.model.Exam;
+import shared.model.Exam;
 
 public interface ExamService {
 
     Exam getById(int examId);
 }
+

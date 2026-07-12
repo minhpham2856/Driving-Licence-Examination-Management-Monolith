@@ -1,8 +1,8 @@
 package examiner.dao.impl;
 
 import examiner.dao.ExamSectionDAO;
-import dbconnection.DBContext;
-import examiner.model.ExamSection;
+import shared.dbconnection.DBContext;
+import shared.model.ExamSection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,3 +56,4 @@ public class ExamSectionDAOImpl extends DBContext implements ExamSectionDAO {
         return section;
     }
 }
+

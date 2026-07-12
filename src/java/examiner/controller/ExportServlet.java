@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import examiner.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 import examiner.service.DocumentService;
 import examiner.service.impl.DocxServiceImpl;
 import examiner.service.impl.ExcelServiceImpl;
@@ -55,7 +55,7 @@ public class ExportServlet extends HttpServlet {
             format = DocumentFormat.EXCEL;
         }
         if (type == null || type.isBlank()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu loại tài liệu.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiáº¿u loáº¡i tÃ i liá»‡u.");
             return;
         }
         ExportContextDTO ctx = requireExportContext(request, response);
@@ -85,7 +85,7 @@ public class ExportServlet extends HttpServlet {
         }
         int sbd = parseSbd(request.getParameter("sbd"));
         if (sbd <= 0) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu số báo danh.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiáº¿u sá»‘ bÃ¡o danh.");
             return;
         }
         prepareDocxDownload(response, buildPrintFilename(type, sbd));
@@ -192,3 +192,4 @@ public class ExportServlet extends HttpServlet {
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
     }
 }
+

@@ -1,9 +1,9 @@
 package examstaff.dto.user;
 
 
-import examstaff.model.User;
-import examstaff.model.Profile;
-import examstaff.model.Role;
+import shared.model.User;
+import shared.model.Profile;
+import shared.model.Role;
 
 public class UserDTO extends User {
     private Profile profile;
@@ -33,3 +33,4 @@ public class UserDTO extends User {
         this.profile = profile;
     }
 }
+

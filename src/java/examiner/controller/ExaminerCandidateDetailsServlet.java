@@ -1,6 +1,6 @@
 package examiner.controller;
 
-import examiner.model.User;
+import shared.model.User;
 import examiner.filter.ExaminerFilter;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
@@ -152,7 +152,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
                 request.setAttribute("candidate", candidate);
             }
 
-            request.setAttribute("profileError", "Không lưu được thông tin: " + result.getMessage());
+            request.setAttribute("profileError", "KhÃ´ng lÆ°u Ä‘Æ°á»£c thÃ´ng tin: " + result.getMessage());
             request.getRequestDispatcher("/views/examiner/candidate-details-edit.jsp").forward(request, response);
             return;
         }
@@ -180,3 +180,4 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
     }
 }
+

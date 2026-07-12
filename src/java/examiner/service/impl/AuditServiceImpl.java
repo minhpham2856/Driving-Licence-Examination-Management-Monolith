@@ -8,9 +8,9 @@ import examiner.dao.impl.ProfileDAOImpl;
 import examiner.dao.impl.UserDAOImpl;
 import examiner.enums.AuditAction;
 import examiner.enums.AuditEntity;
-import examiner.model.Audit;
-import examiner.model.Profile;
-import examiner.model.User;
+import shared.model.Audit;
+import shared.model.Profile;
+import shared.model.User;
 import examiner.enums.RoleType;
 import examiner.service.AuditService;
 import java.sql.Timestamp;
@@ -186,15 +186,15 @@ public class AuditServiceImpl implements AuditService {
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
             case CREATE ->
-                "Thêm " + entity.toLowerCase() + sbdSuffix;
+                "ThÃªm " + entity.toLowerCase() + sbdSuffix;
             case DELETE ->
-                "Xóa " + entity.toLowerCase() + sbdSuffix;
+                "XÃ³a " + entity.toLowerCase() + sbdSuffix;
             case EXPORT ->
-                "Xuất " + entity.toLowerCase() + sbdSuffix;
+                "Xuáº¥t " + entity.toLowerCase() + sbdSuffix;
             case IMPORT ->
-                "Nhập " + entity.toLowerCase() + sbdSuffix;
+                "Nháº­p " + entity.toLowerCase() + sbdSuffix;
             default ->
-                "Cập nhật " + entity.toLowerCase() + sbdSuffix;
+                "Cáº­p nháº­t " + entity.toLowerCase() + sbdSuffix;
         };
     }
 
@@ -324,7 +324,7 @@ public class AuditServiceImpl implements AuditService {
         String username = user != null ? user.getUsername() : "he_thong";
         String fullName = profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()
                 ? profile.getFullName()
-                : (user != null ? user.getUsername() : "Hệ thống");
+                : (user != null ? user.getUsername() : "Há»‡ thá»‘ng");
         row.put("username", username);
         row.put("fullName", fullName);
         String roleKey = user != null ? mapRoleKey(user.getRoleId()) : "admin";
@@ -340,7 +340,7 @@ public class AuditServiceImpl implements AuditService {
         row.put("ip", "-");
         row.put("ipAddress", "-");
         row.put("device", "-");
-        row.put("status", "Thành công");
+        row.put("status", "ThÃ nh cÃ´ng");
         row.put("statusKey", "success");
         return row;
     }
@@ -361,13 +361,13 @@ public class AuditServiceImpl implements AuditService {
 
     private static String mapRoleLabel(String roleKey) {
         if ("admin".equals(roleKey)) {
-            return "Quản trị viên";
+            return "Quáº£n trá»‹ viÃªn";
         }
         if ("coi".equals(roleKey)) {
-            return "Cán bộ coi thi";
+            return "CÃ¡n bá»™ coi thi";
         }
         if ("cham".equals(roleKey)) {
-            return "sát hạch viên";
+            return "sÃ¡t háº¡ch viÃªn";
         }
         return roleKey;
     }
@@ -387,15 +387,16 @@ public class AuditServiceImpl implements AuditService {
             return "info";
         }
         String lower = action.toLowerCase();
-        if (lower.contains("xóa") || lower.contains("delete") || lower.contains("đình chỉ")) {
+        if (lower.contains("xÃ³a") || lower.contains("delete") || lower.contains("Ä‘Ã¬nh chá»‰")) {
             return "danger";
         }
-        if (lower.contains("cảnh báo") || lower.contains("khóa")) {
+        if (lower.contains("cáº£nh bÃ¡o") || lower.contains("khÃ³a")) {
             return "warning";
         }
-        if (lower.contains("tạo") || lower.contains("create") || lower.contains("import")) {
+        if (lower.contains("táº¡o") || lower.contains("create") || lower.contains("import")) {
             return "success";
         }
         return "info";
     }
 }
+

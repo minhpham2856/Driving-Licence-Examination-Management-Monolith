@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 import java.sql.*;
 import examstaff.dao.LicenceDAO;
-import dbconnection.DBContext;
-import examstaff.model.Licence;
+import shared.dbconnection.DBContext;
+import shared.model.Licence;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -151,3 +151,4 @@ public class LicenceDAOImpl implements LicenceDAO {
         if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }
 }
+

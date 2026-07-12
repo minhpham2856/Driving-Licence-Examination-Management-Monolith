@@ -1,8 +1,8 @@
 package examiner.dao.impl;
 
 import examiner.dao.ExamScoreDAO;
-import dbconnection.DBContext;
-import examiner.model.ExamScore;
+import shared.dbconnection.DBContext;
+import shared.model.ExamScore;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -97,3 +97,4 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return score;
     }
 }
+

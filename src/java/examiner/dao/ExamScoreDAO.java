@@ -1,6 +1,6 @@
 package examiner.dao;
 
-import examiner.model.ExamScore;
+import shared.model.ExamScore;
 
 public interface ExamScoreDAO {
 
@@ -12,3 +12,4 @@ public interface ExamScoreDAO {
 
     boolean recalculateFromDeductions(int examScoreId);
 }
+

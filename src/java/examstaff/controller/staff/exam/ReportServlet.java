@@ -12,8 +12,8 @@ import examstaff.dto.ExamReportProcedureStatusDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ExamReportStatsDTO;
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.model.Profile;
-import examstaff.model.User;
+import shared.model.Profile;
+import shared.model.User;
 import examstaff.util.ReportExportLabels;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -108,3 +108,4 @@ public class ReportServlet extends HttpServlet {
         return user != null ? user.getUsername() : "";
     }
 }
+

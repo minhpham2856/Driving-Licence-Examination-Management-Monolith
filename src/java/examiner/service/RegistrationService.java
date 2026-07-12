@@ -3,9 +3,9 @@ package examiner.service;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.ServiceResult;
 import examiner.dto.UploadRowDTO;
-import examiner.model.Payment;
-import examiner.model.Profile;
-import examiner.model.User;
+import shared.model.Payment;
+import shared.model.Profile;
+import shared.model.User;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
@@ -60,3 +60,4 @@ public interface RegistrationService {
 
     User getUserByUsername(String username);
 }
+

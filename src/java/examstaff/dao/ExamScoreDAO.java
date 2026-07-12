@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.ExamScore;
+import shared.model.ExamScore;
 
 public interface ExamScoreDAO {
 
@@ -12,3 +12,4 @@ public interface ExamScoreDAO {
 
     boolean recalculateFromDeductions(int examScoreId);
 }
+

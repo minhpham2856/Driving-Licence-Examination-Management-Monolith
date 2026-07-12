@@ -1,7 +1,7 @@
 package examstaff.dto;
 
-import examstaff.model.Fee;
-import examstaff.model.Payment;
+import shared.model.Fee;
+import shared.model.Payment;
 
 import java.util.List;
 
@@ -35,3 +35,4 @@ public class ReportPaymentSummaryDTO {
         this.lineTotal = lineTotal;
     }
 }
+

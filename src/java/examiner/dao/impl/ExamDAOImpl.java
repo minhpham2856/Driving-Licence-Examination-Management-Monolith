@@ -5,8 +5,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import examiner.dao.ExamDAO;
-import dbconnection.DBContext;
-import examiner.model.Exam;
+import shared.dbconnection.DBContext;
+import shared.model.Exam;
 
 public class ExamDAOImpl extends DBContext implements ExamDAO {
     @Override
@@ -81,3 +81,4 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return e;
     }
 }
+

@@ -1,7 +1,7 @@
 package examiner.dao.impl;
 
 import examiner.dao.DeductionRecordViewDAO;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;

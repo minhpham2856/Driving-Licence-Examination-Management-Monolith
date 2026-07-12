@@ -1,9 +1,9 @@
 package auth.service;
 
 import auth.dto.RegisterResultDTO;
-import auth.model.Profile;
-import auth.model.User;
-import dto.ServiceResult;
+import shared.model.Profile;
+import shared.model.User;
+import auth.dto.ServiceResult;
 
 public interface AuthService {
 
@@ -15,3 +15,4 @@ public interface AuthService {
 
     ServiceResult<Void> changePassword(int userId, String currentPassword, String newPassword, String confirmPassword);
 }
+

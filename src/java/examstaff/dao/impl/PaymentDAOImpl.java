@@ -1,9 +1,9 @@
 package examstaff.dao.impl;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.PaymentDAO;
 import examstaff.enums.PaymentStatus;
-import examstaff.model.Payment;
+import shared.model.Payment;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -122,4 +122,5 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 }
+
 

@@ -2,7 +2,7 @@ package examiner.dao;
 
 
 
-import examiner.model.Candidate;
+import shared.model.Candidate;
 
 import java.sql.Date;
 
@@ -39,4 +39,5 @@ public interface CandidateDAO {
             String phoneNumber, String address, boolean sex, String reasonForTaking);
 
 }
+
 

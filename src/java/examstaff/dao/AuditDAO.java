@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.Audit;
+import shared.model.Audit;
 import java.util.List;
 
 public interface AuditDAO {
@@ -21,3 +21,4 @@ public interface AuditDAO {
     // day (dateFilter is a yyyy-MM-dd string; null/blank means all history).
     List<Audit> getLogsByUser(int userId, String dateFilter);
 }
+

@@ -3,7 +3,7 @@ package examiner.service;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.ServiceResult;
 import examiner.enums.SectionType;
-import examiner.model.User;
+import shared.model.User;
 
 import java.sql.Date;
 
@@ -75,3 +75,4 @@ public interface CallService {
     ServiceResult<Void> recordProcedureCall(int examId, int sbd, String result, String callDestination,
             Integer actionUserId);
 }
+

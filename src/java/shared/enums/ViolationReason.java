@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum ViolationReason {
     SAFETY_VIOLATION("Gây mất an toàn nghiêm trọng trong quá trình thi"),

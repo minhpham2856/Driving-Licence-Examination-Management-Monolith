@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum DocumentName {
     CANDIDATES("danh-sach-thi-sinh"),

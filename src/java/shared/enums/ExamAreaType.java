@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum ExamAreaType {
     PROCEDURE_ROOM("Phòng thủ tục"),

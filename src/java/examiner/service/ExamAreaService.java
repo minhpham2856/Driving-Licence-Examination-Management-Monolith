@@ -2,7 +2,7 @@ package examiner.service;
 
 import examiner.dto.SaveResultDTO;
 import examiner.dto.ServiceResult;
-import examiner.model.ExamArea;
+import shared.model.ExamArea;
 
 import java.util.List;
 
@@ -20,3 +20,4 @@ public interface ExamAreaService {
 
     ServiceResult<Void> delete(int id, int adminUserId);
 }
+

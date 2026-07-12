@@ -2,7 +2,7 @@ package auth.controller.general;
 
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
-import dto.ServiceResult;
+import auth.dto.ServiceResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,16 +18,17 @@ public class ForgotPasswordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp")
-                .forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // get recovery email
         String email = request.getParameter("email");
 
+        // recover password
         ServiceResult<Void> result = authService.forgotPassword(email);
 
         if (result.isSuccess()) {
@@ -38,7 +39,6 @@ public class ForgotPasswordServlet extends HttpServlet {
             request.setAttribute("error", result.getMessage());
         }
 
-        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp")
-                .forward(request, response);
+        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
     }
 }

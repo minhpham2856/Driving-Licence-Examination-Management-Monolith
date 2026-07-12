@@ -1,7 +1,7 @@
 package examiner.dao.impl;
 import examiner.dao.CandidateAnswerDAO;
-import dbconnection.DBContext;
-import examiner.model.CandidateAnswer;
+import shared.dbconnection.DBContext;
+import shared.model.CandidateAnswer;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,3 +30,4 @@ public class CandidateAnswerDAOImpl extends DBContext implements CandidateAnswer
         return list;
     }
 }
+

@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.impl.CandidateQueueServiceImpl;
@@ -66,3 +66,4 @@ public class CandidateCallingServiceImpl implements CandidateCallingService {
         return queueService.resolveNextCallingSbd(candidateQueue, callingSbd);
     }
 }
+

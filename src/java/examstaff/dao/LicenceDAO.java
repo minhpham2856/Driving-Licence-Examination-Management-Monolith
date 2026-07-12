@@ -1,5 +1,5 @@
 package examstaff.dao;
-import examstaff.model.Licence;
+import shared.model.Licence;
 import java.util.List;
 public interface LicenceDAO {
     List<Licence> findAll();
@@ -12,3 +12,4 @@ public interface LicenceDAO {
     boolean update(Licence licence);
     int countAll();
 }
+

@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum ErrorType {
     VALIDATION_FAILED,

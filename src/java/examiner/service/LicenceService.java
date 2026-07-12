@@ -2,7 +2,7 @@ package examiner.service;
 
 import examiner.dto.SaveResultDTO;
 import examiner.dto.ServiceResult;
-import examiner.model.Licence;
+import shared.model.Licence;
 
 import java.util.List;
 
@@ -18,3 +18,4 @@ public interface LicenceService {
 
     ServiceResult<SaveResultDTO> save(Licence licence, int adminUserId);
 }
+

@@ -2,7 +2,7 @@ package examiner.service.impl;
 
 import examiner.dao.ExamSectionDAO;
 import examiner.dao.impl.ExamSectionDAOImpl;
-import examiner.model.ExamSection;
+import shared.model.ExamSection;
 import examiner.service.ExamSectionService;
 
 public class ExamSectionServiceImpl implements ExamSectionService {
@@ -13,3 +13,4 @@ public class ExamSectionServiceImpl implements ExamSectionService {
         return dao.getById(examSectionId);
     }
 }
+

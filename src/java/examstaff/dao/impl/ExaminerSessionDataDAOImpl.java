@@ -3,7 +3,7 @@ package examstaff.dao.impl;
 
 import examstaff.dao.ExaminerSessionDataDAO;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dto.examiner.ExaminerAnswerStatsDTO;
 

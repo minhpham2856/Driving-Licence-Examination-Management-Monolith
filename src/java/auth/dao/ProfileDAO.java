@@ -1,6 +1,6 @@
 package auth.dao;
 
-import auth.model.Profile;
+import shared.model.Profile;
 import java.util.List;
 
 public interface ProfileDAO {

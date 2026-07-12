@@ -2,9 +2,9 @@ package examiner.dao.impl;
 
 import java.sql.*;
 import java.util.*;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examiner.dao.UserDAO;
-import examiner.model.User;
+import shared.model.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -282,3 +282,4 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return filter;
     }
 }
+

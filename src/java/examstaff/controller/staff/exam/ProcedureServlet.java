@@ -15,7 +15,7 @@ import examstaff.dto.ProcedureProfilePrepareResultDTO;
 import examstaff.dto.ProcedureResetOutcomeDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.CandidatePhotoService;
@@ -118,7 +118,7 @@ public class ProcedureServlet extends HttpServlet {
                 session.removeAttribute("procedureStep");
                 session.removeAttribute("lastSelectedSbd");
                 addAuditLog(session, "RESET Procedure",
-                        "Xóa hồ sơ thủ tục SBD " + reset.getSbd(), reset.getCandidateId());
+                        "XÃ³a há»“ sÆ¡ thá»§ tá»¥c SBD " + reset.getSbd(), reset.getCandidateId());
                 response.sendRedirect(request.getContextPath()
                         + "/views/staff/examstaff/candidatecall?procedureReset="
                         + java.net.URLEncoder.encode(reset.getSbd(), java.nio.charset.StandardCharsets.UTF_8));
@@ -140,7 +140,7 @@ public class ProcedureServlet extends HttpServlet {
             session.setAttribute("procedureStep", "2");
             request.setAttribute("step", "2");
             request.setAttribute("hasValidPhoto", false);
-            addAuditLog(session, "UPDATE on Person", "Yêu cầu chụp lại ảnh SBD " + sbdParam);
+            addAuditLog(session, "UPDATE on Person", "YÃªu cáº§u chá»¥p láº¡i áº£nh SBD " + sbdParam);
         }
 
         if ("saveCapturedPhoto".equals(pAction)) {
@@ -224,7 +224,7 @@ public class ProcedureServlet extends HttpServlet {
             if (updated) {
                 profile = procedureWorkflow.reloadProfile(webRoot, examId, profile.getId(), sbdParam, qList);
                 request.setAttribute("profileUpdatedAlert", "true");
-                addAuditLog(session, "UPDATE on Person", "Sửa đổi lý lịch SBD " + sbdParam);
+                addAuditLog(session, "UPDATE on Person", "Sá»­a Ä‘á»•i lÃ½ lá»‹ch SBD " + sbdParam);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -275,7 +275,7 @@ public class ProcedureServlet extends HttpServlet {
         }
         if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PAYMENT_FAILED) {
             try {
-                request.setAttribute("paymentErrorMsg", "Không ghi được thanh toán. Vui lòng thử lại.");
+                request.setAttribute("paymentErrorMsg", "KhÃ´ng ghi Ä‘Æ°á»£c thanh toÃ¡n. Vui lÃ²ng thá»­ láº¡i.");
                 request.setAttribute("step", "3");
                 request.setAttribute("profile", outcome.getProfile());
                 request.setAttribute("hasValidPhoto", outcome.getProfile().isValidCapturedPhoto());
@@ -302,7 +302,7 @@ public class ProcedureServlet extends HttpServlet {
         publishCandidateQueue(request, session, outcome.getQueue(), examId);
         addAuditLog(session, "INSERT on Payment", outcome.getPaymentAuditDetail(), outcome.getProfile().getId());
         if (outcome.isAuditAllocate()) {
-            addAuditLog(session, "ALLOCATE Candidates", "Tự động phân bổ phòng thi cho SBD " + sbdParam);
+            addAuditLog(session, "ALLOCATE Candidates", "Tá»± Ä‘á»™ng phÃ¢n bá»• phÃ²ng thi cho SBD " + sbdParam);
         }
     }
 
@@ -346,13 +346,13 @@ public class ProcedureServlet extends HttpServlet {
                 publishCandidateQueue(request, session, qList, examId);
                 session.setAttribute("procedureStep", "2");
                 addAuditLog(session, "UPDATE on Person",
-                        "Lưu ảnh chụp từ webcam thực tế SBD " + sbdParam);
+                        "LÆ°u áº£nh chá»¥p tá»« webcam thá»±c táº¿ SBD " + sbdParam);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write("{\"success\":true,\"photoUrl\":\"" + outcome.getPhotoPath() + "\"}");
             }
             default -> {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                String msg = outcome.getMessage() != null ? outcome.getMessage().replace("\"", "'") : "Lỗi lưu ảnh";
+                String msg = outcome.getMessage() != null ? outcome.getMessage().replace("\"", "'") : "Lá»—i lÆ°u áº£nh";
                 response.getWriter().write("{\"success\":false,\"message\":\"" + msg + "\"}");
             }
         }
@@ -550,3 +550,4 @@ public class ProcedureServlet extends HttpServlet {
         return session != null && "true".equals(session.getAttribute("shiftEnded"));
     }
 }
+

@@ -1,11 +1,11 @@
 package examstaff.dao.impl;
 
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dao.AuditLogDAO;
 
-import examstaff.model.Audit;
+import shared.model.Audit;
 import examstaff.dto.user.AuditDTO;
 
 import examstaff.dto.staff.StaffProcedureKpiDTO;
@@ -333,15 +333,15 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                         )
                     WHERE a.UserId = ?
                       AND (
-                            a.EntityName IN (N'Thanh toán', N'Payment')
-                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                            a.EntityName IN (N'Thanh toÃ¡n', N'Payment')
+                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU Lá»† PHÃ%'
                             OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU PHI%'
                           )
                       AND (
                             UPPER(ISNULL(a.Action, N'')) IN (
-                                N'INSERT', N'UPDATE', N'THÊM', N'NHẬP', N'CẬP NHẬT'
+                                N'INSERT', N'UPDATE', N'THÃŠM', N'NHáº¬P', N'Cáº¬P NHáº¬T'
                             )
-                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU Lá»† PHÃ%'
                           )
                 """;
         if (hasDate) {
@@ -541,3 +541,4 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
+

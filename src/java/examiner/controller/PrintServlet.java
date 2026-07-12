@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import examiner.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 import examiner.service.DocumentService;
 import examiner.service.impl.DocxServiceImpl;
 
@@ -45,7 +45,7 @@ public class PrintServlet extends HttpServlet {
             }
         }
         if (sbd <= 0) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu số báo danh.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiáº¿u sá»‘ bÃ¡o danh.");
             return;
         }
         prepareDocxDownload(response, DocumentName.printCandidate(type, sbd));
@@ -82,3 +82,4 @@ public class PrintServlet extends HttpServlet {
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
     }
 }
+

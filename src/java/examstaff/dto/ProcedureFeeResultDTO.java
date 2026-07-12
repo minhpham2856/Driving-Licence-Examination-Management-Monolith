@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.model.Fee;
+import shared.model.Fee;
 
 import java.util.List;
 
@@ -34,3 +34,4 @@ public class ProcedureFeeResultDTO {
         this.feesFromPayment = feesFromPayment;
     }
 }
+

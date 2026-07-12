@@ -9,7 +9,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.PublicCallQueryService;
@@ -53,3 +53,4 @@ public class PublicCallServlet extends HttpServlet {
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);
     }
 }
+

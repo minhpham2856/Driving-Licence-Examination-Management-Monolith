@@ -29,15 +29,15 @@ import examiner.enums.CandidateStatus;
 import examiner.enums.ErrorType;
 import examiner.enums.Sex;
 import examiner.enums.ViolationReason;
-import examiner.model.Audit;
-import examiner.model.Candidate;
-import examiner.model.DeductionRecord;
-import examiner.model.ExamDevice;
-import examiner.model.ExamEnrollment;
-import examiner.model.ExamResult;
-import examiner.model.ExamScore;
-import examiner.model.ScoreDeduction;
-import examiner.model.User;
+import shared.model.Audit;
+import shared.model.Candidate;
+import shared.model.DeductionRecord;
+import shared.model.ExamDevice;
+import shared.model.ExamEnrollment;
+import shared.model.ExamResult;
+import shared.model.ExamScore;
+import shared.model.ScoreDeduction;
+import shared.model.User;
 import examiner.service.AuditService;
 import examiner.service.RegistrationService;
 import examiner.service.ExamScoreService;
@@ -146,12 +146,12 @@ public class CallServiceImpl implements CallService {
             String reasonForTaking) {
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         String trimmedName = trimParam(fullName);
         String trimmedGovId = trimParam(governmentIdNumber);
         if (trimmedName.isEmpty() || trimmedGovId.isEmpty() || dateOfBirth == null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thông tin hồ sơ không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ´ng tin há»“ sÆ¡ khÃ´ng há»£p lá»‡.");
         }
         String trimmedPhone = trimParam(phoneNumber);
         String trimmedAddress = trimParam(address);
@@ -160,24 +160,24 @@ public class CallServiceImpl implements CallService {
         String sexDb = sexEnum != null ? sexEnum.getValue() : Sex.MALE.getValue();
         SimpleDateFormat dobFmt = new SimpleDateFormat("dd/MM/yyyy");
         StringBuilder changes = new StringBuilder();
-        appendChange(changes, "Họ và tên", reg.getFullName(), trimmedName);
-        appendChange(changes, "Ngày sinh",
+        appendChange(changes, "Há» vÃ  tÃªn", reg.getFullName(), trimmedName);
+        appendChange(changes, "NgÃ y sinh",
                 reg.getDateOfBirth() != null ? dobFmt.format(reg.getDateOfBirth()) : null,
                 dobFmt.format(dateOfBirth));
         appendChange(changes, "CCCD", reg.getGovIdNo(), trimmedGovId);
-        appendChange(changes, "Số điện thoại", reg.getPhoneNo(), trimmedPhone);
-        appendChange(changes, "Địa chỉ", reg.getAddress(), trimmedAddress);
-        appendChange(changes, "Giới tính", reg.isSex() ? Sex.FEMALE.getValue() : Sex.MALE.getValue(), sexDb);
-        appendChange(changes, "Lý do thi", reg.getReasonForTaking(), trimmedReason);
+        appendChange(changes, "Sá»‘ Ä‘iá»‡n thoáº¡i", reg.getPhoneNo(), trimmedPhone);
+        appendChange(changes, "Äá»‹a chá»‰", reg.getAddress(), trimmedAddress);
+        appendChange(changes, "Giá»›i tÃ­nh", reg.isSex() ? Sex.FEMALE.getValue() : Sex.MALE.getValue(), sexDb);
+        appendChange(changes, "LÃ½ do thi", reg.getReasonForTaking(), trimmedReason);
         boolean updated = enrollmentDAO.updateExaminerProfile(
                 reg.getId(), trimmedName, dateOfBirth, trimmedGovId,
                 trimmedPhone, trimmedAddress, sexDb, trimmedReason);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật hồ sơ thí sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t há»“ sÆ¡ thÃ­ sinh.");
         }
         if (actionUserId != null && changes.length() > 0) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Cập nhật hồ sơ SBD " + reg.getCandidateNumber() + ": " + changes, reg.getId());
+                    "Cáº­p nháº­t há»“ sÆ¡ SBD " + reg.getCandidateNumber() + ": " + changes, reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -186,18 +186,18 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> callCandidate(int examId, Integer sbd, User user, Integer actionUserId,
             SectionType examSection, boolean isTheory, String sectionName, String callDestination) {
         if (sbd == null || sbd <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ bÃ¡o danh khÃ´ng há»£p lá»‡.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         if (!dataService.isCallEligible(examId, reg, isTheory, sectionName)) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện để gọi.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng Ä‘á»§ Ä‘iá»u kiá»‡n Ä‘á»ƒ gá»i.");
         }
         boolean called = insertCall(examId, reg, user, actionUserId, callDestination);
         if (!called) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi thí sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi nháº­n lá»‡nh gá»i thÃ­ sinh.");
         }
         Lane lane = ExamQueue.laneFor(examSection);
         ExamQueue.setCalledSbd(lane, reg.getCandidateNumber());
@@ -227,14 +227,14 @@ public class CallServiceImpl implements CallService {
                 return ServiceResult.ok(reg.getCandidateNumber());
             }
         }
-        return ServiceResult.fail(ErrorType.NOT_FOUND, "Không còn thí sinh đủ điều kiện để gọi.");
+        return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng cÃ²n thÃ­ sinh Ä‘á»§ Ä‘iá»u kiá»‡n Ä‘á»ƒ gá»i.");
     }
 
     @Override
     public ServiceResult<Integer> callSelectedCandidates(int examId, User user, Integer actionUserId,
             SectionType examSection, boolean isTheory, String sectionName, String callDestination, int[] sbds) {
         if (sbds == null || sbds.length == 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Chưa chọn thí sinh.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ChÆ°a chá»n thÃ­ sinh.");
         }
         int count = 0;
         for (int sbd : sbds) {
@@ -247,7 +247,7 @@ public class CallServiceImpl implements CallService {
             }
         }
         if (count == 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Không gọi được thí sinh nào.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "KhÃ´ng gá»i Ä‘Æ°á»£c thÃ­ sinh nÃ o.");
         }
         return ServiceResult.ok(count);
     }
@@ -257,15 +257,15 @@ public class CallServiceImpl implements CallService {
             SectionType examSection, boolean isTheory, String sectionName, String callDestination,
             boolean scoreEntry) {
         if (sbd == null || sbd <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ bÃ¡o danh khÃ´ng há»£p lá»‡.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (!dataService.isScoreQueueEligible(examId, reg, isTheory, sectionName)) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện nhập điểm.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng Ä‘á»§ Ä‘iá»u kiá»‡n nháº­p Ä‘iá»ƒm.");
         }
         boolean called = insertScoreEntryCall(examId, reg, user, actionUserId, callDestination);
         if (!called) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi nhập điểm.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi nháº­n lá»‡nh gá»i nháº­p Ä‘iá»ƒm.");
         }
         Lane lane = ExamQueue.laneFor(examSection);
         ExamQueue.setCalledSbd(lane, reg.getCandidateNumber());
@@ -276,15 +276,15 @@ public class CallServiceImpl implements CallService {
     @Override
     public ServiceResult<Void> setDeviceMaintenance(int deviceId, Integer actionUserId) {
         if (deviceId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiết bị không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiáº¿t bá»‹ khÃ´ng há»£p lá»‡.");
         }
         boolean updated = deviceDAO.updateStatus(deviceId, false);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể đặt thiết bị vào bảo trì.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ Ä‘áº·t thiáº¿t bá»‹ vÃ o báº£o trÃ¬.");
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_DEVICE,
-                    "Đặt thiết bị vào bảo trì", deviceId);
+                    "Äáº·t thiáº¿t bá»‹ vÃ o báº£o trÃ¬", deviceId);
         }
         return ServiceResult.ok(null);
     }
@@ -292,15 +292,15 @@ public class CallServiceImpl implements CallService {
     @Override
     public ServiceResult<Void> setDeviceAvailable(int deviceId, Integer actionUserId) {
         if (deviceId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiết bị không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiáº¿t bá»‹ khÃ´ng há»£p lá»‡.");
         }
         boolean updated = deviceDAO.updateStatus(deviceId, true);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể đặt thiết bị sẵn sàng.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ Ä‘áº·t thiáº¿t bá»‹ sáºµn sÃ ng.");
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_DEVICE,
-                    "Đặt thiết bị sẵn sàng", deviceId);
+                    "Äáº·t thiáº¿t bá»‹ sáºµn sÃ ng", deviceId);
         }
         return ServiceResult.ok(null);
     }
@@ -308,22 +308,22 @@ public class CallServiceImpl implements CallService {
     @Override
     public ServiceResult<Void> changeCandidateVehicle(int examId, int sbd, int deviceId, Integer actionUserId) {
         if (examId <= 0 || sbd <= 0 || deviceId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thông tin gán xe không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ´ng tin gÃ¡n xe khÃ´ng há»£p lá»‡.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         if (!isDeviceInExam(examId, deviceId)) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiết bị không thuộc ca thi.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiáº¿t bá»‹ khÃ´ng thuá»™c ca thi.");
         }
         boolean updated = enrollmentDAO.assignExamDevice(reg.getId(), examId, deviceId);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể gán xe cho thí sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ gÃ¡n xe cho thÃ­ sinh.");
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Gán xe #" + deviceId + " cho SBD " + reg.getCandidateNumber(), reg.getId());
+                    "GÃ¡n xe #" + deviceId + " cho SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -332,33 +332,33 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> updateTheoryScore(int examId, int sbd, User user, String password, Integer newScore,
             String reasonCode, String reasonDetail, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lÃ²ng chá»n lÃ½ do sá»­a Ä‘iá»ƒm.");
         }
         if (!verifyPassword(user, password)) {
-            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
+            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Máº­t kháº©u xÃ¡c nháº­n khÃ´ng Ä‘Ãºng.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         int score = newScore != null ? newScore : -1;
         int maxScore = dataService.theoryMaxQuestions();
         if (score < 0 || score > maxScore) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Điểm lý thuyết không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Äiá»ƒm lÃ½ thuyáº¿t khÃ´ng há»£p lá»‡.");
         }
         Integer oldScore = reg.getTheoryScore();
         String auditReason = buildReasonText(reasonCode, reasonDetail);
         boolean updated = examScoreService.upsertTheoryCorrectCount(reg.getId(), score,
                 dataService.theoryPassThreshold());
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm lý thuyết.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘iá»ƒm lÃ½ thuyáº¿t.");
         }
         if (actionUserId != null) {
-            String passed = score >= dataService.theoryPassThreshold() ? "Đạt" : "Trượt";
-            String message = "Sửa điểm lý thuyết SBD " + reg.getCandidateNumber() + ": "
+            String passed = score >= dataService.theoryPassThreshold() ? "Äáº¡t" : "TrÆ°á»£t";
+            String message = "Sá»­a Ä‘iá»ƒm lÃ½ thuyáº¿t SBD " + reg.getCandidateNumber() + ": "
                     + (oldScore != null ? oldScore : "-") + " -> " + score + " (" + passed + ")";
             if (!auditReason.isBlank()) {
-                message += " - Lý do: " + auditReason;
+                message += " - LÃ½ do: " + auditReason;
             }
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE, message, reg.getId());
         }
@@ -369,20 +369,20 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> logPracticalScoreEditReason(int examId, int sbd, User user, String password,
             String reasonCode, String reasonDetail, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lÃ²ng chá»n lÃ½ do sá»­a Ä‘iá»ƒm.");
         }
         if (!verifyPassword(user, password)) {
-            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
+            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Máº­t kháº©u xÃ¡c nháº­n khÃ´ng Ä‘Ãºng.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         String auditReason = buildReasonText(reasonCode, reasonDetail);
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
-                    "Sửa điểm thực hành SBD " + reg.getCandidateNumber()
-                    + (auditReason.isBlank() ? "" : " - Lý do: " + auditReason),
+                    "Sá»­a Ä‘iá»ƒm thá»±c hÃ nh SBD " + reg.getCandidateNumber()
+                    + (auditReason.isBlank() ? "" : " - LÃ½ do: " + auditReason),
                     reg.getId());
         }
         return ServiceResult.ok(null);
@@ -393,10 +393,10 @@ public class CallServiceImpl implements CallService {
             String reasonDetail, String evidencePath) {
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended()) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh hoặc thí sinh đã bị đình chỉ.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh hoáº·c thÃ­ sinh Ä‘Ã£ bá»‹ Ä‘Ã¬nh chá»‰.");
         }
         if (reasonCode == null || reasonCode.isBlank()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do vi phạm.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lÃ²ng chá»n lÃ½ do vi pháº¡m.");
         }
         ViolationReason reason = ViolationReason.fromValue(reasonCode);
         String reasonLabel = reason != null ? reason.getValue()
@@ -404,15 +404,15 @@ public class CallServiceImpl implements CallService {
         String detail = reasonDetail != null ? reasonDetail.trim() : "";
         String auditText = buildViolationAuditText(reasonLabel, detail, evidencePath);
         auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                "Vi phạm SBD " + reg.getCandidateNumber() + ": " + auditText, reg.getId(), auditText);
+                "Vi pháº¡m SBD " + reg.getCandidateNumber() + ": " + auditText, reg.getId(), auditText);
         Candidate candidate = candidateDAO.getById(reg.getId());
         if (candidate == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy hồ sơ thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡ thÃ­ sinh.");
         }
         candidate.setSuspended(true);
         boolean updated = candidateDAO.update(candidate);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận vi phạm.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi nháº­n vi pháº¡m.");
         }
         removeFromAllQueues(reg.getCandidateNumber());
         return ServiceResult.ok(null);
@@ -422,10 +422,10 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> markPresent(int examId, int sbd, Integer actionUserId) {
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isAbsent() || reg.isSuspended()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điểm danh.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng thá»ƒ Ä‘iá»ƒm danh.");
         }
         if (CandidateStatus.COMPLETED.getValue().equals(reg.getSectionStatus())) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh đã hoàn tất phần thi.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh Ä‘Ã£ hoÃ n táº¥t pháº§n thi.");
         }
         ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment != null && CandidateStatus.fromValue(enrollment.getSectionStatus()) == CandidateStatus.NOT_STARTED) {
@@ -434,7 +434,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Điểm danh SBD " + reg.getCandidateNumber(), reg.getId());
+                    "Äiá»ƒm danh SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -443,11 +443,11 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> undoPresent(int examId, int sbd, Integer actionUserId) {
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tác điểm danh.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng thá»ƒ hoÃ n tÃ¡c Ä‘iá»ƒm danh.");
         }
         if (CandidateStatus.AWAITING_SIGNATURE.getValue().equals(reg.getSectionStatus())
                 || CandidateStatus.COMPLETED.getValue().equals(reg.getSectionStatus())) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Không thể hoàn tác điểm danh ở trạng thái hiện tại.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "KhÃ´ng thá»ƒ hoÃ n tÃ¡c Ä‘iá»ƒm danh á»Ÿ tráº¡ng thÃ¡i hiá»‡n táº¡i.");
         }
         ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment != null && CandidateStatus.fromValue(enrollment.getSectionStatus()) == CandidateStatus.IN_PROGRESS) {
@@ -456,7 +456,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Hoàn tác điểm danh SBD " + reg.getCandidateNumber(), reg.getId());
+                    "HoÃ n tÃ¡c Ä‘iá»ƒm danh SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -465,12 +465,12 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> sendWrongInfoToProcedure(int examId, int sbd, Integer actionUserId) {
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         removeFromAllQueues(reg.getCandidateNumber());
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Sai thông tin - chuyển phòng thủ tục SBD " + reg.getCandidateNumber(), reg.getId());
+                    "Sai thÃ´ng tin - chuyá»ƒn phÃ²ng thá»§ tá»¥c SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -479,21 +479,21 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> adjustScoreDeduction(int examId, int sbd, int deductionId, int delta,
             Integer actionUserId) {
         if (sbd <= 0 || deductionId <= 0 || delta == 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thông tin điều chỉnh điểm không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ´ng tin Ä‘iá»u chá»‰nh Ä‘iá»ƒm khÃ´ng há»£p lá»‡.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điều chỉnh điểm.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng thá»ƒ Ä‘iá»u chá»‰nh Ä‘iá»ƒm.");
         }
         boolean updated = adjustScoreDeductionOccurrence(reg.getId(), examId, deductionId, delta);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể điều chỉnh điểm trừ.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ Ä‘iá»u chá»‰nh Ä‘iá»ƒm trá»«.");
         }
         if (actionUserId != null) {
-            String action = delta > 0 ? "cộng" : "trừ";
+            String action = delta > 0 ? "cá»™ng" : "trá»«";
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
-                    action + " điểm lỗi #" + deductionId + " cho SBD " + reg.getCandidateNumber()
-                    + " (Δ=" + delta + ")",
+                    action + " Ä‘iá»ƒm lá»—i #" + deductionId + " cho SBD " + reg.getCandidateNumber()
+                    + " (Î”=" + delta + ")",
                     reg.getId());
         }
         return ServiceResult.ok(null);
@@ -502,24 +502,24 @@ public class CallServiceImpl implements CallService {
     @Override
     public ServiceResult<Void> finalizeScoreEntry(int examId, int sbd, Integer actionUserId) {
         if (sbd <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ bÃ¡o danh khÃ´ng há»£p lá»‡.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || reg.isSuspended() || reg.isAbsent()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tất nhập điểm.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng thá»ƒ hoÃ n táº¥t nháº­p Ä‘iá»ƒm.");
         }
         ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy đăng ký thi.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y Ä‘Äƒng kÃ½ thi.");
         }
         enrollment.setSectionStatus(CandidateStatus.AWAITING_SIGNATURE.getValue());
         boolean updated = enrollmentDAO.update(enrollment);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể hoàn tất nhập điểm.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ hoÃ n táº¥t nháº­p Ä‘iá»ƒm.");
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Giám khảo hoàn tất nhập điểm SBD " + reg.getCandidateNumber(), reg.getId());
+                    "GiÃ¡m kháº£o hoÃ n táº¥t nháº­p Ä‘iá»ƒm SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -534,20 +534,20 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> printSignatureForm(int examId, int sbd, Integer actionUserId) {
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null || !CandidateStatus.AWAITING_SIGNATURE.getValue().equals(reg.getSectionStatus())) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa sẵn sàng in biên bản.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh chÆ°a sáºµn sÃ ng in biÃªn báº£n.");
         }
         ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, reg.getId());
         if (enrollment == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy đăng ký thi.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y Ä‘Äƒng kÃ½ thi.");
         }
         enrollment.setSignaturePrinted(true);
         boolean updated = enrollmentDAO.update(enrollment);
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận in biên bản.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi nháº­n in biÃªn báº£n.");
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "In biên bản kết quả thi SBD " + reg.getCandidateNumber(), reg.getId());
+                    "In biÃªn báº£n káº¿t quáº£ thi SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -576,7 +576,7 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Hoàn tất phần thi SBD " + reg.getCandidateNumber(), reg.getId());
+                    "HoÃ n táº¥t pháº§n thi SBD " + reg.getCandidateNumber(), reg.getId());
         }
         boolean sectionPassed = sectionPassedHint != null
                 ? sectionPassedHint
@@ -593,11 +593,11 @@ public class CallServiceImpl implements CallService {
     public ServiceResult<Void> recordProcedureCall(int examId, int sbd, String result, String callDestination,
             Integer actionUserId) {
         if (sbd <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ bÃ¡o danh khÃ´ng há»£p lá»‡.");
         }
         EnrollmentDTO reg = getRegistration(examId, sbd);
         if (reg == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
         }
         Audit audit = new Audit();
         audit.setUserId(actionUserId != null ? actionUserId : 0);
@@ -610,11 +610,11 @@ public class CallServiceImpl implements CallService {
         audit.setNewValue(detail);
         int insertedId = auditDAO.insert(audit);
         if (insertedId <= 0) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận lệnh gọi.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi nháº­n lá»‡nh gá»i.");
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.CREATE, AuditEntity.CANDIDATE_CALL,
-                    "Gọi thủ tục SBD " + sbd + ": " + result, reg.getId());
+                    "Gá»i thá»§ tá»¥c SBD " + sbd + ": " + result, reg.getId());
         }
         return ServiceResult.ok(null);
     }
@@ -646,7 +646,7 @@ public class CallServiceImpl implements CallService {
         int insertedId = auditDAO.insert(audit);
         if (insertedId > 0 && actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.CREATE, AuditEntity.CANDIDATE_CALL,
-                    "Gọi SBD " + reg.getCandidateNumber(), reg.getId());
+                    "Gá»i SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return insertedId > 0;
     }
@@ -665,7 +665,7 @@ public class CallServiceImpl implements CallService {
         int insertedId = auditDAO.insert(audit);
         if (insertedId > 0 && actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.CREATE, AuditEntity.CANDIDATE_CALL,
-                    "Gọi SBD " + reg.getCandidateNumber(), reg.getId());
+                    "Gá»i SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return insertedId > 0;
     }
@@ -744,17 +744,17 @@ public class CallServiceImpl implements CallService {
             if (text.length() > 0) {
                 text.append(" | ");
             }
-            text.append("Minh chứng: ").append(evidencePath);
+            text.append("Minh chá»©ng: ").append(evidencePath);
         }
         return text.toString();
     }
 
     private static String buildReasonText(String reasonCode, String reasonDetail) {
         String label = switch (reasonCode != null ? reasonCode : "") {
-            case "cham-sai" -> "Chấm sai";
-            case "nhap-nham" -> "Nhập nhầm điểm";
-            case "khieu-nai" -> "Thí sinh khiếu nại";
-            case "khac" -> "Lý do khác";
+            case "cham-sai" -> "Cháº¥m sai";
+            case "nhap-nham" -> "Nháº­p nháº§m Ä‘iá»ƒm";
+            case "khieu-nai" -> "ThÃ­ sinh khiáº¿u náº¡i";
+            case "khac" -> "LÃ½ do khÃ¡c";
             default -> "";
         };
         if (reasonDetail != null && !reasonDetail.isBlank()) {
@@ -841,3 +841,4 @@ public class CallServiceImpl implements CallService {
         return false;
     }
 }
+

@@ -18,12 +18,12 @@ import examiner.dto.CandidateRowDTO;
 import examiner.dto.ExamStatsDTO;
 import examiner.dto.ExamReportDTO;
 import examiner.dto.InfractionDTO;
-import examiner.model.Audit;
-import examiner.model.CandidateAnswer;
-import examiner.model.Exam;
-import examiner.model.ExamDevice;
-import examiner.model.Question;
-import examiner.model.TheoryPaper;
+import shared.model.Audit;
+import shared.model.CandidateAnswer;
+import shared.model.Exam;
+import shared.model.ExamDevice;
+import shared.model.Question;
+import shared.model.TheoryPaper;
 import examiner.service.ExamViewService;
 import examiner.service.AuditService;
 import examiner.util.ExamQueue;
@@ -44,7 +44,6 @@ import java.util.Map;
 import examiner.dao.ExaminerViewDAO;
 import examiner.dao.DeductionRecordDAO;
 import examiner.dao.impl.DeductionRecordDAOImpl;
-import static util.FormatUtil.text;
 
 // Service implementation to load examminer realted data
 public class ExamViewServiceImpl implements ExamViewService {
@@ -381,7 +380,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.put("questionNo", question.getQuestionNumber());
             row.put("imageUrl", question.getImageUrl());
             row.put("correctAnswer", question.getCorrectAnswer());
-            row.put("studentAnswer", unanswered ? "—" : studentAnswer.trim().toUpperCase());
+            row.put("studentAnswer", unanswered ? "â€”" : studentAnswer.trim().toUpperCase());
             row.put("unanswered", unanswered);
             row.put("correct", correct);
             row.put("answerStatus", unanswered ? "skipped" : (correct ? "correct" : "wrong"));
@@ -730,7 +729,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setResultLabel("-");
         } else {
             row.setPassed(passed);
-            row.setResultLabel(passed ? "Đạt" : "Trượt");
+            row.setResultLabel(passed ? "Äáº¡t" : "TrÆ°á»£t");
         }
         // Device (vehicle) name
         Integer deviceId = enrollment.getEnrollment() != null ? enrollment.getEnrollment().getExamDeviceId() : null;
@@ -899,3 +898,4 @@ public class ExamViewServiceImpl implements ExamViewService {
         return "devices";
     }
 }
+
