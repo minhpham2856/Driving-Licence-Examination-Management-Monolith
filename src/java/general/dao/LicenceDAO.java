@@ -1,5 +1,6 @@
 package general.dao;
 
+import general.dto.LicenceSearchCriteriaDTO;
 import shared.model.Licence;
 import java.util.List;
 
@@ -8,6 +9,8 @@ public interface LicenceDAO {
     List<Licence> getAll();
 
     List<Licence> search(String keyword);
+
+    List<Licence> searchByCriteria(LicenceSearchCriteriaDTO criteria);
 
     Licence getById(int licenceId);
 
