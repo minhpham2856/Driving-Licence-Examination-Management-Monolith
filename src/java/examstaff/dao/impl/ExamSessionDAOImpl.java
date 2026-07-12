@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * JDBC implementation of ExamSessionDAO.
- * Schema DLEM_DB_2: má»™t ká»³ thi = má»™t {@link examstaff.model.Exam}; {@code sessionId} = {@code ExamId}.
+ * Schema DLEM_DB_2: má»™t ká»³ thi = má»™t {@link model.Exam}; {@code sessionId} = {@code ExamId}.
  */
 public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
 

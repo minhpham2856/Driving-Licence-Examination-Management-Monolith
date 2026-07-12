@@ -3,7 +3,7 @@ package examstaff.service.impl;
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.util.ExamStaffSessionRules;
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.user.UserDTO;
+import examstaff.dto.UserDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
 import shared.model.ExamArea;

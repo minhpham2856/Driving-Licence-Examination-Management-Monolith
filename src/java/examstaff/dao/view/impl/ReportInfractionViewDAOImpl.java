@@ -1,6 +1,8 @@
 package examstaff.dao.view.impl;
 
 import examstaff.dao.view.ReportInfractionViewDAO;
+import shared.dbconnection.DBContext;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import shared.dbconnection.DBContext;
 
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
@@ -23,7 +24,7 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
             INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = er.ExamEnrollmentId
             WHERE ee.ExamId = ?
               AND dr.OccurrenceCount > 0
-              AND sec.SectionType IN (N'Practical', N'Thực hành', N'Sa hình', N'Layout', N'TH')
+              AND sec.SectionType IN (N'Practical', N'Thá»±c hÃ nh', N'Sa hÃ¬nh', N'Layout', N'TH')
             GROUP BY sd.ScoreDeductionId, sd.[Reason]
             ORDER BY countVal DESC
             """;
@@ -35,7 +36,8 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
         }
         int top = limit > 0 ? limit : 3;
         List<Map<String, Object>> infractions = new ArrayList<>();
-        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(TOP_INFRACTIONS_SQL)) {
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(TOP_INFRACTIONS_SQL)) {
             ps.setInt(1, top);
             ps.setInt(2, examId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -60,3 +62,4 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
         return infractions;
     }
 }
+

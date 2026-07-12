@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import examstaff.dto.ExaminerSlotDTO;
-import examstaff.enums.SectionType;
+import shared.enums.ExamSection;
 import shared.model.ExamArea;
 
 import java.util.HashSet;
@@ -23,7 +23,7 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
-        return examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(normalized)
+        return ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(normalized)
                 || normalized.toLowerCase().contains("theory")
                 || normalized.toLowerCase().contains("lÃ½ thuyáº¿t")
                 || normalized.toLowerCase().contains("ly thuyet");
@@ -50,7 +50,7 @@ public final class ExaminerAssignmentRules {
         if (isTheoryAreaType(slot.getAreaType())) {
             return true;
         }
-        return slot.getExamTypeId() == 1;
+        return slot.getExamTypeId() == ExamSection.LY_THUYET.getExamTypeId();
     }
 
     public static boolean isPracticalSlot(ExaminerSlotDTO slot) {
@@ -61,8 +61,8 @@ public final class ExaminerAssignmentRules {
             return true;
         }
         int typeId = slot.getExamTypeId();
-        return typeId == 2
-                || typeId == 3;
+        return typeId == ExamSection.THUC_HANH_TRONG_HINH.getExamTypeId()
+                || typeId == ExamSection.THUC_HANH_TREN_DUONG.getExamTypeId();
     }
 
     /**

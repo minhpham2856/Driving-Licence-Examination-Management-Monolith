@@ -70,6 +70,11 @@ public final class CallQueueRules {
                 seen = true;
             }
         }
+        // Da gap afterSbd nhung khong con ai sau -> het hang (khong wrap ve chinh nguoi dang ban/dang goi).
+        if (seen) {
+            return null;
+        }
+        // afterSbd khong con trong pending (da xong/vang) -> lay dau hang con lai.
         return pending.get(0).getSbd();
     }
 

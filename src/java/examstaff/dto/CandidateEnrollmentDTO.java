@@ -1,7 +1,7 @@
 package examstaff.dto;
 import java.sql.*;
 import shared.model.ExamEnrollment;
-import examstaff.enums.SectionStatus;
+import shared.enums.SectionStatus;
 public class CandidateEnrollmentDTO {
     private CandidateProfileDTO candidate;
     private ExamEnrollment enrollment;
@@ -31,7 +31,7 @@ public class CandidateEnrollmentDTO {
     public void setAbsent(boolean absent) { if (candidate != null) candidate.setAbsent(absent); }
     public boolean isSuspended() { return candidate != null && candidate.isSuspended(); }
     public String getSectionStatus() {
-        return enrollment != null ? enrollment.getSectionStatus() : "ChÆ°a thi";
+        return enrollment != null ? enrollment.getSectionStatus() : "ChÃ†Â°a thi";
     }
     public void setSectionStatus(String status) { if (enrollment != null) enrollment.setSectionStatus(status); }
     public boolean isSignaturePrinted() { return enrollment != null && enrollment.isSignaturePrinted(); }
@@ -73,4 +73,5 @@ public class CandidateEnrollmentDTO {
     public boolean isSex() { return sex; }
     public String getReasonForTaking() { return reasonForTaking != null ? reasonForTaking : ""; }
 }
+
 

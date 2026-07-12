@@ -55,8 +55,8 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (examSession == null) {
             return StartResult.fail("Không tìm thấy kỳ thi.");
         }
-        if (!examstaff.enums.ExamSessionStatus.canStart(examSession.getStatus())) {
-            if (examstaff.enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
+        if (!enums.ExamSessionStatus.canStart(examSession.getStatus())) {
+            if (enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
                 return StartResult.fail("Kỳ thi \"" + examSession.getSessionName() + "\" đã được bắt đầu.");
             }
             return StartResult.fail("Kỳ thi \"" + examSession.getSessionName()
@@ -77,7 +77,7 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
                     + ExamScheduleRules.formatScheduledStart(scheduledStart) + ".");
         }
 
-        if (!sessionDAO.updateStatus(sessionId, examstaff.enums.ExamSessionStatus.DANG_DIEN_RA.getDisplayName())) {
+        if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.DANG_DIEN_RA.getDisplayName())) {
             return StartResult.fail("Không cập nhật được trạng thái kỳ thi. Vui lòng thử lại.");
         }
 
@@ -90,12 +90,12 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         if (examSession == null) {
             return EndResult.fail("Không tìm thấy kỳ thi.");
         }
-        if (!examstaff.enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
+        if (!enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
             return EndResult.fail("Kỳ thi \"" + examSession.getSessionName()
                     + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
         }
         Timestamp endTime = new Timestamp(System.currentTimeMillis());
-        if (!sessionDAO.finishSession(sessionId, examstaff.enums.ExamSessionStatus.HOAN_TAT.getDisplayName(), endTime)) {
+        if (!sessionDAO.finishSession(sessionId, enums.ExamSessionStatus.HOAN_TAT.getDisplayName(), endTime)) {
             return EndResult.fail("Không cập nhật được trạng thái kết thúc kỳ thi. Vui lòng thử lại.");
         }
         return EndResult.ok(buildSessionLabel(examSession), examSession.getExamDate());

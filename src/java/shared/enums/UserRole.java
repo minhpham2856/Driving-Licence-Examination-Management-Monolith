@@ -1,11 +1,11 @@
-package examstaff.enums;
+﻿package shared.enums;
 public enum UserRole {
-    QUAN_TRI_VIEN("Quản trị viên"),
-    SAT_HACH_VIEN("Sát hạch viên"),
-    CAN_BO_QUAN_LY("Cán bộ quản lý"),
-    CAN_BO_KY_THI("Cán bộ kỳ thi"),
-    THI_SINH("Thí sinh"),
-    NGUOI_DANG_KY_THI("Người đăng ký thi");
+    QUAN_TRI_VIEN("Quáº£n trá»‹ viÃªn"),
+    SAT_HACH_VIEN("SÃ¡t háº¡ch viÃªn"),
+    CAN_BO_QUAN_LY("CÃ¡n bá»™ quáº£n lÃ½"),
+    CAN_BO_KY_THI("CÃ¡n bá»™ ká»³ thi"),
+    THI_SINH("ThÃ­ sinh"),
+    NGUOI_DANG_KY_THI("NgÆ°á»i Ä‘Äƒng kÃ½ thi");
     private final String displayName;
     UserRole(String displayName) {
         this.displayName = displayName;
@@ -38,3 +38,4 @@ public enum UserRole {
         return isAdmin(roleName) || isExaminer(roleName) || isManagingStaff(roleName) || isExamStaff(roleName);
     }
 }
+

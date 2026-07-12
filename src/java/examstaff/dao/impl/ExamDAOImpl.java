@@ -1,5 +1,5 @@
 package examstaff.dao.impl;
-import examstaff.enums.ExamStatus;
+import shared.enums.ExamStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
@@ -53,3 +53,4 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return new ArrayList<>();
     }
 }
+

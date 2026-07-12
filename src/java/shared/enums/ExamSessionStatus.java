@@ -1,13 +1,13 @@
-package examstaff.enums;
+﻿package shared.enums;
 
 import java.util.Locale;
 
 public enum ExamSessionStatus {
-    CHUA_DIEN_RA("Chưa diễn ra"),
-    MO("Mở"),
-    DANG_DIEN_RA("Đang diễn ra"),
-    HOAN_TAT("Hoàn tất"),
-    DA_HUY("Đã hủy");
+    CHUA_DIEN_RA("ChÆ°a diá»…n ra"),
+    MO("Má»Ÿ"),
+    DANG_DIEN_RA("Äang diá»…n ra"),
+    HOAN_TAT("HoÃ n táº¥t"),
+    DA_HUY("ÄÃ£ há»§y");
     private final String displayName;
     ExamSessionStatus(String displayName) {
         this.displayName = displayName;
@@ -51,3 +51,4 @@ public enum ExamSessionStatus {
         return normalized == HOAN_TAT || normalized == DA_HUY;
     }
 }
+

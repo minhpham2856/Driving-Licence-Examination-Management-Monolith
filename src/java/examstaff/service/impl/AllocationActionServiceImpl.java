@@ -4,7 +4,7 @@ import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
-import examstaff.enums.SectionType;
+import shared.enums.ExamSection;
 import shared.model.ExamArea;
 import examstaff.service.AllocationActionService;
 import examstaff.service.ExamAreaQueryService;
@@ -98,7 +98,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null
-                || !examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(targetArea.getAreaType())) {
+                || !ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(targetArea.getAreaType())) {
             result.setErrorMsg("PhÃ²ng thi khÃ´ng há»£p lá»‡ â€” chá»‰ dÃ¹ng phÃ²ng loáº¡i LÃ½ thuyáº¿t.");
             return;
         }

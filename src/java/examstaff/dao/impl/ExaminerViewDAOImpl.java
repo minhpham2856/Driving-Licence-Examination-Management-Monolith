@@ -1,7 +1,7 @@
 package examstaff.dao.impl;
 
 import shared.dbconnection.DBContext;
-import examstaff.enums.SectionType;
+import shared.enums.SectionType;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -292,3 +292,4 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return summary;
     }
 }
+

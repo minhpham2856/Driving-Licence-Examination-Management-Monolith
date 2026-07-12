@@ -22,10 +22,10 @@ import examstaff.dto.ExaminerSlotDTO;
 
 import examstaff.dto.ExamSummaryDTO;
 
-import examstaff.dto.user.UserDTO;
+import examstaff.dto.UserDTO;
 
 import shared.model.ExamArea;
-import examstaff.enums.SectionType;
+import shared.enums.ExamSection;
 import examstaff.service.ExamStaffSessionQueryService;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.util.ExamAreaTypeResolver;
@@ -73,7 +73,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
         // Ká»³ thi luÃ´n gá»“m LT + TH â€” fallback láº¥y cáº£ hai loáº¡i phÃ²ng/sÃ¢n.
         List<ExamArea> areas = new ArrayList<>(areaDAO.getAvailableAreasByType(
-                examstaff.enums.SectionType.THEORY.getValue()));
+                ExamSection.LY_THUYET.getDisplayName()));
         areas.addAll(areaDAO.getAvailableAreasByType(ExamAreaTypeResolver.PRACTICAL_AREA_TYPE));
         return areas;
     }

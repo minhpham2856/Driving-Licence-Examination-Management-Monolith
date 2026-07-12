@@ -2,9 +2,8 @@ package examstaff.controller.staff.exam;
 
 import examstaff.controller.staff.exam.http.AuditFilterSupport;
 import examstaff.dto.user.AuditDTO;
-import shared.model.Profile;
-import shared.model.User;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
+import model.Profile;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.StaffAuditExportService;
 import examstaff.service.StaffAuditQueryService;
@@ -82,8 +81,8 @@ public class AuditExportServlet extends HttpServlet {
 
         String staffName = resolveStaffName(session);
         String scopeLabel = (filterDate != null && !filterDate.isBlank())
-                ? "NgÃ y " + filterDate
-                : "Táº¥t cáº£ lá»‹ch sá»­";
+                ? "Ngày " + filterDate
+                : "Tất cả lịch sử";
 
         auditExportService.exportAuditLog(response.getOutputStream(), logs, completedProcedures,
                 totalFees, staffName, scopeLabel);
@@ -95,8 +94,7 @@ public class AuditExportServlet extends HttpServlet {
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {
             return profile.getFullName();
         }
-        User user = (User) session.getAttribute("user");
-        return user != null ? user.getUsername() : "";
+        return SessionUserHelper.resolveUsername(session);
     }
 
     private List<AuditDTO> loadLogs(int userId, String filterDate) {
@@ -108,4 +106,3 @@ public class AuditExportServlet extends HttpServlet {
         }
     }
 }
-

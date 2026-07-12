@@ -2,7 +2,7 @@ package examstaff.dto;
 
 import java.sql.*;
 import shared.model.ExamEnrollment;
-import examstaff.enums.CandidateStatus;
+import shared.enums.CandidateStatus;
 
 public class EnrollmentDTO {
 
@@ -248,4 +248,5 @@ public class EnrollmentDTO {
         return reasonForTaking != null ? reasonForTaking : "";
     }
 }
+
 

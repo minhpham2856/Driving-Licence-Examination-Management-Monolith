@@ -6,22 +6,11 @@ import java.util.List;
 
 public interface ExamRegistrationDAO {
 
-    // --- mainTest methods (registrant flow) ---
-    int getLatestIdByProfileAndLicence(int profileId, int licenceId);
-
-    int add(ExamRegistration registration);
-
-    boolean update(ExamRegistration registration);
-
-    boolean updateStatusWithReviewNote(int examRegistrationId, String status, String message, int actorUserId);
-
-    // --- CleanMyBranch methods (examiner/examstaff flow, Æ°u tiÃªn) ---
+    // Lay dang ky theo id
+    ExamRegistrationDTO getById(int id);
 
     // Lay model dang ky theo id
     ExamRegistration findById(int id);
-
-    // Lay dang ky DTO theo id
-    ExamRegistrationDTO getById(int id);
 
     // Lay thi sinh theo ca va SBD
     ExamRegistrationDTO getBySessionAndSbd(int sessionId, String sbd);
@@ -62,7 +51,7 @@ public interface ExamRegistrationDAO {
     // Cap nhat diem ly thuyet va thuc hanh
     boolean updateScores(int id, Integer theoryScore, String theoryPassed, Integer practicalScore, String practicalPassed);
 
-    // Cap nhat diem theo ca thi
+    // Cap nhat diem theo ca thi (uu tien ExamEnrollment + Session_ExamSection cua ca)
     boolean updateScores(int id, int sessionId, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed);
 

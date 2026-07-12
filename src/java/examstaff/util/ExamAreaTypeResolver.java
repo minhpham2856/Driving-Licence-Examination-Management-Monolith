@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.enums.SectionType;
+import shared.enums.ExamSection;
 import shared.model.ExamArea;
 
 /** PhÃ¢n loáº¡i khu vá»±c thi (LT / TH) â€” helper thuáº§n. */
@@ -17,7 +17,7 @@ public final class ExamAreaTypeResolver {
             return false;
         }
         String type = area.getAreaType().trim();
-        return examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(type)
+        return ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(type)
                 || PRACTICAL_AREA_TYPE.equalsIgnoreCase(type);
     }
 }

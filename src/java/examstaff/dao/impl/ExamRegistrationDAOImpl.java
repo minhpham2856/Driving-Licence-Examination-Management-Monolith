@@ -26,7 +26,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     ExamRegistration r = new ExamRegistration();
-                    r.setExamRegistrationId(rs.getInt("ExamRegistrationId"));
+                    r.setId(rs.getInt("ExamRegistrationId"));
                     r.setRegistrationStatus(rs.getString("RegistrationStatus"));
                     r.setNotes(rs.getString("Notes"));
                     r.setProfileId(rs.getInt("ProfileId"));
@@ -1547,24 +1547,5 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         String govId;
         String address;
     }
-
-    @Override
-    public boolean updateStatusWithReviewNote(int examRegistrationId, String status, String message, int actorUserId) {
-        return false;
-    }
-
-    @Override
-    public boolean update(examstaff.model.ExamRegistration obj) {
-        return false;
-    }
-
-    @Override
-    public int add(examstaff.model.ExamRegistration obj) {
-        return 0;
-    }
-
-    @Override
-    public int getLatestIdByProfileAndLicence(int profileId, int licenceId) {
-        return 0;
-    }
 }
+

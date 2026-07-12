@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.enums.ErrorType;
+import shared.enums.ErrorType;
 
 public final class ServiceResult<T> {
 
@@ -48,3 +48,4 @@ public final class ServiceResult<T> {
         return data;
     }
 }
+

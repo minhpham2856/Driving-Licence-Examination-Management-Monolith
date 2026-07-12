@@ -1,4 +1,4 @@
-package examstaff.enums;
+﻿package shared.enums;
 
 public enum PaymentMethod {
     CASH("Cash");
@@ -13,3 +13,4 @@ public enum PaymentMethod {
         return code;
     }
 }
+

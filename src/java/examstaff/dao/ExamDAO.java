@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.enums.ExamStatus;
+import shared.enums.ExamStatus;
 import java.util.List;
 import shared.model.Exam;
 
@@ -10,4 +10,5 @@ public interface ExamDAO {
     List<Exam> getByStatus(ExamStatus status);
     List<Exam> getExamsByExaminerId(int examinerId);
 }
+
 

@@ -3,7 +3,7 @@ package examstaff.service;
 import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.user.UserDTO;
+import examstaff.dto.UserDTO;
 import shared.model.ExamArea;
 
 import java.util.List;

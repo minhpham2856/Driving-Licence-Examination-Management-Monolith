@@ -3,7 +3,7 @@ package examstaff.service.impl;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamSelectRequestDTO;
 import examstaff.dto.ExamSelectResultDTO;
-import examstaff.enums.ExamStaffMessage;
+import shared.enums.ExamStaffMessage;
 import examstaff.service.ExamSelectService;
 import examstaff.service.ExamStaffPageService;
 import examstaff.service.ExamStaffSelectionService;
@@ -49,3 +49,4 @@ public class ExamSelectServiceImpl implements ExamSelectService {
         return result;
     }
 }
+

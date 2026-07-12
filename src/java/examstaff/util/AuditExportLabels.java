@@ -2,7 +2,7 @@ package examstaff.util;
 
 import examstaff.dto.user.AuditDTO;
 
-import examstaff.enums.AuditEntity;
+import shared.enums.AuditEntity;
 
 import java.util.Locale;
 
@@ -34,7 +34,7 @@ public final class AuditExportLabels {
 
         if (log == null) {
 
-            return "Khác";
+            return "KhÃ¡c";
 
         }
 
@@ -44,27 +44,27 @@ public final class AuditExportLabels {
 
             String upper = details.toUpperCase(Locale.ROOT);
 
-            if (upper.contains("RESET") || details.toLowerCase(Locale.ROOT).contains("xóa hồ sơ thủ tục")) {
+            if (upper.contains("RESET") || details.toLowerCase(Locale.ROOT).contains("xÃ³a há»“ sÆ¡ thá»§ tá»¥c")) {
 
-                return "Đặt lại thủ tục";
-
-            }
-
-            if (upper.contains("PHÂN BỔ") || upper.contains("ALLOCATE")) {
-
-                return "Phân bổ";
+                return "Äáº·t láº¡i thá»§ tá»¥c";
 
             }
 
-            if (upper.contains("THU PHÍ") || upper.contains("THANH TOÁN")) {
+            if (upper.contains("PHÃ‚N Bá»”") || upper.contains("ALLOCATE")) {
 
-                return "Thu phí";
+                return "PhÃ¢n bá»•";
 
             }
 
-            if (upper.contains("IMPORT") || details.toLowerCase(Locale.ROOT).contains("nhập")) {
+            if (upper.contains("THU PHÃ") || upper.contains("THANH TOÃN")) {
 
-                return "Nhập dữ liệu";
+                return "Thu phÃ­";
+
+            }
+
+            if (upper.contains("IMPORT") || details.toLowerCase(Locale.ROOT).contains("nháº­p")) {
+
+                return "Nháº­p dá»¯ liá»‡u";
 
             }
 
@@ -79,7 +79,7 @@ public final class AuditExportLabels {
 
         if (action == null || action.isBlank()) {
 
-            return "Khác";
+            return "KhÃ¡c";
 
         }
 
@@ -87,29 +87,29 @@ public final class AuditExportLabels {
 
         if (upper.contains("WARNING")) {
 
-            return "Cảnh báo";
+            return "Cáº£nh bÃ¡o";
 
         }
 
         if (upper.contains("REMOVE") || upper.contains("DELETE")) {
 
-            return "Xóa / Gỡ";
+            return "XÃ³a / Gá»¡";
 
         }
 
         return switch (upper) {
 
-            case "INSERT" -> "Thêm mới";
+            case "INSERT" -> "ThÃªm má»›i";
 
-            case "UPDATE" -> "Cập nhật";
+            case "UPDATE" -> "Cáº­p nháº­t";
 
-            case "DELETE" -> "Xóa";
+            case "DELETE" -> "XÃ³a";
 
-            case "IMPORT" -> "Nhập dữ liệu";
+            case "IMPORT" -> "Nháº­p dá»¯ liá»‡u";
 
-            case "EXPORT" -> "Xuất dữ liệu";
+            case "EXPORT" -> "Xuáº¥t dá»¯ liá»‡u";
 
-            case "ASSIGN" -> "Phân công / Phân bổ";
+            case "ASSIGN" -> "PhÃ¢n cÃ´ng / PhÃ¢n bá»•";
 
             default -> formatActionCodeFromPhrase(action.trim());
 
@@ -124,31 +124,31 @@ public final class AuditExportLabels {
 
         if (upper.contains("INSERT")) {
 
-            return "Thêm mới";
+            return "ThÃªm má»›i";
 
         }
 
         if (upper.contains("UPDATE")) {
 
-            return "Cập nhật";
+            return "Cáº­p nháº­t";
 
         }
 
         if (upper.contains("IMPORT")) {
 
-            return "Nhập dữ liệu";
+            return "Nháº­p dá»¯ liá»‡u";
 
         }
 
         if (upper.contains("ASSIGN")) {
 
-            return "Phân công / Phân bổ";
+            return "PhÃ¢n cÃ´ng / PhÃ¢n bá»•";
 
         }
 
         if (upper.contains("EXPORT")) {
 
-            return "Xuất dữ liệu";
+            return "Xuáº¥t dá»¯ liá»‡u";
 
         }
 
@@ -161,7 +161,7 @@ public final class AuditExportLabels {
 
         if (tableName == null || tableName.isBlank()) {
 
-            return "Khác";
+            return "KhÃ¡c";
 
         }
 
@@ -171,27 +171,27 @@ public final class AuditExportLabels {
 
         String mapped = switch (upper) {
 
-            case "PAYMENT" -> "Thu phí thủ tục";
+            case "PAYMENT" -> "Thu phÃ­ thá»§ tá»¥c";
 
-            case "EXAMREGISTRATION" -> "Hồ sơ đăng ký thi";
+            case "EXAMREGISTRATION" -> "Há»“ sÆ¡ Ä‘Äƒng kÃ½ thi";
 
-            case "PROFILE", "PERSON" -> "Lý lịch thí sinh";
+            case "PROFILE", "PERSON" -> "LÃ½ lá»‹ch thÃ­ sinh";
 
-            case "EXAMSCORE" -> "Điểm / Kết quả thi";
+            case "EXAMSCORE" -> "Äiá»ƒm / Káº¿t quáº£ thi";
 
-            case "SESSION" -> "Điều hành ca thi";
+            case "SESSION" -> "Äiá»u hÃ nh ca thi";
 
-            case "CANDIDATE", "EXAMENROLLMENT" -> "Thí sinh";
+            case "CANDIDATE", "EXAMENROLLMENT" -> "ThÃ­ sinh";
 
-            case "EXAMINERSCHEDULE", "SESSION_EXAMINER" -> "Phân công giám thị";
+            case "EXAMINERSCHEDULE", "SESSION_EXAMINER" -> "PhÃ¢n cÃ´ng giÃ¡m thá»‹";
 
-            case "SESSION_EXAMINERAREA" -> "Phân công phòng giám thị";
+            case "SESSION_EXAMINERAREA" -> "PhÃ¢n cÃ´ng phÃ²ng giÃ¡m thá»‹";
 
-            case "EXAMDEVICE" -> "Thiết bị thi";
+            case "EXAMDEVICE" -> "Thiáº¿t bá»‹ thi";
 
-            case "SCOREENTRYQUEUE" -> "Hàng đợi nhập điểm";
+            case "SCOREENTRYQUEUE" -> "HÃ ng Ä‘á»£i nháº­p Ä‘iá»ƒm";
 
-            case "CANDIDATECALL" -> "Gọi thí sinh";
+            case "CANDIDATECALL" -> "Gá»i thÃ­ sinh";
 
             default -> null;
 
@@ -220,23 +220,23 @@ public final class AuditExportLabels {
 
         if (label == null || label.isBlank()) {
 
-            return "Khác";
+            return "KhÃ¡c";
 
         }
 
         return switch (label.trim()) {
 
-            case "Phân công sát hạch viên" -> "Phân công giám thị";
+            case "PhÃ¢n cÃ´ng sÃ¡t háº¡ch viÃªn" -> "PhÃ¢n cÃ´ng giÃ¡m thá»‹";
 
-            case "Phân công phòng sát hạch viên" -> "Phân công phòng giám thị";
+            case "PhÃ¢n cÃ´ng phÃ²ng sÃ¡t háº¡ch viÃªn" -> "PhÃ¢n cÃ´ng phÃ²ng giÃ¡m thá»‹";
 
-            case "Thanh toán" -> "Thu phí thủ tục";
+            case "Thanh toÃ¡n" -> "Thu phÃ­ thá»§ tá»¥c";
 
-            case "Điểm thi", "Kết quả thi" -> "Điểm / Kết quả thi";
+            case "Äiá»ƒm thi", "Káº¿t quáº£ thi" -> "Äiá»ƒm / Káº¿t quáº£ thi";
 
-            case "Ca thi" -> "Điều hành ca thi";
+            case "Ca thi" -> "Äiá»u hÃ nh ca thi";
 
-            case "Thí sinh", "Hồ sơ đăng ký thi" -> label.trim();
+            case "ThÃ­ sinh", "Há»“ sÆ¡ Ä‘Äƒng kÃ½ thi" -> label.trim();
 
     // format operation detail
             default -> label.trim();
@@ -293,11 +293,12 @@ public final class AuditExportLabels {
 
         String normalized = detail.replaceAll("\\s*SessionId=\\d+\\s*-\\s*", " ");
         normalized = normalized.replaceAll("\\s*SessionId=\\d+", "");
-        normalized = normalized.replaceAll("(?i)\\buserId=(\\d+)", "mã người dùng $1");
-        normalized = normalized.replaceAll("(?i)\\bslot=([\\d:]+)", "phân công $1");
+        normalized = normalized.replaceAll("(?i)\\buserId=(\\d+)", "mÃ£ ngÆ°á»i dÃ¹ng $1");
+        normalized = normalized.replaceAll("(?i)\\bslot=([\\d:]+)", "phÃ¢n cÃ´ng $1");
         normalized = normalized.replaceAll("\\s{2,}", " ").trim();
         return normalized;
 
     }
 
 }
+

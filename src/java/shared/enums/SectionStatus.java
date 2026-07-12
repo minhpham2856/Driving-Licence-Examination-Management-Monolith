@@ -1,11 +1,11 @@
-package examstaff.enums;
+﻿package shared.enums;
 
 public enum SectionStatus {
-    CHUA_THI("Chưa thi"),
-    DANG_THI("Đang thi"),
-    DAT("Đạt"),
-    TRUOT("Trượt"),
-    BO_THI("Bỏ thi");
+    CHUA_THI("ChÆ°a thi"),
+    DANG_THI("Äang thi"),
+    DAT("Äáº¡t"),
+    TRUOT("TrÆ°á»£t"),
+    BO_THI("Bá» thi");
 
     private final String value;
 
@@ -33,3 +33,4 @@ public enum SectionStatus {
         return null;
     }
 }
+

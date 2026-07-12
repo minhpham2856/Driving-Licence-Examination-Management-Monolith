@@ -16,7 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import examstaff.enums.UserRole;
+import shared.enums.UserRole;
 import examstaff.service.impl.RoleServiceImpl;
 public class UserDAOImpl extends DBContext implements UserDAO {
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
@@ -226,3 +226,4 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return new ArrayList<>();
     }
 }
+

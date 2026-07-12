@@ -1,4 +1,4 @@
-package examstaff.enums;
+﻿package shared.enums;
 
 import java.util.Locale;
 
@@ -34,3 +34,4 @@ public enum RegistrationType {
                 + RETAKE.code + "' ELSE N'" + PRE_REGISTERED.code + "' END";
     }
 }
+

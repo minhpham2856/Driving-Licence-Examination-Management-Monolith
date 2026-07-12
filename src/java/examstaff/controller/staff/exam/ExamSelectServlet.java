@@ -8,7 +8,7 @@ import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamSelectRequestDTO;
 import examstaff.dto.ExamSelectResultDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.enums.ExamStaffMessage;
+import shared.enums.ExamStaffMessage;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -119,3 +119,4 @@ public class ExamSelectServlet extends HttpServlet {
         ExamStaffPageBinder.publishQueue(null, session, snapshot);
     }
 }
+
