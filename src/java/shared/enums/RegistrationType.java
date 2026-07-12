@@ -1,37 +1,28 @@
-﻿package shared.enums;
-
-import java.util.Locale;
+package shared.enums;
 
 public enum RegistrationType {
     PRE_REGISTERED("PreRegistered"),
     RETAKE("Retake");
 
-    private final String code;
+    private final String value;
 
-    RegistrationType(String code) {
-        this.code = code;
+    private RegistrationType(String value) {
+        this.value = value;
     }
 
-    public String getCode() {
-        return code;
+    public String getValue() {
+        return value;
     }
 
-    public static RegistrationType fromCode(String value) {
-        if (value == null || value.isBlank()) {
-            return PRE_REGISTERED;
+    public static RegistrationType fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        String trimmed = value.trim();
-        for (RegistrationType type : values()) {
-            if (type.code.equalsIgnoreCase(trimmed)) {
-                return type;
+        for (RegistrationType status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
-        return PRE_REGISTERED;
-    }
-
-    public static String sqlCaseExpression(String takeNoColumn) {
-        return "CASE WHEN ISNULL(" + takeNoColumn + ", 1) > 1 THEN N'"
-                + RETAKE.code + "' ELSE N'" + PRE_REGISTERED.code + "' END";
+        return null;
     }
 }
-

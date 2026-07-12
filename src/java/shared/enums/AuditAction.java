@@ -21,9 +21,9 @@ public enum AuditAction {
         if (value == null) {
             return null;
         }
-        for (AuditAction action : values()) {
-            if (action.getValue().equals(value)) {
-                return action;
+        for (AuditAction status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
         return null;

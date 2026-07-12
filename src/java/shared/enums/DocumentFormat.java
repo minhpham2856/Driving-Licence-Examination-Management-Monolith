@@ -19,9 +19,9 @@ public enum DocumentFormat {
         if (value == null) {
             return null;
         }
-        for (DocumentFormat format : values()) {
-            if (format.getValue().equalsIgnoreCase(value.trim())) {
-                return format;
+        for (DocumentFormat status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
         return null;

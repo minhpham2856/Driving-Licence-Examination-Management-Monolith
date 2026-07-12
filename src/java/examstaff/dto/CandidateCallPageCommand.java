@@ -6,7 +6,7 @@ import examstaff.dto.view.CallBoardState;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Input cho orchestrator trang gá»i thÃ­ sinh (khÃ´ng phá»¥ thuá»™c Servlet API). */
+/** Input cho orchestrator trang gọi thí sinh (không phụ thuộc Servlet API). */
 public class CandidateCallPageCommand {
 
     private String action;

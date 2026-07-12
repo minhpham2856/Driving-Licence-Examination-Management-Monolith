@@ -1,4 +1,4 @@
-﻿package shared.enums;
+package shared.enums;
 
 public enum ExamStaffMessage {
     SESSION_SELECTED("ÄÃ£ chá»n ká»³ thi má»›i."),
@@ -8,26 +8,25 @@ public enum ExamStaffMessage {
     PHOTO_REQUIRED("KhÃ´ng thá»ƒ thu lá»‡ phÃ­: thÃ­ sinh chÆ°a chá»¥p áº£nh chÃ¢n dung táº¡i bÃ n thá»§ tá»¥c."),
     PAYMENT_WRITE_FAILED("KhÃ´ng ghi Ä‘Æ°á»£c thanh toÃ¡n. Vui lÃ²ng thá»­ láº¡i.");
 
-    private final String text;
+    private final String value;
 
-    ExamStaffMessage(String text) {
-        this.text = text;
+    private ExamStaffMessage(String value) {
+        this.value = value;
     }
 
-    public String getText() {
-        return text;
+    public String getValue() {
+        return value;
     }
 
-    public String formatExamNotFound(String param) {
-        if (param == null || param.isBlank()) {
-            return EXAM_NOT_FOUND_PREFIX.getText() + ".";
+    public static ExamStaffMessage fromValue(String value) {
+        if (value == null) {
+            return null;
         }
-        return EXAM_NOT_FOUND_PREFIX.getText() + " (id=" + param + ").";
-    }
-
-    public String formatSessionChangeError(String detail) {
-        String msg = detail != null && !detail.isBlank() ? detail : UNKNOWN_ERROR.getText();
-        return SESSION_CHANGE_ERROR_PREFIX.getText() + msg;
+        for (ExamStaffMessage status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
+            }
+        }
+        return null;
     }
 }
-

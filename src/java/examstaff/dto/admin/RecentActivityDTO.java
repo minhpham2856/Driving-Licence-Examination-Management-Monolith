@@ -24,7 +24,7 @@ public class RecentActivityDTO {
     public String getRecordId()  { return recordId; }
     public void setRecordId(String recordId) { this.recordId = recordId; }
     
-    public String getIpAddress() { return "—"; }
-    public String getStatus()    { return "Thành công"; }
+    public String getIpAddress() { return "�"; }
+    public String getStatus()    { return "Th�nh c�ng"; }
     public String getStatusKey() { return "success"; }
 }

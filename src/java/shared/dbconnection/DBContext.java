@@ -1,6 +1,6 @@
 package shared.dbconnection;
 
-import examstaff.util.ConfigManager;
+import shared.util.ConfigManager;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,3 +26,4 @@ public class DBContext {
         }
     }
 }
+

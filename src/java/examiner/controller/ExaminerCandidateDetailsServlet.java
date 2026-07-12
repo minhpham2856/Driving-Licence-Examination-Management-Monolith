@@ -152,7 +152,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
                 request.setAttribute("candidate", candidate);
             }
 
-            request.setAttribute("profileError", "KhÃ´ng lÆ°u Ä‘Æ°á»£c thÃ´ng tin: " + result.getMessage());
+            request.setAttribute("profileError", "Không lưu được thông tin: " + result.getMessage());
             request.getRequestDispatcher("/views/examiner/candidate-details-edit.jsp").forward(request, response);
             return;
         }

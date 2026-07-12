@@ -37,7 +37,8 @@ public class ReportFeeQueryServiceImpl implements ReportFeeQueryService {
     }
 
     private static boolean isActiveProcedurePayment(Payment payment) {
-        return PaymentStatus.isCompleted(payment.getPaymentStatus());
+        return (shared.enums.PaymentStatus.COMPLETED.getValue().equalsIgnoreCase(payment.getPaymentStatus()) || "Paid".equalsIgnoreCase(payment.getPaymentStatus()));
     }
 }
+
 

@@ -6,7 +6,7 @@ import examstaff.dto.view.ExamStaffCandidate;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Map read model â†’ DTO trÃ¬nh bÃ y (táº§ng service/controller). */
+/** Map read model → DTO trình bày (tầng service/controller). */
 public final class ExamStaffCandidateMapper {
 
     private ExamStaffCandidateMapper() {

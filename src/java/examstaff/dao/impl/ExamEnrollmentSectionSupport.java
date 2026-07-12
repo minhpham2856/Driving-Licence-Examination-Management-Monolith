@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
-/** Thao tác ExamEnrollmentSection (schema DLEM_DB_2). */
+/** Thao t�c ExamEnrollmentSection (schema DLEM_DB_2). */
 final class ExamEnrollmentSectionSupport {
 
     private ExamEnrollmentSectionSupport() {

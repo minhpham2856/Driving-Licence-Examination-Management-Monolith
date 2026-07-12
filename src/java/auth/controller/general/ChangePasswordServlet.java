@@ -51,7 +51,7 @@ public class ChangePasswordServlet extends HttpServlet {
             HttpSession s = request.getSession(false);
             if (s != null) {
                 auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
-                        "Äá»•i máº­t kháº©u tÃ i khoáº£n", sessionUser.getUserId());
+                        "Đổi mật khẩu tài khoản", sessionUser.getUserId());
             }
             request.setAttribute("messageType", "success");
         } else {

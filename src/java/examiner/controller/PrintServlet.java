@@ -45,7 +45,7 @@ public class PrintServlet extends HttpServlet {
             }
         }
         if (sbd <= 0) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiáº¿u sá»‘ bÃ¡o danh.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu số báo danh.");
             return;
         }
         prepareDocxDownload(response, DocumentName.printCandidate(type, sbd));

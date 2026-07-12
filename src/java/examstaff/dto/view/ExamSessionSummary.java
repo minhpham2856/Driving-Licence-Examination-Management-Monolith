@@ -4,7 +4,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** Read model ká»³ thi (Exam). */
+/** Read model kỳ thi (Exam). */
 public class ExamSessionSummary {
 
     private int examId;

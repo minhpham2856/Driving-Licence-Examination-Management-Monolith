@@ -49,31 +49,31 @@ public class RegisterServlet extends HttpServlet {
                 || ValidationUtil.isBlank(dateOfBirth)
                 || ValidationUtil.isBlank(address)
                 || ValidationUtil.isBlank(email)) {
-            forwardWithError(request, response, "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin.");
+            forwardWithError(request, response, "Vui lòng nhập đầy đủ thông tin.");
             return;
         }
 
         // validate terms agreement
         if (terms == null) {
-            forwardWithError(request, response, "Báº¡n pháº£i Ä‘á»“ng Ã½ vá»›i Äiá»u khoáº£n vÃ  ChÃ­nh sÃ¡ch báº£o máº­t.");
+            forwardWithError(request, response, "Bạn phải đồng ý với Điều khoản và Chính sách bảo mật.");
             return;
         }
 
         // validate government id
         if (!ValidationUtil.isValidCccd(govIdNo)) {
-            forwardWithError(request, response, "Sá»‘ CCCD pháº£i gá»“m Ä‘Ãºng 12 chá»¯ sá»‘.");
+            forwardWithError(request, response, "Số CCCD phải gồm đúng 12 chữ số.");
             return;
         }
 
         // validate phone number
         if (!ValidationUtil.isValidPhone(phoneNo)) {
-            forwardWithError(request, response, "Sá»‘ Ä‘iá»‡n thoáº¡i khÃ´ng há»£p lá»‡.");
+            forwardWithError(request, response, "Số điện thoại không hợp lệ.");
             return;
         }
 
         // validate email
         if (!ValidationUtil.isValidEmail(email)) {
-            forwardWithError(request, response, "Äá»‹a chá»‰ email khÃ´ng há»£p lá»‡.");
+            forwardWithError(request, response, "Địa chỉ email không hợp lệ.");
             return;
         }
 
@@ -82,13 +82,13 @@ public class RegisterServlet extends HttpServlet {
 
         // validate date format
         if (dob == null) {
-            forwardWithError(request, response, "NgÃ y sinh khÃ´ng há»£p lá»‡.");
+            forwardWithError(request, response, "Ngày sinh không hợp lệ.");
             return;
         }
 
         // validate future date
         if (dob.isAfter(LocalDate.now())) {
-            forwardWithError(request, response, "NgÃ y sinh khÃ´ng thá»ƒ chá»n.");
+            forwardWithError(request, response, "Ngày sinh không thể chọn.");
             return;
         }
 
@@ -118,11 +118,11 @@ public class RegisterServlet extends HttpServlet {
 
         if (data.isEmailSent()) {
             session.setAttribute("successMessage",
-                    "ÄÄƒng kÃ½ thÃ nh cÃ´ng! Kiá»ƒm tra email Ä‘á»ƒ láº¥y thÃ´ng tin Ä‘Äƒng nháº­p.");
+                    "Đăng ký thành công! Kiểm tra email để lấy thông tin đăng nhập.");
         } else {
             session.setAttribute(
                     "successMessage",
-                    "ÄÄƒng kÃ½ thÃ nh cÃ´ng! KhÃ´ng gá»­i Ä‘Æ°á»£c email - vui lÃ²ng lÆ°u thÃ´ng tin Ä‘Äƒng nháº­p bÃªn dÆ°á»›i.");
+                    "Đăng ký thành công! Không gửi được email - vui lòng lưu thông tin đăng nhập bên dưới.");
             session.setAttribute("registrationUsername", data.getUsername());
             session.setAttribute("registrationPassword", data.getPassword());
         }

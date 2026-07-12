@@ -15,11 +15,12 @@ import examstaff.util.ExamScheduleRules;
 import examstaff.util.ExaminerAssignmentRules;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import shared.enums.ExamSessionStatus;
 
 public class ExamSessionControlServiceImpl implements ExamSessionControlService {
 
     public static final String CTX_ACTIVE_EXAM_ID = "examActiveExamId";
-    /** Legacy ServletContext attr — dual-read khi migrate. */
+    /** Legacy ServletContext attr â€” dual-read khi migrate. */
     public static final String CTX_ACTIVE_SESSION_ID = "examActiveSessionId";
 
     private final ExamSessionDAO sessionDAO;
@@ -36,31 +37,31 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
 
     private static String buildSessionLabel(ExamSummaryDTO session) {
         if (session == null) {
-            return "kỳ thi";
+            return "ká»³ thi";
         }
         String name = session.getSessionName() != null && !session.getSessionName().isBlank()
                 ? session.getSessionName().trim()
-                : "kỳ thi";
+                : "ká»³ thi";
         if (session.getExamDate() == null) {
             return name;
         }
         String date = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"))
                 .format(session.getExamDate());
-        return name + " - ngày " + date;
+        return name + " - ngÃ y " + date;
     }
 
     @Override
     public StartResult startExam(int sessionId, int staffUserId) {
         ExamSummaryDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
-            return StartResult.fail("Không tìm thấy kỳ thi.");
+            return StartResult.fail("KhÃ´ng tÃ¬m tháº¥y ká»³ thi.");
         }
-        if (!enums.ExamSessionStatus.canStart(examSession.getStatus())) {
-            if (enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
-                return StartResult.fail("Kỳ thi \"" + examSession.getSessionName() + "\" đã được bắt đầu.");
+        if (!shared.enums.ExamSessionStatus.CHUA_DIEN_RA.getValue().equals(examSession.getStatus()) && !shared.enums.ExamSessionStatus.MO.getValue().equals(examSession.getStatus())) {
+            if (shared.enums.ExamSessionStatus.DANG_DIEN_RA.getValue().equals(examSession.getStatus())) {
+                return StartResult.fail("Ká»³ thi \"" + examSession.getSessionName() + "\" Ä‘Ã£ Ä‘Æ°á»£c báº¯t Ä‘áº§u.");
             }
-            return StartResult.fail("Kỳ thi \"" + examSession.getSessionName()
-                    + "\" không thể bắt đầu (trạng thái: " + examSession.getStatus() + ").");
+            return StartResult.fail("Ká»³ thi \"" + examSession.getSessionName()
+                    + "\" khÃ´ng thá»ƒ báº¯t Ä‘áº§u (tráº¡ng thÃ¡i: " + examSession.getStatus() + ").");
         }
 
         List<ExaminerSlotDTO> assignments = assignmentDAO.getByExamId(sessionId);
@@ -73,12 +74,12 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
                 ? examSession.getScheduledStartAt()
                 : examSession.getCreatedAt();
         if (ExamScheduleRules.isBeforeScheduledStart(scheduledStart)) {
-            return StartResult.fail("Chưa đến giờ bắt đầu kỳ thi. Kỳ thi được mở từ "
+            return StartResult.fail("ChÆ°a Ä‘áº¿n giá» báº¯t Ä‘áº§u ká»³ thi. Ká»³ thi Ä‘Æ°á»£c má»Ÿ tá»« "
                     + ExamScheduleRules.formatScheduledStart(scheduledStart) + ".");
         }
 
-        if (!sessionDAO.updateStatus(sessionId, enums.ExamSessionStatus.DANG_DIEN_RA.getDisplayName())) {
-            return StartResult.fail("Không cập nhật được trạng thái kỳ thi. Vui lòng thử lại.");
+        if (!sessionDAO.updateStatus(sessionId, ExamSessionStatus.DANG_DIEN_RA.getValue())) {
+            return StartResult.fail("KhÃ´ng cáº­p nháº­t Ä‘Æ°á»£c tráº¡ng thÃ¡i ká»³ thi. Vui lÃ²ng thá»­ láº¡i.");
         }
 
         return StartResult.ok(buildSessionLabel(examSession), examSession.getExamDate(), assignments.size());
@@ -88,15 +89,15 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
     public EndResult endExam(int sessionId) {
         ExamSummaryDTO examSession = sessionDAO.getById(sessionId);
         if (examSession == null) {
-            return EndResult.fail("Không tìm thấy kỳ thi.");
+            return EndResult.fail("KhÃ´ng tÃ¬m tháº¥y ká»³ thi.");
         }
-        if (!enums.ExamSessionStatus.isInProgress(examSession.getStatus())) {
-            return EndResult.fail("Kỳ thi \"" + examSession.getSessionName()
-                    + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSession.getStatus() + ").");
+        if (!shared.enums.ExamSessionStatus.DANG_DIEN_RA.getValue().equals(examSession.getStatus())) {
+            return EndResult.fail("Ká»³ thi \"" + examSession.getSessionName()
+                    + "\" chÆ°a á»Ÿ tráº¡ng thÃ¡i Ä‘ang diá»…n ra (hiá»‡n táº¡i: " + examSession.getStatus() + ").");
         }
         Timestamp endTime = new Timestamp(System.currentTimeMillis());
-        if (!sessionDAO.finishSession(sessionId, enums.ExamSessionStatus.HOAN_TAT.getDisplayName(), endTime)) {
-            return EndResult.fail("Không cập nhật được trạng thái kết thúc kỳ thi. Vui lòng thử lại.");
+        if (!sessionDAO.finishSession(sessionId, ExamSessionStatus.HOAN_TAT.getValue(), endTime)) {
+            return EndResult.fail("KhÃ´ng cáº­p nháº­t Ä‘Æ°á»£c tráº¡ng thÃ¡i káº¿t thÃºc ká»³ thi. Vui lÃ²ng thá»­ láº¡i.");
         }
         return EndResult.ok(buildSessionLabel(examSession), examSession.getExamDate());
     }
@@ -106,6 +107,9 @@ public class ExamSessionControlServiceImpl implements ExamSessionControlService 
         return assignmentDAO.getInProgressAssignmentsForExaminer(examinerUserId);
     }
 }
+
+
+
 
 
 

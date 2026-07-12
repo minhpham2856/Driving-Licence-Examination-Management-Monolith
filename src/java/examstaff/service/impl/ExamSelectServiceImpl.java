@@ -29,7 +29,7 @@ public class ExamSelectServiceImpl implements ExamSelectService {
         if (examId <= 0) {
             result.setSuccess(false);
             String param = urlExamId > 0 ? String.valueOf(urlExamId) : null;
-            result.setErrorMessage(ExamStaffMessage.EXAM_NOT_FOUND_PREFIX.formatExamNotFound(param));
+            result.setErrorMessage(ExamStaffMessage.EXAM_NOT_FOUND_PREFIX.getValue() + param);
             return result;
         }
 
@@ -49,4 +49,5 @@ public class ExamSelectServiceImpl implements ExamSelectService {
         return result;
     }
 }
+
 

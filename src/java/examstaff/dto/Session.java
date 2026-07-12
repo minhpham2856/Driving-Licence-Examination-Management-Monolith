@@ -9,7 +9,7 @@ public class Session {
     private Timestamp endTime;
     private String status;
     private int examId;
-    /** NhÃ£n hiá»ƒn thá»‹ suy ra (Ca sÃ¡ng/Ca chiá»u [- pháº§n thi]) â€” khÃ´ng map cá»™t DB. */
+    /** Nhãn hiển thị suy ra (Ca sáng/Ca chiều [- phần thi]) — không map cột DB. */
     private String sessionName;
 
     public Session() {

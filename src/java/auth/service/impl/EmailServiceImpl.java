@@ -1,7 +1,7 @@
 package auth.service.impl;
 
 import auth.service.EmailService;
-import examstaff.util.ConfigManager;
+import examiner.util.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;

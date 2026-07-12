@@ -60,7 +60,7 @@ public class ExaminerFilter extends HttpFilter {
         // Redirect unauthenticated users to login page
         if (user == null) {
             HttpSession loginSession = request.getSession(true);
-            loginSession.setAttribute("errorMessage", "Báº¡n cáº§n Ä‘Äƒng nháº­p Ä‘á»ƒ truy cáº­p.");
+            loginSession.setAttribute("errorMessage", "Bạn cần đăng nhập để truy cập.");
             response.sendRedirect(request.getContextPath() + "/staff/login");
             return;
         }
@@ -125,7 +125,7 @@ public class ExaminerFilter extends HttpFilter {
         Exam exam = examService.getById(schedule.getExamId());
         if (exam == null || ExamStatus.fromValue(exam.getStatus()) != ExamStatus.IN_PROGRESS) {
             clearContext(session);
-            session.setAttribute(ATTR_MESSAGE, "Ká»³ thi Ä‘ang khÃ´ng diá»…n ra");
+            session.setAttribute(ATTR_MESSAGE, "Kỳ thi đang không diễn ra");
             return false;
         }
 

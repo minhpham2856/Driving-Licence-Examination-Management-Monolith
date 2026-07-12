@@ -1,16 +1,27 @@
-﻿package shared.enums;
+package shared.enums;
 
 public enum PaymentMethod {
     CASH("Cash");
 
-    private final String code;
+    private final String value;
 
-    PaymentMethod(String code) {
-        this.code = code;
+    private PaymentMethod(String value) {
+        this.value = value;
     }
 
-    public String getCode() {
-        return code;
+    public String getValue() {
+        return value;
+    }
+
+    public static PaymentMethod fromValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        for (PaymentMethod status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
+            }
+        }
+        return null;
     }
 }
-

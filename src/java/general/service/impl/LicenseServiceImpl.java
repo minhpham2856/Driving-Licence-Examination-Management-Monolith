@@ -19,7 +19,7 @@ public class LicenseServiceImpl implements LicenceService {
 
         // validate list
         if (list == null) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Lá»—i khi láº¥y dá»¯ liá»‡u háº¡ng báº±ng.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Lỗi khi lấy dữ liệu hạng bằng.");
         }
 
         // return data

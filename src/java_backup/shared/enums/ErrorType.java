@@ -1,0 +1,11 @@
+package shared.enums;
+
+public enum ErrorType {
+    VALIDATION_FAILED,
+    NOT_FOUND,
+    NOT_CONFIGURED,
+    PERMISSION_DENIED,
+    PERSISTENCE_FAILED,
+    EXTERNAL_SERVICE_FAILED,
+    NOT_IMPLEMENTED
+}

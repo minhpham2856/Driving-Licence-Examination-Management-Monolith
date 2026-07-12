@@ -5,7 +5,7 @@ import shared.model.Payment;
 
 import java.util.List;
 
-/** CÃ¡ch tÃ­nh tá»•ng lá»‡ phÃ­ thá»§ tá»¥c thá»‘ng nháº¥t giá»¯a nháº­t kÃ½ (audit) vÃ  bÃ¡o cÃ¡o cuá»‘i ngÃ y. */
+/** Cách tính tổng lệ phí thủ tục thống nhất giữa nhật ký (audit) và báo cáo cuối ngày. */
 public final class ProcedureFeeTotals {
 
     private ProcedureFeeTotals() {
@@ -46,6 +46,6 @@ public final class ProcedureFeeTotals {
             AND LEN(LTRIM(RTRIM(c.PhotoImageUrl))) > 0
             """;
 
-    public static final String SQL_PAYMENT_ACTIVE = "p.PaymentStatus IN (N'Completed', N'Paid', N'HoÃ n táº¥t')";
+    public static final String SQL_PAYMENT_ACTIVE = "p.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')";
 }
 

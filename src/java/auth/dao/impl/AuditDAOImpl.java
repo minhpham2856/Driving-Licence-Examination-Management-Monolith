@@ -121,7 +121,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
                 + "FROM Audit a "
                 + "INNER JOIN ExamEnrollment e ON TRY_CAST(a.EntityId AS INT) = e.CandidateId "
                 + "WHERE e.ExamId = ? "
-                + "AND (a.Action = N'Cáº£nh bÃ¡o' OR a.NewValue LIKE N'%Vi pháº¡m%' OR a.NewValue LIKE N'%Ä‘Ã¬nh chá»‰%') "
+                + "AND (a.Action = N'Cảnh báo' OR a.NewValue LIKE N'%Vi phạm%' OR a.NewValue LIKE N'%đình chỉ%') "
                 + "ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> {
             ps.setInt(1, examId);

@@ -1,0 +1,16 @@
+package examstaff.service;
+
+import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.AllocationActionResultDTO;
+import examstaff.dto.AllocationCandidateActionRequest;
+
+import java.util.List;
+
+public interface AllocationActionService {
+
+    AllocationActionResultDTO autoAllocateOnOverview(int sessionId, String stage);
+
+    AllocationActionResultDTO executeCandidateAction(AllocationCandidateActionRequest request);
+
+    ExamRegistrationDTO findCandidate(int regId, int sessionId, List<ExamRegistrationDTO> queue);
+}

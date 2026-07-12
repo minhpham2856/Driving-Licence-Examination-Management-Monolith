@@ -8,10 +8,10 @@ public interface ExamAreaQueryService {
 
     List<ExamArea> listActiveTheoryRooms();
 
-    /** PhÃ²ng LT gáº¯n ká»³ vÃ  Ä‘Ã£ cÃ³ giÃ¡m kháº£o â€” dÃ¹ng dropdown phÃ¢n phÃ²ng thÃ­ sinh. */
+    /** Phòng LT gắn kỳ và đã có giám khảo — dùng dropdown phân phòng thí sinh. */
     List<ExamArea> listStaffedTheoryRoomsForExam(int examId);
 
-    /** SÃ¢n/phÃ²ng TH gáº¯n ká»³ vÃ  Ä‘Ã£ cÃ³ giÃ¡m kháº£o. */
+    /** Sân/phòng TH gắn kỳ và đã có giám khảo. */
     List<ExamArea> listStaffedPracticalAreasForExam(int examId);
 
     ExamArea findById(int examAreaId);

@@ -98,7 +98,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null
-                || !ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(targetArea.getAreaType())) {
+                || !ExamSection.LY_THUYET.getValue().equalsIgnoreCase(targetArea.getAreaType())) {
             result.setErrorMsg("PhÃ²ng thi khÃ´ng há»£p lá»‡ â€” chá»‰ dÃ¹ng phÃ²ng loáº¡i LÃ½ thuyáº¿t.");
             return;
         }
@@ -171,4 +171,5 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         }
     }
 }
+
 

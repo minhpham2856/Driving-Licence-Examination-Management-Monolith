@@ -186,15 +186,15 @@ public class AuditServiceImpl implements AuditService {
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
             case CREATE ->
-                "ThÃªm " + entity.toLowerCase() + sbdSuffix;
+                "Thêm " + entity.toLowerCase() + sbdSuffix;
             case DELETE ->
-                "XÃ³a " + entity.toLowerCase() + sbdSuffix;
+                "Xóa " + entity.toLowerCase() + sbdSuffix;
             case EXPORT ->
-                "Xuáº¥t " + entity.toLowerCase() + sbdSuffix;
+                "Xuất " + entity.toLowerCase() + sbdSuffix;
             case IMPORT ->
-                "Nháº­p " + entity.toLowerCase() + sbdSuffix;
+                "Nhập " + entity.toLowerCase() + sbdSuffix;
             default ->
-                "Cáº­p nháº­t " + entity.toLowerCase() + sbdSuffix;
+                "Cập nhật " + entity.toLowerCase() + sbdSuffix;
         };
     }
 
@@ -324,7 +324,7 @@ public class AuditServiceImpl implements AuditService {
         String username = user != null ? user.getUsername() : "he_thong";
         String fullName = profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()
                 ? profile.getFullName()
-                : (user != null ? user.getUsername() : "Há»‡ thá»‘ng");
+                : (user != null ? user.getUsername() : "Hệ thống");
         row.put("username", username);
         row.put("fullName", fullName);
         String roleKey = user != null ? mapRoleKey(user.getRoleId()) : "admin";
@@ -340,7 +340,7 @@ public class AuditServiceImpl implements AuditService {
         row.put("ip", "-");
         row.put("ipAddress", "-");
         row.put("device", "-");
-        row.put("status", "ThÃ nh cÃ´ng");
+        row.put("status", "Thành công");
         row.put("statusKey", "success");
         return row;
     }
@@ -361,13 +361,13 @@ public class AuditServiceImpl implements AuditService {
 
     private static String mapRoleLabel(String roleKey) {
         if ("admin".equals(roleKey)) {
-            return "Quáº£n trá»‹ viÃªn";
+            return "Quản trị viên";
         }
         if ("coi".equals(roleKey)) {
-            return "CÃ¡n bá»™ coi thi";
+            return "Cán bộ coi thi";
         }
         if ("cham".equals(roleKey)) {
-            return "sÃ¡t háº¡ch viÃªn";
+            return "sát hạch viên";
         }
         return roleKey;
     }
@@ -387,13 +387,13 @@ public class AuditServiceImpl implements AuditService {
             return "info";
         }
         String lower = action.toLowerCase();
-        if (lower.contains("xÃ³a") || lower.contains("delete") || lower.contains("Ä‘Ã¬nh chá»‰")) {
+        if (lower.contains("xóa") || lower.contains("delete") || lower.contains("đình chỉ")) {
             return "danger";
         }
-        if (lower.contains("cáº£nh bÃ¡o") || lower.contains("khÃ³a")) {
+        if (lower.contains("cảnh báo") || lower.contains("khóa")) {
             return "warning";
         }
-        if (lower.contains("táº¡o") || lower.contains("create") || lower.contains("import")) {
+        if (lower.contains("tạo") || lower.contains("create") || lower.contains("import")) {
             return "success";
         }
         return "info";

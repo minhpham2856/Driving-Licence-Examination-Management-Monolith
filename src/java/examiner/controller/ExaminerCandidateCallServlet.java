@@ -240,13 +240,13 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
 
     private String resolveCallDestination(HttpSession session) {
         if (session == null) {
-            return "Khu vá»±c thi";
+            return "Khu vực thi";
         }
         Object sectionName = session.getAttribute("examSectionName");
         if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
             return String.valueOf(sectionName);
         }
-        return "Khu vá»±c thi";
+        return "Khu vực thi";
     }
 }
 

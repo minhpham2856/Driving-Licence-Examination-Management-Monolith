@@ -35,3 +35,25 @@ The authentication components were successfully isolated from the global package
 - Re-routed `Role` population via the DAO directly in the `AuthService.login()` method instead of leaking `RoleDAO` into the Servlet layers, complying with the requirement that "controller calls service; service call dao".
 - The `LoginServlet` no longer calls the `RoleService`, maintaining clean separation.
 - Eradicated cross-layer `Service` leakage: `UserServiceImpl` properly maps `Profile` instances dynamically to isolate dependencies between the global domain and the `auth` domain.
+
+## 3. Analysis of Shared Models vs Module-Specific Models
+
+### Are the models exact mappings of the DB Schema?
+**Yes.** According to the architecture rules defined in `java-layered-architecture-rules`:
+> **11. Model Rules**
+> - Models are exact mappings of database entities.
+> - Each Model class must correspond to exactly one database table.
+> - Models must contain **all columns** defined in the database schema.
+> - Do not add extra fields or omit database columns.
+
+Because of this strict rule, `User` in `auth.model`, `User` in `examiner.model`, and `User` in `old.model` are functionally **100% identical**. They all strictly represent the `[User]` table in `DDL_DLEM_DB.sql` with the exact same columns, data types, and relationship references.
+
+### Does a `shared.model` violate Layered/Clean Architecture?
+**No, it does not violate the architecture.** In fact, maintaining duplicate identical models across modules *violates* the DRY (Don't Repeat Yourself) principle heavily enforced by the `java-clean-architecture-enforce` skill.
+
+In this monolith's architecture:
+- **Models** are plain POJOs that strictly mirror the database tables. They contain zero business logic.
+- **DTOs (Data Transfer Objects)** are where bounded contexts and module-specific structures belong. DTOs handle the context-specific boundaries (e.g., `auth.dto.CandidateProfileDTO` vs `examiner.dto.CandidateRowDTO`), so Models do not need to be duplicated to achieve isolation.
+- Consolidating into a single `shared.model` package perfectly aligns with the project rules, removes severe code duplication, and ensures that any schema changes in `DDL_DLEM_DB.sql` only require a single Model class to be updated.
+
+**Conclusion:** Migrating all identical module-specific models (e.g., `auth.model.*`, `*`, `general.model.*`) into a single `shared.model` is highly recommended and fully compliant with both the Layered Architecture and Clean Architecture rules for this project.

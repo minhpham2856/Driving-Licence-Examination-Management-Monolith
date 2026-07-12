@@ -31,17 +31,17 @@ public class AuthServiceImpl implements AuthService {
 
         // validate email uniqueness
         if (userDAO.getByEmail(email) != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Email Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Email đã được sử dụng.");
         }
 
         // validate government id uniqueness
         if (profileDAO.getByGovIdNo(profile.getGovernmentIdNumber()) != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ cÄƒn cÆ°á»›c Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số căn cước đã được sử dụng.");
         }
 
         // validate phone uniqueness
         if (profileDAO.getByPhoneNo(profile.getPhoneNumber()) != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ Ä‘iá»‡n thoáº¡i Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số điện thoại đã được sử dụng.");
         }
 
         // generate account credentials
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
         // save user
         if (!userDAO.insert(user)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
-                    "KhÃ´ng thá»ƒ Ä‘Äƒng kÃ½ tÃ i khoáº£n. Vui lÃ²ng thá»­ láº¡i.");
+                    "Không thể đăng ký tài khoản. Vui lòng thử lại.");
         }
 
         // link profile to user
@@ -63,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
         // save profile
         if (!profileDAO.insert(profile)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
-                    "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.");
+                    "Lỗi hệ thống. Vui lòng thử lại.");
         }
 
         // send account email
@@ -124,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
         // validate email
         if (email == null || email.isBlank()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n");
+                    "Không tìm thấy tài khoản");
         }
 
         // find user
@@ -133,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
         // validate account
         if (user == null || !user.isActive()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "HÃ£y kiá»ƒm tra hÃ²m thÆ° cá»§a báº¡n náº¿u email báº¡n nháº­p lÃ  Ä‘Ãºng");
+                    "Hãy kiểm tra hòm thư của bạn nếu email bạn nhập là đúng");
         }
 
         // generate temporary password
@@ -142,13 +142,13 @@ public class AuthServiceImpl implements AuthService {
         // update password
         if (!userDAO.updatePassword(user.getUserId(), tempPassword)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
-                    "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.");
+                    "Lỗi hệ thống. Vui lòng thử lại.");
         }
 
         // send recovery email
         if (!sendForgotPasswordEmail(user.getEmail(), user.getUsername(), tempPassword)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
-                    "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.");
+                    "Lỗi hệ thống. Vui lòng thử lại.");
         }
 
         return ServiceResult.ok(null);
@@ -166,40 +166,40 @@ public class AuthServiceImpl implements AuthService {
         // validate user
         if (fresh == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND,
-                    "CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i.");
+                    "Có lỗi xảy ra, vui lòng thử lại.");
         }
 
         // validate current password
         if (!passwordsMatch(currentPassword, fresh.getPasswordHash())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Máº­t kháº©u hiá»‡n táº¡i khÃ´ng chÃ­nh xÃ¡c.");
+                    "Mật khẩu hiện tại không chính xác.");
         }
 
         // validate new password length
         if (newPassword == null || newPassword.length() < 6) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Máº­t kháº©u má»›i pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±.");
+                    "Mật khẩu mới phải có ít nhất 6 ký tự.");
         }
 
         // validate confirmation
         if (!newPassword.equals(confirmPassword)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Máº­t kháº©u má»›i vÃ  xÃ¡c nháº­n khÃ´ng khá»›p.");
+                    "Mật khẩu mới và xác nhận không khớp.");
         }
 
         // validate password difference
         if (newPassword.equals(fresh.getPasswordHash())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Máº­t kháº©u má»›i khÃ´ng Ä‘Æ°á»£c trÃ¹ng máº­t kháº©u cÅ©.");
+                    "Mật khẩu mới không được trùng mật khẩu cũ.");
         }
 
         // update password
         if (userDAO.updatePassword(fresh.getUserId(), newPassword)) {
-            return ServiceResult.ok(null, "Äá»•i máº­t kháº©u thÃ nh cÃ´ng.");
+            return ServiceResult.ok(null, "Đổi mật khẩu thành công.");
         }
 
         return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
-                "CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i.");
+                "Có lỗi xảy ra, vui lòng thử lại.");
     }
 
     // create a new user for registration
@@ -225,14 +225,14 @@ public class AuthServiceImpl implements AuthService {
             String username,
             String password) {
 
-        String subject = "[LÃ¡i Vui] ThÃ´ng tin tÃ i khoáº£n";
+        String subject = "[Lái Vui] Thông tin tài khoản";
 
         String content = """
-                Xin chÃ o %s,
-                TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c táº¡o thÃ nh cÃ´ng.
-                TÃªn Ä‘Äƒng nháº­p: %s
-                Máº­t kháº©u: %s
-                Vui lÃ²ng Ä‘Äƒng nháº­p vÃ  Ä‘á»•i máº­t kháº©u trong pháº§n cÃ i Ä‘áº·t tÃ i khoáº£n.
+                Xin chào %s,
+                Tài khoản của bạn đã được tạo thành công.
+                Tên đăng nhập: %s
+                Mật khẩu: %s
+                Vui lòng đăng nhập và đổi mật khẩu trong phần cài đặt tài khoản.
                 """.formatted(fullName, username, password);
 
         return emailService.sendTextEmail(email, subject, content);
@@ -248,13 +248,13 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
 
-        String subject = "[LÃ¡i Vui] KhÃ´i phá»¥c máº­t kháº©u tÃ i khoáº£n";
+        String subject = "[Lái Vui] Khôi phục mật khẩu tài khoản";
 
         String content = """
-                Xin chÃ o %s,
-                Máº­t kháº©u cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c khÃ´i phá»¥c thÃ nh cÃ´ng.
-                Máº­t kháº©u táº¡m thá»i má»›i lÃ : %s
-                Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i vÃ  Ä‘á»•i máº­t kháº©u trong pháº§n cÃ i Ä‘áº·t tÃ i khoáº£n.
+                Xin chào %s,
+                Mật khẩu của bạn đã được khôi phục thành công.
+                Mật khẩu tạm thời mới là: %s
+                Vui lòng đăng nhập lại và đổi mật khẩu trong phần cài đặt tài khoản.
                 """.formatted(username, tempPassword);
 
         return emailService.sendTextEmail(recipientEmail, subject, content);

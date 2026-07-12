@@ -37,40 +37,40 @@ public class LicenceServiceImpl implements LicenceService {
     @Override
     public ServiceResult<SaveResultDTO> save(Licence licence, int adminUserId) {
         if (licence.getLicenceClass() == null || licence.getLicenceClass().isBlank()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lÃ²ng nháº­p mÃ£ háº¡ng (VD: A1, B2, C...).");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng nhập mã hạng (VD: A1, B2, C...).");
         }
         if (licence.getMinimumAge() <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Äá»™ tuá»•i tá»‘i thiá»ƒu pháº£i lá»›n hÆ¡n 0.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Độ tuổi tối thiểu phải lớn hơn 0.");
         }
         if (licence.getValidForYears() <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thá»i háº¡n (nÄƒm) pháº£i lá»›n hÆ¡n 0.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thời hạn (năm) phải lớn hơn 0.");
         }
         boolean isEdit = licence.getLicenceId() > 0;
         if (dao.existsByClass(licence.getLicenceClass(), licence.getLicenceId())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "MÃ£ Háº¡ng \"" + licence.getLicenceClass() + "\" Ä‘Ã£ tá»“n táº¡i.");
+                    "Mã Hạng \"" + licence.getLicenceClass() + "\" đã tồn tại.");
         }
         if (licence.getUpgradeFromLicenceId() != null && licence.getUpgradeFromLicenceId() == licence.getLicenceId()
                 && isEdit) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Háº¡ng khÃ´ng thá»ƒ nÃ¢ng cáº¥p tá»« chÃ­nh nÃ³.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Hạng không thể nâng cấp từ chính nó.");
         }
         if (isEdit) {
             if (dao.update(licence)) {
                 SaveResultDTO result = new SaveResultDTO();
                 result.setEntityId(licence.getLicenceId());
-                result.setMessage("ÄÃ£ cáº­p nháº­t háº¡ng \"" + licence.getLicenceClass() + "\".");
+                result.setMessage("Đã cập nhật hạng \"" + licence.getLicenceClass() + "\".");
                 return ServiceResult.ok(result, result.getMessage());
             }
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Cáº­p nháº­t háº¡ng GPLX tháº¥t báº¡i.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Cập nhật hạng GPLX thất bại.");
         }
         int newId = dao.insert(licence);
         if (newId > 0) {
             SaveResultDTO result = new SaveResultDTO();
             result.setEntityId(newId);
-            result.setMessage("ÄÃ£ thÃªm háº¡ng \"" + licence.getLicenceClass() + "\".");
+            result.setMessage("Đã thêm hạng \"" + licence.getLicenceClass() + "\".");
             return ServiceResult.ok(result, result.getMessage());
         }
-        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "ThÃªm háº¡ng tháº¥t báº¡i.");
+        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Thêm hạng thất bại.");
     }
 }
 

@@ -20,9 +20,9 @@ public enum DeviceType {
         if (value == null) {
             return null;
         }
-        for (DeviceType type : values()) {
-            if (type.getValue().equals(value)) {
-                return type;
+        for (DeviceType status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
         return null;

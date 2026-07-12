@@ -55,7 +55,7 @@ public class ExportServlet extends HttpServlet {
             format = DocumentFormat.EXCEL;
         }
         if (type == null || type.isBlank()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiáº¿u loáº¡i tÃ i liá»‡u.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu loại tài liệu.");
             return;
         }
         ExportContextDTO ctx = requireExportContext(request, response);
@@ -85,7 +85,7 @@ public class ExportServlet extends HttpServlet {
         }
         int sbd = parseSbd(request.getParameter("sbd"));
         if (sbd <= 0) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiáº¿u sá»‘ bÃ¡o danh.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu số báo danh.");
             return;
         }
         prepareDocxDownload(response, buildPrintFilename(type, sbd));

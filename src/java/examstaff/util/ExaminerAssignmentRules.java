@@ -23,7 +23,7 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
-        return ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(normalized)
+        return ExamSection.LY_THUYET.getValue().equalsIgnoreCase(normalized)
                 || normalized.toLowerCase().contains("theory")
                 || normalized.toLowerCase().contains("lÃ½ thuyáº¿t")
                 || normalized.toLowerCase().contains("ly thuyet");
@@ -50,7 +50,7 @@ public final class ExaminerAssignmentRules {
         if (isTheoryAreaType(slot.getAreaType())) {
             return true;
         }
-        return slot.getExamTypeId() == ExamSection.LY_THUYET.getExamTypeId();
+        return slot.getExamTypeId() == ExamSection.LY_THUYET.ordinal();
     }
 
     public static boolean isPracticalSlot(ExaminerSlotDTO slot) {
@@ -61,8 +61,8 @@ public final class ExaminerAssignmentRules {
             return true;
         }
         int typeId = slot.getExamTypeId();
-        return typeId == ExamSection.THUC_HANH_TRONG_HINH.getExamTypeId()
-                || typeId == ExamSection.THUC_HANH_TREN_DUONG.getExamTypeId();
+        return typeId == ExamSection.THUC_HANH_TRONG_HINH.ordinal()
+                || typeId == 2;
     }
 
     /**
@@ -154,4 +154,7 @@ public final class ExaminerAssignmentRules {
                 .toList();
     }
 }
+
+
+
 
