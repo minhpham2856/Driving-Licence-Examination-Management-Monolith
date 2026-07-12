@@ -57,7 +57,17 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
         long updatedAtMs = board != null ? board.getUpdatedAtMs() : System.currentTimeMillis();
 
         if ((nextSbd == null || nextSbd.isBlank()) && !shiftEnded && !examPaused) {
-            nextSbd = CallBoardRules.resolveNextSbd(board, queue);
+            // Khi ban dang ban: khong tu resolve lai next (tranh goi chuan bi nguoi dang o ban).
+            if (!deskBusy) {
+                nextSbd = CallBoardRules.resolveNextSbd(board, queue);
+            }
+        }
+        // Hardening: next khong duoc trung nguoi dang o ban / dang goi.
+        if (nextSbd != null && !nextSbd.isBlank()) {
+            if ((deskSbd != null && nextSbd.equals(deskSbd))
+                    || (callingSbd != null && nextSbd.equals(callingSbd) && deskBusy)) {
+                nextSbd = null;
+            }
         }
 
         ExamRegistrationDTO callingCandidate = CallQueueRules.findBySbd(queue, callingSbd);

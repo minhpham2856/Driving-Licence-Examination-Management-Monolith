@@ -8,7 +8,6 @@ import examstaff.dao.AuditLogDAO;
 import examstaff.dao.impl.AuditLogDAOImpl;
 
 import examstaff.model.Audit;
-import examstaff.model.User;
 import jakarta.servlet.http.HttpSession;
 
 import java.sql.Timestamp;
@@ -52,8 +51,7 @@ public final class AuditLogHelper {
     private static void insertLog(HttpSession session, String action, String contextDetails,
             String oldValue, String newValue, String reason, String detailsJson, int recordId) {
         try {
-            User user = (User) session.getAttribute("user");
-            int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
+            int userId = SessionUserHelper.resolveUserId(session);
 
             Audit log = new Audit();
             log.setEntityName(examstaff.enums.AuditEntity.resolveLabel(resolveEntityName(action, contextDetails)));
@@ -82,8 +80,7 @@ public final class AuditLogHelper {
 
     public static void persistWarning(HttpSession session, String details, String reason, int recordId) {
         try {
-            User user = (User) session.getAttribute("user");
-            int userId = (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
+            int userId = SessionUserHelper.resolveUserId(session);
 
             Audit log = new Audit();
             log.setEntityName(examstaff.enums.AuditEntity.resolveLabel("Candidate"));

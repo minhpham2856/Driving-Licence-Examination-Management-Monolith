@@ -2,9 +2,8 @@ package examstaff.controller.staff.exam;
 
 import examstaff.controller.staff.exam.http.AuditFilterSupport;
 import examstaff.dto.user.AuditDTO;
-import examstaff.model.Profile;
-import examstaff.model.User;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
+import model.Profile;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.StaffAuditExportService;
 import examstaff.service.StaffAuditQueryService;
@@ -95,8 +94,7 @@ public class AuditExportServlet extends HttpServlet {
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {
             return profile.getFullName();
         }
-        User user = (User) session.getAttribute("user");
-        return user != null ? user.getUsername() : "";
+        return SessionUserHelper.resolveUsername(session);
     }
 
     private List<AuditDTO> loadLogs(int userId, String filterDate) {

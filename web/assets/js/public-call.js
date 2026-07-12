@@ -87,7 +87,13 @@
 
     function resolveAnnounceCandidate(state) {
         if (!state || state.shiftEnded || state.examPaused) return null;
-        if (state.deskBusy && state.next) return state.next;
+        // Dang o ban thu tuc: chi goi "chuan bi" neu co next khac nguoi dang o ban.
+        if (state.deskBusy) {
+            if (!state.next || !state.next.sbd) return null;
+            const deskSbd = state.deskSbd || (state.calling && state.calling.sbd) || null;
+            if (deskSbd && state.next.sbd === deskSbd) return null;
+            return state.next;
+        }
         if (state.isCallingActive && state.calling) return state.calling;
         if (state.waitingQueue && state.waitingQueue.length > 0) return state.waitingQueue[0];
         return null;
@@ -97,10 +103,8 @@
         const candidate = resolveAnnounceCandidate(state);
         if (!candidate) return null;
         const mode = isPrepareMode(state) ? 'prepare' : 'call';
-        if (state.isCallingActive && (state.calling || state.deskBusy)) {
-            return mode + ':' + candidate.sbd + ':' + state.updatedAtMs;
-        }
-        return mode + ':head:' + candidate.sbd;
+        // Khong gan updatedAtMs — moi lan sync/procedure chi bump timestamp se lam loa reset cau.
+        return mode + ':' + candidate.sbd;
     }
 
     function renderQueue(state) {

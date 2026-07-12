@@ -12,9 +12,9 @@ import examstaff.dto.ExamReportProcedureStatusDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ExamReportStatsDTO;
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.model.Profile;
-import examstaff.model.User;
 import examstaff.util.ReportExportLabels;
+import examstaff.util.SessionUserHelper;
+import model.Profile;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -104,7 +104,6 @@ public class ReportServlet extends HttpServlet {
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {
             return profile.getFullName();
         }
-        User user = (User) session.getAttribute("user");
-        return user != null ? user.getUsername() : "";
+        return SessionUserHelper.resolveUsername(session);
     }
 }

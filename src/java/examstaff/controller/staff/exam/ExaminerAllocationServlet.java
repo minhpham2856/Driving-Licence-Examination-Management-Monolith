@@ -10,7 +10,7 @@ import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
-import examstaff.model.User;
+import examstaff.util.SessionUserHelper;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.ExaminerAllocationDeskService;
 import examstaff.service.ExaminerAllocationService;
@@ -131,8 +131,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
     private int resolveStaffId(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        return (user != null && user.getUserId() > 0) ? user.getUserId() : 3;
+        return SessionUserHelper.resolveUserId(session);
     }
 
     private void addAuditLog(HttpSession session, String action, String details) {

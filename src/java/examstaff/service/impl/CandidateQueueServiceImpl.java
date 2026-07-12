@@ -157,7 +157,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
             return active.get(0).getSbd();
         }
         String next = findNextPendingSbd(active, afterSbd);
-        return next != null ? next : active.get(0).getSbd();
+        return next;
     }
 
     @Override
