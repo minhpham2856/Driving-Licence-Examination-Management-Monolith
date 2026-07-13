@@ -2,6 +2,7 @@ package examstaff.controller.staff.exam.binder;
 
 import examstaff.dto.ExaminerAllocationViewDTO;
 import jakarta.servlet.http.HttpServletRequest;
+import shared.Attributes;
 
 public final class ExaminerAllocationViewBinder {
 
@@ -12,11 +13,11 @@ public final class ExaminerAllocationViewBinder {
         if (request == null || view == null) {
             return;
         }
-        request.setAttribute("examAssignments", view.getDayAssignments());
-        request.setAttribute("allExaminers", view.getAllExaminers());
-        request.setAttribute("availableExaminers", view.getAvailableExaminers());
-        request.setAttribute("busyExaminers", view.getBusyExaminers());
-        request.setAttribute("areaAssignOptions", view.getAreaAssignOptions());
-        request.setAttribute("examStaffLoadedExamId", examId);
+        request.setAttribute(Attributes.ExamStaff.EXAM_ASSIGNMENTS, view.getDayAssignments());
+        request.setAttribute(Attributes.ExamStaff.ALL_EXAMINERS, view.getAllExaminers());
+        request.setAttribute(Attributes.ExamStaff.AVAILABLE_EXAMINERS, view.getAvailableExaminers());
+        request.setAttribute(Attributes.ExamStaff.BUSY_EXAMINERS, view.getBusyExaminers());
+        request.setAttribute(Attributes.ExamStaff.AREA_ASSIGN_OPTIONS, view.getAreaAssignOptions());
+        request.setAttribute(Attributes.ExamStaff.LOADED_EXAM_ID, examId);
     }
 }

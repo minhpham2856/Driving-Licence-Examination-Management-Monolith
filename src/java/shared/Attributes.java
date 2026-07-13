@@ -31,6 +31,8 @@ public final class Attributes {
         public static final String CANDIDATES = "candidates";
         public static final String PAGE_URL = "pageUrl";
         public static final String BACK_URL = "backUrl";
+        public static final String ERROR_MSG = "errorMsg";
+        public static final String ALERT_MSG = "alertMsg";
     }
 
     // Examiner session and request context
@@ -51,5 +53,22 @@ public final class Attributes {
         public static final String SELECTED_EXAM_ID = "selectedExamId";
         public static final String CURRENT_EXAM = "currentExam";
         public static final String CANDIDATE_QUEUE = "candidateQueue";
+        public static final String ALL_EXAMS = "allExams";
+        public static final String EXAM_OPTIONS = "examOptions";
+        public static final String LOADED_EXAM_ID = "examStaffLoadedExamId";
+        public static final String LAST_LOADED_EXAM_ID = "lastLoadedExamId";
+
+        /** Dropdown phân công giám khảo (list map areaId/areaName/...). */
+        public static final String AREA_ASSIGN_OPTIONS = "areaAssignOptions";
+        public static final String EXAM_ASSIGNMENTS = "examAssignments";
+        public static final String ALL_EXAMINERS = "allExaminers";
+        public static final String AVAILABLE_EXAMINERS = "availableExaminers";
+        public static final String BUSY_EXAMINERS = "busyExaminers";
+
+        /** Phòng LT / sân TH đã có giám khảo — trang phân bổ thí sinh. */
+        public static final String ACTIVE_THEORY_ROOMS = "activeTheoryRooms";
+        public static final String ACTIVE_PRACTICAL_AREAS = "activePracticalAreas";
+        public static final String ALLOCATION_AREA_FILTER = "allocationAreaFilter";
+        public static final String ALLOCATION_ACTIVE_EXAM_ID = "allocationActiveExamId";
     }
 }
