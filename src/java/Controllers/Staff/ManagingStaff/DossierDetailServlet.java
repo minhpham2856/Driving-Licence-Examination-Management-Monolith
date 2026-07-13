@@ -17,6 +17,7 @@ import java.util.Set;
 public class DossierDetailServlet extends HttpServlet {
 
     private static final String VIEW = "/views/staff/managingstaff/user-detail.jsp";
+    private static final int PAGE_SIZE = 15;
     private final DossierDAO dossierDAO = new DossierDAOImpl();
 
     @Override
@@ -38,8 +39,17 @@ public class DossierDetailServlet extends HttpServlet {
         }
 
         if (userId <= 0 && registrationId <= 0) {
+            String statusFilter = normalizeStatusFilter(request.getParameter("status"));
+            int totalItems = dossierDAO.countRegistrants(statusFilter, "", "", "");
+            int totalPages = Math.max(1, (totalItems + PAGE_SIZE - 1) / PAGE_SIZE);
+            int currentPage = Math.min(Math.max(parseInt(request.getParameter("page")), 1), totalPages);
+            java.util.List<DossierDTO> dossiers = dossierDAO.findRegistrantPage(
+                    statusFilter, "", "", "", currentPage, PAGE_SIZE);
             request.setAttribute("listMode", true);
-            request.setAttribute("dossiers", dossierDAO.findAllRegistrants());
+            request.setAttribute("statusFilter", statusFilter);
+            request.setAttribute("statusCounts", dossierDAO.countRegistrantStatuses());
+            request.setAttribute("dossiers", dossiers);
+            setPaginationAttributes(request, currentPage, totalPages, totalItems, dossiers.size());
         } else {
             request.setAttribute("dossier", dossier);
         }
@@ -67,5 +77,23 @@ public class DossierDetailServlet extends HttpServlet {
         } catch (Exception ignored) {
             return 0;
         }
+    }
+
+    private static String normalizeStatusFilter(String value) {
+        String filter = value == null ? "all" : value.trim().toLowerCase(java.util.Locale.ROOT);
+        return Set.of("all", "draft", "pending", "supplement", "approved", "rejected", "present", "completed")
+                .contains(filter) ? filter : "all";
+    }
+
+    private static void setPaginationAttributes(HttpServletRequest request, int currentPage,
+            int totalPages, int totalItems, int pageItems) {
+        int firstItem = totalItems == 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalFiltered", totalItems);
+        request.setAttribute("firstItem", firstItem);
+        request.setAttribute("lastItem", totalItems == 0 ? 0 : firstItem + pageItems - 1);
+        request.setAttribute("pageStart", Math.max(1, currentPage - 2));
+        request.setAttribute("pageEnd", Math.min(totalPages, currentPage + 2));
     }
 }

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chi tiáº¿t há»“ sÆ¡ há»c viÃªn - LÃ¡i Vui</title>
+    <title>Chi tiết hồ sơ học viên - Lái Vui</title>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
@@ -22,36 +22,69 @@
     <nav class="breadcrumbs">
         <a href="${ctx}/manager/dashboard">Dashboard</a>
         <span class="breadcrumbs__separator">/</span>
-        <a href="${ctx}/manager/registrants">Danh sÃ¡ch há»c viÃªn</a>
+        <a href="${ctx}/manager/registrants">Danh sách học viên</a>
         <span class="breadcrumbs__separator">/</span>
-        <span class="breadcrumbs__current">Chi tiáº¿t há»“ sÆ¡</span>
+        <span class="breadcrumbs__current">Chi tiết hồ sơ</span>
     </nav>
+
+    <c:if test="${not empty sessionScope.reminderSuccess}">
+        <div class="p-alert-banner" style="border-color:#10b981;color:#047857">
+            <c:out value="${sessionScope.reminderSuccess}" />
+        </div>
+        <c:remove var="reminderSuccess" scope="session" />
+    </c:if>
+    <c:if test="${not empty sessionScope.reminderError}">
+        <div class="p-alert-banner" style="border-color:#ef4444;color:#991b1b">
+            <c:out value="${sessionScope.reminderError}" />
+        </div>
+        <c:remove var="reminderError" scope="session" />
+    </c:if>
 
     <c:choose>
         <c:when test="${listMode}">
             <header class="page-header">
                 <div class="page-title-wrap">
-                    <h1 class="page-title">Quáº£n lÃ½ há»“ sÆ¡ thÃ­ sinh</h1>
-                    <p class="page-subtitle">ToÃ n bá»™ tÃ i khoáº£n Registrant Ä‘Æ°á»£c táº£i trá»±c tiáº¿p tá»« database.</p>
+                    <h1 class="page-title">Quản lý hồ sơ thí sinh</h1>
+                    <p class="page-subtitle">Dữ liệu được phân trang trực tiếp tại database, 15 thí sinh mỗi trang.</p>
                 </div>
                 <span class="action-badge action-badge--info" style="font-weight:700">
-                    ${fn:length(dossiers)} thÃ­ sinh
+                    ${totalFiltered} thí sinh
                 </span>
             </header>
+
+            <nav aria-label="Lọc trạng thái hồ sơ"
+                 style="display:flex;flex-wrap:wrap;gap:.65rem;margin:0 0 1.25rem">
+                <a class="${statusFilter eq 'all' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=all" style="text-decoration:none">Tất cả (${statusCounts.all})</a>
+                <a class="${statusFilter eq 'draft' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=draft" style="text-decoration:none">Bản nháp (${statusCounts.draft})</a>
+                <a class="${statusFilter eq 'pending' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=pending" style="text-decoration:none">Chờ duyệt (${statusCounts.pending})</a>
+                <a class="${statusFilter eq 'supplement' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=supplement" style="text-decoration:none">Cần bổ sung (${statusCounts.supplement})</a>
+                <a class="${statusFilter eq 'approved' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=approved" style="text-decoration:none">Đã duyệt (${statusCounts.approved})</a>
+                <a class="${statusFilter eq 'rejected' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=rejected" style="text-decoration:none">Đã từ chối (${statusCounts.rejected})</a>
+                <a class="${statusFilter eq 'present' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=present" style="text-decoration:none">Đang thi (${statusCounts.present})</a>
+                <a class="${statusFilter eq 'completed' ? 'btn-filter' : 'btn-export'}"
+                   href="${ctx}/manager/dossier-detail?status=completed" style="text-decoration:none">Đã thi xong (${statusCounts.completed})</a>
+            </nav>
 
             <section class="log-card">
                 <div class="table-responsive">
                     <table class="audit-table">
                         <thead>
                             <tr>
-                                <th>MÃ£ tÃ i khoáº£n</th>
-                                <th>Há» vÃ  tÃªn</th>
+                                <th>Mã tài khoản</th>
+                                <th>Họ và tên</th>
                                 <th>CCCD</th>
-                                <th>LiÃªn há»‡</th>
-                                <th>Háº¡ng GPLX</th>
-                                <th>Giáº¥y tá»</th>
-                                <th>Tráº¡ng thÃ¡i há»“ sÆ¡</th>
-                                <th style="text-align:center">Thao tÃ¡c</th>
+                                <th>Liên hệ</th>
+                                <th>Hạng GPLX</th>
+                                <th>Giấy tờ</th>
+                                <th>Trạng thái hồ sơ</th>
+                                <th style="text-align:center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,7 +97,7 @@
                                         <c:out value="${item.profile.phoneNo}" /><br>
                                         <small><c:out value="${item.user.email}" /></small>
                                     </td>
-                                    <td><c:out value="${empty item.licenceDisplayClass ? 'ChÆ°a chá»n' : item.licenceDisplayClass}" /></td>
+                                    <td><c:out value="${empty item.licenceDisplayClass ? 'Chưa chọn' : item.licenceDisplayClass}" /></td>
                                     <td>${item.documentCount}/${item.requiredDocumentTotal}</td>
                                     <td>
                                         <span class="action-badge action-badge--${item.statusKey}">
@@ -72,22 +105,64 @@
                                         </span>
                                     </td>
                                     <td style="text-align:center">
-                                        <a class="btn-export"
-                                           href="${ctx}/manager/dossier-detail?id=${item.user.id}"
-                                           style="display:inline-flex;text-decoration:none">Xem chi tiáº¿t</a>
+                                        <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center">
+                                            <a class="btn-export"
+                                               href="${ctx}/manager/dossier-detail?id=${item.user.id}"
+                                               style="display:inline-flex;text-decoration:none">Xem chi tiết</a>
+                                            <c:if test="${item.pendingReview}">
+                                                <a class="btn-filter"
+                                                   href="${ctx}/manager/dossiers?id=${item.registrationId}&amp;page=${currentPage}"
+                                                   style="display:inline-flex;text-decoration:none">Duyệt hồ sơ</a>
+                                            </c:if>
+                                            <c:if test="${item.reminderEligible}">
+                                                <form action="${ctx}/manager/dossiers/remind" method="post" style="margin:0"
+                                                      onsubmit="return confirm('Gửi email nhắc hoàn thiện hồ sơ này?');">
+                                                    <input type="hidden" name="id" value="${item.registrationId}">
+                                                    <input type="hidden" name="returnTo" value="list">
+                                                    <input type="hidden" name="returnStatus" value="${statusFilter}">
+                                                    <input type="hidden" name="returnPage" value="${currentPage}">
+                                                    <button class="btn-export" type="submit">Gửi email nhắc</button>
+                                                </form>
+                                            </c:if>
+                                        </div>
                                     </td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty dossiers}">
                                 <tr>
                                     <td colspan="8" style="padding:3rem;text-align:center;color:#64748b">
-                                        ChÆ°a cÃ³ tÃ i khoáº£n Registrant trong database.
+                                        Chưa có tài khoản Registrant trong database.
                                     </td>
                                 </tr>
                             </c:if>
                         </tbody>
                     </table>
                 </div>
+                <footer class="pagination-footer">
+                    <div class="pagination-info">
+                        Hiển thị ${firstItem} - ${lastItem} trong tổng số ${totalFiltered} hồ sơ · 15 người/trang
+                    </div>
+                    <nav class="pagination-nav" aria-label="Phân trang hồ sơ thí sinh">
+                        <c:choose>
+                            <c:when test="${currentPage gt 1}">
+                                <a class="page-btn page-btn--wide"
+                                   href="${ctx}/manager/dossier-detail?status=${statusFilter}&amp;page=${currentPage - 1}">Trước</a>
+                            </c:when>
+                            <c:otherwise><span class="page-btn page-btn--wide disabled">Trước</span></c:otherwise>
+                        </c:choose>
+                        <c:forEach var="pageNumber" begin="${pageStart}" end="${pageEnd}">
+                            <a class="page-btn ${pageNumber eq currentPage ? 'active' : ''}"
+                               href="${ctx}/manager/dossier-detail?status=${statusFilter}&amp;page=${pageNumber}">${pageNumber}</a>
+                        </c:forEach>
+                        <c:choose>
+                            <c:when test="${currentPage lt totalPages}">
+                                <a class="page-btn page-btn--wide"
+                                   href="${ctx}/manager/dossier-detail?status=${statusFilter}&amp;page=${currentPage + 1}">Sau</a>
+                            </c:when>
+                            <c:otherwise><span class="page-btn page-btn--wide disabled">Sau</span></c:otherwise>
+                        </c:choose>
+                    </nav>
+                </footer>
             </section>
         </c:when>
         <c:when test="${not empty dossier}">
@@ -95,17 +170,25 @@
                 <div class="page-title-wrap">
                     <h1 class="page-title"><c:out value="${dossier.profile.fullName}" /></h1>
                     <p class="page-subtitle">
-                        TÃ i khoáº£n @<c:out value="${dossier.user.username}" />
-                        Â· Há»“ sÆ¡ #${dossier.registrationId}
-                        Â· Háº¡ng <c:out value="${empty dossier.licenceDisplayClass ? 'ChÆ°a chá»n' : dossier.licenceDisplayClass}" />
+                        Tài khoản @<c:out value="${dossier.user.username}" />
+                        · Hồ sơ #${dossier.registrationId}
+                        · Hạng <c:out value="${empty dossier.licenceDisplayClass ? 'Chưa chọn' : dossier.licenceDisplayClass}" />
                     </p>
                 </div>
                 <div class="page-actions" style="display:flex;gap:.75rem">
-                    <a class="btn-export" href="${ctx}/manager/registrants"
-                       style="display:inline-flex;text-decoration:none">Quay láº¡i</a>
-                    <c:if test="${dossier.status eq 'Submitted' or dossier.status eq 'NeedSupplement'}">
+                    <a class="btn-export" href="${ctx}/manager/dossier-detail"
+                       style="display:inline-flex;text-decoration:none">Quay lại</a>
+                    <c:if test="${dossier.pendingReview}">
                         <a class="btn-filter" href="${ctx}/manager/dossiers?id=${dossier.registrationId}"
-                           style="display:inline-flex;text-decoration:none">Tháº©m Ä‘á»‹nh há»“ sÆ¡</a>
+                           style="display:inline-flex;text-decoration:none">Duyệt hồ sơ</a>
+                    </c:if>
+                    <c:if test="${dossier.reminderEligible}">
+                        <form action="${ctx}/manager/dossiers/remind" method="post" style="margin:0"
+                              onsubmit="return confirm('Gửi email nhắc hoàn thiện hồ sơ này?');">
+                            <input type="hidden" name="id" value="${dossier.registrationId}">
+                            <input type="hidden" name="returnTo" value="detail">
+                            <button class="btn-export" type="submit">Gửi email nhắc</button>
+                        </form>
                     </c:if>
                 </div>
             </header>
@@ -121,12 +204,12 @@
                         <span class="action-badge action-badge--${dossier.statusKey}">${dossier.statusLabel}</span>
                         <div class="profile-quick-info" style="margin-top:1.5rem">
                             <div class="quick-info-item"><span class="quick-info-label">CCCD</span><span class="quick-info-value"><c:out value="${dossier.profile.govIdNo}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">NgÃ y sinh</span><span class="quick-info-value"><fmt:formatDate value="${dossier.profile.dateOfBirth}" pattern="dd/MM/yyyy" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Giá»›i tÃ­nh</span><span class="quick-info-value"><c:out value="${dossier.profile.sex}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Äiá»‡n thoáº¡i</span><span class="quick-info-value"><c:out value="${dossier.profile.phoneNo}" /></span></div>
+                            <div class="quick-info-item"><span class="quick-info-label">Ngày sinh</span><span class="quick-info-value"><fmt:formatDate value="${dossier.profile.dateOfBirth}" pattern="dd/MM/yyyy" /></span></div>
+                            <div class="quick-info-item"><span class="quick-info-label">Giới tính</span><span class="quick-info-value"><c:out value="${dossier.profile.sex}" /></span></div>
+                            <div class="quick-info-item"><span class="quick-info-label">Điện thoại</span><span class="quick-info-value"><c:out value="${dossier.profile.phoneNo}" /></span></div>
                             <div class="quick-info-item"><span class="quick-info-label">Email</span><span class="quick-info-value"><c:out value="${dossier.user.email}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Äá»‹a chá»‰</span><span class="quick-info-value" style="text-align:right"><c:out value="${dossier.profile.address}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">TÃ i khoáº£n</span><span class="quick-info-value">${dossier.user.active ? 'Äang hoáº¡t Ä‘á»™ng' : 'ÄÃ£ khÃ³a'}</span></div>
+                            <div class="quick-info-item"><span class="quick-info-label">Địa chỉ</span><span class="quick-info-value" style="text-align:right"><c:out value="${dossier.profile.address}" /></span></div>
+                            <div class="quick-info-item"><span class="quick-info-label">Tài khoản</span><span class="quick-info-value">${dossier.user.active ? 'Đang hoạt động' : 'Đã khóa'}</span></div>
                         </div>
                     </div>
                 </aside>
@@ -134,9 +217,9 @@
                 <section class="profile-main-content" style="gap:1.5rem">
                     <div class="log-card">
                         <div class="log-card-header">
-                            <h2 class="log-card-title">Giáº¥y tá» há»“ sÆ¡ (${dossier.documentCount}/${dossier.requiredDocumentTotal})</h2>
+                            <h2 class="log-card-title">Giấy tờ hồ sơ (${dossier.documentCount}/${dossier.requiredDocumentTotal})</h2>
                             <span class="action-badge action-badge--${dossier.complete ? 'success' : 'warning'}">
-                                ${dossier.complete ? 'ÄÃƒ Äá»¦ Há»’ SÆ ' : 'CHÆ¯A Äá»¦ Há»’ SÆ '}
+                                ${dossier.complete ? 'ĐÃ ĐỦ HỒ SƠ' : 'CHƯA ĐỦ HỒ SƠ'}
                             </span>
                         </div>
                         <div class="report-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));padding:1.5rem;gap:1rem">
@@ -146,21 +229,21 @@
                                 <div class="profile-score-card" style="align-items:flex-start;min-height:120px">
                                     <strong>
                                         <c:choose>
-                                            <c:when test="${type eq 'PORTRAIT'}">áº¢nh chÃ¢n dung 3x4</c:when>
-                                            <c:when test="${type eq 'ID_FRONT'}">CCCD máº·t trÆ°á»›c</c:when>
-                                            <c:when test="${type eq 'ID_BACK'}">CCCD máº·t sau</c:when>
-                                            <c:otherwise>Giáº¥y khÃ¡m sá»©c khá»e</c:otherwise>
+                                            <c:when test="${type eq 'PORTRAIT'}">Ảnh chân dung 3x4</c:when>
+                                            <c:when test="${type eq 'ID_FRONT'}">CCCD mặt trước</c:when>
+                                            <c:when test="${type eq 'ID_BACK'}">CCCD mặt sau</c:when>
+                                            <c:otherwise>Giấy khám sức khỏe</c:otherwise>
                                         </c:choose>
                                     </strong>
                                     <c:choose>
                                         <c:when test="${not empty document}">
-                                            <span class="action-badge action-badge--success">ÄÃ£ táº£i lÃªn</span>
+                                            <span class="action-badge action-badge--success">Đã tải lên</span>
                                             <a class="btn-export" target="_blank" rel="noopener"
                                                href="${ctx}${document.documentUrl}"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Má»Ÿ tÃ i liá»‡u</a>
+                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="action-badge action-badge--warning">CÃ²n thiáº¿u</span>
+                                            <span class="action-badge action-badge--warning">Còn thiếu</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -185,12 +268,22 @@
                         </div>
                     </div>
 
+                    <c:if test="${not empty dossier.documents['APPROVED_DOSSIER_PDF']}">
+                        <div class="report-pane" style="padding:1.5rem;border-color:#10b981">
+                            <h2 class="log-card-title">PDF hồ sơ đã duyệt</h2>
+                            <p>Biểu mẫu hồ sơ, ảnh chân dung và tài liệu căn cước đã được tổng hợp.</p>
+                            <a class="btn-filter" target="_blank" rel="noopener"
+                               href="${ctx}${dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl}"
+                               style="display:inline-flex;text-decoration:none">Mở PDF hồ sơ</a>
+                        </div>
+                    </c:if>
+
                     <div class="report-pane" style="padding:1.5rem">
-                        <h2 class="log-card-title">Káº¿t quáº£ xá»­ lÃ½ há»“ sÆ¡</h2>
+                        <h2 class="log-card-title">Kết quả xử lý hồ sơ</h2>
                         <div style="display:grid;grid-template-columns:180px 1fr;gap:.75rem;margin-top:1rem">
-                            <strong>Tráº¡ng thÃ¡i hiá»‡n táº¡i</strong><span>${dossier.statusLabel}</span>
-                            <strong>Háº¡ng GPLX</strong><span><c:out value="${empty dossier.licenceDisplayClass ? 'ChÆ°a chá»n' : dossier.licenceDisplayClass}" /></span>
-                            <strong>Ghi chÃº gáº§n nháº¥t</strong><span><c:out value="${empty dossier.reviewMessage ? 'ChÆ°a cÃ³ ghi chÃº' : dossier.reviewMessage}" /></span>
+                            <strong>Trạng thái hiện tại</strong><span>${dossier.statusLabel}</span>
+                            <strong>Hạng GPLX</strong><span><c:out value="${empty dossier.licenceDisplayClass ? 'Chưa chọn' : dossier.licenceDisplayClass}" /></span>
+                            <strong>Ghi chú gần nhất</strong><span><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú' : dossier.reviewMessage}" /></span>
                         </div>
                     </div>
                 </section>
@@ -198,7 +291,7 @@
         </c:when>
         <c:otherwise>
             <div class="report-pane" style="padding:4rem 1.5rem;text-align:center;margin-top:1.5rem">
-                KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡ thÃ­ sinh.
+                Không tìm thấy hồ sơ thí sinh.
             </div>
         </c:otherwise>
     </c:choose>

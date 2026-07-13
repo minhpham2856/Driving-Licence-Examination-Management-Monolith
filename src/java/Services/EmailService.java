@@ -23,4 +23,10 @@ public interface EmailService {
      * @return true if the email was sent successfully, false otherwise.
      */
     boolean sendHtmlEmail(String to, String subject, String htmlContent);
+
+    /**
+     * Sends an HTML email with one in-memory attachment.
+     */
+    boolean sendHtmlEmailWithAttachment(String to, String subject, String htmlContent,
+            byte[] attachment, String attachmentName, String attachmentContentType);
 }
