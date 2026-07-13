@@ -10,21 +10,26 @@ import examiner.filter.ExaminerFilter;
 import examiner.service.ExamViewService;
 import examiner.dto.CandidateRowDTO;
 import examiner.service.impl.ExamViewServiceImpl;
-import examiner.service.CallService;
-import examiner.service.impl.CallServiceImpl;
+import examiner.service.ActionService;
+import examiner.service.impl.ActionServiceImpl;
+import shared.enums.SectionType;
+import static shared.util.FormatUtil.formatPositiveInteger;
 
 import java.io.IOException;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-    "/views/examiner/audit",
-    "/views/examiner/export",
-    "/views/examiner/print-documents"
+    "/examiner/audit",
+    "/examiner/export",
+    "/examiner/print-documents"
 })
-public class ExaminerMiscServlet extends HttpServlet {
-    protected final ExamViewService viewDataService = new ExamViewServiceImpl();
-    protected final CallService callService = new CallServiceImpl();
+// Miscellaneous pages: audit log viewer, export hub, and per-candidate print document selector.
+public class MiscServlet extends HttpServlet {
 
+    protected final ExamViewService viewService = new ExamViewServiceImpl();
+    protected final ActionService actionService = new ActionServiceImpl();
+
+    // Route to audit, export hub, or print-documents view and load page-specific data for the active session.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -36,29 +41,24 @@ public class ExaminerMiscServlet extends HttpServlet {
 
         Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String path = stripContextPath(request);
-        Integer sbd = null;
-        try {
-            if (request.getParameter("sbd") != null) {
-                sbd = Integer.parseInt(request.getParameter("sbd").trim());
-            }
-        } catch (NumberFormatException e) {}
-        
+        Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
+
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
-            if ("/views/examiner/audit".equals(path)) {
-                Map<String, Object> data = viewDataService.getAuditLogsData(activeExamId, request.getParameter("page"), search);
+            // Each URL path loads different hub data for audit, export menu, or print-documents picker.
+            if ("/examiner/audit".equals(path)) {
+                Map<String, Object> data = viewService.getAuditViewByExam(activeExamId, request.getParameter("page"), search);
                 if (data != null) {
                     for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                         request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     }
                 }
-            } else if ("/views/examiner/print-documents".equals(path)) {
-                boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
-                String sectionName = resolveSectionName(session);
-                
+            } else if ("/examiner/print-documents".equals(path)) {
+                SectionType sectionType = ExaminerFilter.resolveSectionType(session);
+
                 if (sbd != null && sbd > 0) {
-                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
+                    CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
                     if (candidate != null) {
                         request.setAttribute("candidate", candidate);
                     }
@@ -67,14 +67,20 @@ public class ExaminerMiscServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/views/examiner/audit" -> "/views/examiner/audit.jsp";
-            case "/views/examiner/export" -> "/views/examiner/export.jsp";
-            case "/views/examiner/print-documents" -> "/views/examiner/print-documents.jsp";
-            default -> "/views/examiner/audit.jsp";
+            case "/examiner/audit" ->
+                "/views/examiner/audit.jsp";
+            case "/examiner/export" ->
+                "/views/examiner/export.jsp";
+            case "/examiner/print-documents" ->
+                "/views/examiner/print-documents.jsp";
+            default ->
+                "/views/examiner/audit.jsp";
         };
+        // export.jsp is static; audit and print-documents need server-loaded attributes.
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 
+    // Strip the servlet context path prefix from the request URI for multi-path routing.
     private String stripContextPath(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String ctx = request.getContextPath();
@@ -82,13 +88,5 @@ public class ExaminerMiscServlet extends HttpServlet {
             return uri.substring(ctx.length());
         }
         return uri;
-    }
-    
-    private String resolveSectionName(HttpSession session) {
-        if (session == null) {
-            return null;
-        }
-        Object name = session.getAttribute("examSectionName");
-        return name != null ? String.valueOf(name) : null;
     }
 }
