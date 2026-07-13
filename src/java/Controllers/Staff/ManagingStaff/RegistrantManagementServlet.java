@@ -14,16 +14,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @WebServlet("/manager/registrants")
 public class RegistrantManagementServlet extends HttpServlet {
 
     private static final String VIEW = "/views/staff/managingstaff/users.jsp";
+    private static final int PAGE_SIZE = 15;
     private final DossierDAO dossierDAO = new DossierDAOImpl();
     private final UserDAO userDAO = new UserDAOImpl();
 
@@ -32,34 +32,30 @@ public class RegistrantManagementServlet extends HttpServlet {
             throws ServletException, IOException {
         if (!hasAccess(request, response)) return;
 
-        String keyword = trim(request.getParameter("keyword")).toLowerCase(Locale.ROOT);
+        String keyword = trim(request.getParameter("keyword"));
         String licence = trim(request.getParameter("licence")).toUpperCase(Locale.ROOT);
         String dossierStatus = trim(request.getParameter("dossierStatus"));
         String accountStatus = trim(request.getParameter("accountStatus"));
+        int totalFiltered = dossierDAO.countRegistrants(
+                dossierStatus, licence, keyword, accountStatus);
+        int totalPages = Math.max(1, (totalFiltered + PAGE_SIZE - 1) / PAGE_SIZE);
+        int currentPage = Math.min(Math.max(parseInt(request.getParameter("page")), 1), totalPages);
+        List<DossierDTO> filtered = dossierDAO.findRegistrantPage(
+                dossierStatus, licence, keyword, accountStatus, currentPage, PAGE_SIZE);
 
-        List<DossierDTO> all = dossierDAO.findAllRegistrants();
-        List<DossierDTO> filtered = all.stream()
-                .filter(d -> matchesKeyword(d, keyword))
-                .filter(d -> licence.isEmpty() || licence.equalsIgnoreCase(d.getLicenceClass()))
-                .filter(d -> dossierStatus.isEmpty() || dossierStatus.equalsIgnoreCase(d.getStatus()))
-                .filter(d -> accountStatus.isEmpty()
-                        || ("active".equals(accountStatus) && d.getUser().isActive())
-                        || ("locked".equals(accountStatus) && !d.getUser().isActive()))
-                .toList();
-
-        if ("csv".equalsIgnoreCase(request.getParameter("export"))) {
-            exportCsv(response, filtered);
-            return;
-        }
-
+        Map<String, Integer> statusCounts = dossierDAO.countRegistrantStatuses();
+        Map<String, Integer> approvedByLicence = dossierDAO.countApprovedByLicence();
+        request.setAttribute("registrantReady", true);
         request.setAttribute("registrants", filtered);
-        request.setAttribute("totalRegistrants", all.size());
-        request.setAttribute("approvedCount",
-                all.stream().filter(d -> "Approved".equals(d.getStatus())).count());
+        setPaginationAttributes(request, currentPage, totalPages, totalFiltered, filtered.size());
+        request.setAttribute("totalRegistrants", statusCounts.getOrDefault("all", 0));
+        request.setAttribute("approvedCount", statusCounts.getOrDefault("approved", 0));
         request.setAttribute("pendingCount",
-                all.stream().filter(DossierDTO::isReviewable).count());
-        request.setAttribute("lockedCount",
-                all.stream().filter(d -> !d.getUser().isActive()).count());
+                statusCounts.getOrDefault("pending", 0)
+                + statusCounts.getOrDefault("supplement", 0)
+                + statusCounts.getOrDefault("rejected", 0));
+        request.setAttribute("lockedCount", dossierDAO.countLockedRegistrants());
+        request.setAttribute("approvedByLicence", approvedByLicence);
         request.getRequestDispatcher(VIEW).forward(request, response);
     }
 
@@ -89,47 +85,17 @@ public class RegistrantManagementServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/manager/registrants");
     }
 
-    private boolean matchesKeyword(DossierDTO d, String keyword) {
-        if (keyword.isEmpty()) return true;
-        return contains(d.getProfile().getFullName(), keyword)
-                || contains(d.getProfile().getGovIdNo(), keyword)
-                || contains(d.getProfile().getPhoneNo(), keyword)
-                || contains(d.getUser().getUsername(), keyword)
-                || contains(d.getUser().getEmail(), keyword)
-                || String.valueOf(d.getUser().getId()).equals(keyword);
-    }
-
-    private boolean contains(String value, String keyword) {
-        return value != null && value.toLowerCase(Locale.ROOT).contains(keyword);
-    }
-
-    private void exportCsv(HttpServletResponse response, List<DossierDTO> dossiers)
-            throws IOException {
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentType("text/csv;charset=UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=registrants.csv");
-        try (PrintWriter writer = response.getWriter()) {
-            writer.write('\ufeff');
-            writer.println("UserId,Username,FullName,CCCD,Phone,Email,LicenceClass,DossierStatus,Documents,AccountStatus");
-            for (DossierDTO d : dossiers) {
-                writer.println(String.join(",",
-                        csv(String.valueOf(d.getUser().getId())),
-                        csv(d.getUser().getUsername()),
-                        csv(d.getProfile().getFullName()),
-                        csv(d.getProfile().getGovIdNo()),
-                        csv(d.getProfile().getPhoneNo()),
-                        csv(d.getUser().getEmail()),
-                        csv(d.getLicenceClass()),
-                        csv(d.getStatusLabel()),
-                        csv(d.getDocumentCount() + "/4"),
-                        csv(d.getUser().isActive() ? "Hoạt động" : "Đã khóa")));
-            }
-        }
-    }
-
-    private String csv(String value) {
-        String safe = value == null ? "" : value.replace("\"", "\"\"");
-        return "\"" + safe + "\"";
+    private static void setPaginationAttributes(HttpServletRequest request, int currentPage,
+            int totalPages, int totalItems, int pageItems) {
+        int firstItem = totalItems == 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+        int lastItem = totalItems == 0 ? 0 : firstItem + pageItems - 1;
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalFiltered", totalItems);
+        request.setAttribute("firstItem", firstItem);
+        request.setAttribute("lastItem", lastItem);
+        request.setAttribute("pageStart", Math.max(1, currentPage - 2));
+        request.setAttribute("pageEnd", Math.min(totalPages, currentPage + 2));
     }
 
     private boolean hasAccess(HttpServletRequest request, HttpServletResponse response)

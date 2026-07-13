@@ -1,8 +1,8 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:if test="${empty requestScope.totalRegistrants}">
+<c:if test="${requestScope.registrantReady ne true}">
     <c:redirect url="/manager/registrants" />
 </c:if>
 <!DOCTYPE html>
@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quáº£n lÃ½ thÃ­ sinh - LÃ¡i Vui</title>
+    <title>Quản lý thí sinh - Lái Vui</title>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
@@ -23,19 +23,18 @@
     <nav class="breadcrumbs">
         <a href="${ctx}/manager/dashboard">Dashboard</a>
         <span class="breadcrumbs__separator">/</span>
-        <span class="breadcrumbs__current">Quáº£n lÃ½ thÃ­ sinh</span>
+        <span class="breadcrumbs__current">Quản lý thí sinh</span>
     </nav>
     <header class="page-header">
         <div class="page-title-wrap">
-            <h1 class="page-title">Quáº£n LÃ½ ThÃ­ Sinh</h1>
-            <p class="page-subtitle">Quáº£n lÃ½ tÃ i khoáº£n, há»“ sÆ¡ vÃ  tráº¡ng thÃ¡i Ä‘Äƒng kÃ½ cá»§a toÃ n bá»™ Registrant.</p>
+            <h1 class="page-title">Quản Lý Thí Sinh</h1>
+            <p class="page-subtitle">Quản lý tài khoản, hồ sơ và trạng thái đăng ký của toàn bộ Registrant.</p>
         </div>
         <div class="page-actions" style="display:flex;gap:.75rem">
-            <a class="btn-export"
-               href="${ctx}/manager/registrants?export=csv&amp;keyword=${fn:escapeXml(param.keyword)}&amp;licence=${fn:escapeXml(param.licence)}&amp;dossierStatus=${fn:escapeXml(param.dossierStatus)}&amp;accountStatus=${fn:escapeXml(param.accountStatus)}"
-               style="display:inline-flex;text-decoration:none">Xuáº¥t danh sÃ¡ch Excel</a>
+            <a class="btn-export" href="${ctx}/manager/dossier-detail?status=pending"
+               style="display:inline-flex;text-decoration:none">Hồ sơ chờ duyệt</a>
             <a class="btn-filter" href="${ctx}/manager/create-user"
-               style="display:inline-flex;text-decoration:none">Táº¡o tÃ i khoáº£n &amp; há»“ sÆ¡</a>
+               style="display:inline-flex;text-decoration:none">Tạo tài khoản &amp; hồ sơ</a>
         </div>
     </header>
 
@@ -49,57 +48,84 @@
     </c:if>
 
     <div class="report-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:1.25rem 0">
-        <div class="profile-score-card"><span class="score-card-part">Tá»”NG THÃ SINH</span><strong style="font-size:1.7rem">${totalRegistrants}</strong></div>
-        <div class="profile-score-card"><span class="score-card-part">Há»’ SÆ  ÄÃƒ DUYá»†T</span><strong style="font-size:1.7rem;color:#059669">${approvedCount}</strong></div>
-        <div class="profile-score-card"><span class="score-card-part">Cáº¦N Xá»¬ LÃ</span><strong style="font-size:1.7rem;color:#d97706">${pendingCount}</strong></div>
-        <div class="profile-score-card"><span class="score-card-part">TÃ€I KHOáº¢N ÄÃƒ KHÃ“A</span><strong style="font-size:1.7rem;color:#dc2626">${lockedCount}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">TỔNG THÍ SINH</span><strong style="font-size:1.7rem">${totalRegistrants}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">HỒ SƠ ĐÃ DUYỆT</span><strong style="font-size:1.7rem;color:#059669">${approvedCount}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">CẦN XỬ LÝ</span><strong style="font-size:1.7rem;color:#d97706">${pendingCount}</strong></div>
+        <div class="profile-score-card"><span class="score-card-part">TÀI KHOẢN ĐÃ KHÓA</span><strong style="font-size:1.7rem;color:#dc2626">${lockedCount}</strong></div>
     </div>
 
+    <section class="log-card" style="margin-bottom:1.25rem;border-color:#93c5fd">
+        <header class="log-card-header" style="align-items:flex-start">
+            <div>
+                <h2 class="log-card-title">Lập danh sách hồ sơ đã duyệt gửi cơ quan Công an</h2>
+                <p style="margin:.35rem 0 0;color:#64748b;font-size:.85rem">
+                    File Excel chỉ lấy hồ sơ có trạng thái <strong>Đã duyệt</strong> và tách riêng từng hạng A1, A, B1.
+                </p>
+            </div>
+            <span class="action-badge action-badge--success">${approvedCount} hồ sơ đủ điều kiện</span>
+        </header>
+        <div class="report-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;padding:1.25rem">
+            <c:forEach var="licenceItem" items="${['A1','A','B1']}">
+                <article class="profile-score-card" style="align-items:flex-start;gap:.75rem;border:1px solid #dbeafe">
+                    <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                        <strong style="font-size:1.15rem;color:#0052cc">Hạng ${licenceItem}</strong>
+                        <span class="action-badge action-badge--success">${approvedByLicence[licenceItem]} đã duyệt</span>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:auto">
+                        <a class="btn-export"
+                           href="${ctx}/manager/registrants?licence=${licenceItem}&amp;dossierStatus=Approved"
+                           style="display:inline-flex;text-decoration:none">Xem danh sách</a>
+                        <a class="btn-filter"
+                           href="${ctx}/manager/registrants/export-approved?licence=${licenceItem}"
+                           style="display:inline-flex;text-decoration:none">Tải Excel .xlsx</a>
+                    </div>
+                </article>
+            </c:forEach>
+        </div>
+    </section>
+
     <section class="filter-panel">
-        <h2 class="filter-title">TÃ¬m kiáº¿m vÃ  lá»c dá»¯ liá»‡u</h2>
+        <h2 class="filter-title">Tìm kiếm và lọc dữ liệu</h2>
         <form action="${ctx}/manager/registrants" method="get">
             <div class="filter-grid" style="grid-template-columns:2fr 1fr 1.25fr 1fr 1.5fr">
                 <div class="input-group">
-                    <label class="input-label" for="keyword">TÃªn, CCCD, email, SÄT hoáº·c username</label>
-                    <input class="input-field" id="keyword" name="keyword" value="<c:out value='${param.keyword}' />" placeholder="Nháº­p tá»« khÃ³a">
+                    <label class="input-label" for="keyword">Tên, CCCD, email, SĐT hoặc username</label>
+                    <input class="input-field" id="keyword" name="keyword" value="<c:out value='${param.keyword}' />" placeholder="Nhập từ khóa">
                 </div>
                 <div class="input-group">
-                    <label class="input-label" for="licence">Háº¡ng GPLX</label>
+                    <label class="input-label" for="licence">Hạng GPLX</label>
                     <select class="input-field" id="licence" name="licence">
-                        <option value="">Táº¥t cáº£</option>
-                        <option value="A1" ${param.licence eq 'A1' ? 'selected' : ''}>Háº¡ng A1</option>
-                        <option value="A2" ${param.licence eq 'A2' ? 'selected' : ''}>Háº¡ng A2</option>
-                        <option value="B1" ${param.licence eq 'B1' ? 'selected' : ''}>Háº¡ng B1</option>
-                        <option value="B2" ${param.licence eq 'B2' ? 'selected' : ''}>Háº¡ng B2</option>
-                        <option value="C" ${param.licence eq 'C' ? 'selected' : ''}>Háº¡ng C</option>
-                        <option value="C1" ${param.licence eq 'C1' ? 'selected' : ''}>Háº¡ng C1</option>
+                        <option value="">Tất cả</option>
+                        <option value="A1" ${param.licence eq 'A1' ? 'selected' : ''}>Hạng A1</option>
+                        <option value="A" ${param.licence eq 'A' ? 'selected' : ''}>Hạng A</option>
+                        <option value="B1" ${param.licence eq 'B1' ? 'selected' : ''}>Hạng B1</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label class="input-label" for="dossierStatus">Tráº¡ng thÃ¡i há»“ sÆ¡</label>
+                    <label class="input-label" for="dossierStatus">Trạng thái hồ sơ</label>
                     <select class="input-field" id="dossierStatus" name="dossierStatus">
-                        <option value="">Táº¥t cáº£</option>
-                        <option value="Draft" ${param.dossierStatus eq 'Draft' ? 'selected' : ''}>Báº£n nhÃ¡p</option>
-                        <option value="Pending" ${param.dossierStatus eq 'Pending' ? 'selected' : ''}>Chá» duyá»‡t</option>
-                        <option value="Submitted" ${param.dossierStatus eq 'Submitted' ? 'selected' : ''}>ÄÃ£ gá»­i duyá»‡t</option>
-                        <option value="NeedSupplement" ${param.dossierStatus eq 'NeedSupplement' ? 'selected' : ''}>Cáº§n bá»• sung</option>
-                        <option value="Approved" ${param.dossierStatus eq 'Approved' ? 'selected' : ''}>ÄÃ£ duyá»‡t</option>
-                        <option value="Rejected" ${param.dossierStatus eq 'Rejected' ? 'selected' : ''}>ÄÃ£ tá»« chá»‘i</option>
-                        <option value="Present" ${param.dossierStatus eq 'Present' ? 'selected' : ''}>Äang tham gia thi</option>
+                        <option value="">Tất cả</option>
+                        <option value="Draft" ${param.dossierStatus eq 'Draft' ? 'selected' : ''}>Bản nháp</option>
+                        <option value="Pending" ${param.dossierStatus eq 'Pending' ? 'selected' : ''}>Chờ duyệt</option>
+                        <option value="NeedSupplement" ${param.dossierStatus eq 'NeedSupplement' ? 'selected' : ''}>Cần bổ sung</option>
+                        <option value="Approved" ${param.dossierStatus eq 'Approved' ? 'selected' : ''}>Đã duyệt</option>
+                        <option value="Rejected" ${param.dossierStatus eq 'Rejected' ? 'selected' : ''}>Đã từ chối</option>
+                        <option value="Present" ${param.dossierStatus eq 'Present' ? 'selected' : ''}>Đang tham gia thi</option>
+                        <option value="Completed" ${param.dossierStatus eq 'Completed' ? 'selected' : ''}>Đã thi xong</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label class="input-label" for="accountStatus">TÃ i khoáº£n</label>
+                    <label class="input-label" for="accountStatus">Tài khoản</label>
                     <select class="input-field" id="accountStatus" name="accountStatus">
-                        <option value="">Táº¥t cáº£</option>
-                        <option value="active" ${param.accountStatus eq 'active' ? 'selected' : ''}>Hoáº¡t Ä‘á»™ng</option>
-                        <option value="locked" ${param.accountStatus eq 'locked' ? 'selected' : ''}>ÄÃ£ khÃ³a</option>
+                        <option value="">Tất cả</option>
+                        <option value="active" ${param.accountStatus eq 'active' ? 'selected' : ''}>Hoạt động</option>
+                        <option value="locked" ${param.accountStatus eq 'locked' ? 'selected' : ''}>Đã khóa</option>
                     </select>
                 </div>
                 <div class="input-group filter-grid__btn-col">
                     <div class="btn-group">
-                        <button class="btn-filter" type="submit">Ãp dá»¥ng</button>
-                        <a class="btn-reset" href="${ctx}/manager/registrants">Äáº·t láº¡i</a>
+                        <button class="btn-filter" type="submit">Áp dụng</button>
+                        <a class="btn-reset" href="${ctx}/manager/registrants">Đặt lại</a>
                     </div>
                 </div>
             </div>
@@ -108,44 +134,89 @@
 
     <section class="log-card">
         <header class="log-card-header">
-            <h2 class="log-card-title">Danh sÃ¡ch thÃ­ sinh tá»« database</h2>
-            <span class="action-badge action-badge--info">${fn:length(registrants)} káº¿t quáº£</span>
+            <h2 class="log-card-title">Danh sách thí sinh từ database</h2>
+            <span class="action-badge action-badge--info">${totalFiltered} kết quả</span>
         </header>
         <div class="table-responsive">
             <table class="audit-table">
-                <thead><tr><th>MÃ£</th><th>ThÃ­ sinh</th><th>CCCD / LiÃªn há»‡</th><th>Háº¡ng</th><th>Nguá»“n há»“ sÆ¡</th><th>Giáº¥y tá»</th><th>Há»“ sÆ¡</th><th>TÃ i khoáº£n</th><th style="text-align:center">Thao tÃ¡c</th></tr></thead>
+                <thead><tr><th>Mã</th><th>Thí sinh</th><th>CCCD / Liên hệ</th><th>Hạng</th><th>Nguồn hồ sơ</th><th>Giấy tờ</th><th>Hồ sơ</th><th>Tài khoản</th><th style="text-align:center">Thao tác</th></tr></thead>
                 <tbody>
                     <c:forEach var="item" items="${registrants}">
                         <tr>
                             <td>#${item.user.id}</td>
-                            <td><strong><c:out value="${item.profile.fullName}" /></strong><br><small>@<c:out value="${item.user.username}" /> Â· <c:out value="${item.user.email}" /></small></td>
+                            <td><strong><c:out value="${item.profile.fullName}" /></strong><br><small>@<c:out value="${item.user.username}" /> · <c:out value="${item.user.email}" /></small></td>
                             <td><c:out value="${item.profile.govIdNo}" /><br><small><c:out value="${item.profile.phoneNo}" /></small></td>
-                            <td><c:out value="${empty item.licenceDisplayClass ? 'â€”' : item.licenceDisplayClass}" /></td>
+                            <td><c:out value="${empty item.licenceDisplayClass ? '—' : item.licenceDisplayClass}" /></td>
                             <td><c:out value="${item.sourceLabel}" /></td>
                             <td>${item.documentCount}/${item.requiredDocumentTotal}</td>
                             <td><span class="action-badge action-badge--${item.statusKey}">${item.statusLabel}</span></td>
-                            <td><span class="action-badge action-badge--${item.user.active ? 'success' : 'danger'}">${item.user.active ? 'Hoáº¡t Ä‘á»™ng' : 'ÄÃ£ khÃ³a'}</span></td>
+                            <td><span class="action-badge action-badge--${item.user.active ? 'success' : 'danger'}">${item.user.active ? 'Hoạt động' : 'Đã khóa'}</span></td>
                             <td>
                                 <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center">
-                                    <a class="btn-export" href="${ctx}/manager/dossier-detail?id=${item.user.id}" style="padding:.35rem .6rem;text-decoration:none">Chi tiáº¿t</a>
+                                    <a class="btn-export" href="${ctx}/manager/dossier-detail?id=${item.user.id}" style="padding:.35rem .6rem;text-decoration:none">Chi tiết</a>
                                     <c:if test="${item.reviewable}">
-                                        <a class="btn-export" href="${ctx}/manager/dossiers?id=${item.registrationId}" style="padding:.35rem .6rem;text-decoration:none;color:#d97706">Duyá»‡t</a>
+                                        <a class="btn-export" href="${ctx}/manager/dossiers?id=${item.registrationId}" style="padding:.35rem .6rem;text-decoration:none;color:#d97706">Duyệt</a>
                                     </c:if>
-                                    <form action="${ctx}/manager/registrants" method="post" style="margin:0" onsubmit="return confirm('${item.user.active ? 'KhÃ³a' : 'Má»Ÿ khÃ³a'} tÃ i khoáº£n nÃ y?');">
+                                    <form action="${ctx}/manager/registrants" method="post" style="margin:0" onsubmit="return confirm('${item.user.active ? 'Khóa' : 'Mở khóa'} tài khoản này?');">
                                         <input type="hidden" name="id" value="${item.user.id}">
                                         <input type="hidden" name="action" value="${item.user.active ? 'lock' : 'activate'}">
-                                        <button class="btn-export" type="submit" style="padding:.35rem .6rem;color:${item.user.active ? '#dc2626' : '#059669'}">${item.user.active ? 'KhÃ³a' : 'Má»Ÿ khÃ³a'}</button>
+                                        <button class="btn-export" type="submit" style="padding:.35rem .6rem;color:${item.user.active ? '#dc2626' : '#059669'}">${item.user.active ? 'Khóa' : 'Mở khóa'}</button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty registrants}">
-                        <tr><td colspan="9" style="padding:3rem;text-align:center;color:#64748b">KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh phÃ¹ há»£p.</td></tr>
+                        <tr><td colspan="9" style="padding:3rem;text-align:center;color:#64748b">Không tìm thấy thí sinh phù hợp.</td></tr>
                     </c:if>
                 </tbody>
             </table>
         </div>
+        <footer class="pagination-footer">
+            <div class="pagination-info">
+                Hiển thị ${firstItem} - ${lastItem} trong tổng số ${totalFiltered} thí sinh · 15 người/trang
+            </div>
+            <nav class="pagination-nav" aria-label="Phân trang quản lý thí sinh">
+                <c:choose>
+                    <c:when test="${currentPage gt 1}">
+                        <c:url var="previousUrl" value="/manager/registrants">
+                            <c:param name="page" value="${currentPage - 1}" />
+                            <c:param name="keyword" value="${param.keyword}" />
+                            <c:param name="licence" value="${param.licence}" />
+                            <c:param name="dossierStatus" value="${param.dossierStatus}" />
+                            <c:param name="accountStatus" value="${param.accountStatus}" />
+                        </c:url>
+                        <a class="page-btn page-btn--wide" href="${previousUrl}">Trước</a>
+                    </c:when>
+                    <c:otherwise><span class="page-btn page-btn--wide disabled">Trước</span></c:otherwise>
+                </c:choose>
+
+                <c:forEach var="pageNumber" begin="${pageStart}" end="${pageEnd}">
+                    <c:url var="numberUrl" value="/manager/registrants">
+                        <c:param name="page" value="${pageNumber}" />
+                        <c:param name="keyword" value="${param.keyword}" />
+                        <c:param name="licence" value="${param.licence}" />
+                        <c:param name="dossierStatus" value="${param.dossierStatus}" />
+                        <c:param name="accountStatus" value="${param.accountStatus}" />
+                    </c:url>
+                    <a class="page-btn ${pageNumber eq currentPage ? 'active' : ''}" href="${numberUrl}">${pageNumber}</a>
+                </c:forEach>
+
+                <c:choose>
+                    <c:when test="${currentPage lt totalPages}">
+                        <c:url var="nextUrl" value="/manager/registrants">
+                            <c:param name="page" value="${currentPage + 1}" />
+                            <c:param name="keyword" value="${param.keyword}" />
+                            <c:param name="licence" value="${param.licence}" />
+                            <c:param name="dossierStatus" value="${param.dossierStatus}" />
+                            <c:param name="accountStatus" value="${param.accountStatus}" />
+                        </c:url>
+                        <a class="page-btn page-btn--wide" href="${nextUrl}">Sau</a>
+                    </c:when>
+                    <c:otherwise><span class="page-btn page-btn--wide disabled">Sau</span></c:otherwise>
+                </c:choose>
+            </nav>
+        </footer>
     </section>
 </main>
 <jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include>
