@@ -2,19 +2,20 @@ package auth.controller.general;
 
 import auth.dto.ServiceResult;
 import auth.dto.UserDTO;
-import shared.Attributes;
-import shared.enums.AuditAction;
-import shared.enums.AuditEntity;
+import auth.service.AuditService;
+import auth.service.AuthService;
+import auth.service.impl.AuditServiceImpl;
+import auth.service.impl.AuthServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import auth.service.AuthService;
-import auth.service.impl.AuthServiceImpl;
-import auth.service.AuditService;
-import auth.service.impl.AuditServiceImpl;
+import shared.Attributes;
+import shared.enums.AuditAction;
+import shared.enums.AuditEntity;
+
 import java.io.IOException;
 
 @WebServlet("/change-password")
@@ -26,22 +27,19 @@ public class ChangePasswordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute(Attributes.Session.USER) == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        UserDTO sessionUser = requireUser(request, response);
+        if (sessionUser == null) {
             return;
         }
+        request.setAttribute(Attributes.Request.BACK_URL, "/profile");
         request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession userSession = request.getSession(false);
-        UserDTO sessionUser = userSession == null ? null
-                : (UserDTO) userSession.getAttribute(Attributes.Session.USER);
+        UserDTO sessionUser = requireUser(request, response);
         if (sessionUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         String current = request.getParameter("currentPassword");
@@ -50,17 +48,24 @@ public class ChangePasswordServlet extends HttpServlet {
         ServiceResult<Void> result = authService.changePassword(
                 sessionUser.getUserId(), current, newPwd, confirm);
         if (result.isSuccess()) {
-            HttpSession s = request.getSession(false);
-            if (s != null) {
-                auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
-                        "Đổi mật khẩu tài khoản", sessionUser.getUserId());
-            }
+            auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
+                    "Đổi mật khẩu tài khoản", sessionUser.getUserId());
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
         } else {
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
         }
         request.setAttribute(Attributes.Request.MESSAGE, result.getMessage());
+        request.setAttribute(Attributes.Request.BACK_URL, "/profile");
         request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
-}
 
+    private UserDTO requireUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
+        Object raw = session == null ? null : session.getAttribute(Attributes.Session.USER);
+        if (!(raw instanceof UserDTO)) {
+            response.sendRedirect(request.getContextPath() + "/staff/login");
+            return null;
+        }
+        return (UserDTO) raw;
+    }
+}
