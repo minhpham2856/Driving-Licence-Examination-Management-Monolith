@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+z<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -198,30 +198,38 @@
                     <span class="room-badge room-badge--orange">Chờ gọi (${waitingCount})</span>
                 </div>
 
-                <div class="room-candidate-list">
-                    <c:set var="waitRenderCount" value="0" />
-                    <c:forEach var="c" items="${candidateQueue}">
-                        <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent and waitRenderCount lt 6}">
-                            <c:set var="waitRenderCount" value="${waitRenderCount + 1}" />
-                            <div class="room-candidate-item">
-                                <div class="candidate-meta">
-                                    <span class="candidate-sbd">SBD: ${c.sbd}</span>
-                                    <span class="candidate-step candidate-step--waiting">Hạng ${c.clazz}</span>
-                                </div>
-                                <div class="candidate-name">${c.name}</div>
-                                <div style="font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-                                    <span>Trạng thái: Đang chờ</span>
-                                    <span style="font-weight: 600; color: #475569;">SĐT: ${c.phoneNo}</span>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-
-                    <c:if test="${waitRenderCount eq 0}">
-                        <div class="empty-room-state">
-                            Không có thí sinh nào đang chờ ở phòng chờ.
-                        </div>
-                    </c:if>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">SBD</th>
+                                <th style="text-align: left;">Họ tên</th>
+                                <th style="text-align: center;">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:set var="waitRenderCount" value="0" />
+                            <c:forEach var="c" items="${candidateQueue}">
+                                <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent and waitRenderCount lt 6}">
+                                    <c:set var="waitRenderCount" value="${waitRenderCount + 1}" />
+                                    <tr>
+                                        <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
+                                        <td style="font-weight: 600; color: #0f172a;">${c.name}</td>
+                                        <td style="text-align: center;">
+                                            <span style="font-weight: 800; color: #c2410c; background: #fff7ed; padding: 2px 8px; border-radius: 4px;">CHỜ GỌI</span>
+                                        </td>
+                                    </tr>
+                                </c:if>
+                            </c:forEach>
+                            <c:if test="${waitRenderCount eq 0}">
+                                <tr>
+                                    <td colspan="3" class="allocation-results-table__empty">
+                                        Không có thí sinh nào đang chờ ở phòng chờ.
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
                 </div>
 
                 <a href="candidatecall" class="room-monitor-card__action hover-elevate">
@@ -241,29 +249,38 @@
                     <span class="room-badge room-badge--blue">Đang xử lý</span>
                 </div>
 
-                <div class="room-candidate-list">
-                    <c:set var="activeCalledCount" value="0" />
-                    <c:forEach var="c" items="${candidateQueue}">
-                        <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete and activeCalledCount lt 3}">
-                            <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
-                            <div class="room-candidate-item" style="border-left: 3px solid #2563eb;">
-                                <div class="candidate-meta">
-                                    <span style="font-weight: 700; color: #1e293b;">SBD: ${c.sbd}</span>
-                                    <span class="candidate-step candidate-step--payment">Đang ở quầy thủ tục</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                                    <span class="candidate-name">${c.name}</span>
-                                    <span style="font-size: 0.72rem; color: #64748b;">Hạng ${c.clazz}</span>
-                                </div>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-
-                    <c:if test="${activeCalledCount eq 0}">
-                        <div class="empty-room-state">
-                            Bàn làm thủ tục đang trống.
-                        </div>
-                    </c:if>
+                <div class="examiner-table-wrap">
+                    <table class="examiner-table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">SBD</th>
+                                <th style="text-align: left;">Họ tên</th>
+                                <th style="text-align: center;">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:set var="activeCalledCount" value="0" />
+                            <c:forEach var="c" items="${candidateQueue}">
+                                <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete and activeCalledCount lt 3}">
+                                    <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
+                                    <tr>
+                                        <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
+                                        <td style="font-weight: 600; color: #0f172a;">${c.name}</td>
+                                        <td style="text-align: center;">
+                                            <span style="font-weight: 800; color: #1d4ed8; background: #eff6ff; padding: 2px 8px; border-radius: 4px;">ĐANG XỬ LÝ</span>
+                                        </td>
+                                    </tr>
+                                </c:if>
+                            </c:forEach>
+                            <c:if test="${activeCalledCount eq 0}">
+                                <tr>
+                                    <td colspan="3" class="allocation-results-table__empty">
+                                        Bàn làm thủ tục đang trống.
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
                 </div>
 
                 <a href="procedure" class="room-monitor-card__action hover-elevate">

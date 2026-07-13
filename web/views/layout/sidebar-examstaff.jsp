@@ -22,12 +22,6 @@
 
         </c:when>
 
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'upload') or fn:contains(pageContext.request.requestURI, 'tai-ds')}">
-
-            <c:set var="activeSidebar" value="tai-ds" />
-
-        </c:when>
-
         <c:when test="${fn:contains(pageContext.request.requestURI, 'examiner-allocation') or fn:contains(pageContext.request.requestURI, 'giam-khao')}">
 
             <c:set var="activeSidebar" value="phan-bo-giam-khao" />
@@ -112,17 +106,17 @@
 
     </c:if>
 
-    <c:set var="pickerExamId" value="${param.examId}" />
+    <c:set var="pickerExamIdValue" value="${param.examId}" />
 
-    <c:if test="${empty pickerExamId}">
+    <c:if test="${empty pickerExamIdValue}">
 
-        <c:set var="pickerExamId" value="${requestScope.selectedExamId}" />
+        <c:set var="pickerExamIdValue" value="${requestScope.selectedExamId}" />
 
     </c:if>
 
-    <c:if test="${empty pickerExamId}">
+    <c:if test="${empty pickerExamIdValue}">
 
-        <c:set var="pickerExamId" value="${sessionScope.selectedExamId}" />
+        <c:set var="pickerExamIdValue" value="${sessionScope.selectedExamId}" />
 
     </c:if>
 
@@ -132,7 +126,7 @@
 
     <c:if test="${empty navExamId}">
 
-        <c:set var="navExamId" value="${pickerExamId}" />
+        <c:set var="navExamId" value="${pickerExamIdValue}" />
 
     </c:if>
 
@@ -142,23 +136,23 @@
 
     </c:if>
 
-    <c:set var="sessionQuery" value="" />
+    <c:set var="examQuery" value="" />
 
     <c:if test="${not empty navExamId}">
 
-        <c:set var="sessionQuery" value="?examId=${navExamId}" />
+        <c:set var="examQuery" value="?examId=${navExamId}" />
 
     </c:if>
 
-    <div class="side-nav-bar__session-picker">
+    <div class="side-nav-bar__exam-picker">
 
         <form method="GET" action="${ctx}/views/staff/examstaff/select-exam" class="side-nav-bar__exam-form">
 
             <input type="hidden" name="redirect" value="<c:out value='${sidebarRedirect}' />" />
 
-            <label class="side-nav-bar__session-label" for="examId">Kỳ thi</label>
+            <label class="side-nav-bar__exam-label" for="examId">Kỳ thi</label>
 
-            <select id="examId" name="examId" class="side-nav-bar__session-select"
+            <select id="examId" name="examId" class="side-nav-bar__exam-select"
 
                     aria-label="Chọn kỳ thi" data-exam-picker="true"
 
@@ -187,8 +181,8 @@
                                 <c:when test="${not empty requestScope.pickerCommittedExamId}">
                                     <c:if test="${exam.id == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
                                 </c:when>
-                                <c:when test="${not empty pickerExamId or not empty pickerExamId}">
-                                    <c:if test="${pickerExamId == exam.id or pickerExamId == exam.examId}">selected="selected"</c:if>
+                                <c:when test="${not empty pickerExamIdValue or not empty pickerExamId}">
+                                    <c:if test="${pickerExamIdValue == exam.id or pickerExamId == exam.examId}">selected="selected"</c:if>
                                 </c:when>
                                 <c:otherwise>
                                     <c:if test="${optSt.first}">selected="selected"</c:if>
@@ -207,7 +201,7 @@
 
             </select>
 
-            <button type="submit" class="side-nav-bar__session-apply" data-exam-apply="true"
+            <button type="submit" class="side-nav-bar__exam-apply" data-exam-apply="true"
 
                     data-loading-label="Đang tải..."
 
@@ -221,7 +215,7 @@
 
     <nav class="side-nav-bar__menu">
 
-        <a href="${ctx}/views/staff/examstaff/dashboard${sessionQuery}"
+        <a href="${ctx}/views/staff/examstaff/dashboard${examQuery}"
 
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
 
@@ -230,18 +224,6 @@
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">grid_view</span>
 
             <span class="side-nav-bar__label">Tổng quan kỳ thi</span>
-
-        </a>
-
-        <a href="${ctx}/views/staff/examstaff/upload${sessionQuery}"
-
-           class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
-
-           <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
-
-            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">upload_file</span>
-
-            <span class="side-nav-bar__label">Tải danh sách thi</span>
 
         </a>
 
@@ -254,7 +236,7 @@
             <button type="button" class="side-nav-bar__link side-nav-bar__link--toggle${activeSidebar eq 'phan-bo' ? ' is-active' : ''}"
 
                     aria-expanded="true" aria-controls="allocation-submenu"
-                    data-allocation-overview-url="${ctx}/views/staff/examstaff/allocation${sessionQuery}">
+                    data-allocation-overview-url="${ctx}/views/staff/examstaff/allocation${examQuery}">
 
                 <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">view_module</span>
 
@@ -270,27 +252,27 @@
 
             <div id="allocation-submenu" class="side-nav-bar__submenu">
 
-                <a href="${ctx}/views/staff/examstaff/allocation${sessionQuery}"
+                <a href="${ctx}/views/staff/examstaff/allocation${examQuery}"
 
                    class="side-nav-bar__submenu-link${(fn:contains(allocUri, '/allocation') and not fn:contains(allocUri, 'allocation-')) ? ' is-active' : ''}"><span class="submenu-dot"></span> Tổng quan</a>
 
-                <a href="${ctx}/views/staff/examstaff/allocation-waiting${sessionQuery}"
+                <a href="${ctx}/views/staff/examstaff/allocation-waiting${examQuery}"
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-waiting') ? ' is-active' : ''}"><span class="submenu-dot"></span> Phòng chờ</a>
 
-                <a href="${ctx}/views/staff/examstaff/allocation-theory${sessionQuery}"
+                <a href="${ctx}/views/staff/examstaff/allocation-theory${examQuery}"
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-theory') ? ' is-active' : ''}"><span class="submenu-dot"></span> Lý thuyết</a>
 
-                <a href="${ctx}/views/staff/examstaff/allocation-practical${sessionQuery}"
+                <a href="${ctx}/views/staff/examstaff/allocation-practical${examQuery}"
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-practical') ? ' is-active' : ''}"><span class="submenu-dot"></span> TH / Sa hình</a>
 
-                <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sessionQuery}"
+                <a href="${ctx}/views/staff/examstaff/allocation-results-pass${examQuery}"
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-pass') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Đỗ</a>
 
-                <a href="${ctx}/views/staff/examstaff/allocation-results-fail${sessionQuery}"
+                <a href="${ctx}/views/staff/examstaff/allocation-results-fail${examQuery}"
 
                    class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-fail') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Trượt</a>
 
@@ -298,7 +280,7 @@
 
         </div>
 
-        <a href="${ctx}/views/staff/examstaff/examiner-allocation${sessionQuery}"
+        <a href="${ctx}/views/staff/examstaff/examiner-allocation${examQuery}"
 
            class="side-nav-bar__link${activeSidebar eq 'phan-bo-giam-khao' ? ' is-active' : ''}"
 
@@ -310,7 +292,7 @@
 
         </a>
 
-        <a href="${ctx}/views/staff/examstaff/candidatecall${sessionQuery}"
+        <a href="${ctx}/views/staff/examstaff/candidatecall${examQuery}"
 
            class="side-nav-bar__link${activeSidebar eq 'goi-thi' ? ' is-active' : ''}"
 
@@ -322,7 +304,7 @@
 
         </a>
 
-        <a href="${ctx}/views/staff/examstaff/report${sessionQuery}"
+        <a href="${ctx}/views/staff/examstaff/report${examQuery}"
 
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
 
@@ -330,11 +312,11 @@
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">bar_chart</span>
 
-            <span class="side-nav-bar__label">Báo cáo cuối ngày</span>
+            <span class="side-nav-bar__label">Báo cáo</span>
 
         </a>
 
-        <a href="${ctx}/views/staff/examstaff/audit${sessionQuery}"
+        <a href="${ctx}/views/staff/examstaff/audit${examQuery}"
 
            class="side-nav-bar__link${activeSidebar eq 'nhat-ky' ? ' is-active' : ''}"
 
@@ -364,7 +346,7 @@
 
     <div class="side-nav-bar__footer">
 
-        <a href="${ctx}/staff/logout" class="side-nav-bar__logout">
+        <a href="${ctx}/logout" class="side-nav-bar__logout">
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">logout</span>
 

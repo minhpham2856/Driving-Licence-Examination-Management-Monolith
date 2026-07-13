@@ -3707,7 +3707,7 @@ p {
 }
 
 /* Exam Sessions Available List */
-.exam-selector-list {
+.session-selector-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -3721,7 +3721,7 @@ p {
     height: 0;
 }
 
-.exam-card {
+.session-card {
     background: #ffffff;
     border: 1.5px solid #e2e8f0;
     border-radius: 12px;
@@ -3736,43 +3736,43 @@ p {
 }
 
 @media (max-width: 900px) {
-    .exam-card {
+    .session-card {
         grid-template-columns: 1.5fr 1fr auto;
         gap: 12px;
     }
-    .exam-card__hide-md {
+    .session-card__hide-md {
         display: none;
     }
 }
 
 @media (max-width: 600px) {
-    .exam-card {
+    .session-card {
         grid-template-columns: 1fr auto;
     }
-    .exam-card__hide-sm {
+    .session-card__hide-sm {
         display: none;
     }
 }
 
-.exam-card:hover {
+.session-card:hover {
     border-color: #cbd5e1;
     background: #f8fafc;
 }
 
-.session-radio:checked + .exam-card {
+.session-radio:checked + .session-card {
     border-color: #0052cc;
     background: rgba(0, 82, 204, 0.02);
     box-shadow: 0 4px 12px rgba(0, 82, 204, 0.05);
 }
 
-.exam-card__title-wrap {
+.session-card__title-wrap {
     display: flex;
     flex-direction: column;
     gap: 4px;
     min-width: 0;
 }
 
-.exam-card__title {
+.session-card__title {
     font-size: 13.5px;
     font-weight: 700;
     color: #1e293b;
@@ -3781,12 +3781,12 @@ p {
     text-overflow: ellipsis;
 }
 
-.exam-card__subtitle {
+.session-card__subtitle {
     font-size: 11px;
     color: #64748b;
 }
 
-.exam-card__info-item {
+.session-card__info-item {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -3794,12 +3794,12 @@ p {
     color: #475569;
 }
 
-.exam-card__info-item svg {
+.session-card__info-item svg {
     color: #0052cc;
     flex-shrink: 0;
 }
 
-.exam-card__radio-indicator {
+.session-card__radio-indicator {
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -3811,11 +3811,11 @@ p {
     background: #ffffff;
 }
 
-.session-radio:checked + .exam-card .exam-card__radio-indicator {
+.session-radio:checked + .session-card .session-card__radio-indicator {
     border-color: #0052cc;
 }
 
-.session-radio:checked + .exam-card .exam-card__radio-indicator::after {
+.session-radio:checked + .session-card .session-card__radio-indicator::after {
     content: '';
     width: 8px;
     height: 8px;
@@ -4103,17 +4103,17 @@ p {
     box-shadow: 0 4px 16px rgba(0, 82, 204, 0.08) !important;
 }
 
-.exam-card--active {
+.session-card--active {
     border-color: #0052cc !important;
     background: rgba(0, 82, 204, 0.02) !important;
     box-shadow: 0 4px 12px rgba(0, 82, 204, 0.05) !important;
 }
 
-.exam-card--active .exam-card__radio-indicator {
+.session-card--active .session-card__radio-indicator {
     border-color: #0052cc !important;
 }
 
-.exam-card--active .exam-card__radio-indicator::after {
+.session-card--active .session-card__radio-indicator::after {
     content: '';
     width: 8px;
     height: 8px;
