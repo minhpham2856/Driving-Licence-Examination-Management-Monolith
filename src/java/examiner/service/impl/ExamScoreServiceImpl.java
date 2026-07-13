@@ -8,7 +8,7 @@ import examiner.dao.impl.ExamEnrollmentDAOImpl;
 import examiner.dao.impl.ExamResultDAOImpl;
 import examiner.dao.impl.ExamScoreDAOImpl;
 import examiner.dao.impl.ExamSectionDAOImpl;
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import shared.model.ExamEnrollment;
 import shared.model.ExamResult;
 import shared.model.ExamScore;

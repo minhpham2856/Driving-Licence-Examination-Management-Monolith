@@ -4,7 +4,7 @@ import examiner.dao.LicenceDAO;
 import examiner.dao.impl.LicenceDAOImpl;
 import examiner.dto.ServiceResult;
 import examiner.dto.SaveResultDTO;
-import examiner.enums.ErrorType;
+import shared.enums.ErrorType;
 import shared.model.Licence;
 import examiner.service.LicenceService;
 

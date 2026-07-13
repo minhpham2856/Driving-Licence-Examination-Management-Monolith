@@ -2,7 +2,7 @@ package examstaff.util;
 
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.enums.ExamSection;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 
 import java.util.HashSet;
 import java.util.List;

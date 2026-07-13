@@ -2,7 +2,7 @@ package examiner.dto;
 
 import java.sql.*;
 import shared.model.ExamEnrollment;
-import examiner.enums.CandidateStatus;
+import shared.enums.CandidateStatus;
 
 public class EnrollmentDTO {
 

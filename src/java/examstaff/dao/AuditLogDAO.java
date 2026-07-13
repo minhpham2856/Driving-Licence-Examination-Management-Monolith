@@ -1,7 +1,7 @@
 package examstaff.dao;
 
 
-import examstaff.model.Audit;
+import shared.model.Audit;
 import examstaff.dto.user.AuditDTO;
 
 import examstaff.dto.staff.StaffProcedureKpiDTO;

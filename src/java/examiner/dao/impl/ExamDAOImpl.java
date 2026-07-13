@@ -1,6 +1,6 @@
 package examiner.dao.impl;
 
-import examiner.enums.ExamStatus;
+import shared.enums.ExamStatus;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

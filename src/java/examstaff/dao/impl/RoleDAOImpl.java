@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
 import examstaff.dao.RoleDAO;
-import examstaff.dbconnection.DBContext;
-import examstaff.model.Role;
+import shared.dbconnection.DBContext;
+import shared.model.Role;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;

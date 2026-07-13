@@ -1,6 +1,6 @@
 package examstaff.dao.view;
 
-import examstaff.model.view.ExamStaffCandidate;
+import examstaff.dto.view.ExamStaffCandidate;
 
 import java.util.List;
 

@@ -6,7 +6,7 @@ import examiner.dao.impl.ProfileDAOImpl;
 import examiner.dao.impl.UserDAOImpl;
 import examiner.dto.ServiceResult;
 import examiner.dto.RegisterResultDTO;
-import examiner.enums.ErrorType;
+import shared.enums.ErrorType;
 import shared.model.Profile;
 import shared.model.User;
 import examiner.service.AuthService;

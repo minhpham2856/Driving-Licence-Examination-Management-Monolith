@@ -10,6 +10,7 @@ import examiner.dao.ExamScoreDAO;
 import examiner.dao.ExamSectionDAO;
 import examiner.dao.ExaminerViewDAO;
 import examiner.dao.ScoreDeductionDAO;
+import examiner.dao.UserDAO;
 import examiner.dao.impl.AuditDAOImpl;
 import examiner.dao.impl.CandidateDAOImpl;
 import examiner.dao.impl.DeductionRecordDAOImpl;
@@ -20,15 +21,16 @@ import examiner.dao.impl.ExamScoreDAOImpl;
 import examiner.dao.impl.ExamSectionDAOImpl;
 import examiner.dao.impl.ExaminerViewDAOImpl;
 import examiner.dao.impl.ScoreDeductionDAOImpl;
+import examiner.dao.impl.UserDAOImpl;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.ServiceResult;
-import examiner.enums.AuditAction;
-import examiner.enums.SectionType;
-import examiner.enums.AuditEntity;
-import examiner.enums.CandidateStatus;
-import examiner.enums.ErrorType;
-import examiner.enums.Sex;
-import examiner.enums.ViolationReason;
+import shared.enums.AuditAction;
+import shared.enums.SectionType;
+import shared.enums.AuditEntity;
+import shared.enums.CandidateStatus;
+import shared.enums.ErrorType;
+import shared.enums.Sex;
+import shared.enums.ViolationReason;
 import shared.model.Audit;
 import shared.model.Candidate;
 import shared.model.DeductionRecord;
@@ -75,6 +77,7 @@ public class CallServiceImpl implements CallService {
     private final ExamViewService dataService = new ExamViewServiceImpl();
     private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
     private final RegistrationService registrationService = new RegistrationServiceImpl();
+    private final UserDAO userDAO = new UserDAOImpl();
 
     @Override
     public void clearPresent(int examId, int sbd) {
@@ -525,8 +528,15 @@ public class CallServiceImpl implements CallService {
 
     @Override
     public boolean verifyPassword(User user, String password) {
-        return user != null && password != null && !password.isBlank()
-                && AuthServiceImpl.passwordsMatch(password.trim(), user.getPasswordHash());
+        if (user == null || password == null || password.isBlank()) {
+            return false;
+        }
+        // Session User may lack passwordHash; always verify against DB
+        User dbUser = userDAO.getById(user.getUserId());
+        if (dbUser == null || dbUser.getPasswordHash() == null) {
+            return false;
+        }
+        return AuthServiceImpl.passwordsMatch(password.trim(), dbUser.getPasswordHash());
     }
 
     @Override
@@ -708,7 +718,7 @@ public class CallServiceImpl implements CallService {
     private void enqueueNextSection(int examId, EnrollmentDTO reg) {
         int sbd = reg.getCandidateNumber();
         // Examiner proctors a single section (THEORY/LAYOUT) per exam.
-        examiner.enums.SectionType examSection = examiner.enums.SectionType.THEORY;
+        shared.enums.SectionType examSection = shared.enums.SectionType.THEORY;
         Lane current = ExamQueue.laneFor(examSection);
         ExamQueue.remove(current, sbd);
         Candidate candidate = candidateDAO.getById(reg.getId());

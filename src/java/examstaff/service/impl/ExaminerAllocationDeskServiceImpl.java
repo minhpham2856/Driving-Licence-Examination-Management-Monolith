@@ -6,7 +6,7 @@ import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.UserDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.service.ExaminerAllocationDeskService;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.util.ExamAreaTypeResolver;

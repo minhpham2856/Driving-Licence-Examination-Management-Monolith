@@ -23,7 +23,7 @@ import examstaff.dto.ExamSummaryDTO;
 
 import examstaff.dto.UserDTO;
 
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.enums.ExamSection;
 import examstaff.service.ExamStaffExamQueryService;
 import examstaff.service.ExaminerAllocationService;

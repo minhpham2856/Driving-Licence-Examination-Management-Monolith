@@ -32,6 +32,18 @@ public class UserDTO {
         return dto;
     }
 
+    // Build User for service APIs that still expect shared.model.User (no passwordHash)
+    public User toUser() {
+        User user = new User();
+        user.setUserId(userId);
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setRoleId(roleId);
+        user.setActive(active);
+        user.setRole(role);
+        return user;
+    }
+
     public int getUserId() {
         return userId;
     }

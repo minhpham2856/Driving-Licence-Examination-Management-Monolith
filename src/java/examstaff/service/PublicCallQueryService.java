@@ -1,7 +1,7 @@
 package examstaff.service;
 
 import examstaff.dto.PublicCallSnapshotDTO;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 
 public interface PublicCallQueryService {
 

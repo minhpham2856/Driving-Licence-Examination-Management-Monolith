@@ -6,7 +6,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
 import examstaff.enums.PaymentMethod;
 import examstaff.enums.PaymentStatus;
-import examstaff.model.Payment;
+import shared.model.Payment;
 import examstaff.service.ExamRegistrationService;
 import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ProcedureFeeQueryService;

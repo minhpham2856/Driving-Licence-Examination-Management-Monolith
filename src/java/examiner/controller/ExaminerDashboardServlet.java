@@ -2,8 +2,8 @@ package examiner.controller;
 
 import static auth.util.FormatUtil.formatString;
 import examiner.dto.CandidateRowDTO;
-import examiner.enums.SectionType;
-import static examiner.enums.SectionType.THEORY;
+import shared.enums.SectionType;
+import static shared.enums.SectionType.THEORY;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

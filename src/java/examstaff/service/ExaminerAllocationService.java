@@ -4,7 +4,7 @@ import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.UserDTO;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 
 import java.util.List;
 

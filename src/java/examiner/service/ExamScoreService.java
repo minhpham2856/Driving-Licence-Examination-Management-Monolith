@@ -1,6 +1,6 @@
 package examiner.service;
 
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 
 public interface ExamScoreService {
 

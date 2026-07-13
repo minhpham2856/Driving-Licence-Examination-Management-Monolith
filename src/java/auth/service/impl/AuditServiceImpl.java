@@ -324,7 +324,7 @@ public class AuditServiceImpl implements AuditService {
         String username = user != null ? user.getUsername() : "he_thong";
         String fullName = profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()
                 ? profile.getFullName()
-                : (user != null ? user.getUsername() : "Hệ thống");
+: (user != null ? user.getUsername() : "Hệ thống");
         row.put("username", username);
         row.put("fullName", fullName);
         String roleKey = user != null ? mapRoleKey(user.getRoleId()) : "admin";

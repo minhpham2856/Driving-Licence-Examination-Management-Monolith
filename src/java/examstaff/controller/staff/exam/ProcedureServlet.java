@@ -15,7 +15,7 @@ import examstaff.dto.ProcedureProfilePrepareResultDTO;
 import examstaff.dto.ProcedureResetOutcomeDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.CandidatePhotoService;

@@ -69,7 +69,7 @@ public class DashboardServlet extends HttpServlet {
 
     private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
-        examstaff.model.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
+        examstaff.dto.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
         String callingSbd = callingService.resolveSyncedCallingSbd(httpCalling, callBoard, queue);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {

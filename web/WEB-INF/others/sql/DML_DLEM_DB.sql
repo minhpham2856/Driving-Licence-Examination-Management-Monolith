@@ -1,5 +1,4 @@
 -- ============================================
--- ============================================
 -- DML – DLEM_DB_2
 -- Hệ thống quản lý sát hạch GPLX
 -- Mật khẩu mặc định mọi tài khoản: login123
@@ -22,6 +21,7 @@ DELETE FROM ExamEnrollment;
 DELETE FROM Candidate;
 DELETE FROM ExamRegistration;
 DELETE FROM Document;
+DELETE FROM DocumentType;
 DELETE FROM Profile;
 DELETE FROM ExaminerSchedule;
 DELETE FROM Licence_ExamSection;
@@ -100,18 +100,26 @@ INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber
 GO
 
 -- ============================================
--- 4. TÀI LIỆU HỒ SƠ ĐĂNG KÝ
+-- 4. LOẠI TÀI LIỆU HỒ SƠ (cố định) + TÀI LIỆU
 -- ============================================
-INSERT INTO Document (DocumentType, DocumentUrl, Notes, ProfileId) VALUES
-(N'Căn cước công dân (mặt trước)', N'/uploads/dossiers/8/cccd_mat_truoc.jpg', NULL, 8),
-(N'Căn cước công dân (mặt sau)',  N'/uploads/dossiers/8/cccd_mat_sau.jpg', NULL, 8),
-(N'Giấy khám sức khỏe',           N'/uploads/dossiers/8/giay_kham_suc_khoe.pdf', N'Đủ điều kiện sức khỏe lái xe', 8),
-(N'Căn cước công dân (mặt trước)', N'/uploads/dossiers/9/cccd_mat_truoc.jpg', NULL, 9),
-(N'Giấy khám sức khỏe',           N'/uploads/dossiers/9/giay_kham_suc_khoe.pdf', NULL, 9),
-(N'Căn cước công dân (mặt trước)', N'/uploads/dossiers/10/cccd_mat_truoc.jpg', NULL, 10),
-(N'Giấy chứng nhận tốt nghiệp',   N'/uploads/dossiers/11/bang_tot_nghiep.pdf', N'Hạng A1', 11),
-(N'Căn cước công dân (mặt trước)', N'/uploads/dossiers/11/cccd_mat_truoc.jpg', NULL, 11),
-(N'Giấy phép lái xe hiện có',     N'/uploads/dossiers/12/gplx_hang_b1.jpg', N'Nâng hạng lên B', 12);
+INSERT INTO DocumentType ([Type]) VALUES
+(N'Căn cước công dân (mặt trước)'),
+(N'Căn cước công dân (mặt sau)'),
+(N'Giấy khám sức khỏe'),
+(N'Giấy chứng nhận tốt nghiệp'),
+(N'Giấy phép lái xe hiện có');
+GO
+
+INSERT INTO Document (DocumentTypeId, DocumentUrl, Notes, ProfileId) VALUES
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Căn cước công dân (mặt trước)'), N'/uploads/dossiers/8/cccd_mat_truoc.jpg', NULL, 8),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Căn cước công dân (mặt sau)'),  N'/uploads/dossiers/8/cccd_mat_sau.jpg', NULL, 8),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Giấy khám sức khỏe'),           N'/uploads/dossiers/8/giay_kham_suc_khoe.pdf', N'Đủ điều kiện sức khỏe lái xe', 8),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Căn cước công dân (mặt trước)'), N'/uploads/dossiers/9/cccd_mat_truoc.jpg', NULL, 9),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Giấy khám sức khỏe'),           N'/uploads/dossiers/9/giay_kham_suc_khoe.pdf', NULL, 9),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Căn cước công dân (mặt trước)'), N'/uploads/dossiers/10/cccd_mat_truoc.jpg', NULL, 10),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Giấy chứng nhận tốt nghiệp'),   N'/uploads/dossiers/11/bang_tot_nghiep.pdf', N'Hạng A1', 11),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Căn cước công dân (mặt trước)'), N'/uploads/dossiers/11/cccd_mat_truoc.jpg', NULL, 11),
+((SELECT DocumentTypeId FROM DocumentType WHERE [Type] = N'Giấy phép lái xe hiện có'),     N'/uploads/dossiers/12/gplx_hang_a1.jpg', N'Nâng hạng từ A1 lên A', 12);
 GO
 
 -- ============================================
@@ -120,7 +128,7 @@ GO
 INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, UpgradeFromLicenceId) VALUES
 (N'A1', N'Xe mô tô hai bánh có dung tích xi-lanh đến 125 cm³', 18, 0, NULL),
 (N'A',  N'Xe mô tô hai bánh có dung tích xi-lanh trên 125 cm³', 18, 0, NULL),
-(N'B1', N'Ô tô số tự động tải trọng dưới 3.500 kg', 18, 0, NULL);
+(N'B1', N'Xe mô tô ba bánh', 18, 0, NULL);
 GO
 
 UPDATE Licence SET UpgradeFromLicenceId = (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1') WHERE LicenceClass = N'A';
@@ -135,7 +143,7 @@ INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId) V
 (N'Chờ duyệt',   N'Chờ cán bộ quản lý duyệt hồ sơ', 10, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
 (N'Duyệt',       N'Đăng ký thi cấp mới hạng A1', 11, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
 (N'Duyệt',       N'Nâng hạng từ A1 lên A', 12, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
-(N'Duyệt',       N'Đăng ký hạng B1 số tự động', 13, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
+(N'Duyệt',       N'Đăng ký thi cấp mới hạng B1 (mô tô ba bánh)', 13, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
 (N'Duyệt',       N'Hồ sơ hoàn chỉnh', 14, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
 (N'Chờ duyệt',   N'Chờ bổ sung ảnh chân dung', 15, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
 (N'Loại',        N'Không đủ điều kiện sức khỏe theo quy định', 16, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
@@ -173,7 +181,7 @@ INSERT INTO Licence_ExamSection (LicenceId, ExamSectionId, DurationMinutes) VALU
 ((SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  1, 19),
 ((SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  2, NULL),
 ((SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 1, 20),
-((SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 2, 18);
+((SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 2, NULL);
 GO
 
 
@@ -187,21 +195,21 @@ GO
 -- 12. KHU VỰC THI (ExamZone) — trung tâm loại 3
 -- ============================================
 INSERT INTO ExamZone (ZoneName, [Location], IsActive) VALUES
-(N'Khu nhà điều hành',     N'Tòa A – Trung tâm Sát hạch Lái Vui, Hà Nội', 1),
-(N'Khu sân thi mô tô',     N'Khu sân thực hành số 1 – Trung tâm Sát hạch Lái Vui', 1),
-(N'Khu sân thi ô tô B1',   N'Khu sân thực hành số 2 – Trung tâm Sát hạch Lái Vui', 1);
+(N'Khu nhà điều hành',           N'Tòa A – Trung tâm Sát hạch Lái Vui, Hà Nội', 1),
+(N'Khu sân thi mô tô',           N'Khu sân thực hành số 1 – Trung tâm Sát hạch Lái Vui', 1),
+(N'Khu sân thi mô tô ba bánh',   N'Khu sân thực hành số 2 – Trung tâm Sát hạch Lái Vui', 1);
 GO
 
 -- ============================================
--- 13. PHÒNG / SÂN / ĐƯỜNG THI (ExamArea)
+-- 13. PHÒNG / SÂN THI (ExamArea)
 -- AreaType: Phòng thủ tục | Phòng thi | Sân thi
 -- ============================================
 INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location], ExamZoneId) VALUES
-(N'Phòng thủ tục 102',   N'Phòng thủ tục', 30, N'Tầng 1, Tòa A', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
-(N'Phòng thi LT 1',      N'Phòng thi',     30, N'Tầng 2, Tòa B', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
-(N'Phòng thi LT 2',      N'Phòng thi',     30, N'Tầng 2, Tòa B', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
-(N'Sân thi mô tô',       N'Sân thi',       20, N'Sân số 1',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô')),
-(N'Sân thi ô tô B1',     N'Sân thi',       12, N'Sân số 2',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi ô tô B1'));
+(N'Phòng thủ tục 102',       N'Phòng thủ tục', 30, N'Tầng 1, Tòa A', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
+(N'Phòng thi LT 1',          N'Phòng thi',     30, N'Tầng 2, Tòa B', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
+(N'Phòng thi LT 2',          N'Phòng thi',     30, N'Tầng 2, Tòa B', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
+(N'Sân thi mô tô',           N'Sân thi',       20, N'Sân số 1',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô')),
+(N'Sân thi mô tô ba bánh',   N'Sân thi',       12, N'Sân số 2',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô ba bánh'));
 GO
 
 -- ============================================
@@ -219,7 +227,7 @@ INSERT INTO ExaminerSchedule (ExamId, ExamSectionId, ExamAreaId, ExaminerId, Ass
  (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:00:00'),
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0930'),
  (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình'),
- (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1'),
+ (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh'),
  (SELECT UserId FROM [User] WHERE Username = N'shv_tung'),
  (SELECT UserId FROM [User] WHERE Username = N'exam_hoa'), '2026-05-25 08:05:00'),
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'),
@@ -235,7 +243,7 @@ INSERT INTO ExaminerSchedule (ExamId, ExamSectionId, ExamAreaId, ExaminerId, Ass
 GO
 
 -- ============================================
--- 16. THIẾT BỊ THI (A1/A: Máy tính + Mô tô; B1: Máy tính + Xe con)
+-- 16. THIẾT BỊ THI (A1/A: Máy tính + Mô tô; B1: Máy tính + Mô tô ba bánh)
 -- ============================================
 INSERT INTO ExamDevice (DeviceName, DeviceType, IsActive, ExamAreaId) VALUES
 (N'MT-LT-01', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
@@ -257,10 +265,10 @@ INSERT INTO ExamDevice (DeviceName, DeviceType, IsActive, ExamAreaId) VALUES
 (N'XM-A1-02', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
 (N'XM-A1-03', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
 (N'XM-A1-DP', N'Mô tô', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
-(N'OTO-B1-01', N'Xe con', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1')),
-(N'OTO-B1-02', N'Xe con', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1')),
-(N'OTO-B1-03', N'Xe con', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1')),
-(N'OTO-B1-DP', N'Xe con', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi ô tô B1'));
+(N'XM3-B1-01', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
+(N'XM3-B1-02', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
+(N'XM3-B1-03', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
+(N'XM3-B1-DP', N'Mô tô ba bánh', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh'));
 GO
 
 -- ============================================
@@ -463,61 +471,15 @@ INSERT INTO ScoreDeduction ([Reason], Points, IsCritical, LicenceId, ExamSection
 (N'Xe bị chết máy', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
 (N'Xe sát hạch bị đổ trong quá trình sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
 (N'Đi không đúng trình tự bài sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Bánh xe đi ra ngoài vạch giới hạn hình sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Bánh xe đè vào vạch giới hạn hình sát hạch', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không hoàn thành bài sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Thời gian thực hiện bài sát hạch quá 10 phút, cứ quá 01 phút', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Xe bị chết máy', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Xử lý tình huống không hợp lý gây tai nạn', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Đi không đúng trình tự bài sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Điều khiển xe bị rung giật mạnh', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Bánh xe trước và bánh xe sau bên lái phụ không qua vùng giới hạn của hình vệt bánh xe', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
+(N'Bánh xe đè vào vạch cản của hình sát hạch', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
 (N'Bánh xe đè vào vạch giới hạn hình sát hạch', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Bánh xe đè vào vạch giới hạn hình sát hạch, cứ quá 05 giây', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Chưa ghép được xe vào nơi đỗ (khi kết thúc bài sát hạch, còn một phần thân xe nằm ngoài khu vực ghép xe)', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Dừng xe chưa đến vạch dừng quy định', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Dừng xe quá vạch dừng quy định', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Ghép xe không đúng vị trí quy định (toàn bộ thân xe nằm trong khu vực ghép xe nhưng không có tín hiệu báo kết thúc)', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không bật và tắt đèn xi nhan trái kịp thời', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không bật đèn xi nhan khi rẽ trái hoặc rẽ phải', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không bật đèn xi nhan phải', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không bật đèn xi nhan trái khi xuất phát', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không dừng xe ở vạch dừng quy định', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không qua vạch kết thúc', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không thay đổi số theo quy định', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không thay đổi tốc độ theo quy định', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không thay đổi đúng số và đúng tốc độ quy định', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không thắt dây an toàn', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không tắt đèn xi nhan trái ở khoảng cách 05 mét sau vạch xuất phát (đèn xanh trên xe tắt)', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Lái xe bị chết máy', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Lái xe lên vỉa hè', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Lái xe quá tốc độ quy định, cứ 3 giây', 1.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Lái xe vi phạm vạch kẻ đường để thiết bị báo không thực hiện đúng trình tự bài thi', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Quá 20 giây kể từ khi có lệnh xuất phát (đèn xanh trên xe bật sáng) không đi qua vạch xuất phát', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Quá 20 giây từ khi đèn tín hiệu màu xanh bật sáng không lái xe qua được vạch kết thúc ngã tư', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Quá 30 giây kể từ khi có lệnh xuất phát (đèn xanh trên xe bật sáng) không đi qua vạch xuất phát', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Quá 30 giây từ khi đèn tín hiệu màu xanh bật sáng không lái xe qua được vạch kết thúc ngã tư', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Quá thời gian 30 giây kể từ khi dừng xe không khởi hành xe qua vạch dừng', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Thời gian thực hiện bài sát hạch, cứ quá 02 phút', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Tốc độ động cơ quá 4000 vòng/phút', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Tổng thời gian đến bài sát hạch đang thực hiện quá quy định, cứ 03 giây', 1.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Vi phạm tín hiệu đèn điều khiển giao thông (đi qua ngã tư khi đèn tín hiệu màu đỏ)', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
+(N'Chạm chân xuống đất trong quá trình sát hạch', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
+(N'Hai bánh xe của xe sát hạch ra ngoài hình sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
+(N'Không hoàn thành bài sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
+(N'Thời gian thực hiện các bài sát hạch quá 10 phút, cứ quá 01 phút', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
 (N'Xe bị chết máy', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Xe bị tụt dốc quá 500 mm kể từ khi dừng xe', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Xe quá tốc độ quy định, cứ 03 giây', 1.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Xử lý tình huống không hợp lý gây tai nạn', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Đi không đúng hình của hạng xe sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Đi không đúng hình của hạng xe thi', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Điểm sát hạch dưới 80 điểm', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Để tốc độ động cơ quá 4000 vòng/phút', 5.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không phanh dừng xe trong thời gian 3 giây khi có tín hiệu tình huống nguy hiểm', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không bật tín hiệu nguy hiểm trên xe trong thời gian 5 giây', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không tắt tín hiệu nguy hiểm trên xe trước khi đi tiếp sau tình huống nguy hiểm', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không thực hiện đúng các thao tác xử lý tình huống nguy hiểm', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không phanh dừng xe trong thời gian 3 giây khi có tín hiệu tình huống nguy hiểm', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không bật tín hiệu nguy hiểm trên xe trong thời gian 5 giây', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không tắt tín hiệu nguy hiểm trên xe trước khi đi tiếp sau tình huống nguy hiểm', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
-(N'Không thực hiện đúng các thao tác xử lý tình huống nguy hiểm', 10.00, 0, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình'));
+(N'Xe sát hạch bị đổ trong quá trình sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình')),
+(N'Đi không đúng trình tự bài sát hạch', 100.00, 1, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), (SELECT ExamSectionId FROM ExamSection WHERE SectionName = N'Thực hành trong hình'));
 GO
 
 -- ============================================

@@ -2,7 +2,7 @@ package examiner.dao.impl;
 
 import examiner.dao.ExaminerScheduleDAO;
 import shared.dbconnection.DBContext;
-import examiner.enums.ExamStatus;
+import shared.enums.ExamStatus;
 import shared.model.ExaminerSchedule;
 import java.sql.Date;
 import java.sql.PreparedStatement;

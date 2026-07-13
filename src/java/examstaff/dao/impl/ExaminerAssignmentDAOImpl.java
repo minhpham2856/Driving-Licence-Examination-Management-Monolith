@@ -2,13 +2,13 @@ package examstaff.dao.impl;
 
 
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dto.ExaminerSlotDTO;
 
 import examstaff.enums.UserRole;
-import examstaff.model.Profile;
+import shared.model.Profile;
 import examstaff.dto.UserDTO;
 
 import java.sql.Date;
@@ -391,7 +391,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         Integer profileId = (Integer) rs.getObject("ProfileId");
         if (profileId != null) {
             Profile profile = new Profile();
-            profile.setId(profileId);
+            profile.setProfileId(profileId);
             profile.setUserId(rs.getInt("UserId"));
             profile.setFullName(rs.getString("FullName"));
             Date dob = rs.getDate("DateOfBirth");

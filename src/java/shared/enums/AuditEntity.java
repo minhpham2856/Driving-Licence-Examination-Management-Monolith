@@ -26,9 +26,9 @@ public enum AuditEntity {
         if (value == null) {
             return null;
         }
-        for (AuditEntity status : values()) {
-            if (status.getValue().equals(value)) {
-                return status;
+        for (AuditEntity entity : values()) {
+            if (entity.getValue().equals(value)) {
+                return entity;
             }
         }
         return null;

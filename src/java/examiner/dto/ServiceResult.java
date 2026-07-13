@@ -1,6 +1,6 @@
 package examiner.dto;
 
-import examiner.enums.ErrorType;
+import shared.enums.ErrorType;
 
 public final class ServiceResult<T> {
 

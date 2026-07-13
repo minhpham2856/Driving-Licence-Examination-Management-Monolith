@@ -2,7 +2,7 @@ package examiner.dao.impl;
 import shared.dbconnection.DBContext;
 import examiner.dao.PaymentDAO;
 import shared.model.Payment;
-import examiner.enums.PaymentStatus;
+import shared.enums.PaymentStatus;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;

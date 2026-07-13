@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import examstaff.enums.ExamSection;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 
 /** Phân loại khu vực thi (LT / TH) — helper thuần. */
 public final class ExamAreaTypeResolver {

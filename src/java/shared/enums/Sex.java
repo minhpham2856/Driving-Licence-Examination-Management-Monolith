@@ -18,9 +18,9 @@ public enum Sex {
         if (value == null) {
             return null;
         }
-        for (Sex status : values()) {
-            if (status.getValue().equals(value)) {
-                return status;
+        for (Sex sex : values()) {
+            if (sex.getValue().equalsIgnoreCase(value)) {
+                return sex;
             }
         }
         return null;

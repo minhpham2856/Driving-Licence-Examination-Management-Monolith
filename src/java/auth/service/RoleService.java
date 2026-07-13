@@ -10,4 +10,3 @@ public interface RoleService {
 
     int getRoleIdByName(String roleName);
 }
-

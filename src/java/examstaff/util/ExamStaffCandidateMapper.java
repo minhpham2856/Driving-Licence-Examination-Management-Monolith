@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.view.ExamStaffCandidate;
+import examstaff.dto.view.ExamStaffCandidate;
 
 import java.util.ArrayList;
 import java.util.List;

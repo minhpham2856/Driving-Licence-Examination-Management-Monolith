@@ -4,7 +4,7 @@ import examiner.dto.ExamStatsDTO;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.CandidateRowDTO;
 import examiner.dto.ExamReportDTO;
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import java.util.List;
 import java.util.Map;
 

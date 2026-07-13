@@ -2,7 +2,7 @@ package examiner.service;
 
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.ServiceResult;
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import shared.model.User;
 
 import java.sql.Date;
