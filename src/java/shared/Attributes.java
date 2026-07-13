@@ -35,6 +35,7 @@ public final class Attributes {
         public static final String ALERT_MSG = "alertMsg";
         public static final String ACCOUNT_USER = "accountUser";
         public static final String ACCOUNT_PROFILE = "accountProfile";
+        public static final String ACCOUNT_SHELL = "accountShell";
     }
 
     // Examiner session and request context

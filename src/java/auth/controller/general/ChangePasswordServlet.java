@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
+import shared.enums.RoleType;
 
 import java.io.IOException;
 
@@ -31,7 +32,7 @@ public class ChangePasswordServlet extends HttpServlet {
         if (sessionUser == null) {
             return;
         }
-        request.setAttribute(Attributes.Request.BACK_URL, "/profile");
+        bindPage(request, sessionUser);
         request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
     }
 
@@ -55,8 +56,21 @@ public class ChangePasswordServlet extends HttpServlet {
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
         }
         request.setAttribute(Attributes.Request.MESSAGE, result.getMessage());
-        request.setAttribute(Attributes.Request.BACK_URL, "/profile");
+        bindPage(request, sessionUser);
         request.getRequestDispatcher("/views/auth/general/change-password.jsp").forward(request, response);
+    }
+
+    private void bindPage(HttpServletRequest request, UserDTO sessionUser) {
+        request.setAttribute(Attributes.Request.BACK_URL, "/profile");
+        request.setAttribute(Attributes.Request.ACCOUNT_SHELL, resolveAccountShell(sessionUser));
+    }
+
+    private static String resolveAccountShell(UserDTO user) {
+        if (user == null || user.getRole() == null) {
+            return "public";
+        }
+        RoleType role = RoleType.fromValue(user.getRole().getRoleName());
+        return role == RoleType.EXAM_STAFF ? "examstaff" : "public";
     }
 
     private UserDTO requireUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
