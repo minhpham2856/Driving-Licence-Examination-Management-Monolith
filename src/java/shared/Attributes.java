@@ -33,6 +33,8 @@ public final class Attributes {
         public static final String BACK_URL = "backUrl";
         public static final String ERROR_MSG = "errorMsg";
         public static final String ALERT_MSG = "alertMsg";
+        public static final String ACCOUNT_USER = "accountUser";
+        public static final String ACCOUNT_PROFILE = "accountProfile";
     }
 
     // Examiner session and request context

@@ -346,7 +346,23 @@
 
     <div class="side-nav-bar__footer">
 
-        <a href="${ctx}/logout" class="side-nav-bar__logout">
+        <a href="${ctx}/profile" class="side-nav-bar__logout" style="margin-bottom:6px;">
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">person</span>
+
+            <span class="side-nav-bar__logout-label">Hồ sơ cá nhân</span>
+
+        </a>
+
+        <a href="${ctx}/change-password" class="side-nav-bar__logout" style="margin-bottom:6px;">
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">lock</span>
+
+            <span class="side-nav-bar__logout-label">Đổi mật khẩu</span>
+
+        </a>
+
+        <a href="${ctx}/staff/logout" class="side-nav-bar__logout">
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">logout</span>
 
