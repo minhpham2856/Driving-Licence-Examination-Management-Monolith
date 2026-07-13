@@ -17,6 +17,8 @@ public interface UserDAO {
 
     boolean updatePassword(int userId, String passwordHash);
 
+    boolean updateCredentials(int userId, String username, String email);
+
     boolean deactivate(int userId);
 
     List<User> getAllByIds(List<Integer> ids);
