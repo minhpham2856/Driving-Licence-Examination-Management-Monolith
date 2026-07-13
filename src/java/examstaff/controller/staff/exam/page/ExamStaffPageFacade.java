@@ -4,8 +4,8 @@ import examstaff.controller.staff.exam.adapter.ExamStaffSelectionFacade;
 import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
-import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.ExamSummaryDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffPageContextDTO;
 import examstaff.dto.ExamStaffPagePrepareInput;
@@ -19,7 +19,7 @@ import examstaff.service.ExamStaffSelectionService;
 import java.util.List;
 
 /**
- * Prepares exam-staff page context and binds the initial page examstaff.model.
+ * Prepares exam-staff page context and binds the initial page model.
  */
 public final class ExamStaffPageFacade {
 

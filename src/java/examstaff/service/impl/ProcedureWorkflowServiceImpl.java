@@ -1,8 +1,8 @@
 package examstaff.service.impl;
 
 import examstaff.dto.AutoAllocateResultDTO;
-import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.ExamSummaryDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
 import examstaff.dto.ProcedurePaymentOutcomeDTO;
 import examstaff.dto.ProcedurePhotoSaveOutcomeDTO;
@@ -10,8 +10,8 @@ import examstaff.dto.ProcedureProfilePrepareResultDTO;
 import examstaff.dto.ProcedureResetOutcomeDTO;
 import examstaff.service.CandidatePhotoService;
 import examstaff.service.CandidateQueueService;
-import examstaff.service.ExamRegistrationService;
-import examstaff.service.impl.ExamRegistrationServiceImpl;
+import service.ExamRegistrationService;
+import service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.service.ProcedurePaymentService;
 import examstaff.service.ProcedureWorkflowService;

@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
 import examstaff.dao.CallBoardDAO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.model.view.CallBoardState;
 import examstaff.service.CallBoardSyncService;
 import examstaff.util.CallBoardRules;

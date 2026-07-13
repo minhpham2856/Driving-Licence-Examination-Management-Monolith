@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 
 /** Kết quả tìm kiếm trên trang tổng quan phân bổ. */
 public class AllocationOverviewHitDTO {

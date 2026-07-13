@@ -1,15 +1,15 @@
 package examstaff.service.impl;
 
 import examstaff.dto.AutoAllocateResultDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
-import examstaff.enums.SectionType;
-import examstaff.model.ExamArea;
+import enums.ExamSection;
+import model.ExamArea;
 import examstaff.service.AllocationActionService;
 import examstaff.service.ExamAreaQueryService;
-import examstaff.service.ExamRegistrationService;
-import examstaff.service.impl.ExamRegistrationServiceImpl;
+import service.ExamRegistrationService;
+import service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.util.AllocationStageHelper;
 import examstaff.util.ExaminerAssignmentRules;
@@ -98,7 +98,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null
-                || !examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(targetArea.getAreaType())) {
+                || !ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(targetArea.getAreaType())) {
             result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết.");
             return;
         }

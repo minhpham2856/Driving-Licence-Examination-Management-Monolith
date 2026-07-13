@@ -1,7 +1,7 @@
 package examstaff.service;
 
-import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.user.UserDTO;
+import dto.ExamSummaryDTO;
+import dto.UserDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
 

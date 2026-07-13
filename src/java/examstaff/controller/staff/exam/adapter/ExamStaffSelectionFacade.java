@@ -2,7 +2,7 @@ package examstaff.controller.staff.exam.adapter;
 
 import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
-import examstaff.dto.ExamSummaryDTO;
+import dto.ExamSummaryDTO;
 import examstaff.dto.ExamStaffSelectionResolveInput;
 import examstaff.dto.ExamStaffSelectionStateDTO;
 import jakarta.servlet.http.HttpServletRequest;

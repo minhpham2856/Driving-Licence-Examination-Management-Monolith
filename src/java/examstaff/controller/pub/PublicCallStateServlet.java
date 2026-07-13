@@ -13,7 +13,7 @@ import examstaff.model.view.CallBoardState;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.PublicCallQueryService;
-import examstaff.util.Utf8EncodingHelper;
+import util.Utf8EncodingHelper;
 
 import java.io.IOException;
 

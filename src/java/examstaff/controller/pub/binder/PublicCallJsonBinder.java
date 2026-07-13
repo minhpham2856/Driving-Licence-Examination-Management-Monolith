@@ -1,9 +1,9 @@
 package examstaff.controller.pub.binder;
 
 import examstaff.dto.PublicCallSnapshotDTO;
-import examstaff.util.JsonUtil;
-import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import util.JsonUtil;
+import dto.ExamSummaryDTO;
+import dto.exam.ExamRegistrationDTO;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;

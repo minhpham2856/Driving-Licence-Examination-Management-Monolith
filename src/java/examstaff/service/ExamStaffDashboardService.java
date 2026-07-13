@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.dto.ExamSummaryDTO;
+import dto.ExamSummaryDTO;
 import examstaff.dto.ExamStaffDashboardViewDTO;
 
 import java.util.List;

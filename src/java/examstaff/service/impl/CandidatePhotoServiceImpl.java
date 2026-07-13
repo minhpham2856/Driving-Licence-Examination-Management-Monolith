@@ -1,6 +1,6 @@
 package examstaff.service.impl;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.service.CandidatePhotoService;
 import examstaff.util.CandidatePhotoStorageUtil;
 

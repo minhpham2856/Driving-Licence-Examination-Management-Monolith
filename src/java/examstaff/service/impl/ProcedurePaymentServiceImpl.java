@@ -1,14 +1,14 @@
 package examstaff.service.impl;
 
-import examstaff.dao.PaymentDAO;
-import examstaff.dao.impl.PaymentDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dao.PaymentDAO;
+import dao.impl.PaymentDAOImpl;
+import dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
-import examstaff.enums.PaymentMethod;
-import examstaff.enums.PaymentStatus;
-import examstaff.model.Payment;
-import examstaff.service.ExamRegistrationService;
-import examstaff.service.impl.ExamRegistrationServiceImpl;
+import enums.PaymentMethod;
+import enums.PaymentStatus;
+import model.Payment;
+import service.ExamRegistrationService;
+import service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ProcedureFeeQueryService;
 import examstaff.service.ProcedurePaymentService;
 

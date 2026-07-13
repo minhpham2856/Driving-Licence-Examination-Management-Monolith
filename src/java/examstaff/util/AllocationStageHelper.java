@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import dto.exam.ExamRegistrationDTO;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

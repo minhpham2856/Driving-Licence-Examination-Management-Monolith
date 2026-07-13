@@ -1,9 +1,9 @@
 package examstaff.service.impl;
 
-import examstaff.dao.AuditLogDAO;
-import examstaff.dao.impl.AuditLogDAOImpl;
-import examstaff.dto.staff.StaffProcedureKpiDTO;
-import examstaff.dto.user.AuditDTO;
+import dao.AuditLogDAO;
+import dao.impl.AuditLogDAOImpl;
+import dto.staff.StaffProcedureKpiDTO;
+import dto.user.AuditDTO;
 import examstaff.service.StaffAuditQueryService;
 
 import java.util.ArrayList;

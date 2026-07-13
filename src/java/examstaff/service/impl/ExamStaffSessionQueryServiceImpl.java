@@ -2,7 +2,7 @@ package examstaff.service.impl;
 
 import examstaff.dao.view.ExamSessionViewDAO;
 import examstaff.dao.view.impl.ExamSessionViewDAOImpl;
-import examstaff.dto.ExamSummaryDTO;
+import dto.ExamSummaryDTO;
 import examstaff.service.ExamStaffSessionQueryService;
 import examstaff.util.ExamSessionSummaryMapper;
 import examstaff.util.ExamStaffSessionRules;

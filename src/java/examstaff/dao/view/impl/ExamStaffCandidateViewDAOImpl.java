@@ -1,6 +1,6 @@
 package examstaff.dao.view.impl;
 
-import examstaff.dao.Db2CandidateSql;
+import dao.Db2CandidateSql;
 import examstaff.dao.view.ExamStaffCandidateViewDAO;
 import dbconnection.DBContext;
 import examstaff.model.view.ExamStaffCandidate;

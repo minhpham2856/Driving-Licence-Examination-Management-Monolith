@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.dto.ExamSummaryDTO;
+import dto.ExamSummaryDTO;
 import examstaff.dto.ExamStaffPageContextDTO;
 import examstaff.dto.ExamStaffPagePrepareInput;
 import examstaff.dto.ExamStaffPickerViewDTO;
