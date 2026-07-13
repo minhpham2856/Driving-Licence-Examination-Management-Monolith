@@ -39,8 +39,11 @@ public class ServletContextCallBoardDAO implements CallBoardDAO {
     @Override
     public Integer getActiveExamId() {
         Object value = servletContext.getAttribute(CallBoardAttributeKeys.ACTIVE_EXAM_ID);
-        if (value instanceof Integer id && id > 0) {
-            return id;
+        if (value instanceof Integer) {
+            Integer id = (Integer) value;
+            if (id > 0) {
+                return id;
+            }
         }
         return null;
     }
