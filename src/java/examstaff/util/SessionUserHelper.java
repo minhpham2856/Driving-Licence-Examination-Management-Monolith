@@ -1,28 +1,24 @@
 package examstaff.util;
 
+import auth.dto.UserDTO;
 import jakarta.servlet.http.HttpSession;
-import model.User;
+import shared.Attributes;
 
-/**
- * Doc user tu session host ({@code model.User} do Auth/Login dat vao) — khong dung examstaff.model.User.
- */
 public final class SessionUserHelper {
-
-    public static final int DEFAULT_STAFF_USER_ID = 3;
 
     private SessionUserHelper() {
     }
 
     public static int resolveUserId(HttpSession session) {
-        return resolveUserId(session, DEFAULT_STAFF_USER_ID);
+        return resolveUserId(session, 0);
     }
 
     public static int resolveUserId(HttpSession session, int defaultId) {
         if (session == null) {
             return defaultId;
         }
-        Object raw = session.getAttribute("user");
-        if (raw instanceof User user && user.getUserId() > 0) {
+        Object raw = session.getAttribute(Attributes.Session.USER);
+        if (raw instanceof UserDTO user && user.getUserId() > 0) {
             return user.getUserId();
         }
         return defaultId;
@@ -32,8 +28,8 @@ public final class SessionUserHelper {
         if (session == null) {
             return "";
         }
-        Object raw = session.getAttribute("user");
-        if (raw instanceof User user && user.getUsername() != null) {
+        Object raw = session.getAttribute(Attributes.Session.USER);
+        if (raw instanceof UserDTO user && user.getUsername() != null) {
             return user.getUsername();
         }
         return "";

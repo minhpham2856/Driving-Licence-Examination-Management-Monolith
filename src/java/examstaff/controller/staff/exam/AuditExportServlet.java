@@ -1,9 +1,10 @@
 package examstaff.controller.staff.exam;
 
+import shared.Attributes;
 import examstaff.controller.staff.exam.http.AuditFilterSupport;
 import examstaff.dto.user.AuditDTO;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
-import model.Profile;
+import shared.model.Profile;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.StaffAuditExportService;
 import examstaff.service.StaffAuditQueryService;
@@ -34,8 +35,8 @@ public class AuditExportServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        if (session == null || session.getAttribute(Attributes.Session.USER) == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/login");
             return;
         }
 
