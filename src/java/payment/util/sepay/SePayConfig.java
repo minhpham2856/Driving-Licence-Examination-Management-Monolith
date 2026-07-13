@@ -1,6 +1,6 @@
 package payment.util.sepay;
 
-import shared.util.ConfigManager;
+import shared.ConfigManager;
 
 /**
  * Cấu hình SePay đọc từ {@code web/WEB-INF/.env} hoặc biến môi trường.
