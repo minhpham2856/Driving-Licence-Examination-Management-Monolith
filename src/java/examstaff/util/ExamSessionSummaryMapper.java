@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import dto.ExamSummaryDTO;
+import examstaff.dto.ExamSummaryDTO;
 import examstaff.model.view.ExamSessionSummary;
 
 import java.util.ArrayList;

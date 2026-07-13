@@ -1,8 +1,8 @@
 package examstaff.util;
 
-import dto.ExaminerSlotDTO;
-import enums.ExamSection;
-import model.ExamArea;
+import examstaff.dto.ExaminerSlotDTO;
+import examstaff.enums.SectionType;
+import examstaff.model.ExamArea;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +23,7 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
-        return ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(normalized)
+        return examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(normalized)
                 || normalized.toLowerCase().contains("theory")
                 || normalized.toLowerCase().contains("lý thuyết")
                 || normalized.toLowerCase().contains("ly thuyet");
@@ -34,7 +34,7 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
-        if (util.ExamAreaTypeResolver.PRACTICAL_AREA_TYPE.equalsIgnoreCase(normalized)) {
+        if (examstaff.util.ExamAreaTypeResolver.PRACTICAL_AREA_TYPE.equalsIgnoreCase(normalized)) {
             return true;
         }
         String lower = normalized.toLowerCase();
@@ -50,7 +50,7 @@ public final class ExaminerAssignmentRules {
         if (isTheoryAreaType(slot.getAreaType())) {
             return true;
         }
-        return slot.getExamTypeId() == ExamSection.LY_THUYET.getExamTypeId();
+        return slot.getExamTypeId() == 1;
     }
 
     public static boolean isPracticalSlot(ExaminerSlotDTO slot) {
@@ -61,8 +61,8 @@ public final class ExaminerAssignmentRules {
             return true;
         }
         int typeId = slot.getExamTypeId();
-        return typeId == ExamSection.THUC_HANH_TRONG_HINH.getExamTypeId()
-                || typeId == ExamSection.THUC_HANH_TREN_DUONG.getExamTypeId();
+        return typeId == 2
+                || typeId == 3;
     }
 
     /**

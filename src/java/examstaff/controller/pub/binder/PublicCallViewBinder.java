@@ -1,7 +1,7 @@
 package examstaff.controller.pub.binder;
 
-import dto.ExamSummaryDTO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.PublicCallSnapshotDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;

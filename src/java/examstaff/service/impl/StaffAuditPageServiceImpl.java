@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
-import dto.staff.StaffProcedureKpiDTO;
-import dto.user.AuditDTO;
+import examstaff.dto.staff.StaffProcedureKpiDTO;
+import examstaff.dto.user.AuditDTO;
 import examstaff.dto.StaffAuditPageViewDTO;
 import examstaff.service.StaffAuditPageService;
 import examstaff.service.StaffAuditQueryService;

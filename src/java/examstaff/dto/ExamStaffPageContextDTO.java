@@ -1,7 +1,7 @@
 package examstaff.dto;
 
-import dto.ExamSummaryDTO;
-import dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
