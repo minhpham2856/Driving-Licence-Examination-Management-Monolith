@@ -145,11 +145,8 @@
                             <select id="licenseClass" name="licenseClass" class="input-field" required>
                                 <option value="">Chọn hạng GPLX</option>
                                 <option value="A1" ${param.licenseClass eq 'A1' ? 'selected' : ''}>Hạng A1</option>
-                                <option value="A2" ${param.licenseClass eq 'A2' ? 'selected' : ''}>Hạng A2</option>
+                                <option value="A" ${param.licenseClass eq 'A' ? 'selected' : ''}>Hạng A</option>
                                 <option value="B1" ${param.licenseClass eq 'B1' ? 'selected' : ''}>Hạng B1</option>
-                                <option value="B2" ${param.licenseClass eq 'B2' ? 'selected' : ''}>Hạng B2</option>
-                                <option value="C1" ${param.licenseClass eq 'C1' ? 'selected' : ''}>Hạng C1</option>
-                                <option value="C" ${param.licenseClass eq 'C' ? 'selected' : ''}>Hạng C</option>
                             </select>
                         </div>
 
@@ -177,7 +174,7 @@
                                 </label>
                                 <input type="file" id="graduationCertificate" name="graduationCertificate" class="input-field" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf">
                                 <small id="graduationHint" style="display:block;margin-top:4px;color:#64748b;">
-                                    Bắt buộc với hạng ô tô; không bắt buộc với A1/A2.
+                                    Không bắt buộc trong phạm vi A1, A và B1.
                                 </small>
                             </div>
                         </div>
@@ -218,18 +215,8 @@
 
                     <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.85rem; line-height: 1.45; color: #475569;">
                         <div>
-                            <strong style="color: #0f172a; display: block; margin-bottom: 2px;">&bull; Đối với hạng A1, A2:</strong>
+                            <strong style="color: #0f172a; display: block; margin-bottom: 2px;">&bull; Đối với hạng A1, A và B1:</strong>
                             Độ tuổi tối thiểu đăng ký sát hạch là <strong>đủ 18 tuổi</strong> tính đến ngày thi.
-                        </div>
-
-                        <div>
-                            <strong style="color: #0f172a; display: block; margin-bottom: 2px;">&bull; Đối với hạng B1, B2:</strong>
-                            Độ tuổi tối thiểu đăng ký sát hạch là <strong>đủ 18 tuổi</strong> tính đến ngày thi.
-                        </div>
-
-                        <div>
-                            <strong style="color: #0f172a; display: block; margin-bottom: 2px;">&bull; Đối với hạng C:</strong>
-                            Độ tuổi tối thiểu đăng ký sát hạch là <strong>đủ 21 tuổi</strong> tính đến ngày thi.
                         </div>
 
                         <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 6px; padding: 0.75rem; color: #b91c1c; font-weight: 500;">
@@ -293,7 +280,7 @@
         function updateGraduationRequirement() {
             if (!licenseSelect || !graduationInput) return;
             const value = (licenseSelect.value || '').toUpperCase();
-            const required = value !== '' && value !== 'A1' && value !== 'A2';
+            const required = false;
             graduationInput.required = required;
             graduationInput.disabled = !required;
             if (graduationGroup) graduationGroup.style.display = required ? 'block' : 'none';
@@ -302,7 +289,7 @@
             if (hint) {
                 hint.textContent = required
                     ? 'Bắt buộc với hồ sơ hạng ô tô.'
-                    : 'Không bắt buộc với A1/A2; có thể tải lên nếu trung tâm yêu cầu.';
+                    : 'Không bắt buộc trong phạm vi A1, A và B1.';
             }
         }
         if (licenseSelect) {

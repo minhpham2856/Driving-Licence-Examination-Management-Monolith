@@ -39,7 +39,7 @@ public class CreateUserServlet extends HttpServlet {
     private static final Pattern CCCD_PATTERN = Pattern.compile("\\d{12}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("0\\d{9}");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Set<String> LICENSE_CLASSES = Set.of("A1", "A2", "B1", "B2", "C1", "C", "D1", "D2", "D");
+    private static final Set<String> LICENSE_CLASSES = Set.of("A1", "A", "B1");
     private static final Map<String, String> DOSSIER_PARTS = Map.of(
             "portrait", "PORTRAIT",
             "idFront", "ID_FRONT",
@@ -265,13 +265,13 @@ public class CreateUserServlet extends HttpServlet {
         String fileName = GRADUATION_DOCUMENT_TYPE.toLowerCase() + "-" + UUID.randomUUID() + extension;
         Path target = directory.resolve(fileName).normalize();
         if (!target.startsWith(directory)) {
-            throw new IllegalArgumentException("TÃªn tá»‡p khÃ´ng há»£p lá»‡.");
+            throw new IllegalArgumentException("Tên tệp không hợp lệ.");
         }
         part.write(target.toString());
         persistAcrossCleanBuild(target, userId, fileName);
         if (!dossierDAO.saveDocument(profileId, GRADUATION_DOCUMENT_TYPE,
                 "/uploads/dossiers/" + userId + "/" + fileName)) {
-            throw new IllegalArgumentException("KhÃ´ng thá»ƒ ghi thÃ´ng tin tÃ i liá»‡u vÃ o cÆ¡ sá»Ÿ dá»¯ liá»‡u.");
+            throw new IllegalArgumentException("Không thể ghi thông tin tài liệu vào cơ sở dữ liệu.");
         }
     }
 
@@ -332,24 +332,15 @@ public class CreateUserServlet extends HttpServlet {
     }
 
     private static String normalizeLicenceClass(String value) {
-        String licenseClass = trim(value).toUpperCase();
-        return switch (licenseClass) {
-            case "A" -> "A2";
-            case "B" -> "B2";
-            default -> licenseClass;
-        };
+        return trim(value).toUpperCase(java.util.Locale.ROOT);
     }
 
     private static boolean requiresGraduationCertificate(String licenseClass) {
-        return !Set.of("A1", "A2").contains(normalizeLicenceClass(licenseClass));
+        return false;
     }
 
     private static int minimumAgeFor(String licenseClass) {
-        return switch (normalizeLicenceClass(licenseClass)) {
-            case "C1", "C" -> 21;
-            case "D1", "D2", "D" -> 24;
-            default -> 18;
-        };
+        return 18;
     }
 
     private static void validateOptionalFile(Part part) {
