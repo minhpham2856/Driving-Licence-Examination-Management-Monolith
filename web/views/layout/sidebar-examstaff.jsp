@@ -178,7 +178,7 @@
 
                 <c:if test="${empty sidebarOptions}">
 
-                    <option value="">— Chưa có kỳ thi —</option>
+                    <option value="">- Chưa có kỳ thi -</option>
 
                 </c:if>
 
@@ -201,11 +201,11 @@
                                 </c:otherwise>
                             </c:choose>>
 
-                        Hạng <c:out value="${exam.licenseCode}" default="—" /> —
+                        Hạng <c:out value="${exam.licenseCode}" default="-" /> -
 
                         <c:if test="${not empty exam.examDate}"><fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy" /></c:if>
 
-                        <c:if test="${empty exam.examDate}">—</c:if>
+                        <c:if test="${empty exam.examDate}">-</c:if>
 
                     </option>
 
@@ -282,11 +282,11 @@
 
                 <a href="${ctx}/views/staff/examstaff/allocation-results-pass${examQuery}"
 
-                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-pass') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Đỗ</a>
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-pass') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả - Đỗ</a>
 
                 <a href="${ctx}/views/staff/examstaff/allocation-results-fail${examQuery}"
 
-                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-fail') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả — Trượt</a>
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-results-fail') ? ' is-active' : ''}"><span class="submenu-dot"></span> Kết quả - Trượt</a>
 
             </div>
 
@@ -300,7 +300,7 @@
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">supervisor_account</span>
 
-            <span class="side-nav-bar__label">Phân bổ giám khảo</span>
+            <span class="side-nav-bar__label">Phân bổ sát hạch viên</span>
 
         </a>
 
@@ -358,7 +358,7 @@
 
     <div class="side-nav-bar__footer">
 
-        <a href="${ctx}/profile" class="side-nav-bar__logout" style="margin-bottom:6px;">
+        <a href="${ctx}/examstaff/profile" class="side-nav-bar__logout" style="margin-bottom:6px;">
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">person</span>
 
@@ -366,7 +366,7 @@
 
         </a>
 
-        <a href="${ctx}/change-password" class="side-nav-bar__logout" style="margin-bottom:6px;">
+        <a href="${ctx}/examstaff/change-password" class="side-nav-bar__logout" style="margin-bottom:6px;">
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">lock</span>
 
