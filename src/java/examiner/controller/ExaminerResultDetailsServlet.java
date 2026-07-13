@@ -1,6 +1,7 @@
 package examiner.controller;
 
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import examiner.filter.ExaminerFilter;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
@@ -67,7 +68,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
                     return;
                 }
-                if (!callService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
+                if (!callService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId()).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
                     return;
                 }
@@ -136,7 +137,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             String reason = request.getParameter("reasonCode");
             String reasonDetail = request.getParameter("reasonDetail");
             String password = request.getParameter("confirmPassword");
-            User user = (User) session.getAttribute("user");
+            UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
             if (!callService.logPracticalScoreEditReason(activeExamId, sbd, user, password, reason, reasonDetail, user.getUserId()).isSuccess()) {
                 request.setAttribute("editError", "Lưu lý do thất bại. Vui lòng kiểm tra lại mật khẩu xác nhận.");
                 doGet(request, response);

@@ -1,6 +1,7 @@
 package examiner.controller;
 
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -44,9 +45,9 @@ public class ExaminerDevicesServlet extends HttpServlet {
                 }
                 boolean updated = false;
                 if ("operational".equals(action)) {
-                    updated = callService.setDeviceAvailable(deviceId, ((User) session.getAttribute("user")).getUserId()).isSuccess();
+                    updated = callService.setDeviceAvailable(deviceId, ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId()).isSuccess();
                 } else {
-                    updated = callService.setDeviceMaintenance(deviceId, ((User) session.getAttribute("user")).getUserId()).isSuccess();
+                    updated = callService.setDeviceMaintenance(deviceId, ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId()).isSuccess();
                 }
                 if (!updated) {
                     response.sendRedirect(request.getContextPath() + "/views/examiner/devices?error=updateFailed");

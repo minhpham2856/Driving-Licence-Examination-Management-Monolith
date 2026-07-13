@@ -1,6 +1,7 @@
 package examiner.controller;
 
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import examiner.filter.ExaminerFilter;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
@@ -126,7 +127,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             examiner.dto.ServiceResult<Void> result = callService.updateCandidateProfile(
                     activeExamId,
                     sbd,
-                    ((User) session.getAttribute("user")).getUserId(),
+                    ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId(),
                     request.getParameter("fullName"),
                     dob,
                     request.getParameter("govIdNo"),
