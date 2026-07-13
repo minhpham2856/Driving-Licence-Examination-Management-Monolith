@@ -30,11 +30,7 @@ public class DossierDTO {
     public String getLicenceClass() { return licenceClass; }
     public void setLicenceClass(String licenceClass) { this.licenceClass = licenceClass; }
     public String getLicenceDisplayClass() {
-        return switch (normalisedLicenceClass()) {
-            case "A" -> "A2";
-            case "B" -> "B2";
-            default -> licenceClass;
-        };
+        return licenceClass;
     }
     public Map<String, Document> getDocuments() { return documents; }
     public int getDocumentCount() {
@@ -114,10 +110,16 @@ public class DossierDTO {
     }
     public boolean isMotorcycleLicence() {
         String value = normalisedLicenceClass();
-        return "A1".equals(value) || "A2".equals(value) || "A".equals(value);
+        return "A1".equals(value) || "A".equals(value) || "B1".equals(value);
+    }
+    public boolean isPendingReview() {
+        return "Pending".equals(status) || "Submitted".equals(status);
+    }
+    public boolean isReminderEligible() {
+        return isPendingReview() || "Rejected".equals(status);
     }
     public boolean isGraduationCertificateRequired() {
-        return licenceClass != null && !licenceClass.isBlank() && !isMotorcycleLicence();
+        return false;
     }
     private String normalisedLicenceClass() {
         return licenceClass == null ? "" : licenceClass.trim().toUpperCase(java.util.Locale.ROOT);
