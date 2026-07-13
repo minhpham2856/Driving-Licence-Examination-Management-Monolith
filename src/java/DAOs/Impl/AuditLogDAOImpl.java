@@ -29,7 +29,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                    a.CreatedAt AS changedAt,
                    NULL AS ipAddress,
                    NULL AS sessionId,
-                   ISNULL(u.Username, p.FullName) AS changerName
+                   COALESCE(NULLIF(p.FullName, ''), u.Username, N'Hệ thống') AS changerName
             FROM Audit a
             LEFT JOIN [User] u ON u.UserId = a.UserId
             LEFT JOIN Profile p ON p.UserId = u.UserId
@@ -184,22 +184,24 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
      */
     @Override
     public List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safePageSize;
         if (dateStr != null && !dateStr.trim().isEmpty()) {
             return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? AND CAST(a.CreatedAt AS DATE) = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
                     ps -> {
                         ps.setInt(1, userId);
                         ps.setString(2, dateStr);
                         ps.setInt(3, offset);
-                        ps.setInt(4, pageSize);
-                    }, true);
+                        ps.setInt(4, safePageSize);
+                    }, false);
         }
         return queryLogs(AUDIT_SELECT + " WHERE a.UserId = ? ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY",
                 ps -> {
                     ps.setInt(1, userId);
                     ps.setInt(2, offset);
-                    ps.setInt(3, pageSize);
-                }, true);
+                    ps.setInt(3, safePageSize);
+                }, false);
     }
 
     /**
@@ -260,6 +262,80 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                     ps -> ps.setString(1, dateStr));
         }
         return count("SELECT COUNT(*) FROM Audit", ps -> {});
+    }
+
+    @Override
+    public List<AuditDTO> searchUserLogsPaginated(int userId, String keyword, String action,
+            String startDate, String endDate, int page, int pageSize) {
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safePageSize;
+        String where = buildUserFilterWhere(keyword, action, startDate, endDate);
+        String sql = AUDIT_SELECT + where
+                + " ORDER BY a.CreatedAt DESC, a.AuditId DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        return queryLogs(sql, ps -> {
+            int index = bindUserFilters(ps, userId, keyword, action, startDate, endDate);
+            ps.setInt(index++, offset);
+            ps.setInt(index, safePageSize);
+        }, false);
+    }
+
+    @Override
+    public int countUserLogs(int userId, String keyword, String action,
+            String startDate, String endDate) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM Audit a
+                LEFT JOIN [User] u ON u.UserId = a.UserId
+                LEFT JOIN Profile p ON p.UserId = u.UserId
+                """ + buildUserFilterWhere(keyword, action, startDate, endDate);
+        return count(sql, ps -> bindUserFilters(ps, userId, keyword, action, startDate, endDate));
+    }
+
+    private String buildUserFilterWhere(String keyword, String action,
+            String startDate, String endDate) {
+        StringBuilder where = new StringBuilder(" WHERE a.UserId = ?");
+        if (hasText(keyword)) {
+            where.append(" AND (u.Username LIKE ? OR p.FullName LIKE ? OR a.Action LIKE ?")
+                    .append(" OR a.EntityName LIKE ? OR a.EntityId LIKE ? OR a.OldValue LIKE ?")
+                    .append(" OR a.NewValue LIKE ? OR a.Details LIKE ? OR a.Reason LIKE ?)");
+        }
+        if (hasText(action)) {
+            where.append(" AND UPPER(a.Action) = UPPER(?)");
+        }
+        if (hasText(startDate)) {
+            where.append(" AND a.CreatedAt >= CAST(? AS DATE)");
+        }
+        if (hasText(endDate)) {
+            where.append(" AND a.CreatedAt < DATEADD(DAY, 1, CAST(? AS DATE))");
+        }
+        return where.toString();
+    }
+
+    private int bindUserFilters(PreparedStatement ps, int userId, String keyword, String action,
+            String startDate, String endDate) throws SQLException {
+        int index = 1;
+        ps.setInt(index++, userId);
+        if (hasText(keyword)) {
+            String like = "%" + keyword.trim() + "%";
+            for (int i = 0; i < 9; i++) {
+                ps.setString(index++, like);
+            }
+        }
+        if (hasText(action)) {
+            ps.setString(index++, action.trim());
+        }
+        if (hasText(startDate)) {
+            ps.setString(index++, startDate.trim());
+        }
+        if (hasText(endDate)) {
+            ps.setString(index++, endDate.trim());
+        }
+        return index;
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     /**

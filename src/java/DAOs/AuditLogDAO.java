@@ -91,6 +91,17 @@ public interface AuditLogDAO {
     int getAllLogsCountByDate(String dateStr);
 
     /**
+     * Tìm nhật ký của một người dùng với bộ lọc và phân trang tại database.
+     * Các tham số chuỗi có thể để trống để bỏ qua điều kiện tương ứng.
+     */
+    List<AuditDTO> searchUserLogsPaginated(int userId, String keyword, String action,
+            String startDate, String endDate, int page, int pageSize);
+
+    /** Đếm nhật ký của một người dùng theo cùng bộ lọc tìm kiếm. */
+    int countUserLogs(int userId, String keyword, String action,
+            String startDate, String endDate);
+
+    /**
      * Lấy chỉ số KPI thủ tục của cán bộ (số thí sinh đã có ảnh + thanh toán do cán bộ đó thu).
      *
      * @param userId     mã cán bộ
