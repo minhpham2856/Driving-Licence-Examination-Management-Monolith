@@ -1,61 +1,70 @@
 package examiner.controller;
 
-import static auth.util.FormatUtil.formatString;
+import static shared.util.FormatUtil.formatPositiveInteger;
+import static shared.util.FormatUtil.formatString;
 import examiner.dto.CandidateRowDTO;
 import shared.enums.SectionType;
-import static shared.enums.SectionType.THEORY;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import examiner.service.ExamViewService;
 import examiner.service.impl.ExamViewServiceImpl;
+import examiner.util.ListUtil;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/views/examiner/dashboard")
-public class ExaminerDashboardServlet extends HttpServlet {
+@WebServlet("/examiner/dashboard")
+
+// Dashboard controller: candidate list with search, optional detail panel, and exam summary for the active session.
+public class DashboardServlet extends HttpServlet {
 
     private final ExamViewService examViewService = new ExamViewServiceImpl();
 
+    // Load candidate rows and optional detail for the active exam session and forward to dashboard.jsp.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         // Read session information prepared by ExaminerFilter
+        HttpSession session = request.getSession(false);
         Integer examId = (Integer) request.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
-        SectionType section = (SectionType) request.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION);
-        boolean isTheory = section == THEORY;
-        String sectionName = section.getValue();
+        if (examId == null && session != null) {
+            examId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        }
+        SectionType sectionType = session != null
+                ? ExaminerFilter.resolveSectionType(session)
+                : null;
+        if (examId == null || sectionType == null) {
+            response.sendRedirect(request.getContextPath() + "/examiner/exam");
+            return;
+        }
 
-        // Read optional search and candidate selection parameters
+        // Read optional search and candidate selection params
         Integer candidateNumber = getCandidateNumber(request);
         String search = request.getParameter("q");
 
         // Load candidate rows for the current session, filtered at the database when searching
-        List<CandidateRowDTO> candidates
-                = examViewService.loadCandidateRows(examId, isTheory, sectionName, formatString(search));
-
-        // Flag that a search is active so the view can show the query and a clear button
-        if (formatString(search) != null) {
-            request.setAttribute("searchActive", true);
-            request.setAttribute("searchQuery", search.trim());
-        }
+        List<CandidateRowDTO> candidates = examViewService.getAllFilteredByExam(
+                examId,
+                sectionType,
+                formatString(search));
+        ListUtil.applySortAndSearch(request, candidates);
 
         // Provide candidate list and summary for the dashboard
         request.setAttribute("candidates", candidates);
         request.setAttribute("candidateQueue", candidates);
-        request.setAttribute(
-                "examSummary",
-                examViewService.buildCandidateSummary(examId, isTheory, sectionName)
-        );
+        request.setAttribute("examSummary", examViewService.getStatsByExam(examId, sectionType));
 
         // Load detailed information for the selected candidate
         if (candidateNumber != null && candidateNumber > 0) {
-            CandidateRowDTO candidate
-                    = examViewService.getCandidateViewRow(examId, candidateNumber, isTheory, sectionName);
+            CandidateRowDTO candidate = examViewService.getCandidateViewRow(
+                    examId,
+                    candidateNumber,
+                    sectionType);
 
             if (candidate != null) {
                 request.setAttribute("candidate", candidate);
@@ -68,16 +77,6 @@ public class ExaminerDashboardServlet extends HttpServlet {
 
     // Parse the candidate number from the request
     private Integer getCandidateNumber(HttpServletRequest request) {
-        String value = request.getParameter("candidateNumber");
-
-        if (formatString(value) == null) {
-            return null;
-        }
-
-        try {
-            return Integer.valueOf(value.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return formatPositiveInteger(request.getParameter("candidateNumber"));
     }
 }
