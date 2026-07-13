@@ -13,6 +13,7 @@ public class UserDTO {
     private boolean active;
     private Role role;
     private Profile profile;
+    private Integer profileId;
 
     public UserDTO() {
     }
@@ -98,5 +99,19 @@ public class UserDTO {
 
     public void setProfile(Profile profile) {
         this.profile = profile;
+        if (profile != null && profile.getProfileId() > 0) {
+            this.profileId = profile.getProfileId();
+        }
+    }
+
+    public Integer getProfileId() {
+        if (profileId != null && profileId > 0) {
+            return profileId;
+        }
+        return profile != null && profile.getProfileId() > 0 ? profile.getProfileId() : null;
+    }
+
+    public void setProfileId(Integer profileId) {
+        this.profileId = profileId;
     }
 }
