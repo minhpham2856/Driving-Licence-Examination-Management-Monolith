@@ -34,8 +34,11 @@ public final class ExamStaffHttpSupport {
             return null;
         }
         Object selected = session.getAttribute("selectedExamId");
-        if (selected instanceof Integer id && id > 0) {
-            return id;
+        if (selected instanceof Integer) {
+            Integer id = (Integer) selected;
+            if (id > 0) {
+                return id;
+            }
         }
         return null;
     }
