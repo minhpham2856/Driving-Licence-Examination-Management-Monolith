@@ -1,7 +1,7 @@
 package auth.service.impl;
 
 import auth.service.EmailService;
-import util.ConfigManager;
+import examstaff.util.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
@@ -50,7 +50,6 @@ public class EmailServiceImpl implements EmailService {
         return sendEmail(to, subject, content, false);
     }
 
-    
     public boolean sendHtmlEmail(String to, String subject, String htmlContent) {
         return sendEmail(to, subject, htmlContent, true);
     }
@@ -101,4 +100,3 @@ public class EmailServiceImpl implements EmailService {
         return value.replace(" ", "").trim();
     }
 }
-

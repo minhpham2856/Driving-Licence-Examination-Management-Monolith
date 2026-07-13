@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.Fee;
+import shared.model.Fee;
 import java.util.List;
 
 public interface FeeDAO {
@@ -12,3 +12,4 @@ public interface FeeDAO {
 
     List<Fee> getFeesByPaymentId(int paymentId);
 }
+

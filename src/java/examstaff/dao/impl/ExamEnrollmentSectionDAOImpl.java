@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
 import examstaff.dao.ExamEnrollmentSectionDAO;
-import dbconnection.DBContext;
-import examstaff.model.ExamEnrollmentSection;
+import shared.dbconnection.DBContext;
+import shared.model.ExamEnrollmentSection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -109,3 +109,4 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
         return row;
     }
 }
+

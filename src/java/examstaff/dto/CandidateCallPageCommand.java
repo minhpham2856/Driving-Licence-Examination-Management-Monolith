@@ -1,12 +1,12 @@
 package examstaff.dto;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Input cho orchestrator trang gọi thí sinh (không phụ thuộc Servlet API). */
+/** Input cho orchestrator trang gá»i thÃ­ sinh (khÃ´ng phá»¥ thuá»™c Servlet API). */
 public class CandidateCallPageCommand {
 
     private String action;
@@ -163,3 +163,4 @@ public class CandidateCallPageCommand {
         this.board = board;
     }
 }
+

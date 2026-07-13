@@ -2,7 +2,7 @@ package examiner.controller;
 
 import examiner.enums.SectionType;
 import examiner.filter.ExaminerFilter;
-import examiner.model.User;
+import shared.model.User;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
 import examiner.service.impl.CallServiceImpl;
@@ -194,12 +194,13 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
 
     private String resolveCallDestination(HttpSession session) {
         if (session == null) {
-            return "Khu vực thi";
+            return "Khu vá»±c thi";
         }
         Object sectionName = session.getAttribute("examSectionName");
         if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
             return String.valueOf(sectionName);
         }
-        return "Khu vực thi";
+        return "Khu vá»±c thi";
     }
 }
+

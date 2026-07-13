@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.Payment;
+import shared.model.Payment;
 
 public interface PaymentDAO {
 
@@ -14,3 +14,4 @@ public interface PaymentDAO {
 
     int resolveEnrollmentId(int candidateId);
 }
+

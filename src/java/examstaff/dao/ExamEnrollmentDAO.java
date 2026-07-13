@@ -1,12 +1,12 @@
 package examstaff.dao;
 
-import examstaff.model.ExamEnrollment;
+import shared.model.ExamEnrollment;
 import java.sql.Date;
 import java.util.List;
 
 public interface ExamEnrollmentDAO {
 
-    // --- CleanMyBranch methods (ưu tiên) ---
+    // --- CleanMyBranch methods (Æ°u tiÃªn) ---
     ExamEnrollment getById(int examEnrollmentId);
 
     int insert(ExamEnrollment enrollment);
@@ -37,3 +37,4 @@ public interface ExamEnrollmentDAO {
 
     Integer findCandidateIdByGovIdAndExam(String governmentIdNumber, int examId);
 }
+

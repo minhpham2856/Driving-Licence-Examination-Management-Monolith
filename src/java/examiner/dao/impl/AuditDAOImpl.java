@@ -1,8 +1,8 @@
 package examiner.dao.impl;
 
 import examiner.dao.AuditDAO;
-import dbconnection.DBContext;
-import examiner.model.Audit;
+import shared.dbconnection.DBContext;
+import shared.model.Audit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -121,7 +121,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
                 + "FROM Audit a "
                 + "INNER JOIN ExamEnrollment e ON TRY_CAST(a.EntityId AS INT) = e.CandidateId "
                 + "WHERE e.ExamId = ? "
-                + "AND (a.Action = N'Cảnh báo' OR a.NewValue LIKE N'%Vi phạm%' OR a.NewValue LIKE N'%đình chỉ%') "
+                + "AND (a.Action = N'Cáº£nh bÃ¡o' OR a.NewValue LIKE N'%Vi pháº¡m%' OR a.NewValue LIKE N'%Ä‘Ã¬nh chá»‰%') "
                 + "ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> {
             ps.setInt(1, examId);
@@ -225,3 +225,4 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
+

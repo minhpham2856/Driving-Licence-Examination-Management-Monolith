@@ -5,7 +5,7 @@ import examstaff.dao.ExamRegistrationDAO;
 import examstaff.dao.impl.ExamRegistrationDAOImpl;
 import examstaff.service.ExamRegistrationService;
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.ExamRegistration;
+import shared.model.ExamRegistration;
 import java.util.List;
 
 public class ExamRegistrationServiceImpl implements ExamRegistrationService {
@@ -183,5 +183,6 @@ public class ExamRegistrationServiceImpl implements ExamRegistrationService {
         return dao.completeSection(candidateId, sessionId);
     }
 }
+
 
 

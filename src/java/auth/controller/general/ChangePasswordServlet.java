@@ -1,66 +1,64 @@
 package auth.controller.general;
 
-import dto.ServiceResult;
-import enums.AuditAction;
-import enums.AuditEntity;
+import auth.dto.ServiceResult;
+import shared.enums.AuditAction;
+import shared.enums.AuditEntity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import auth.model.User;
-import service.AuditService;
+import shared.model.User;
 import auth.service.AuthService;
-import service.impl.AuditServiceImpl;
 import auth.service.impl.AuthServiceImpl;
+import auth.service.AuditService;
+import auth.service.impl.AuditServiceImpl;
 import java.io.IOException;
 
-@WebServlet(name = "ChangePasswordServlet", urlPatterns = {"/change-password"})
+@WebServlet("/change-password")
 public class ChangePasswordServlet extends HttpServlet {
 
-    private final AuditService AuditService = new AuditServiceImpl();
+    private final AuditService auditService = new AuditServiceImpl();
     private final AuthService authService = new AuthServiceImpl();
-    private static final String VIEW = "/views/auth/general/forgot-password.jsp";
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession checkSession = req.getSession(false);
-        if (checkSession == null || checkSession.getAttribute("user") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        req.getRequestDispatcher(VIEW).forward(req, resp);
+        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession userSession = req.getSession(false);
+        HttpSession userSession = request.getSession(false);
         User sessionUser = userSession == null ? null : (User) userSession.getAttribute("user");
         if (sessionUser == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        String current = req.getParameter("currentPassword");
-        String newPwd = req.getParameter("newPassword");
-        String confirm = req.getParameter("confirmPassword");
+        String current = request.getParameter("currentPassword");
+        String newPwd = request.getParameter("newPassword");
+        String confirm = request.getParameter("confirmPassword");
         ServiceResult<Void> result = authService.changePassword(
                 sessionUser.getUserId(), current, newPwd, confirm);
         if (result.isSuccess()) {
-            HttpSession s = req.getSession(false);
+            HttpSession s = request.getSession(false);
             if (s != null) {
-                AuditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
-                        "Đổi mật khẩu tài khoản", sessionUser.getUserId());
+                auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
+                        "Äá»•i máº­t kháº©u tÃ i khoáº£n", sessionUser.getUserId());
             }
-            req.setAttribute("messageType", "success");
+            request.setAttribute("messageType", "success");
         } else {
-            req.setAttribute("messageType", "danger");
+            request.setAttribute("messageType", "danger");
         }
-        req.setAttribute("message", result.getMessage());
-        req.getRequestDispatcher(VIEW).forward(req, resp);
+        request.setAttribute("message", result.getMessage());
+        request.getRequestDispatcher("/views/auth/general/forgot-password.jsp").forward(request, response);
     }
 }
-
 

@@ -1,7 +1,7 @@
 package examstaff.dao.impl;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.ExamDeviceDAO;
-import examstaff.model.ExamDevice;
+import shared.model.ExamDevice;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -156,3 +156,4 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         return new ArrayList<>();
     }
 }
+

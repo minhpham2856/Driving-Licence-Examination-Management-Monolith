@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.TheoryPaper;
+import shared.model.TheoryPaper;
 import examstaff.dto.score.TheoryPaperAnswerDTO;
 import java.util.List;
 
@@ -15,3 +15,4 @@ public interface TheoryPaperDAO {
 
     int countQuestionsBySessionAndSbd(int sessionId, String sbd);
 }
+

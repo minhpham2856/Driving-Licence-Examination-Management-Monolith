@@ -1,7 +1,7 @@
 package examstaff.dao.impl;
 import examstaff.dao.QuestionDAO;
-import dbconnection.DBContext;
-import examstaff.model.Question;
+import shared.dbconnection.DBContext;
+import shared.model.Question;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,3 +56,4 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
         return list;
     }
 }
+

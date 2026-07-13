@@ -1,7 +1,7 @@
 package examstaff.dao;
 
 import java.util.*;
-import examstaff.model.User;
+import shared.model.User;
 
 public interface UserDAO {
     
@@ -25,3 +25,4 @@ public interface UserDAO {
 
     List<User> searchForAdmin(String keyword, String roleFilter, String statusFilter);
 }
+

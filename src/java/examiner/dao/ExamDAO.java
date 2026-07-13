@@ -2,7 +2,7 @@ package examiner.dao;
 
 import examiner.enums.ExamStatus;
 import java.util.List;
-import examiner.model.Exam;
+import shared.model.Exam;
 
 public interface ExamDAO {
     int countAll();
@@ -10,3 +10,4 @@ public interface ExamDAO {
     List<Exam> getByStatus(ExamStatus status);
     List<Exam> getExamsByExaminerId(int examinerId);
 }
+

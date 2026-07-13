@@ -1,7 +1,7 @@
 package examiner.dao.impl;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examiner.dao.PaymentDAO;
-import examiner.model.Payment;
+import shared.model.Payment;
 import examiner.enums.PaymentStatus;
 import java.sql.*;
 import java.util.logging.Level;
@@ -64,3 +64,4 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 }
+

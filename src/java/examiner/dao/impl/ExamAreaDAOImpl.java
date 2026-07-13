@@ -1,11 +1,11 @@
 package examiner.dao.impl;
 
 import java.sql.*;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examiner.dao.ExamAreaDAO;
 import examiner.enums.ExamAreaType;
-import examiner.model.ExamArea;
-import examiner.model.ExamZone;
+import shared.model.ExamArea;
+import shared.model.ExamZone;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -228,3 +228,4 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
 
 }
+

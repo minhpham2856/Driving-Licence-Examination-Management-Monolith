@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum CandidateStatus {
     NOT_STARTED("Chưa thi"),

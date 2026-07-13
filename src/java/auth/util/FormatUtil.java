@@ -1,11 +1,8 @@
-package util;
+package auth.util;
 
 public final class FormatUtil {
 
-    private FormatUtil() {
-    }
-
-    public static String text(String str) {
+    public static String formatString(String str) {
         return (str == null || str.trim().isBlank()) ? null : str.trim();
     }
 
@@ -21,7 +18,7 @@ public final class FormatUtil {
         if (str == null || str.trim().isBlank()) {
             return null;
         }
-        
+
         try {
             return Integer.valueOf(str.trim());
         } catch (NumberFormatException e) {

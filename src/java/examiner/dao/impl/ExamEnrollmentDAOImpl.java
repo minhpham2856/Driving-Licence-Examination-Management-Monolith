@@ -2,10 +2,10 @@ package examiner.dao.impl;
 
 import examiner.dao.CandidateDAO;
 import examiner.dao.ExamEnrollmentDAO;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examiner.enums.CandidateStatus;
 import examiner.enums.Sex;
-import examiner.model.ExamEnrollment;
+import shared.model.ExamEnrollment;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -222,3 +222,4 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         return enrollment;
     }
 }
+

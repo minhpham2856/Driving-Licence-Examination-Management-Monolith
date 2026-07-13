@@ -2,7 +2,7 @@ package examiner.service;
 
 import examiner.enums.AuditAction;
 import examiner.enums.AuditEntity;
-import examiner.model.Audit;
+import shared.model.Audit;
 
 import java.util.List;
 import java.util.Map;
@@ -34,3 +34,4 @@ public interface AuditService {
     // Personal audit logs for one user, optionally restricted to a single day.
     List<Audit> getLogsByUser(int userId, String dateFilter);
 }
+

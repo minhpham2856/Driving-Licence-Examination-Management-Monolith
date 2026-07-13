@@ -1,6 +1,6 @@
-package dto;
+package auth.dto;
 
-import enums.ErrorType;
+import shared.enums.ErrorType;
 
 public final class ServiceResult<T> {
 

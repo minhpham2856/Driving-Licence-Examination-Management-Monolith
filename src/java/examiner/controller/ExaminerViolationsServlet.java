@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import examiner.filter.ExaminerFilter;
-import examiner.model.User;
+import shared.model.User;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
 import examiner.dto.CandidateRowDTO;
@@ -189,7 +189,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 return;
             }
 
-            request.setAttribute("errorMsg", "Không thể ghi nhận vi phạm: " + result.getMessage());
+            request.setAttribute("errorMsg", "KhÃ´ng thá»ƒ ghi nháº­n vi pháº¡m: " + result.getMessage());
             doGet(request, response);
             return;
         }
@@ -228,3 +228,4 @@ public class ExaminerViolationsServlet extends HttpServlet {
         return name != null ? String.valueOf(name) : null;
     }
 }
+

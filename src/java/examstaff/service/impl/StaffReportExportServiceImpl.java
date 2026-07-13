@@ -6,8 +6,8 @@ import examstaff.service.ReportFeeQueryService;
 import examstaff.service.StaffReportExportService;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.model.Fee;
-import examstaff.model.Payment;
+import shared.model.Fee;
+import shared.model.Payment;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
@@ -61,28 +61,28 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private void writeOverviewSheet(Workbook wb, CellStyle headerStyle,
             ExamSummaryDTO session, ExamReportStatsDTO stats, String exporterName) {
-        Sheet sheet = wb.createSheet("Tổng quan");
+        Sheet sheet = wb.createSheet("Tá»•ng quan");
         int row = 0;
-        row = writeTitleBlock(sheet, row, headerStyle, "BÁO CÁO TỔNG HỢP CA THI");
+        row = writeTitleBlock(sheet, row, headerStyle, "BÃO CÃO Tá»”NG Há»¢P CA THI");
         row = writeKv(sheet, row, "Ca thi", session != null ? session.getSessionName() : "");
-        row = writeKv(sheet, row, "Ngày sát hạch", formatSqlDate(session != null ? session.getExamDate() : null));
-        row = writeKv(sheet, row, "Tổng đăng ký", stats != null ? stats.getTotalCandidates() : 0);
-        row = writeKv(sheet, row, "Đã thi xong", stats != null ? stats.getExamCompletedCount() : 0);
-        row = writeKv(sheet, row, "Đạt", stats != null ? stats.getPassedCount() : 0);
-        row = writeKv(sheet, row, "Trượt", stats != null ? stats.getFailedCount() : 0);
-        row = writeKv(sheet, row, "Vắng", stats != null ? stats.getAbsentCount() : 0);
-        row = writeKv(sheet, row, "Đình chỉ", stats != null ? stats.getSuspendedCount() : 0);
-        row = writeKv(sheet, row, "Tỷ lệ đạt (%)", round1(stats != null ? stats.getPassRate() : 0));
-        row = writeKv(sheet, row, "Người xuất", exporterName != null ? exporterName : "");
-        row = writeKv(sheet, row, "Thời gian xuất", new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.forLanguageTag("vi-VN")).format(new Date()));
+        row = writeKv(sheet, row, "NgÃ y sÃ¡t háº¡ch", formatSqlDate(session != null ? session.getExamDate() : null));
+        row = writeKv(sheet, row, "Tá»•ng Ä‘Äƒng kÃ½", stats != null ? stats.getTotalCandidates() : 0);
+        row = writeKv(sheet, row, "ÄÃ£ thi xong", stats != null ? stats.getExamCompletedCount() : 0);
+        row = writeKv(sheet, row, "Äáº¡t", stats != null ? stats.getPassedCount() : 0);
+        row = writeKv(sheet, row, "TrÆ°á»£t", stats != null ? stats.getFailedCount() : 0);
+        row = writeKv(sheet, row, "Váº¯ng", stats != null ? stats.getAbsentCount() : 0);
+        row = writeKv(sheet, row, "ÄÃ¬nh chá»‰", stats != null ? stats.getSuspendedCount() : 0);
+        row = writeKv(sheet, row, "Tá»· lá»‡ Ä‘áº¡t (%)", round1(stats != null ? stats.getPassRate() : 0));
+        row = writeKv(sheet, row, "NgÆ°á»i xuáº¥t", exporterName != null ? exporterName : "");
+        row = writeKv(sheet, row, "Thá»i gian xuáº¥t", new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.forLanguageTag("vi-VN")).format(new Date()));
         sheet.autoSizeColumn(0);
         sheet.autoSizeColumn(1);
     }
 
     private static void writeLicenseSheet(Workbook wb, CellStyle headerStyle, ExamReportStatsDTO stats) {
-        Sheet sheet = wb.createSheet("Theo hạng bằng");
+        Sheet sheet = wb.createSheet("Theo háº¡ng báº±ng");
         Row header = sheet.createRow(0);
-        String[] cols = {"Hạng bằng", "Đăng ký", "Đã thi", "Đạt", "Trượt", "Tỷ lệ đạt (%)"};
+        String[] cols = {"Háº¡ng báº±ng", "ÄÄƒng kÃ½", "ÄÃ£ thi", "Äáº¡t", "TrÆ°á»£t", "Tá»· lá»‡ Ä‘áº¡t (%)"};
         for (int i = 0; i < cols.length; i++) {
             Cell c = header.createCell(i);
             c.setCellValue(cols[i]);
@@ -110,9 +110,9 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
     private void writeSectionSheet(Workbook wb, CellStyle headerStyle, ExamReportStatsDTO stats) {
-        Sheet sheet = wb.createSheet("Theo phần thi");
+        Sheet sheet = wb.createSheet("Theo pháº§n thi");
         Row header = sheet.createRow(0);
-        String[] cols = {"Phần thi", "Tổng số thi", "Đạt", "Bị loại", "Tỷ lệ loại (%)"};
+        String[] cols = {"Pháº§n thi", "Tá»•ng sá»‘ thi", "Äáº¡t", "Bá»‹ loáº¡i", "Tá»· lá»‡ loáº¡i (%)"};
         for (int i = 0; i < cols.length; i++) {
             Cell c = header.createCell(i);
             c.setCellValue(cols[i]);
@@ -120,8 +120,8 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
         int row = 1;
         if (stats != null) {
-            row = writeSectionRow(sheet, row, "Lý thuyết", stats.getTheoryCount(), stats.getTheoryPassed(), stats.getTheoryFailed());
-            row = writeSectionRow(sheet, row, "Sa hình / Thực hành", stats.getPracticalCount(), stats.getPracticalPassed(), stats.getPracticalFailed());
+            row = writeSectionRow(sheet, row, "LÃ½ thuyáº¿t", stats.getTheoryCount(), stats.getTheoryPassed(), stats.getTheoryFailed());
+            row = writeSectionRow(sheet, row, "Sa hÃ¬nh / Thá»±c hÃ nh", stats.getPracticalCount(), stats.getPracticalPassed(), stats.getPracticalFailed());
         }
         for (int i = 0; i < cols.length; i++) {
             sheet.autoSizeColumn(i);
@@ -142,12 +142,12 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private static void writeCandidateSheet(Workbook wb, CellStyle headerStyle, CellStyle dateStyle,
             List<ExamRegistrationDTO> candidates) {
-        Sheet sheet = wb.createSheet("Danh sách kết quả");
+        Sheet sheet = wb.createSheet("Danh sÃ¡ch káº¿t quáº£");
         Row header = sheet.createRow(0);
         String[] cols = {
-                "STT", "SBD", "Họ và tên", "Ngày sinh", "CCCD", "Hạng", "Phòng LT",
-                "Điểm LT", "KQ LT", "Điểm SH", "KQ SH",
-                "KQ cuối", "Thu phí", "Ảnh", "Ghi chú"
+                "STT", "SBD", "Há» vÃ  tÃªn", "NgÃ y sinh", "CCCD", "Háº¡ng", "PhÃ²ng LT",
+                "Äiá»ƒm LT", "KQ LT", "Äiá»ƒm SH", "KQ SH",
+                "KQ cuá»‘i", "Thu phÃ­", "áº¢nh", "Ghi chÃº"
         };
         for (int i = 0; i < cols.length; i++) {
             Cell c = header.createCell(i);
@@ -204,9 +204,9 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
             }
         }
         Row total = sheet.createRow(row + 1);
-        total.createCell(0).setCellValue("Tổng hợp");
-        total.createCell(1).setCellValue("Đạt: " + passCount + " | Trượt: " + failCount
-                + " | Vắng: " + absentCount + " | Đình chỉ: " + suspendedCount);
+        total.createCell(0).setCellValue("Tá»•ng há»£p");
+        total.createCell(1).setCellValue("Äáº¡t: " + passCount + " | TrÆ°á»£t: " + failCount
+                + " | Váº¯ng: " + absentCount + " | ÄÃ¬nh chá»‰: " + suspendedCount);
         for (int i = 0; i < Math.min(cols.length, 12); i++) {
             sheet.autoSizeColumn(i);
         }
@@ -214,9 +214,9 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private static void writeInfractionSheet(Workbook wb, CellStyle headerStyle,
             List<Map<String, Object>> infractions) {
-        Sheet sheet = wb.createSheet("Lỗi phổ biến");
+        Sheet sheet = wb.createSheet("Lá»—i phá»• biáº¿n");
         Row header = sheet.createRow(0);
-        String[] cols = {"STT", "Lý do trừ điểm", "Số lần", "Tỷ lệ (%)"};
+        String[] cols = {"STT", "LÃ½ do trá»« Ä‘iá»ƒm", "Sá»‘ láº§n", "Tá»· lá»‡ (%)"};
         for (int i = 0; i < cols.length; i++) {
             Cell c = header.createCell(i);
             c.setCellValue(cols[i]);
@@ -241,11 +241,11 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private void writeFeeSheet(Workbook wb, CellStyle headerStyle,
             List<ExamRegistrationDTO> candidates, ExamSummaryDTO session) {
-        Sheet sheet = wb.createSheet("Thu phí thủ tục");
+        Sheet sheet = wb.createSheet("Thu phÃ­ thá»§ tá»¥c");
         Row header = sheet.createRow(0);
         String[] cols = {
-                "STT", "SBD", "Họ và tên", "Hạng", "Thời gian thu", "Hình thức",
-                "Mã GD", "Chi tiết khoản thu", "Tổng (đồng)"
+                "STT", "SBD", "Há» vÃ  tÃªn", "Háº¡ng", "Thá»i gian thu", "HÃ¬nh thá»©c",
+                "MÃ£ GD", "Chi tiáº¿t khoáº£n thu", "Tá»•ng (Ä‘á»“ng)"
         };
         for (int i = 0; i < cols.length; i++) {
             Cell c = header.createCell(i);
@@ -288,7 +288,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
         Row totalRow = sheet.createRow(row + 1);
     // format fee detail
-        totalRow.createCell(0).setCellValue("TỔNG CỘNG");
+        totalRow.createCell(0).setCellValue("Tá»”NG Cá»˜NG");
         totalRow.createCell(8).setCellValue(grandTotal);
         for (int i = 0; i < cols.length; i++) {
             sheet.autoSizeColumn(i);
@@ -369,17 +369,17 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     private static String notesLabel(ExamRegistrationDTO reg) {
     // to double
         if (reg.isSuspended()) {
-            return "Đình chỉ";
+            return "ÄÃ¬nh chá»‰";
         }
         if (reg.isAbsent()) {
-            return "Vắng";
+            return "Váº¯ng";
         }
         String notes = reg.getNotes();
         if (notes != null && notes.startsWith("AllocatedRoom:")) {
-            return "Đã phân phòng";
+            return "ÄÃ£ phÃ¢n phÃ²ng";
         }
         if (reg.getAllocatedAreaId() != null && reg.getAllocatedAreaId() > 0) {
-            return "Đã phân phòng";
+            return "ÄÃ£ phÃ¢n phÃ²ng";
         }
         return "";
     }
@@ -407,3 +407,4 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
 }
+

@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.FeeDAO;
-import examstaff.model.Fee;
+import shared.model.Fee;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -184,3 +184,4 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return fee;
     }
 }
+

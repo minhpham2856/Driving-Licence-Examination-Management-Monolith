@@ -1,10 +1,10 @@
 package examstaff.dao.impl;
 
 import java.sql.*;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.ExamAreaDAO;
 import examstaff.enums.SectionType;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,7 +26,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         try {
             a.setExamZoneId(rs.getInt("ExamZoneId"));
         } catch (SQLException ignored) {
-            // cột có thể thiếu trên schema cũ
+            // cá»™t cÃ³ thá»ƒ thiáº¿u trÃªn schema cÅ©
         }
         return a;
     }
@@ -230,3 +230,4 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }
 }
+

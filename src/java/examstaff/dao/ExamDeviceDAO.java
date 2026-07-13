@@ -1,5 +1,5 @@
 package examstaff.dao;
-import examstaff.model.ExamDevice;
+import shared.model.ExamDevice;
 import java.util.List;
 public interface ExamDeviceDAO {
     ExamDevice getById(int examDeviceId);
@@ -13,3 +13,4 @@ public interface ExamDeviceDAO {
     List<ExamDevice> getDevicesByAreaId(int examAreaId);
     List<ExamDevice> getAllByAreaIds(List<Integer> areaIds);
 }
+

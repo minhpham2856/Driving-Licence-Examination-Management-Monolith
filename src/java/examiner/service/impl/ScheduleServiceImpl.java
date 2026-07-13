@@ -2,7 +2,7 @@ package examiner.service.impl;
 
 import examiner.dao.ExaminerScheduleDAO;
 import examiner.dao.impl.ExaminerScheduleDAOImpl;
-import examiner.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 import examiner.service.ScheduleService;
 
 import java.util.List;
@@ -26,3 +26,4 @@ public class ScheduleServiceImpl implements ScheduleService {
         return dao.getScheduleByExaminerAndExam(examinerId, examId);
     }
 }
+

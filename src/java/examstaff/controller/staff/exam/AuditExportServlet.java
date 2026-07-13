@@ -2,8 +2,8 @@ package examstaff.controller.staff.exam;
 
 import examstaff.controller.staff.exam.http.AuditFilterSupport;
 import examstaff.dto.user.AuditDTO;
-import examstaff.model.Profile;
-import examstaff.model.User;
+import shared.model.Profile;
+import shared.model.User;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.StaffAuditExportService;
@@ -82,8 +82,8 @@ public class AuditExportServlet extends HttpServlet {
 
         String staffName = resolveStaffName(session);
         String scopeLabel = (filterDate != null && !filterDate.isBlank())
-                ? "Ngày " + filterDate
-                : "Tất cả lịch sử";
+                ? "NgÃ y " + filterDate
+                : "Táº¥t cáº£ lá»‹ch sá»­";
 
         auditExportService.exportAuditLog(response.getOutputStream(), logs, completedProcedures,
                 totalFees, staffName, scopeLabel);
@@ -108,3 +108,4 @@ public class AuditExportServlet extends HttpServlet {
         }
     }
 }
+

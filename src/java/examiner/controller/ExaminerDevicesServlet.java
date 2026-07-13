@@ -1,6 +1,6 @@
 package examiner.controller;
 
-import examiner.model.User;
+import shared.model.User;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -67,3 +67,4 @@ public class ExaminerDevicesServlet extends HttpServlet {
         request.getRequestDispatcher("/views/examiner/devices.jsp").forward(request, response);
     }
 }
+

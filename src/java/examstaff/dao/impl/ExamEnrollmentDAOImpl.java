@@ -3,10 +3,10 @@ package examstaff.dao.impl;
 import examstaff.dao.CandidateDAO;
 import examstaff.dao.Db2ExamSchemaSql;
 import examstaff.dao.ExamEnrollmentDAO;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.enums.SectionStatus;
-import examstaff.model.Candidate;
-import examstaff.model.ExamEnrollment;
+import shared.model.Candidate;
+import shared.model.ExamEnrollment;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -184,7 +184,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         if (reasonForTaking != null) {
             candidate.setReasonForTaking(reasonForTaking);
         }
-        candidate.setSex("Nữ".equalsIgnoreCase(sexDb) || "1".equals(sexDb));
+        candidate.setSex("Ná»¯".equalsIgnoreCase(sexDb) || "1".equals(sexDb));
         return candidateDAO.update(candidate);
     }
 
@@ -243,7 +243,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
     private boolean updateTheoryStatus(int candidateId, int examId, String status) {
         try {
             return ExamEnrollmentSectionSupport.updateTheoryStatus(getConnection(), candidateId, examId,
-                    status != null ? status : "Chưa thi");
+                    status != null ? status : "ChÆ°a thi");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -268,7 +268,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         return enrollment;
     }
 
-    // --- mainTest-only methods (thêm từ union interface) ---
+    // --- mainTest-only methods (thÃªm tá»« union interface) ---
 
     @Override
     public List<ExamEnrollment> searchByExam(int examId, String keyword) {
@@ -334,3 +334,4 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         return null;
     }
 }
+

@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum RoleType {
     ADMIN("Quản trị viên"),

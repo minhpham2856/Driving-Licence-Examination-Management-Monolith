@@ -1,11 +1,11 @@
 package examstaff.util;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 
 import java.util.List;
 
-/** Đồng bộ trạng thái bảng gọi — logic nghiệp vụ thuần. */
+/** Äá»“ng bá»™ tráº¡ng thÃ¡i báº£ng gá»i â€” logic nghiá»‡p vá»¥ thuáº§n. */
 public final class CallBoardRules {
 
     private CallBoardRules() {
@@ -59,7 +59,7 @@ public final class CallBoardRules {
         return state;
     }
 
-    /** Tạm dừng gọi thí sinh — giữ thứ tự hàng đợi, không đánh vắng. */
+    /** Táº¡m dá»«ng gá»i thÃ­ sinh â€” giá»¯ thá»© tá»± hÃ ng Ä‘á»£i, khÃ´ng Ä‘Ã¡nh váº¯ng. */
     public static CallBoardState pauseBoard(CallBoardState current, int examSessionId,
             List<ExamRegistrationDTO> queue) {
         CallBoardState state = current != null ? current : new CallBoardState();
@@ -114,3 +114,4 @@ public final class CallBoardRules {
         return value.trim();
     }
 }
+

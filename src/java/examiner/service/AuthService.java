@@ -2,8 +2,8 @@ package examiner.service;
 
 import examiner.dto.RegisterResultDTO;
 import examiner.dto.ServiceResult;
-import examiner.model.Profile;
-import examiner.model.User;
+import shared.model.Profile;
+import shared.model.User;
 
 public interface AuthService {
 
@@ -16,3 +16,4 @@ public interface AuthService {
     ServiceResult<Void> changePassword(int userId, String currentPassword, String newPassword,
             String confirmPassword);
 }
+

@@ -2,7 +2,7 @@ package examstaff.dao;
 
 
 
-import examstaff.model.ExamResult;
+import shared.model.ExamResult;
 
 
 
@@ -21,4 +21,5 @@ public interface ExamResultDAO {
     boolean updatePassed(int examResultId, boolean passed);
 
 }
+
 

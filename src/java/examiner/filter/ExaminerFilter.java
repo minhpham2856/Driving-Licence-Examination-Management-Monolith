@@ -12,12 +12,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import examiner.model.Exam;
-import examiner.model.ExamArea;
-import examiner.model.ExamSection;
-import examiner.model.ExaminerSchedule;
-import examiner.model.Role;
-import examiner.model.User;
+import shared.model.Exam;
+import shared.model.ExamArea;
+import shared.model.ExamSection;
+import shared.model.ExaminerSchedule;
+import shared.model.Role;
+import shared.model.User;
 import examiner.service.ExamAreaService;
 import examiner.service.ExamSectionService;
 import examiner.service.ExamService;
@@ -60,7 +60,7 @@ public class ExaminerFilter extends HttpFilter {
         // Redirect unauthenticated users to login page
         if (user == null) {
             HttpSession loginSession = request.getSession(true);
-            loginSession.setAttribute("errorMessage", "Bạn cần đăng nhập để truy cập.");
+            loginSession.setAttribute("errorMessage", "Báº¡n cáº§n Ä‘Äƒng nháº­p Ä‘á»ƒ truy cáº­p.");
             response.sendRedirect(request.getContextPath() + "/staff/login");
             return;
         }
@@ -125,7 +125,7 @@ public class ExaminerFilter extends HttpFilter {
         Exam exam = examService.getById(schedule.getExamId());
         if (exam == null || ExamStatus.fromValue(exam.getStatus()) != ExamStatus.IN_PROGRESS) {
             clearContext(session);
-            session.setAttribute(ATTR_MESSAGE, "Kỳ thi đang không diễn ra");
+            session.setAttribute(ATTR_MESSAGE, "Ká»³ thi Ä‘ang khÃ´ng diá»…n ra");
             return false;
         }
 
@@ -202,3 +202,4 @@ public class ExaminerFilter extends HttpFilter {
         return session.getAttribute(ATTR_EXAM_SECTION) == THEORY;
     }
 }
+

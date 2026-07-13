@@ -9,9 +9,9 @@ import examiner.dao.impl.ExamResultDAOImpl;
 import examiner.dao.impl.ExamScoreDAOImpl;
 import examiner.dao.impl.ExamSectionDAOImpl;
 import examiner.enums.SectionType;
-import examiner.model.ExamEnrollment;
-import examiner.model.ExamResult;
-import examiner.model.ExamScore;
+import shared.model.ExamEnrollment;
+import shared.model.ExamResult;
+import shared.model.ExamScore;
 import examiner.service.ExamScoreService;
 
 import java.sql.Timestamp;
@@ -73,3 +73,4 @@ public class ExamScoreServiceImpl implements ExamScoreService {
         return examScoreDAO.add(row) > 0;
     }
 }
+

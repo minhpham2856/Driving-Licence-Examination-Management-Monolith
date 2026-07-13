@@ -6,7 +6,7 @@ import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateCallWorkflowService;
 import examstaff.service.CandidateCallingService;
@@ -168,7 +168,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             if (synced != null) {
                 callingSbd = synced;
             }
-            // Giống ExamStaffViewHelper.syncCallingSbd: luôn sync board khi ca chưa kết thúc.
+            // Giá»‘ng ExamStaffViewHelper.syncCallingSbd: luÃ´n sync board khi ca chÆ°a káº¿t thÃºc.
             syncBoard = true;
             boardCallingSbd = callingSbd;
         } else if (shiftEnded) {
@@ -287,3 +287,4 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         String boardCallingSbd;
     }
 }
+

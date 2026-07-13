@@ -6,7 +6,7 @@ import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.user.UserDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.service.ExaminerAllocationDeskService;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.util.ExamAreaTypeResolver;
@@ -94,12 +94,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         UserDTO examiner = examinerMap.get(examinerUserId);
 
         if (targetSession == null || area == null || examiner == null) {
-            result.setErrorMsg("Dữ liệu phân công không hợp lệ.");
+            result.setErrorMsg("Dá»¯ liá»‡u phÃ¢n cÃ´ng khÃ´ng há»£p lá»‡.");
             return result;
         }
 
         if (!ExamAreaTypeResolver.isAssignableExamArea(area)) {
-            result.setErrorMsg("Chỉ phân công giám khảo vào phòng lý thuyết hoặc sân thực hành.");
+            result.setErrorMsg("Chá»‰ phÃ¢n cÃ´ng giÃ¡m kháº£o vÃ o phÃ²ng lÃ½ thuyáº¿t hoáº·c sÃ¢n thá»±c hÃ nh.");
             return result;
         }
 
@@ -119,14 +119,14 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         boolean ok = allocationService.assignExaminer(slot);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("Đã phân công giám khảo " + slot.getExaminerName()
-                    + " vào " + area.getAreaName() + ".");
+            result.setAlertMsg("ÄÃ£ phÃ¢n cÃ´ng giÃ¡m kháº£o " + slot.getExaminerName()
+                    + " vÃ o " + area.getAreaName() + ".");
             result.setAuditAction("ASSIGN Examiner");
             result.setAuditDetails(formatAssignAuditDetails(slot.getExaminerName(), area.getAreaName(),
                     targetSession.getSessionName()));
         } else {
             result.setErrorMsg(
-                    "Giám khảo đã được phân công ở phòng khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán mới.");
+                    "GiÃ¡m kháº£o Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n cÃ´ng á»Ÿ phÃ²ng khÃ¡c trong cÃ¹ng ká»³ thi. Gá»¡ phÃ¢n cÃ´ng cÅ© trÆ°á»›c khi gÃ¡n má»›i.");
         }
         return result;
     }
@@ -135,7 +135,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     public ExaminerAllocationActionResultDTO removeExaminer(String slotKey) {
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
         if (slotKey == null || slotKey.isEmpty()) {
-            result.setErrorMsg("Không xác định được phân công cần gỡ.");
+            result.setErrorMsg("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c phÃ¢n cÃ´ng cáº§n gá»¡.");
             return result;
         }
 
@@ -144,12 +144,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         if (ok) {
             result.setSuccess(true);
             result.setAlertMsg(existing != null
-                    ? "Đã gỡ phân công giám khảo " + resolveSlotExaminerLabel(existing) + "."
-                    : "Đã gỡ phân công giám khảo.");
+                    ? "ÄÃ£ gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o " + resolveSlotExaminerLabel(existing) + "."
+                    : "ÄÃ£ gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o.");
             result.setAuditAction("REMOVE Examiner");
             result.setAuditDetails(formatRemoveAuditDetails(existing));
         } else {
-            result.setErrorMsg("Gỡ phân công thất bại. Vui lòng thử lại.");
+            result.setErrorMsg("Gá»¡ phÃ¢n cÃ´ng tháº¥t báº¡i. Vui lÃ²ng thá»­ láº¡i.");
         }
         return result;
     }
@@ -178,27 +178,27 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     }
 
     private static String formatAssignAuditDetails(String examinerName, String areaName, String sessionName) {
-        StringBuilder details = new StringBuilder("Phân công giám khảo ");
+        StringBuilder details = new StringBuilder("PhÃ¢n cÃ´ng giÃ¡m kháº£o ");
         details.append(blankToDash(examinerName));
-        details.append(" vào ").append(blankToDash(areaName));
+        details.append(" vÃ o ").append(blankToDash(areaName));
         appendSessionSuffix(details, sessionName);
         return details.toString();
     }
 
     private static String formatRemoveAuditDetails(ExaminerSlotDTO slot) {
         if (slot == null) {
-            return "Gỡ phân công giám khảo.";
+            return "Gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o.";
         }
-        StringBuilder details = new StringBuilder("Gỡ phân công giám khảo ");
+        StringBuilder details = new StringBuilder("Gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o ");
         details.append(resolveSlotExaminerLabel(slot));
-        details.append(" khỏi ").append(blankToDash(slot.getAreaName()));
+        details.append(" khá»i ").append(blankToDash(slot.getAreaName()));
         appendSessionSuffix(details, slot.getSessionName());
         return details.toString();
     }
 
     private static void appendSessionSuffix(StringBuilder details, String sessionName) {
         if (sessionName != null && !sessionName.isBlank()) {
-            details.append(" — kỳ thi ").append(sessionName.trim());
+            details.append(" â€” ká»³ thi ").append(sessionName.trim());
         }
     }
 
@@ -213,7 +213,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     }
 
     private static String blankToDash(String value) {
-        return value == null || value.isBlank() ? "—" : value.trim();
+        return value == null || value.isBlank() ? "â€”" : value.trim();
     }
 
     private static String resolveExaminerName(UserDTO examiner) {
@@ -227,3 +227,4 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return "userId=" + examiner.getId();
     }
 }
+

@@ -1,9 +1,9 @@
 package examstaff.dao.impl;
 import java.util.*;
 import examstaff.dao.TheoryPaperDAO;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dto.score.TheoryPaperAnswerDTO;
-import examstaff.model.TheoryPaper;
+import shared.model.TheoryPaper;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -144,3 +144,4 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         return value == null || value.isBlank() ? "-" : value.trim();
     }
 }
+

@@ -6,8 +6,8 @@ import examstaff.dao.impl.FeeDAOImpl;
 import examstaff.dao.impl.PaymentDAOImpl;
 import examstaff.dto.ReportPaymentSummaryDTO;
 import examstaff.enums.PaymentStatus;
-import examstaff.model.Fee;
-import examstaff.model.Payment;
+import shared.model.Fee;
+import shared.model.Payment;
 import examstaff.service.ReportFeeQueryService;
 import examstaff.util.ProcedureFeeTotals;
 
@@ -40,3 +40,4 @@ public class ReportFeeQueryServiceImpl implements ReportFeeQueryService {
         return PaymentStatus.isCompleted(payment.getPaymentStatus());
     }
 }
+

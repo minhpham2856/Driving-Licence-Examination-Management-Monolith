@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.ExamZone;
+import shared.model.ExamZone;
 import java.util.List;
 
 public interface ExamZoneDAO {
@@ -9,3 +9,4 @@ public interface ExamZoneDAO {
 
     ExamZone getById(int examZoneId);
 }
+

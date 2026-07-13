@@ -1,8 +1,9 @@
 package examstaff.dao;
 
-import examstaff.model.ScoreDeduction;
+import shared.model.ScoreDeduction;
 
 public interface ScoreDeductionDAO {
 
     ScoreDeduction getById(int scoreDeductionId);
 }
+

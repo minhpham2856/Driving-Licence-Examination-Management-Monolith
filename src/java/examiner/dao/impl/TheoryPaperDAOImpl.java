@@ -1,8 +1,8 @@
 package examiner.dao.impl;
 import java.util.*;
 import examiner.dao.TheoryPaperDAO;
-import dbconnection.DBContext;
-import examiner.model.TheoryPaper;
+import shared.dbconnection.DBContext;
+import shared.model.TheoryPaper;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,3 +30,4 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         return null;
     }
 }
+

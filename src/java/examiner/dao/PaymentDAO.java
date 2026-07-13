@@ -2,7 +2,7 @@ package examiner.dao;
 
 
 
-import examiner.model.Payment;
+import shared.model.Payment;
 
 
 
@@ -17,4 +17,5 @@ public interface PaymentDAO {
     boolean hasCompletedPayment(int examEnrollmentId);
 
 }
+
 

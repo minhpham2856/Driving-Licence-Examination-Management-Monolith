@@ -2,13 +2,13 @@ package examstaff.util;
 
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.enums.SectionType;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Quy tắc phân công giám khảo / phòng thi — helper thuần, không HTTP. */
+/** Quy táº¯c phÃ¢n cÃ´ng giÃ¡m kháº£o / phÃ²ng thi â€” helper thuáº§n, khÃ´ng HTTP. */
 public final class ExaminerAssignmentRules {
 
     private ExaminerAssignmentRules() {
@@ -25,7 +25,7 @@ public final class ExaminerAssignmentRules {
         String normalized = areaType.trim();
         return examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(normalized)
                 || normalized.toLowerCase().contains("theory")
-                || normalized.toLowerCase().contains("lý thuyết")
+                || normalized.toLowerCase().contains("lÃ½ thuyáº¿t")
                 || normalized.toLowerCase().contains("ly thuyet");
     }
 
@@ -38,8 +38,8 @@ public final class ExaminerAssignmentRules {
             return true;
         }
         String lower = normalized.toLowerCase();
-        return lower.contains("thực hành") || lower.contains("thuc hanh")
-                || lower.contains("practical") || lower.contains("sa hình")
+        return lower.contains("thá»±c hÃ nh") || lower.contains("thuc hanh")
+                || lower.contains("practical") || lower.contains("sa hÃ¬nh")
                 || lower.contains("sa hinh") || lower.contains("layout");
     }
 
@@ -66,11 +66,11 @@ public final class ExaminerAssignmentRules {
     }
 
     /**
-     * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ phòng lý thuyết + thực hành có giám khảo.
+     * @return thÃ´ng bÃ¡o lá»—i tiáº¿ng Viá»‡t, hoáº·c {@code null} náº¿u Ä‘á»§ phÃ²ng lÃ½ thuyáº¿t + thá»±c hÃ nh cÃ³ giÃ¡m kháº£o.
      */
     public static String validateStartCoverage(List<ExaminerSlotDTO> assignments) {
         if (assignments == null || assignments.isEmpty()) {
-            return "Chưa phân công giám khảo. Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "ChÆ°a phÃ¢n cÃ´ng giÃ¡m kháº£o. VÃ o má»¥c \"PhÃ¢n bá»• giÃ¡m kháº£o\" trÆ°á»›c khi báº¯t Ä‘áº§u ká»³ thi.";
         }
         boolean hasTheory = false;
         boolean hasPractical = false;
@@ -83,21 +83,21 @@ public final class ExaminerAssignmentRules {
             }
         }
         if (!hasTheory && !hasPractical) {
-            return "Chưa phân công giám khảo vào phòng lý thuyết và phòng thực hành. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "ChÆ°a phÃ¢n cÃ´ng giÃ¡m kháº£o vÃ o phÃ²ng lÃ½ thuyáº¿t vÃ  phÃ²ng thá»±c hÃ nh. "
+                    + "VÃ o má»¥c \"PhÃ¢n bá»• giÃ¡m kháº£o\" trÆ°á»›c khi báº¯t Ä‘áº§u ká»³ thi.";
         }
         if (!hasTheory) {
-            return "Chưa phân công giám khảo cho phòng thi lý thuyết. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "ChÆ°a phÃ¢n cÃ´ng giÃ¡m kháº£o cho phÃ²ng thi lÃ½ thuyáº¿t. "
+                    + "VÃ o má»¥c \"PhÃ¢n bá»• giÃ¡m kháº£o\" trÆ°á»›c khi báº¯t Ä‘áº§u ká»³ thi.";
         }
         if (!hasPractical) {
-            return "Chưa phân công giám khảo cho phòng/khu thi thực hành. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "ChÆ°a phÃ¢n cÃ´ng giÃ¡m kháº£o cho phÃ²ng/khu thi thá»±c hÃ nh. "
+                    + "VÃ o má»¥c \"PhÃ¢n bá»• giÃ¡m kháº£o\" trÆ°á»›c khi báº¯t Ä‘áº§u ká»³ thi.";
         }
         return null;
     }
 
-    /** Các phòng lý thuyết đã có ít nhất một giám khảo trong kỳ. */
+    /** CÃ¡c phÃ²ng lÃ½ thuyáº¿t Ä‘Ã£ cÃ³ Ã­t nháº¥t má»™t giÃ¡m kháº£o trong ká»³. */
     public static Set<Integer> staffedTheoryAreaIds(List<ExaminerSlotDTO> assignments) {
         Set<Integer> ids = new HashSet<>();
         if (assignments == null) {
@@ -154,3 +154,4 @@ public final class ExaminerAssignmentRules {
                 .toList();
     }
 }
+

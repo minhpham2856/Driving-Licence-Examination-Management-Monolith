@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum RegistrationStatus {
     PENDING("Chờ duyệt"),

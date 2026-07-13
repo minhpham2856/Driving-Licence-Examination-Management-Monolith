@@ -1,8 +1,8 @@
 package examiner.dao.impl;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examiner.dao.CandidateDAO;
-import examiner.model.Candidate;
+import shared.model.Candidate;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -212,3 +212,4 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return candidate;
     }
 }
+

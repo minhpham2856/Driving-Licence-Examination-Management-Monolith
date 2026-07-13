@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.model.Profile;
+import shared.model.Profile;
 
 public class UserRowDTO {
 
@@ -89,3 +89,4 @@ public class UserRowDTO {
         this.profile = profile;
     }
 }
+

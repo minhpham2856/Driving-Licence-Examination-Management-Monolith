@@ -1,9 +1,9 @@
 package examiner.service.impl;
 import examiner.dto.*;
-import examiner.model.*;
+import shared.model.*;
 import examiner.dao.RoleDAO;
 import examiner.dao.impl.RoleDAOImpl;
-import examiner.model.Role;
+import shared.model.Role;
 import examiner.service.RoleService;
 public class RoleServiceImpl implements RoleService {
     private final RoleDAO roleDAO;
@@ -28,3 +28,4 @@ public class RoleServiceImpl implements RoleService {
         return role != null ? role.getRoleId() : 0;
     }
 }
+

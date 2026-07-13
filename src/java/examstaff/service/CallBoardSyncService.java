@@ -2,7 +2,7 @@ package examstaff.service;
 
 import examstaff.dao.CallBoardDAO;
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 
 import java.util.List;
 
@@ -23,3 +23,4 @@ public interface CallBoardSyncService {
 
     List<ExamRegistrationDTO> applyBoardOrder(List<ExamRegistrationDTO> queue, CallBoardState board);
 }
+

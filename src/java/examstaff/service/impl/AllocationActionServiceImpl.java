@@ -5,7 +5,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
 import examstaff.enums.SectionType;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.service.AllocationActionService;
 import examstaff.service.ExamAreaQueryService;
 import examstaff.service.ExamRegistrationService;
@@ -49,7 +49,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
     public AllocationActionResultDTO executeCandidateAction(AllocationCandidateActionRequest request) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
         if (request == null || request.getProfile() == null || request.getAction() == null) {
-            result.setErrorMsg("Không xác định được thao tác phân bổ.");
+            result.setErrorMsg("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c thao tÃ¡c phÃ¢n bá»•.");
             return result;
         }
 
@@ -61,7 +61,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         switch (action) {
             case "allocateRoom" -> handleAllocateRoom(result, request, profile, regId, sessionId);
             case "allocatePracticalRoom" -> handleAllocatePracticalRoom(result, request, profile, regId, sessionId);
-            default -> result.setErrorMsg("Thao tác không hỗ trợ: " + action);
+            default -> result.setErrorMsg("Thao tÃ¡c khÃ´ng há»— trá»£: " + action);
         }
 
         result.setRedirectServletPath(AllocationStageHelper.inferServletPathFromAction(action));
@@ -92,22 +92,22 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         int areaId = request.getAreaId();
         int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamId();
         if (enrollSessionId <= 0) {
-            result.setErrorMsg("Không xác định được kỳ thi để đổi phòng.");
+            result.setErrorMsg("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c ká»³ thi Ä‘á»ƒ Ä‘á»•i phÃ²ng.");
             return;
         }
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null
                 || !examstaff.enums.SectionType.THEORY.getValue().equalsIgnoreCase(targetArea.getAreaType())) {
-            result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết.");
+            result.setErrorMsg("PhÃ²ng thi khÃ´ng há»£p lá»‡ â€” chá»‰ dÃ¹ng phÃ²ng loáº¡i LÃ½ thuyáº¿t.");
             return;
         }
 
         Set<Integer> staffedTheoryAreas = ExaminerAssignmentRules.staffedTheoryAreaIds(
                 examinerAllocationService.getAssignmentsBySessionId(enrollSessionId));
         if (!staffedTheoryAreas.contains(targetArea.getId())) {
-            result.setErrorMsg("Phòng \"" + targetArea.getAreaName()
-                    + "\" chưa được phân công giám khảo trong kỳ thi này.");
+            result.setErrorMsg("PhÃ²ng \"" + targetArea.getAreaName()
+                    + "\" chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng giÃ¡m kháº£o trong ká»³ thi nÃ y.");
             return;
         }
 
@@ -119,13 +119,13 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         if (regService.updateAllocatedRoom(regId, enrollSessionId, targetArea.getId(), targetArea.getAreaName())) {
             profile.setAllocatedAreaId(targetArea.getId());
             profile.setAllocatedAreaName(targetArea.getAreaName());
-            result.setAlertMsg("Đã đổi phòng → " + targetArea.getAreaName());
+            result.setAlertMsg("ÄÃ£ Ä‘á»•i phÃ²ng â†’ " + targetArea.getAreaName());
             result.setAuditAction("UPDATE ExamRegistrationDTO");
-            result.setAuditDetails("Chuyển phòng thi → " + targetArea.getAreaName() + " cho SBD " + profile.getSbd());
+            result.setAuditDetails("Chuyá»ƒn phÃ²ng thi â†’ " + targetArea.getAreaName() + " cho SBD " + profile.getSbd());
             result.setAuditRecordId(regId);
         } else {
-            result.setErrorMsg("Không lưu được phòng thi cho SBD " + profile.getSbd()
-                    + ". Kiểm tra đăng ký kỳ thi.");
+            result.setErrorMsg("KhÃ´ng lÆ°u Ä‘Æ°á»£c phÃ²ng thi cho SBD " + profile.getSbd()
+                    + ". Kiá»ƒm tra Ä‘Äƒng kÃ½ ká»³ thi.");
         }
     }
 
@@ -134,21 +134,21 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         int areaId = request.getAreaId();
         int enrollSessionId = sessionId > 0 ? sessionId : profile.getExamId();
         if (enrollSessionId <= 0) {
-            result.setErrorMsg("Không xác định được kỳ thi để đổi sân thi.");
+            result.setErrorMsg("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c ká»³ thi Ä‘á»ƒ Ä‘á»•i sÃ¢n thi.");
             return;
         }
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null || !ExaminerAssignmentRules.isPracticalAreaType(targetArea.getAreaType())) {
-            result.setErrorMsg("Sân thi không hợp lệ — chỉ dùng khu vực loại Thực hành.");
+            result.setErrorMsg("SÃ¢n thi khÃ´ng há»£p lá»‡ â€” chá»‰ dÃ¹ng khu vá»±c loáº¡i Thá»±c hÃ nh.");
             return;
         }
 
         Set<Integer> staffedPracticalAreas = ExaminerAssignmentRules.staffedPracticalAreaIds(
                 examinerAllocationService.getAssignmentsBySessionId(enrollSessionId));
         if (!staffedPracticalAreas.contains(targetArea.getId())) {
-            result.setErrorMsg("Sân \"" + targetArea.getAreaName()
-                    + "\" chưa được phân công giám khảo trong kỳ thi này.");
+            result.setErrorMsg("SÃ¢n \"" + targetArea.getAreaName()
+                    + "\" chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng giÃ¡m kháº£o trong ká»³ thi nÃ y.");
             return;
         }
 
@@ -161,13 +161,14 @@ public class AllocationActionServiceImpl implements AllocationActionService {
                 targetArea.getAreaName())) {
             profile.setPracticalAllocatedAreaId(targetArea.getId());
             profile.setPracticalAllocatedAreaName(targetArea.getAreaName());
-            result.setAlertMsg("Đã đổi sân thi → " + targetArea.getAreaName());
+            result.setAlertMsg("ÄÃ£ Ä‘á»•i sÃ¢n thi â†’ " + targetArea.getAreaName());
             result.setAuditAction("UPDATE ExamEnrollmentSection");
-            result.setAuditDetails("Chuyển sân thực hành → " + targetArea.getAreaName()
+            result.setAuditDetails("Chuyá»ƒn sÃ¢n thá»±c hÃ nh â†’ " + targetArea.getAreaName()
                     + " cho SBD " + profile.getSbd());
             result.setAuditRecordId(regId);
         } else {
-            result.setErrorMsg("Không lưu được sân thi cho SBD " + profile.getSbd() + ".");
+            result.setErrorMsg("KhÃ´ng lÆ°u Ä‘Æ°á»£c sÃ¢n thi cho SBD " + profile.getSbd() + ".");
         }
     }
 }
+

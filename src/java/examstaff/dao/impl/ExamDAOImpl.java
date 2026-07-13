@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
 import examstaff.dao.ExamDAO;
-import dbconnection.DBContext;
-import examstaff.model.Exam;
+import shared.dbconnection.DBContext;
+import shared.model.Exam;
 public class ExamDAOImpl extends DBContext implements ExamDAO {
     @Override
     public int countAll() {

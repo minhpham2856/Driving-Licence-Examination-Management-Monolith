@@ -1,5 +1,5 @@
 package examiner.dao;
-import examiner.model.ExamArea;
+import shared.model.ExamArea;
 import java.util.List;
 public interface ExamAreaDAO {
     List<ExamArea> search(String keyword, String areaType);
@@ -12,3 +12,4 @@ public interface ExamAreaDAO {
     List<ExamArea> getAreasByExamId(int examId);
     boolean isAreaInExam(int examId, int examAreaId);
 }
+

@@ -1,12 +1,12 @@
 package examstaff.util;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.model.view.ExamStaffCandidate;
+import examstaff.dto.view.ExamStaffCandidate;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Map read model → DTO trình bày (tầng service/controller). */
+/** Map read model â†’ DTO trÃ¬nh bÃ y (táº§ng service/controller). */
 public final class ExamStaffCandidateMapper {
 
     private ExamStaffCandidateMapper() {
@@ -72,3 +72,4 @@ public final class ExamStaffCandidateMapper {
         return list;
     }
 }
+

@@ -24,7 +24,7 @@ import examstaff.dto.ExamSummaryDTO;
 
 import examstaff.dto.user.UserDTO;
 
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.enums.SectionType;
 import examstaff.service.ExamStaffSessionQueryService;
 import examstaff.service.ExaminerAllocationService;
@@ -71,7 +71,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         if (!linked.isEmpty()) {
             return linked;
         }
-        // Kỳ thi luôn gồm LT + TH — fallback lấy cả hai loại phòng/sân.
+        // Ká»³ thi luÃ´n gá»“m LT + TH â€” fallback láº¥y cáº£ hai loáº¡i phÃ²ng/sÃ¢n.
         List<ExamArea> areas = new ArrayList<>(areaDAO.getAvailableAreasByType(
                 examstaff.enums.SectionType.THEORY.getValue()));
         areas.addAll(areaDAO.getAvailableAreasByType(ExamAreaTypeResolver.PRACTICAL_AREA_TYPE));
@@ -111,7 +111,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     private AutoAllocateResultDTO autoAllocate(int sessionId, Integer targetRegId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
         if (sessionId <= 0 && targetRegId == null) {
-            result.errorMsg = "Chưa chọn kỳ thi để phân bổ phòng.";
+            result.errorMsg = "ChÆ°a chá»n ká»³ thi Ä‘á»ƒ phÃ¢n bá»• phÃ²ng.";
             return result;
         }
 
@@ -128,7 +128,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
             theoryRoomsForExam = areaDAO.getActiveTheoryRooms();
         }
         if (theoryRoomsForExam.isEmpty()) {
-            result.errorMsg = "Không có phòng thi lý thuyết gắn với kỳ thi này.";
+            result.errorMsg = "KhÃ´ng cÃ³ phÃ²ng thi lÃ½ thuyáº¿t gáº¯n vá»›i ká»³ thi nÃ y.";
             return result;
         }
 
@@ -137,8 +137,8 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         List<ExamArea> eligibleTheoryRooms = ExaminerAssignmentRules.filterTheoryRoomsWithStaff(
                 theoryRoomsForExam, staffedTheoryAreaIds);
         if (eligibleTheoryRooms.isEmpty()) {
-            result.errorMsg = "Chưa có phòng lý thuyết nào được phân công giám khảo. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi tự động phân phòng thí sinh.";
+            result.errorMsg = "ChÆ°a cÃ³ phÃ²ng lÃ½ thuyáº¿t nÃ o Ä‘Æ°á»£c phÃ¢n cÃ´ng giÃ¡m kháº£o. "
+                    + "VÃ o má»¥c \"PhÃ¢n bá»• giÃ¡m kháº£o\" trÆ°á»›c khi tá»± Ä‘á»™ng phÃ¢n phÃ²ng thÃ­ sinh.";
             return result;
         }
 
@@ -202,7 +202,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     private AutoAllocateResultDTO autoAllocatePractical(int sessionId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
         if (sessionId <= 0) {
-            result.errorMsg = "Chưa chọn kỳ thi để phân bổ sân thực hành.";
+            result.errorMsg = "ChÆ°a chá»n ká»³ thi Ä‘á»ƒ phÃ¢n bá»• sÃ¢n thá»±c hÃ nh.";
             return result;
         }
 
@@ -216,7 +216,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
                 .filter(ExaminerAssignmentRules::isPracticalRoom)
                 .toList();
         if (practicalYards.isEmpty()) {
-            result.errorMsg = "Không có sân thi thực hành gắn với kỳ thi này.";
+            result.errorMsg = "KhÃ´ng cÃ³ sÃ¢n thi thá»±c hÃ nh gáº¯n vá»›i ká»³ thi nÃ y.";
             return result;
         }
 
@@ -225,8 +225,8 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         List<ExamArea> eligibleYards = ExaminerAssignmentRules.filterPracticalRoomsWithStaff(
                 practicalYards, staffedPracticalAreaIds);
         if (eligibleYards.isEmpty()) {
-            result.errorMsg = "Chưa có sân thực hành nào được phân công giám khảo. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi tự động phân sân thí sinh.";
+            result.errorMsg = "ChÆ°a cÃ³ sÃ¢n thá»±c hÃ nh nÃ o Ä‘Æ°á»£c phÃ¢n cÃ´ng giÃ¡m kháº£o. "
+                    + "VÃ o má»¥c \"PhÃ¢n bá»• giÃ¡m kháº£o\" trÆ°á»›c khi tá»± Ä‘á»™ng phÃ¢n sÃ¢n thÃ­ sinh.";
             return result;
         }
 
@@ -372,3 +372,4 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return areaId != null && areaId > 0;
     }
 }
+

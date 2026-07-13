@@ -1,7 +1,7 @@
 package examstaff.dao;
 
 
-import examstaff.model.Audit;
+import shared.model.Audit;
 import examstaff.dto.user.AuditDTO;
 
 import examstaff.dto.staff.StaffProcedureKpiDTO;
@@ -9,143 +9,144 @@ import examstaff.dto.staff.StaffProcedureKpiDTO;
 import java.util.List;
 
 /**
- * DAO cho thao tác với nhật ký kiểm tra (AuditLog) trong hệ thống.
- * Cung cấp các phương thức ghi nhật ký, truy vấn nhật ký theo người dùng,
- * ngày tháng, kỳ thi, hỗ trợ phân trang và thống kê KPI cho cán bộ.
+ * DAO cho thao tÃ¡c vá»›i nháº­t kÃ½ kiá»ƒm tra (AuditLog) trong há»‡ thá»‘ng.
+ * Cung cáº¥p cÃ¡c phÆ°Æ¡ng thá»©c ghi nháº­t kÃ½, truy váº¥n nháº­t kÃ½ theo ngÆ°á»i dÃ¹ng,
+ * ngÃ y thÃ¡ng, ká»³ thi, há»— trá»£ phÃ¢n trang vÃ  thá»‘ng kÃª KPI cho cÃ¡n bá»™.
  */
 public interface AuditLogDAO {
 
     /**
-     * Ghi một bản ghi nhật ký kiểm tra mới.
+     * Ghi má»™t báº£n ghi nháº­t kÃ½ kiá»ƒm tra má»›i.
      *
-     * @param log đối tượng Audit chứa thông tin nhật ký
-     * @return true nếu ghi thành công
+     * @param log Ä‘á»‘i tÆ°á»£ng Audit chá»©a thÃ´ng tin nháº­t kÃ½
+     * @return true náº¿u ghi thÃ nh cÃ´ng
      */
     boolean insert(Audit log);
 
     /**
-     * Lấy danh sách nhật ký của người dùng trong ngày hôm nay.
+     * Láº¥y danh sÃ¡ch nháº­t kÃ½ cá»§a ngÆ°á»i dÃ¹ng trong ngÃ y hÃ´m nay.
      *
-     * @param userId mã người dùng
-     * @return danh sách AuditDTO
+     * @param userId mÃ£ ngÆ°á»i dÃ¹ng
+     * @return danh sÃ¡ch AuditDTO
      */
     List<AuditDTO> getLogsByUserToday(int userId);
 
     /**
-     * Lấy tất cả nhật ký trong ngày hôm nay.
+     * Láº¥y táº¥t cáº£ nháº­t kÃ½ trong ngÃ y hÃ´m nay.
      *
-     * @return danh sách tất cả AuditDTO trong ngày
+     * @return danh sÃ¡ch táº¥t cáº£ AuditDTO trong ngÃ y
      */
     List<AuditDTO> getAllLogsToday();
 
     /**
-     * Lấy danh sách nhật ký của người dùng theo ngày cụ thể.
+     * Láº¥y danh sÃ¡ch nháº­t kÃ½ cá»§a ngÆ°á»i dÃ¹ng theo ngÃ y cá»¥ thá»ƒ.
      *
-     * @param userId mã người dùng
-     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return danh sách AuditDTO
+     * @param userId mÃ£ ngÆ°á»i dÃ¹ng
+     * @param dateStr ngÃ y cáº§n lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd)
+     * @return danh sÃ¡ch AuditDTO
      */
     List<AuditDTO> getLogsByUserAndDate(int userId, String dateStr);
 
     /**
-     * Lấy tất cả nhật ký theo ngày cụ thể.
+     * Láº¥y táº¥t cáº£ nháº­t kÃ½ theo ngÃ y cá»¥ thá»ƒ.
      *
-     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return danh sách AuditDTO
+     * @param dateStr ngÃ y cáº§n lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd)
+     * @return danh sÃ¡ch AuditDTO
      */
     List<AuditDTO> getAllLogsByDate(String dateStr);
 
     /**
-     * Lấy danh sách nhật ký của người dùng theo ngày có phân trang.
+     * Láº¥y danh sÃ¡ch nháº­t kÃ½ cá»§a ngÆ°á»i dÃ¹ng theo ngÃ y cÃ³ phÃ¢n trang.
      *
-     * @param userId   mã người dùng
-     * @param dateStr  ngày cần lọc (định dạng yyyy-MM-dd)
-     * @param page     số trang (bắt đầu từ 1)
-     * @param pageSize số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @param userId   mÃ£ ngÆ°á»i dÃ¹ng
+     * @param dateStr  ngÃ y cáº§n lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd)
+     * @param page     sá»‘ trang (báº¯t Ä‘áº§u tá»« 1)
+     * @param pageSize sá»‘ lÆ°á»£ng báº£n ghi trÃªn má»—i trang
+     * @return danh sÃ¡ch AuditDTO theo trang
      */
     List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize);
 
     /**
-     * Lấy tất cả nhật ký theo ngày có phân trang.
+     * Láº¥y táº¥t cáº£ nháº­t kÃ½ theo ngÃ y cÃ³ phÃ¢n trang.
      *
-     * @param dateStr  ngày cần lọc (định dạng yyyy-MM-dd)
-     * @param page     số trang (bắt đầu từ 1)
-     * @param pageSize số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @param dateStr  ngÃ y cáº§n lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd)
+     * @param page     sá»‘ trang (báº¯t Ä‘áº§u tá»« 1)
+     * @param pageSize sá»‘ lÆ°á»£ng báº£n ghi trÃªn má»—i trang
+     * @return danh sÃ¡ch AuditDTO theo trang
      */
     List<AuditDTO> getAllLogsByDatePaginated(String dateStr, int page, int pageSize);
 
     /**
-     * Đếm số lượng nhật ký của người dùng theo ngày.
+     * Äáº¿m sá»‘ lÆ°á»£ng nháº­t kÃ½ cá»§a ngÆ°á»i dÃ¹ng theo ngÃ y.
      *
-     * @param userId  mã người dùng
-     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return số lượng bản ghi nhật ký
+     * @param userId  mÃ£ ngÆ°á»i dÃ¹ng
+     * @param dateStr ngÃ y cáº§n lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd)
+     * @return sá»‘ lÆ°á»£ng báº£n ghi nháº­t kÃ½
      */
     int getLogsCountByUserAndDate(int userId, String dateStr);
 
     /**
-     * Đếm tổng số nhật ký theo ngày.
+     * Äáº¿m tá»•ng sá»‘ nháº­t kÃ½ theo ngÃ y.
      *
-     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return số lượng bản ghi nhật ký
+     * @param dateStr ngÃ y cáº§n lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd)
+     * @return sá»‘ lÆ°á»£ng báº£n ghi nháº­t kÃ½
      */
     int getAllLogsCountByDate(String dateStr);
 
     /**
-     * Lấy chỉ số KPI thủ tục của cán bộ (số thí sinh đã có ảnh + thanh toán do cán bộ đó thu).
+     * Láº¥y chá»‰ sá»‘ KPI thá»§ tá»¥c cá»§a cÃ¡n bá»™ (sá»‘ thÃ­ sinh Ä‘Ã£ cÃ³ áº£nh + thanh toÃ¡n do cÃ¡n bá»™ Ä‘Ã³ thu).
      *
-     * @param userId     mã cán bộ
-     * @param filterDate ngày lọc (định dạng yyyy-MM-dd) hoặc null để lấy tất cả
-     * @return StaffProcedureKpiDTO chứa thông tin KPI
+     * @param userId     mÃ£ cÃ¡n bá»™
+     * @param filterDate ngÃ y lá»c (Ä‘á»‹nh dáº¡ng yyyy-MM-dd) hoáº·c null Ä‘á»ƒ láº¥y táº¥t cáº£
+     * @return StaffProcedureKpiDTO chá»©a thÃ´ng tin KPI
      */
     StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate);
 
     /**
-     * Lấy danh sách nhật ký theo kỳ thi có phân trang.
+     * Láº¥y danh sÃ¡ch nháº­t kÃ½ theo ká»³ thi cÃ³ phÃ¢n trang.
      *
-     * @param sessionId mã kỳ thi
-     * @param page      số trang (bắt đầu từ 1)
-     * @param pageSize  số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @param sessionId mÃ£ ká»³ thi
+     * @param page      sá»‘ trang (báº¯t Ä‘áº§u tá»« 1)
+     * @param pageSize  sá»‘ lÆ°á»£ng báº£n ghi trÃªn má»—i trang
+     * @return danh sÃ¡ch AuditDTO theo trang
      */
     List<AuditDTO> getLogsForSessionPaginated(int sessionId, int page, int pageSize);
 
     /**
-     * Đếm số lượng nhật ký theo kỳ thi.
+     * Äáº¿m sá»‘ lÆ°á»£ng nháº­t kÃ½ theo ká»³ thi.
      *
-     * @param sessionId mã kỳ thi
-     * @return số lượng bản ghi nhật ký
+     * @param sessionId mÃ£ ká»³ thi
+     * @return sá»‘ lÆ°á»£ng báº£n ghi nháº­t kÃ½
      */
     int getLogsCountForSession(int sessionId);
 
     /**
-     * Lấy danh sách nhật ký theo kỳ thi có phân trang và tìm kiếm.
+     * Láº¥y danh sÃ¡ch nháº­t kÃ½ theo ká»³ thi cÃ³ phÃ¢n trang vÃ  tÃ¬m kiáº¿m.
      *
-     * @param sessionId   mã kỳ thi
-     * @param page        số trang (bắt đầu từ 1)
-     * @param pageSize    số lượng bản ghi trên mỗi trang
-     * @param searchQuery từ khóa tìm kiếm
-     * @return danh sách AuditDTO theo trang
+     * @param sessionId   mÃ£ ká»³ thi
+     * @param page        sá»‘ trang (báº¯t Ä‘áº§u tá»« 1)
+     * @param pageSize    sá»‘ lÆ°á»£ng báº£n ghi trÃªn má»—i trang
+     * @param searchQuery tá»« khÃ³a tÃ¬m kiáº¿m
+     * @return danh sÃ¡ch AuditDTO theo trang
      */
     List<AuditDTO> getLogsForSessionPaginated(int sessionId, int page, int pageSize, String searchQuery);
 
     /**
-     * Đếm số lượng nhật ký theo kỳ thi có tìm kiếm.
+     * Äáº¿m sá»‘ lÆ°á»£ng nháº­t kÃ½ theo ká»³ thi cÃ³ tÃ¬m kiáº¿m.
      *
-     * @param sessionId   mã kỳ thi
-     * @param searchQuery từ khóa tìm kiếm
-     * @return số lượng bản ghi nhật ký
+     * @param sessionId   mÃ£ ká»³ thi
+     * @param searchQuery tá»« khÃ³a tÃ¬m kiáº¿m
+     * @return sá»‘ lÆ°á»£ng báº£n ghi nháº­t kÃ½
      */
     int getLogsCountForSession(int sessionId, String searchQuery);
 
     /**
-     * Lấy danh sách nhật ký vi phạm theo kỳ thi với giới hạn số lượng.
+     * Láº¥y danh sÃ¡ch nháº­t kÃ½ vi pháº¡m theo ká»³ thi vá»›i giá»›i háº¡n sá»‘ lÆ°á»£ng.
      *
-     * @param sessionId mã kỳ thi
-     * @param limit     số lượng tối đa bản ghi trả về
-     * @return danh sách AuditDTO các vi phạm
+     * @param sessionId mÃ£ ká»³ thi
+     * @param limit     sá»‘ lÆ°á»£ng tá»‘i Ä‘a báº£n ghi tráº£ vá»
+     * @return danh sÃ¡ch AuditDTO cÃ¡c vi pháº¡m
      */
     List<AuditDTO> getViolationLogsForSession(int sessionId, int limit);
 }
+

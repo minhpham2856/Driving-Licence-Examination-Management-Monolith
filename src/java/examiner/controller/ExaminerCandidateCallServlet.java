@@ -2,7 +2,7 @@ package examiner.controller;
 
 import examiner.enums.SectionType;
 import examiner.filter.ExaminerFilter;
-import examiner.model.User;
+import shared.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -240,12 +240,13 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
 
     private String resolveCallDestination(HttpSession session) {
         if (session == null) {
-            return "Khu vực thi";
+            return "Khu vá»±c thi";
         }
         Object sectionName = session.getAttribute("examSectionName");
         if (sectionName != null && !String.valueOf(sectionName).isBlank()) {
             return String.valueOf(sectionName);
         }
-        return "Khu vực thi";
+        return "Khu vá»±c thi";
     }
 }
+

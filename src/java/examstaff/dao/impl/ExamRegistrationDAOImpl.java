@@ -1,6 +1,6 @@
 package examstaff.dao.impl;
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dao.Db2CandidateSql;
 
@@ -8,7 +8,7 @@ import examstaff.dao.ExamRegistrationDAO;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
 
-import examstaff.model.ExamRegistration;
+import shared.model.ExamRegistration;
 import examstaff.util.AllocationPassRules;
 import java.sql.*;
 import java.util.ArrayList;
@@ -203,7 +203,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     SELECT TOP 1 p.PaymentId
                     FROM Payment p
                     INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                    WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
+                    WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid', N'HoÃ n táº¥t')
                     """;
             try (PreparedStatement ps = getConnection().prepareStatement(check)) {
                 ps.setInt(1, id);
@@ -243,7 +243,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 FROM Payment p
                 INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
     // Xac dinh exam id for candidate
-                WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid', N'Hoàn tất')
+                WHERE ee.CandidateId = ? AND p.PaymentStatus IN (N'Completed', N'Paid', N'HoÃ n táº¥t')
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
@@ -353,7 +353,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     @Override
     public String validateUniqueTheoryAllocation(int candidateId, int sessionId) {
         if (candidateId <= 0 || sessionId <= 0) {
-            return "Không xác định được kỳ thi để phân phòng.";
+            return "KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c ká»³ thi Ä‘á»ƒ phÃ¢n phÃ²ng.";
         }
         String sql = """
                 SELECT ea.AreaName
@@ -373,14 +373,14 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 if (rs.next()) {
                     String areaName = rs.getString("AreaName");
                     if (areaName == null || areaName.isBlank()) {
-                        areaName = "đã phân";
+                        areaName = "Ä‘Ã£ phÃ¢n";
                     }
-                    return "Thí sinh đã được phân phòng \"" + areaName.trim() + "\" trong kỳ thi này.";
+                    return "ThÃ­ sinh Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n phÃ²ng \"" + areaName.trim() + "\" trong ká»³ thi nÃ y.";
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return "Không kiểm tra được phân phòng hiện tại của thí sinh.";
+            return "KhÃ´ng kiá»ƒm tra Ä‘Æ°á»£c phÃ¢n phÃ²ng hiá»‡n táº¡i cá»§a thÃ­ sinh.";
         }
         return null;
     }
@@ -1104,8 +1104,8 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     /**
-     * Ưu tiên ghi danh đúng ca; nếu ca trên URL không khớp (sidebar / session cũ) thì fallback
-     * sang bất kỳ ExamEnrollment hợp lệ của thí sinh.
+     * Æ¯u tiÃªn ghi danh Ä‘Ãºng ca; náº¿u ca trÃªn URL khÃ´ng khá»›p (sidebar / session cÅ©) thÃ¬ fallback
+     * sang báº¥t ká»³ ExamEnrollment há»£p lá»‡ cá»§a thÃ­ sinh.
      */
     private Integer resolveExamEnrollmentForScore(int candidateId, int sessionId) throws SQLException {
         if (sessionId > 0) {
@@ -1245,7 +1245,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                     s.fullName = rs.getString("FullName");
                     s.dob = rs.getTimestamp("DateOfBirth");
                     s.phone = rs.getString("PhoneNumber");
-                    s.sex = rs.getBoolean("Sex") ? "Nam" : "Nữ";
+                    s.sex = rs.getBoolean("Sex") ? "Nam" : "Ná»¯";
                     s.govId = rs.getString("GovernmentIdNumber");
                     s.address = rs.getString("Address");
                     return s;
@@ -1305,7 +1305,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if ("0".equals(s) || "false".equals(s)) {
             return false;
         }
-        return !(s.equals("nữ") || s.equals("nu") || s.equals("female"));
+        return !(s.equals("ná»¯") || s.equals("nu") || s.equals("female"));
     }
 
     private static Boolean readNullableBoolean(ResultSet rs, String column) throws SQLException {

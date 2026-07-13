@@ -1,4 +1,4 @@
-package enums;
+package shared.enums;
 
 public enum SectionType {
     THEORY("Lý thuyết"),

@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.model.User;
+import shared.model.User;
 import jakarta.servlet.http.HttpSession;
 
 public final class SessionUserHelper {
@@ -19,3 +19,4 @@ public final class SessionUserHelper {
         return (user != null && user.getUserId() > 0) ? user.getUserId() : defaultId;
     }
 }
+

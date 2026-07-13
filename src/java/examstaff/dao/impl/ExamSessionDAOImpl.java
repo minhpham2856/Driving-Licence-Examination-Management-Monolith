@@ -1,20 +1,20 @@
 package examstaff.dao.impl;
 
 
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dao.ExamSessionDAO;
 
 import examstaff.dto.ExamSummaryDTO;
 
-import examstaff.model.Session;
+import examstaff.dto.Session;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * JDBC implementation of ExamSessionDAO.
- * Schema DLEM_DB_2: một kỳ thi = một {@link examstaff.model.Exam}; {@code sessionId} = {@code ExamId}.
+ * Schema DLEM_DB_2: má»™t ká»³ thi = má»™t {@link examstaff.model.Exam}; {@code sessionId} = {@code ExamId}.
  */
 public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
 
@@ -23,7 +23,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             + "e.ExamId AS examId, "
             + "CAST(1 AS BIT) AS isMorningSession, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
+            + "  N'Háº¡ng ' + l.LicenceClass + N' â€” ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
             + "e.LicenceId AS licenseTypeId, "
             + "1 AS examTypeId, "
             + "CAST(e.ExamDate AS DATE) AS examDate, "
@@ -38,7 +38,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             + "e.StartTime AS createdAt, "
             + "l.LicenceClass AS licenseCode, "
             + "e.ExamCode AS examCode, "
-            + "N'Lý thuyết + Thực hành' AS examTypeName, "
+            + "N'LÃ½ thuyáº¿t + Thá»±c hÃ nh' AS examTypeName, "
             + "ea.AreaName AS areaName "
             + "FROM Exam e "
             + "JOIN Licence l ON l.LicenceId = e.LicenceId "
@@ -98,7 +98,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     @Override
     public List<ExamSummaryDTO> getActiveSessions() {
         return fetchList(EXAM_SELECT
-                + " WHERE e.[Status] IN (N'Chưa diễn ra', N'Mở', N'Đang diễn ra', "
+                + " WHERE e.[Status] IN (N'ChÆ°a diá»…n ra', N'Má»Ÿ', N'Äang diá»…n ra', "
                 + "'Scheduled', 'Open', 'InProgress')"
                 + " ORDER BY CAST(e.ExamDate AS DATE), CAST(e.StartTime AS TIME)");
     }
@@ -208,3 +208,4 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         return es;
     }
 }
+

@@ -1,6 +1,6 @@
 package examiner.controller;
 
-import examiner.model.User;
+import shared.model.User;
 import examiner.filter.ExaminerFilter;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
@@ -138,7 +138,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             String password = request.getParameter("confirmPassword");
             User user = (User) session.getAttribute("user");
             if (!callService.logPracticalScoreEditReason(activeExamId, sbd, user, password, reason, reasonDetail, user.getUserId()).isSuccess()) {
-                request.setAttribute("editError", "Lưu lý do thất bại. Vui lòng kiểm tra lại mật khẩu xác nhận.");
+                request.setAttribute("editError", "LÆ°u lÃ½ do tháº¥t báº¡i. Vui lÃ²ng kiá»ƒm tra láº¡i máº­t kháº©u xÃ¡c nháº­n.");
                 doGet(request, response);
                 return;
             }
@@ -172,3 +172,4 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
     }
 }
+

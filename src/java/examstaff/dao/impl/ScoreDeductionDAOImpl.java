@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
 import examstaff.dao.ScoreDeductionDAO;
-import dbconnection.DBContext;
-import examstaff.model.ScoreDeduction;
+import shared.dbconnection.DBContext;
+import shared.model.ScoreDeduction;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,3 +39,4 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         return deduction;
     }
 }
+

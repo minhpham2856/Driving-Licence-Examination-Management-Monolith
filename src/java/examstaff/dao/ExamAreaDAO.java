@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import java.util.List;
 
 public interface ExamAreaDAO {
@@ -27,9 +27,10 @@ public interface ExamAreaDAO {
     // --- CleanMyBranch methods ---
     List<ExamArea> getAvailableAreasByType(String areaType);
 
-    /** @deprecated dùng {@link #getAreasByExamId(int)} */
+    /** @deprecated dÃ¹ng {@link #getAreasByExamId(int)} */
     List<ExamArea> getAreasBySessionId(int sessionId);
 
-    /** @deprecated dùng {@link #isAreaInExam(int, int)} */
+    /** @deprecated dÃ¹ng {@link #isAreaInExam(int, int)} */
     boolean isAreaInSession(int sessionId, int examAreaId);
 }
+

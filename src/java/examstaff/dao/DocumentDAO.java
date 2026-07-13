@@ -1,8 +1,9 @@
 package examstaff.dao;
 
-import examstaff.model.Document;
+import shared.model.Document;
 
 public interface DocumentDAO {
 
     boolean upsertByProfileAndType(Document document);
 }
+

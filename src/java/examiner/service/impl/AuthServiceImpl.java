@@ -7,8 +7,8 @@ import examiner.dao.impl.UserDAOImpl;
 import examiner.dto.ServiceResult;
 import examiner.dto.RegisterResultDTO;
 import examiner.enums.ErrorType;
-import examiner.model.Profile;
-import examiner.model.User;
+import shared.model.Profile;
+import shared.model.User;
 import examiner.service.AuthService;
 import examiner.service.EmailService;
 import examiner.service.RoleService;
@@ -23,13 +23,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ServiceResult<RegisterResultDTO> register(Profile profile, String email) {
         if (userDAO.getByEmail(email) != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Email đã được sử dụng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Email Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.");
         }
         if (profileDAO.getByGovIdNo(profile.getGovernmentIdNumber()) != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số căn cước đã được sử dụng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ cÄƒn cÆ°á»›c Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.");
         }
         if (profileDAO.getByPhoneNo(profile.getPhoneNumber()) != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số điện thoại đã được sử dụng.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Sá»‘ Ä‘iá»‡n thoáº¡i Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.");
         }
         String username = generateUniqueUsername(profile.getFullName());
         String password = UsernameGenerator.randomPassword(10);
@@ -39,22 +39,22 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(password);
         user.setActive(true);
         RoleService roleService = new RoleServiceImpl();
-        user.setRoleId(roleService.getRoleIdByName(enums.RoleType.REGISTRANT.getValue()));
+        user.setRoleId(roleService.getRoleIdByName(shared.enums.RoleType.REGISTRANT.getValue()));
         if (!userDAO.insert(user)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
-                    "Không thể đăng ký tài khoản. Vui lòng thử lại.");
+                    "KhÃ´ng thá»ƒ Ä‘Äƒng kÃ½ tÃ i khoáº£n. Vui lÃ²ng thá»­ láº¡i.");
         }
         profile.setUserId(user.getUserId());
         if (!profileDAO.insert(profile)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Lỗi hệ thống. Vui lòng thử lại.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.");
         }
-        String subject = "[Lái Vui] Thông tin tài khoản";
+        String subject = "[LÃ¡i Vui] ThÃ´ng tin tÃ i khoáº£n";
         String content = """
-                Xin chào %s,
-                Tài khoản của bạn đã được tạo thành công trên hệ thống trung tâm Lái Vui.
-                Tên đăng nhập: %s
-                Mật khẩu: %s
-                Vui lòng đăng nhập và đổi mật khẩu trong phần cài đặt tài khoản.
+                Xin chÃ o %s,
+                TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c táº¡o thÃ nh cÃ´ng trÃªn há»‡ thá»‘ng trung tÃ¢m LÃ¡i Vui.
+                TÃªn Ä‘Äƒng nháº­p: %s
+                Máº­t kháº©u: %s
+                Vui lÃ²ng Ä‘Äƒng nháº­p vÃ  Ä‘á»•i máº­t kháº©u trong pháº§n cÃ i Ä‘áº·t tÃ i khoáº£n.
                 """.formatted(profile.getFullName(), username, password);
         boolean emailSent = emailService.sendTextEmail(email, subject, content);
         RegisterResultDTO data = new RegisterResultDTO();
@@ -85,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String forgotPassword(String email) {
         if (email == null || email.isBlank()) {
-            return "Không tìm thấy tài khoản";
+            return "KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n";
         }
         String trimmed = email.trim();
         User user = userDAO.getByEmail(trimmed);
@@ -93,25 +93,25 @@ public class AuthServiceImpl implements AuthService {
             user = userDAO.getByIdentifier(trimmed);
         }
         if (user == null || !user.isActive()) {
-            return "Hãy kiểm tra hòm thư của bạn nếu email bạn nhập là đúng";
+            return "HÃ£y kiá»ƒm tra hÃ²m thÆ° cá»§a báº¡n náº¿u email báº¡n nháº­p lÃ  Ä‘Ãºng";
         }
         String tempPassword = String.valueOf((int) ((Math.random() * 900000) + 100000));
         if (!userDAO.updatePassword(user.getUserId(), tempPassword)) {
-            return "Lỗi hệ thống. Vui lòng thử lại.";
+            return "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.";
         }
         String recipient = user.getEmail();
         if (recipient == null || recipient.isBlank()) {
-            return "Lỗi hệ thống. Vui lòng thử lại.";
+            return "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.";
         }
-        String subject = "[Lái Vui] Khôi phục mật khẩu tài khoản";
+        String subject = "[LÃ¡i Vui] KhÃ´i phá»¥c máº­t kháº©u tÃ i khoáº£n";
         String content = """
-                Xin chào %s,
-                Mật khẩu của bạn đã được khôi phục thành công.
-                Mật khẩu tạm thời mới là: %s
-                Vui lòng đăng nhập lại và đổi mật khẩu trong phần cài đặt tài khoản.
+                Xin chÃ o %s,
+                Máº­t kháº©u cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c khÃ´i phá»¥c thÃ nh cÃ´ng.
+                Máº­t kháº©u táº¡m thá»i má»›i lÃ : %s
+                Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i vÃ  Ä‘á»•i máº­t kháº©u trong pháº§n cÃ i Ä‘áº·t tÃ i khoáº£n.
                 """.formatted(user.getUsername(), tempPassword);
         if (!emailService.sendTextEmail(recipient, subject, content)) {
-            return "Lỗi hệ thống. Vui lòng thử lại.";
+            return "Lá»—i há»‡ thá»‘ng. Vui lÃ²ng thá»­ láº¡i.";
         }
         return null;
     }
@@ -138,27 +138,28 @@ public class AuthServiceImpl implements AuthService {
             String confirmPassword) {
         User fresh = userDAO.getById(userId);
         if (fresh == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Có lỗi xảy ra, vui lòng thử lại.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i.");
         }
         if (currentPassword == null
                 || !currentPassword.equals(fresh.getPasswordHash())) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Mật khẩu hiện tại không chính xác.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Máº­t kháº©u hiá»‡n táº¡i khÃ´ng chÃ­nh xÃ¡c.");
         }
         if (newPassword == null || newPassword.length() < 6) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Mật khẩu mới phải có ít nhất 6 ký tự.");
+                    "Máº­t kháº©u má»›i pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±.");
         }
         if (!newPassword.equals(confirmPassword)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Mật khẩu mới và xác nhận không khớp.");
+                    "Máº­t kháº©u má»›i vÃ  xÃ¡c nháº­n khÃ´ng khá»›p.");
         }
         if (newPassword.equals(fresh.getPasswordHash())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Mật khẩu mới không được trùng mật khẩu cũ.");
+                    "Máº­t kháº©u má»›i khÃ´ng Ä‘Æ°á»£c trÃ¹ng máº­t kháº©u cÅ©.");
         }
         if (userDAO.updatePassword(fresh.getUserId(), newPassword)) {
-            return ServiceResult.ok(null, "Đổi mật khẩu thành công.");
+            return ServiceResult.ok(null, "Äá»•i máº­t kháº©u thÃ nh cÃ´ng.");
         }
-        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Có lỗi xảy ra, vui lòng thử lại.");
+        return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i.");
     }
 }
+

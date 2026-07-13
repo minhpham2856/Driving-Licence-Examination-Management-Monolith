@@ -1,8 +1,8 @@
 package examiner.dao.impl;
 
 import examiner.dao.DeductionRecordDAO;
-import dbconnection.DBContext;
-import examiner.model.DeductionRecord;
+import shared.dbconnection.DBContext;
+import shared.model.DeductionRecord;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -101,3 +101,4 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         return rows;
     }
 }
+

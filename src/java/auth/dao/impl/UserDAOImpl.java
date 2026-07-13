@@ -2,9 +2,9 @@ package auth.dao.impl;
 
 import java.sql.*;
 import java.util.*;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import auth.dao.UserDAO;
-import auth.model.User;
+import shared.model.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -15,9 +15,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import enums.RoleType;
+import shared.enums.RoleType;
 
 public class UserDAOImpl extends DBContext implements UserDAO {
+
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
     private static final String USER_SELECT = """
                      select UserId,
@@ -28,6 +29,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	IsActive
                      from [User]
                      """;
+
     @Override
     public User getById(int id) {
         String sql = USER_SELECT + " where UserId = ?";
@@ -43,6 +45,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+
     @Override
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where Username = ?";
@@ -58,6 +61,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
@@ -81,6 +85,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+
     @Override
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where Email = ?";
@@ -96,6 +101,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+
     @Override
     public boolean insert(User user) {
         Connection conn = getConnection();
@@ -133,6 +139,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return false;
     }
+
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
@@ -149,6 +156,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return false;
     }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("UserId"));
@@ -159,6 +167,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setRoleId(rs.getInt("RoleId"));
         return user;
     }
+
     @Override
     public List<User> getAllByIds(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -187,6 +196,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return list;
     }
+
     @Override
     public List<User> findActiveExaminers() {
         String sql = "SELECT u.UserId, u.Username, u.Email, u.PasswordHash, u.RoleId, u.IsActive "
@@ -207,12 +217,14 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return list;
     }
+
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM [User]";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) return rs.getInt(1);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

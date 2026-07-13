@@ -1,5 +1,6 @@
 package examiner.controller;
 
+import static auth.util.FormatUtil.formatString;
 import examiner.dto.CandidateRowDTO;
 import examiner.enums.SectionType;
 import static examiner.enums.SectionType.THEORY;
@@ -13,7 +14,6 @@ import examiner.service.ExamViewService;
 import examiner.service.impl.ExamViewServiceImpl;
 import java.io.IOException;
 import java.util.List;
-import static util.FormatUtil.text;
 
 @WebServlet("/views/examiner/dashboard")
 public class ExaminerDashboardServlet extends HttpServlet {
@@ -36,10 +36,10 @@ public class ExaminerDashboardServlet extends HttpServlet {
 
         // Load candidate rows for the current session, filtered at the database when searching
         List<CandidateRowDTO> candidates
-                = examViewService.loadCandidateRows(examId, isTheory, sectionName, text(search));
+                = examViewService.loadCandidateRows(examId, isTheory, sectionName, formatString(search));
 
         // Flag that a search is active so the view can show the query and a clear button
-        if (text(search) != null) {
+        if (formatString(search) != null) {
             request.setAttribute("searchActive", true);
             request.setAttribute("searchQuery", search.trim());
         }
@@ -70,7 +70,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
     private Integer getCandidateNumber(HttpServletRequest request) {
         String value = request.getParameter("candidateNumber");
 
-        if (text(value) == null) {
+        if (formatString(value) == null) {
             return null;
         }
 

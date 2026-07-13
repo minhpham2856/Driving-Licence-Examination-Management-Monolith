@@ -3,9 +3,9 @@ package auth.util;
 import java.text.Normalizer;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class UsernameGenerator {
+public final class CredentialsGenerator {
 
-    public static String generateFromFullName(String fullName) {
+    public static String generateUsername(String fullName) {
         String[] parts = fullName.trim().split("\\s+");
         if (parts.length == 0 || parts[0].isEmpty()) {
             return "user" + randomDigits(6);

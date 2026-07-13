@@ -1,7 +1,7 @@
 package examstaff.dao;
 
 import java.util.List;
-import examstaff.model.ExamEnrollmentSection;
+import shared.model.ExamEnrollmentSection;
 
 public interface ExamEnrollmentSectionDAO {
     ExamEnrollmentSection getById(int id);
@@ -9,3 +9,4 @@ public interface ExamEnrollmentSectionDAO {
     List<ExamEnrollmentSection> getByExamAndSection(int examId, int examSectionId);
     boolean updateStatus(int examEnrollmentSectionId, String status);
 }
+

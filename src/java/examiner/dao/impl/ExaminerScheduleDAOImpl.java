@@ -1,9 +1,9 @@
 package examiner.dao.impl;
 
 import examiner.dao.ExaminerScheduleDAO;
-import dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examiner.enums.ExamStatus;
-import examiner.model.ExaminerSchedule;
+import shared.model.ExaminerSchedule;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -243,3 +243,4 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return schedule;
     }
 }
+

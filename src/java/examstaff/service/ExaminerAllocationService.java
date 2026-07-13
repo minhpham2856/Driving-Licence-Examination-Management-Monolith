@@ -4,7 +4,7 @@ import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.user.UserDTO;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 
 import java.util.List;
 
@@ -27,6 +27,7 @@ public interface ExaminerAllocationService {
 
     AutoAllocateResultDTO autoAllocateCandidate(int sessionId, int registrationId);
 
-    /** Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có giám khảo). */
+    /** PhÃ¢n sÃ¢n thá»±c hÃ nh cho thÃ­ sinh Ä‘Ã£ Ä‘á»— lÃ½ thuyáº¿t (cÃ¢n báº±ng táº£i trÃªn sÃ¢n cÃ³ giÃ¡m kháº£o). */
     AutoAllocateResultDTO autoAllocatePracticalSession(int sessionId);
 }
+

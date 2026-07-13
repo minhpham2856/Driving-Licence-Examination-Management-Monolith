@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
 import examstaff.dao.ExamZoneDAO;
-import dbconnection.DBContext;
-import examstaff.model.ExamZone;
+import shared.dbconnection.DBContext;
+import shared.model.ExamZone;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -56,3 +56,4 @@ public class ExamZoneDAOImpl implements ExamZoneDAO {
         return null;
     }
 }
+
