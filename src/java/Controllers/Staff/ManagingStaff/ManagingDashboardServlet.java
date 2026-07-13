@@ -6,7 +6,6 @@ import DAOs.ExamSessionDAO;
 import DAOs.Impl.AuditLogDAOImpl;
 import DAOs.Impl.DossierDAOImpl;
 import DAOs.Impl.ExamSessionDAOImpl;
-import DTOs.DossierDTO;
 import DTOs.SessionDTO;
 import Models.User;
 import Utils.SessionUtil;
@@ -17,11 +16,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @WebServlet("/manager/dashboard")
 public class ManagingDashboardServlet extends HttpServlet {
@@ -37,35 +34,25 @@ public class ManagingDashboardServlet extends HttpServlet {
         User currentUser = requireManager(request, response);
         if (currentUser == null) return;
 
-        List<DossierDTO> registrants = dossierDAO.findAllRegistrants();
-        List<DossierDTO> reviewable = dossierDAO.findSubmitted();
+        Map<String, Integer> statusCounts = dossierDAO.countRegistrantStatuses();
+        int reviewableCount = dossierDAO.countSubmitted();
         List<SessionDTO> activeSessions = sessionDAO.getActiveSessions();
         LocalDate today = LocalDate.now();
 
-        long approved = registrants.stream().filter(d -> "Approved".equals(d.getStatus())).count();
-        long locked = registrants.stream().filter(d -> !d.getUser().isActive()).count();
-        long complete = registrants.stream().filter(DossierDTO::isComplete).count();
         long upcoming = activeSessions.stream()
                 .filter(s -> s.getExamDate() != null
                         && !s.getExamDate().toLocalDate().isBefore(today))
                 .count();
 
-        Map<String, Long> licenceCounts = registrants.stream()
-                .filter(d -> d.getLicenceClass() != null && !d.getLicenceClass().isBlank())
-                .collect(Collectors.groupingBy(
-                        DossierDTO::getLicenceClass,
-                        LinkedHashMap::new,
-                        Collectors.counting()));
-
-        request.setAttribute("totalRegistrants", registrants.size());
-        request.setAttribute("approvedCount", approved);
-        request.setAttribute("reviewableCount", reviewable.size());
-        request.setAttribute("lockedCount", locked);
-        request.setAttribute("completeCount", complete);
+        request.setAttribute("totalRegistrants", statusCounts.getOrDefault("all", 0));
+        request.setAttribute("approvedCount", statusCounts.getOrDefault("approved", 0));
+        request.setAttribute("reviewableCount", reviewableCount);
+        request.setAttribute("lockedCount", dossierDAO.countLockedRegistrants());
+        request.setAttribute("completeCount", dossierDAO.countCompleteRegistrants());
         request.setAttribute("upcomingCount", upcoming);
         request.setAttribute("activeSessions", activeSessions.stream().limit(6).toList());
-        request.setAttribute("recentDossiers", reviewable.stream().limit(6).toList());
-        request.setAttribute("licenceCounts", licenceCounts);
+        request.setAttribute("recentDossiers", dossierDAO.findSubmittedPage(1, 6));
+        request.setAttribute("licenceCounts", dossierDAO.countRegistrantsByLicence());
         request.setAttribute("recentAudits",
                 auditDAO.getLogsByUserAndDate(currentUser.getId(), null).stream().limit(6).toList());
         request.getRequestDispatcher(VIEW).forward(request, response);
