@@ -19,6 +19,7 @@ import registrant.util.RegistrantProfileSupport;
 import registrant.util.RegistrantSessionSupport;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.time.ZoneId;
 import java.util.List;
 
 /** Nạp và cập nhật hồ sơ cá nhân thí sinh từ bảng Profile + User. */
@@ -44,7 +45,8 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         request.setAttribute("hasProfile", true);
         request.setAttribute("registrantName", profile.getFullName());
         if (profile.getDateOfBirth() != null) {
-            request.setAttribute("birthday", profile.getDateOfBirth().toString());
+            request.setAttribute("birthday", profile.getDateOfBirth().toInstant()
+                    .atZone(ZoneId.systemDefault()).toLocalDate().toString());
         }
         request.setAttribute("gender", profile.isSex() ? "Nữ" : "Nam");
         request.setAttribute("phone", profile.getPhoneNumber());
