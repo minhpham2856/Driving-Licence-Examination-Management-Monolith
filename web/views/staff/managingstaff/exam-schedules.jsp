@@ -133,7 +133,7 @@
             <div class="page-title-wrap">
                 <h1 class="page-title">Quản Lý Phiên Thi</h1>
                 <p class="page-subtitle">
-                    Managing Staff nhập lịch/phiên thi đã được ban hành để thí sinh đăng ký đúng hạng GPLX của hồ sơ.
+                    Managing Staff tạo phiên thi từ danh sách chính thức đã nhận và quản lý trạng thái các phiên.
                 </p>
             </div>
         </header>
@@ -149,96 +149,23 @@
             <section class="schedule-card">
                 <h2 class="schedule-card__title">Tạo phiên thi mới</h2>
                 <p class="schedule-card__hint">
-                    Mỗi phiên thi gắn với một hạng GPLX. Khi thí sinh đăng ký thi, hệ thống chỉ nên hiển thị các phiên
-                    có cùng hạng GPLX với hồ sơ đã được duyệt.
+                    Tạo phiên thi từ danh sách chính thức và đối soát từng thí sinh với hồ sơ đã được Managing Staff duyệt.
                 </p>
-
-                <form class="schedule-form" action="${ctx}/manager/exam-schedules" method="post">
-                    <input type="hidden" name="action" value="create">
-
-                    <div class="input-group">
-                        <label class="input-label" for="sessionName">Tên phiên thi <span style="color:#ef4444">*</span></label>
-                        <input class="input-field" id="sessionName" name="sessionName"
-                               value="${fn:escapeXml(param.sessionName)}"
-                               placeholder="Ví dụ: Ca sáng - Lý thuyết B2" maxlength="100" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="centreName">Trung tâm/địa điểm thi <span style="color:#ef4444">*</span></label>
-                        <input class="input-field" id="centreName" name="centreName"
-                               value="${empty param.centreName ? 'Trung tâm Sát hạch Lái Vui' : fn:escapeXml(param.centreName)}"
-                               maxlength="255" required>
-                    </div>
-
-                    <div class="schedule-form__row">
-                        <div class="input-group">
-                            <label class="input-label" for="licenceId">Hạng GPLX <span style="color:#ef4444">*</span></label>
-                            <select class="input-field" id="licenceId" name="licenceId" required>
-                                <option value="">Chọn hạng GPLX</option>
-                                <c:forEach var="licence" items="${licences}">
-                                    <option value="${licence.licenceId}" ${param.licenceId eq licence.licenceId ? 'selected' : ''}>
-                                        Hạng <c:out value="${licence.licenceClass}" />
-                                    </option>
-                                </c:forEach>
-                            </select>
-                        </div>
-
-                        <div class="input-group">
-                            <label class="input-label" for="sectionId">Phần thi <span style="color:#ef4444">*</span></label>
-                            <select class="input-field" id="sectionId" name="sectionId" required>
-                                <option value="">Chọn phần thi</option>
-                                <c:forEach var="section" items="${sections}">
-                                    <option value="${section.id}" ${param.sectionId eq section.id ? 'selected' : ''}>
-                                        <c:out value="${section.name}" />
-                                    </option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="areaId">Khu vực/phòng thi <span style="color:#ef4444">*</span></label>
-                        <select class="input-field" id="areaId" name="areaId" required>
-                            <option value="">Chọn khu vực thi</option>
-                            <c:forEach var="area" items="${areas}">
-                                <option value="${area.examAreaId}" ${param.areaId eq area.examAreaId ? 'selected' : ''}>
-                                    <c:out value="${area.areaName}" /> - <c:out value="${area.areaType}" />
-                                    (tối đa ${area.capacity})
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-
-                    <div class="schedule-form__row">
-                        <div class="input-group">
-                            <label class="input-label" for="examDate">Ngày thi <span style="color:#ef4444">*</span></label>
-                            <input class="input-field" id="examDate" name="examDate" type="date"
-                                   min="${today}" value="${fn:escapeXml(param.examDate)}" required>
-                        </div>
-                        <div class="schedule-form__row">
-                            <div class="input-group">
-                                <label class="input-label" for="startTime">Bắt đầu <span style="color:#ef4444">*</span></label>
-                                <input class="input-field" id="startTime" name="startTime" type="time"
-                                       value="${fn:escapeXml(param.startTime)}" required>
-                            </div>
-                            <div class="input-group">
-                                <label class="input-label" for="endTime">Kết thúc <span style="color:#ef4444">*</span></label>
-                                <input class="input-field" id="endTime" name="endTime" type="time"
-                                       value="${fn:escapeXml(param.endTime)}" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="btn-filter" type="submit" style="justify-content:center;height:42px">
-                        Tạo phiên thi
-                    </button>
-                </form>
+                <ul class="schedule-card__hint" style="padding-left:1.1rem;line-height:1.75">
+                    <li>Chỉ nhận hạng A1, A và B1.</li>
+                    <li>Kiểm tra CCCD, hạng GPLX, SBD và dữ liệu trùng.</li>
+                    <li>Chỉ lưu khi toàn bộ danh sách hợp lệ.</li>
+                </ul>
+                <a class="btn-filter" href="${ctx}/manager/exam-schedules/create"
+                   style="height:42px;justify-content:center;text-decoration:none;display:flex">
+                    Tạo phiên thi và nhập danh sách
+                </a>
             </section>
 
             <section class="schedule-card">
                 <h2 class="schedule-card__title">Danh sách phiên thi</h2>
                 <p class="schedule-card__hint">
-                    `Open` là trạng thái nên dùng khi muốn cho thí sinh nhìn thấy và đăng ký phiên thi.
+                    Phiên mới được tạo ở trạng thái `Scheduled`; ExamStaff tiếp nhận và vận hành phiên theo danh sách đã xếp.
                 </p>
 
                 <div class="schedule-table-wrap">
