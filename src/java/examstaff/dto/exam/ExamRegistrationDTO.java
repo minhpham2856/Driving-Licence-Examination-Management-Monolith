@@ -3,13 +3,11 @@ package examstaff.dto.exam;
 
 import java.sql.Timestamp;
 import java.sql.Date;
-import java.util.Locale;
 
 public class ExamRegistrationDTO {
     private int id;
-    private int examSessionId;
+    private int examId;
     private int examEnrollmentId;
-    private int personId;
     private int candidateNo;
     private String registrationType;
     private boolean isPaymentCompleted;
@@ -23,51 +21,34 @@ public class ExamRegistrationDTO {
     private String fullName;
     private String govIdNo;
     private Date dateOfBirth;
-    private boolean gender;
     private String phoneNo;
     private String email;
     private String photoUrl;
 
     // Helper fields from allocation/pipeline
     private String computerCode;
-    private String deviceCode;
     private String theoryPassed = "none";
     private String practicalPassed = "none";
-    private String roadTestPassed = "none";
     private Integer theoryScore;
     private Integer practicalScore;
-    private Integer roadTestScore;
     private String licenseCode;
 
     private Integer allocatedAreaId;
     private String allocatedAreaName;
     private Integer practicalAllocatedAreaId;
     private String practicalAllocatedAreaName;
-    private boolean isCalled;
     private boolean validCapturedPhoto;
-    private String address;
-    private String sex;
-    private int takeNo = 1;
-    private String reasonForTaking;
     /** NULL = thi phần đó; false = bảo lưu, không thi lại. */
     private Boolean takeTheory;
     private Boolean takePractical;
     private Date examDate;
-    private String sectionStatus = "Pending";
-    private boolean signaturePrinted;
-
-    // Validation flags for CSV import
-    private boolean invalid;
-    private String validationMessage;
-    private boolean duplicate;
 
     public ExamRegistrationDTO() {
     }
 
-    public ExamRegistrationDTO(int id, int examSessionId, int personId, int candidateNo, String registrationType, boolean isPaymentCompleted, boolean isPresent, Timestamp presentMarkedAt, String notes) {
+    public ExamRegistrationDTO(int id, int examId, int candidateNo, String registrationType, boolean isPaymentCompleted, boolean isPresent, Timestamp presentMarkedAt, String notes) {
         this.id = id;
-        this.examSessionId = examSessionId;
-        this.personId = personId;
+        this.examId = examId;
         this.candidateNo = candidateNo;
         this.registrationType = registrationType;
         this.isPaymentCompleted = isPaymentCompleted;
@@ -94,11 +75,11 @@ public class ExamRegistrationDTO {
     }
 
     public int getExamId() {
-        return examSessionId;
+        return examId;
     }
 
-    public void setExamId(int examSessionId) {
-        this.examSessionId = examSessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public int getExamEnrollmentId() {
@@ -107,14 +88,6 @@ public class ExamRegistrationDTO {
 
     public void setExamEnrollmentId(int examEnrollmentId) {
         this.examEnrollmentId = examEnrollmentId;
-    }
-
-    public int getPersonId() {
-        return personId;
-    }
-
-    public void setPersonId(int personId) {
-        this.personId = personId;
     }
 
     public int getCandidateNo() {
@@ -143,10 +116,6 @@ public class ExamRegistrationDTO {
 
     public void setIsPaymentCompleted(boolean isPaymentCompleted) {
         this.isPaymentCompleted = isPaymentCompleted;
-    }
-
-    public boolean isIsPresent() {
-        return isPresent;
     }
 
     public boolean isPresent() {
@@ -213,14 +182,6 @@ public class ExamRegistrationDTO {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public boolean isGender() {
-        return gender;
-    }
-
-    public void setGender(boolean gender) {
-        this.gender = gender;
-    }
-
     public String getPhoneNo() {
         return phoneNo;
     }
@@ -253,14 +214,6 @@ public class ExamRegistrationDTO {
         this.computerCode = computerCode;
     }
 
-    public String getDeviceCode() {
-        return deviceCode;
-    }
-
-    public void setDeviceCode(String deviceCode) {
-        this.deviceCode = deviceCode;
-    }
-
     public String getTheoryPassed() {
         return theoryPassed;
     }
@@ -277,14 +230,6 @@ public class ExamRegistrationDTO {
         this.practicalPassed = practicalPassed;
     }
 
-    public String getRoadTestPassed() {
-        return roadTestPassed;
-    }
-
-    public void setRoadTestPassed(String roadTestPassed) {
-        this.roadTestPassed = roadTestPassed;
-    }
-
     public Integer getTheoryScore() {
         return theoryScore;
     }
@@ -299,14 +244,6 @@ public class ExamRegistrationDTO {
 
     public void setPracticalScore(Integer practicalScore) {
         this.practicalScore = practicalScore;
-    }
-
-    public Integer getRoadTestScore() {
-        return roadTestScore;
-    }
-
-    public void setRoadTestScore(Integer roadTestScore) {
-        this.roadTestScore = roadTestScore;
     }
 
     public String getLicenseCode() {
@@ -349,52 +286,12 @@ public class ExamRegistrationDTO {
         this.practicalAllocatedAreaName = practicalAllocatedAreaName;
     }
 
-    public boolean isCalled() {
-        return isCalled;
-    }
-
-    public void setCalled(boolean called) {
-        isCalled = called;
-    }
-
     public boolean isValidCapturedPhoto() {
         return validCapturedPhoto;
     }
 
     public void setValidCapturedPhoto(boolean validCapturedPhoto) {
         this.validCapturedPhoto = validCapturedPhoto;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getSex() {
-        return sex;
-    }
-
-    public void setSex(String sex) {
-        this.sex = sex;
-    }
-
-    public int getTakeNo() {
-        return takeNo;
-    }
-
-    public void setTakeNo(int takeNo) {
-        this.takeNo = takeNo;
-    }
-
-    public String getReasonForTaking() {
-        return reasonForTaking;
-    }
-
-    public void setReasonForTaking(String reasonForTaking) {
-        this.reasonForTaking = reasonForTaking;
     }
 
     public Boolean getTakeTheory() {
@@ -439,46 +336,6 @@ public class ExamRegistrationDTO {
 
     public void setExamDate(Date examDate) {
         this.examDate = examDate;
-    }
-
-    public String getSectionStatus() {
-        return sectionStatus;
-    }
-
-    public void setSectionStatus(String sectionStatus) {
-        this.sectionStatus = sectionStatus;
-    }
-
-    public boolean isSignaturePrinted() {
-        return signaturePrinted;
-    }
-
-    public void setSignaturePrinted(boolean signaturePrinted) {
-        this.signaturePrinted = signaturePrinted;
-    }
-
-    public boolean isInvalid() {
-        return invalid;
-    }
-
-    public void setInvalid(boolean invalid) {
-        this.invalid = invalid;
-    }
-
-    public String getValidationMessage() {
-        return validationMessage;
-    }
-
-    public void setValidationMessage(String validationMessage) {
-        this.validationMessage = validationMessage;
-    }
-
-    public boolean isDuplicate() {
-        return duplicate;
-    }
-
-    public void setDuplicate(boolean duplicate) {
-        this.duplicate = duplicate;
     }
 
     /** Alias for JSP / legacy ExamStaff views. */

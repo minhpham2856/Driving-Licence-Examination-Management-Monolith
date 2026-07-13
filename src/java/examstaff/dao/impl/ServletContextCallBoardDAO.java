@@ -3,7 +3,7 @@ package examstaff.dao.impl;
 import examstaff.dao.CallBoardAttributeKeys;
 import examstaff.dao.CallBoardDAO;
 import jakarta.servlet.ServletContext;
-import examstaff.dto.view.CallBoardState;
+import examstaff.model.view.CallBoardState;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +34,6 @@ public class ServletContextCallBoardDAO implements CallBoardDAO {
     @Override
     public void setActiveExamId(int examId) {
         servletContext.setAttribute(CallBoardAttributeKeys.ACTIVE_EXAM_ID, examId);
-        servletContext.removeAttribute(CallBoardAttributeKeys.ACTIVE_SESSION_ID);
     }
 
     @Override
@@ -42,12 +41,6 @@ public class ServletContextCallBoardDAO implements CallBoardDAO {
         Object value = servletContext.getAttribute(CallBoardAttributeKeys.ACTIVE_EXAM_ID);
         if (value instanceof Integer id && id > 0) {
             return id;
-        }
-        value = servletContext.getAttribute(CallBoardAttributeKeys.ACTIVE_SESSION_ID);
-        if (value instanceof Integer legacy && legacy > 0) {
-            servletContext.setAttribute(CallBoardAttributeKeys.ACTIVE_EXAM_ID, legacy);
-            servletContext.removeAttribute(CallBoardAttributeKeys.ACTIVE_SESSION_ID);
-            return legacy;
         }
         return null;
     }
@@ -77,4 +70,3 @@ public class ServletContextCallBoardDAO implements CallBoardDAO {
         return copy;
     }
 }
-

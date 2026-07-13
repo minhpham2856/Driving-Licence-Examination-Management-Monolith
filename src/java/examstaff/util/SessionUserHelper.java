@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import jakarta.servlet.http.HttpSession;
-import shared.model.User;
+import model.User;
 
 /**
  * Doc user tu session host ({@code model.User} do Auth/Login dat vao) — khong dung examstaff.model.User.

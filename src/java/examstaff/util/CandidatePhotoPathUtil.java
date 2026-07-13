@@ -65,12 +65,4 @@ public final class CandidatePhotoPathUtil {
         }
         return trimmed;
     }
-
-    public static boolean photoFileExists(String webRootPath, String photoUrl) {
-        if (photoUrl == null || photoUrl.isBlank()) {
-            return false;
-        }
-        String path = normalizePhotoUrl(webRootPath, photoUrl);
-        return path != null && new File(path).isFile();
-    }
 }

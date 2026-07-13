@@ -1,8 +1,8 @@
 package examstaff.dao;
 
 /**
- * SQL fragments cho schema DLEM_DB_2 (không còn [Session]).
- * Tham số {@code sessionId} ở tầng BLL/UI được alias thành {@code ExamId}.
+ * SQL fragments cho schema DLEM_DB_2 (Exam-centric).
+ * Tham số {@code examId} ở tầng BLL/UI map tới cột {@code ExamId}.
  */
 public final class Db2ExamSchemaSql {
 
@@ -60,8 +60,4 @@ public final class Db2ExamSchemaSql {
             LEFT JOIN ExamArea theoryArea ON theoryArea.ExamAreaId = theoryEes.ExamAreaId
             LEFT JOIN ExamArea practicalArea ON practicalArea.ExamAreaId = practicalEes.ExamAreaId
             """;
-
-    public static String sectionTypeFilter(String alias, String typesCsv) {
-        return alias + ".SectionType IN (" + typesCsv + ")";
-    }
 }

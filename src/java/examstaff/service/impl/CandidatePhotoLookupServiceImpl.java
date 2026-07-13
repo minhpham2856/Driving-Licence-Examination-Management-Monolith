@@ -14,13 +14,13 @@ public class CandidatePhotoLookupServiceImpl implements CandidatePhotoLookupServ
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
     @Override
-    public CandidatePhotoStreamDTO resolvePhoto(String webRoot, int examId, int sessionId, String sbd) {
+    public CandidatePhotoStreamDTO resolvePhoto(String webRoot, int examId, int fallbackExamId, String sbd) {
         CandidatePhotoStreamDTO result = new CandidatePhotoStreamDTO();
         if (sbd == null || sbd.isBlank()) {
             return result;
         }
 
-        ExamRegistrationDTO reg = queueService.findByExamOrSession(examId, sessionId, sbd.trim());
+        ExamRegistrationDTO reg = queueService.findByExam(examId, fallbackExamId, sbd.trim());
         if (reg == null || reg.getPhotoUrl() == null || reg.getPhotoUrl().isBlank()) {
             return result;
         }

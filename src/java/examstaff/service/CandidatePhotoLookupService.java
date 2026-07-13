@@ -4,5 +4,5 @@ import examstaff.dto.CandidatePhotoStreamDTO;
 
 public interface CandidatePhotoLookupService {
 
-    CandidatePhotoStreamDTO resolvePhoto(String webRoot, int examId, int sessionId, String sbd);
+    CandidatePhotoStreamDTO resolvePhoto(String webRoot, int examId, int fallbackExamId, String sbd);
 }

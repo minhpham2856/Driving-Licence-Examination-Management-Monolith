@@ -2,17 +2,14 @@ package examstaff.dao.impl;
 
 
 
-import shared.dbconnection.DBContext;
+import examstaff.dbconnection.DBContext;
 
 import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dto.ExaminerSlotDTO;
 
-import shared.enums.UserRole;
-import shared.model.Profile;
+import examstaff.enums.UserRole;
+import examstaff.model.Profile;
 import examstaff.dto.UserDTO;
-
-import examstaff.service.RoleService;
-import examstaff.service.impl.RoleServiceImpl;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -24,10 +21,8 @@ import java.util.List;
 // JDBC implementation of {@link ExaminerAssignmentDAO}.
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
 
-    private static final RoleService ROLE_SERVICE = new RoleServiceImpl();
-
     // Entity name used in the Audit table for examiner-area mappings.
-    private static final String ROOM_MAPPING_ENTITY = "Session_ExaminerArea";
+    private static final String ROOM_MAPPING_ENTITY = "ExaminerSchedule";
 
     // SQL to list all active examiners with their profile and role info.
     private static final String EXAMINER_SELECT = """
@@ -53,11 +48,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             """;
 
     private static final String SLOT_SELECT =
-            "SELECT esch.ExaminerScheduleId AS SessionExaminerId, "
-            + "esch.ExamId AS examSessionId, "
+            "SELECT esch.ExaminerScheduleId AS ExamExaminerId, "
+            + "esch.ExamId AS examId, "
             + "esch.ExaminerId AS examinerUserId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'HÃ¡ÂºÂ¡ng ' + l.LicenceClass + N' Ã¢â‚¬â€ ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "eu.Username AS examinerUsername, "
             + "ep.FullName AS examinerName, "
             + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
@@ -65,10 +60,10 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "ea.AreaName AS areaName, "
             + "ea.AreaType AS areaType, "
             + "CASE "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%ThÃ¡Â»Â±c hÃƒÂ nh%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hÃƒÂ¬nh%' "
+            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%' "
+            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2 "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Ã„ÂÃ†Â°Ã¡Â»Âng%' "
+            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4 "
             + "    ELSE 1 "
             + "END AS examTypeId, "
@@ -87,7 +82,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // List to hold the examiner DTOs
         List<UserDTO> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT)) {
-            ps.setString(1, UserRole.SAT_HACH_VIEN.getValue());
+            ps.setString(1, UserRole.SAT_HACH_VIEN.getDisplayName());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapExaminer(rs));
@@ -99,13 +94,13 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return list;
     }
 
-    // Inserts a Session_Examiner row and an audit mapping in a single transaction.
+    // Inserts an ExaminerSchedule row and an audit mapping in a single transaction.
     @Override
     public boolean assign(ExaminerSlotDTO slot) {
         if (slot == null || slot.getExamId() <= 0 || slot.getExaminerUserId() <= 0) {
             return false;
         }
-        // Build the composite entity ID for the audit mapping (sessionId:areaId:examinerId)
+        // Build the composite entity ID for the audit mapping (examId:areaId:examinerId)
         String entityId = buildMappingEntityId(slot.getExamId(), slot.getAreaId(), slot.getExaminerUserId());
         String existingAssignmentSql = """
                 SELECT TOP 1 esch.ExaminerScheduleId
@@ -121,11 +116,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                     FROM ExamSection es
                     WHERE es.ExamId = ?
                       AND (
-                        (? = N'LÃƒÂ½ thuyÃ¡ÂºÂ¿t' AND es.SectionType = N'LÃƒÂ½ thuyÃ¡ÂºÂ¿t')
-                        OR (? = N'ThÃ¡Â»Â±c hÃƒÂ nh' AND (
-                            es.SectionType LIKE N'%ThÃ¡Â»Â±c hÃƒÂ nh%'
-                            OR es.SectionType LIKE N'%Sa hÃƒÂ¬nh%'
-                            OR es.SectionType LIKE N'%Ã„ÂÃ†Â°Ã¡Â»Âng%'
+                        (? = N'Lý thuyết' AND es.SectionType = N'Lý thuyết')
+                        OR (? = N'Thực hành' AND (
+                            es.SectionType LIKE N'%Thực hành%'
+                            OR es.SectionType LIKE N'%Sa hình%'
+                            OR es.SectionType LIKE N'%Đường%'
                         ))
                       )
                     ORDER BY es.ExamSectionId
@@ -147,7 +142,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 VALUES (?, 'ASSIGN', ?, ?, ?, GETDATE())
                 """;
         try {
-            // Begin transaction Ã¢â‚¬â€ both assignment and audit mapping must succeed together
+            // Begin transaction — both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
                 ps.setInt(1, slot.getExaminerUserId());
@@ -160,7 +155,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                     }
                 }
             }
-            // Step 1: insert the Session_Examiner row
+            // Step 1: insert the ExaminerSchedule row
             try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
                 String areaType = slot.getAreaType() != null ? slot.getAreaType().trim() : "";
@@ -191,7 +186,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(4, slot.getAreaName() != null ? slot.getAreaName() : String.valueOf(slot.getAreaId()));
                 ps.executeUpdate();
             }
-            // Commit the transaction Ã¢â‚¬â€ all three operations succeeded
+            // Commit the transaction — all three operations succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -216,7 +211,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return false;
     }
 
-    // Removes a Session_Examiner row and its audit mapping in a single transaction.
+    // Removes a ExaminerSchedule row and its audit mapping in a single transaction.
     @Override
     public boolean remove(String slotKey) {
         // Parse the composite slot key into its three integer components
@@ -226,21 +221,21 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             return false;
         }
         // Extract the individual components from the parsed array
-        int sessionId = parts[0];
+        int examId = parts[0];
         int areaId = parts[1];
         int examinerId = parts[2];
         // Rebuild the audit entity ID from the parsed components
-        String entityId = buildMappingEntityId(sessionId, areaId, examinerId);
-        // SQL: delete the Session_Examiner row
+        String entityId = buildMappingEntityId(examId, areaId, examinerId);
+        // SQL: delete the ExaminerSchedule row
         String deleteAssignment = "DELETE FROM ExaminerSchedule WHERE ExamId = ? AND ExaminerId = ?";
         // SQL: delete the audit mapping row
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
-            // Begin transaction Ã¢â‚¬â€ both deletions must succeed together
+            // Begin transaction — both deletions must succeed together
             getConnection().setAutoCommit(false);
-            // Step 1: delete the Session_Examiner row
+            // Step 1: delete the ExaminerSchedule row
             try (PreparedStatement ps = getConnection().prepareStatement(deleteAssignment)) {
-                ps.setInt(1, sessionId);
+                ps.setInt(1, examId);
                 ps.setInt(2, examinerId);
                 ps.executeUpdate();
             }
@@ -250,7 +245,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            // Commit the transaction Ã¢â‚¬â€ both deletions succeeded
+            // Commit the transaction — both deletions succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -278,26 +273,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return querySlots(sql, ps -> ps.setInt(1, examId));
     }
 
-    // Retrieves all in-progress assignments for a specific examiner (with valid area mappings)
-    @Override
-    public List<ExaminerSlotDTO> getInProgressAssignmentsForExaminer(int examinerUserId) {
-        // Append WHERE clause to filter by examiner and in-progress session status
-        String sql = SLOT_SELECT
-                + " WHERE esch.ExaminerId = ? AND e.[Status] = N'Ã„Âang diÃ¡Â»â€¦n ra'"
-                + " ORDER BY esch.ExamId DESC, esch.ExaminerScheduleId";
-        // Execute the query
-        List<ExaminerSlotDTO> slots = querySlots(sql, ps -> ps.setInt(1, examinerUserId));
-        // Filter out slots without a valid area mapping (legacy or incomplete assignments)
-        List<ExaminerSlotDTO> withArea = new ArrayList<>();
-        for (ExaminerSlotDTO slot : slots) {
-            // Only include slots where the area ID was successfully resolved
-            if (slot.getAreaId() > 0) {
-                withArea.add(slot);
-            }
-        }
-        return withArea;
-    }
-
     // Executes a parameterised slot query and maps result rows to ExaminerSlotDTO objects.
     private List<ExaminerSlotDTO> querySlots(String sql, SqlBinder binder) {
         // List to hold the mapped slot objects
@@ -312,7 +287,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 }
             }
         } catch (SQLException e) {
-            // Log the error Ã¢â‚¬â€ caller receives the partially-populated list
+            // Log the error — caller receives the partially-populated list
             e.printStackTrace();
         }
         return list;
@@ -321,12 +296,10 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     // Maps a result-set row to an {@link ExaminerSlotDTO}.
     private ExaminerSlotDTO mapSlot(ResultSet rs) throws SQLException {
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
-        // Map the primary Session_Examiner fields
-        slot.setSessionExaminerId(rs.getInt("SessionExaminerId"));
-        slot.setExamId(rs.getInt("examSessionId"));
+        slot.setExamId(rs.getInt("examId"));
         slot.setExaminerUserId(rs.getInt("examinerUserId"));
         // Map the session and examiner display fields
-        slot.setSessionName(rs.getString("sessionName"));
+        slot.setExamName(rs.getString("examName"));
         slot.setExaminerUsername(rs.getString("examinerUsername"));
         String examinerName = rs.getString("examinerName");
         if (examinerName == null || examinerName.isBlank()) {
@@ -337,12 +310,12 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Attempt to read the area ID from the ExamArea LEFT JOIN
         int areaId = rs.getInt("areaId");
         if (!rs.wasNull()) {
-            // Area was found via the join Ã¢â‚¬â€ use the direct values
+            // Area was found via the join — use the direct values
             slot.setAreaId(areaId);
             slot.setAreaName(rs.getString("areaName"));
             slot.setAreaType(rs.getString("areaType"));
         } else {
-            // Area join returned null Ã¢â‚¬â€ fall back to parsing the audit mapping entity ID
+            // Area join returned null — fall back to parsing the audit mapping entity ID
             String mappingEntityId = rs.getString("mappingEntityId");
             int[] parsed = parseMappingEntityId(mappingEntityId);
             if (parsed != null) {
@@ -362,9 +335,9 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return slot;
     }
 
-    // Builds the audit entity ID as {@code sessionId:areaId:examinerId}.
-    static String buildMappingEntityId(int sessionId, int areaId, int examinerId) {
-        return sessionId + ":" + areaId + ":" + examinerId;
+    // Builds the audit entity ID as {@code examId:areaId:examinerId}.
+    static String buildMappingEntityId(int examId, int areaId, int examinerId) {
+        return examId + ":" + areaId + ":" + examinerId;
     }
 
     // Delegates to {@link #parseSlotKey}.
@@ -376,15 +349,15 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     static String examTypeFromId(int examTypeId) {
         return switch (examTypeId) {
             case 2 ->
-                shared.enums.ExamSection.THUC_HANH_TRONG_HINH.getValue();
+                examstaff.enums.ExamSection.THUC_HANH_TRONG_HINH.getDisplayName();
             case 4 ->
-                "Th?c h?nh tr?n ???ng";
+                examstaff.enums.ExamSection.THUC_HANH_TREN_DUONG.getDisplayName();
             default ->
-                shared.enums.ExamSection.LY_THUYET.getValue();
+                examstaff.enums.ExamSection.LY_THUYET.getDisplayName();
         };
     }
 
-    // Parses a colon-delimited slot key into {@code [sessionId, areaId, examinerId]}.
+    // Parses a colon-delimited slot key into {@code [examId, areaId, examinerId]}.
     static int[] parseSlotKey(String slotKey) {
         // Return null for null input
         if (slotKey == null) {
@@ -399,7 +372,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         try {
             // Parse each component to an integer
             return new int[]{
-                Integer.parseInt(parts[0]), // sessionId
+                Integer.parseInt(parts[0]), // examId
                 Integer.parseInt(parts[1]), // areaId
                 Integer.parseInt(parts[2]) // examinerId
             };
@@ -411,37 +384,22 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     // Maps a result-set row to a {@link UserDTO} with nested {@link Profile}.
     private UserDTO mapExaminer(ResultSet rs) throws SQLException {
-        // Create and populate the user DTO
         UserDTO user = new UserDTO();
         user.setUserId(rs.getInt("UserId"));
         user.setUsername(rs.getString("Username"));
-        user.setEmail(rs.getString("Email"));
-        user.setPasswordHash(rs.getString("PasswordHash"));
-        // Map the Status column to the isActive boolean
-        user.setActive(rs.getBoolean("IsActive"));
-        int roleId = rs.getInt("RoleId");
-        if (!rs.wasNull()) {
-            user.setRoleId(roleId);
-        } else {
-            user.setRoleId(ROLE_SERVICE.getRoleIdByName(rs.getString("RoleName")));
-        }
 
-        // Check if a Profile record exists for this user (LEFT JOIN may return null)
         Integer profileId = (Integer) rs.getObject("ProfileId");
         if (profileId != null) {
-            // Profile exists Ã¢â‚¬â€ create and populate the nested Profile object
             Profile profile = new Profile();
-            profile.setProfileId(profileId);
+            profile.setId(profileId);
             profile.setUserId(rs.getInt("UserId"));
             profile.setFullName(rs.getString("FullName"));
-            // Convert SQL Date to Timestamp for the DOB field
             Date dob = rs.getDate("DateOfBirth");
             profile.setDateOfBirth(dob != null ? new java.sql.Timestamp(dob.getTime()) : null);
             profile.setPhoneNumber(rs.getString("PhoneNumber"));
             profile.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
             profile.setAddress(rs.getString("Address"));
             profile.setSex(rs.getBoolean("Sex"));
-            // Attach the profile to the user DTO
             user.setProfile(profile);
         }
 
@@ -455,10 +413,5 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
-
-
-
-
-
 
 

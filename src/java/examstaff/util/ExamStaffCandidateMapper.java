@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.dto.view.ExamStaffCandidate;
+import examstaff.model.view.ExamStaffCandidate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,19 +28,14 @@ public final class ExamStaffCandidateMapper {
         dto.setFullName(row.getFullName());
         dto.setGovIdNo(row.getGovIdNo());
         dto.setDateOfBirth(row.getDateOfBirth());
-        dto.setGender(row.isMale());
         dto.setPhoneNo(row.getPhoneNo());
         dto.setEmail(row.getEmail());
         dto.setPhotoUrl(row.getPhotoUrl());
         dto.setLicenseCode(row.getLicenseCode());
         dto.setComputerCode(row.getComputerCode());
-        dto.setAddress(row.getAddress());
-        dto.setReasonForTaking(row.getReasonForTaking());
         dto.setTakeTheory(row.getTakeTheory());
         dto.setTakePractical(row.getTakePractical());
         dto.setExamDate(row.getExamDate());
-        dto.setSectionStatus(row.getSectionStatus());
-        dto.setSignaturePrinted(row.isSignaturePrinted());
         dto.setAbsent(row.isAbsent());
         dto.setSuspended(row.isSuspended());
         dto.setNotes(row.getNotes());
@@ -72,4 +67,3 @@ public final class ExamStaffCandidateMapper {
         return list;
     }
 }
-

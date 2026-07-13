@@ -1,7 +1,7 @@
 package examstaff.dto;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.dto.view.CallBoardState;
+import examstaff.model.view.CallBoardState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -163,4 +163,3 @@ public class CandidateCallPageCommand {
         this.board = board;
     }
 }
-

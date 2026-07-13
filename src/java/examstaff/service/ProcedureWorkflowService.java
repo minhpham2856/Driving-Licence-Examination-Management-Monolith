@@ -12,10 +12,10 @@ import java.util.List;
 
 public interface ProcedureWorkflowService {
 
-    ExamRegistrationDTO findProfile(String webRoot, int examId, int sessionId,
+    ExamRegistrationDTO findProfile(String webRoot, int examId, int fallbackExamId,
             String sbd, List<ExamRegistrationDTO> queue);
 
-    ProcedureProfilePrepareResultDTO prepareProfileForDesk(String webRoot, int examId, int sessionId,
+    ProcedureProfilePrepareResultDTO prepareProfileForDesk(String webRoot, int examId, int fallbackExamId,
             ExamRegistrationDTO profile, List<ExamRegistrationDTO> queue);
 
     ExamRegistrationDTO reloadProfile(String webRoot, int examId, int candidateId,
@@ -31,9 +31,7 @@ public interface ProcedureWorkflowService {
             String base64Data, List<ExamRegistrationDTO> queue);
 
     ProcedurePaymentOutcomeDTO confirmPayment(ExamRegistrationDTO profile, String sbd,
-            int examId, String webRoot, List<ExamSummaryDTO> allSessions);
+            int examId, String webRoot, List<ExamSummaryDTO> allExams);
 
     ProcedureResetOutcomeDTO resetProcedure(String sbd, int examId, String webRoot);
-
-    void clearAbsentAfterPayment(ExamRegistrationDTO profile);
 }

@@ -10,8 +10,8 @@
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
-        <c:if test="${not empty requestScope.sessionSelectMsg}">
-            <div class="examiner-alert examiner-alert--success">${requestScope.sessionSelectMsg}</div>
+        <c:if test="${not empty requestScope.examSelectMsg}">
+            <div class="examiner-alert examiner-alert--success">${requestScope.examSelectMsg}</div>
         </c:if>
         <c:if test="${not empty alertMsg}">
             <div class="examiner-alert examiner-alert--success">${alertMsg}</div>
@@ -21,16 +21,16 @@
         </c:if>
 
         <c:if test="${not empty currentExam}">
-        <section class="report-pane dashboard-sessions-panel" aria-label="Phân bổ giám khảo">
-            <div class="report-pane__header dashboard-sessions-panel__header">
-                <h2 class="report-pane__title dashboard-sessions-panel__title">Phân bổ giám khảo</h2>
+        <section class="report-pane dashboard-exam-panel" aria-label="Phân bổ giám khảo">
+            <div class="report-pane__header dashboard-exam-panel__header">
+                <h2 class="report-pane__title dashboard-exam-panel__title">Phân bổ giám khảo</h2>
             </div>
-            <jsp:include page="/views/staff/examstaff/includes/exam-session-summary-line.jsp" />
-            <p class="dashboard-sessions-panel__desc es-text-muted-sm" style="margin-top: -0.25rem;">
+            <jsp:include page="/views/staff/examstaff/includes/exam-summary-line.jsp" />
+            <p class="dashboard-exam-panel__desc es-text-muted-sm" style="margin-top: -0.25rem;">
                 Phân công giám khảo theo phòng / phần thi trong kỳ.
                 <c:if test="${not empty currentExam.examTypeName}">Nội dung: ${currentExam.examTypeName}.</c:if>
             </p>
-            <jsp:include page="/views/staff/examstaff/includes/exam-session-shift-chip.jsp">
+            <jsp:include page="/views/staff/examstaff/includes/exam-shift-chip.jsp">
                 <jsp:param name="redirect" value="examiner-allocation" />
             </jsp:include>
         </section>
@@ -130,7 +130,7 @@
                             <c:otherwise>
                                 <c:forEach var="a" items="${examAssignments}">
                                     <tr>
-                                        <td>${a.sessionName}</td>
+                                        <td>${a.examName}</td>
                                         <td>
                                             <c:choose>
                                                 <c:when test="${not empty a.areaName}">${a.areaName}</c:when>

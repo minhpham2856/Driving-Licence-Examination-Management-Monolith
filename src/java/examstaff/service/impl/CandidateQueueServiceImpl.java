@@ -7,7 +7,7 @@ import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.service.CandidateQueueQueryService;
 import examstaff.service.CandidateQueueService;
-import examstaff.service.ExamStaffSessionQueryService;
+import examstaff.service.ExamStaffExamQueryService;
 import examstaff.util.CallQueueRules;
 
 import java.util.ArrayList;
@@ -19,16 +19,16 @@ import java.util.Map;
 public class CandidateQueueServiceImpl implements CandidateQueueService {
 
     private final CandidateQueueQueryService queueQuery;
-    private final ExamStaffSessionQueryService sessionQuery;
+    private final ExamStaffExamQueryService examQuery;
 
     public CandidateQueueServiceImpl() {
-        this(new CandidateQueueQueryServiceImpl(), new ExamStaffSessionQueryServiceImpl());
+        this(new CandidateQueueQueryServiceImpl(), new ExamStaffExamQueryServiceImpl());
     }
 
     public CandidateQueueServiceImpl(CandidateQueueQueryService queueQuery,
-            ExamStaffSessionQueryService sessionQuery) {
+            ExamStaffExamQueryService examQuery) {
         this.queueQuery = queueQuery;
-        this.sessionQuery = sessionQuery;
+        this.examQuery = examQuery;
     }
 
     @Override
@@ -40,16 +40,16 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         }
 
         int examId = input.getExamId();
-        List<ExamSummaryDTO> allSessions = input.getAllSessions();
-        if (allSessions == null || allSessions.isEmpty()) {
-            allSessions = sessionQuery.listAllSessions();
+        List<ExamSummaryDTO> allExams = input.getAllExams();
+        if (allExams == null || allExams.isEmpty()) {
+            allExams = examQuery.listAllExams();
         }
 
         if (examId <= 0 && input.getSelectedExamId() != null && input.getSelectedExamId() > 0) {
             examId = input.getSelectedExamId();
         }
-        if (examId <= 0 && allSessions != null && !allSessions.isEmpty()) {
-            examId = examstaff.util.ExamStaffSessionRules.resolveDefaultExamId(allSessions);
+        if (examId <= 0 && allExams != null && !allExams.isEmpty()) {
+            examId = examstaff.util.ExamStaffExamRules.resolveDefaultExamId(allExams);
         }
         if (examId <= 0) {
             return snapshot;
@@ -57,13 +57,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
 
         Integer selected = input.getSelectedExamId();
         if (selected != null && selected > 0) {
-            ExamSummaryDTO pickedSession = resolveSession(selected, allSessions);
-            if (pickedSession != null && (pickedSession.getExamId() == examId || pickedSession.getId() == examId)) {
+            ExamSummaryDTO pickedExam = resolveExam(selected, allExams);
+            if (pickedExam != null && (pickedExam.getExamId() == examId || pickedExam.getId() == examId)) {
                 examId = selected;
             }
         }
 
-        List<ExamRegistrationDTO> qList = loadCandidates(examId, examId, allSessions);
+        List<ExamRegistrationDTO> qList = loadCandidates(examId, examId, allExams);
         if (input.getWebRoot() != null) {
             queueQuery.normalizePhotoPaths(input.getWebRoot(), qList);
         }
@@ -77,13 +77,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
     }
 
     @Override
-    public CandidateQueueSnapshotDTO buildSnapshot(List<ExamRegistrationDTO> queue, int examId, int sessionId) {
+    public CandidateQueueSnapshotDTO buildSnapshot(List<ExamRegistrationDTO> queue, int examId, int fallbackExamId) {
         CandidateQueueSnapshotDTO snapshot = new CandidateQueueSnapshotDTO();
         List<ExamRegistrationDTO> qList = queue != null ? queue : List.of();
         snapshot.setFullQueue(qList);
         snapshot.setActiveQueue(filterPendingForCall(qList));
         snapshot.setProcedureDone(listProcedureDoneNewestFirst(qList));
-        snapshot.setResolvedExamId(examId > 0 ? examId : sessionId);
+        snapshot.setResolvedExamId(examId > 0 ? examId : fallbackExamId);
         return snapshot;
     }
 
@@ -101,8 +101,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return active;
     }
 
-    @Override
-    public boolean isCallablePending(ExamRegistrationDTO candidate) {
+    private boolean isCallablePending(ExamRegistrationDTO candidate) {
         return CallQueueRules.isCallablePending(candidate);
     }
 
@@ -111,8 +110,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return CallQueueRules.findBySbd(queue, sbd);
     }
 
-    @Override
-    public String findNextPendingSbd(List<ExamRegistrationDTO> queue, String afterSbd) {
+    private String findNextPendingSbd(List<ExamRegistrationDTO> queue, String afterSbd) {
         if (queue == null || queue.isEmpty()) {
             return null;
         }
@@ -198,12 +196,11 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
     }
 
     @Override
-    public List<ExamRegistrationDTO> listSuspendedInSession(List<ExamRegistrationDTO> queue) {
-        return CallQueueRules.listSuspendedInSession(queue);
+    public List<ExamRegistrationDTO> listSuspendedInExam(List<ExamRegistrationDTO> queue) {
+        return CallQueueRules.listSuspendedInExam(queue);
     }
 
-    @Override
-    public List<ExamRegistrationDTO> listProcedureDoneNewestFirst(List<ExamRegistrationDTO> queue) {
+    private List<ExamRegistrationDTO> listProcedureDoneNewestFirst(List<ExamRegistrationDTO> queue) {
         if (queue == null || queue.isEmpty()) {
             return List.of();
         }
@@ -221,7 +218,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
     }
 
     @Override
-    public ExamRegistrationDTO findByExamOrSession(int examId, int sessionId, String sbd) {
+    public ExamRegistrationDTO findByExam(int examId, int fallbackExamId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
             return null;
         }
@@ -233,8 +230,8 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
                     return byExam;
                 }
             }
-            if (sessionId > 0) {
-                for (ExamRegistrationDTO c : queueQuery.listByExamId(sessionId)) {
+            if (fallbackExamId > 0) {
+                for (ExamRegistrationDTO c : queueQuery.listByExamId(fallbackExamId)) {
                     if (trimmed.equals(c.getSbd())) {
                         return c;
                     }
@@ -246,10 +243,10 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return null;
     }
 
-    private List<ExamRegistrationDTO> loadCandidates(int examId, int sessionId, List<ExamSummaryDTO> allSessions) {
+    private List<ExamRegistrationDTO> loadCandidates(int examId, int fallbackExamId, List<ExamSummaryDTO> allExams) {
         try {
-            if (examId <= 0 && sessionId > 0) {
-                examId = sessionId;
+            if (examId <= 0 && fallbackExamId > 0) {
+                examId = fallbackExamId;
             }
             if (examId > 0) {
                 return new ArrayList<>(queueQuery.listByExamId(examId));
@@ -260,23 +257,23 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return new ArrayList<>();
     }
 
-    private ExamSummaryDTO resolveSession(int sessionId, List<ExamSummaryDTO> allSessions) {
-        ExamSummaryDTO found = examstaff.util.ExamStaffSessionRules.findExamById(allSessions, sessionId);
+    private ExamSummaryDTO resolveExam(int examId, List<ExamSummaryDTO> allExams) {
+        ExamSummaryDTO found = examstaff.util.ExamStaffExamRules.findExamById(allExams, examId);
         if (found != null) {
             return found;
         }
         try {
-            return sessionQuery.findByExamId(sessionId);
+            return examQuery.findByExamId(examId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    private List<ExamRegistrationDTO> applyCallQueueOrder(List<String> order, Integer orderSessionId,
-            int sessionId, List<ExamRegistrationDTO> qList) {
+    private List<ExamRegistrationDTO> applyCallQueueOrder(List<String> order, Integer orderExamId,
+            int examId, List<ExamRegistrationDTO> qList) {
         if (qList == null || qList.isEmpty() || order == null || order.isEmpty()
-                || orderSessionId == null || orderSessionId != sessionId) {
+                || orderExamId == null || orderExamId != examId) {
             return qList;
         }
         Map<String, ExamRegistrationDTO> bySbd = new LinkedHashMap<>();

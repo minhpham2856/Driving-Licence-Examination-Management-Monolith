@@ -4,7 +4,7 @@ import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamStaffDashboardViewDTO;
 import examstaff.service.ExamStaffDashboardService;
-import examstaff.service.ExamStaffSessionQueryService;
+import examstaff.service.ExamStaffExamQueryService;
 import examstaff.service.ExaminerAllocationService;
 
 import java.util.HashSet;
@@ -13,27 +13,27 @@ import java.util.Set;
 
 public class ExamStaffDashboardServiceImpl implements ExamStaffDashboardService {
 
-    private final ExamStaffSessionQueryService sessionQuery;
+    private final ExamStaffExamQueryService examQuery;
     private final ExaminerAllocationService allocationService;
 
     public ExamStaffDashboardServiceImpl() {
-        this(new ExamStaffSessionQueryServiceImpl(), new ExaminerAllocationServiceImpl());
+        this(new ExamStaffExamQueryServiceImpl(), new ExaminerAllocationServiceImpl());
     }
 
-    public ExamStaffDashboardServiceImpl(ExamStaffSessionQueryService sessionQuery,
+    public ExamStaffDashboardServiceImpl(ExamStaffExamQueryService examQuery,
             ExaminerAllocationService allocationService) {
-        this.sessionQuery = sessionQuery;
+        this.examQuery = examQuery;
         this.allocationService = allocationService;
     }
 
     @Override
-    public ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allSessions, int examId) {
+    public ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allExams, int examId) {
         ExamStaffDashboardViewDTO view = new ExamStaffDashboardViewDTO();
-        List<ExamSummaryDTO> daySessions = sessionQuery.listSessionsForExam(allSessions, examId);
+        List<ExamSummaryDTO> dayExams = examQuery.listExamsForDay(allExams, examId);
 
         Set<Integer> assignedExaminerIds = new HashSet<>();
-        for (ExamSummaryDTO daySession : daySessions) {
-            List<ExaminerSlotDTO> slots = allocationService.getAssignmentsBySessionId(daySession.getId());
+        for (ExamSummaryDTO daySession : dayExams) {
+            List<ExaminerSlotDTO> slots = allocationService.getAssignmentsByExamId(daySession.getId());
             if (slots == null) {
                 continue;
             }

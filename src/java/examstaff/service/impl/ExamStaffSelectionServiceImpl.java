@@ -7,7 +7,7 @@ import examstaff.dto.ExamStaffSelectionResolveInput;
 import examstaff.dto.ExamStaffSelectionStateDTO;
 import examstaff.service.ExamStaffPageService;
 import examstaff.service.ExamStaffSelectionService;
-import examstaff.util.ExamStaffSessionRules;
+import examstaff.util.ExamStaffExamRules;
 
 import java.util.List;
 
@@ -50,9 +50,9 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
             }
         }
 
-        List<ExamSummaryDTO> allSessions = input.getAllSessions();
-        if (allSessions != null && !allSessions.isEmpty()) {
-            return pageService.resolveDefaultExamId(allSessions);
+        List<ExamSummaryDTO> allExams = input.getAllExams();
+        if (allExams != null && !allExams.isEmpty()) {
+            return pageService.resolveDefaultExamId(allExams);
         }
         return 0;
     }
@@ -63,20 +63,20 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         if (examId > 0) {
             return examId;
         }
-        List<ExamSummaryDTO> allSessions = input.getAllSessions();
-        if (allSessions == null || allSessions.isEmpty()) {
-            allSessions = pageService.listAllSessions();
-            input.setAllSessions(allSessions);
+        List<ExamSummaryDTO> allExams = input.getAllExams();
+        if (allExams == null || allExams.isEmpty()) {
+            allExams = pageService.listAllExams();
+            input.setAllExams(allExams);
         }
-        return pageService.resolveDefaultExamId(allSessions);
+        return pageService.resolveDefaultExamId(allExams);
     }
 
     @Override
-    public int resolveExamFromSessionUrl(int urlExamId, List<ExamSummaryDTO> allSessions) {
+    public int resolveExamFromUrl(int urlExamId, List<ExamSummaryDTO> allExams) {
         if (urlExamId <= 0) {
             return 0;
         }
-        ExamSummaryDTO picked = pageService.findExamById(urlExamId, allSessions);
+        ExamSummaryDTO picked = pageService.findExamById(urlExamId, allExams);
         if (picked == null || picked.getExamId() <= 0) {
             return 0;
         }
@@ -85,7 +85,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
 
     @Override
     public ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentExamId,
-            List<ExamSummaryDTO> allSessions) {
+            List<ExamSummaryDTO> allExams) {
         ExamStaffSelectionStateDTO state = new ExamStaffSelectionStateDTO();
         if (examId <= 0) {
             return state;
@@ -93,11 +93,11 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
 
         int resolved = currentExamId != null ? currentExamId : 0;
         if (resolved <= 0) {
-            resolved = ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
-        } else if (allSessions != null) {
-            ExamSummaryDTO picked = ExamStaffSessionRules.findExamById(allSessions, resolved);
+            resolved = ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
+        } else if (allExams != null) {
+            ExamSummaryDTO picked = ExamStaffExamRules.findExamById(allExams, resolved);
             if (picked == null || picked.getExamId() != examId) {
-                resolved = ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
+                resolved = ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
             }
         }
         state.setExamId(resolved > 0 ? resolved : examId);
@@ -111,8 +111,8 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
             return state;
         }
 
-        List<ExamSummaryDTO> allSessions = input.getAllSessions();
-        ExamSummaryDTO urlExam = pageService.findExamById(input.getUrlExamId(), allSessions);
+        List<ExamSummaryDTO> allExams = input.getAllExams();
+        ExamSummaryDTO urlExam = pageService.findExamById(input.getUrlExamId(), allExams);
         if (urlExam == null || urlExam.getExamId() <= 0) {
             return state;
         }

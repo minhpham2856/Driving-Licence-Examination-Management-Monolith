@@ -1,6 +1,6 @@
 package examstaff.dao.view;
 
-import examstaff.dto.view.ExamStaffCandidate;
+import examstaff.model.view.ExamStaffCandidate;
 
 import java.util.List;
 
@@ -11,4 +11,3 @@ public interface ExamStaffCandidateViewDAO {
 
     ExamStaffCandidate findByExamIdAndSbd(int examId, String sbd);
 }
-

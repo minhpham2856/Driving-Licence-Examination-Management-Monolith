@@ -58,19 +58,14 @@ public final class ExamEnrollmentMergeUtil {
         if (primary.getExamId() <= 0 && secondary.getExamId() > 0) {
             primary.setExamId(secondary.getExamId());
         }
-        // merge score field
-        // merge score field
-        // merge road score
-
         mergeScoreField(primary, secondary, true);
         mergeScoreField(primary, secondary, false);
-        mergeRoadScore(primary, secondary);
 
         Integer primaryAreaId = primary.getAllocatedAreaId();
         Integer secondaryAreaId = secondary.getAllocatedAreaId();
-        boolean differentSessions = primary.getExamId() > 0 && secondary.getExamId() > 0
+        boolean differentExams = primary.getExamId() > 0 && secondary.getExamId() > 0
                 && primary.getExamId() != secondary.getExamId();
-        if (!differentSessions
+        if (!differentExams
                 && (primaryAreaId == null || primaryAreaId <= 0)
                 && secondaryAreaId != null && secondaryAreaId > 0) {
             primary.setAllocatedAreaId(secondaryAreaId);
@@ -112,10 +107,6 @@ public final class ExamEnrollmentMergeUtil {
         if (!"none".equalsIgnoreCase(nullToNone(c.getPracticalPassed()))) {
             score += 2;
         }
-        if (c.getRoadTestPassed() != null && !c.getRoadTestPassed().isBlank()
-                && !"none".equalsIgnoreCase(c.getRoadTestPassed())) {
-            score += 1;
-        }
         if (c.isAbsent()) {
             score -= 10;
         }
@@ -145,15 +136,6 @@ public final class ExamEnrollmentMergeUtil {
             }
             primary.setPracticalPassed(merged);
         }
-    }
-
-    // merge pass status
-    private static void mergeRoadScore(ExamRegistrationDTO primary, ExamRegistrationDTO secondary) {
-        String merged = mergePassStatus(primary.getRoadTestPassed(), secondary.getRoadTestPassed());
-        if (primary.getRoadTestScore() == null && secondary.getRoadTestScore() != null) {
-            primary.setRoadTestScore(secondary.getRoadTestScore());
-        }
-        primary.setRoadTestPassed(merged);
     }
 
     private static String mergePassStatus(String a, String b) {

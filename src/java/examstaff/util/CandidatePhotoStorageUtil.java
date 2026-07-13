@@ -26,18 +26,6 @@ public final class CandidatePhotoStorageUtil {
         return new File(System.getProperty("user.home", "."), ".dlem" + File.separator + "candidate-photos");
     }
 
-    public static File resolveUploadDir(String webRoot) {
-        try {
-            return resolveWritablePhotoDir(webRoot);
-        } catch (IOException e) {
-            File dir = photoDir();
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            return dir;
-        }
-    }
-
     public static String extractFileName(String photoUrl) {
         if (photoUrl == null || photoUrl.isBlank()) {
             return null;

@@ -6,7 +6,6 @@ public class ProcedureProfilePrepareResultDTO {
 
     private ExamRegistrationDTO profile;
     private String photoStaleMessage;
-    private boolean presentUpdated;
 
     public ExamRegistrationDTO getProfile() {
         return profile;
@@ -22,13 +21,5 @@ public class ProcedureProfilePrepareResultDTO {
 
     public void setPhotoStaleMessage(String photoStaleMessage) {
         this.photoStaleMessage = photoStaleMessage;
-    }
-
-    public boolean isPresentUpdated() {
-        return presentUpdated;
-    }
-
-    public void setPresentUpdated(boolean presentUpdated) {
-        this.presentUpdated = presentUpdated;
     }
 }

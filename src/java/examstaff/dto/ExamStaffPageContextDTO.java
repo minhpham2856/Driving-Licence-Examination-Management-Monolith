@@ -8,7 +8,7 @@ import java.util.List;
 public class ExamStaffPageContextDTO {
 
     private int examId;
-    private List<ExamSummaryDTO> allSessions;
+    private List<ExamSummaryDTO> allExams;
     private List<ExamRegistrationDTO> candidates;
     private ExamStaffPickerViewDTO pickerView;
 
@@ -20,12 +20,12 @@ public class ExamStaffPageContextDTO {
         this.examId = examId;
     }
 
-    public List<ExamSummaryDTO> getAllSessions() {
-        return allSessions;
+    public List<ExamSummaryDTO> getAllExams() {
+        return allExams;
     }
 
-    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
-        this.allSessions = allSessions;
+    public void setAllExams(List<ExamSummaryDTO> allExams) {
+        this.allExams = allExams;
     }
 
     public List<ExamRegistrationDTO> getCandidates() {

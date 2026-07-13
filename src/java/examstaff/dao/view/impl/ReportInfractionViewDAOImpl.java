@@ -1,7 +1,7 @@
 package examstaff.dao.view.impl;
 
 import examstaff.dao.view.ReportInfractionViewDAO;
-import shared.dbconnection.DBContext;
+import examstaff.dbconnection.DBContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -62,4 +62,3 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
         return infractions;
     }
 }
-

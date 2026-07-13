@@ -67,14 +67,4 @@ public class CandidatePhotoServiceImpl implements CandidatePhotoService {
     public String toWebPhotoPath(String fileName) {
         return CandidatePhotoStorageUtil.toWebPhotoPath(fileName);
     }
-
-    @Override
-    public String extractFileName(String photoUrl) {
-        return CandidatePhotoStorageUtil.extractFileName(photoUrl);
-    }
-
-    @Override
-    public File resolveUploadDir(String webRoot) {
-        return CandidatePhotoStorageUtil.resolveUploadDir(webRoot);
-    }
 }

@@ -15,7 +15,7 @@ import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.service.ProcedurePaymentService;
 import examstaff.service.ProcedureWorkflowService;
-import examstaff.util.ExamStaffSessionRules;
+import examstaff.util.ExamStaffExamRules;
 import examstaff.util.ProcedurePaymentLabels;
 
 import java.sql.Date;
@@ -48,7 +48,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
     }
 
     @Override
-    public ExamRegistrationDTO findProfile(String webRoot, int examId, int sessionId,
+    public ExamRegistrationDTO findProfile(String webRoot, int examId, int fallbackExamId,
             String sbd, List<ExamRegistrationDTO> queue) {
         if (sbd == null || sbd.isBlank()) {
             return null;
@@ -56,7 +56,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         String trimmed = sbd.trim();
         ExamRegistrationDTO profile = queueService.findBySbd(queue, trimmed);
         if (profile == null) {
-            profile = queueService.findByExamOrSession(examId, sessionId, trimmed);
+            profile = queueService.findByExam(examId, fallbackExamId, trimmed);
         }
         if (profile != null) {
             photoService.resolveCapturedPhoto(webRoot, profile);
@@ -66,7 +66,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
     }
 
     @Override
-    public ProcedureProfilePrepareResultDTO prepareProfileForDesk(String webRoot, int examId, int sessionId,
+    public ProcedureProfilePrepareResultDTO prepareProfileForDesk(String webRoot, int examId, int fallbackExamId,
             ExamRegistrationDTO profile, List<ExamRegistrationDTO> queue) {
         ProcedureProfilePrepareResultDTO result = new ProcedureProfilePrepareResultDTO();
         if (profile == null) {
@@ -90,7 +90,6 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
             boolean updatedPresent = regService.updatePresent(current.getId(), true);
             if (updatedPresent) {
                 current = reloadProfile(webRoot, examId, current.getId(), current.getSbd(), queue);
-                result.setPresentUpdated(true);
             }
         }
 
@@ -188,7 +187,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
 
     @Override
     public ProcedurePaymentOutcomeDTO confirmPayment(ExamRegistrationDTO profile, String sbd,
-            int examId, String webRoot, List<ExamSummaryDTO> allSessions) {
+            int examId, String webRoot, List<ExamSummaryDTO> allExams) {
         ProcedurePaymentOutcomeDTO outcome = new ProcedurePaymentOutcomeDTO();
 
         if (profile == null) {
@@ -230,19 +229,19 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
             clearAbsentAfterPayment(profile);
         }
 
-        int allocSessionId = profile.getExamId();
-        if (allocSessionId <= 0) {
-            allocSessionId = ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
+        int allocExamId = profile.getExamId();
+        if (allocExamId <= 0) {
+            allocExamId = ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
         }
         AutoAllocateResultDTO allocResult = allocationService.autoAllocateCandidate(
-                allocSessionId, profile.getId());
+                allocExamId, profile.getId());
 
         List<ExamRegistrationDTO> qList = regService.getCandidatesByExam(examId);
         photoService.normalizeQueue(webRoot, qList);
 
         int boardExamId = profile.getExamId() > 0
                 ? profile.getExamId()
-                : ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
+                : ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
 
         String allocDetail = ProcedurePaymentLabels.formatAutoAllocateDetail(allocResult);
         String feeLabel = ProcedurePaymentLabels.formatFeeAmount(feePreview);
@@ -251,8 +250,6 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         outcome.setProfile(profile);
         outcome.setQueue(qList);
         outcome.setBoardExamId(boardExamId);
-        outcome.setFeePreview(feePreview);
-        outcome.setAllocResult(allocResult);
         outcome.setPaymentAuditDetail("Thu lệ phí thi " + feeLabel + allocDetail + " cho SBD " + sbd);
         outcome.setAuditAllocate(allocResult != null && allocResult.allocatedCount > 0);
         return outcome;
@@ -284,8 +281,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return outcome;
     }
 
-    @Override
-    public void clearAbsentAfterPayment(ExamRegistrationDTO profile) {
+    private void clearAbsentAfterPayment(ExamRegistrationDTO profile) {
         regService.clearAbsentMarking(profile.getId());
         profile.setAbsent(false);
         profile.setTheoryPassed("none");

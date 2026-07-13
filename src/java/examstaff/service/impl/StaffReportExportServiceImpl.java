@@ -6,8 +6,8 @@ import examstaff.service.ReportFeeQueryService;
 import examstaff.service.StaffReportExportService;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ExamSummaryDTO;
-import shared.model.Fee;
-import shared.model.Payment;
+import examstaff.model.Fee;
+import examstaff.model.Payment;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
@@ -31,7 +31,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     private final ReportFeeQueryService feeLookup = new ReportFeeQueryServiceImpl();
 
     @Override
-    public void exportExamReport(OutputStream out, ExamSummaryDTO session,
+    public void exportExamReport(OutputStream out, ExamSummaryDTO exam,
             List<ExamRegistrationDTO> candidates, ExamReportStatsDTO stats,
             String exporterName) throws IOException {
         List<Map<String, Object>> infractions = stats != null ? stats.getInfractions() : null;
@@ -47,25 +47,25 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
             // write infraction sheet
             // write fee sheet
 
-            writeOverviewSheet(workbook, headerStyle, session, stats, exporterName);
+            writeOverviewSheet(workbook, headerStyle, exam, stats, exporterName);
             writeLicenseSheet(workbook, headerStyle, stats);
             writeSectionSheet(workbook, headerStyle, stats);
             writeCandidateSheet(workbook, headerStyle, dateStyle, candidates);
     // write overview sheet
             writeInfractionSheet(workbook, headerStyle, infractions);
-            writeFeeSheet(workbook, headerStyle, candidates, session);
+            writeFeeSheet(workbook, headerStyle, candidates, exam);
 
             workbook.write(out);
         }
     }
 
     private void writeOverviewSheet(Workbook wb, CellStyle headerStyle,
-            ExamSummaryDTO session, ExamReportStatsDTO stats, String exporterName) {
+            ExamSummaryDTO exam, ExamReportStatsDTO stats, String exporterName) {
         Sheet sheet = wb.createSheet("Tổng quan");
         int row = 0;
         row = writeTitleBlock(sheet, row, headerStyle, "BÁO CÁO TỔNG HỢP CA THI");
-        row = writeKv(sheet, row, "Ca thi", session != null ? session.getSessionName() : "");
-        row = writeKv(sheet, row, "Ngày sát hạch", formatSqlDate(session != null ? session.getExamDate() : null));
+        row = writeKv(sheet, row, "Ca thi", exam != null ? exam.getExamName() : "");
+        row = writeKv(sheet, row, "Ngày sát hạch", formatSqlDate(exam != null ? exam.getExamDate() : null));
         row = writeKv(sheet, row, "Tổng đăng ký", stats != null ? stats.getTotalCandidates() : 0);
         row = writeKv(sheet, row, "Đã thi xong", stats != null ? stats.getExamCompletedCount() : 0);
         row = writeKv(sheet, row, "Đạt", stats != null ? stats.getPassedCount() : 0);
@@ -240,7 +240,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
     private void writeFeeSheet(Workbook wb, CellStyle headerStyle,
-            List<ExamRegistrationDTO> candidates, ExamSummaryDTO session) {
+            List<ExamRegistrationDTO> candidates, ExamSummaryDTO exam) {
         Sheet sheet = wb.createSheet("Thu phí thủ tục");
         Row header = sheet.createRow(0);
         String[] cols = {
@@ -407,4 +407,3 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
 }
-

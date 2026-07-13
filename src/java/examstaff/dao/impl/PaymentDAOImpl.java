@@ -1,9 +1,9 @@
 package examstaff.dao.impl;
 
-import shared.dbconnection.DBContext;
+import examstaff.dbconnection.DBContext;
 import examstaff.dao.PaymentDAO;
-import shared.enums.PaymentStatus;
-import shared.model.Payment;
+import examstaff.enums.PaymentStatus;
+import examstaff.model.Payment;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,7 +29,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, payment.getPaymentStatus() != null ? payment.getPaymentStatus()
-                    : PaymentStatus.COMPLETED.getValue());
+                    : PaymentStatus.HOAN_TAT.getDisplayName());
             ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "Cash");
             if (payment.getTransactionReference() == null) {
                 ps.setNull(3, Types.NVARCHAR);
@@ -105,6 +105,3 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return -1;
     }
 }
-
-
-
