@@ -1,19 +1,75 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<c:if test="${requestScope.reportReady ne true}">
+    <c:redirect url="/manager/reports" />
+</c:if>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo thống kê đào tạo - Lái Vui</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/layout.css">
+    <title>Báo cáo thống kê - Lái Vui</title>
+    <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+    <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
+    <style>
+        .report-control-panel {
+            background:#fff;border:1px solid #dbe4f0;border-radius:16px;padding:1.25rem;
+            box-shadow:0 8px 24px rgba(15,23,42,.05);margin-bottom:1rem
+        }
+        .period-tabs {display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+        .period-tab {
+            display:inline-flex;align-items:center;justify-content:center;padding:.65rem 1rem;
+            border:1px solid #cbd5e1;border-radius:10px;color:#475569;background:#fff;
+            text-decoration:none;font-weight:700;font-size:.88rem
+        }
+        .period-tab.is-active {color:#fff;background:#0052cc;border-color:#0052cc;box-shadow:0 6px 14px rgba(0,82,204,.2)}
+        .report-filter-grid {display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:.85rem;align-items:end}
+        .report-filter-note {font-size:.75rem;color:#64748b;margin-top:.3rem}
+        .report-chart-grid {display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,.85fr);gap:1rem;margin-bottom:1rem}
+        .chart-card {background:#fff;border:1px solid #dbe4f0;border-radius:16px;padding:1.3rem;box-shadow:0 8px 24px rgba(15,23,42,.05)}
+        .chart-heading {display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.1rem}
+        .chart-heading h2 {font-size:1rem;color:#0f172a;margin:0 0 .25rem}
+        .chart-heading p {font-size:.8rem;color:#64748b;margin:0}
+        .chart-list {display:grid;gap:1rem;max-height:440px;overflow:auto;padding-right:.25rem}
+        .chart-row__header {display:flex;justify-content:space-between;gap:1rem;margin-bottom:.4rem;font-size:.8rem}
+        .chart-row__title {font-weight:700;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .chart-row__total {color:#64748b;white-space:nowrap}
+        .stacked-bar {height:22px;display:flex;background:#f1f5f9;border-radius:7px;overflow:hidden}
+        .stacked-bar span {display:block;height:100%;min-width:0;transition:width .2s ease}
+        .bar-pass {background:#10b981}.bar-fail {background:#ef4444}.bar-absent {background:#f59e0b}.bar-pending {background:#3b82f6}
+        .chart-row__values {display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.35rem;color:#64748b;font-size:.72rem}
+        .legend {display:flex;flex-wrap:wrap;gap:.85rem;margin-top:1rem;font-size:.75rem;color:#475569}
+        .legend span {display:inline-flex;align-items:center;gap:.35rem}
+        .legend i {width:9px;height:9px;border-radius:2px;display:inline-block}
+        .donut-wrap {display:grid;place-items:center;min-height:190px}
+        .donut {
+            width:168px;height:168px;border-radius:50%;display:grid;place-items:center;
+            position:relative;box-shadow:inset 0 0 0 1px rgba(15,23,42,.04)
+        }
+        .donut::after {content:"";position:absolute;width:112px;height:112px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #e2e8f0}
+        .donut__value {position:relative;z-index:1;text-align:center}
+        .donut__value strong {display:block;font-size:1.7rem;color:#0f172a}
+        .donut__value span {font-size:.72rem;color:#64748b}
+        .report-metrics {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
+        .report-metric {background:#fff;border:1px solid #dbe4f0;border-radius:14px;padding:1rem 1.15rem}
+        .report-metric__label {display:block;color:#64748b;font-size:.78rem;font-weight:600;margin-bottom:.35rem}
+        .report-metric__value {font-size:1.55rem;font-weight:800;color:#0f172a}
+        .report-metric__detail {display:block;font-size:.72rem;color:#94a3b8;margin-top:.25rem}
+        .empty-chart {padding:3rem 1rem;text-align:center;color:#64748b;background:#f8fafc;border-radius:12px}
+        @media (max-width:1050px) {
+            .report-filter-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+            .report-chart-grid {grid-template-columns:1fr}
+            .report-metrics {grid-template-columns:repeat(2,minmax(0,1fr))}
+        }
+        @media (max-width:640px) {
+            .report-filter-grid,.report-metrics {grid-template-columns:1fr}
+            .period-tab {flex:1}
+        }
+    </style>
 </head>
 <body class="has-side-nav-bar">
 
@@ -23,201 +79,211 @@
 
 <div class="dashboard-shell">
     <main class="main-content">
-        
         <nav class="breadcrumbs">
-            <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
+            <a href="${ctx}/manager/dashboard">Dashboard</a>
             <span class="breadcrumbs__separator">/</span>
-            <a href="${pageContext.request.contextPath}/manager/dashboard">Dashboard quản lý</a>
-            <span class="breadcrumbs__separator">/</span>
-            <span class="breadcrumbs__current">Báo cáo thống kê đào tạo</span>
+            <span class="breadcrumbs__current">Báo cáo thống kê</span>
         </nav>
-        
+
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Báo Cáo Thống Kê Đào Tạo</h1>
-                <p class="page-subtitle">Thống kê chỉ số đỗ/trượt, tình hình cấp phát GPLX và biểu đồ số lượng hồ sơ học viên theo từng đợt.</p>
+                <h1 class="page-title">Báo cáo thống kê sát hạch</h1>
+                <p class="page-subtitle">Theo dõi kết quả của các hạng A1, A và B1 theo kỳ thi, tháng hoặc năm.</p>
             </div>
-            
-            <div class="page-actions" style="display: flex; gap: 10px;">
-                <button class="btn-export" style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Xuất báo cáo PDF
-                </button>
-            </div>
+            <span class="action-badge action-badge--info" style="font-weight:700">${periodGroupLabel}</span>
         </header>
 
-        <section class="metrics-row">
-            <div class="stat-card">
-                <div class="stat-icon stat-icon--blue">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-number">${empty passRateAll ? '0.0%' : passRateAll}%</span>
-                    <span class="stat-label">Tỷ lệ đạt chung</span>
-                    <span class="stat-trend stat-trend--up">Hệ thống đào tạo</span>
-                </div>
-            </div>
+        <%-- Bộ lọc và biểu đồ được đặt đầu trang để quản lý nhìn thấy ngay. --%>
+        <section class="report-control-panel" aria-label="Chọn phạm vi báo cáo">
+            <nav class="period-tabs" aria-label="Kiểu phân kỳ">
+                <a class="period-tab ${periodGroup eq 'exam' ? 'is-active' : ''}"
+                   href="${ctx}/manager/reports?periodGroup=exam&amp;licenceClass=${selectedLicence}">Theo kỳ thi</a>
+                <a class="period-tab ${periodGroup eq 'month' ? 'is-active' : ''}"
+                   href="${ctx}/manager/reports?periodGroup=month&amp;year=${selectedYear}&amp;licenceClass=${selectedLicence}">Theo tháng</a>
+                <a class="period-tab ${periodGroup eq 'year' ? 'is-active' : ''}"
+                   href="${ctx}/manager/reports?periodGroup=year&amp;licenceClass=${selectedLicence}">Theo năm</a>
+            </nav>
 
-            <div class="stat-card">
-                <div class="stat-icon stat-icon--green">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-number">${empty totalSubmissions ? 0 : totalSubmissions}</span>
-                    <span class="stat-label">Tổng hồ sơ nộp</span>
-                    <span class="stat-trend stat-trend--up">Học viên tham dự</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon stat-icon--purple">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-number">${empty totalPassed ? 0 : totalPassed}</span>
-                    <span class="stat-label">Đã cấp chứng chỉ</span>
-                    <span class="stat-trend stat-trend--up">Hiệu lực quốc gia</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon stat-icon--red">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-number">${empty totalRejected ? 0 : totalRejected}</span>
-                    <span class="stat-label">Hồ sơ bị từ chối</span>
-                    <span class="stat-trend stat-trend--down" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1);">Vết phê duyệt</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="filter-panel">
-            <h2 class="filter-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Chọn đợt báo cáo & Hạng xe
-            </h2>
-            <form action="" method="GET">
-                <div class="filter-grid" style="grid-template-columns: 2.5fr 2fr 1.5fr;">
-                    <div class="input-group">
-                        <label for="filterSession" class="input-label">Đợt thi sát hạch</label>
-                        <select id="filterSession" name="filterSession" class="input-field">
-                            <option value="">Tất cả các đợt thi</option>
-                            <option value="k240" ${param.filterSession eq 'k240' ? 'selected' : ''}>Khóa thi A1 - K240 (28/05/2026)</option>
-                            <option value="k115" ${param.filterSession eq 'k115' ? 'selected' : ''}>Khóa thi B2 - K115 (15/06/2026)</option>
-                            <option value="k30" ${param.filterSession eq 'k30' ? 'selected' : ''}>Khóa thi A2 - K30 (28/06/2026)</option>
+            <form action="${ctx}/manager/reports" method="get">
+                <input type="hidden" name="periodGroup" value="${periodGroup}">
+                <div class="report-filter-grid">
+                    <div class="input-group" id="examFilterGroup">
+                        <label for="examId" class="input-label">Kỳ thi sát hạch</label>
+                        <select id="examId" name="examId" class="input-field">
+                            <option value="0">Tất cả kỳ thi</option>
+                            <c:forEach var="exam" items="${examOptions}">
+                                <option value="${exam.examId}" ${selectedExamId eq exam.examId ? 'selected' : ''}>
+                                    <c:out value="${exam.examCode}" /> · Hạng <c:out value="${exam.licenceClass}" /> ·
+                                    <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy" />
+                                </option>
+                            </c:forEach>
                         </select>
+                        <div class="report-filter-note">Áp dụng khi xem theo kỳ thi.</div>
+                    </div>
+
+                    <div class="input-group" id="yearFilterGroup">
+                        <label for="year" class="input-label">Năm báo cáo</label>
+                        <select id="year" name="year" class="input-field">
+                            <c:forEach var="reportYear" items="${availableYears}">
+                                <option value="${reportYear}" ${selectedYear eq reportYear ? 'selected' : ''}>${reportYear}</option>
+                            </c:forEach>
+                        </select>
+                        <div class="report-filter-note">Áp dụng khi xem theo tháng.</div>
                     </div>
 
                     <div class="input-group">
-                        <label for="filterClass" class="input-label">Hạng bằng sát hạch</label>
-                        <select id="filterClass" name="filterClass" class="input-field">
-                            <option value="">Tất cả hạng bằng</option>
-                            <option value="A1" ${param.filterClass eq 'A1' ? 'selected' : ''}>Hạng A1 (Xe máy dưới 175cc)</option>
-                            <option value="A2" ${param.filterClass eq 'A2' ? 'selected' : ''}>Hạng A2 (Xe máy trên 175cc)</option>
-                            <option value="B1" ${param.filterClass eq 'B1' ? 'selected' : ''}>Hạng B1 (Ô tô tự động)</option>
-                            <option value="B2" ${param.filterClass eq 'B2' ? 'selected' : ''}>Hạng B2 (Ô tô số sàn)</option>
+                        <label for="licenceClass" class="input-label">Hạng GPLX</label>
+                        <select id="licenceClass" name="licenceClass" class="input-field">
+                            <option value="">A1, A và B1</option>
+                            <option value="A1" ${selectedLicence eq 'A1' ? 'selected' : ''}>Hạng A1</option>
+                            <option value="A" ${selectedLicence eq 'A' ? 'selected' : ''}>Hạng A</option>
+                            <option value="B1" ${selectedLicence eq 'B1' ? 'selected' : ''}>Hạng B1</option>
                         </select>
                     </div>
 
-                    <div class="input-group filter-grid__btn-col">
-                        <div class="btn-group">
-                            <button type="submit" class="btn-filter">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Lọc dữ liệu
-                            </button>
-                            <a href="report.jsp" class="btn-reset">Đặt lại</a>
-                        </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn-filter">Áp dụng</button>
+                        <a href="${ctx}/manager/reports" class="btn-reset">Đặt lại</a>
                     </div>
                 </div>
             </form>
         </section>
 
+        <section class="report-chart-grid" aria-label="Biểu đồ kết quả sát hạch">
+            <article class="chart-card">
+                <div class="chart-heading">
+                    <div>
+                        <h2>Biểu đồ phân bổ kết quả · ${periodGroupLabel}</h2>
+                        <p>Mỗi thanh thể hiện tỷ trọng đạt, trượt, vắng và chưa có kết quả.</p>
+                    </div>
+                </div>
+
+                <c:choose>
+                    <c:when test="${not empty reportData}">
+                        <div class="chart-list">
+                            <c:forEach var="row" items="${reportData}">
+                                <div class="chart-row">
+                                    <div class="chart-row__header">
+                                        <span class="chart-row__title"><c:out value="${row.periodLabel}" /> · Hạng ${row.licenceClass}</span>
+                                        <span class="chart-row__total">${row.totalCount} thí sinh</span>
+                                    </div>
+                                    <div class="stacked-bar" role="img"
+                                         aria-label="Đạt ${row.passCount}, trượt ${row.failCount}, vắng ${row.absentCount}, chờ kết quả ${row.pendingCount}">
+                                        <span class="bar-pass" style="width:${row.passShare}%"></span>
+                                        <span class="bar-fail" style="width:${row.failShare}%"></span>
+                                        <span class="bar-absent" style="width:${row.absentShare}%"></span>
+                                        <span class="bar-pending" style="width:${row.pendingShare}%"></span>
+                                    </div>
+                                    <div class="chart-row__values">
+                                        <span>Đạt: <strong>${row.passCount}</strong></span>
+                                        <span>Trượt: <strong>${row.failCount}</strong></span>
+                                        <span>Vắng: <strong>${row.absentCount}</strong></span>
+                                        <span>Chờ kết quả: <strong>${row.pendingCount}</strong></span>
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </div>
+                        <div class="legend">
+                            <span><i class="bar-pass"></i>Đạt</span>
+                            <span><i class="bar-fail"></i>Trượt</span>
+                            <span><i class="bar-absent"></i>Vắng</span>
+                            <span><i class="bar-pending"></i>Chưa có kết quả</span>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="empty-chart">Không có dữ liệu trong phạm vi đã chọn.</div>
+                    </c:otherwise>
+                </c:choose>
+            </article>
+
+            <article class="chart-card">
+                <div class="chart-heading">
+                    <div>
+                        <h2>Tỷ lệ đạt chung</h2>
+                        <p>Tính trên các thí sinh đã có kết quả đạt hoặc trượt.</p>
+                    </div>
+                </div>
+                <div class="donut-wrap">
+                    <div class="donut" style="background:conic-gradient(#10b981 0 ${passRateAll}%,#e2e8f0 ${passRateAll}% 100%)">
+                        <div class="donut__value">
+                            <strong>${passRateAll}%</strong>
+                            <span>${totalPassed}/${totalPassed + totalFailed} đã đánh giá</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="legend" style="justify-content:center">
+                    <span><i class="bar-pass"></i>${totalPassed} đạt</span>
+                    <span><i class="bar-fail"></i>${totalFailed} trượt</span>
+                </div>
+            </article>
+        </section>
+
+        <section class="report-metrics" aria-label="Chỉ số tổng hợp">
+            <div class="report-metric">
+                <span class="report-metric__label">Tổng thí sinh</span>
+                <strong class="report-metric__value">${totalCandidates}</strong>
+                <span class="report-metric__detail">Trong phạm vi đang lọc</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric__label">Đã đạt</span>
+                <strong class="report-metric__value" style="color:#059669">${totalPassed}</strong>
+                <span class="report-metric__detail">Hoàn tất các phần thi được phân</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric__label">Trượt / vắng</span>
+                <strong class="report-metric__value" style="color:#dc2626">${totalFailed + totalAbsent}</strong>
+                <span class="report-metric__detail">${totalFailed} trượt · ${totalAbsent} vắng</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric__label">Chưa có kết quả</span>
+                <strong class="report-metric__value" style="color:#2563eb">${totalPending}</strong>
+                <span class="report-metric__detail">Đang thi hoặc chưa hoàn tất</span>
+            </div>
+        </section>
+
         <section class="log-card">
             <header class="log-card-header">
-                <h2 class="log-card-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #0052cc;">
-                        <rect x="1" y="1" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M5 12V9M9 12V6M13 12V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                    Bảng tổng hợp kết quả sát hạch theo đợt
-                </h2>
+                <h2 class="log-card-title">Bảng tổng hợp · ${periodGroupLabel}</h2>
             </header>
-
             <div class="table-responsive">
                 <table class="audit-table">
                     <thead>
                         <tr>
-                            <th scope="col">Tên đợt thi sát hạch</th>
-                            <th scope="col" style="width: 110px; text-align: center;">Hạng GPLX</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Tổng số học viên</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Vắng thi</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Số lượng Đạt</th>
-                            <th scope="col" style="width: 140px; text-align: center;">Số lượng Trượt</th>
-                            <th scope="col" style="width: 150px; text-align: center;">Tỷ lệ Đạt (%)</th>
+                            <th>Thời kỳ báo cáo</th>
+                            <th style="text-align:center">Hạng GPLX</th>
+                            <th style="text-align:center">Tổng</th>
+                            <th style="text-align:center">Đạt</th>
+                            <th style="text-align:center">Trượt</th>
+                            <th style="text-align:center">Vắng</th>
+                            <th style="text-align:center">Chờ kết quả</th>
+                            <th style="text-align:center">Tỷ lệ đạt</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <c:choose>
-                            <c:when test="${not empty reportData}">
-                                <c:forEach var="row" items="${reportData}">
-                                    <tr>
-                                        <td style="font-weight: 700; color: #0052cc;">${row.sessionName}</td>
-                                        <td style="text-align: center;">
-                                            <span class="role-badge role-badge--admin" style="padding: 2px 8px; font-size: 0.75rem;">Hạng ${row.licenseClass}</span>
-                                        </td>
-                                        <td style="text-align: center; font-weight: 600; color: #0f172a;">${row.totalCount}</td>
-                                        <td style="text-align: center; color: #64748b;">${row.absentCount}</td>
-                                        <td style="text-align: center; font-weight: 700; color: #10b981;">${row.passCount}</td>
-                                        <td style="text-align: center; font-weight: 700; color: #ef4444;">${row.failCount}</td>
-                                        <td style="text-align: center;">
-                                            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                                                <span style="font-weight: 800; color: #0f172a;">${row.passRate}%</span>
-                                                <div class="progress-bar-container" style="height: 5px; width: 80px; background-color: #f1f5f9; border-radius: 99px; overflow: hidden;">
-                                                    <div class="progress-bar-fill" style="width: ${row.passRate}%; background: #10b981; height: 100%;"></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr>
-                                    <td colspan="7" style="text-align: center; padding: 4rem 1.5rem; color: #64748b; font-weight: 500;">
-                                        Không có dữ liệu báo cáo thống kê kết quả sát hạch nào.
-                                    </td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
+                        <c:forEach var="row" items="${reportData}">
+                            <tr>
+                                <td style="font-weight:700;color:#0052cc"><c:out value="${row.periodLabel}" /></td>
+                                <td style="text-align:center"><span class="role-badge role-badge--admin">${row.licenceClass}</span></td>
+                                <td style="text-align:center;font-weight:700">${row.totalCount}</td>
+                                <td style="text-align:center;color:#059669;font-weight:700">${row.passCount}</td>
+                                <td style="text-align:center;color:#dc2626;font-weight:700">${row.failCount}</td>
+                                <td style="text-align:center;color:#d97706">${row.absentCount}</td>
+                                <td style="text-align:center;color:#2563eb">${row.pendingCount}</td>
+                                <td style="text-align:center;font-weight:800">${row.passRate}%</td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty reportData}">
+                            <tr><td colspan="8" style="text-align:center;padding:3rem;color:#64748b">Không có dữ liệu báo cáo phù hợp.</td></tr>
+                        </c:if>
                     </tbody>
                 </table>
             </div>
         </section>
-
     </main>
 
     <jsp:include page="/views/layout/footer.jsp">
         <jsp:param name="standalone" value="false" />
     </jsp:include>
 </div>
-
 </body>
 </html>
