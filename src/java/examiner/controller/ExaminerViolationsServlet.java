@@ -9,7 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import examiner.filter.ExaminerFilter;
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
 import examiner.dto.CandidateRowDTO;
@@ -178,7 +179,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
             }
 
             examiner.dto.ServiceResult<Void> result = callService.recordViolation(activeExamId, sbd,
-                    ((User) session.getAttribute("user")).getUserId(),
+                    ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId(),
                     reasonCode,
                     reasonDetail,
                     evidencePath);

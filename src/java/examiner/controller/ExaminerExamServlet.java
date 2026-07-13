@@ -1,7 +1,7 @@
 package examiner.controller;
 
-import examiner.enums.SectionType;
-import examiner.enums.ExamStatus;
+import shared.enums.SectionType;
+import shared.enums.ExamStatus;
 import examiner.filter.ExaminerFilter;
 
 import jakarta.servlet.ServletException;
@@ -15,7 +15,8 @@ import shared.model.ExamArea;
 import shared.model.ExaminerSchedule;
 import shared.model.ExamSection;
 import shared.model.Licence;
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import examiner.service.ExamAreaService;
 import examiner.service.ExamService;
 import examiner.service.ExamSectionService;
@@ -47,7 +48,7 @@ public class ExaminerExamServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession httpSession = request.getSession(false);
         if (httpSession == null) { response.sendRedirect(request.getContextPath() + "/staff/login"); return; }
-        User user = (User) httpSession.getAttribute("user");
+        UserDTO user = (UserDTO) httpSession.getAttribute(Attributes.Session.USER);
         if (user == null) { response.sendRedirect(request.getContextPath() + "/staff/login"); return; }
 
         List<ExaminerSchedule> schedules = scheduleService.getSchedulesByExaminerId(user.getUserId());
@@ -66,7 +67,7 @@ public class ExaminerExamServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession httpSession = request.getSession(false);
         if (httpSession == null) { response.sendRedirect(request.getContextPath() + "/staff/login"); return; }
-        User user = (User) httpSession.getAttribute("user");
+        UserDTO user = (UserDTO) httpSession.getAttribute(Attributes.Session.USER);
         if (user == null) { response.sendRedirect(request.getContextPath() + "/staff/login"); return; }
 
         int examId;
