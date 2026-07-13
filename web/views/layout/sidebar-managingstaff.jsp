@@ -81,7 +81,7 @@
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </span>
-            <span class="side-nav-bar__label" data-node-id="manager:21">Danh sách học viên</span>
+            <span class="side-nav-bar__label" data-node-id="manager:21">Quản lý thí sinh</span>
         </a>
 
         <%-- Chi tiết hồ sơ học viên --%>
@@ -138,11 +138,11 @@
                     <path d="M8 2v4M16 2v4M3 10h18M8 15h3M14 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </span>
-            <span class="side-nav-bar__label" data-node-id="manager:46">Phiên thi</span>
+            <span class="side-nav-bar__label" data-node-id="manager:46">Quản lý phiên thi</span>
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>
-        <a href="${ctx}/views/staff/managingstaff/report.jsp"
+        <a href="${ctx}/manager/reports"
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
            data-node-id="manager:50"
            <c:if test="${activeSidebar eq 'bao-cao'}">aria-current="page"</c:if>>
@@ -156,7 +156,7 @@
         </a>
 
         <%-- SC-036: Nhật ký thao tác --%>
-        <a href="${ctx}/views/staff/managingstaff/audit.jsp"
+        <a href="${ctx}/manager/audit"
            class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}"
            data-node-id="manager:60"
            <c:if test="${activeSidebar eq 'audit'}">aria-current="page"</c:if>>
