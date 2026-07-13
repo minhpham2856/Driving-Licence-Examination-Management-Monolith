@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.TreeMap;
 import java.util.UUID;
-import shared.util.ConfigManager;
+import shared.ConfigManager;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
