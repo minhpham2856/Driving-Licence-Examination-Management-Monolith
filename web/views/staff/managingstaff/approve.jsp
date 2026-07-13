@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -40,7 +41,7 @@
                 <div class="page-actions" style="display:flex;gap:.75rem">
                     <a class="btn-export" href="${ctx}/manager/dossier-detail?registrationId=${dossier.registrationId}"
                        style="display:inline-flex;text-decoration:none">Xem chi tiết</a>
-                    <a class="btn-export" href="${ctx}/manager/dossiers"
+                    <a class="btn-export" href="${ctx}/manager/dossiers?page=${currentPage}"
                        style="display:inline-flex;text-decoration:none">Quay lại danh sách</a>
                 </div>
             </header>
@@ -67,6 +68,18 @@
                                             <a class="btn-export" target="_blank" rel="noopener"
                                                href="${ctx}${document.documentUrl}"
                                                style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
+                                            <c:set var="documentUrlLower" value="${fn:toLowerCase(document.documentUrl)}" />
+                                            <c:if test="${(type eq 'ID_FRONT' or type eq 'ID_BACK' or type eq 'HEALTH_CERTIFICATE')
+                                                    and not fn:endsWith(documentUrlLower, '.svg')}">
+                                                <form action="${ctx}/manager/dossiers/ocr" method="post" style="margin-top:.5rem;width:100%">
+                                                    <input type="hidden" name="id" value="${dossier.registrationId}">
+                                                    <input type="hidden" name="documentType" value="${type}">
+                                                    <button class="btn-filter" type="submit" style="width:100%">Đọc bằng OCR.space</button>
+                                                </form>
+                                            </c:if>
+                                            <c:if test="${fn:endsWith(documentUrlLower, '.svg')}">
+                                                <small style="margin-top:.5rem;color:#64748b">Ảnh SVG demo không gửi lên OCR.space.</small>
+                                            </c:if>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="action-badge action-badge--warning">Còn thiếu</span>
@@ -93,6 +106,20 @@
                             </c:if>
                         </div>
                     </div>
+                    <c:if test="${not empty sessionScope.ocrText}">
+                        <div class="report-pane" style="padding:1.5rem;border-color:#0ea5e9">
+                            <strong>Kết quả OCR - <c:out value="${sessionScope.ocrDocumentLabel}" /></strong>
+                            <pre style="white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:1rem;margin-top:1rem;font-family:Arial,sans-serif"><c:out value="${sessionScope.ocrText}" /></pre>
+                        </div>
+                        <c:remove var="ocrText" scope="session" />
+                        <c:remove var="ocrDocumentLabel" scope="session" />
+                    </c:if>
+                    <c:if test="${not empty sessionScope.ocrError}">
+                        <div class="p-alert-banner" style="border-color:#ef4444;color:#991b1b;margin:1rem 0">
+                            <c:out value="${sessionScope.ocrError}" />
+                        </div>
+                        <c:remove var="ocrError" scope="session" />
+                    </c:if>
                     <div class="report-pane" style="padding:1.5rem">
                         <strong>Ghi chú hệ thống:</strong>
                         <p><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú.' : dossier.reviewMessage}" /></p>
@@ -108,6 +135,7 @@
                         </c:if>
                         <form action="${ctx}/manager/dossiers" method="post" style="width:100%">
                             <input type="hidden" name="id" value="${dossier.registrationId}">
+                            <input type="hidden" name="returnPage" value="${currentPage}">
                             <label><input type="radio" name="decision" value="approve"
                                           ${dossier.complete ? 'checked' : 'disabled'}> Duyệt hồ sơ</label><br><br>
                             <label><input type="radio" name="decision" value="supplement"
@@ -115,7 +143,7 @@
                             <label><input type="radio" name="decision" value="reject"> Từ chối</label><br><br>
                             <label class="input-label" for="reason">Lý do/Ghi chú</label>
                             <textarea class="input-field" id="reason" name="reason" rows="5"
-                                      style="height:auto"></textarea>
+                                      style="height:auto" placeholder="Bắt buộc khi yêu cầu bổ sung hoặc từ chối; nội dung này sẽ được gửi qua email."></textarea>
                             <button class="btn-filter" type="submit" style="width:100%;margin-top:1rem">Xác nhận</button>
                         </form>
                     </div>
@@ -126,7 +154,7 @@
             <header class="page-header">
                 <div class="page-title-wrap">
                     <h1 class="page-title">Hồ sơ chưa được duyệt</h1>
-                    <p class="page-subtitle">Dữ liệu lấy trực tiếp từ database, gồm hồ sơ nháp, chờ duyệt, cần bổ sung và đã từ chối.</p>
+                    <p class="page-subtitle">Dữ liệu lấy theo từng trang từ database, gồm hồ sơ nháp, chờ duyệt, cần bổ sung và đã từ chối.</p>
                 </div>
             </header>
             <section class="log-card">
@@ -146,7 +174,7 @@
                                     <div style="display:flex;gap:.5rem;justify-content:flex-end">
                                         <a class="btn-export" href="${ctx}/manager/dossier-detail?registrationId=${item.registrationId}"
                                            style="display:inline-flex;text-decoration:none">Chi tiết</a>
-                                        <a class="btn-filter" href="${ctx}/manager/dossiers?id=${item.registrationId}"
+                                        <a class="btn-filter" href="${ctx}/manager/dossiers?id=${item.registrationId}&amp;page=${currentPage}"
                                            style="display:inline-flex;text-decoration:none">Thẩm định</a>
                                     </div>
                                 </td>
@@ -158,6 +186,29 @@
                         </tbody>
                     </table>
                 </div>
+                <footer class="pagination-footer">
+                    <div class="pagination-info">
+                        Hiển thị ${firstItem} - ${lastItem} trong tổng số ${totalFiltered} hồ sơ · 15 người/trang
+                    </div>
+                    <nav class="pagination-nav" aria-label="Phân trang duyệt hồ sơ">
+                        <c:choose>
+                            <c:when test="${currentPage gt 1}">
+                                <a class="page-btn page-btn--wide" href="${ctx}/manager/dossiers?page=${currentPage - 1}">Trước</a>
+                            </c:when>
+                            <c:otherwise><span class="page-btn page-btn--wide disabled">Trước</span></c:otherwise>
+                        </c:choose>
+                        <c:forEach var="pageNumber" begin="${pageStart}" end="${pageEnd}">
+                            <a class="page-btn ${pageNumber eq currentPage ? 'active' : ''}"
+                               href="${ctx}/manager/dossiers?page=${pageNumber}">${pageNumber}</a>
+                        </c:forEach>
+                        <c:choose>
+                            <c:when test="${currentPage lt totalPages}">
+                                <a class="page-btn page-btn--wide" href="${ctx}/manager/dossiers?page=${currentPage + 1}">Sau</a>
+                            </c:when>
+                            <c:otherwise><span class="page-btn page-btn--wide disabled">Sau</span></c:otherwise>
+                        </c:choose>
+                    </nav>
+                </footer>
             </section>
         </c:otherwise>
     </c:choose>
