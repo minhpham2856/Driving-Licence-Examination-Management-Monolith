@@ -3,13 +3,16 @@ package examstaff.dao.impl;
 import shared.dbconnection.DBContext;
 import examstaff.dao.ExamAreaDAO;
 import examstaff.enums.ExamSection;
+import shared.enums.ExamAreaType;
 import shared.model.ExamArea;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ExamAreaDAOImpl implements ExamAreaDAO {
     private ExamArea map(ResultSet rs) throws SQLException {
@@ -45,7 +48,15 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
-        return getAvailableAreasByType(ExamSection.LY_THUYET.getDisplayName());
+        // Schema Clean: "Lý thuyết" — schema SWP/DLEM: "Phòng thi"
+        Map<Integer, ExamArea> byId = new LinkedHashMap<>();
+        for (ExamArea a : getAvailableAreasByType(ExamSection.LY_THUYET.getDisplayName())) {
+            byId.put(a.getExamAreaId(), a);
+        }
+        for (ExamArea a : getAvailableAreasByType(ExamAreaType.EXAM_ROOM.getValue())) {
+            byId.putIfAbsent(a.getExamAreaId(), a);
+        }
+        return new ArrayList<>(byId.values());
     }
 
     @Override

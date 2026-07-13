@@ -62,6 +62,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "CASE "
             + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%' "
+            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sân thi%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2 "
             + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%' "
             + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4 "

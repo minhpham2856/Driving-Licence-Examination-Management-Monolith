@@ -4,7 +4,6 @@ import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
-import examstaff.enums.ExamSection;
 import shared.model.ExamArea;
 import examstaff.service.AllocationActionService;
 import examstaff.service.ExamAreaQueryService;
@@ -97,9 +96,8 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         }
 
         ExamArea targetArea = areaQueryService.findById(areaId);
-        if (targetArea == null
-                || !ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(targetArea.getAreaType())) {
-            result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết.");
+        if (targetArea == null || !ExaminerAssignmentRules.isTheoryAreaType(targetArea.getAreaType())) {
+            result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết / Phòng thi.");
             return;
         }
 

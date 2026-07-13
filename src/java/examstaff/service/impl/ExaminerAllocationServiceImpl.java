@@ -70,11 +70,18 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         if (!linked.isEmpty()) {
             return linked;
         }
-        // Kỳ thi luôn gồm LT + TH — fallback lấy cả hai loại phòng/sân.
-        List<ExamArea> areas = new ArrayList<>(areaDAO.getAvailableAreasByType(
-                ExamSection.LY_THUYET.getDisplayName()));
-        areas.addAll(areaDAO.getAvailableAreasByType(ExamAreaTypeResolver.PRACTICAL_AREA_TYPE));
-        return areas;
+        // Kỳ thi luôn gồm LT + TH — fallback lấy cả hai loại (schema Clean + alias SWP).
+        Map<Integer, ExamArea> byId = new HashMap<>();
+        for (String type : List.of(
+                ExamAreaTypeResolver.theoryAreaTypeLabel(),
+                ExamAreaTypeResolver.theoryAreaTypeAlias(),
+                ExamAreaTypeResolver.practicalAreaTypeLabel(),
+                ExamAreaTypeResolver.practicalAreaTypeAlias())) {
+            for (ExamArea a : areaDAO.getAvailableAreasByType(type)) {
+                byId.putIfAbsent(a.getExamAreaId(), a);
+            }
+        }
+        return new ArrayList<>(byId.values());
     }
 
     @Override
