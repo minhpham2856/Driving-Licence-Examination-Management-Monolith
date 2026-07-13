@@ -35,14 +35,22 @@
     </c:choose>
 </c:if>
 
-<aside class="side-nav-bar" role="navigation" aria-label="Cổng thí sinh đăng ký">
+<aside class="side-nav-bar side-nav-bar--registrant" role="navigation" aria-label="Cổng thí sinh đăng ký">
     <div class="side-nav-bar__brand">
         <div class="side-nav-bar__brand-inner">
-            <a href="${ctx}/views/registrant/dashboard.jsp" class="side-nav-bar__logo-link" aria-label="Đăng ký sát hạch">
+            <a href="${ctx}/registrant/dashboard" class="side-nav-bar__logo-link" aria-label="Đăng ký sát hạch">
                 <img src="${logoUrl}" alt="Lái Vui" width="63" height="63" class="side-nav-bar__logo-img">
             </a>
             <div class="side-nav-bar__brand-title-wrap">
                 <h1 class="side-nav-bar__brand-title">Đăng ký thi</h1>
+                <p class="side-nav-bar__brand-subtitle">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user and not empty sessionScope.user.profile and not empty sessionScope.user.profile.fullName}">
+                            ${sessionScope.user.profile.fullName}
+                        </c:when>
+                        <c:otherwise>Thí sinh</c:otherwise>
+                    </c:choose>
+                </p>
             </div>
         </div>
     </div>
@@ -50,7 +58,7 @@
     <nav class="side-nav-bar__menu">
         
         <%-- 1. Dashboard cá nhân --%>
-        <a href="${ctx}/views/registrant/dashboard.jsp"
+        <a href="${ctx}/registrant/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
@@ -66,7 +74,7 @@
 
         <%-- 2. Hồ sơ cá nhân (Nhóm menu với Submenu) --%>
         <div class="side-nav-bar__menu-group">
-            <a href="${ctx}/views/registrant/profile.jsp"
+            <a href="${ctx}/registrant/profile"
                class="side-nav-bar__link${(activeSidebar eq 'profile' or activeSidebar eq 'upload-documents') ? ' is-active' : ''}"
                <c:if test="${activeSidebar eq 'profile' or activeSidebar eq 'upload-documents'}">aria-current="page"</c:if>>
                 <span class="side-nav-bar__icon side-nav-bar__icon--user" aria-hidden="true">
@@ -78,12 +86,12 @@
                 <span class="side-nav-bar__label">Hồ sơ cá nhân</span>
             </a>
             <div class="side-nav-bar__submenu">
-                <a href="${ctx}/views/registrant/profile.jsp"
+                <a href="${ctx}/registrant/profile"
                    class="side-nav-bar__submenu-link${activeSidebar eq 'profile' ? ' is-active' : ''}">
                     <span class="submenu-dot"></span>
                     <span class="side-nav-bar__label">Thông tin cá nhân</span>
                 </a>
-                <a href="${ctx}/views/registrant/upload-documents.jsp"
+                <a href="${ctx}/registrant/upload-documents"
                    class="side-nav-bar__submenu-link${activeSidebar eq 'upload-documents' ? ' is-active' : ''}">
                     <span class="submenu-dot"></span>
                     <span class="side-nav-bar__label">Upload hồ sơ bổ sung</span>
@@ -92,7 +100,7 @@
         </div>
 
         <%-- 4. Đăng ký thi --%>
-        <a href="${ctx}/views/registrant/register-exam.jsp"
+        <a href="${ctx}/registrant/register-exam"
            class="side-nav-bar__link${activeSidebar eq 'register-exam' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'register-exam'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
@@ -108,7 +116,7 @@
         </a>
 
         <%-- 5. Theo dõi tiến trình hồ sơ --%>
-        <a href="${ctx}/views/registrant/track-profile.jsp"
+        <a href="${ctx}/registrant/track-profile"
            class="side-nav-bar__link${activeSidebar eq 'track-profile' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'track-profile'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
@@ -123,7 +131,7 @@
         </a>
 
         <%-- 6. Lịch thi & kết quả --%>
-        <a href="${ctx}/views/registrant/my-exams.jsp"
+        <a href="${ctx}/registrant/my-exams"
            class="side-nav-bar__link${activeSidebar eq 'exam-schedule' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'exam-schedule'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
@@ -139,7 +147,7 @@
         </a>
 
         <%-- 7. Cài đặt --%>
-        <a href="${ctx}/views/registrant/settings.jsp"
+        <a href="${ctx}/registrant/settings"
            class="side-nav-bar__link${activeSidebar eq 'settings' ? ' is-active' : ''}"
            <c:if test="${activeSidebar eq 'settings'}">aria-current="page"</c:if>>
             <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
