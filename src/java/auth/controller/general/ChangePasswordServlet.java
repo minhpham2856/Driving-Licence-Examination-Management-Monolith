@@ -1,6 +1,7 @@
 package auth.controller.general;
 
 import auth.dto.ServiceResult;
+import auth.dto.UserDTO;
 import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
@@ -10,7 +11,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import shared.model.User;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
 import auth.service.AuditService;
@@ -38,8 +38,8 @@ public class ChangePasswordServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession userSession = request.getSession(false);
-        User sessionUser = userSession == null ? null
-                : (User) userSession.getAttribute(Attributes.Session.USER);
+        UserDTO sessionUser = userSession == null ? null
+                : (UserDTO) userSession.getAttribute(Attributes.Session.USER);
         if (sessionUser == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;

@@ -1,12 +1,12 @@
 package auth.controller.internal;
 
+import auth.dto.UserDTO;
 import shared.Attributes;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
 import static auth.util.FormatUtil.formatString;
 import shared.enums.RoleType;
-import auth.util.SessionUserUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -70,9 +70,9 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // store logged in user without password hash
+        // store session identity as UserDTO (no password hash)
         HttpSession session = request.getSession();
-        session.setAttribute(Attributes.Session.USER, SessionUserUtil.forSession(user));
+        session.setAttribute(Attributes.Session.USER, UserDTO.fromUser(user));
 
         // redirect by role
         switch (role) {
