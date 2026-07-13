@@ -58,6 +58,18 @@
 
         </c:when>
 
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'profile') or fn:contains(pageContext.request.requestURI, 'ho-so')}">
+
+            <c:set var="activeSidebar" value="ho-so" />
+
+        </c:when>
+
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'change-password') or fn:contains(pageContext.request.requestURI, 'doi-mat-khau')}">
+
+            <c:set var="activeSidebar" value="doi-mat-khau" />
+
+        </c:when>
+
         <c:otherwise>
 
             <c:set var="activeSidebar" value="dashboard" />

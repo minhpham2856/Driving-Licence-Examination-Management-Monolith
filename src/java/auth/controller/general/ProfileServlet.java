@@ -88,7 +88,15 @@ public class ProfileServlet extends HttpServlet {
 
     private void publishAccount(HttpServletRequest request, UserDTO sessionUser) {
         StaffAccountViewDTO view = profileService.getAccountView(sessionUser.getUserId());
-        request.setAttribute(Attributes.Request.ACCOUNT_USER, view.getUser() != null ? view.getUser() : sessionUser);
+        UserDTO accountUser = view.getUser() != null ? view.getUser() : sessionUser;
+        // getById does not load Role — keep role from the logged-in session.
+        if (accountUser.getRole() == null && sessionUser.getRole() != null) {
+            accountUser.setRole(sessionUser.getRole());
+        }
+        if (accountUser.getEmail() == null || accountUser.getEmail().isBlank()) {
+            accountUser.setEmail(sessionUser.getEmail());
+        }
+        request.setAttribute(Attributes.Request.ACCOUNT_USER, accountUser);
         request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, view.getProfile());
 
         HttpSession session = request.getSession(false);
@@ -99,6 +107,15 @@ public class ProfileServlet extends HttpServlet {
         }
 
         request.setAttribute(Attributes.Request.BACK_URL, resolveHomePath(sessionUser));
+        request.setAttribute(Attributes.Request.ACCOUNT_SHELL, resolveAccountShell(sessionUser));
+    }
+
+    private static String resolveAccountShell(UserDTO user) {
+        if (user == null || user.getRole() == null) {
+            return "public";
+        }
+        RoleType role = RoleType.fromValue(user.getRole().getRoleName());
+        return role == RoleType.EXAM_STAFF ? "examstaff" : "public";
     }
 
     private static String resolveLoginPath(UserDTO user) {
