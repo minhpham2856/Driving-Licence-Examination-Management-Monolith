@@ -6,7 +6,10 @@ import examstaff.dto.view.CallBoardState;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Input cho orchestrator trang gọi thí sinh (không phụ thuộc Servlet API). */
+/**
+ * Input cho orchestrator trang gọi thí sinh (không phụ thuộc Servlet API).
+ * Gom action, session ca/board và cache hàng chờ từ Presentation sang BLL.
+ */
 public class CandidateCallPageCommand {
 
     private String action;
@@ -19,6 +22,8 @@ public class CandidateCallPageCommand {
     private String webRoot;
     private boolean shiftEnded;
     private boolean shiftPaused;
+    /** Kỳ đã Hoàn tất/Hủy — chặn đình chỉ, hoàn tác, gọi tiếp... */
+    private boolean examMutationsLocked;
     private String callingSbd;
     private Integer lastLoadedExamId;
     private List<String> callQueueOrder;
@@ -105,6 +110,14 @@ public class CandidateCallPageCommand {
 
     public void setShiftPaused(boolean shiftPaused) {
         this.shiftPaused = shiftPaused;
+    }
+
+    public boolean isExamMutationsLocked() {
+        return examMutationsLocked;
+    }
+
+    public void setExamMutationsLocked(boolean examMutationsLocked) {
+        this.examMutationsLocked = examMutationsLocked;
     }
 
     public String getCallingSbd() {

@@ -8,10 +8,12 @@ import examstaff.service.impl.ExamRegistrationServiceImpl;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Implementation: đánh dấu / khôi phục vắng mặt thí sinh. */
 public class CandidateAttendanceServiceImpl implements CandidateAttendanceService {
 
     private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
 
+    /** {@inheritDoc} */
     @Override
     public boolean markPermanentAbsent(int candidateId) {
         registrationService.updateScores(candidateId, 0, "failed", 0, "failed");
@@ -19,6 +21,7 @@ public class CandidateAttendanceServiceImpl implements CandidateAttendanceServic
         return registrationService.markAbsent(candidateId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean restoreAbsentCandidate(ExamRegistrationDTO profile) {
         if (profile == null) {
@@ -35,6 +38,7 @@ public class CandidateAttendanceServiceImpl implements CandidateAttendanceServic
         return true;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamRegistrationDTO> markIncompleteAsAbsentAtEndShift(List<ExamRegistrationDTO> activeQueue) {
         List<ExamRegistrationDTO> marked = new ArrayList<>();

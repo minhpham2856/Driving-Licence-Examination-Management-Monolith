@@ -4,13 +4,23 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Kết quả một hành động gọi thí sinh từ BLL về Presentation.
+ * Cập nhật hàng chờ, SBD đang gọi, cờ ca và loại cảnh báo UI.
+ */
 public class CandidateCallActionResultDTO {
 
+    /** Loại cảnh báo UI sau thao tác gọi thí sinh. */
     public enum AlertType {
+        /** Không có cảnh báo. */
         NONE,
+        /** Tự động đánh vắng khi quá thời gian / không phản hồi. */
         AUTO_ABSENT,
+        /** Đánh vắng (có mặt lại sau). */
         ABSENT,
+        /** Vắng mặt vĩnh viễn trong ca. */
         PERMANENT_ABSENT,
+        /** Hoàn tác thao tác trước đó. */
         UNDO
     }
 
@@ -24,6 +34,7 @@ public class CandidateCallActionResultDTO {
     private boolean redirectToCallPage;
     private boolean syncQueueOrder;
     private boolean moveRestoredToFront;
+    /** SBD sau đó cần đẩy thí sinh được khôi phục lên trước. */
     private String promoteAfterSbd;
     private AlertType alertType = AlertType.NONE;
     private String alertSbd;

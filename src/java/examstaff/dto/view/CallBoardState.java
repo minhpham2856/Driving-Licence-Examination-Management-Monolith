@@ -3,7 +3,17 @@ package examstaff.dto.view;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Trạng thái bảng gọi thí sinh (không phụ thuộc Servlet API). */
+/**
+ * Trạng thái bảng gọi thí sinh runtime (không phụ thuộc Servlet API).
+ * Lưu in-memory qua {@link examstaff.dao.CallBoardDAO}; staff ghi, Public Call đọc.
+ * <ul>
+ *   <li>{@code callingSbd} — SBD đang được gọi</li>
+ *   <li>{@code nextSbd} — SBD chuẩn bị gọi</li>
+ *   <li>{@code deskBusy}/{@code deskSbd} — bàn thủ tục đang bận</li>
+ *   <li>{@code queueOrderSbds} — thứ tự hàng đợi đồng bộ</li>
+ *   <li>{@code shiftEnded}/{@code examPaused} — trạng thái ca</li>
+ * </ul>
+ */
 public class CallBoardState {
 
     private int examId;
