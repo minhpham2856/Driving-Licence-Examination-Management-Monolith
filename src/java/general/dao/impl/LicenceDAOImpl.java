@@ -1,4 +1,5 @@
 package general.dao.impl;
+import general.dto.LicenceSearchCriteriaDTO;
 import java.sql.*;
 import general.dao.LicenceDAO;
 import shared.dbconnection.DBContext;
@@ -14,6 +15,15 @@ public class LicenceDAOImpl implements LicenceDAO {
     private static final String BASE_SELECT =
         "SELECT l.LicenceId, l.LicenceClass, l.Description, l.MinimumAge, l.ValidForYears, l.UpgradeFromLicenceId "
       + "FROM Licence l ";
+    private static final String VEHICLE_TYPE_CASE =
+        "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'xe-may' "
+      + "WHEN l.LicenceClass IN ('B1') THEN 'o-to-con' "
+      + "WHEN l.LicenceClass IN ('B','C','D','E','F') THEN 'xe-tai-khach' "
+      + "ELSE 'other' END";
+    private static final String DURATION_CASE =
+        "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'duoi-3-thang' "
+      + "WHEN l.LicenceClass IN ('B1') THEN 'tu-3-6-thang' "
+      + "ELSE 'other' END";
     private Licence map(ResultSet rs) throws SQLException {
         // map db to model
         Licence l = new Licence();
@@ -61,6 +71,94 @@ public class LicenceDAOImpl implements LicenceDAO {
             e.printStackTrace();
         }
         return list;
+    }
+    @Override
+    public List<Licence> searchByCriteria(LicenceSearchCriteriaDTO criteria) {
+        List<Licence> list = new ArrayList<>();
+        if (criteria == null) {
+            return search(null);
+        }
+
+        String keyword = criteria.getKeyword();
+        boolean hasKw = keyword != null && !keyword.isBlank();
+        List<String> types = criteria.getVehicleTypes();
+        List<String> durations = criteria.getDurations();
+        boolean hasTypes = types != null && !types.isEmpty();
+        boolean hasDurations = durations != null && !durations.isEmpty();
+
+        String orderColumn = resolveSortColumn(criteria.getSortBy());
+        String orderDir = "desc".equalsIgnoreCase(criteria.getSortDir()) ? "DESC" : "ASC";
+
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        sql.append("WHERE 1=1 ");
+        if (hasKw) {
+            sql.append("AND (l.LicenceClass LIKE ? OR l.Description LIKE ?) ");
+        }
+        if (hasTypes) {
+            sql.append("AND (").append(VEHICLE_TYPE_CASE).append(") IN (");
+            for (int i = 0; i < types.size(); i++) {
+                if (i > 0) {
+                    sql.append(",");
+                }
+                sql.append("?");
+            }
+            sql.append(") ");
+        }
+        if (hasDurations) {
+            sql.append("AND (").append(DURATION_CASE).append(") IN (");
+            for (int i = 0; i < durations.size(); i++) {
+                if (i > 0) {
+                    sql.append(",");
+                }
+                sql.append("?");
+            }
+            sql.append(") ");
+        }
+        sql.append("ORDER BY ").append(orderColumn).append(" ").append(orderDir);
+
+        try (Connection c = new DBContext().getConnection();
+             PreparedStatement ps = c.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (hasKw) {
+                String like = "%" + keyword.trim() + "%";
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+            }
+            if (hasTypes) {
+                for (String type : types) {
+                    ps.setString(idx++, type);
+                }
+            }
+            if (hasDurations) {
+                for (String duration : durations) {
+                    ps.setString(idx++, duration);
+                }
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(map(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    private String resolveSortColumn(String sortBy) {
+        if (sortBy == null) {
+            return "l.LicenceId";
+        }
+        if ("licenceClass".equals(sortBy)) {
+            return "l.LicenceClass";
+        }
+        if ("minimumAge".equals(sortBy)) {
+            return "l.MinimumAge";
+        }
+        if ("validForYears".equals(sortBy)) {
+            return "l.ValidForYears";
+        }
+        return "l.LicenceId";
     }
     @Override
     public Licence getById(int licenceId) {
