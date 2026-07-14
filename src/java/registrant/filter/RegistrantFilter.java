@@ -14,9 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-/**
- * Bảo vệ toàn bộ URL cổng thí sinh và chuyển hướng JSP sang servlet có dữ liệu DB.
- */
+/** Bảo vệ /registrant/*: redirect JSP thô → servlet DB, rồi kiểm tra session USER + role REGISTRANT. */
 @WebFilter(
         urlPatterns = { "/views/registrant/*", "/registrant/*", "/uploads/registrant/*" },
         dispatcherTypes = { DispatcherType.REQUEST }
