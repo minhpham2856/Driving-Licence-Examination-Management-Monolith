@@ -8,16 +8,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Quy tắc phân công giám khảo / phòng thi — helper thuần, không HTTP. */
+/** Quy tắc phân công giám khảo / phòng thi — helper thuần. */
 public final class ExaminerAssignmentRules {
 
     private ExaminerAssignmentRules() {
     }
 
+    /**
+     * Slot đã có giám khảo và phòng hợp lệ.
+     *
+     * @param slot slot phân công
+     * @return {@code true} nếu examinerUserId &gt; 0 và areaId &gt; 0
+     */
     public static boolean isStaffedSlot(ExaminerSlotDTO slot) {
         return slot != null && slot.getExaminerUserId() > 0 && slot.getAreaId() > 0;
     }
 
+    /**
+     * Chuỗi AreaType có nghĩa là phòng lý thuyết (các schema/alias).
+     *
+     * @param areaType giá trị AreaType thô
+     * @return {@code true} nếu nhận diện là lý thuyết
+     */
     public static boolean isTheoryAreaType(String areaType) {
         if (areaType == null || areaType.isBlank()) {
             return false;
@@ -34,6 +46,12 @@ public final class ExaminerAssignmentRules {
                 || lower.contains("phong thi");
     }
 
+    /**
+     * Chuỗi AreaType có nghĩa là phòng/sân thực hành (các schema/alias).
+     *
+     * @param areaType giá trị AreaType thô
+     * @return {@code true} nếu nhận diện là thực hành
+     */
     public static boolean isPracticalAreaType(String areaType) {
         if (areaType == null || areaType.isBlank()) {
             return false;
@@ -51,6 +69,12 @@ public final class ExaminerAssignmentRules {
                 || lower.contains("sân thi") || lower.contains("san thi");
     }
 
+    /**
+     * Slot đã staff và thuộc phần lý thuyết (theo AreaType hoặc examTypeId).
+     *
+     * @param slot slot phân công
+     * @return {@code true} nếu là slot lý thuyết
+     */
     public static boolean isTheorySlot(ExaminerSlotDTO slot) {
         if (!isStaffedSlot(slot)) {
             return false;
@@ -61,6 +85,12 @@ public final class ExaminerAssignmentRules {
         return slot.getExamTypeId() == ExamSection.LY_THUYET.getExamTypeId();
     }
 
+    /**
+     * Slot đã staff và thuộc phần thực hành (trong hình / trên đường).
+     *
+     * @param slot slot phân công
+     * @return {@code true} nếu là slot thực hành
+     */
     public static boolean isPracticalSlot(ExaminerSlotDTO slot) {
         if (!isStaffedSlot(slot)) {
             return false;
@@ -74,7 +104,10 @@ public final class ExaminerAssignmentRules {
     }
 
     /**
-     * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ phòng lý thuyết + thực hành có giám khảo.
+     * Kiểm tra đủ phòng lý thuyết + thực hành có giám khảo trước khi bắt đầu kỳ.
+     *
+     * @param assignments danh sách slot phân công
+     * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ coverage
      */
     public static String validateStartCoverage(List<ExaminerSlotDTO> assignments) {
         if (assignments == null || assignments.isEmpty()) {
@@ -105,7 +138,12 @@ public final class ExaminerAssignmentRules {
         return null;
     }
 
-    /** Các phòng lý thuyết đã có ít nhất một giám khảo trong kỳ. */
+    /**
+     * Các phòng lý thuyết đã có ít nhất một giám khảo trong kỳ.
+     *
+     * @param assignments danh sách slot
+     * @return tập areaId phòng LT đã staff
+     */
     public static Set<Integer> staffedTheoryAreaIds(List<ExaminerSlotDTO> assignments) {
         Set<Integer> ids = new HashSet<>();
         if (assignments == null) {
@@ -119,10 +157,22 @@ public final class ExaminerAssignmentRules {
         return ids;
     }
 
+    /**
+     * {@link ExamArea} có AreaType lý thuyết.
+     *
+     * @param room khu vực
+     * @return {@code true} nếu là phòng LT
+     */
     public static boolean isTheoryRoom(ExamArea room) {
         return room != null && isTheoryAreaType(room.getAreaType());
     }
 
+    /**
+     * Các phòng/sân thực hành đã có ít nhất một giám khảo.
+     *
+     * @param assignments danh sách slot
+     * @return tập areaId phòng TH đã staff
+     */
     public static Set<Integer> staffedPracticalAreaIds(List<ExaminerSlotDTO> assignments) {
         Set<Integer> ids = new HashSet<>();
         if (assignments == null) {
@@ -136,10 +186,23 @@ public final class ExaminerAssignmentRules {
         return ids;
     }
 
+    /**
+     * {@link ExamArea} có AreaType thực hành.
+     *
+     * @param room khu vực
+     * @return {@code true} nếu là phòng/sân TH
+     */
     public static boolean isPracticalRoom(ExamArea room) {
         return room != null && isPracticalAreaType(room.getAreaType());
     }
 
+    /**
+     * Lọc phòng lý thuyết trong {@code rooms} đã có giám khảo theo {@code staffedAreaIds}.
+     *
+     * @param rooms          danh sách phòng
+     * @param staffedAreaIds tập areaId đã staff
+     * @return danh sách phòng LT có staff (có thể rỗng)
+     */
     public static List<ExamArea> filterTheoryRoomsWithStaff(List<ExamArea> rooms,
             Set<Integer> staffedAreaIds) {
         if (rooms == null || rooms.isEmpty() || staffedAreaIds == null || staffedAreaIds.isEmpty()) {
@@ -151,6 +214,13 @@ public final class ExaminerAssignmentRules {
                 .toList();
     }
 
+    /**
+     * Lọc phòng/sân thực hành trong {@code rooms} đã có giám khảo theo {@code staffedAreaIds}.
+     *
+     * @param rooms          danh sách phòng
+     * @param staffedAreaIds tập areaId đã staff
+     * @return danh sách phòng TH có staff (có thể rỗng)
+     */
     public static List<ExamArea> filterPracticalRoomsWithStaff(List<ExamArea> rooms,
             Set<Integer> staffedAreaIds) {
         if (rooms == null || rooms.isEmpty() || staffedAreaIds == null || staffedAreaIds.isEmpty()) {

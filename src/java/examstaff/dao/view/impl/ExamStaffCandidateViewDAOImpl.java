@@ -13,8 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/** JDBC implementation của {@link ExamStaffCandidateViewDAO}. */
 public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaffCandidateViewDAO {
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamStaffCandidate> findByExamId(int examId) {
         if (examId <= 0) {
@@ -29,6 +31,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return list;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamStaffCandidate findByExamIdAndSbd(int examId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
@@ -43,6 +46,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return null;
     }
 
+    /** Chạy SELECT + WHERE và map danh sách thí sinh. */
     private List<ExamStaffCandidate> query(String selectSql, String whereSql, int bindInt) {
         List<ExamStaffCandidate> list = new ArrayList<>();
         Connection conn = getConnection();
@@ -63,6 +67,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return list;
     }
 
+    /** Ánh xạ ResultSet → {@link ExamStaffCandidate}. */
     private static ExamStaffCandidate mapRow(ResultSet rs) throws SQLException {
         ExamStaffCandidate row = new ExamStaffCandidate();
         row.setCandidateId(rs.getInt("id"));
@@ -140,11 +145,13 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return row;
     }
 
+    /** Đọc cột BIT; null → false. */
     private static boolean readBit(ResultSet rs, String column) throws SQLException {
         boolean value = rs.getBoolean(column);
         return !rs.wasNull() && value;
     }
 
+    /** Đọc cột BIT nullable. */
     private static Boolean readNullableBoolean(ResultSet rs, String column) throws SQLException {
         boolean value = rs.getBoolean(column);
         if (rs.wasNull()) {
@@ -153,6 +160,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return value;
     }
 
+    /** Format SBD 3 chữ số. */
     private static String formatSbd(int candidateNo) {
         return String.format(Locale.ROOT, "%03d", candidateNo);
     }

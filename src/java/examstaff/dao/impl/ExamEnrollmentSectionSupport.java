@@ -9,18 +9,23 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
-/** Thao tác ExamEnrollmentSection (schema DLEM_DB_2). */
+/**
+ * Hỗ trợ CRUD {@code ExamEnrollmentSection} (schema DLEM_DB_2).
+ */
 final class ExamEnrollmentSectionSupport {
 
+    /** Không cho khởi tạo. */
     private ExamEnrollmentSectionSupport() {
     }
 
+    /** Đảm bảo có dòng ExamEnrollmentSection cho LT/TH theo cờ take*. */
     static void ensureSections(Connection conn, int examEnrollmentId, int examId,
             Boolean takeTheory, Boolean takePractical) throws SQLException {
         insertSectionIfNeeded(conn, examEnrollmentId, examId, Db2ExamSchemaSql.THEORY_SECTION_TYPES, takeTheory);
         insertSectionIfNeeded(conn, examEnrollmentId, examId, Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES, takePractical);
     }
 
+    /** Insert section nếu takeFlag cho phép và chưa tồn tại. */
     private static void insertSectionIfNeeded(Connection conn, int examEnrollmentId, int examId,
             String sectionTypesCsv, Boolean takeFlag) throws SQLException {
         if (takeFlag != null && !takeFlag) {
@@ -46,6 +51,7 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Kiểm tra đã có ExamEnrollmentSection cho cặp enrollment/section. */
     private static boolean sectionRowExists(Connection conn, int examEnrollmentId, int sectionId)
             throws SQLException {
         String sql = """
@@ -61,6 +67,7 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Thêm dòng ExamEnrollmentSection với Status Pending. */
     private static void insertSectionRow(Connection conn, int examEnrollmentId, int sectionId)
             throws SQLException {
         String sql = """
@@ -74,11 +81,13 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Tìm ExamEnrollmentSectionId phần lý thuyết. */
     static Integer findTheoryEnrollmentSectionId(Connection conn, int candidateId, int examId)
             throws SQLException {
         return findEnrollmentSectionId(conn, candidateId, examId, Db2ExamSchemaSql.THEORY_SECTION_TYPES);
     }
 
+    /** Tìm ExamSectionId theo kỳ thi và danh sách SectionType. */
     static Integer findSectionId(Connection conn, int examId, String sectionTypesCsv) throws SQLException {
         String sql = """
                 SELECT TOP 1 ExamSectionId FROM ExamSection
@@ -97,6 +106,7 @@ final class ExamEnrollmentSectionSupport {
         return null;
     }
 
+    /** Tìm ExamSectionId đã gắn với một ExamEnrollment. */
     static Integer findSectionIdForEnrollment(Connection conn, int examEnrollmentId, String sectionTypesCsv)
             throws SQLException {
         String sql = """
@@ -119,6 +129,7 @@ final class ExamEnrollmentSectionSupport {
         return null;
     }
 
+    /** Tìm ExamEnrollmentSectionId theo thí sinh/kỳ thi/loại section. */
     private static Integer findEnrollmentSectionId(Connection conn, int candidateId, int examId,
             String sectionTypesCsv) throws SQLException {
         String sql = """
@@ -143,6 +154,7 @@ final class ExamEnrollmentSectionSupport {
         return null;
     }
 
+    /** Đọc Status phần lý thuyết. */
     static String getTheoryStatus(Connection conn, int candidateId, int examId) throws SQLException {
         String sql = """
                 SELECT TOP 1 ees.Status
@@ -166,6 +178,7 @@ final class ExamEnrollmentSectionSupport {
         return null;
     }
 
+    /** Cập nhật Status phần lý thuyết. */
     static boolean updateTheoryStatus(Connection conn, int candidateId, int examId, String status)
             throws SQLException {
         String sql = """
@@ -185,6 +198,7 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Đánh dấu đã in chữ ký (set CompletedAt khi AwaitingSignature). */
     static boolean markSignaturePrinted(Connection conn, int candidateId, int examId) throws SQLException {
         String sql = """
                 UPDATE ees SET ees.CompletedAt = COALESCE(ees.CompletedAt, GETDATE())
@@ -203,6 +217,7 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Phân phòng lý thuyết (ExamEnrollmentSection + ExamEnrollment). */
     static boolean updateTheoryAllocation(Connection conn, int candidateId, int examId, int areaId)
             throws SQLException {
         String sql = """
@@ -234,6 +249,7 @@ final class ExamEnrollmentSectionSupport {
         return false;
     }
 
+    /** Phân khu vực thực hành. */
     static boolean updatePracticalAllocation(Connection conn, int candidateId, int examId, int areaId)
             throws SQLException {
         String sql = """
@@ -253,6 +269,7 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Reset Status LT về Pending (sau hủy vắng). */
     static void resetTheoryStatus(Connection conn, int candidateId) throws SQLException {
         String sql = """
                 UPDATE ees SET ees.Status = N'Pending', ees.CompletedAt = NULL
@@ -269,6 +286,7 @@ final class ExamEnrollmentSectionSupport {
         }
     }
 
+    /** Đảm bảo có TheoryPaper; trả TheoryPaperId hoặc -1. */
     static int ensureTheoryPaper(Connection conn, int theoryEnrollmentSectionId, int deviceId)
             throws SQLException {
         String check = "SELECT TheoryPaperId FROM TheoryPaper WHERE ExamEnrollmentSectionId = ?";

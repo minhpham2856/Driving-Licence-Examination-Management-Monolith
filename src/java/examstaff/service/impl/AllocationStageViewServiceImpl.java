@@ -13,8 +13,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/** Implementation: dựng view phân bổ theo giai đoạn (LT / TH / tổng quan). */
 public class AllocationStageViewServiceImpl implements AllocationStageViewService {
 
+    /** {@inheritDoc} */
     @Override
     public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,
             String resultFilter, String searchQuery, int page, int pageSize,
@@ -59,6 +61,7 @@ public class AllocationStageViewServiceImpl implements AllocationStageViewServic
         return view;
     }
 
+    /** Kết quả tìm kiếm nhanh trên stage tổng quan. */
     private static List<AllocationOverviewHitDTO> buildOverviewHits(
             List<ExamRegistrationDTO> candidates, Set<Integer> practicalStageIds,
             String stage, String searchQuery) {

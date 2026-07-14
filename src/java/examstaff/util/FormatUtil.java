@@ -1,11 +1,17 @@
 package examstaff.util;
 
-/** Format helpers used by examstaff registration/DAO (vendored subset). */
+/** Parse số báo danh / số thí sinh từ chuỗi (có hoặc không tiền tố). */
 public final class FormatUtil {
 
     private FormatUtil() {
     }
 
+    /**
+     * Lấy phần số từ candidate number (sau dấu {@code -} nếu có).
+     *
+     * @param candidateNumber chuỗi SBD/số thí sinh
+     * @return số nguyên hoặc {@code 0} nếu không parse được
+     */
     public static int parseCandidateNo(String candidateNumber) {
         if (candidateNumber == null || candidateNumber.isBlank()) {
             return 0;

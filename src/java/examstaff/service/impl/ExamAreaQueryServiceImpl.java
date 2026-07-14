@@ -11,20 +11,24 @@ import examstaff.util.ExaminerAssignmentRules;
 import java.util.List;
 import java.util.Set;
 
+/** Implementation: truy vấn khu vực thi đã có giám khảo phân công. */
 public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
 
     private final ExamAreaDAO examAreaDAO;
     private final ExaminerAssignmentDAO assignmentDAO;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public ExamAreaQueryServiceImpl() {
         this(new ExamAreaDAOImpl(), new ExaminerAssignmentDAOImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO, ExaminerAssignmentDAO assignmentDAO) {
         this.examAreaDAO = examAreaDAO;
         this.assignmentDAO = assignmentDAO;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamArea> listStaffedTheoryRoomsForExam(int examId) {
         if (examId <= 0) {
@@ -36,6 +40,7 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         return ExaminerAssignmentRules.filterTheoryRoomsWithStaff(examRooms, staffed);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamArea> listStaffedPracticalAreasForExam(int examId) {
         if (examId <= 0) {
@@ -47,6 +52,7 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         return ExaminerAssignmentRules.filterPracticalRoomsWithStaff(examRooms, staffed);
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamArea findById(int examAreaId) {
         return examAreaDAO.getById(examAreaId);
