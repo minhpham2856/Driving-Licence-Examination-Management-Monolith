@@ -13,12 +13,15 @@ import payment.util.sepay.SePayConfig;
 import payment.util.sepay.SePayConstants;
 import payment.util.sepay.SePayIpnParser;
 import payment.util.sepay.SePaySignature;
+import examstaff.enums.PaymentStatus;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/** SePay: checkout (createCheckout → buildAutoSubmitHtml) rồi IPN (handleIpn → recordPaidIpn idempotent). Invoice DLEM-{prefix}-{candidateId}-{timestamp}. */
 public class SePayPaymentServiceImpl implements SePayPaymentService {
 
+    /** Cho phép lệch tối đa 5 phút giữa timestamp webhook và đồng hồ server (chống replay). */
     private static final long WEBHOOK_MAX_SKEW_SECONDS = 300L;
 
     private final PaymentDAO paymentdao = new PaymentDAOImpl();
@@ -33,6 +36,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return SePayConfig.sandbox();
     }
 
+    /** Bước 1 checkout: ghép form fields + ký HMAC theo SIGN_FIELD_ORDER (sai thứ tự thì SePay từ chối). */
     @Override
     public SePayCheckoutSession createCheckout(SePayCheckoutRequest request) throws SePayPaymentException {
         if (!isConfigured()) {
@@ -41,6 +45,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         }
         validateCheckoutRequest(request);
 
+        // Field bắt buộc theo spec SePay PG — LinkedHashMap giữ thứ tự chèn (debug dễ đọc)
         Map<String, String> fields = new LinkedHashMap<>();
         fields.put("merchant", SePayConfig.merchantId());
         fields.put("operation", SePayConstants.OPERATION_PURCHASE);
@@ -58,16 +63,19 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         fields.put("error_url", resolveUrl(request.getErrorUrl(), SePayConfig.defaultErrorUrl()));
         fields.put("cancel_url", resolveUrl(request.getCancelUrl(), SePayConfig.defaultCancelUrl()));
 
+        // Ký HMAC-SHA256 → Base64, gắn vào form trước khi POST
         String signature = SePaySignature.signCheckout(fields, SePayConfig.secretKey());
         fields.put("signature", signature);
 
         SePayCheckoutSession session = new SePayCheckoutSession();
         session.setCheckoutUrl(SePayConfig.checkoutInitUrl());
         session.setOrderInvoiceNumber(request.getOrderInvoiceNumber().trim());
+        // Chỉ đưa field theo đúng thứ tự ký (kể cả signature) để POST ổn định
         SePaySignature.orderedCheckoutFields(fields).forEach(session::putFormField);
         return session;
     }
 
+    /** Bước 2 checkout: HTML form hidden + JS auto-submit POST thẳng lên SePay. */
     @Override
     public String buildAutoSubmitHtml(SePayCheckoutSession session) {
         if (session == null || session.getCheckoutUrl() == null) {
@@ -91,6 +99,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return html.toString();
     }
 
+    /** Mã hóa đơn DLEM-{prefix}-{internalOrderId}-{timestamp}; internalOrderId thường là CandidateId cho IPN. */
     @Override
     public String generateInvoiceNumber(String businessPrefix, long internalOrderId) {
         String prefix = businessPrefix == null || businessPrefix.isBlank()
@@ -98,6 +107,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return "DLEM-" + prefix + "-" + internalOrderId + "-" + System.currentTimeMillis();
     }
 
+    /** IPN: auth → parse → ORDER_PAID+CAPTURED thì ghi Payment → OK/reject. */
     @Override
     public SePayIpnResult handleIpn(String rawBody, String secretHeader,
             String signatureHeader, String timestampHeader) {
@@ -115,21 +125,22 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         if (event.getOrderInvoiceNumber() == null || event.getOrderInvoiceNumber().isBlank()) {
             return SePayIpnResult.reject("Missing order_invoice_number");
         }
+        // Chỉ ghi DB khi notification = ORDER_PAID và order_status = CAPTURED
         if (event.isPaid()) {
             recordPaidIpn(event);
         }
         return SePayIpnResult.ok(event);
     }
 
-    /** Ghi nhận thanh toán SePay vào RegistrantPayment (idempotent theo transaction id). */
+    /** Ghi Payment idempotent; bỏ qua nếu TransactionReference đã có (SePay retry). */
     private void recordPaidIpn(SePayIpnEvent event) {
         String transactionRef = resolveTransactionReference(event);
         if (transactionRef != null && paymentdao.existsCompletedByTransactionReference(transactionRef)) {
-            return;
+            return; // đã ghi → không insert trùng
         }
         Integer candidateId = parseCandidateIdFromInvoice(event.getOrderInvoiceNumber());
         if (candidateId == null || candidateId <= 0) {
-            return;
+            return; // invoice không parse được CandidateId
         }
         double amount = parseAmountVnd(event.getOrderAmount());
         if (amount <= 0) {
@@ -138,13 +149,15 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         PaymentRecord payment = new PaymentRecord();
         payment.setCandidateId(candidateId);
         payment.setAmount(amount);
-        payment.setPaymentStatus("Paid");
+        payment.setPaymentStatus(PaymentStatus.HOAN_TAT.getDisplayName());
         payment.setPaymentMethod(event.getPaymentMethod() != null && !event.getPaymentMethod().isBlank()
                 ? event.getPaymentMethod().trim() : "SePay");
         payment.setTransactionReference(transactionRef);
+        // insert cần ExamEnrollment sẵn; DAO resolve từ CandidateId
         paymentdao.insert(payment);
     }
 
+    /** Ưu tiên transaction_id → order_id → invoice number làm khóa idempotent. */
     private static String resolveTransactionReference(SePayIpnEvent event) {
         if (event.getTransactionId() != null && !event.getTransactionId().isBlank()) {
             return event.getTransactionId().trim();
@@ -155,7 +168,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return event.getOrderInvoiceNumber() != null ? event.getOrderInvoiceNumber().trim() : null;
     }
 
-    /** Định dạng: DLEM-{prefix}-{candidateId}-{timestamp}. */
+    /** Tách CandidateId từ invoice DLEM-{prefix}-{candidateId}-{timestamp} (parts[2]). */
     static Integer parseCandidateIdFromInvoice(String invoice) {
         if (invoice == null || invoice.isBlank()) {
             return null;
@@ -182,6 +195,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         }
     }
 
+    /** Xác thực IPN: X-Secret-Key = SEPAY_IPN_SECRET, hoặc HMAC timestamp.body; không có secret → cho qua (dev). */
     private static boolean verifyIpnAuth(String rawBody, String secretHeader,
             String signatureHeader, String timestampHeader) {
         String expectedSecret = SePayConfig.ipnSecret();
@@ -195,7 +209,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
             }
             return false;
         }
-        return true;
+        return true; // chưa set secret → bỏ qua auth (chỉ dùng khi dev)
     }
 
     private static void validateCheckoutRequest(SePayCheckoutRequest request) throws SePayPaymentException {
@@ -219,6 +233,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
             throw new SePayPaymentException(
                     "Thiếu callback URL. Cấu hình SEPAY_APP_BASE_URL hoặc SEPAY_SUCCESS_URL / ERROR / CANCEL.");
         }
+        // SePay chỉ chấp nhận URL tuyệt đối (public) để redirect sau thanh toán
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             throw new SePayPaymentException("Callback URL phải là URL công khai: " + url);
         }
@@ -236,6 +251,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
                 .replace(">", "&gt;");
     }
 
+    /** So sánh chuỗi constant-time (XOR toàn bộ byte) — chống timing attack khi đối chiếu secret. */
     private static boolean constantTimeEquals(String a, String b) {
         if (a == null || b == null || a.length() != b.length()) {
             return false;

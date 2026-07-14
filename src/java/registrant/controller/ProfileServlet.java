@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.sql.Timestamp;
 
+/** Hồ sơ cá nhân GET/POST /registrant/profile — GET Profile+tiến độ; POST bind→validate→create/update. */
 @WebServlet("/registrant/profile")
 public class ProfileServlet extends HttpServlet {
 

@@ -12,10 +12,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import examiner.service.ExamViewService;
 import examiner.service.impl.ExamViewServiceImpl;
+import shared.Attributes;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/views/examiner/dashboard")
+@WebServlet("/examiner/dashboard")
 public class ExaminerDashboardServlet extends HttpServlet {
 
     private final ExamViewService examViewService = new ExamViewServiceImpl();
@@ -41,11 +42,11 @@ public class ExaminerDashboardServlet extends HttpServlet {
         // Flag that a search is active so the view can show the query and a clear button
         if (formatString(search) != null) {
             request.setAttribute("searchActive", true);
-            request.setAttribute("searchQuery", search.trim());
+            request.setAttribute(Attributes.Request.SEARCH_QUERY, search.trim());
         }
 
         // Provide candidate list and summary for the dashboard
-        request.setAttribute("candidates", candidates);
+        request.setAttribute(Attributes.Request.CANDIDATES, candidates);
         request.setAttribute("candidateQueue", candidates);
         request.setAttribute(
                 "examSummary",
@@ -58,7 +59,7 @@ public class ExaminerDashboardServlet extends HttpServlet {
                     = examViewService.getCandidateViewRow(examId, candidateNumber, isTheory, sectionName);
 
             if (candidate != null) {
-                request.setAttribute("candidate", candidate);
+                request.setAttribute(Attributes.Request.CANDIDATE, candidate);
             }
         }
 

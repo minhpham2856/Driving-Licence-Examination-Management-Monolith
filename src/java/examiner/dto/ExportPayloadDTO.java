@@ -11,7 +11,7 @@ public record ExportPayloadDTO(
         String xmlRootElement,
         // Key-value pairs placed in the metadata/header section of the export
         Map<String, Object> metadata,
-        // Ordered list of data tables — each table has its own headers and rows
+        // Ordered list of data tables - each table has its own headers and rows
         List<XmlExportTable> tables,
         // Optional rows prepended before the main data table in Excel (null if none)
         List<List<Object>> excelPreambleRows) {

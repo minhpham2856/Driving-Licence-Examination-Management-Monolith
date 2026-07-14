@@ -62,7 +62,7 @@ public class RegisterServlet extends HttpServlet {
 
         // validate government id
         if (!ValidationUtil.isValidCccd(govIdNo)) {
-            forwardWithError(request, response, "Số CCCD phải gồm đúng 12 chữ số.");
+            forwardWithError(request, response, "Số căn cước phải gồm đúng 12 chữ số.");
             return;
         }
 

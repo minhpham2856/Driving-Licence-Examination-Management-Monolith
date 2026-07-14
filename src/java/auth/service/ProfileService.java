@@ -1,7 +1,7 @@
 package auth.service;
 
 import auth.dto.ServiceResult;
-import auth.dto.StaffAccountViewDTO;
+import auth.dto.AccountDTO;
 import auth.dto.UpdateProfileDTO;
 import shared.model.Profile;
 
@@ -9,7 +9,7 @@ public interface ProfileService {
 
     Profile getByUserId(int userId);
 
-    StaffAccountViewDTO getAccountView(int userId);
+    AccountDTO getAccount(int userId);
 
-    ServiceResult<Profile> updateMyProfile(int userId, UpdateProfileDTO input);
+    ServiceResult<Profile> updateProfile(int userId, UpdateProfileDTO input);
 }

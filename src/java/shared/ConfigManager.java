@@ -1,53 +1,111 @@
 package shared;
 
-import io.github.cdimascio.dotenv.Dotenv;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class ConfigManager {
 
-    // load environment variables
-    private static final Dotenv DOTENV = Dotenv.configure()
-            .ignoreIfMissing()
-            .load();
+    private static final Map<String, String> ENV = loadDotEnv();
 
-    // get configuration value
+    private ConfigManager() {
+    }
+
+//     OS env trước, rồi .env (project root = thư mục có src/ và .env)
     public static String get(String key) {
-        return DOTENV.get(key);
+        String fromOs = System.getenv(key);
+        if (fromOs != null && !fromOs.isBlank()) {
+            return fromOs.trim();
+        }
+        return ENV.get(key);
     }
 
-    // get configuration value with default
     public static String get(String key, String defaultValue) {
-        String value = DOTENV.get(key);
-
-        if (value == null) {
-            return defaultValue;
-        }
-
-        return value;
+        String value = get(key);
+        return value != null ? value : defaultValue;
     }
 
-    // get integer configuration
     public static int getInt(String key, int defaultValue) {
-        String value = DOTENV.get(key);
-
+        String value = get(key);
         if (value == null) {
             return defaultValue;
         }
-
         try {
-            return Integer.parseInt(value);
+            return Integer.parseInt(value.trim());
         } catch (NumberFormatException ex) {
             return defaultValue;
         }
     }
 
-    // get boolean configuration
     public static boolean getBoolean(String key, boolean defaultValue) {
-        String value = DOTENV.get(key);
-
+        String value = get(key);
         if (value == null) {
             return defaultValue;
         }
+        return Boolean.parseBoolean(value.trim());
+    }
 
-        return Boolean.parseBoolean(value);
+    private static Map<String, String> loadDotEnv() {
+        Map<String, String> map = new HashMap<>();
+        Path root = projectRoot();
+        if (root == null) {
+            return map;
+        }
+        Path envFile = root.resolve(".env");
+        if (!Files.isRegularFile(envFile)) {
+            return map;
+        }
+        try {
+            for (String line : Files.readAllLines(envFile)) {
+                String trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                    continue;
+                }
+                int eq = trimmed.indexOf('=');
+                if (eq <= 0) {
+                    continue;
+                }
+                String key = trimmed.substring(0, eq).trim();
+                String value = trimmed.substring(eq + 1).trim();
+                if ((value.startsWith("\"") && value.endsWith("\""))
+                        || (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.substring(1, value.length() - 1);
+                }
+                map.put(key, value);
+            }
+        } catch (IOException ignored) {
+        }
+        return map;
+    }
+
+    private static Path projectRoot() {
+        Path fromCwd = findRoot(Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath().normalize());
+        if (fromCwd != null) {
+            return fromCwd;
+        }
+        try {
+            Path start = Paths.get(ConfigManager.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            if (Files.isRegularFile(start)) {
+                start = start.getParent();
+            }
+            return findRoot(start.toAbsolutePath().normalize());
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static Path findRoot(Path start) {
+        Path current = start;
+        for (int i = 0; i < 10 && current != null; i++) {
+            if (Files.isDirectory(current.resolve("src"))
+                    && Files.isRegularFile(current.resolve(".env"))) {
+                return current;
+            }
+            current = current.getParent();
+        }
+        return null;
     }
 }

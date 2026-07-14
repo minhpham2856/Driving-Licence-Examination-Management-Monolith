@@ -41,7 +41,7 @@
         <header class="page-header">
             <div class="page-title-wrap">
                 <h1 class="page-title">Cài đặt tài khoản</h1>
-                <p class="page-subtitle">Đổi mật khẩu và chọn nhận thông báo kết quả thi / đổi mật khẩu qua Gmail.</p>
+                <p class="page-subtitle">Đổi mật khẩu và xem thông tin nhận thông báo qua Gmail trên tài khoản.</p>
             </div>
         </header>
 
@@ -223,7 +223,7 @@
             <%-- RIGHT COLUMN: Preferences & account summary --%>
             <div class="dashboard-sidebar-column">
 
-                <%-- Gmail notification preferences --%>
+                <%-- Gmail: chỉ thông báo (hệ thống luôn gửi khi đã cấu hình; không lưu tùy chọn) --%>
                 <section class="p-form-card" aria-label="Thông báo qua Gmail">
                     <div class="p-form-header">
                         <h2 class="p-form-title">
@@ -237,6 +237,7 @@
                     <div class="p-form-body">
                         <p class="settings-gmail-intro">
                             Hệ thống chỉ gửi thông báo qua <strong>Gmail</strong> tới địa chỉ đã đăng ký trên tài khoản.
+                            Bạn không cần bật/tắt — khi máy chủ đã cấu hình Gmail, các thông báo dưới đây sẽ được gửi tự động.
                         </p>
                         <p class="settings-gmail-email">
                             <span class="settings-gmail-email__label">Email nhận thông báo</span>
@@ -248,37 +249,22 @@
                             </p>
                         </c:if>
 
-                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-prefs-form">
-                            <input type="hidden" name="formId" value="prefs">
-
-                            <div class="toggle-switch-container">
-                                <div class="toggle-switch-label-wrap">
-                                    <span class="toggle-switch-title">Kết quả thi qua Gmail</span>
-                                    <span class="toggle-switch-desc">Nhận bảng điểm lý thuyết, sa hình và đường trường sau khi hoàn thành phần thi.</span>
+                        <div class="settings-gmail-info" role="list">
+                            <div class="settings-gmail-info__item" role="listitem">
+                                <span class="settings-gmail-info__badge" aria-hidden="true">✓</span>
+                                <div class="settings-gmail-info__text">
+                                    <span class="settings-gmail-info__title">Kết quả thi qua Gmail</span>
+                                    <span class="settings-gmail-info__desc">Nhận bảng điểm lý thuyết, sa hình và đường trường sau khi hoàn thành phần thi.</span>
                                 </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" name="emailResultsNotify"<c:if test="${notifyExamResults}"> checked="checked"</c:if>>
-                                    <span class="toggle-slider"></span>
-                                </label>
                             </div>
-
-                            <div class="toggle-switch-container">
-                                <div class="toggle-switch-label-wrap">
-                                    <span class="toggle-switch-title">Thông báo đổi mật khẩu qua Gmail</span>
-                                    <span class="toggle-switch-desc">Gửi email xác nhận khi bạn đổi mật khẩu thành công trong phần cài đặt.</span>
+                            <div class="settings-gmail-info__item" role="listitem">
+                                <span class="settings-gmail-info__badge" aria-hidden="true">✓</span>
+                                <div class="settings-gmail-info__text">
+                                    <span class="settings-gmail-info__title">Thông báo đổi mật khẩu qua Gmail</span>
+                                    <span class="settings-gmail-info__desc">Gửi email xác nhận khi bạn đổi mật khẩu thành công trong phần cài đặt.</span>
                                 </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" name="passwordChangeNotify"<c:if test="${notifyPasswordChange}"> checked="checked"</c:if>>
-                                    <span class="toggle-slider"></span>
-                                </label>
                             </div>
-
-                            <div style="margin-top: 20px;">
-                                <button type="submit" class="p-btn-edit" style="width: 100%; justify-content: center; height: 42px; border-color: #0052cc; color: #0052cc; font-size: 13px;">
-                                    Lưu tùy chọn Gmail
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </section>
 
