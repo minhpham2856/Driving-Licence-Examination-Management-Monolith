@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/procedure")
+@WebServlet("/examstaff/procedure")
 public class ProcedureServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
@@ -67,14 +67,14 @@ public class ProcedureServlet extends HttpServlet {
             if (currentExam != null && examstaff.enums.ExamStatus.isPaused(currentExam.getStatus())) {
                 ExamControlService.ResumeResult resume = examControlService.resumeExam(boardExamId);
                 if (!resume.isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+                    response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
                     return;
                 }
             }
             session.removeAttribute("shiftEnded");
             session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), boardExamId);
-            response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+            response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
             return;
         }
 
@@ -130,7 +130,7 @@ public class ProcedureServlet extends HttpServlet {
                 addAuditLog(session, "RESET Procedure",
                         "Xóa hồ sơ thủ tục SBD " + reset.getSbd(), reset.getCandidateId());
                 response.sendRedirect(request.getContextPath()
-                        + "/views/staff/examstaff/candidatecall?procedureReset="
+                        + "/examstaff/candidatecall?procedureReset="
                         + java.net.URLEncoder.encode(reset.getSbd(), java.nio.charset.StandardCharsets.UTF_8));
                 return;
             }
