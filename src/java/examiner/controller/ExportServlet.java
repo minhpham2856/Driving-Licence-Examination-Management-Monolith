@@ -47,6 +47,9 @@ public class ExportServlet extends HttpServlet {
             return;
         }
         String searchQuery = request.getParameter("q");
+        if (searchQuery == null || searchQuery.isBlank()) {
+            searchQuery = request.getParameter("sbd");
+        }
         FileType format = resolveFileType(request);
         OutputStream out = response.getOutputStream();
         try {
