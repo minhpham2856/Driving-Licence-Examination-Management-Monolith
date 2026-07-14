@@ -36,7 +36,7 @@ public class RegistrantMyExamRow {
     private String roadScoreDisplay;
     private String roadScoreDetail;
     private String roadPassBadgeClass;
-    /** Giờ ca thi đã định dạng (vd. "08:30 — 10:00"). */
+    /** Giờ ca thi đã định dạng (vd. "08:30 - 10:00"). */
     private String sessionTimeDisplay;
 
     /** Trạng thái ExamRegistration (luồng ca thi). */

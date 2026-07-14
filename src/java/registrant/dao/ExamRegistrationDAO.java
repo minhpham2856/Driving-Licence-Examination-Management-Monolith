@@ -6,6 +6,7 @@ import registrant.dto.exam.SessionExamSectionInfo;
 import registrant.dto.exam.SessionScheduleInfo;
 import java.util.List;
 
+/** API đăng ký thi/Candidate — portal dùng insert/getLastInsertError/findActive/conflict; staff/examiner dùng updateScores/attendance. */
 public interface ExamRegistrationDAO {
     ExamRegistration getById(int id);
     ExamRegistration getBySessionAndSbd(int sessionId, String sbd);
@@ -27,23 +28,28 @@ public interface ExamRegistrationDAO {
             String email, String phoneNo, String address, String sex, String reasonForTaking);
     boolean updatePhoto(int id, String photoUrl);
     boolean updateCandidateNumber(int id, String candidateNumber);
+    /** Đăng ký đợt thi portal: chỉ ghi ExamRegistration; reg.id = ExamRegistrationId. Không tạo Candidate/ExamEnrollment. */
     boolean insert(ExamRegistration reg);
 
-    /** Thông báo lỗi chi tiết từ lần {@link #insert} gần nhất (null nếu thành công hoặc chưa gọi). */
+    /** Thông báo lỗi chi tiết từ lần insert gần nhất (trùng ca/CCCD, ca đóng...) — null nếu thành công hoặc chưa gọi. */
     String getLastInsertError();
     List<ExamRegistration> getAllCandidates();
     boolean markAbsent(int candidateId);
     boolean clearAbsentMarking(int candidateId);
+    /** Đã có ExamRegistration portal cho (profile, examId/sessionId) chưa — trả ExamRegistrationId nếu có. */
     Integer findCandidateIdByProfileAndSession(int profileId, int sessionId);
 
     SessionExamSectionInfo findPrimarySectionForSession(int sessionId);
 
+    /** Đăng ký lifecycle còn active cùng (profile, licence, section) — loại ER workflow tài liệu khỏi kết quả. */
     RegistrantSectionRegistrationBlock findActiveSectionRegistration(int profileId, int licenceId, int sectionId);
 
     SessionScheduleInfo findSessionSchedule(int sessionId);
 
+    /** Các ca lifecycle còn hiệu lực của profile — dùng kiểm tra trùng ngày giữa hạng GPLX khác nhau. */
     List<SessionScheduleInfo> listActiveSessionSchedulesByProfileId(int profileId);
 
+    /** Thí sinh gửi yêu cầu hủy — chỉ PreRegistered + SBD tạm; đổi status CancelRequested. */
     boolean requestExamCancellation(int candidateId, int profileId, String reason);
 
     boolean candidateBelongsToProfile(int candidateId, int profileId);

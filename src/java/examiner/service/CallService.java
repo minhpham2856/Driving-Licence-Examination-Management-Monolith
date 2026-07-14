@@ -49,9 +49,6 @@ public interface CallService {
 
     ServiceResult<Void> changeCandidateVehicle(int examId, int sbd, int deviceId, Integer actionUserId);
 
-    ServiceResult<Void> updateTheoryScore(int examId, int sbd, User user, String password, Integer newScore,
-            String reasonCode, String reasonDetail, Integer actionUserId);
-
     ServiceResult<Void> logPracticalScoreEditReason(int examId, int sbd, User user, String password,
             String reasonCode, String reasonDetail, Integer actionUserId);
 

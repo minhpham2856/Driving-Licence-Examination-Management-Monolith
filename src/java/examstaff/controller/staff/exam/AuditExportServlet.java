@@ -23,21 +23,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Endpoint xuất Excel nhật ký audit cá nhân của exam staff.
- * Kiểm tra session đăng nhập rồi stream file; lỗi thì redirect về trang audit.
- */
-@WebServlet("/views/staff/examstaff/audit-export")
+@WebServlet("/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
+    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
 
     private final StaffAuditQueryService auditQueryService = SERVICES.auditQuery();
     private final StaffAuditExportService auditExportService = SERVICES.auditExport();
 
-    /**
-     * GET: xác thực session → tải log/KPI theo filterDate → stream Excel.
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -59,7 +52,7 @@ public class AuditExportServlet extends HttpServlet {
             e.printStackTrace();
             if (!response.isCommitted()) {
                 response.reset();
-                String redirect = request.getContextPath() + "/views/staff/examstaff/audit?exportError=1";
+                String redirect = request.getContextPath() + "/examstaff/audit?exportError=1";
                 if (filterDate != null && !filterDate.isBlank()) {
                     redirect += "&filterDate=" + java.net.URLEncoder.encode(filterDate, "UTF-8");
                 }
@@ -68,14 +61,6 @@ public class AuditExportServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Gắn header attachment và ủy quyền {@link StaffAuditExportService} ghi Excel.
-     *
-     * @param logs                danh sách audit đã lọc
-     * @param completedProcedures số thủ tục hoàn tất (KPI)
-     * @param totalFees           tổng phí (KPI)
-     * @param filterDate          ngày lọc (ảnh hưởng tên file / scope label)
-     */
     private void streamExcel(HttpServletResponse response, HttpSession session,
             List<AuditDTO> logs, int completedProcedures, double totalFees, String filterDate)
             throws IOException {
@@ -105,7 +90,6 @@ public class AuditExportServlet extends HttpServlet {
         response.getOutputStream().flush();
     }
 
-    /** Tên staff từ Profile session; fallback username. */
     private static String resolveStaffName(HttpSession session) {
         Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {
@@ -114,7 +98,6 @@ public class AuditExportServlet extends HttpServlet {
         return SessionUserHelper.resolveUsername(session);
     }
 
-    /** Tải log theo user/ngày; lỗi thì trả list rỗng (không ném lên caller). */
     private List<AuditDTO> loadLogs(int userId, String filterDate) {
         try {
             return auditQueryService.listLogsByUserAndDate(userId, filterDate);
