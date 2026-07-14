@@ -116,8 +116,10 @@
 .export-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 9px 17px;
+    height: 38px;
+    padding: 0 17px;
     border: 1px solid #c3c6d6;
     border-radius: 4px;
     background: #fff;
@@ -126,6 +128,18 @@
     cursor: pointer;
     white-space: nowrap;
     transition: background 0.15s;
+    box-sizing: border-box;
+    margin: 0;
+    font: inherit;
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+button.export-btn {
+    /* Keep <button> identical to <a class="export-btn"> */
+    appearance: none;
+    -webkit-appearance: none;
 }
 
 .export-btn:hover {
@@ -133,11 +147,17 @@
     text-decoration: none;
 }
 
+.export-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .export-btn__text {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.6px;
+    line-height: 1;
     color: #003d9b;
     text-align: center;
 }
@@ -196,11 +216,21 @@
 
 .export-sbd-form .examiner-search__input {
     background-color: #e4e9ed;
+    height: 38px;
+}
+
+.export-sbd-form select.examiner-search__input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23434654' d='M1.4 0.6L6 5.2 10.6 0.6 12 2 6 8 0 2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
 }
 
 .export-sbd-form .export-btn,
 .export-sbd-form .print-btn {
-    border: 1px solid #c3c6d6;
-    cursor: pointer;
-    font-family: inherit;
+    flex-shrink: 0;
 }
