@@ -31,7 +31,13 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
             ORDER BY countVal DESC
             """;
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy top lỗi trừ điểm của phần thực hành trong kỳ thi.
+     *
+     * @param examId mã kỳ thi
+     * @param limit  số dòng tối đa (mặc định 3 nếu &le; 0)
+     * @return danh sách map gồm {@code reason}, {@code count}, {@code percentage}
+     */
     @Override
     public List<Map<String, Object>> findTopInfractions(int examId, int limit) {
         if (examId <= 0) {

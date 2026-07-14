@@ -36,14 +36,23 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
             + "FROM Exam e "
             + "JOIN Licence l ON l.LicenceId = e.LicenceId";
 
-    /** {@inheritDoc} */
+    /**
+     * Liệt kê mọi kỳ thi theo thứ tự (ngày / ca).
+     *
+     * @return danh sách hàng tóm tắt kỳ thi
+     */
     @Override
     public List<ExamSummaryRow> findAllOrdered() {
         return fetchList(EXAM_SELECT
                 + " ORDER BY CAST(e.ExamDate AS DATE) DESC, e.StartTime DESC");
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tìm một kỳ thi theo mã.
+     *
+     * @param examId mã kỳ thi
+     * @return hàng tóm tắt hoặc null
+     */
     @Override
     public ExamSummaryRow findByExamId(int examId) {
         if (examId <= 0) {

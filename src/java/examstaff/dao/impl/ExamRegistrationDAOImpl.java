@@ -12,7 +12,12 @@ import java.util.List;
 /** JDBC implementation của {@link ExamRegistrationDAO}. */
 public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrationDAO {
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy đăng ký theo mã thí sinh.
+     *
+     * @param id mã thí sinh ({@code CandidateId})
+     * @return DTO hoặc {@code null}
+     */
     @Override
     public ExamRegistrationDTO getById(int id) {
         String sql = Db2CandidateSql.CANDIDATE_SELECT + " WHERE c.CandidateId = ?";
@@ -29,7 +34,13 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy thí sinh theo kỳ thi và số báo danh.
+     *
+     * @param examId mã kỳ thi
+     * @param sbd    số báo danh
+     * @return DTO hoặc {@code null}
+     */
     @Override
     public ExamRegistrationDTO getByExamAndSbd(int examId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
@@ -67,7 +78,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Danh sách thí sinh theo kỳ thi.
+     *
+     * @param examId mã kỳ thi
+     * @return danh sách đăng ký
+     */
     @Override
     public List<ExamRegistrationDTO> getCandidatesByExam(int examId) {
         if (examId <= 0) {
@@ -111,7 +127,13 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return list;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật cờ có mặt (xóa đánh dấu vắng nếu cần).
+     *
+     * @param id        mã thí sinh
+     * @param isPresent có mặt hay không
+     * @return {@code true} nếu thao tác thành công
+     */
     @Override
     public boolean updatePresent(int id, boolean isPresent) {
         if (id <= 0) {
@@ -134,7 +156,13 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật / tạo thanh toán hoàn tất cho thí sinh.
+     *
+     * @param id                  mã thí sinh
+     * @param isPaymentCompleted  đã thanh toán hay không
+     * @return {@code true} nếu thành công
+     */
     @Override
     public boolean updatePayment(int id, boolean isPaymentCompleted) {
         if (!isPaymentCompleted) {
@@ -174,7 +202,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xóa các giao dịch thanh toán đã hoàn tất của thí sinh.
+     *
+     * @param candidateId mã thí sinh
+     * @return {@code true} nếu thao tác thành công
+     */
     @Override
     public boolean clearCompletedPayments(int candidateId) {
         if (candidateId <= 0) {
@@ -196,7 +229,15 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật phòng phân bổ lý thuyết.
+     *
+     * @param candidateId mã thí sinh
+     * @param examId      mã kỳ thi
+     * @param areaId      mã khu vực
+     * @param areaName    tên khu vực (có thể không dùng ở persistence)
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean updateAllocatedRoom(int candidateId, int examId, int areaId, String areaName) {
         if (candidateId <= 0 || examId <= 0 || areaId <= 0) {
@@ -211,7 +252,15 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật sân/phòng phân bổ thực hành.
+     *
+     * @param candidateId mã thí sinh
+     * @param examId      mã kỳ thi
+     * @param areaId      mã khu vực
+     * @param areaName    tên khu vực
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean updatePracticalAllocatedRoom(int candidateId, int examId, int areaId, String areaName) {
         if (candidateId <= 0 || examId <= 0 || areaId <= 0) {
@@ -226,7 +275,13 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Kiểm tra thí sinh đã có phòng lý thuyết trong kỳ thi chưa.
+     *
+     * @param candidateId mã thí sinh
+     * @param examId      mã kỳ thi
+     * @return thông báo lỗi, hoặc {@code null} nếu được phép phân phòng
+     */
     @Override
     public String validateUniqueTheoryAllocation(int candidateId, int examId) {
         if (candidateId <= 0 || examId <= 0) {
@@ -262,7 +317,16 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật điểm lý thuyết và/hoặc thực hành.
+     *
+     * @param id              mã thí sinh
+     * @param theoryScore     điểm lý thuyết (null = bỏ qua)
+     * @param theoryPassed    kết quả LT (passed/failed/null)
+     * @param practicalScore  điểm thực hành (null = bỏ qua)
+     * @param practicalPassed kết quả TH (passed/failed/null)
+     * @return {@code true} nếu ghi điểm thành công
+     */
     @Override
     public boolean updateScores(int id, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed) {
@@ -298,7 +362,17 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật hồ sơ cơ bản thí sinh (và Profile/User liên quan).
+     *
+     * @param id       mã thí sinh
+     * @param fullName họ tên
+     * @param dob      ngày sinh
+     * @param govIdNo  CCCD/CMND
+     * @param email    email
+     * @param phoneNo  số điện thoại
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean updateProfile(int id, String fullName, Date dob, String govIdNo, String email, String phoneNo) {
         String sqlCand = """
@@ -372,7 +446,13 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật đường dẫn ảnh thí sinh.
+     *
+     * @param id       mã thí sinh
+     * @param photoUrl URL ảnh
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean updatePhoto(int id, String photoUrl) {
         String sql = "UPDATE Candidate SET PhotoImageUrl = ? WHERE CandidateId = ?";
@@ -390,7 +470,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đánh dấu vắng mặt.
+     *
+     * @param candidateId mã thí sinh
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean markAbsent(int candidateId) {
         String sql = "UPDATE Candidate SET IsAbsent = 1 WHERE CandidateId = ?";
@@ -403,7 +488,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đánh dấu đình chỉ thi.
+     *
+     * @param candidateId mã thí sinh
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean markSuspended(int candidateId) {
         String sql = "UPDATE Candidate SET IsSuspended = 1 WHERE CandidateId = ?";
@@ -416,7 +506,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Hủy đình chỉ thi.
+     *
+     * @param candidateId mã thí sinh
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean undoSuspension(int candidateId) {
         String sql = "UPDATE Candidate SET IsSuspended = 0 WHERE CandidateId = ?";
@@ -429,7 +524,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Hủy đánh dấu vắng (và dọn kết quả liên quan).
+     *
+     * @param candidateId mã thí sinh
+     * @return {@code true} nếu cập nhật thành công
+     */
     @Override
     public boolean clearAbsentMarking(int candidateId) {
         String sql = """

@@ -18,7 +18,13 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
 
     private final ReportInfractionViewDAO infractionViewDAO = new ReportInfractionViewDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Tổng hợp chỉ số báo cáo (số thí sinh, đỗ/trượt, …) theo danh sách đã lọc.
+     *
+     * @param candidates danh sách thí sinh trong báo cáo
+     * @param examId     mã kỳ thi
+     * @return DTO thống kê báo cáo
+     */
     @Override
     public ExamReportStatsDTO computeStats(List<ExamRegistrationDTO> candidates, int examId) {
         ExamReportStatsDTO stats = new ExamReportStatsDTO();

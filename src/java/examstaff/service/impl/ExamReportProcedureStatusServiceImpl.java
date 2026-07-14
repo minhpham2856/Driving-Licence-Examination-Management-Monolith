@@ -13,7 +13,13 @@ public class ExamReportProcedureStatusServiceImpl implements ExamReportProcedure
 
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Phân loại / tổng hợp trạng thái thủ tục (ảnh, thanh toán, …) trong danh sách.
+     *
+     * @param candidates danh sách thí sinh
+     * @param webRoot    thư mục gốc web để kiểm tra ảnh vật lý nếu cần
+     * @return DTO trạng thái thủ tục báo cáo
+     */
     @Override
     public ExamReportProcedureStatusDTO analyze(List<ExamRegistrationDTO> candidates, String webRoot) {
         ExamReportProcedureStatusDTO status = new ExamReportProcedureStatusDTO();

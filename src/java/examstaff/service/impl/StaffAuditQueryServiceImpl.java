@@ -14,13 +14,27 @@ public class StaffAuditQueryServiceImpl implements StaffAuditQueryService {
 
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Đếm số dòng audit theo nhân viên và ngày.
+     *
+     * @param userId     mã nhân viên
+     * @param filterDate ngày lọc
+     * @return tổng số bản ghi
+     */
     @Override
     public int countLogsByUserAndDate(int userId, String filterDate) {
         return auditLogDAO.getLogsCountByUserAndDate(userId, filterDate);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy audit theo nhân viên/ngày có phân trang.
+     *
+     * @param userId     mã nhân viên
+     * @param filterDate ngày lọc
+     * @param page       trang hiện tại
+     * @param pageSize   kích thước trang
+     * @return danh sách audit của trang
+     */
     @Override
     public List<AuditDTO> listLogsByUserAndDatePaginated(int userId, String filterDate, int page, int pageSize) {
         try {
@@ -31,7 +45,13 @@ public class StaffAuditQueryServiceImpl implements StaffAuditQueryService {
         }
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy toàn bộ audit theo nhân viên và ngày (không phân trang).
+     *
+     * @param userId     mã nhân viên
+     * @param filterDate ngày lọc
+     * @return danh sách audit
+     */
     @Override
     public List<AuditDTO> listLogsByUserAndDate(int userId, String filterDate) {
         try {
@@ -45,7 +65,13 @@ public class StaffAuditQueryServiceImpl implements StaffAuditQueryService {
         }
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tính KPI thủ tục (số hoàn thành, tổng phí, …) của nhân viên trong ngày.
+     *
+     * @param userId     mã nhân viên
+     * @param filterDate ngày lọc
+     * @return KPI thủ tục
+     */
     @Override
     public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
         return auditLogDAO.getStaffProcedureKpi(userId, filterDate);
