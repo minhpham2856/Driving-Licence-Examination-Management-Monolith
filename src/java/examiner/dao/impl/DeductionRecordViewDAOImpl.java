@@ -10,14 +10,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+// JDBC implementation for DeductionRecordView; examiner module DAO layer only.
 public class DeductionRecordViewDAOImpl extends DBContext implements DeductionRecordViewDAO {
 
+    // Returns joined violation summary rows for all candidates in one exam.
     @Override
     public List<Map<String, Object>> getViolationRowsForExam(int examId) {
         List<Map<String, Object>> rows = new ArrayList<>();
         String sql = "SELECT c.CandidateNumber AS sbd, "
                 + "       c.FullName AS fullName, "
-                + "       sec.SectionName AS sectionName, "
+                + "       sec.SectionType AS sectionType, "
                 + "       sd.Reason AS violationReason, "
                 + "       sd.Points AS deductionPoints, "
                 + "       sd.IsCritical AS critical, "
@@ -38,7 +40,7 @@ public class DeductionRecordViewDAOImpl extends DBContext implements DeductionRe
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("sbd", rs.getString("sbd"));
                     row.put("fullName", rs.getString("fullName"));
-                    row.put("sectionName", rs.getString("sectionName"));
+                    row.put("sectionType", rs.getString("sectionType"));
                     row.put("violationReason", rs.getString("violationReason"));
                     row.put("deductionPoints", rs.getDouble("deductionPoints"));
                     row.put("critical", rs.getBoolean("critical"));
