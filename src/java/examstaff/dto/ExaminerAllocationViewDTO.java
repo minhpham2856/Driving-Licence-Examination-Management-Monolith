@@ -6,6 +6,9 @@ import examstaff.dto.UserDTO;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * View-model trang phân công sát hạch viên: slot, danh sách SHV và tùy chọn khu vực.
+ */
 public class ExaminerAllocationViewDTO {
 
     private List<ExaminerSlotDTO> dayAssignments;

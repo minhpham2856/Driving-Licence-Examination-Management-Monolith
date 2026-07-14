@@ -26,10 +26,6 @@
                 <h2 class="report-pane__title dashboard-exam-panel__title">Phân bổ giám khảo</h2>
             </div>
             <jsp:include page="/views/staff/examstaff/includes/exam-summary-line.jsp" />
-            <p class="dashboard-exam-panel__desc es-text-muted-sm" style="margin-top: -0.25rem;">
-                Phân công giám khảo theo phòng / phần thi trong kỳ.
-                <c:if test="${not empty currentExam.examTypeName}">Nội dung: ${currentExam.examTypeName}.</c:if>
-            </p>
             <jsp:include page="/views/staff/examstaff/includes/exam-shift-chip.jsp">
                 <jsp:param name="redirect" value="examiner-allocation" />
             </jsp:include>

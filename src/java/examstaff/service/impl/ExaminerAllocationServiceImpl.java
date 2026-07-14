@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import examstaff.util.ExaminerAssignmentRules;
 
+/** Implementation: phân công giám khảo và tự động phân bổ phòng/sân thí sinh. */
 public class ExaminerAllocationServiceImpl implements ExaminerAllocationService {
 
     private final ExamStaffExamQueryService examQuery = new ExamStaffExamQueryServiceImpl();
@@ -46,21 +47,25 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
     private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
 
+    /** {@inheritDoc} */
     @Override
     public ExamSummaryDTO getExamById(int examId) {
         return examQuery.findByExamId(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamArea getAreaById(int id) {
         return areaDAO.getById(id);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<UserDTO> getActiveExaminers() {
         return assignmentDAO.getActiveExaminers();
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamArea> getAvailableAreasForExam(int examId) {
         if (examId <= 0) {
@@ -84,36 +89,43 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return new ArrayList<>(byId.values());
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExaminerSlotDTO> getAssignmentsByExamId(int examId) {
         return assignmentDAO.getByExamId(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean assignExaminer(ExaminerSlotDTO slot) {
         return assignmentDAO.assign(slot);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean removeAssignment(String slotKey) {
         return assignmentDAO.remove(slotKey);
     }
 
+    /** {@inheritDoc} */
     @Override
     public AutoAllocateResultDTO autoAllocateExam(int examId) {
         return autoAllocate(examId, null);
     }
 
+    /** {@inheritDoc} */
     @Override
     public AutoAllocateResultDTO autoAllocateCandidate(int examId, int registrationId) {
         return autoAllocate(examId, registrationId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public AutoAllocateResultDTO autoAllocatePracticalExam(int examId) {
         return autoAllocatePractical(examId);
     }
 
+    /** Phân bổ tự động phòng lý thuyết cho toàn kỳ hoặc một thí sinh. */
     private AutoAllocateResultDTO autoAllocate(int examId, Integer targetRegId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
         if (examId <= 0 && targetRegId == null) {
@@ -205,6 +217,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return result;
     }
 
+    /** Phân bổ tự động sân thực hành cho thí sinh đã đậu lý thuyết. */
     private AutoAllocateResultDTO autoAllocatePractical(int examId) {
         AutoAllocateResultDTO result = new AutoAllocateResultDTO();
         if (examId <= 0) {
@@ -285,6 +298,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return result;
     }
 
+    /** Resolve examId thực tế từ exam query. */
     private int resolveExamId(int examId) {
         if (examId <= 0) {
             return 0;
@@ -296,6 +310,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return examId;
     }
 
+    /** Đếm số thí sinh đang chiếm mỗi phòng lý thuyết. */
     private Map<Integer, Integer> buildRoomOccupancy(List<ExamRegistrationDTO> allCandidates, List<ExamArea> rooms) {
         Map<Integer, Integer> occupancy = new HashMap<>();
         for (ExamArea room : rooms) occupancy.put(room.getId(), 0);
@@ -309,6 +324,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return occupancy;
     }
 
+    /** Đếm số thí sinh đang chiếm mỗi sân thực hành. */
     private Map<Integer, Integer> buildPracticalOccupancy(List<ExamRegistrationDTO> allCandidates,
             List<ExamArea> yards) {
         Map<Integer, Integer> occupancy = new HashMap<>();
@@ -324,6 +340,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return occupancy;
     }
 
+    /** Chọn phòng/sân ít thí sinh nhất. */
     private ExamArea pickBestRoom(List<ExamArea> rooms, Map<Integer, Integer> roomOccupancy) {
         ExamArea bestRoom = null;
         int bestOccupancy = Integer.MAX_VALUE;
@@ -338,6 +355,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return bestRoom;
     }
 
+    /** Thí sinh sẵn sàng phân phòng LT (đã thu phí, có ảnh, chưa thi LT). */
     private boolean isReadyForAllocation(ExamRegistrationDTO c) {
         if (c == null || c.isAbsent()) {
             return false;
@@ -354,6 +372,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return "none".equalsIgnoreCase(theory);
     }
 
+    /** Đã có phòng lý thuyết được phân. */
     private boolean isAlreadyAllocated(ExamRegistrationDTO c) {
         if (c == null) {
             return false;
@@ -362,6 +381,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return areaId != null && areaId > 0;
     }
 
+    /** Thí sinh sẵn sàng phân sân TH (đã đậu LT). */
     private boolean isReadyForPracticalAllocation(ExamRegistrationDTO c) {
         if (c == null || c.isAbsent() || c.skipsPractical()) {
             return false;
@@ -370,6 +390,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return theory != null && "passed".equalsIgnoreCase(theory.trim());
     }
 
+    /** Đã có sân thực hành được phân. */
     private boolean isAlreadyPracticalAllocated(ExamRegistrationDTO c) {
         if (c == null) {
             return false;
