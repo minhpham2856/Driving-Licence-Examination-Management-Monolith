@@ -4,11 +4,18 @@ import examstaff.dto.ExaminerAllocationViewDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import shared.Attributes;
 
+/**
+ * Bind thuộc tính trang phân công sát hạch viên từ {@link ExaminerAllocationViewDTO}.
+ */
 public final class ExaminerAllocationViewBinder {
 
     private ExaminerAllocationViewBinder() {
     }
 
+    /**
+     * Set các attribute: EXAM_ASSIGNMENTS, ALL/AVAILABLE/BUSY_EXAMINERS,
+     * AREA_ASSIGN_OPTIONS, LOADED_EXAM_ID.
+     */
     public static void bind(HttpServletRequest request, ExaminerAllocationViewDTO view, int examId) {
         if (request == null || view == null) {
             return;
