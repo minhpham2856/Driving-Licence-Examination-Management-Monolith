@@ -5,6 +5,9 @@ import shared.model.Payment;
 
 import java.util.List;
 
+/**
+ * Tóm tắt thanh toán + dòng lệ phí cho báo cáo / dossier (Payment + Fee).
+ */
 public class ReportPaymentSummaryDTO {
 
     private Payment payment;

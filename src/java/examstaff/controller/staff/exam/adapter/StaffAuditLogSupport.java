@@ -13,33 +13,44 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * HTTP adapter ghi nhat ky exam staff; delegate StaffAuditLogService, khong goi DAO truc tiep.
+ * Adapter Presentation ghi nhật ký exam staff: delegate {@link StaffAuditLogService},
+ * có thể kèm feed tạm trên session. Không gọi DAO trực tiếp.
  */
 public final class StaffAuditLogSupport {
 
     private final StaffAuditLogService auditLogService;
 
+    /**
+     * @param auditLogService service BLL ghi audit
+     */
     public StaffAuditLogSupport(StaffAuditLogService auditLogService) {
         this.auditLogService = auditLogService;
     }
 
+    /** Persist audit với recordId = 0. */
     public void persist(HttpSession session, String action, String details) {
         persist(session, action, details, 0);
     }
 
+    /** Ghi audit theo userId lấy từ session. */
     public void persist(HttpSession session, String action, String details, int recordId) {
         auditLogService.logAction(SessionUserHelper.resolveUserId(session), action, details, recordId);
     }
 
+    /** Append feed UI trên session rồi persist (recordId = 0). */
     public void persistWithSessionFeed(HttpSession session, String action, String details) {
         persistWithSessionFeed(session, action, details, 0);
     }
 
+    /**
+     * Append vào {@code examAuditLogs} session rồi persist DB.
+     */
     public void persistWithSessionFeed(HttpSession session, String action, String details, int recordId) {
         appendExamFeed(session, action, details);
         persist(session, action, details, recordId);
     }
 
+    /** Thêm entry time/action/details vào đầu list {@code examAuditLogs}. */
     @SuppressWarnings("unchecked")
     private static void appendExamFeed(HttpSession session, String action, String details) {
         if (session == null) {

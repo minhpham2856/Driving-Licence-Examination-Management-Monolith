@@ -8,10 +8,12 @@ import examstaff.service.ExamReportProcedureStatusService;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Implementation: phân tích trạng thái thủ tục (ảnh / hoàn tất) cho báo cáo. */
 public class ExamReportProcedureStatusServiceImpl implements ExamReportProcedureStatusService {
 
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
+    /** {@inheritDoc} */
     @Override
     public ExamReportProcedureStatusDTO analyze(List<ExamRegistrationDTO> candidates, String webRoot) {
         ExamReportProcedureStatusDTO status = new ExamReportProcedureStatusDTO();

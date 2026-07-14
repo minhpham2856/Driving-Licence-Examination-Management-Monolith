@@ -41,7 +41,6 @@
         </c:if>
 
         <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Tổng hợp số liệu kết quả thi sát hạch trong ngày, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
             <div class="page-actions">
                 <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportExcel=true"
                    class="btn-filter"

@@ -3,11 +3,18 @@ package examstaff.controller.staff.exam.binder;
 import examstaff.dto.ExamReportStatsDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Bind thống kê báo cáo kỳ thi từ {@link ExamReportStatsDTO} lên request attributes.
+ */
 public final class ReportStatsBinder {
 
     private ReportStatsBinder() {
     }
 
+    /**
+     * Set counts (total/passed/failed/absent/suspended), passRate, licenseStats,
+     * theory/practical breakdown và infractions.
+     */
     public static void bind(HttpServletRequest request, ExamReportStatsDTO stats) {
         if (request == null || stats == null) {
             return;

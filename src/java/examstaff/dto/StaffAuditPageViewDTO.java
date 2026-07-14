@@ -6,6 +6,9 @@ import examstaff.util.AllocationStageHelper;
 
 import java.util.List;
 
+/**
+ * View-model trang nhật ký audit của staff: logs, phân trang, KPI thủ tục và filter.
+ */
 public class StaffAuditPageViewDTO {
 
     private List<AuditDTO> personalLogs;

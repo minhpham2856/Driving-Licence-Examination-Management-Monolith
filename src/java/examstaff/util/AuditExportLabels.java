@@ -6,13 +6,18 @@ import examstaff.enums.AuditEntity;
 
 import java.util.Locale;
 
+/** Nhãn tiếng Việt cho xuất / hiển thị nhật ký audit. */
 public final class AuditExportLabels {
 
     private AuditExportLabels() {
 
     }
 
-    // apply display labels
+    /**
+     * Gán các nhãn hiển thị (entity / action / chi tiết) lên {@link AuditDTO}.
+     *
+     * @param log bản ghi audit (null → no-op)
+     */
     public static void applyDisplayLabels(AuditDTO log) {
 
         if (log == null) {
@@ -28,8 +33,13 @@ public final class AuditExportLabels {
         log.setDisplayDetails(formatOperationDetail(log));
 
     }
-    // format action type
 
+    /**
+     * Loại thao tác tiếng Việt (ưu tiên suy từ details, rồi action code).
+     *
+     * @param log bản ghi audit
+     * @return nhãn action
+     */
     public static String formatActionType(AuditDTO log) {
 
         if (log == null) {
@@ -72,9 +82,14 @@ public final class AuditExportLabels {
 
         return formatActionCode(log.getAction());
 
-    // format action code
     }
 
+    /**
+     * Map mã action thô (INSERT/UPDATE/…) sang nhãn tiếng Việt.
+     *
+     * @param action mã hoặc cụm action
+     * @return nhãn hiển thị
+     */
     public static String formatActionCode(String action) {
 
         if (action == null || action.isBlank()) {
@@ -114,10 +129,10 @@ public final class AuditExportLabels {
             default -> formatActionCodeFromPhrase(action.trim());
 
         };
-    // format action code from phrase
 
     }
 
+    /** Suy nhãn từ cụm chứa INSERT/UPDATE/… */
     private static String formatActionCodeFromPhrase(String action) {
 
         String upper = action.toUpperCase(Locale.ROOT);
@@ -152,11 +167,16 @@ public final class AuditExportLabels {
 
         }
 
-    // format entity label
         return action;
 
     }
 
+    /**
+     * Nhãn thực thể theo tên bảng / alias enum.
+     *
+     * @param tableName tên bảng hoặc mã entity
+     * @return nhãn tiếng Việt
+     */
     public static String formatEntityLabel(String tableName) {
 
         if (tableName == null || tableName.isBlank()) {
@@ -210,12 +230,12 @@ public final class AuditExportLabels {
             return normalizeVietnameseEntityAlias(fromEnum);
 
         }
-    // normalize vietnamese entity alias
 
         return normalizeVietnameseEntityAlias(trimmed);
 
     }
 
+    /** Đồng bộ alias nhãn entity cũ → thuật ngữ giám thị / thu phí. */
     private static String normalizeVietnameseEntityAlias(String label) {
 
         if (label == null || label.isBlank()) {
@@ -238,13 +258,18 @@ public final class AuditExportLabels {
 
             case "Thí sinh", "Hồ sơ đăng ký thi" -> label.trim();
 
-    // format operation detail
             default -> label.trim();
 
         };
 
     }
 
+    /**
+     * Chi tiết thao tác: ưu tiên details → reason → old/new value.
+     *
+     * @param log bản ghi audit
+     * @return chuỗi đã chuẩn hóa (có thể rỗng)
+     */
     public static String formatOperationDetail(AuditDTO log) {
 
         if (log == null) {
@@ -283,6 +308,7 @@ public final class AuditExportLabels {
 
     }
 
+    /** Làm gọn chuỗi chi tiết (bỏ ExamId machine tokens, dịch một số key). */
     private static String normalizeOperationDetail(String detail) {
 
         if (detail == null || detail.isBlank()) {

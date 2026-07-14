@@ -1,11 +1,18 @@
 package examstaff.util;
 
-/** Helper tên entity / action cho audit log examstaff. */
+/** Suy tên entity / chuẩn hóa mã action cho audit log exam staff. */
 public final class AuditLogHelper {
 
     private AuditLogHelper() {
     }
 
+    /**
+     * Suy tên entity kỹ thuật từ action + details (ScoreEntryQueue, Payment, …).
+     *
+     * @param action  mã/cụm action
+     * @param details mô tả chi tiết
+     * @return tên entity (mặc định {@code Candidate})
+     */
     public static String resolveEntityName(String action, String details) {
         String upper = action != null ? action.toUpperCase() : "";
         String detailUpper = details != null ? details.toUpperCase() : "";
@@ -43,6 +50,12 @@ public final class AuditLogHelper {
         return "Candidate";
     }
 
+    /**
+     * Chuẩn hóa action thô về INSERT/UPDATE/DELETE/IMPORT/EXPORT/ASSIGN.
+     *
+     * @param rawAct action gốc (null → UPDATE)
+     * @return mã action chuẩn
+     */
     public static String normalizeAction(String rawAct) {
         if (rawAct == null) {
             return "UPDATE";

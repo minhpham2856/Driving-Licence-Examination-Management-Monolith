@@ -13,10 +13,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/** Implementation: tính thống kê kết quả kỳ thi cho báo cáo. */
 public class ExamReportStatsServiceImpl implements ExamReportStatsService {
 
     private final ReportInfractionViewDAO infractionViewDAO = new ReportInfractionViewDAOImpl();
 
+    /** {@inheritDoc} */
     @Override
     public ExamReportStatsDTO computeStats(List<ExamRegistrationDTO> candidates, int examId) {
         ExamReportStatsDTO stats = new ExamReportStatsDTO();
@@ -110,6 +112,7 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
         return stats;
     }
 
+    /** Chuẩn hoá mã hạng bằng; blank thành N/A. */
     private static String normalizeLicense(String licenseCode) {
         if (licenseCode == null || licenseCode.isBlank()) {
             return "N/A";

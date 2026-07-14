@@ -4,6 +4,10 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Thống kê trạng thái thủ tục cho báo cáo kỳ thi.
+ * Đếm thiếu ảnh / chờ thủ tục và danh sách thí sinh tương ứng.
+ */
 public class ExamReportProcedureStatusDTO {
 
     private int missingPhotoCount;

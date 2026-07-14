@@ -8,10 +8,12 @@ import examstaff.service.StaffAuditLogService;
 
 import java.sql.Timestamp;
 
+/** Implementation: ghi audit log hành động cán bộ qua {@link AuditLogDAO}. */
 public class StaffAuditLogServiceImpl implements StaffAuditLogService {
 
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
 
+    /** {@inheritDoc} */
     @Override
     public void logAction(int userId, String action, String details, int recordId) {
         try {
@@ -28,6 +30,7 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
         }
     }
 
+    /** Map action/details thành tên entity audit hiển thị. */
     static String resolveEntityName(String action, String details) {
         String resolved = examstaff.util.AuditLogHelper.resolveEntityName(action, details);
         if ("Payment".equalsIgnoreCase(resolved)) {
@@ -36,6 +39,7 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
         return resolved;
     }
 
+    /** Chuẩn hóa chuỗi action trước khi lưu. */
     static String normalizeAction(String rawAct) {
         return examstaff.util.AuditLogHelper.normalizeAction(rawAct);
     }
