@@ -17,7 +17,7 @@ import java.io.IOException;
 @WebServlet("/examstaff/candidate-dossier")
 public class CandidateDossierServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 

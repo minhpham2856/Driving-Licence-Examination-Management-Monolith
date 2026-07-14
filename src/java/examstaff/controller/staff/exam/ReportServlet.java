@@ -34,7 +34,7 @@ import java.util.Locale;
 @WebServlet("/examstaff/report")
 public class ReportServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
 
     private final ExamReportStatsService reportStatsService = SERVICES.reportStats();
     private final StaffReportExportService reportExportService = SERVICES.reportExport();

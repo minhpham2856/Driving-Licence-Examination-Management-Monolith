@@ -26,7 +26,7 @@ import java.util.Locale;
 @WebServlet("/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
 
     private final StaffAuditQueryService auditQueryService = SERVICES.auditQuery();
     private final StaffAuditExportService auditExportService = SERVICES.auditExport();
