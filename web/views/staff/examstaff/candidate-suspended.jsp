@@ -12,11 +12,19 @@
 </jsp:include>
 
         <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Thí sinh đình chỉ được ghi TRƯỢT và không được gọi lại trong kỳ thi này.</p>
             <div class="call-page-actions">
                 <a href="candidatecall" class="call-toolbar-btn">Quay lại gọi thủ tục</a>
             </div>
         </header>
+
+        <c:if test="${not empty requestScope.examLockedMsg}">
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.examLockedMsg}</div>
+        </c:if>
+        <c:if test="${requestScope.examMutationsLocked}">
+            <div class="examstaff-flash examstaff-flash--error">
+                Kỳ thi đã kết thúc. Không thể hoàn tác đình chỉ.
+            </div>
+        </c:if>
 
         <nav class="call-subnav">
             <a href="candidatecall" class="call-subnav__link">Gọi thủ tục</a>
@@ -103,13 +111,20 @@
                                             <span class="action-badge action-badge--danger" style="font-weight: 700;">Đình chỉ</span>
                                         </td>
                                         <td style="text-align: right;">
-                                            <a href="candidatecall?action=undoAbsent&amp;returnView=suspended&amp;sbd=${c.sbd}"
-                                               class="btn-filter"
-                                               style="height: 26px; padding: 0 10px; font-size: 0.72rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.02);"
-                                               title="Khôi phục về hàng đợi gọi thủ tục"
-                                               onclick="return confirm('Hoàn tác đình chỉ ${c.sbd}? Thí sinh sẽ được đưa về đầu hàng đợi.');">
-                                                Hoàn tác
-                                            </a>
+                                            <c:choose>
+                                                <c:when test="${requestScope.examMutationsLocked}">
+                                                    <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">Đã khóa</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="candidatecall?action=undoAbsent&amp;returnView=suspended&amp;sbd=${c.sbd}"
+                                                       class="btn-filter"
+                                                       style="height: 26px; padding: 0 10px; font-size: 0.72rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.02);"
+                                                       title="Khôi phục về hàng đợi gọi thủ tục"
+                                                       onclick="return confirm('Hoàn tác đình chỉ ${c.sbd}? Thí sinh sẽ được đưa về đầu hàng đợi.');">
+                                                        Hoàn tác
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </td>
                                     </tr>
                                 </c:forEach>

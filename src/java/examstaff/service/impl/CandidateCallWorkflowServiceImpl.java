@@ -3,34 +3,45 @@ package examstaff.service.impl;
 import examstaff.dto.candidate.CandidateCallDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
+import examstaff.dao.CandidateCallDAO;
+import examstaff.dao.impl.CandidateCallDAOImpl;
 import examstaff.service.CandidateAttendanceService;
-import examstaff.service.CandidateCallRecordService;
 import examstaff.service.CandidateCallWorkflowService;
 import examstaff.service.CandidateQueueService;
 
 import java.util.List;
 
+/**
+ * Dispatch action gọi thí sinh (startCall, absent, pause, đóng ca…) sang handler tương ứng.
+ */
 public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowService {
 
     private static final String CALLED_TO = "Bàn làm thủ tục số 2";
 
     private final CandidateQueueService queueService;
-    private final CandidateCallRecordService callRecordService;
+    private final CandidateCallDAO candidateCallDAO;
     private final CandidateAttendanceService attendanceService;
 
+    /** Wiring mặc định. */
     public CandidateCallWorkflowServiceImpl() {
-        this(new CandidateQueueServiceImpl(), new CandidateCallRecordServiceImpl(),
+        this(new CandidateQueueServiceImpl(), new CandidateCallDAOImpl(),
                 new CandidateAttendanceServiceImpl());
     }
 
+    /**
+     * @param queueService      thao tác hàng đợi
+     * @param candidateCallDAO  ghi audit CALL
+     * @param attendanceService đánh vắng / đình chỉ / restore
+     */
     public CandidateCallWorkflowServiceImpl(CandidateQueueService queueService,
-            CandidateCallRecordService callRecordService,
+            CandidateCallDAO candidateCallDAO,
             CandidateAttendanceService attendanceService) {
         this.queueService = queueService;
-        this.callRecordService = callRecordService;
+        this.candidateCallDAO = candidateCallDAO;
         this.attendanceService = attendanceService;
     }
 
+    /** {@inheritDoc} */
     @Override
     public CandidateCallActionResultDTO executeAction(String action, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
@@ -72,12 +83,17 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         return result;
     }
 
+    /** Bắt đầu ca gọi: lấy SBD pending đầu hàng và promote. */
     private void handleStartCall(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> fullQueue,
             List<ExamRegistrationDTO> activeQueue, int calledByStaffId) {
         String startSbd = queueService.resolveNextCallingSbd(fullQueue, null);
         promoteCaller(result, activeQueue, startSbd, calledByStaffId);
     }
 
+    /**
+     * Vắng / đẩy xuống cuối hàng ({@code absent}, {@code autoAbsent}, {@code moveToBottom}).
+     * Ghi audit Absent rồi promote người kế.
+     */
     private void handleAbsentAction(CandidateCallActionResultDTO result, String action, String sbd,
             List<ExamRegistrationDTO> fullQueue, int boardExamId, int calledByStaffId) {
         if (sbd == null || sbd.isBlank()) {
@@ -97,6 +113,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         result.setAlertSbd(sbd);
     }
 
+    /** Đình chỉ thí sinh (permanent absent) và yêu cầu reload queue + promote. */
     private void handlePermanentAbsent(CandidateCallActionResultDTO result, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
             int calledByStaffId) {
@@ -116,6 +133,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         result.setAlertSbd(sbd);
     }
 
+    /** Hoàn tác vắng/đình chỉ, đưa SBD về đầu hàng đợi gọi. */
     private void handleUndoAbsent(CandidateCallActionResultDTO result, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
             int boardExamId) {
@@ -140,6 +158,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         result.setAlertSbd(sbd);
     }
 
+    /** Đóng ca gọi: đánh vắng các pending còn lại, clear số đang gọi. */
     private void handleEndShift(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> fullQueue,
             List<ExamRegistrationDTO> permanentAbsents) {
         List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(fullQueue);
@@ -156,6 +175,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         result.setActiveQueue(activeQueue);
     }
 
+    /** Tạm dừng ca gọi: clear calling, giữ queue, đánh dấu paused. */
     private void handlePauseShift(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> fullQueue) {
         result.setClearCallingSbd(true);
         result.setShiftPaused(true);
@@ -165,6 +185,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         result.setActiveQueue(queueService.filterPendingForCall(fullQueue));
     }
 
+    /** Gắn callingSbd mới vào result và ghi audit Calling. */
     private void promoteCaller(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> activeQueue,
             String nextSbd, int calledByStaffId) {
         if (nextSbd != null && !nextSbd.isBlank()) {
@@ -175,6 +196,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void recordCallingCandidate(List<ExamRegistrationDTO> activeQueue, String nextSbd, int calledByStaffId) {
         if (nextSbd == null || nextSbd.isBlank()) {
@@ -186,6 +208,7 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         }
     }
 
+    /** Map sang {@link CandidateCallDTO} rồi ghi qua {@link CandidateCallDAO}. */
     private void recordCall(ExamRegistrationDTO candidate, String callResult, int calledByStaffId) {
         CandidateCallDTO call = new CandidateCallDTO();
         call.setExamId(candidate.getExamId());
@@ -193,6 +216,6 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         call.setCalledTo(CALLED_TO);
         call.setCalledBy(calledByStaffId);
         call.setResult(callResult);
-        callRecordService.recordCall(call);
+        candidateCallDAO.insert(call);
     }
 }

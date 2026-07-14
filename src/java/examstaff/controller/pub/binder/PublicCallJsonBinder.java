@@ -9,11 +9,15 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import examstaff.util.LicenseClassRules;
 
+/**
+ * Serialize {@link PublicCallSnapshotDTO} thành JSON cho API {@code /api/public-call/state}.
+ */
 public final class PublicCallJsonBinder {
 
     private PublicCallJsonBinder() {
     }
 
+    /** Chuẩn hóa mã hạng bằng trong payload JSON. */
     private static String normalizeLicenseForPublicCall(String raw) {
         if (raw == null) {
             return null;
@@ -25,6 +29,7 @@ public final class PublicCallJsonBinder {
         return raw.trim().toUpperCase(Locale.ROOT);
     }
 
+    /** Normalize licenseCode trên kỳ thi trước khi ghi JSON. */
     private static void normalizeExam(ExamSummaryDTO exam) {
         if (exam == null) {
             return;
@@ -32,6 +37,7 @@ public final class PublicCallJsonBinder {
         exam.setLicenseCode(normalizeLicenseForPublicCall(exam.getLicenseCode()));
     }
 
+    /** Normalize licenseCode trên thí sinh trước khi ghi JSON. */
     private static void normalizeCandidate(ExamRegistrationDTO c) {
         if (c == null) {
             return;
@@ -39,6 +45,12 @@ public final class PublicCallJsonBinder {
         c.setLicenseCode(normalizeLicenseForPublicCall(c.getLicenseCode()));
     }
 
+    /**
+     * Đóng snapshot thành chuỗi JSON (calling, next, waitingQueue, desk, flags).
+     *
+     * @param snapshot snapshot hiện tại (null → {@code {}})
+     * @return JSON UTF-8 string
+     */
     public static String toStateJson(PublicCallSnapshotDTO snapshot) {
         if (snapshot == null) {
             return "{}";

@@ -1,11 +1,16 @@
 package examstaff.dto.candidate;
 
+/**
+ * DTO bản ghi gọi thí sinh (liên quan CandidateCall DAO).
+ * Mang kỳ thi, số báo danh, nơi gọi, người gọi và kết quả có mặt/vắng.
+ */
 public class CandidateCallDTO {
     private int examId;
     private int candidateNo;
     private String calledTo;
     private int calledBy;
-    private String result; // 'Present', 'Absent', etc.
+    /** Kết quả gọi: Present, Absent, ... */
+    private String result;
 
     public CandidateCallDTO() {
     }

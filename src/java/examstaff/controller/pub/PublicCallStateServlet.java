@@ -17,24 +17,37 @@ import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
+/**
+ * API JSON trạng thái Public Call (poll từ {@code public-call.js}).
+ * Cùng nguồn dữ liệu với {@link examstaff.controller.staff.exam.PublicCallServlet}, khác output.
+ */
 @WebServlet("/api/public-call/state")
 public class PublicCallStateServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final PublicCallQueryService publicCallQueryService;
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
+    /** Constructor mặc định — lấy service từ composition root. */
     public PublicCallStateServlet() {
         this(SERVICES.publicCallQuery());
     }
 
+    /**
+     * Constructor inject (test / wiring tay).
+     *
+     * @param publicCallQueryService service dựng snapshot Public Call
+     */
     PublicCallStateServlet(PublicCallQueryService publicCallQueryService) {
         this.publicCallQueryService = publicCallQueryService;
     }
 
+    /**
+     * Trả JSON no-store: calling, next, waitingQueue, deskBusy, pause/end flags.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
