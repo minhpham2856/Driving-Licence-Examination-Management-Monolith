@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Dashboard cá nhân từ DB: RegistrantDAO stats/ca, PaymentDAO tổng tiền, DocumentDAO + ActionItemsBuilder CTA. */
+/** Xây dựng dữ liệu dashboard cá nhân từ DB. */
 public class RegistrantDashboardServiceImpl implements RegistrantDashboardService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();

@@ -4,7 +4,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Nhật ký" />
-<c:set var="pageUrl" value="${ctx}/examiner/audit" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/audit" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -42,7 +42,7 @@
                     <jsp:param name="btnPrintAudit" value="left" />
                     <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchWide" value="true" />
-                    <jsp:param name="searchPlaceholder" value="Tìm kiếm..." />
+                    <jsp:param name="searchPlaceholder" value="Tìm kiếm mô tả, địa chỉ IP..." />
                     <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
@@ -98,11 +98,11 @@
                     <!--pagination-->
                     <div class="audit-pagination">
                         <nav class="audit-page-nav">
-                            <c:url var="prevUrl" value="/examiner/audit">
+                            <c:url var="prevUrl" value="/views/examiner/audit">
                                 <c:param name="page" value="${auditPage - 1}" />
                                 <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
                             </c:url>
-                            <c:url var="nextUrl" value="/examiner/audit">
+                            <c:url var="nextUrl" value="/views/examiner/audit">
                                 <c:param name="page" value="${auditPage + 1}" />
                                 <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
                             </c:url>

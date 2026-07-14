@@ -14,7 +14,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Hiển thị tài liệu theo ExamRegistration.RegistrationStatus (nguồn chân lý); Notes chỉ marker tệp. A1/A2: 4 giấy; B1+: thêm Other #LICENCE#. */
+/**
+ * Hiển thị tài liệu theo {@code ExamRegistration.RegistrationStatus}.
+ * Document.Notes chỉ dùng cho lý do từ chối từng tệp (nếu có).
+ */
 public final class RegistrantDocumentStatusHelper {
 
     public static final String[] REQUIRED_TYPES = {
@@ -97,7 +100,7 @@ public final class RegistrantDocumentStatusHelper {
         return true;
     }
 
-    /** Thông báo lý do chưa được đăng ký thi - null nếu đủ điều kiện. */
+    /** Thông báo lý do chưa được đăng ký thi — null nếu đủ điều kiện. */
     public static String examRegistrationBlockMessage(String registrationStatus,
             List<RegistrantDocumentView> allDocs, RegistrantDocumentSummary summary) {
         if (isEligibleForExamRegistration(registrationStatus, allDocs)) {
@@ -227,7 +230,9 @@ public final class RegistrantDocumentStatusHelper {
         return BASIC_DOCS_ONLY_LICENCE_CODES.contains(uiLicenceCode.trim().toUpperCase(Locale.ROOT));
     }
 
-    /** Hạng A1/A2: chỉ 4 giấy bắt buộc; hạng khác: cần Other đã duyệt đúng hạng. */
+    /**
+     * Hạng A1/A2: chỉ cần 4 giấy tờ bắt buộc. Hạng khác: cần hồ sơ khác đã được staff duyệt đúng hạng.
+     */
     public static boolean isLicenceAllowedWithDocuments(String uiLicenceCode,
             List<RegistrantDocumentView> allDocs) {
         if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
@@ -386,7 +391,7 @@ public final class RegistrantDocumentStatusHelper {
             summary.setOverallStatusClass("incomplete");
             summary.setOverallStatusLabel("Chưa đủ giấy tờ");
             summary.setOverallMessage(String.format(
-                    "Đã tải %d/%d giấy tờ bắt buộc - còn thiếu %d mục.",
+                    "Đã tải %d/%d giấy tờ bắt buộc — còn thiếu %d mục.",
                     summary.getRequiredUploaded(), summary.getRequiredTotal(), missing));
             return;
         }
@@ -396,9 +401,9 @@ public final class RegistrantDocumentStatusHelper {
                     ? "Giấy tờ bắt buộc đã được phê duyệt. Hồ sơ bổ sung đang chờ ban quản lý xem xét."
                     : "Tất cả giấy tờ bắt buộc đã được ban quản lý phê duyệt.";
             case ProfileRegistrationStatus.PENDING ->
-                    "Hồ sơ đã gửi ban quản lý - đang chờ phê duyệt.";
+                    "Hồ sơ đã gửi ban quản lý — đang chờ phê duyệt.";
             case ProfileRegistrationStatus.REJECTED ->
-                    "Hồ sơ bị từ chối - vui lòng bổ sung và gửi duyệt lại.";
+                    "Hồ sơ bị từ chối — vui lòng bổ sung và gửi duyệt lại.";
             default -> String.format(
                     "Đã tải đủ %d giấy tờ bắt buộc%s. Hãy gửi yêu cầu duyệt trên trang tải hồ sơ.",
                     summary.getRequiredTotal(),
@@ -453,7 +458,7 @@ public final class RegistrantDocumentStatusHelper {
             }
             sb.append(doc.getFileSizeLabel());
         }
-        return sb.length() > 0 ? sb.toString() : "-";
+        return sb.length() > 0 ? sb.toString() : "—";
     }
 
     private static String extractRejectReason(String notes) {

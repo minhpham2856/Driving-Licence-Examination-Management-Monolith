@@ -5,7 +5,7 @@ import registrant.service.impl.RegistrantExamResultEmailServiceImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Gọi sau khi lưu điểm - gửi bảng điểm qua Gmail nếu được bật. */
+/** Gọi sau khi lưu điểm — gửi bảng điểm qua Gmail nếu được bật. */
 public final class RegistrantExamResultEmailNotifier {
 
     private static final Logger LOG = Logger.getLogger(RegistrantExamResultEmailNotifier.class.getName());

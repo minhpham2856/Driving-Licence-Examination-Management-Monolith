@@ -12,15 +12,14 @@ import examiner.dto.CandidateRowDTO;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.service.CallService;
 import examiner.service.impl.CallServiceImpl;
-import shared.Attributes;
 
 import java.io.IOException;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-    "/examiner/audit",
-    "/examiner/export",
-    "/examiner/print-documents"
+    "/views/examiner/audit",
+    "/views/examiner/export",
+    "/views/examiner/print-documents"
 })
 public class ExaminerMiscServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
@@ -47,33 +46,30 @@ public class ExaminerMiscServlet extends HttpServlet {
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
-            if ("/examiner/audit".equals(path)) {
+            if ("/views/examiner/audit".equals(path)) {
                 Map<String, Object> data = viewDataService.getAuditLogsData(activeExamId, request.getParameter("page"), search);
                 if (data != null) {
                     for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
                         request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
                     }
                 }
-            } else if ("/examiner/print-documents".equals(path) || "/examiner/export".equals(path)) {
-                request.setAttribute("suspendedCandidates",
-                        viewDataService.loadSuspendedCandidateRows(activeExamId));
-
-                if ("/examiner/print-documents".equals(path) && sbd != null && sbd > 0) {
-                    boolean isTheory = Boolean.TRUE.equals(session.getAttribute(Attributes.Examiner.IS_THEORY));
-                    String sectionName = resolveSectionName(session);
-                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(
-                            activeExamId, sbd, isTheory, sectionName);
+            } else if ("/views/examiner/print-documents".equals(path)) {
+                boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
+                String sectionName = resolveSectionName(session);
+                
+                if (sbd != null && sbd > 0) {
+                    CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
                     if (candidate != null) {
-                        request.setAttribute(Attributes.Request.CANDIDATE, candidate);
+                        request.setAttribute("candidate", candidate);
                     }
                 }
             }
         }
 
         String jsp = switch (path) {
-            case "/examiner/audit" -> "/views/examiner/audit.jsp";
-            case "/examiner/export" -> "/views/examiner/export.jsp";
-            case "/examiner/print-documents" -> "/views/examiner/print-documents.jsp";
+            case "/views/examiner/audit" -> "/views/examiner/audit.jsp";
+            case "/views/examiner/export" -> "/views/examiner/export.jsp";
+            case "/views/examiner/print-documents" -> "/views/examiner/print-documents.jsp";
             default -> "/views/examiner/audit.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
@@ -92,7 +88,7 @@ public class ExaminerMiscServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object name = session.getAttribute(Attributes.Examiner.EXAM_SECTION_NAME);
+        Object name = session.getAttribute("examSectionName");
         return name != null ? String.valueOf(name) : null;
     }
 }

@@ -2,7 +2,6 @@ package examstaff.filter;
 
 import auth.dto.UserDTO;
 import examstaff.controller.staff.exam.adapter.ExamStaffSelectionFacade;
-import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import jakarta.servlet.FilterChain;
@@ -18,10 +17,18 @@ import shared.model.Role;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/examstaff/*"})
+/**
+ * Filter Presentation cho {@code /views/staff/examstaff/*}:
+ * xác thực EXAM_STAFF + no-cache + bind sidebar picker nếu chưa có.
+ * <p>
+ * <b>Không</b> commit chọn kỳ / clear queue tại đây — điểm commit duy nhất là
+ * {@link examstaff.controller.staff.exam.page.ExamStaffPageFacade#prepareExamStaffPage}
+ * (hoặc {@link examstaff.controller.staff.exam.ExamSelectServlet} khi đổi kỳ).
+ */
+@WebFilter(urlPatterns = {"/views/staff/examstaff/*"})
 public class ExamStaffSidebarFilter extends HttpFilter {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
@@ -46,15 +53,6 @@ public class ExamStaffSidebarFilter extends HttpFilter {
             return;
         }
 
-        int urlExamId = ExamStaffHttpSupport.parseExamIdParam(request);
-        if (session != null && urlExamId > 0) {
-            Integer loadedExam = ExamStaffPageBinder.readLoadedExamId(session);
-            if (loadedExam == null || loadedExam != urlExamId) {
-                selectionFacade.clearCandidateCache(session);
-            }
-            selectionFacade.applyExamIdFromRequest(request, session,
-                    selectionFacade.loadAllExams());
-        }
         selectionFacade.bindSidebarIfNeeded(request, session);
         chain.doFilter(request, response);
     }

@@ -17,9 +17,6 @@ public interface ExamViewService {
     List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName,
             String searchQuery);
 
-    // Candidates suspended / recorded for violation in this exam (for print dropdown).
-    List<CandidateRowDTO> loadSuspendedCandidateRows(int examId);
-
     ExamStatsDTO buildCandidateSummary(int examId, boolean isTheory, String sectionName);
 
     // Builds the end-of-day exam report for an exam (result + licence breakdown

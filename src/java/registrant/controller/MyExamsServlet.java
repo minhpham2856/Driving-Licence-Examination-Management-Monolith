@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** Ca thi đã đăng ký GET/POST /registrant/my-exams — GET list+điểm/SBD; POST requestCancel=1 yêu cầu hủy. */
 @WebServlet("/registrant/my-exams")
 public class MyExamsServlet extends HttpServlet {
 
@@ -29,7 +28,7 @@ public class MyExamsServlet extends HttpServlet {
 
         if ("registered".equals(request.getParameter("success"))) {
             request.setAttribute("successMessage",
-                    "Đăng ký đợt thi thành công. Trạng thái hiện là Chờ xét duyệt - SBD sẽ được cập nhật sau khi Ban sát hạch duyệt và nhập danh sách chính thức.");
+                    "Đăng ký đợt thi thành công. Trạng thái hiện là Chờ xét duyệt — SBD sẽ được cập nhật sau khi Ban sát hạch duyệt và nhập danh sách chính thức.");
         }
 
         RegistrantServletSupport.forwardView(request, response, VIEW);
@@ -54,7 +53,7 @@ public class MyExamsServlet extends HttpServlet {
         } else {
             RegistrantServletSupport.setFlash(request.getSession(),
                     RegistrantMyExamsServiceImpl.FLASH_CANCEL_SUCCESS_ATTR,
-                    "Đã gửi yêu cầu hủy đăng ký. Ban quản lý sẽ xử lý - bạn có thể theo dõi trạng thái tại đây.");
+                    "Đã gửi yêu cầu hủy đăng ký. Ban quản lý sẽ xử lý — bạn có thể theo dõi trạng thái tại đây.");
         }
         response.sendRedirect(RegistrantMyExamsServiceImpl.buildMyExamsRedirect(request));
     }

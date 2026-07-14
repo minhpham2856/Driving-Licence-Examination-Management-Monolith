@@ -10,14 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Tiện ích tài liệu hồ sơ — markers Notes (#PROFILE_DOC#, #SUPPLEMENT_DOC#, #SUPPLEMENT_ER#id#, #PENDING#/#APPROVED#/#LICENCE#) cho workflow chính và bổ sung. */
+/**
+ * Tiện ích tài liệu hồ sơ thí sinh — gom workflow ER, map slot UI và validate upload.
+ */
 public final class RegistrantDocumentHelper {
 
     // --- Workflow markers trên ExamRegistration / Document.Notes ---
 
     public static final String MARK_PROFILE_DOC = "#PROFILE_DOC#";
     public static final String MARK_SUPPLEMENT_DOC = "#SUPPLEMENT_DOC#";
-    /** Prefix gắn Document.Notes với ExamRegistrationId bổ sung: {@code #SUPPLEMENT_ER#42#}. */
     public static final String MARK_SUPPLEMENT_ER_PREFIX = "#SUPPLEMENT_ER#";
 
     // --- Upload validation ---
@@ -30,17 +31,14 @@ public final class RegistrantDocumentHelper {
     private RegistrantDocumentHelper() {
     }
 
-    /** ER notes chứa #SUPPLEMENT_DOC# → đây là dòng đăng ký hồ sơ bổ sung (không phải hồ sơ gốc). */
     public static boolean isSupplementExamRegistrationNotes(String notes) {
         return notes != null && notes.contains(MARK_SUPPLEMENT_DOC);
     }
 
-    /** ER hồ sơ gốc: notes trống hoặc không có marker supplement. */
     public static boolean isPrimaryExamRegistrationNotes(String notes) {
         return notes == null || notes.isBlank() || !isSupplementExamRegistrationNotes(notes);
     }
 
-    /** Đảm bảo notes ER hồ sơ gốc luôn có #PROFILE_DOC# (idempotent). */
     public static String ensureProfileDocMarker(String notes) {
         String base = notes != null ? notes.trim() : "";
         if (base.contains(MARK_PROFILE_DOC)) {
@@ -52,13 +50,11 @@ public final class RegistrantDocumentHelper {
         return MARK_PROFILE_DOC + " " + base;
     }
 
-    /** Ghép notes khi tạo ER bổ sung: #SUPPLEMENT_DOC# + message. */
     public static String buildSupplementExamRegistrationNotes(String message) {
         String body = message != null && !message.isBlank() ? message.trim() : "Yêu cầu duyệt hồ sơ bổ sung.";
         return MARK_SUPPLEMENT_DOC + " " + body;
     }
 
-    /** Mã hóa: #SUPPLEMENT_ER#<examRegistrationId># */
     public static String encodeSupplementErMarker(int examRegistrationId) {
         if (examRegistrationId <= 0) {
             return "";
@@ -66,7 +62,6 @@ public final class RegistrantDocumentHelper {
         return MARK_SUPPLEMENT_ER_PREFIX + examRegistrationId + "#";
     }
 
-    /** Giải mã ExamRegistrationId từ marker Notes, vd. "... | #SUPPLEMENT_ER#42#" → 42. */
     public static Integer parseSupplementErId(String notes) {
         if (notes == null || !notes.contains(MARK_SUPPLEMENT_ER_PREFIX)) {
             return null;
@@ -84,7 +79,6 @@ public final class RegistrantDocumentHelper {
         }
     }
 
-    /** Gắn marker ER bổ sung vào Notes (không trùng nếu đã có). */
     public static String appendSupplementErMarker(String notes, int examRegistrationId) {
         if (examRegistrationId <= 0) {
             return notes;
@@ -101,7 +95,6 @@ public final class RegistrantDocumentHelper {
 
     // --- Slot map: 4 giấy bắt buộc + Hồ sơ khác ---
 
-    /** Ghép slot UI mặc định với tài liệu DB — mỗi DocumentType bắt buộc đúng 1 slot trên form upload. */
     public static Map<String, RegistrantDocumentView> mergeRequiredDocumentSlots(
             DocumentDAO documentdao, List<RegistrantDocumentView> docs) {
         Map<String, RegistrantDocumentView> slots = documentdao.defaultDocumentSlots();
@@ -163,7 +156,6 @@ public final class RegistrantDocumentHelper {
         return count;
     }
 
-    /** Other cần staff review cho ER bổ sung: ưu tiên #SUPPLEMENT_ER#id#; legacy thì Other đang #PENDING#. */
     public static List<RegistrantDocumentView> collectSupplementReviewTargets(
             List<RegistrantDocumentView> docs, int supplementExamRegistrationId) {
         List<RegistrantDocumentView> linked = new ArrayList<>();

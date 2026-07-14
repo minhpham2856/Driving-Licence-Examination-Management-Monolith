@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Loại tác vụ trong nhật ký theo dõi hồ sơ - dùng cho filter track-profile.
+ * Loại tác vụ trong nhật ký theo dõi hồ sơ — dùng cho filter track-profile.
  */
 public final class RegistrantTrackingCategories {
 

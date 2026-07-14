@@ -15,7 +15,7 @@ public class RegistrantExamSessionOption {
     private Date examDate;
     private String location;
     private int slotsRemaining;
-    /** SessionId thực tế trong DB - dùng nội bộ khi đăng ký. */
+    /** SessionId thực tế trong DB — dùng nội bộ khi đăng ký. */
     private int sessionId;
 
     public String getId() {

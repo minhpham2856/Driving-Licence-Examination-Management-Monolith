@@ -172,7 +172,7 @@ public final class RegistrantProfileSupport {
         return value == null || value.isBlank();
     }
 
-    /** Đọc RegistrationStatus hồ sơ gốc - không ghi đè DB. */
+    /** Đọc RegistrationStatus hồ sơ gốc — không ghi đè DB. */
     public static ProfileRegistrationSyncResult loadRegistrationSync(int profileId,
             RegistrantDAO registrantdao) {
         String status = registrantdao.findProfileDocumentRegistrationStatus(profileId);
@@ -209,7 +209,7 @@ public final class RegistrantProfileSupport {
                     "Ban quản lý đã duyệt hồ sơ (%d/%d giấy tờ bắt buộc đã tải).", uploaded, requiredTotal);
             case ProfileRegistrationStatus.PENDING -> String.format(
                     "Thí sinh đã gửi yêu cầu duyệt (%d/%d giấy tờ bắt buộc đã tải).", uploaded, requiredTotal);
-            case ProfileRegistrationStatus.REJECTED -> "Có giấy tờ bị từ chối - vui lòng bổ sung và gửi duyệt lại.";
+            case ProfileRegistrationStatus.REJECTED -> "Có giấy tờ bị từ chối — vui lòng bổ sung và gửi duyệt lại.";
             case ProfileRegistrationStatus.DRAFT -> uploaded > 0
                     ? String.format("Đang bổ sung hồ sơ (%d/%d giấy tờ bắt buộc).", uploaded, requiredTotal)
                     : "Chưa tải giấy tờ bắt buộc.";

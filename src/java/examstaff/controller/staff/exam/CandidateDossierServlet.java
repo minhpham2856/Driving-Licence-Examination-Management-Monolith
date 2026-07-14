@@ -14,16 +14,22 @@ import examstaff.service.CandidateDossierService;
 
 import java.io.IOException;
 
-@WebServlet("/examstaff/candidate-dossier")
+/**
+ * Trang in hồ sơ thí sinh: load dossier theo SBD → bind attribute → forward JSP.
+ */
+@WebServlet("/views/staff/examstaff/candidate-dossier")
 public class CandidateDossierServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final CandidateDossierService dossierService = SERVICES.dossiers();
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
+    /**
+     * GET hồ sơ: thiếu/không tìm thấy SBD thì redirect candidatecall; ngược lại bind và forward.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

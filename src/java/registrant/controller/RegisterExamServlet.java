@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** Đăng ký đợt thi GET/POST /registrant/register-exam — GET load hạng/ca; POST confirmRegistration=1 validate+insert. */
 @WebServlet("/registrant/register-exam")
 public class RegisterExamServlet extends HttpServlet {
 

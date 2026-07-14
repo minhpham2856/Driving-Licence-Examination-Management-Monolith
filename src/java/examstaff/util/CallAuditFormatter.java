@@ -27,10 +27,10 @@ public final class CallAuditFormatter {
                     : "Gọi lên " + destination;
             case "absent" -> destination.isEmpty()
                     ? "Đánh dấu vắng mặt"
-                    : "Vắng mặt - không lên " + destination;
+                    : "Vắng mặt — không lên " + destination;
             default -> destination.isEmpty()
                     ? outcome
-                    : destination + " - " + outcome;
+                    : destination + " — " + outcome;
         };
     }
 }
