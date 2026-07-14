@@ -11,7 +11,7 @@ skills-lock.json
 sources.txt
 .agents/
 .cursor/
-.claude/
+.claude (hoặc .agents)/
 memory/
 private/
 build/
@@ -19,3 +19,4 @@ out/
 nbproject/build-impl.xml~
 docs/
 CLAUDE.md
+priv
