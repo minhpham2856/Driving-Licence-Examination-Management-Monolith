@@ -356,6 +356,16 @@ body.examstaff-portal .exam-shift-chip__btn--end {
     border-color: #fecaca;
 }
 
+body.examstaff-portal .exam-shift-chip__btn--pause {
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+body.examstaff-portal .exam-shift-chip__btn--resume {
+    color: #047857;
+    border-color: #a7f3d0;
+}
+
 body.examstaff-portal .exam-shift-chip__btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
