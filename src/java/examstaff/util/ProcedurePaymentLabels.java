@@ -22,6 +22,6 @@ public final class ProcedurePaymentLabels {
         if (allocResult != null && allocResult.errorMsg != null && !allocResult.errorMsg.isBlank()) {
             return " (" + allocResult.errorMsg.trim() + ")";
         }
-        return " (chưa phân được phòng - kiểm tra phân công giám khảo phòng lý thuyết)";
+        return " (chưa phân được phòng - kiểm tra phân công sát hạch viên phòng lý thuyết)";
     }
 }
