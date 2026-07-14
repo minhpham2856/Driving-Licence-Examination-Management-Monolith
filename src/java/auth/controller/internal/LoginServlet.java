@@ -2,9 +2,12 @@ package auth.controller.internal;
 
 import auth.dto.UserDTO;
 import shared.Attributes;
+import shared.model.Profile;
 import shared.model.User;
 import auth.service.AuthService;
+import auth.service.ProfileService;
 import auth.service.impl.AuthServiceImpl;
+import auth.service.impl.ProfileServiceImpl;
 import static auth.util.FormatUtil.formatString;
 import shared.enums.RoleType;
 import jakarta.servlet.ServletException;
@@ -19,6 +22,7 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
 
     private final AuthService authService = new AuthServiceImpl();
+    private final ProfileService profileService = new ProfileServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -72,7 +76,13 @@ public class LoginServlet extends HttpServlet {
 
         // store session identity as UserDTO (no password hash)
         HttpSession session = request.getSession();
-        session.setAttribute(Attributes.Session.USER, UserDTO.fromUser(user));
+        UserDTO userDto = UserDTO.fromUser(user);
+        Profile profile = profileService.getByUserId(user.getUserId());
+        if (profile != null) {
+            userDto.setProfile(profile);
+            session.setAttribute(Attributes.Session.USER_PROFILE, profile);
+        }
+        session.setAttribute(Attributes.Session.USER, userDto);
 
         // redirect by role
         switch (role) {
