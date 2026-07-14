@@ -2,15 +2,17 @@ package examstaff.dao.view.impl;
 
 import examstaff.dao.Db2CandidateSql;
 import examstaff.dao.view.ExamStaffCandidateViewDAO;
+import shared.dbconnection.DBContext;
 import examstaff.dto.view.ExamStaffCandidate;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import shared.dbconnection.DBContext;
 
 public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaffCandidateViewDAO {
 

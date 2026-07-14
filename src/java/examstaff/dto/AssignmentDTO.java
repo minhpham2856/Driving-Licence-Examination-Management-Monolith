@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.enums.SectionType;
+import shared.enums.SectionType;
 
 public class AssignmentDTO {
 
@@ -122,3 +122,4 @@ public class AssignmentDTO {
         this.examLabel = examLabel;
     }
 }
+

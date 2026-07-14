@@ -19,7 +19,7 @@ import examstaff.service.ExamStaffSelectionService;
 import java.util.List;
 
 /**
- * Prepares exam-staff page context and binds the initial page examstaff.model.
+ * Prepares exam-staff page context and binds the initial page model.
  */
 public final class ExamStaffPageFacade {
 

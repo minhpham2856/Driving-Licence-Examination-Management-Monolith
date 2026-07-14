@@ -2,7 +2,7 @@ package examstaff.service.impl;
 
 import examstaff.dao.AuditLogDAO;
 import examstaff.dao.impl.AuditLogDAOImpl;
-import examstaff.enums.AuditEntity;
+import shared.enums.AuditEntity;
 import shared.model.Audit;
 import examstaff.service.StaffAuditLogService;
 
@@ -37,7 +37,7 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     static String resolveEntityName(String action, String details) {
         String resolved = examstaff.util.AuditLogHelper.resolveEntityName(action, details);
         if ("Payment".equalsIgnoreCase(resolved)) {
-            return examstaff.enums.AuditEntity.PAYMENT.getValue();
+            return AuditEntity.THANH_TOAN.getDisplayName();
         }
         return resolved;
     }

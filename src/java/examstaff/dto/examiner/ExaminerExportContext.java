@@ -1,8 +1,9 @@
 package examstaff.dto.examiner;
 
-import examstaff.enums.SectionType;
+import shared.enums.SectionType;
 
 public record ExaminerExportContext(int sessionId, ExaminerSlotDTO slot,
         SectionType sectionType, String sectionName) {
 
 }
+

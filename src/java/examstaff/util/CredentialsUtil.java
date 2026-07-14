@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.enums.Sex;
+import shared.enums.Sex;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -99,3 +99,4 @@ public final class CredentialsUtil {
         return licenseClass;
     }
 }
+

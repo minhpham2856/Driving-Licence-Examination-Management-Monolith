@@ -1,7 +1,7 @@
 package examstaff.dto;
 
 import examstaff.dto.ExaminerSlotDTO;
-import examstaff.dto.user.UserDTO;
+import examstaff.dto.UserDTO;
 
 import java.util.List;
 import java.util.Map;

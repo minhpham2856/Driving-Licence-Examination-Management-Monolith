@@ -12,10 +12,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-public final class ExamQueue {
+public class ExamQueue {
 
-    public static final Queue<Integer> queueTheory = new ConcurrentLinkedQueue<>();
-    public static final Queue<Integer> queueLayout = new ConcurrentLinkedQueue<>();
+    private static Queue<Integer> queueTheory = new ConcurrentLinkedQueue<>();
+    private static Queue<Integer> queueLayout = new ConcurrentLinkedQueue<>();
 
     public enum Lane {
         LY_THUYET, THUC_HANH_TRONG_HINH

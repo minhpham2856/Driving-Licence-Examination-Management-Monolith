@@ -51,3 +51,4 @@ public class CandidateCallDAOImpl extends DBContext implements CandidateCallDAO 
         return false;
     }
 }
+

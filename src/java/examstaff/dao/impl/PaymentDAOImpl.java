@@ -2,7 +2,7 @@ package examstaff.dao.impl;
 
 import shared.dbconnection.DBContext;
 import examstaff.dao.PaymentDAO;
-import examstaff.enums.PaymentStatus;
+import shared.enums.PaymentStatus;
 import shared.model.Payment;
 
 import java.sql.PreparedStatement;
@@ -104,23 +104,5 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         }
         return -1;
     }
-
-    // --- mainTest-only method ---
-
-    @Override
-    public boolean hasCompletedPayment(int examEnrollmentId) {
-        String sql = "SELECT COUNT(*) FROM Payment WHERE ExamEnrollmentId = ? AND PaymentStatus = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examEnrollmentId);
-            ps.setString(2, PaymentStatus.HOAN_TAT.getValue());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            LOG.log(java.util.logging.Level.SEVERE, "hasCompletedPayment error", e);
-        }
-        return false;
-    }
 }
-
 

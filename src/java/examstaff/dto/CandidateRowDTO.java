@@ -1,7 +1,7 @@
 package examstaff.dto;
 
-import examstaff.enums.CandidateStatus;
-import examstaff.enums.Sex;
+import shared.enums.CandidateStatus;
+import shared.enums.Sex;
 
 public class CandidateRowDTO {
 
@@ -213,3 +213,4 @@ public class CandidateRowDTO {
         this.avatarClass = avatarClass;
     }
 }
+

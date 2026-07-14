@@ -7,9 +7,9 @@ import shared.dbconnection.DBContext;
 import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dto.ExaminerSlotDTO;
 
-import examstaff.enums.UserRole;
+import shared.enums.UserRole;
 import shared.model.Profile;
-import examstaff.dto.user.UserDTO;
+import examstaff.dto.UserDTO;
 
 import examstaff.service.RoleService;
 import examstaff.service.impl.RoleServiceImpl;
@@ -376,11 +376,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     static String examTypeFromId(int examTypeId) {
         return switch (examTypeId) {
             case 2 ->
-                examstaff.enums.SectionType.LAYOUT.getValue();
+                examstaff.enums.ExamSection.THUC_HANH_TRONG_HINH.getDisplayName();
             case 4 ->
-                examstaff.enums.SectionType.SCORE_BASED.getValue();
+                examstaff.enums.ExamSection.THUC_HANH_TREN_DUONG.getDisplayName();
             default ->
-                examstaff.enums.SectionType.THEORY.getValue();
+                examstaff.enums.ExamSection.LY_THUYET.getDisplayName();
         };
     }
 
@@ -431,7 +431,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         if (profileId != null) {
             // Profile exists â€” create and populate the nested Profile object
             Profile profile = new Profile();
-            profile.setProfileId(profileId);
+            profile.setId(profileId);
             profile.setUserId(rs.getInt("UserId"));
             profile.setFullName(rs.getString("FullName"));
             // Convert SQL Date to Timestamp for the DOB field

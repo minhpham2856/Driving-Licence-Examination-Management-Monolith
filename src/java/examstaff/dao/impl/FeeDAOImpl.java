@@ -180,7 +180,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         fee.setFeeName(rs.getString("FeeName"));
         fee.setFeeType(rs.getString("FeeType"));
         fee.setAmount(rs.getDouble("Amount"));
-        fee.setActive(rs.getBoolean("IsActive"));
+        fee.setIsActive(rs.getBoolean("IsActive"));
         return fee;
     }
 }

@@ -5,7 +5,7 @@ import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.FeeDAOImpl;
 import examstaff.dao.impl.PaymentDAOImpl;
 import examstaff.dto.ReportPaymentSummaryDTO;
-import examstaff.enums.PaymentStatus;
+import shared.enums.PaymentStatus;
 import shared.model.Fee;
 import shared.model.Payment;
 import examstaff.service.ReportFeeQueryService;

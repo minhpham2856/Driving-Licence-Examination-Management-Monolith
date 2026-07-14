@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.enums.SectionType;
+import shared.enums.SectionType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -203,3 +203,4 @@ public final class ExamQueue {
         }
     }
 }
+
