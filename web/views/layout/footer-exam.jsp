@@ -15,8 +15,9 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="noticeTitle" value="${not empty param.noticeTitle ? param.noticeTitle : 'Lưu ý:'}" />
 <c:set var="noticeText" value="${not empty param.noticeText ? param.noticeText : 'Sử dụng bàn phím trên màn hình hoặc bàn phím số bên phải của máy tính'}" />
-<c:set var="noticeIconUrl" value="${ctx}/assets/imgs/footer-notice-icon.svg" />
 <c:set var="csgtImageUrl" value="${ctx}/assets/imgs/csgt-footer.png" />
+
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
 
 <style>
     .exam-footer {
@@ -56,10 +57,10 @@
     }
 
     .exam-footer__notice-icon {
-        width: 14px;
-        height: 18px;
-        flex: 0 0 14px;
-        display: block;
+        flex: 0 0 auto;
+        font-size: 18px !important;
+        color: #0052cc;
+        line-height: 1;
     }
 
     .exam-footer__notice-copy {
@@ -157,7 +158,7 @@
         height: 40px;
         flex: 0 0 32px;
         display: block;
-        object-fit: cover;
+        object-fit: contain;
         pointer-events: none;
     }
 
@@ -196,7 +197,7 @@
 <footer class="exam-footer" role="contentinfo" data-node-id="117:62" data-name="Footer">
     <section class="exam-footer__notice-card" aria-label="${noticeTitle}" data-node-id="117:63" data-name="Background+Border">
         <div class="exam-footer__notice-inner">
-            <img class="exam-footer__notice-icon" src="${noticeIconUrl}" alt="" aria-hidden="true" data-node-id="111:98">
+            <span class="material-symbols-outlined exam-footer__notice-icon" aria-hidden="true">lightbulb</span>
             <div class="exam-footer__notice-copy" data-node-id="111:99">
                 <p class="exam-footer__notice-title" data-node-id="111:100">${noticeTitle}</p>
                 <p class="exam-footer__notice-text" data-node-id="111:101">${noticeText}</p>

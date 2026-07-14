@@ -5,7 +5,7 @@
         <span class="exam-shift-chip__meta">
             <strong>${currentExam.examName}</strong>
             <c:if test="${not empty currentExam.examTypeName}">
-                <span class="es-text-muted-sm"> — ${currentExam.examTypeName}</span>
+                <span class="es-text-muted-sm"> - ${currentExam.examTypeName}</span>
             </c:if>
         </span>
         <jsp:include page="/views/staff/examstaff/includes/exam-shift-controls.jsp">

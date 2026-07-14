@@ -5,12 +5,12 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Gọi thí sinh" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-call" scope="request" />
-<c:set var="detailViewUrl" value="${ctx}/views/examiner/candidate-details-edit" scope="request" />
-<c:set var="detailEditUrl" value="${ctx}/views/examiner/candidate-details-edit" scope="request" />
-<c:set var="violationConfirmUrl" value="${ctx}/views/examiner/violation-confirm" scope="request" />
-<c:set var="violationUndoUrl" value="${ctx}/views/examiner/violation-undo" scope="request" />
-<c:set var="resultUrl" value="${ctx}/views/examiner/result-details-edit" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/candidate-call" scope="request" />
+<c:set var="detailViewUrl" value="${ctx}/examiner/candidate-details-edit" scope="request" />
+<c:set var="detailEditUrl" value="${ctx}/examiner/candidate-details-edit" scope="request" />
+<c:set var="violationConfirmUrl" value="${ctx}/examiner/violation-confirm" scope="request" />
+<c:set var="violationUndoUrl" value="${ctx}/examiner/violation-undo" scope="request" />
+<c:set var="resultUrl" value="${ctx}/examiner/result-details-edit" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>

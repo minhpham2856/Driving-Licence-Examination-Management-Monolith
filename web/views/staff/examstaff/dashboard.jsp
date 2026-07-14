@@ -93,15 +93,15 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">
-                        Kỳ thi hạng ${not empty currentExam ? currentExam.licenseCode : '—'}
+                        Kỳ thi hạng ${not empty currentExam ? currentExam.licenseCode : '-'}
                     </span>
                     <span class="stat-label">
                         <c:if test="${not empty currentExam and not empty currentExam.examDate}">
                             <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy"/>
                         </c:if>
-                        <c:if test="${empty currentExam or empty currentExam.examDate}">—</c:if>
+                        <c:if test="${empty currentExam or empty currentExam.examDate}">-</c:if>
                         <c:if test="${not empty currentExam}">
-                            — ${currentExam.status}
+                            - ${currentExam.status}
                         </c:if>
                     </span>
                 </div>
@@ -348,7 +348,7 @@
                     </table>
                 </div>
 
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" class="room-monitor-card__action hover-elevate">
+                <a href="${pageContext.request.contextPath}/examstaff/report" class="room-monitor-card__action hover-elevate">
                     Xem báo cáo chi tiết &rarr;
                 </a>
             </div>

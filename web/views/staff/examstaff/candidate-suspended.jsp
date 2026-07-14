@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -7,7 +7,7 @@
     <jsp:param name="activeSidebar" value="goi-thi" />
     <jsp:param name="pageTitle" value="Đình chỉ thi" />
     <jsp:param name="sectionTitle" value="Gọi làm thủ tục" />
-    <jsp:param name="sectionUrl" value="${pageContext.request.contextPath}/views/staff/examstaff/candidatecall" />
+    <jsp:param name="sectionUrl" value="${pageContext.request.contextPath}/examstaff/candidatecall" />
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
@@ -55,7 +55,7 @@
                     <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span style="font-size: 0.82rem; font-weight: 600; color: #065f46;">
-                    Đã hoàn tác đình chỉ thí sinh <strong style="color: #047857;">${requestScope.undoAlert}</strong> — đưa về đầu hàng đợi gọi thủ tục.
+                    Đã hoàn tác đình chỉ thí sinh <strong style="color: #047857;">${requestScope.undoAlert}</strong> - đưa về đầu hàng đợi gọi thủ tục.
                 </span>
             </div>
         </c:if>
@@ -93,7 +93,7 @@
                                     <th scope="col" style="width: 100px;">SBD</th>
                                     <th scope="col">Họ tên</th>
                                     <th scope="col" style="width: 80px; text-align: center;">Hạng</th>
-                                    <th scope="col" style="width: 150px; text-align: center;">CCCD</th>
+                                    <th scope="col" style="width: 150px; text-align: center;">Căn cước</th>
                                     <th scope="col" style="width: 150px; text-align: center;">Trạng thái</th>
                                     <th scope="col" style="width: 120px; text-align: right;">Hoàn tác</th>
                                 </tr>

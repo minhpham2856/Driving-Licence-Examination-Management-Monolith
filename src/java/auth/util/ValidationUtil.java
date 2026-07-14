@@ -7,6 +7,10 @@ import java.time.format.DateTimeParseException;
 
 public final class ValidationUtil {
 
+    // HTML <input type="date"> submits yyyy-MM-dd
+    public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final DateTimeFormatter LEGACY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
     public static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
@@ -27,8 +31,13 @@ public final class ValidationUtil {
         if (isBlank(value)) {
             return null;
         }
+        String trimmed = value.trim();
         try {
-            return LocalDate.parse(value.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            return LocalDate.parse(trimmed, DATE_FORMAT);
+        } catch (DateTimeParseException ignored) {
+        }
+        try {
+            return LocalDate.parse(trimmed, LEGACY_DATE_FORMAT);
         } catch (DateTimeParseException ex) {
             return null;
         }

@@ -10,16 +10,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * JDBC implementation của {@link ExamDAO} — đọc/cập nhật trạng thái kỳ thi.
+ * JDBC implementation of ExamDAO - get/update status cho điều khiển kỳ thi.
  */
 public class ExamDAOImpl extends DBContext implements ExamDAO {
 
-    /** SELECT tóm tắt kỳ thi. */
     private static final String EXAM_SELECT =
             "SELECT e.ExamId AS id, "
             + "e.ExamId AS examId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
+            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "1 AS examTypeId, "
             + "CAST(e.ExamDate AS DATE) AS examDate, "
             + "CAST(e.StartTime AS TIME) AS shiftStartTime, "
@@ -34,7 +33,6 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
             + "FROM Exam e "
             + "JOIN Licence l ON l.LicenceId = e.LicenceId";
 
-    /** {@inheritDoc} */
     @Override
     public ExamSummaryDTO getById(int id) {
         if (id <= 0) {
@@ -53,7 +51,6 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean updateStatus(int examId, String status) {
         String sql = "UPDATE Exam SET [Status] = ? WHERE ExamId = ?";
@@ -67,7 +64,6 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean finishExam(int examId, String status, Timestamp endTime) {
         String sql = "UPDATE Exam SET [Status] = ?, EndTime = ? WHERE ExamId = ?";
@@ -82,7 +78,6 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return false;
     }
 
-    /** Ánh xạ ResultSet → {@link ExamSummaryDTO}. */
     private ExamSummaryDTO mapResultSetToExam(ResultSet rs) throws SQLException {
         ExamSummaryDTO es = new ExamSummaryDTO();
         es.setId(rs.getInt("id"));

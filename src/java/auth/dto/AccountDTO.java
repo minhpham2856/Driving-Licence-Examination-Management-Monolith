@@ -2,8 +2,7 @@ package auth.dto;
 
 import shared.model.Profile;
 
-/** View tài khoản nội bộ: UserDTO + Profile để bind JSP. */
-public class StaffAccountViewDTO {
+public class AccountDTO {
 
     private UserDTO user;
     private Profile profile;
