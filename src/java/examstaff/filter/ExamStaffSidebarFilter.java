@@ -21,7 +21,7 @@ import java.io.IOException;
 @WebFilter(urlPatterns = {"/examstaff/*"})
 public class ExamStaffSidebarFilter extends HttpFilter {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 

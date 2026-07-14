@@ -9,7 +9,6 @@ import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateCallWorkflowService;
-import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffExamQueryService;
 
@@ -19,21 +18,18 @@ import java.util.List;
 public class CandidateCallPageServiceImpl implements CandidateCallPageService {
 
     private final CandidateCallWorkflowService callWorkflow;
-    private final CandidateCallingService callingService;
     private final CandidateQueueService queueService;
     private final ExamStaffExamQueryService examQuery;
 
     public CandidateCallPageServiceImpl() {
-        this(new CandidateCallWorkflowServiceImpl(), new CandidateCallingServiceImpl(),
-                new CandidateQueueServiceImpl(), new ExamStaffExamQueryServiceImpl());
+        this(new CandidateCallWorkflowServiceImpl(), new CandidateQueueServiceImpl(),
+                new ExamStaffExamQueryServiceImpl());
     }
 
     public CandidateCallPageServiceImpl(CandidateCallWorkflowService callWorkflow,
-            CandidateCallingService callingService,
             CandidateQueueService queueService,
             ExamStaffExamQueryService examQuery) {
         this.callWorkflow = callWorkflow;
-        this.callingService = callingService;
         this.queueService = queueService;
         this.examQuery = examQuery;
     }
@@ -120,7 +116,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         }
 
         List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(fullQueue);
-        String advancedSbd = callingService.advanceCallingIfDone(callingSbd, fullQueue);
+        String advancedSbd = queueService.advanceCallingIfDone(callingSbd, fullQueue);
         boolean releaseDesk = false;
         String releaseDeskCallingSbd = null;
 
@@ -164,7 +160,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
                 releaseDesk = true;
                 releaseDeskCallingSbd = release.boardCallingSbd;
             }
-            String synced = callingService.resolveSyncedCallingSbd(callingSbd, command.getBoard(), fullQueue);
+            String synced = queueService.resolveSyncedCallingSbd(callingSbd, command.getBoard(), fullQueue);
             if (synced != null) {
                 callingSbd = synced;
             }

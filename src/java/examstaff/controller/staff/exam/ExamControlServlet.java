@@ -25,7 +25,7 @@ import java.util.List;
 @WebServlet("/examstaff/exam-control")
 public class ExamControlServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 

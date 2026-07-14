@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import examstaff.service.CandidateCallingService;
+import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.ExamStaffDashboardService;
 
@@ -23,12 +23,12 @@ import java.util.List;
 @WebServlet("/examstaff/dashboard")
 public class DashboardServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final ExamStaffDashboardService dashboardService = SERVICES.dashboard();
-    private final CandidateCallingService callingService = SERVICES.calling();
+    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
     @Override
@@ -70,7 +70,7 @@ public class DashboardServlet extends HttpServlet {
     private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
         String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
         examstaff.dto.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
-        String callingSbd = callingService.resolveSyncedCallingSbd(httpCalling, callBoard, queue);
+        String callingSbd = candidateQueueService.resolveSyncedCallingSbd(httpCalling, callBoard, queue);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
                 session.setAttribute("callingSbd", callingSbd);

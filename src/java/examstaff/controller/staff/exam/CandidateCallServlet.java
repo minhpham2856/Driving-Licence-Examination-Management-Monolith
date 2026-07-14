@@ -12,7 +12,6 @@ import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
 import examstaff.enums.ExamStatus;
-import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamControlService;
@@ -34,12 +33,11 @@ import java.util.List;
 @WebServlet("/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final CandidateCallPageService pageService;
-    private final CandidateCallingService callingService = SERVICES.calling();
     private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final ExamControlService examControlService = SERVICES.examControl();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
@@ -242,7 +240,7 @@ public class CandidateCallServlet extends HttpServlet {
             return null;
         }
         String callingSbd = (String) session.getAttribute("callingSbd");
-        ExamRegistrationDTO calling = callingService.resolveCallingCandidate(callingSbd, queue);
+        ExamRegistrationDTO calling = candidateQueueService.resolveCallingCandidate(callingSbd, queue);
         if (calling != null && callingSbd != null && !callingSbd.equals(calling.getSbd())) {
             session.setAttribute("callingSbd", calling.getSbd());
         } else if (calling == null && callingSbd != null) {
