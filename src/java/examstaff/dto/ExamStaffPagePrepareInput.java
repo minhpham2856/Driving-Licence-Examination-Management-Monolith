@@ -5,6 +5,10 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Input chuẩn bị trang ExamStaff (Presentation → BLL).
+ * Gom tham số URL/session, danh sách kỳ thi và cache hàng chờ.
+ */
 public class ExamStaffPagePrepareInput {
 
     private int urlExamId;

@@ -64,6 +64,15 @@ public interface ExamRegistrationService {
      */
     boolean updateAllocatedRoom(int candidateId, int examId, int areaId, String areaName);
 
+    /**
+     * Cập nhật sân/phòng thực hành đã phân cho đăng ký thi.
+     *
+     * @param candidateId mã thí sinh
+     * @param examId      mã kỳ thi
+     * @param areaId      mã khu vực thực hành
+     * @param areaName    tên khu vực thực hành
+     * @return true nếu cập nhật thành công
+     */
     boolean updatePracticalAllocatedRoom(int candidateId, int examId, int areaId, String areaName);
 
     /**
@@ -100,6 +109,12 @@ public interface ExamRegistrationService {
      */
     boolean updatePhoto(int id, String photoUrl);
 
+    /**
+     * Xóa / hủy đánh dấu các khoản thanh toán đã hoàn thành của thí sinh.
+     *
+     * @param candidateId mã thí sinh
+     * @return true nếu cập nhật thành công
+     */
     boolean clearCompletedPayments(int candidateId);
 
     /**

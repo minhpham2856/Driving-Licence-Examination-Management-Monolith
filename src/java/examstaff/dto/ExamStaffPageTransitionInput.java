@@ -4,6 +4,9 @@ import examstaff.dto.ExamSummaryDTO;
 
 import java.util.List;
 
+/**
+ * Input tính toán chuyển kỳ thi trên trang ExamStaff (URL/session → BLL).
+ */
 public class ExamStaffPageTransitionInput {
 
     private int urlExamId;

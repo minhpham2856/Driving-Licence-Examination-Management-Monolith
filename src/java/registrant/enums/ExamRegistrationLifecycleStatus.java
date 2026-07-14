@@ -1,6 +1,8 @@
 package registrant.enums;
 
-/** Trạng thái ER đăng ký đợt thi (portal) — tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected. */
+/**
+ * Trạng thái {@code ExamRegistration} cho luồng đăng ký ca thi (tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected).
+ */
 public final class ExamRegistrationLifecycleStatus {
 
     public static final String PRE_REGISTERED = "PreRegistered";
@@ -11,19 +13,6 @@ public final class ExamRegistrationLifecycleStatus {
     public static final String PRESENT = "Present";
     public static final String COMPLETED = "Completed";
     public static final String WALK_IN = "WalkIn";
-
-    /** SQL: chỉ lấy ER lifecycle (không lấy hồ sơ duyệt tài liệu). */
-    public static final String SQL_LIFECYCLE_ONLY = """
-            er.RegistrationStatus NOT IN (
-                N'Draft', N'Pending', N'Approved', N'Rejected',
-                N'Chờ duyệt', N'Duyệt', N'Loại',
-                N'RegistrationRejected', N'Cancelled'
-            )
-            """;
-
-    /** SQL: bỏ dòng ER đánh dấu hồ sơ gốc (#PROFILE_DOC#). */
-    public static final String SQL_EXCLUDE_PROFILE_DOC =
-            "(er.Notes IS NULL OR er.Notes NOT LIKE N'%#PROFILE_DOC#%')";
 
     private ExamRegistrationLifecycleStatus() {
     }
@@ -38,6 +27,7 @@ public final class ExamRegistrationLifecycleStatus {
                 || ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(status);
     }
 
+    /** Cho phép đăng ký lại cùng phần thi + hạng khi đăng ký trước đã bị từ chối hoặc đã hủy. */
     public static boolean allowsRepeatRegistration(String status) {
         if (status == null || status.isBlank()) {
             return true;
@@ -66,7 +56,7 @@ public final class ExamRegistrationLifecycleStatus {
 
     public static String toDisplayLabel(String status) {
         if (status == null || status.isBlank()) {
-            return "-";
+            return "—";
         }
         return switch (status.trim()) {
             case PRE_REGISTERED -> "Chờ xét duyệt";

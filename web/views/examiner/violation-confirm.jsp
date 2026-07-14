@@ -5,9 +5,9 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Xác nhận đình chỉ" />
-<c:set var="backUrl" value="${ctx}/examiner/violations" />
+<c:set var="backUrl" value="${ctx}/views/examiner/violations" />
 <c:set var="sbdParam" value="${not empty candidate.sbd ? candidate.sbd : param.sbd}" />
-<c:set var="pageUrl" value="${ctx}/examiner/violation-confirm?sbd=${sbdParam}" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/violation-confirm?sbd=${sbdParam}" />
 <c:set var="exportExcelUrl" value="${ctx}/examiner/export/violations" />
 <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
@@ -86,7 +86,7 @@
 
                     <!--violation choosing-->
                     <aside class="score-entry-col score-entry-col--penalties">
-                        <form action="${ctx}/examiner/violation-confirm" method="post"
+                        <form action="${ctx}/views/examiner/violation-confirm" method="post"
                               enctype="multipart/form-data"
                               class="score-entry-card score-entry-card--penalties">
                             <input type="hidden" name="sbd" value="${sbdParam}">

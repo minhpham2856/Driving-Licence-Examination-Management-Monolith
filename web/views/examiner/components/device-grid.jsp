@@ -5,7 +5,7 @@
             <!--variables-->
             <c:set var="gridUrl" value="${empty param.pageUrl ? pageContext.request.contextPath : param.pageUrl}" />
             <c:if test="${empty param.pageUrl}">
-                <c:set var="gridUrl" value="${gridUrl}/examiner/devices" />
+                <c:set var="gridUrl" value="${gridUrl}/views/examiner/devices" />
             </c:if>
             <c:set var="gridPath" value="${gridUrl}" />
             <c:if
@@ -85,24 +85,24 @@
                                     <div class="device-grid-card__actions">
                                         <c:choose>
                                             <c:when test="${device.status eq 'Bảo trì'}">
-                                                <form method="post" action="${pageContext.request.contextPath}/examiner/devices" class="device-grid-action-form">
-                                                    <input type="hidden" name="action" value="operational">
-                                                    <input type="hidden" name="deviceId" value="${device.id}">
+                                                <c:url var="operationalUrl" value="${gridPath}">
+                                                    <c:param name="action" value="operational" />
+                                                    <c:param name="deviceId" value="${device.id}" />
                                                     <c:if test="${not empty returnSbd}">
-                                                        <input type="hidden" name="sbd" value="${returnSbd}">
+                                                        <c:param name="sbd" value="${returnSbd}" />
                                                     </c:if>
-                                                    <button type="submit" class="examiner-link-action">Sử dụng</button>
-                                                </form>
+                                                </c:url>
+                                                <a href="${operationalUrl}" class="examiner-link-action">Sử dụng</a>
                                             </c:when>
                                             <c:otherwise>
-                                                <form method="post" action="${pageContext.request.contextPath}/examiner/devices" class="device-grid-action-form">
-                                                    <input type="hidden" name="action" value="maintenance">
-                                                    <input type="hidden" name="deviceId" value="${device.id}">
+                                                <c:url var="maintenanceUrl" value="${gridPath}">
+                                                    <c:param name="action" value="maintenance" />
+                                                    <c:param name="deviceId" value="${device.id}" />
                                                     <c:if test="${not empty returnSbd}">
-                                                        <input type="hidden" name="sbd" value="${returnSbd}">
+                                                        <c:param name="sbd" value="${returnSbd}" />
                                                     </c:if>
-                                                    <button type="submit" class="examiner-link-action">Bảo trì</button>
-                                                </form>
+                                                </c:url>
+                                                <a href="${maintenanceUrl}" class="examiner-link-action">Bảo trì</a>
                                             </c:otherwise>
                                         </c:choose>
                                     </div>

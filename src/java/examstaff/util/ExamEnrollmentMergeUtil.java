@@ -8,12 +8,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
+/** Gộp nhiều dòng enrollment cùng thí sinh thành một bản ghi hiển thị. */
 public final class ExamEnrollmentMergeUtil {
 
     private ExamEnrollmentMergeUtil() {
     }
 
-    // deduplicate by candidate
+    /**
+     * Gộp theo candidate id, giữ giá trị “đầy đủ” hơn; sắp theo candidateNo.
+     *
+     * @param raw danh sách gốc (có thể trùng id)
+     * @return danh sách đã dedupe (không null)
+     */
     public static List<ExamRegistrationDTO> deduplicateByCandidate(List<ExamRegistrationDTO> raw) {
         if (raw == null || raw.isEmpty()) {
             return List.of();
@@ -35,6 +41,7 @@ public final class ExamEnrollmentMergeUtil {
         return result;
     }
 
+    /** Gộp hai dòng cùng thí sinh vào bản primary (mutate primary). */
     static ExamRegistrationDTO merge(ExamRegistrationDTO a, ExamRegistrationDTO b) {
         ExamRegistrationDTO primary = preferPrimaryRow(a, b);
         ExamRegistrationDTO secondary = primary == a ? b : a;
@@ -75,11 +82,11 @@ public final class ExamEnrollmentMergeUtil {
                 && secondary.getComputerCode() != null && !secondary.getComputerCode().isBlank()) {
             primary.setComputerCode(secondary.getComputerCode());
         }
-    // prefer primary row
 
         return primary;
     }
 
+    /** Chọn dòng ưu tiên theo điểm độ đầy đủ / trạng thái. */
     private static ExamRegistrationDTO preferPrimaryRow(ExamRegistrationDTO a, ExamRegistrationDTO b) {
         int scoreA = rowPriority(a);
         int scoreB = rowPriority(b);
@@ -87,12 +94,12 @@ public final class ExamEnrollmentMergeUtil {
             return b;
         }
         if (scoreA > scoreB) {
-    // row priority
             return a;
         }
         return a.getExamId() <= b.getExamId() ? a : b;
     }
 
+    /** Điểm ưu tiên để chọn bản ghi “tốt” hơn khi merge. */
     private static int rowPriority(ExamRegistrationDTO c) {
         int score = 0;
         if (c.isPaymentCompleted()) {
@@ -113,13 +120,13 @@ public final class ExamEnrollmentMergeUtil {
         if (c.getAllocatedAreaId() != null && c.getAllocatedAreaId() > 0) {
             score += 8;
         }
-    // merge score field
         if (c.isSuspended()) {
             score -= 10;
         }
         return score;
     }
 
+    /** Gộp điểm + cờ đạt của một phần (LT hoặc TH). */
     private static void mergeScoreField(ExamRegistrationDTO primary, ExamRegistrationDTO secondary, boolean theory) {
         String p = theory ? primary.getTheoryPassed() : primary.getPracticalPassed();
         String s = theory ? secondary.getTheoryPassed() : secondary.getPracticalPassed();
@@ -130,7 +137,6 @@ public final class ExamEnrollmentMergeUtil {
             }
             primary.setTheoryPassed(merged);
         } else {
-    // merge road score
             if (primary.getPracticalScore() == null && secondary.getPracticalScore() != null) {
                 primary.setPracticalScore(secondary.getPracticalScore());
             }
@@ -138,10 +144,10 @@ public final class ExamEnrollmentMergeUtil {
         }
     }
 
+    /** Ưu tiên failed &gt; passed &gt; none khi gộp cờ đạt. */
     private static String mergePassStatus(String a, String b) {
         String sa = nullToNone(a);
         String sb = nullToNone(b);
-    // null to none
         if ("failed".equalsIgnoreCase(sa) || "failed".equalsIgnoreCase(sb)) {
             return "failed";
         }
@@ -151,6 +157,7 @@ public final class ExamEnrollmentMergeUtil {
         return "none";
     }
 
+    /** null/blank → {@code none}, còn lại lower-case. */
     private static String nullToNone(String v) {
         return v == null || v.isBlank() ? "none" : v.trim().toLowerCase(Locale.ROOT);
     }

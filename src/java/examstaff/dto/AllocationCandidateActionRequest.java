@@ -2,6 +2,10 @@ package examstaff.dto;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
 
+/**
+ * Request thao tác phân bổ một thí sinh (Presentation → BLL).
+ * Gồm action, mã đăng ký/kỳ thi, hồ sơ và khu vực đích.
+ */
 public class AllocationCandidateActionRequest {
 
     private String action;

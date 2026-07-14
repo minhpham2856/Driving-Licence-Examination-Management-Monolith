@@ -3,6 +3,10 @@ package examstaff.dto;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Thống kê kết quả kỳ thi cho màn báo cáo ExamStaff.
+ * Gồm tổng hợp đậu/trượt/vắng, theo phần thi và danh sách lỗi.
+ */
 public class ExamReportStatsDTO {
 
     private int totalCandidates;

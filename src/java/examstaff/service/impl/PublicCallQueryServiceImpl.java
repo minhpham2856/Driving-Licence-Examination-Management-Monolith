@@ -14,17 +14,26 @@ import examstaff.util.CallQueueRules;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Xây snapshot Public Call: đọc queue DB, áp thứ tự CallBoard, suy ra calling/next/waiting.
+ */
 public class PublicCallQueryServiceImpl implements PublicCallQueryService {
 
     private final CandidateQueueQueryService queueQueryService;
     private final ExamStaffExamQueryService examQueryService;
     private final CallBoardSyncService callBoardSyncService;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public PublicCallQueryServiceImpl() {
         this(new CandidateQueueQueryServiceImpl(), new ExamStaffExamQueryServiceImpl(),
                 new CallBoardSyncServiceImpl());
     }
 
+    /**
+     * @param queueQueryService   load hàng đợi theo examId
+     * @param examQueryService    thông tin kỳ thi hiển thị
+     * @param callBoardSyncService áp thứ tự board lên queue
+     */
     public PublicCallQueryServiceImpl(CandidateQueueQueryService queueQueryService,
             ExamStaffExamQueryService examQueryService,
             CallBoardSyncService callBoardSyncService) {
@@ -33,6 +42,7 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
         this.callBoardSyncService = callBoardSyncService;
     }
 
+    /** {@inheritDoc} */
     @Override
     public PublicCallSnapshotDTO loadSnapshot(int examId, String webRootPath, CallBoardState board) {
         PublicCallSnapshotDTO snapshot = new PublicCallSnapshotDTO();

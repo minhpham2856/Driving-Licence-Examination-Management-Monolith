@@ -128,7 +128,7 @@
         </a>
 
         <%-- SC-075: Quản lý Lệ phí thi --%>
-        <a href="${ctx}/admin/exam-fee"
+        <a href="${ctx}/views/admin/exam-fee.jsp"
            class="side-nav-bar__link${activeSidebar eq 'le-phi' ? ' is-active' : ''}"
            data-node-id="admin:60"
            <c:if test="${activeSidebar eq 'le-phi'}">aria-current="page"</c:if>>
@@ -143,7 +143,7 @@
         </a>
 
         <%-- SC-076: Quản lý Tài khoản hệ thống --%>
-        <a href="${ctx}/admin/accounts"
+        <a href="${ctx}/views/admin/accounts.jsp"
            class="side-nav-bar__link${activeSidebar eq 'tai-khoan' ? ' is-active' : ''}"
            data-node-id="admin:70"
            <c:if test="${activeSidebar eq 'tai-khoan'}">aria-current="page"</c:if>>
@@ -158,7 +158,7 @@
         </a>
 
         <%-- SC-077: Xem Audit toàn hệ thống --%>
-        <a href="${ctx}/admin/audit"
+        <a href="${ctx}/views/admin/audit.jsp"
            class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}"
            data-node-id="admin:80"
            <c:if test="${activeSidebar eq 'audit'}">aria-current="page"</c:if>>
@@ -174,16 +174,7 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="admin:90">
-        <a href="${ctx}/admin/profile" class="side-nav-bar__logout" data-node-id="admin:92" style="margin-bottom:6px;">
-            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="side-nav-bar__logout-label">Hồ sơ cá nhân</span>
-        </a>
-        <a href="${ctx}/admin/change-password" class="side-nav-bar__logout" data-node-id="admin:93" style="margin-bottom:6px;">
+        <a href="${ctx}/change-password" class="side-nav-bar__logout" data-node-id="admin:93" style="margin-bottom:6px;">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>

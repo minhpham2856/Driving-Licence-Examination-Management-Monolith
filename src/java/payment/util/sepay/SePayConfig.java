@@ -1,8 +1,10 @@
 package payment.util.sepay;
 
-import shared.ConfigManager;
+import shared.util.ConfigManager;
 
-/** Cấu hình SePay từ .env/env: MERCHANT_ID+SECRET_KEY (checkout), IPN_SECRET, ENV, APP_BASE_URL. */
+/**
+ * Cấu hình SePay đọc từ {@code web/WEB-INF/.env} hoặc biến môi trường.
+ */
 public final class SePayConfig {
 
     private SePayConfig() {

@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-    "/examiner/violations",
-    "/examiner/violation-confirm",
-    "/examiner/violation-undo"
+    "/views/examiner/violations",
+    "/views/examiner/violation-confirm",
+    "/views/examiner/violation-undo"
 })
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
@@ -65,10 +65,10 @@ public class ExaminerViolationsServlet extends HttpServlet {
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
-            boolean isTheory = Boolean.TRUE.equals(session.getAttribute(Attributes.Examiner.IS_THEORY));
+            boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
 
-            if ("/examiner/violations".equals(path)) {
+            if ("/views/examiner/violations".equals(path)) {
                 List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
                 if (search != null && !search.isBlank()) {
                     String q = search.trim().toLowerCase();
@@ -85,9 +85,9 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     }
                     candidates = filtered;
                     request.setAttribute("searchActive", true);
-                    request.setAttribute(Attributes.Request.SEARCH_QUERY, search.trim());
+                    request.setAttribute("searchQuery", search.trim());
                 }
-                request.setAttribute(Attributes.Request.CANDIDATES, candidates);
+                request.setAttribute("candidates", candidates);
                 request.setAttribute("candidateQueue", candidates);
 
                 if (sbd != null && sbd > 0) {
@@ -98,7 +98,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                         }
                     }
                 }
-            } else if ("/examiner/violation-confirm".equals(path) || "/examiner/violation-undo".equals(path)) {
+            } else if ("/views/examiner/violation-confirm".equals(path) || "/views/examiner/violation-undo".equals(path)) {
                 if (sbd != null && sbd > 0) {
                     Map<String, Object> data = viewDataService.getViolationData(activeExamId, sbd);
                     if (data != null) {
@@ -111,11 +111,11 @@ public class ExaminerViolationsServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/examiner/violations" ->
+            case "/views/examiner/violations" ->
                 "/views/examiner/violations.jsp";
-            case "/examiner/violation-confirm" ->
+            case "/views/examiner/violation-confirm" ->
                 "/views/examiner/violation-confirm.jsp";
-            case "/examiner/violation-undo" ->
+            case "/views/examiner/violation-undo" ->
                 "/views/examiner/violation-undo.jsp";
             default ->
                 "/views/examiner/violations.jsp";
@@ -147,9 +147,9 @@ public class ExaminerViolationsServlet extends HttpServlet {
         } catch (NumberFormatException e) {
         }
 
-        if ("/examiner/violation-confirm".equals(path)) {
+        if ("/views/examiner/violation-confirm".equals(path)) {
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/examiner/violations?error=noCandidateNumber");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/violations?error=noCandidateNumber");
                 return;
             }
 
@@ -172,7 +172,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     Files.copy(input, destination, StandardCopyOption.REPLACE_EXISTING);
                     evidencePath = "uploads/violations/" + fileName;
                 } catch (Exception e) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/violation-confirm?sbd="
+                    response.sendRedirect(request.getContextPath() + "/views/examiner/violation-confirm?sbd="
                             + urlEncode(sbd) + "&error=uploadFailed");
                     return;
                 }
@@ -185,12 +185,12 @@ public class ExaminerViolationsServlet extends HttpServlet {
                     evidencePath);
 
             if (result.isSuccess()) {
-                response.sendRedirect(request.getContextPath() + "/examiner/violations?sbd="
+                response.sendRedirect(request.getContextPath() + "/views/examiner/violations?sbd="
                         + urlEncode(sbd) + "&violationRecorded=1");
                 return;
             }
 
-            request.setAttribute(Attributes.Request.ERROR_MSG, "Không thể ghi nhận vi phạm: " + result.getMessage());
+            request.setAttribute("errorMsg", "Không thể ghi nhận vi phạm: " + result.getMessage());
             doGet(request, response);
             return;
         }
@@ -225,7 +225,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object name = session.getAttribute(Attributes.Examiner.EXAM_SECTION_NAME);
+        Object name = session.getAttribute("examSectionName");
         return name != null ? String.valueOf(name) : null;
     }
 }

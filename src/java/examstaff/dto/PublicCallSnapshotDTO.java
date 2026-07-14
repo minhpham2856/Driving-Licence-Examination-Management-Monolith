@@ -5,6 +5,10 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Snapshot chỉ-đọc cho Public Call (JSP + JSON API).
+ * Gồm kỳ thi, thí sinh đang gọi / kế tiếp, hàng chờ và cờ desk/pause/end.
+ */
 public class PublicCallSnapshotDTO {
 
     private int examId;

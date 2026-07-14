@@ -48,7 +48,7 @@
                                     <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
                                     <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi sân thi">
                                         <c:if test="${empty c.practicalAllocatedAreaId}">
-                                            <option value="" disabled selected>-</option>
+                                            <option value="" disabled selected>—</option>
                                         </c:if>
                                         <c:forEach var="yard" items="${activePracticalAreas}">
                                             <c:set var="yardLabel" value="${fn:replace(yard.areaName, 'Sân thi ', '')}" />
@@ -58,7 +58,7 @@
                                 </form>
                             </c:if>
                             <c:if test="${empty activePracticalAreas}">
-                                <span class="allocation-room-pending" title="Phân sát hạch viên vào sân thực hành trước">-</span>
+                                <span class="allocation-room-pending" title="Phân giám khảo vào sân thực hành trước">—</span>
                             </c:if>
                         </td>
                         <td>
@@ -74,7 +74,7 @@
                                     </span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="es-text-muted-sm">Chờ sát hạch viên chấm</span>
+                                    <span class="es-text-muted-sm">Chờ giám khảo chấm</span>
                                 </c:otherwise>
                             </c:choose>
                         </td>

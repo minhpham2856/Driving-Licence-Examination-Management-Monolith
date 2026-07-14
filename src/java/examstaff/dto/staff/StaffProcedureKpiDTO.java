@@ -1,6 +1,8 @@
 package examstaff.dto.staff;
 
-
+/**
+ * KPI thủ tục của staff trên màn audit: số hồ sơ hoàn tất và tổng lệ phí.
+ */
 public class StaffProcedureKpiDTO {
     private final int completedCount;
     private final double totalFees;

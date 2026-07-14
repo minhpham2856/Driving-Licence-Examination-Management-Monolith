@@ -2,6 +2,10 @@ package examstaff.dto;
 
 import shared.model.Profile;
 
+/**
+ * DTO người dùng rút gọn cho ExamStaff (sát hạch viên / phân công).
+ * Mang userId, username và Profile; không chứa nghiệp vụ.
+ */
 public class UserDTO {
     private int userId;
     private String username;
@@ -24,6 +28,7 @@ public class UserDTO {
         this.userId = userId;
     }
 
+    /** Alias userId cho JSP/legacy. */
     public int getId() {
         return userId;
     }

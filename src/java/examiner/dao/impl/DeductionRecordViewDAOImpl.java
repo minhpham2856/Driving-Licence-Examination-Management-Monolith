@@ -17,7 +17,7 @@ public class DeductionRecordViewDAOImpl extends DBContext implements DeductionRe
         List<Map<String, Object>> rows = new ArrayList<>();
         String sql = "SELECT c.CandidateNumber AS sbd, "
                 + "       c.FullName AS fullName, "
-                + "       sec.SectionType AS sectionName, "
+                + "       sec.SectionName AS sectionName, "
                 + "       sd.Reason AS violationReason, "
                 + "       sd.Points AS deductionPoints, "
                 + "       sd.IsCritical AS critical, "

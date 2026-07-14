@@ -11,8 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/** JDBC implementation của {@link ReportInfractionViewDAO}. */
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
+    /** SQL gom top lý do trừ điểm theo OccurrenceCount. */
     private static final String TOP_INFRACTIONS_SQL = """
             SELECT TOP (?) sd.[Reason] AS deductionReason,
                    SUM(dr.OccurrenceCount) AS countVal
@@ -29,6 +31,7 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
             ORDER BY countVal DESC
             """;
 
+    /** {@inheritDoc} */
     @Override
     public List<Map<String, Object>> findTopInfractions(int examId, int limit) {
         if (examId <= 0) {

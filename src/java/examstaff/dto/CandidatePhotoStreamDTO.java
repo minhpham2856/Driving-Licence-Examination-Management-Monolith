@@ -2,10 +2,17 @@ package examstaff.dto;
 
 import java.io.File;
 
+/**
+ * Kết quả tìm ảnh thí sinh để stream HTTP (BLL → servlet).
+ * Mang trạng thái, file ảnh và content-type.
+ */
 public class CandidatePhotoStreamDTO {
 
+    /** Kết quả tìm file ảnh. */
     public enum Status {
+        /** Đã tìm thấy file ảnh. */
         FOUND,
+        /** Không có ảnh hợp lệ. */
         NOT_FOUND
     }
 

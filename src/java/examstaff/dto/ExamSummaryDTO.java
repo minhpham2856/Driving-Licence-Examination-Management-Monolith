@@ -4,6 +4,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
+/**
+ * DTO tóm tắt kỳ thi mang qua layer ExamStaff (list/picker/dashboard).
+ * Không chứa nghiệp vụ; ánh xạ thông tin Exam + loại thi/hạng bằng.
+ */
 public class ExamSummaryDTO {
 
     private int id;

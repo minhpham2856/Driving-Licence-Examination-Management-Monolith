@@ -9,13 +9,16 @@ import examstaff.util.CallQueueRules;
 
 import java.util.List;
 
+/** Implementation: áp dụng {@link CallBoardRules} rồi persist qua {@link CallBoardDAO}. */
 public class CallBoardSyncServiceImpl implements CallBoardSyncService {
 
+    /** {@inheritDoc} */
     @Override
     public CallBoardState getState(CallBoardDAO callBoardDAO, int examId) {
         return callBoardDAO.getState(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void sync(CallBoardDAO callBoardDAO, int examId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
@@ -25,6 +28,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         callBoardDAO.setActiveExamId(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void occupyDesk(CallBoardDAO callBoardDAO, int examId, String deskSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
@@ -37,6 +41,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         callBoardDAO.setActiveExamId(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void releaseDeskAndCall(CallBoardDAO callBoardDAO, int examId, String callingSbd,
             List<ExamRegistrationDTO> queue, boolean shiftEnded) {
@@ -46,6 +51,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         callBoardDAO.setActiveExamId(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void pauseShift(CallBoardDAO callBoardDAO, int examId, List<ExamRegistrationDTO> queue) {
         CallBoardState updated = CallBoardRules.pauseBoard(
@@ -54,6 +60,7 @@ public class CallBoardSyncServiceImpl implements CallBoardSyncService {
         callBoardDAO.setActiveExamId(examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamRegistrationDTO> applyBoardOrder(List<ExamRegistrationDTO> queue, CallBoardState board) {
         if (board == null || board.getQueueOrderSbds() == null || board.getQueueOrderSbds().isEmpty()) {

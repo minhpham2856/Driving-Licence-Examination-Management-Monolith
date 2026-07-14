@@ -6,7 +6,7 @@
 <c:set var="headerTitle" value="Xác nhận vắng thi" />
 <c:set var="sbd" value="${not empty param.sbd ? param.sbd : candidate.sbd}" />
 <c:set var="name" value="${not empty param.name ? param.name : candidate.fullName}" />
-<c:set var="backUrl" value="${ctx}/examiner/candidate-call" />
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-call" />
 
 <!--page-->
 <!DOCTYPE html>

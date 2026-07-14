@@ -17,10 +17,11 @@ import java.util.List;
  */
 public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
 
+    /** SELECT tóm tắt kỳ thi + hạng GPLX. */
     private static final String EXAM_SELECT =
             "SELECT e.ExamId AS examId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "1 AS examTypeId, "
             + "CAST(e.ExamDate AS DATE) AS examDate, "
             + "CAST(e.StartTime AS TIME) AS shiftStartTime, "
@@ -35,12 +36,14 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
             + "FROM Exam e "
             + "JOIN Licence l ON l.LicenceId = e.LicenceId";
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamSummaryRow> findAllOrdered() {
         return fetchList(EXAM_SELECT
                 + " ORDER BY CAST(e.ExamDate AS DATE) DESC, e.StartTime DESC");
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamSummaryRow findByExamId(int examId) {
         if (examId <= 0) {
@@ -49,6 +52,7 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
         return fetchOne(EXAM_SELECT + " WHERE e.ExamId = ?", examId);
     }
 
+    /** Chạy SELECT không tham số, map toàn bộ hàng. */
     private List<ExamSummaryRow> fetchList(String sql) {
         List<ExamSummaryRow> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
@@ -62,6 +66,7 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
         return list;
     }
 
+    /** Chạy SELECT một hàng theo {@code examId}. */
     private ExamSummaryRow fetchOne(String sql, int examId) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examId);
@@ -76,6 +81,7 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
         return null;
     }
 
+    /** Ánh xạ ResultSet → {@link ExamSummaryRow}. */
     private static ExamSummaryRow mapRow(ResultSet rs) throws SQLException {
         ExamSummaryRow row = new ExamSummaryRow();
         row.setExamId(rs.getInt("examId"));

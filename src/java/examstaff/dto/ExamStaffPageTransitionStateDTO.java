@@ -1,5 +1,8 @@
 package examstaff.dto;
 
+/**
+ * Trạng thái sau chuyển kỳ thi: examId mới và các cờ xóa cache/session.
+ */
 public class ExamStaffPageTransitionStateDTO {
 
     private int examId;

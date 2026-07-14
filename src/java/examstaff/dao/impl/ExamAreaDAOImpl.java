@@ -1,5 +1,6 @@
 package examstaff.dao.impl;
 
+
 import shared.dbconnection.DBContext;
 import examstaff.dao.ExamAreaDAO;
 import examstaff.enums.ExamSection;
@@ -14,7 +15,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** JDBC implementation của {@link ExamAreaDAO}. */
 public class ExamAreaDAOImpl implements ExamAreaDAO {
+
+    /** Ánh xạ một dòng ResultSet sang {@link ExamArea}. */
     private ExamArea map(ResultSet rs) throws SQLException {
         ExamArea a = new ExamArea();
         a.setExamAreaId(rs.getInt("ExamAreaId"));
@@ -31,6 +35,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return a;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamArea getById(int examAreaId) {
         String sql = "SELECT * FROM ExamArea WHERE ExamAreaId = ?";
@@ -46,9 +51,10 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
-        // Schema Clean: "Lý thuyết" - schema SWP/DLEM: "Phòng thi"
+        // Schema Clean: "Lý thuyết" — schema SWP/DLEM: "Phòng thi"
         Map<Integer, ExamArea> byId = new LinkedHashMap<>();
         for (ExamArea a : getAvailableAreasByType(ExamSection.LY_THUYET.getDisplayName())) {
             byId.put(a.getExamAreaId(), a);
@@ -59,6 +65,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return new ArrayList<>(byId.values());
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamArea> getAvailableAreasByType(String areaType) {
         if (areaType == null || areaType.isBlank()) {
@@ -80,6 +87,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return list;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamArea> getAreasByExamId(int examId) {
         List<ExamArea> list = new ArrayList<>();

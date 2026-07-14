@@ -1,6 +1,6 @@
 /**
  * Pop-up chỉnh sửa / bổ sung hồ sơ thí sinh (profile.jsp).
- * POST giữ endpoint /registrant/profile - không dùng AJAX.
+ * POST giữ endpoint /registrant/profile — không dùng AJAX.
  * Chuỗi tiếng Việt dùng Unicode escape để tránh lỗi charset khi serve file .js.
  */
 var PROFILE_EDIT_MSG_CLOSE_CLEAN = 'B\u1ea1n c\u00f3 mu\u1ed1n \u0111\u00f3ng form ch\u1ec9nh s\u1eeda?';

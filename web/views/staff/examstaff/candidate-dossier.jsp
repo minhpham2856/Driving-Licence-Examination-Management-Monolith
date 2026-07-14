@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
@@ -13,7 +13,7 @@
 <body class="dossier-page"<c:if test="${autoPrint}"> data-auto-print="true"</c:if>>
 
 <div class="dossier-toolbar no-print">
-    <a href="${pageContext.request.contextPath}/examstaff/candidatecall" class="dossier-toolbar__btn dossier-toolbar__btn--ghost">&larr; Quay lại gọi thủ tục</a>
+    <a href="${pageContext.request.contextPath}/views/staff/examstaff/candidatecall" class="dossier-toolbar__btn dossier-toolbar__btn--ghost">&larr; Quay lại gọi thủ tục</a>
     <button type="button" class="dossier-toolbar__btn dossier-toolbar__btn--primary">In hồ sơ</button>
 </div>
 
@@ -38,7 +38,7 @@
             <c:choose>
                 <c:when test="${hasPhotoFile or not empty profile.photoUrl}">
                     <img id="dossierCandidatePhoto"
-                         src="${pageContext.request.contextPath}/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
+                         src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                          alt="Ảnh thí sinh">
                 </c:when>
                 <c:otherwise>
@@ -49,7 +49,7 @@
         <div class="dossier-info__fields">
             <div class="dossier-field"><span>Họ và tên thí sinh:</span><strong>${profile.name}</strong></div>
             <div class="dossier-field"><span>Ngày tháng năm sinh:</span><strong><fmt:formatDate value="${profile.dob}" pattern="dd/MM/yyyy"/></strong></div>
-            <div class="dossier-field"><span>Số định danh / căn cước:</span><strong>${profile.cccd}</strong></div>
+            <div class="dossier-field"><span>Số định danh / CCCD:</span><strong>${profile.cccd}</strong></div>
             <div class="dossier-field"><span>Số báo danh (SBD):</span><strong>${profile.sbd}</strong></div>
             <div class="dossier-field"><span>Thi lấy giấy phép lái xe hạng:</span><strong>${profile.clazz}</strong></div>
             <c:if test="${not empty exam}">
@@ -101,7 +101,7 @@
     </section>
 
     <section class="dossier-commitment">
-        <p>Tôi xác nhận các thông tin trên phiếu (họ tên, ngày sinh, số căn cước, hạng thi, ảnh chân dung) là chính xác và trùng khớp với giấy tờ tùy thân. Tôi xác nhận đã nộp đủ các khoản phí, lệ phí nêu trên theo quy định của Trung tâm.</p>
+        <p>Tôi xác nhận các thông tin trên phiếu (họ tên, ngày sinh, số CCCD, hạng thi, ảnh chân dung) là chính xác và trùng khớp với giấy tờ tùy thân. Tôi xác nhận đã nộp đủ các khoản phí, lệ phí nêu trên theo quy định của Trung tâm.</p>
         <p>Tôi đồng ý để Trung tâm sử dụng thông tin và ảnh chân dung này cho mục đích tổ chức thi, lưu hồ sơ và in các giấy tờ liên quan sau kỳ thi.</p>
     </section>
 

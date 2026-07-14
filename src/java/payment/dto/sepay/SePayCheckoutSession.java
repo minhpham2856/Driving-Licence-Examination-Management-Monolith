@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Kết quả tạo phiên checkout - dùng redirect form POST tới SePay. */
+/** Kết quả tạo phiên checkout — dùng redirect form POST tới SePay. */
 public class SePayCheckoutSession {
 
     private String checkoutUrl;
