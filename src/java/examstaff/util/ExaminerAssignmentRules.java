@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Quy tắc phân công giám khảo / phòng thi — helper thuần, không HTTP. */
+/** Quy tắc phân công sát hạch viên / phòng thi - helper thuần, không HTTP. */
 public final class ExaminerAssignmentRules {
 
     private ExaminerAssignmentRules() {
@@ -24,7 +24,7 @@ public final class ExaminerAssignmentRules {
         }
         String normalized = areaType.trim();
         String lower = normalized.toLowerCase();
-        // Schema Clean: "Lý thuyết" — schema SWP/DLEM: "Phòng thi"
+        // Schema Clean: "Lý thuyết" - schema SWP/DLEM: "Phòng thi"
         return ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(normalized)
                 || ExamAreaTypeResolver.theoryAreaTypeAlias().equalsIgnoreCase(normalized)
                 || lower.contains("theory")
@@ -44,7 +44,7 @@ public final class ExaminerAssignmentRules {
             return true;
         }
         String lower = normalized.toLowerCase();
-        // Schema Clean: "Thực hành" — schema SWP/DLEM: "Sân thi"
+        // Schema Clean: "Thực hành" - schema SWP/DLEM: "Sân thi"
         return lower.contains("thực hành") || lower.contains("thuc hanh")
                 || lower.contains("practical") || lower.contains("sa hình")
                 || lower.contains("sa hinh") || lower.contains("layout")
@@ -74,11 +74,11 @@ public final class ExaminerAssignmentRules {
     }
 
     /**
-     * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ phòng lý thuyết + thực hành có giám khảo.
+     * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ phòng lý thuyết + thực hành có sát hạch viên.
      */
     public static String validateStartCoverage(List<ExaminerSlotDTO> assignments) {
         if (assignments == null || assignments.isEmpty()) {
-            return "Chưa phân công giám khảo. Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "Chưa phân công sát hạch viên. Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu kỳ thi.";
         }
         boolean hasTheory = false;
         boolean hasPractical = false;
@@ -91,21 +91,21 @@ public final class ExaminerAssignmentRules {
             }
         }
         if (!hasTheory && !hasPractical) {
-            return "Chưa phân công giám khảo vào phòng lý thuyết và phòng thực hành. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "Chưa phân công sát hạch viên vào phòng lý thuyết và phòng thực hành. "
+                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu kỳ thi.";
         }
         if (!hasTheory) {
-            return "Chưa phân công giám khảo cho phòng thi lý thuyết. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "Chưa phân công sát hạch viên cho phòng thi lý thuyết. "
+                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu kỳ thi.";
         }
         if (!hasPractical) {
-            return "Chưa phân công giám khảo cho phòng/khu thi thực hành. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi bắt đầu kỳ thi.";
+            return "Chưa phân công sát hạch viên cho phòng/khu thi thực hành. "
+                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi bắt đầu kỳ thi.";
         }
         return null;
     }
 
-    /** Các phòng lý thuyết đã có ít nhất một giám khảo trong kỳ. */
+    /** Các phòng lý thuyết đã có ít nhất một sát hạch viên trong kỳ. */
     public static Set<Integer> staffedTheoryAreaIds(List<ExaminerSlotDTO> assignments) {
         Set<Integer> ids = new HashSet<>();
         if (assignments == null) {

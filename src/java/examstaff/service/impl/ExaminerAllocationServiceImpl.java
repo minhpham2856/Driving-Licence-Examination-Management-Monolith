@@ -70,7 +70,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         if (!linked.isEmpty()) {
             return linked;
         }
-        // Kỳ thi luôn gồm LT + TH — fallback lấy cả hai loại (schema Clean + alias SWP).
+        // Kỳ thi luôn gồm LT + TH - fallback lấy cả hai loại (schema Clean + alias SWP).
         Map<Integer, ExamArea> byId = new HashMap<>();
         for (String type : List.of(
                 ExamAreaTypeResolver.theoryAreaTypeLabel(),
@@ -143,8 +143,8 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         List<ExamArea> eligibleTheoryRooms = ExaminerAssignmentRules.filterTheoryRoomsWithStaff(
                 theoryRoomsForExam, staffedTheoryAreaIds);
         if (eligibleTheoryRooms.isEmpty()) {
-            result.errorMsg = "Chưa có phòng lý thuyết nào được phân công giám khảo. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi tự động phân phòng thí sinh.";
+            result.errorMsg = "Chưa có phòng lý thuyết nào được phân công sát hạch viên. "
+                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi tự động phân phòng thí sinh.";
             return result;
         }
 
@@ -231,8 +231,8 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         List<ExamArea> eligibleYards = ExaminerAssignmentRules.filterPracticalRoomsWithStaff(
                 practicalYards, staffedPracticalAreaIds);
         if (eligibleYards.isEmpty()) {
-            result.errorMsg = "Chưa có sân thực hành nào được phân công giám khảo. "
-                    + "Vào mục \"Phân bổ giám khảo\" trước khi tự động phân sân thí sinh.";
+            result.errorMsg = "Chưa có sân thực hành nào được phân công sát hạch viên. "
+                    + "Vào mục \"Phân bổ sát hạch viên\" trước khi tự động phân sân thí sinh.";
             return result;
         }
 

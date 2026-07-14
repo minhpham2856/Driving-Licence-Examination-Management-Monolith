@@ -8,7 +8,7 @@
     <c:set var="failLayoutExamId" value="${sessionScope.selectedExamId}" />
 </c:if>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
-    <jsp:param name="pageTitle" value="Kết quả — Trượt / vắng" />
+    <jsp:param name="pageTitle" value="Kết quả - Trượt / vắng" />
     <jsp:param name="breadcrumbLabel" value="Trượt" />
     <jsp:param name="showSearch" value="true" />
     <jsp:param name="examId" value="${failLayoutExamId}" />
@@ -22,9 +22,9 @@
     <c:set var="sq" value="?examId=${navExamId}" />
 </c:if>
 <nav class="allocation-result-subnav">
-    <a href="${ctx}/views/staff/examstaff/allocation-results-pass${sq}" class="allocation-result-subnav__tab">Đỗ</a>
-    <a href="${ctx}/views/staff/examstaff/allocation-results-fail${sq}" class="allocation-result-subnav__tab is-active">Trượt / vắng</a>
-    <a href="${ctx}/views/staff/examstaff/allocation-results-suspended${sq}" class="allocation-result-subnav__tab">Đình chỉ</a>
+    <a href="${ctx}/examstaff/allocation-results-pass${sq}" class="allocation-result-subnav__tab">Đỗ</a>
+    <a href="${ctx}/examstaff/allocation-results-fail${sq}" class="allocation-result-subnav__tab is-active">Trượt / vắng</a>
+    <a href="${ctx}/examstaff/allocation-results-suspended${sq}" class="allocation-result-subnav__tab">Đình chỉ</a>
 </nav>
 <jsp:include page="/views/staff/examstaff/includes/allocation-pagination.jsp" />
 <jsp:include page="/views/staff/examstaff/includes/allocation-rules-box.jsp">
@@ -32,7 +32,7 @@
 </jsp:include>
 <div class="allocation-results-panel allocation-results-panel--fail">
     <div class="allocation-results-panel__head">
-        <h4 class="allocation-results-panel__title">Tổng hợp — Trượt / vắng</h4>
+        <h4 class="allocation-results-panel__title">Tổng hợp - Trượt / vắng</h4>
         <span class="allocation-results-panel__count">${pg.totalItems} thí sinh</span>
     </div>
     <div class="examiner-table-wrap">

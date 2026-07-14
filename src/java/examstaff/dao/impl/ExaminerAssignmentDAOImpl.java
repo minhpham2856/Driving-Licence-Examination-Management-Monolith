@@ -52,7 +52,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "esch.ExamId AS examId, "
             + "esch.ExaminerId AS examinerUserId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
+            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "eu.Username AS examinerUsername, "
             + "ep.FullName AS examinerName, "
             + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
@@ -143,7 +143,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 VALUES (?, 'ASSIGN', ?, ?, ?, GETDATE())
                 """;
         try {
-            // Begin transaction — both assignment and audit mapping must succeed together
+            // Begin transaction - both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
                 ps.setInt(1, slot.getExaminerUserId());
@@ -187,7 +187,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(4, slot.getAreaName() != null ? slot.getAreaName() : String.valueOf(slot.getAreaId()));
                 ps.executeUpdate();
             }
-            // Commit the transaction — all three operations succeeded
+            // Commit the transaction - all three operations succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -232,7 +232,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // SQL: delete the audit mapping row
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
-            // Begin transaction — both deletions must succeed together
+            // Begin transaction - both deletions must succeed together
             getConnection().setAutoCommit(false);
             // Step 1: delete the ExaminerSchedule row
             try (PreparedStatement ps = getConnection().prepareStatement(deleteAssignment)) {
@@ -246,7 +246,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            // Commit the transaction — both deletions succeeded
+            // Commit the transaction - both deletions succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -288,7 +288,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 }
             }
         } catch (SQLException e) {
-            // Log the error — caller receives the partially-populated list
+            // Log the error - caller receives the partially-populated list
             e.printStackTrace();
         }
         return list;
@@ -311,12 +311,12 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Attempt to read the area ID from the ExamArea LEFT JOIN
         int areaId = rs.getInt("areaId");
         if (!rs.wasNull()) {
-            // Area was found via the join — use the direct values
+            // Area was found via the join - use the direct values
             slot.setAreaId(areaId);
             slot.setAreaName(rs.getString("areaName"));
             slot.setAreaType(rs.getString("areaType"));
         } else {
-            // Area join returned null — fall back to parsing the audit mapping entity ID
+            // Area join returned null - fall back to parsing the audit mapping entity ID
             String mappingEntityId = rs.getString("mappingEntityId");
             int[] parsed = parseMappingEntityId(mappingEntityId);
             if (parsed != null) {
