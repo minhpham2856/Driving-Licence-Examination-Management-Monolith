@@ -2,12 +2,13 @@ package payment.dao;
 
 import payment.dto.PaymentRecord;
 
+/** Payment (DLEM_DB_2) — cần ExamEnrollmentId do staff tạo trước. */
 public interface PaymentDAO {
+    /** IPN Paid; resolve enrollment từ CandidateId nếu thiếu. */
     boolean insert(PaymentRecord payment);
 
-    /** Tổng lệ phí đã thanh toán thành công của thí sinh (theo UserId). */
     double sumCompletedPaymentsByUserId(int userId);
 
-    /** Kiểm tra giao dịch đã ghi nhận (idempotent IPN). */
+    /** Idempotent IPN theo TransactionReference. */
     boolean existsCompletedByTransactionReference(String transactionReference);
 }

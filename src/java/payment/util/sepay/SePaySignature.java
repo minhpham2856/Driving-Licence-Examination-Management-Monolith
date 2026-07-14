@@ -7,11 +7,10 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
-/**
- * Ký form checkout SePay (HMAC-SHA256 + Base64).
- */
+/** Ký/xác thực SePay: checkout = nối SIGN_FIELD_ORDER → HMAC-SHA256 Base64; webhook = timestamp.body → HMAC hex + skew. */
 public final class SePaySignature {
 
+    /** Thứ tự field ký checkout theo spec SePay PG — field thiếu trong map bị bỏ qua. */
     private static final String[] SIGN_FIELD_ORDER = {
             "order_amount", "merchant", "currency", "operation",
             "order_description", "order_invoice_number", "customer_id",
@@ -21,6 +20,7 @@ public final class SePaySignature {
     private SePaySignature() {
     }
 
+    /** Ký form checkout: signedString → HMAC-SHA256 → Base64. */
     public static String signCheckout(Map<String, String> fields, String secretKey) {
         if (secretKey == null || secretKey.isBlank()) {
             throw new IllegalArgumentException("SePay secret key is required.");
@@ -36,6 +36,7 @@ public final class SePaySignature {
         }
     }
 
+    /** Ghép chuỗi ký theo SIGN_FIELD_ORDER: key=value,... chỉ gồm field có trong map. */
     public static String buildSignedString(Map<String, String> fields) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
@@ -56,11 +57,13 @@ public final class SePaySignature {
         return sb.toString();
     }
 
+    /** Xác thực webhook HMAC: reject nếu lệch timestamp quá skew; strip sha256=; so hex constant-time. */
     public static boolean verifyWebhookHmac(String rawBody, String timestamp, String signatureHeader,
             String webhookSecret, long maxSkewSeconds) {
         if (rawBody == null || signatureHeader == null || webhookSecret == null || webhookSecret.isBlank()) {
             return false;
         }
+        // Replay protection: timestamp phải nằm trong cửa sổ cho phép
         if (timestamp != null && !timestamp.isBlank() && maxSkewSeconds > 0) {
             try {
                 long ts = Long.parseLong(timestamp.trim());
@@ -76,11 +79,13 @@ public final class SePaySignature {
         if (provided.startsWith("sha256=")) {
             provided = provided.substring(7);
         }
+        // Spec SePay: HMAC(timestamp + "." + body)
         String payload = (timestamp != null ? timestamp.trim() : "") + "." + rawBody;
         String expected = hmacSha256Hex(payload, webhookSecret);
         return constantTimeEquals(expected.toLowerCase(), provided.toLowerCase());
     }
 
+    /** Sắp map form theo SIGN_FIELD_ORDER + signature cuối — thứ tự POST ổn định. */
     public static Map<String, String> orderedCheckoutFields(Map<String, String> source) {
         Map<String, String> ordered = new LinkedHashMap<>();
         for (String key : SIGN_FIELD_ORDER) {
