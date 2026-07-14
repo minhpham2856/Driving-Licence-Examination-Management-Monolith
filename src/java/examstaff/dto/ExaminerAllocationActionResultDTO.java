@@ -1,5 +1,8 @@
 package examstaff.dto;
 
+/**
+ * Kết quả thao tác phân công sát hạch viên (alert/error + audit).
+ */
 public class ExaminerAllocationActionResultDTO {
 
     private boolean success;
