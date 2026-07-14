@@ -155,7 +155,7 @@
         </c:if>
 
         <c:if test="${param.btnPrintDocs eq 'left'}">
-            <a href="${pageContext.request.contextPath}/examiner/print-documents" class="examiner-btn examiner-btn--white">
+            <a href="${pageContext.request.contextPath}/views/examiner/print-documents" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In kết quả thi
             </a>
         </c:if>
@@ -357,7 +357,7 @@
         </c:if>
 
         <c:if test="${param.btnPrintDocs eq 'right'}">
-            <a href="${pageContext.request.contextPath}/examiner/print-documents" class="examiner-btn examiner-btn--white">
+            <a href="${pageContext.request.contextPath}/views/examiner/print-documents" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In kết quả thi
             </a>
         </c:if>

@@ -29,7 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** Upload hồ sơ lên Cloudinary: chính (4 giấy→#PENDING#) hoặc bổ sung (Other+#LICENCE#→ER #SUPPLEMENT_DOC#); RegistrationStatus chỉ đổi khi Gửi duyệt. */
+/**
+ * Upload tài liệu hồ sơ thí sinh — đẩy lên Cloudinary (folder pending) để staff xem khi duyệt.
+ * RegistrationStatus chỉ đổi khi thí sinh bấm «Gửi yêu cầu duyệt».
+ */
 public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();
@@ -163,7 +166,6 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         }
     }
 
-    /** Gửi duyệt: Pending→từ chối; Approved→requestSupplementApproval; Draft/Rejected→duyệt 4 giấy chính. */
     @Override
     public String requestApproval(UserDTO user, String requestNote, HttpSession session) {
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
@@ -203,7 +205,9 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return null;
     }
 
-    /** Tạo ER bổ sung + gắn Other: lọc awaiting → hạng #LICENCE# → insertSupplement → #SUPPLEMENT_ER#id# + #PENDING#. */
+    /**
+     * Tạo dòng ExamRegistration bổ sung + gắn tệp Other — không đổi hồ sơ gốc, không upload lại Cloudinary.
+     */
     private boolean requestSupplementApproval(int profileId, String requestNote,
             List<RegistrantDocumentView> docs) {
         List<RegistrantDocumentView> awaiting = new ArrayList<>();
@@ -424,7 +428,6 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                 doc.getDocumentUrl() != null && !doc.getDocumentUrl().isBlank());
     }
 
-    /** Nút Gửi duyệt: Draft cần ≥1 tệp; Approved cần Other awaiting và không còn ER bổ sung Pending. */
     private static boolean canRequestApproval(String registrationStatus, List<RegistrantDocumentView> docs,
             boolean supplementErPending) {
         String status = registrationStatus != null ? registrationStatus.trim() : ProfileRegistrationStatus.DRAFT;

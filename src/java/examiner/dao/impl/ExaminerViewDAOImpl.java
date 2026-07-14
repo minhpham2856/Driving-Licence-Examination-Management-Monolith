@@ -24,7 +24,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN Licence l ON l.LicenceId = e.LicenceId
                 WHERE e.ExamId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -40,7 +40,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     @Override
     public Integer findPrimaryExamAreaId(int examId) {
         String sql = "SELECT TOP 1 ExamAreaId FROM Exam_ExamArea WHERE ExamId = ? ORDER BY ExamAreaId";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -54,23 +54,6 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
     }
 
     @Override
-    public List<Integer> findExamAreaIds(int examId) {
-        List<Integer> ids = new ArrayList<>();
-        String sql = "SELECT ExamAreaId FROM Exam_ExamArea WHERE ExamId = ? ORDER BY ExamAreaId";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ids.add(rs.getInt("ExamAreaId"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ids;
-    }
-
-    @Override
     public Map<Integer, int[]> loadTheoryStatsByExam(int examId) {
         Map<Integer, int[]> stats = new HashMap<>();
         String sql = """
@@ -79,16 +62,13 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                        SUM(CASE WHEN ca.Answer IS NOT NULL AND ca.Answer <> q.CorrectAnswer THEN 1 ELSE 0 END) AS wrongCount,
                        SUM(CASE WHEN ca.Answer IS NULL OR ca.Answer = '' THEN 1 ELSE 0 END) AS unansweredCount
                 FROM ExamEnrollment ec
-                LEFT JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentId = ec.ExamEnrollmentId
-                LEFT JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId
-                    AND es.SectionType = N'Lý thuyết'
-                LEFT JOIN TheoryPaper tp ON tp.ExamEnrollmentSectionId = ees.ExamEnrollmentSectionId
+                LEFT JOIN TheoryPaper tp ON tp.ExamEnrollmentId = ec.ExamEnrollmentId
                 LEFT JOIN CandidateAnswer ca ON ca.TheoryPaperId = tp.TheoryPaperId
                 LEFT JOIN Question q ON q.QuestionId = ca.QuestionId
                 WHERE ec.ExamId = ?
                 GROUP BY ec.ExamEnrollmentId
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -117,9 +97,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 WHERE ec.ExamId = ?
                 """;
         if (sectionName != null && !sectionName.isBlank()) {
-            sql += " AND sec.SectionType = ?";
+            sql += " AND sec.SectionName = ?";
         }
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, examId);
             if (sectionName != null && !sectionName.isBlank()) {
                 ps.setString(2, sectionName);
@@ -144,7 +124,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamResult er ON er.ExamEnrollmentId = ec.ExamEnrollmentId
                 WHERE ec.ExamId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -166,7 +146,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN Exam_ExamArea sea ON sea.ExamAreaId = ed.ExamAreaId
                 WHERE sea.ExamId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -186,13 +166,13 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 SELECT sd.ScoreDeductionId, sd.Reason, sd.Points, sd.IsCritical
                 FROM ScoreDeduction sd
                 JOIN ExamSection es ON es.ExamSectionId = sd.ExamSectionId
-                WHERE es.SectionType = ?
+                WHERE es.SectionName = ?
                   AND (? <= 0 OR sd.LicenceId = (
                       SELECT LicenceId FROM Exam WHERE ExamId = ?
                   ))
                 ORDER BY sd.ScoreDeductionId
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sectionName != null && !sectionName.isBlank()
                     ? sectionName.trim() : SectionType.LAYOUT.getValue());
             ps.setInt(2, examId);
@@ -226,7 +206,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN DeductionRecord dr ON dr.ExamScoreId = es.ExamScoreId
                 WHERE ee.CandidateId = ? AND ee.ExamId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             ps.setInt(2, examId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -252,7 +232,7 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN DeductionRecord dr ON dr.ExamScoreId = es.ExamScoreId
                 WHERE ee.CandidateId = ? AND ee.ExamId = ?
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             ps.setInt(2, examId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -292,10 +272,10 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
                 WHERE ee.CandidateId = ? AND ee.ExamId = ?
-                  AND sec.SectionType = ?
+                  AND sec.SectionName = ?
                 ORDER BY es.ExamScoreId
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             ps.setInt(2, examId);
             ps.setString(3, sectionName != null && !sectionName.isBlank()

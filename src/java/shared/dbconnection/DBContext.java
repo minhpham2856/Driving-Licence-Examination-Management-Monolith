@@ -1,6 +1,6 @@
 package shared.dbconnection;
 
-import shared.ConfigManager;
+import shared.util.ConfigManager;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;

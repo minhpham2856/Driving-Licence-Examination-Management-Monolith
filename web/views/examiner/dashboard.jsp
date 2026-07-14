@@ -5,7 +5,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Bảng điều khiển" />
-<c:set var="pageUrl" value="${ctx}/examiner/dashboard" scope="request" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/dashboard" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -49,11 +49,10 @@
 
 
                 <!--candidate list-->
-                <c:set var="isTheorySection" value="${examinerSectionTheory}" />
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
-                    <jsp:param name="showTheoryScores" value="${isTheorySection ? 'true' : 'false'}" />
-                    <jsp:param name="showPracticalScore" value="${isTheorySection ? 'false' : 'true'}" />
+                    <jsp:param name="showTheoryScores" value="${examSection == 'THEORY' ? 'true' : 'false'}" />
+                    <jsp:param name="showPracticalScore"value="${examSection == 'THEORY' ? 'false' : 'true'}" />
                     <jsp:param name="showResult" value="true" />
                     <jsp:param name="showStatus" value="true" />
                 </jsp:include>

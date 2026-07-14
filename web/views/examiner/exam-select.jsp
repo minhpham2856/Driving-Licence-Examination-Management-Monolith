@@ -25,7 +25,7 @@
             <h1 class="examiner-session-select__title">Chọn kỳ thi</h1>
         </div>
         <div class="examiner-session-select__header-actions">
-            <a class="examiner-session-select__header-btn" href="${ctx}/examiner/exam">
+            <a class="examiner-session-select__header-btn" href="${ctx}/views/examiner/exam">
                 <span class="material-symbols-outlined">refresh</span>
                 Làm mới
             </a>
@@ -65,6 +65,7 @@
                         <c:set var="licence" value="${licencesByExamId[exam.examId]}" />
                     </c:if>
                     <c:set var="sectionType" value="${schedule.examSection.sectionType}" />
+                    <c:set var="sectionName" value="${schedule.examSection.sectionName}" />
                     <c:set var="locationName" value="${schedule.examArea.areaName}" />
                     <c:if test="${empty locationName}">
                         <c:set var="locationName" value="${exam.centreName}" />
@@ -122,7 +123,7 @@
                                     <span class="examiner-exam-card__label">Nội dung sát hạch</span>
                                     <span class="examiner-exam-card__value">
                                         <span class="material-symbols-outlined">description</span>
-                                        <c:out value="${sectionType}" default="-" />
+                                        <c:out value="${sectionName}" default="-" />
                                         <c:if test="${not empty licence.licenceClass}">
                                             (<c:out value="${licence.licenceClass}" />)
                                         </c:if>
@@ -140,7 +141,7 @@
                         <div class="examiner-exam-card__action">
                             <c:choose>
                                 <c:when test="${enterable}">
-                                    <form method="post" action="${ctx}/examiner/exam">
+                                    <form method="post" action="${ctx}/views/examiner/exam">
                                         <input type="hidden" name="examId" value="${exam.examId}" />
                                         <button type="submit" class="examiner-exam-card__enter">Vào kỳ thi</button>
                                     </form>

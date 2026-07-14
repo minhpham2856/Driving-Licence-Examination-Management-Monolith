@@ -4,7 +4,7 @@ import registrant.dto.RegistrantExamResultEmailData;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-/** Mẫu email bảng điểm sát hạch - plain text và HTML. */
+/** Mẫu email bảng điểm sát hạch — plain text và HTML. */
 public final class RegistrantExamResultEmailFormatter {
 
     public record FormattedEmail(String subject, String textBody, String htmlBody) {
@@ -17,9 +17,9 @@ public final class RegistrantExamResultEmailFormatter {
         if (data == null) {
             return null;
         }
-        String licence = safe(data.getLicenceClass(), "-");
+        String licence = safe(data.getLicenceClass(), "—");
         String examTitle = safe(data.getExamTitle(), "Kỳ thi sát hạch");
-        String subject = String.format("[Lái Vui] Bảng điểm - Hạng %s - %s", licence, examTitle);
+        String subject = String.format("[Lái Vui] Bảng điểm — Hạng %s — %s", licence, examTitle);
 
         String textBody = buildTextBody(data);
         String htmlBody = buildHtmlBody(data);
@@ -31,13 +31,13 @@ public final class RegistrantExamResultEmailFormatter {
         StringBuilder sb = new StringBuilder();
         sb.append("Xin chào ").append(name).append(",\n\n");
         sb.append("Ban sát hạch Lái Vui gửi bảng điểm cập nhật của bạn:\n\n");
-        sb.append("--- THÔNG TIN KỲ THI ---\n");
+        sb.append("——— THÔNG TIN KỲ THI ———\n");
         appendLine(sb, "Kỳ thi", data.getExamTitle());
         appendLine(sb, "Hạng GPLX", data.getLicenceClass() != null ? "Hạng " + data.getLicenceClass() : null);
         appendLine(sb, "Ngày thi", formatDate(data.getExamDate()));
         appendLine(sb, "Số báo danh", data.getSbdDisplay());
         appendLine(sb, "Phần thi", data.getExamSectionName());
-        sb.append("\n--- BẢNG ĐIỂM ---\n");
+        sb.append("\n——— BẢNG ĐIỂM ———\n");
         appendScoreLine(sb, "Lý thuyết", data.getTheoryScore(), data.getTheoryResultLabel());
         appendScoreLine(sb, "Thực hành / Sa hình", data.getPracticalScore(), data.getPracticalResultLabel());
         appendScoreLine(sb, "Đường trường", data.getRoadScore(), data.getRoadScore() != null
@@ -57,7 +57,7 @@ public final class RegistrantExamResultEmailFormatter {
                 <body style="font-family:Segoe UI,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px;">
                   <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
                     <div style="background:#0052cc;color:#fff;padding:16px 20px;">
-                      <div style="font-size:18px;font-weight:700;">Lái Vui - Bảng điểm sát hạch</div>
+                      <div style="font-size:18px;font-weight:700;">Lái Vui — Bảng điểm sát hạch</div>
                       <div style="font-size:13px;opacity:.92;margin-top:4px;">Thông báo qua Gmail</div>
                     </div>
                     <div style="padding:20px;">
@@ -81,7 +81,7 @@ public final class RegistrantExamResultEmailFormatter {
     private static String buildHtmlRows(RegistrantExamResultEmailData data) {
         StringBuilder rows = new StringBuilder();
         rows.append(htmlRow("Kỳ thi", data.getExamTitle()));
-        rows.append(htmlRow("Hạng GPLX", data.getLicenceClass() != null ? "Hạng " + data.getLicenceClass() : "-"));
+        rows.append(htmlRow("Hạng GPLX", data.getLicenceClass() != null ? "Hạng " + data.getLicenceClass() : "—"));
         rows.append(htmlRow("Ngày thi", formatDate(data.getExamDate())));
         rows.append(htmlRow("Số báo danh", data.getSbdDisplay()));
         rows.append(htmlRow("Phần thi", data.getExamSectionName()));
@@ -113,7 +113,7 @@ public final class RegistrantExamResultEmailFormatter {
                   <td style="padding:8px 12px;border-top:1px solid #e2e8f0;color:#64748b;width:38%%;">%s</td>
                   <td style="padding:8px 12px;border-top:1px solid #e2e8f0;font-weight:600;">%s</td>
                 </tr>
-                """.formatted(escapeHtml(safe(label, "-")), escapeHtml(safe(value, "-")));
+                """.formatted(escapeHtml(safe(label, "—")), escapeHtml(safe(value, "—")));
     }
 
     private static String htmlScoreRow(String label, String value) {
@@ -127,11 +127,11 @@ public final class RegistrantExamResultEmailFormatter {
         if (label != null && !label.isBlank()) {
             return label;
         }
-        return score != null ? String.valueOf(score) : "-";
+        return score != null ? String.valueOf(score) : "—";
     }
 
     private static void appendLine(StringBuilder sb, String label, String value) {
-        sb.append(label).append(": ").append(safe(value, "-")).append('\n');
+        sb.append(label).append(": ").append(safe(value, "—")).append('\n');
     }
 
     private static void appendScoreLine(StringBuilder sb, String label, Integer score, String resultLabel) {
@@ -140,13 +140,13 @@ public final class RegistrantExamResultEmailFormatter {
             return;
         }
         String value = resultLabel != null && !resultLabel.isBlank() ? resultLabel
-                : (score != null ? String.valueOf(score) : "-");
+                : (score != null ? String.valueOf(score) : "—");
         appendLine(sb, label, value);
     }
 
     private static String formatDate(java.util.Date date) {
         if (date == null) {
-            return "-";
+            return "—";
         }
         return new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN")).format(date);
     }

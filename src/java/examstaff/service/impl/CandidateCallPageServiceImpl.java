@@ -9,35 +9,49 @@ import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateCallWorkflowService;
-import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffExamQueryService;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Orchestrator trang Gọi thí sinh.
+ * <p>
+ * {@link #preparePage} theo 4 bước (slide defense):
+ * <ol>
+ *   <li>{@code applyCallAction} — chạy action (gọi/vắng/pause…)</li>
+ *   <li>{@code reconcileCallingAfterAdvance} — nhảy SBD nếu thí sinh hiện tại đã xong</li>
+ *   <li>{@code releaseDeskWhenProcedureDone} — giải phóng bàn khi desk đã hoàn tất thủ tục</li>
+ *   <li>{@code decideBoardAndSessionEffects} — quyết định sync board + cờ session</li>
+ * </ol>
+ */
 public class CandidateCallPageServiceImpl implements CandidateCallPageService {
 
     private final CandidateCallWorkflowService callWorkflow;
-    private final CandidateCallingService callingService;
     private final CandidateQueueService queueService;
     private final ExamStaffExamQueryService examQuery;
 
+    /** Wiring mặc định. */
     public CandidateCallPageServiceImpl() {
-        this(new CandidateCallWorkflowServiceImpl(), new CandidateCallingServiceImpl(),
+        this(new CandidateCallWorkflowServiceImpl(),
                 new CandidateQueueServiceImpl(), new ExamStaffExamQueryServiceImpl());
     }
 
+    /**
+     * @param callWorkflow thực thi action gọi thí sinh
+     * @param queueService refresh / lọc / sắp hàng đợi / advance SBD
+     * @param examQuery    danh sách kỳ thi khi refresh queue
+     */
     public CandidateCallPageServiceImpl(CandidateCallWorkflowService callWorkflow,
-            CandidateCallingService callingService,
             CandidateQueueService queueService,
             ExamStaffExamQueryService examQuery) {
         this.callWorkflow = callWorkflow;
-        this.callingService = callingService;
         this.queueService = queueService;
         this.examQuery = examQuery;
     }
 
+    /** {@inheritDoc} */
     @Override
     public CandidateCallPageViewDTO preparePage(CandidateCallPageCommand command) {
         CandidateCallPageViewDTO view = new CandidateCallPageViewDTO();
@@ -45,169 +59,202 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             return view;
         }
 
-        int examId = command.getExamId();
-        int boardExamId = command.getBoardExamId();
-        boolean shiftEnded = command.isShiftEnded();
-        String callingSbd = command.getCallingSbd();
-        List<ExamRegistrationDTO> permanentAbsents = command.getPermanentAbsents();
-        if (permanentAbsents == null) {
-            permanentAbsents = new ArrayList<>();
-        }
-
-        String action = command.getAction();
-        if ("startShift".equals(action)) {
+        if ("startShift".equals(command.getAction())) {
             view.setResumeShift(true);
-            view.setRedirectPath("/examstaff/candidatecall");
+            view.setRedirectPath("/views/staff/examstaff/candidatecall");
             return view;
         }
 
-        boolean shiftPaused = command.isShiftPaused();
-        List<ExamRegistrationDTO> fullQueue = loadFullQueue(command, examId, shiftEnded, shiftPaused);
+        PageState state = new PageState(command);
+        state.fullQueue = loadFullQueue(command, state.examId, state.shiftEnded, state.shiftPaused);
 
-        if (action != null && shiftPaused && "startCall".equals(action)) {
-            action = null;
+        if (state.action != null && state.shiftPaused && "startCall".equals(state.action)) {
+            state.action = null;
         }
 
-        if (action != null) {
-            CandidateCallActionResultDTO actionResult = callWorkflow.executeAction(
-                    action, command.getSbd(), fullQueue, permanentAbsents, boardExamId,
-                    shiftEnded, command.getCalledByStaffId());
+        if (state.action != null && command.isExamMutationsLocked()
+                && isBlockedWhenExamLocked(state.action)) {
+            state.action = null;
+        }
 
-            if (actionResult.isRedirectToCallPage()) {
-                view.setRedirectPath("/examstaff/candidatecall");
+        // 1) Action nghiệp vụ
+        if (state.action != null) {
+            if (applyCallAction(view, command, state)) {
                 return view;
             }
-
-            applyActionResult(view, actionResult);
-            shiftEnded = actionResult.isShiftEnded() || shiftEnded;
-            shiftPaused = actionResult.isShiftPaused() || shiftPaused;
-            if (actionResult.isClearCallingSbd()) {
-                callingSbd = null;
-            } else if (actionResult.getCallingSbd() != null) {
-                callingSbd = actionResult.getCallingSbd();
-            }
-
-            if (actionResult.isReloadQueue()) {
-                command.setShiftEnded(shiftEnded);
-                command.setShiftPaused(shiftPaused);
-                fullQueue = loadFullQueue(command, examId, shiftEnded, shiftPaused);
-            }
-
-            if (actionResult.isSyncQueueOrder()) {
-                view.setPersistQueueOrder(true);
-            }
-
-            if (actionResult.isMoveRestoredToFront() && command.getSbd() != null) {
-                ExamRegistrationDTO fresh = queueService.findBySbd(fullQueue, command.getSbd());
-                if (fresh != null) {
-                    queueService.moveCallableCandidateToFront(fullQueue, command.getSbd());
-                    view.setPersistQueueOrder(true);
-                }
-            }
-
-            if (actionResult.getPromoteAfterSbd() != null) {
-                List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(fullQueue);
-                String nextSbd = queueService.resolveNextCallingSbd(fullQueue, actionResult.getPromoteAfterSbd());
-                callingSbd = promoteCaller(view, activeQueue, nextSbd, command.getCalledByStaffId(), callingSbd);
-            }
-
-            if (actionResult.isSyncQueueOrder()) {
-                view.setPersistQueueOrder(true);
-            }
-
-            view.setAlertType(actionResult.getAlertType());
-            view.setAlertSbd(actionResult.getAlertSbd());
         }
 
-        List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(fullQueue);
-        String advancedSbd = callingService.advanceCallingIfDone(callingSbd, fullQueue);
-        boolean releaseDesk = false;
-        String releaseDeskCallingSbd = null;
+        // 2) Advance calling nếu SBD hiện tại đã xong
+        reconcileCallingAfterAdvance(view, command, state);
 
-        if (!shiftPaused && advancedSbd != null && !advancedSbd.isBlank()) {
-            if (callingSbd != null && !advancedSbd.equals(callingSbd)) {
-                callingSbd = advancedSbd;
-                activeQueue = queueService.filterPendingForCall(fullQueue);
-                callingSbd = promoteCaller(view, activeQueue, advancedSbd, command.getCalledByStaffId(), callingSbd);
-                releaseDesk = true;
-                releaseDeskCallingSbd = advancedSbd;
+        // 3+4) Desk release (lần 2 khi ca đang chạy) + quyết định board/session
+        decideBoardAndSessionEffects(view, command, state);
+
+        bindQueueAndNextCaller(view, command, state);
+        return view;
+    }
+
+    /**
+     * Bước 1: chạy workflow action; trả {@code true} nếu cần redirect sớm.
+     */
+    private boolean applyCallAction(CandidateCallPageViewDTO view, CandidateCallPageCommand command,
+            PageState state) {
+        CandidateCallActionResultDTO actionResult = callWorkflow.executeAction(
+                state.action, command.getSbd(), state.fullQueue, state.permanentAbsents, state.boardExamId,
+                state.shiftEnded, command.getCalledByStaffId());
+
+        if (actionResult.isRedirectToCallPage()) {
+            view.setRedirectPath("/views/staff/examstaff/candidatecall");
+            return true;
+        }
+
+        applyActionResult(view, actionResult);
+        state.shiftEnded = actionResult.isShiftEnded() || state.shiftEnded;
+        state.shiftPaused = actionResult.isShiftPaused() || state.shiftPaused;
+        if (actionResult.isClearCallingSbd()) {
+            state.callingSbd = null;
+        } else if (actionResult.getCallingSbd() != null) {
+            state.callingSbd = actionResult.getCallingSbd();
+        }
+
+        if (actionResult.isReloadQueue()) {
+            command.setShiftEnded(state.shiftEnded);
+            command.setShiftPaused(state.shiftPaused);
+            state.fullQueue = loadFullQueue(command, state.examId, state.shiftEnded, state.shiftPaused);
+        }
+
+        if (actionResult.isSyncQueueOrder()) {
+            view.setPersistQueueOrder(true);
+        }
+
+        if (actionResult.isMoveRestoredToFront() && command.getSbd() != null) {
+            ExamRegistrationDTO fresh = queueService.findBySbd(state.fullQueue, command.getSbd());
+            if (fresh != null) {
+                queueService.moveCallableCandidateToFront(state.fullQueue, command.getSbd());
+                view.setPersistQueueOrder(true);
+            }
+        }
+
+        if (actionResult.getPromoteAfterSbd() != null) {
+            List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(state.fullQueue);
+            String nextSbd = queueService.resolveNextCallingSbd(
+                    state.fullQueue, actionResult.getPromoteAfterSbd());
+            state.callingSbd = assignNextCallerAndAudit(
+                    view, activeQueue, nextSbd, command.getCalledByStaffId());
+        }
+
+        if (actionResult.isSyncQueueOrder()) {
+            view.setPersistQueueOrder(true);
+        }
+
+        view.setAlertType(actionResult.getAlertType());
+        view.setAlertSbd(actionResult.getAlertSbd());
+        return false;
+    }
+
+    /**
+     * Bước 2: sau advance — promote SBD mới / clear calling / release desk lần 1.
+     */
+    private void reconcileCallingAfterAdvance(CandidateCallPageViewDTO view,
+            CandidateCallPageCommand command, PageState state) {
+        String advancedSbd = queueService.advanceCallingIfDone(state.callingSbd, state.fullQueue);
+
+        if (!state.shiftPaused && advancedSbd != null && !advancedSbd.isBlank()) {
+            if (state.callingSbd != null && !advancedSbd.equals(state.callingSbd)) {
+                state.callingSbd = advancedSbd;
+                List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(state.fullQueue);
+                state.callingSbd = assignNextCallerAndAudit(
+                        view, activeQueue, advancedSbd, command.getCalledByStaffId());
+                state.releaseDesk = true;
+                state.releaseDeskCallingSbd = advancedSbd;
                 view.setClearProcedureJustPaidSbd(true);
             }
-        } else if (!shiftPaused && callingSbd != null) {
-            callingSbd = null;
+        } else if (!state.shiftPaused && state.callingSbd != null) {
+            // advance trả empty ⇒ clear calling (giữ hành vi cũ)
+            state.callingSbd = null;
             view.setClearCallingSbd(true);
         } else {
-            DeskRelease release = releaseDeskIfProcedureDone(command.getBoard(), fullQueue, callingSbd);
-            if (release.applied) {
-                callingSbd = release.callingSbd;
-                releaseDesk = true;
-                releaseDeskCallingSbd = release.boardCallingSbd;
-                view.setClearProcedureJustPaidSbd(true);
-                if (callingSbd == null) {
-                    view.setClearCallingSbd(true);
-                }
-            }
+            releaseDeskWhenProcedureDone(view, command.getBoard(), state);
         }
+    }
 
-        activeQueue = queueService.filterPendingForCall(fullQueue);
-        boolean syncBoard = false;
-        String boardCallingSbd = callingSbd;
+    /**
+     * Bước 3: nếu người ở bàn đã xong thủ tục → release desk + chọn SBD gọi tiếp.
+     */
+    private void releaseDeskWhenProcedureDone(CandidateCallPageViewDTO view, CallBoardState board,
+            PageState state) {
+        DeskRelease release = computeDeskRelease(board, state.fullQueue, state.callingSbd);
+        if (!release.applied) {
+            return;
+        }
+        state.callingSbd = release.callingSbd;
+        state.releaseDesk = true;
+        state.releaseDeskCallingSbd = release.boardCallingSbd;
+        view.setClearProcedureJustPaidSbd(true);
+        if (state.callingSbd == null) {
+            view.setClearCallingSbd(true);
+        }
+    }
 
-        if (!shiftEnded && !shiftPaused) {
-            DeskRelease release = releaseDeskIfProcedureDone(command.getBoard(), fullQueue, callingSbd);
-            if (release.applied) {
-                callingSbd = release.callingSbd;
-                view.setClearProcedureJustPaidSbd(true);
-                if (callingSbd == null) {
-                    view.setClearCallingSbd(true);
-                }
-                releaseDesk = true;
-                releaseDeskCallingSbd = release.boardCallingSbd;
-            }
-            String synced = callingService.resolveSyncedCallingSbd(callingSbd, command.getBoard(), fullQueue);
+    /**
+     * Bước 4: quyết định sync CallBoard + gắn cờ session lên ViewDTO.
+     */
+    private void decideBoardAndSessionEffects(CandidateCallPageViewDTO view,
+            CandidateCallPageCommand command, PageState state) {
+        if (!state.shiftEnded && !state.shiftPaused) {
+            releaseDeskWhenProcedureDone(view, command.getBoard(), state);
+            String synced = queueService.resolveSyncedCallingSbd(
+                    state.callingSbd, command.getBoard(), state.fullQueue);
             if (synced != null) {
-                callingSbd = synced;
+                state.callingSbd = synced;
             }
-            // Giống ExamStaffViewHelper.syncCallingSbd: luôn sync board khi ca chưa kết thúc.
-            syncBoard = true;
-            boardCallingSbd = callingSbd;
-        } else if (shiftEnded) {
-            syncBoard = true;
-            boardCallingSbd = null;
+            state.syncBoard = true;
+            state.boardCallingSbd = state.callingSbd;
+        } else if (state.shiftEnded) {
+            state.syncBoard = true;
+            state.boardCallingSbd = null;
         }
 
-        view.setFullQueue(fullQueue);
-        view.setActiveQueue(activeQueue);
-        if (callingSbd == null || callingSbd.isBlank()) {
+        if (state.callingSbd == null || state.callingSbd.isBlank()) {
             view.setCallingSbd(null);
             view.setClearCallingSbd(true);
         } else {
-            view.setCallingSbd(callingSbd);
+            view.setCallingSbd(state.callingSbd);
             view.setClearCallingSbd(false);
         }
-        view.setShiftEnded(shiftEnded);
-        view.setShiftPaused(shiftPaused);
-        if (shiftPaused && "pauseShift".equals(action)) {
+        view.setShiftEnded(state.shiftEnded);
+        view.setShiftPaused(state.shiftPaused);
+        if (state.shiftPaused && "pauseShift".equals(state.action)) {
             view.setPauseBoard(true);
         }
-        view.setReleaseDesk(releaseDesk);
-        view.setReleaseDeskCallingSbd(releaseDeskCallingSbd);
-        view.setSyncBoard(syncBoard);
-        view.setBoardCallingSbd(boardCallingSbd);
-        view.setPublishExamId(boardExamId > 0 ? boardExamId : examId);
+        view.setReleaseDesk(state.releaseDesk);
+        view.setReleaseDeskCallingSbd(state.releaseDeskCallingSbd);
+        view.setSyncBoard(state.syncBoard);
+        view.setBoardCallingSbd(state.boardCallingSbd);
+        view.setPublishExamId(state.boardExamId > 0 ? state.boardExamId : state.examId);
+    }
+
+    /** Gắn queue/active/suspended/next caller lên view. */
+    private void bindQueueAndNextCaller(CandidateCallPageViewDTO view,
+            CandidateCallPageCommand command, PageState state) {
+        List<ExamRegistrationDTO> activeQueue = queueService.filterPendingForCall(state.fullQueue);
+        view.setFullQueue(state.fullQueue);
+        view.setActiveQueue(activeQueue);
 
         boolean showSuspended = "suspended".equals(command.getView())
                 || "suspended".equals(command.getReturnView());
         view.setShowSuspended(showSuspended);
         if (showSuspended) {
-            view.setSuspendedList(queueService.listSuspendedInExam(fullQueue));
+            view.setSuspendedList(queueService.listSuspendedInExam(state.fullQueue));
         }
 
-        String nextSbd = queueService.resolveNextCallingSbd(fullQueue, callingSbd);
+        String nextSbd = queueService.resolveNextCallingSbd(state.fullQueue, state.callingSbd);
         view.setNextCallingCandidate(queueService.findBySbd(activeQueue, nextSbd));
-        return view;
     }
 
+    /**
+     * Load hàng đợi: khi ca pause/end dùng cache session nếu cùng exam; ngược lại refresh từ DB.
+     */
     private List<ExamRegistrationDTO> loadFullQueue(CandidateCallPageCommand command, int examId,
             boolean shiftEnded, boolean shiftPaused) {
         if (shiftEnded || shiftPaused) {
@@ -248,8 +295,13 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         }
     }
 
-    private String promoteCaller(CandidateCallPageViewDTO view, List<ExamRegistrationDTO> activeQueue,
-            String nextSbd, int calledByStaffId, String currentCallingSbd) {
+    /**
+     * Promote SBD lên số đang gọi và ghi audit CALL; clear calling nếu không còn ai.
+     *
+     * @return SBD đang gọi mới hoặc null
+     */
+    private String assignNextCallerAndAudit(CandidateCallPageViewDTO view,
+            List<ExamRegistrationDTO> activeQueue, String nextSbd, int calledByStaffId) {
         if (nextSbd != null && !nextSbd.isBlank()) {
             callWorkflow.recordCallingCandidate(activeQueue, nextSbd, calledByStaffId);
             view.setCallingSbd(nextSbd);
@@ -261,7 +313,19 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         return null;
     }
 
-    private DeskRelease releaseDeskIfProcedureDone(CallBoardState board, List<ExamRegistrationDTO> fullQueue,
+    /** Thao tác đổi hồ sơ/đình chỉ/hoàn tác — bị chặn khi kỳ đã kết thúc. */
+    private static boolean isBlockedWhenExamLocked(String action) {
+        if (action == null || action.isBlank()) {
+            return false;
+        }
+        return switch (action) {
+            case "permanentAbsent", "undoAbsent", "absent", "moveToBottom", "autoAbsent",
+                    "startCall", "endShift", "closeExam", "pauseShift" -> true;
+            default -> false;
+        };
+    }
+
+    private DeskRelease computeDeskRelease(CallBoardState board, List<ExamRegistrationDTO> fullQueue,
             String callingSbd) {
         DeskRelease release = new DeskRelease();
         if (board == null || !board.isDeskBusy() || board.getDeskSbd() == null || board.getDeskSbd().isBlank()) {
@@ -279,6 +343,35 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         release.callingSbd = nextSbd;
         release.boardCallingSbd = nextSbd;
         return release;
+    }
+
+    /** Trạng thái mutable xuyên suốt 4 bước preparePage. */
+    private static final class PageState {
+        final int examId;
+        final int boardExamId;
+        String action;
+        boolean shiftEnded;
+        boolean shiftPaused;
+        String callingSbd;
+        List<ExamRegistrationDTO> permanentAbsents;
+        List<ExamRegistrationDTO> fullQueue;
+        boolean releaseDesk;
+        String releaseDeskCallingSbd;
+        boolean syncBoard;
+        String boardCallingSbd;
+
+        PageState(CandidateCallPageCommand command) {
+            this.examId = command.getExamId();
+            this.boardExamId = command.getBoardExamId();
+            this.action = command.getAction();
+            this.shiftEnded = command.isShiftEnded();
+            this.shiftPaused = command.isShiftPaused();
+            this.callingSbd = command.getCallingSbd();
+            this.permanentAbsents = command.getPermanentAbsents();
+            if (this.permanentAbsents == null) {
+                this.permanentAbsents = new ArrayList<>();
+            }
+        }
     }
 
     private static final class DeskRelease {

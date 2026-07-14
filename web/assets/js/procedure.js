@@ -124,7 +124,7 @@
             var printLink = document.querySelector('#procedure-desk a.procedure-btn--print');
             if (printLink) {
                 printLink.focus();
-                printLink.setAttribute('title', 'Trình duyệt chặn popup - bấm để in hồ sơ');
+                printLink.setAttribute('title', 'Trình duyệt chặn popup — bấm để in hồ sơ');
             }
         }
     }

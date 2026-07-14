@@ -5,7 +5,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Quy tắc hàng đợi gọi thí sinh - không phụ thuộc HTTP. */
+/** Quy tắc hàng đợi gọi thí sinh — không phụ thuộc HTTP. */
 public final class CallQueueRules {
 
     private CallQueueRules() {

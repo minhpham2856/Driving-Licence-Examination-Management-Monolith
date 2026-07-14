@@ -28,7 +28,10 @@ import registrant.controller.RegistrantServletSupport;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
-/** Đăng ký đợt thi portal: GET cổng tài liệu+hạng+ca; POST chỉ ghi ExamRegistration (không enroll ngày thi). */
+/**
+ * Luồng đăng ký đợt thi: load hạng/ca từ DB và tạo Candidate khi POST.
+ * Yêu cầu tài liệu bắt buộc đã được phê duyệt; thanh toán xử lý ở module khác.
+ */
 public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExamService {
 
     public static final String FLASH_ERROR_ATTR = "registerExamError";
@@ -106,7 +109,6 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         return url.toString();
     }
 
-    /** Submit đăng ký ca thi — null nếu OK; ngược lại message lỗi flash UI. */
     @Override
     public String submitRegistration(UserDTO user, HttpServletRequest request) {
         String licenceSelect = request.getParameter("licenceSelect");
@@ -236,7 +238,6 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         }
     }
 
-    /** Cổng tài liệu: Eligible = RegistrationStatus Approved + đủ URL 4 giấy bắt buộc. */
     private void attachDocumentGate(UserDTO user, HttpServletRequest request) {
         RegistrantProfileContext ctx = RegistrantProfileSupport.loadContext(
                 profiledao, documentdao, registrantdao, user);

@@ -239,8 +239,11 @@ public class RegistrationServiceImpl implements RegistrationService {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         if (theoryScore != null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Không thể sửa điểm lý thuyết từ module sát hạch.");
+            boolean passed = "passed".equalsIgnoreCase(theoryResult);
+            if (!examScoreService.upsertSectionScore(candidateId, SectionType.THEORY,
+                    theoryScore, passed)) {
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm lý thuyết.");
+            }
         }
         if (practicalScore != null) {
             boolean passed = "passed".equalsIgnoreCase(practicalResult);

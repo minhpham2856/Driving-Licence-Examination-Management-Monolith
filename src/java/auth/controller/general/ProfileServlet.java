@@ -1,15 +1,13 @@
 package auth.controller.general;
 
 import auth.dto.ServiceResult;
-import auth.dto.AccountDTO;
+import auth.dto.StaffAccountViewDTO;
 import auth.dto.UpdateProfileDTO;
 import auth.dto.UserDTO;
 import auth.service.AuditService;
 import auth.service.ProfileService;
 import auth.service.impl.AuditServiceImpl;
 import auth.service.impl.ProfileServiceImpl;
-import auth.util.FormatUtil;
-import auth.util.ValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,17 +17,15 @@ import jakarta.servlet.http.HttpSession;
 import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
+import shared.enums.RoleType;
 import shared.model.Profile;
+
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
-@WebServlet(urlPatterns = {
-    "/examstaff/profile",
-    "/examiner/profile",
-    "/managingstaff/profile",
-    "/admin/profile"
-})
+@WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
 
     private final ProfileService profileService = new ProfileServiceImpl();
@@ -38,9 +34,10 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        // filter already validated session + role; load account for JSP
-        UserDTO sessionUser = sessionUser(request);
+        UserDTO sessionUser = requireUser(request, response);
+        if (sessionUser == null) {
+            return;
+        }
         publishAccount(request, sessionUser);
         request.getRequestDispatcher("/views/auth/general/profile.jsp").forward(request, response);
     }
@@ -48,62 +45,51 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        UserDTO sessionUser = requireUser(request, response);
+        if (sessionUser == null) {
+            return;
+        }
 
-        UserDTO sessionUser = sessionUser(request);
-
-        // bind form fields into update DTO
         UpdateProfileDTO input = new UpdateProfileDTO();
-        input.setUsername(request.getParameter("username"));
-        input.setEmail(request.getParameter("email"));
         input.setFullName(request.getParameter("fullName"));
         input.setPhoneNumber(request.getParameter("phoneNumber"));
-        input.setGovernmentIdNumber(request.getParameter("governmentIdNumber"));
         input.setAddress(request.getParameter("address"));
-        LocalDate dob = ValidationUtil.parseDate(request.getParameter("dateOfBirth"));
-        if (dob != null) {
-            input.setDateOfBirth(Timestamp.valueOf(dob.atStartOfDay()));
-        }
-        String sex = request.getParameter("sex");
-        if (FormatUtil.formatString(sex) != null) {
-            input.setSex("1".equals(sex)
-                    || "true".equalsIgnoreCase(sex)
-                    || "male".equalsIgnoreCase(sex));
+        input.setDateOfBirth(parseDateOfBirth(request.getParameter("dateOfBirth")));
+        String sexRaw = request.getParameter("sex");
+        if (sexRaw != null && !sexRaw.isBlank()) {
+            input.setSex("1".equals(sexRaw) || "true".equalsIgnoreCase(sexRaw)
+                    || "male".equalsIgnoreCase(sexRaw));
         }
 
-        // persist profile changes
-        ServiceResult<Profile> result = profileService.updateProfile(sessionUser.getUserId(), input);
+        ServiceResult<Profile> result = profileService.updateMyProfile(sessionUser.getUserId(), input);
         if (result.isSuccess()) {
-            auditService.logAction(sessionUser.getUserId(),
-                    AuditAction.UPDATE,
-                    AuditEntity.DOSSIER,
-                    "Cập nhật hồ sơ cá nhân",
-                    sessionUser.getUserId());
+            auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
+                    "Cập nhật hồ sơ cá nhân", sessionUser.getUserId());
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
         } else {
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
         }
-
         request.setAttribute(Attributes.Request.MESSAGE,
-                result.getMessage() != null
-                ? result.getMessage()
-                : "Không cập nhật được hồ sơ.");
+                result.getMessage() != null ? result.getMessage() : "Không cập nhật được hồ sơ.");
 
-        // refresh account data after save attempt
         publishAccount(request, sessionUser);
         request.getRequestDispatcher("/views/auth/general/profile.jsp").forward(request, response);
     }
 
-    // session user set by login; filter guarantees non-null here
-    private static UserDTO sessionUser(HttpServletRequest request) {
-        return (UserDTO) request.getSession(false).getAttribute(Attributes.Session.USER);
+    private UserDTO requireUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
+        Object raw = session == null ? null : session.getAttribute(Attributes.Session.USER);
+        if (!(raw instanceof UserDTO)) {
+            response.sendRedirect(request.getContextPath() + resolveLoginPath(null));
+            return null;
+        }
+        return (UserDTO) raw;
     }
 
-    // load account from DB and sync session profile for sidebar display
     private void publishAccount(HttpServletRequest request, UserDTO sessionUser) {
-        AccountDTO account = profileService.getAccount(sessionUser.getUserId());
-
-        UserDTO accountUser = account.getUser() != null ? account.getUser() : sessionUser;
-        // getById does not load Role - keep role from the logged-in session
+        StaffAccountViewDTO view = profileService.getAccountView(sessionUser.getUserId());
+        UserDTO accountUser = view.getUser() != null ? view.getUser() : sessionUser;
+        // getById does not load Role — keep role from the logged-in session.
         if (accountUser.getRole() == null && sessionUser.getRole() != null) {
             accountUser.setRole(sessionUser.getRole());
         }
@@ -111,18 +97,64 @@ public class ProfileServlet extends HttpServlet {
             accountUser.setEmail(sessionUser.getEmail());
         }
         request.setAttribute(Attributes.Request.ACCOUNT_USER, accountUser);
-        request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, account.getProfile());
+        request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, view.getProfile());
 
         HttpSession session = request.getSession(false);
-        if (session != null) {
-            if (account.getProfile() != null) {
-                session.setAttribute(Attributes.Session.USER_PROFILE, account.getProfile());
-                sessionUser.setProfile(account.getProfile());
-            }
-            // keep login role; refresh username/email from DB after save
-            sessionUser.setUsername(accountUser.getUsername());
-            sessionUser.setEmail(accountUser.getEmail());
+        if (session != null && view.getProfile() != null) {
+            session.setAttribute(Attributes.Session.USER_PROFILE, view.getProfile());
+            sessionUser.setProfile(view.getProfile());
             session.setAttribute(Attributes.Session.USER, sessionUser);
+        }
+
+        request.setAttribute(Attributes.Request.BACK_URL, resolveHomePath(sessionUser));
+        request.setAttribute(Attributes.Request.ACCOUNT_SHELL, resolveAccountShell(sessionUser));
+    }
+
+    private static String resolveAccountShell(UserDTO user) {
+        if (user == null || user.getRole() == null) {
+            return "public";
+        }
+        RoleType role = RoleType.fromValue(user.getRole().getRoleName());
+        return role == RoleType.EXAM_STAFF ? "examstaff" : "public";
+    }
+
+    private static String resolveLoginPath(UserDTO user) {
+        if (user == null || user.getRole() == null) {
+            return "/staff/login";
+        }
+        RoleType role = RoleType.fromValue(user.getRole().getRoleName());
+        if (role == RoleType.REGISTRANT) {
+            return "/login";
+        }
+        return "/staff/login";
+    }
+
+    private static String resolveHomePath(UserDTO user) {
+        if (user == null || user.getRole() == null) {
+            return "/home";
+        }
+        RoleType role = RoleType.fromValue(user.getRole().getRoleName());
+        if (role == null) {
+            return "/home";
+        }
+        return switch (role) {
+            case EXAM_STAFF -> "/views/staff/examstaff/dashboard";
+            case EXAMINER -> "/views/examiner/dashboard";
+            case MANAGING_STAFF -> "/views/staff/managing/dashboard";
+            case ADMIN -> "/admin/dashboard";
+            case REGISTRANT, CANDIDATE -> "/views/registrant/dashboard.jsp";
+            default -> "/home";
+        };
+    }
+
+    private static Timestamp parseDateOfBirth(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return Timestamp.valueOf(LocalDate.parse(raw.trim()).atStartOfDay());
+        } catch (DateTimeParseException ex) {
+            return null;
         }
     }
 }

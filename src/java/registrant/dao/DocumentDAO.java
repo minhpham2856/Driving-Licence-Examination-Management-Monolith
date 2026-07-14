@@ -11,13 +11,13 @@ public interface DocumentDAO {
 
     List<RegistrantDocumentView> listByProfileId(int profileId);
 
-    /** Giống listByProfileId nhưng có DocumentId - phục vụ nhật ký theo dõi hồ sơ. */
+    /** Giống listByProfileId nhưng có DocumentId — phục vụ nhật ký theo dõi hồ sơ. */
     List<RegistrantDocumentView> listByProfileIdWithDocumentId(int profileId);
 
     /** Ghi đè hoặc thêm mới tài liệu theo loại (DocumentType). */
     boolean upsertDocument(int profileId, String documentType, String documentUrl, String notes);
 
-    /** Thêm mới một tài liệu (dùng cho hồ sơ Other - upload nhiều tệp). */
+    /** Thêm mới một tài liệu (dùng cho hồ sơ Other — upload nhiều tệp). */
     boolean insertDocument(int profileId, String documentType, String documentUrl, String notes);
 
     /** Tìm tài liệu thuộc hồ sơ (null nếu không tồn tại hoặc không thuộc profile). */

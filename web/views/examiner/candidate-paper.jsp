@@ -7,8 +7,8 @@
 <c:if test="${not empty candidate}">
     <c:set var="headerTitle" value="Đề thi - ${candidate.fullName}" />
 </c:if>
-<c:set var="backUrl" value="${ctx}/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
-<c:set var="pageUrl" value="${ctx}/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/result" scope="request" />
 
 <!--page-->

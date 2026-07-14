@@ -5,7 +5,7 @@ import shared.model.Profile;
 import java.util.Collections;
 import java.util.List;
 
-/** Snapshot hồ sơ thí sinh + tài liệu + trạng thái đăng ký - dùng chung giữa các service registrant. */
+/** Snapshot hồ sơ thí sinh + tài liệu + trạng thái đăng ký — dùng chung giữa các service registrant. */
 public final class RegistrantProfileContext {
 
     private final Profile profile;
