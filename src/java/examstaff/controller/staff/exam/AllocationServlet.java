@@ -4,15 +4,14 @@ import examstaff.controller.staff.exam.adapter.ExamStaffSelectionFacade;
 import examstaff.controller.staff.exam.adapter.StaffAuditLogSupport;
 import examstaff.controller.staff.exam.binder.AllocationActionResultBinder;
 import examstaff.controller.staff.exam.binder.AllocationStageViewBinder;
-import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
+import examstaff.controller.staff.exam.http.CandidateQueueHttpSupport;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
+import examstaff.controller.staff.exam.http.ExamStaffSessionKeys;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
-import examstaff.dto.CandidateQueueSnapshotDTO;
-import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.dto.ExamSummaryDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -33,6 +32,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Các trang phân bổ thí sinh theo giai đoạn (waiting/theory/practical/results):
+ * điều phối HTTP ↔ AllocationAction/StageView ↔ redirect/forward JSP theo servlet path.
+ */
 @WebServlet(urlPatterns = {
         "/views/staff/examstaff/allocation",
         "/views/staff/examstaff/allocation-waiting",
@@ -44,7 +47,7 @@ import java.util.List;
 })
 public class AllocationServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
@@ -55,11 +58,20 @@ public class AllocationServlet extends HttpServlet {
     private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
+    /** Constructor mặc định — lấy services từ composition root. */
     public AllocationServlet() {
         this(SERVICES.examAreas(),
                 SERVICES.allocationStageView(), SERVICES.allocationActions(), SERVICES.candidateQueue());
     }
 
+    /**
+     * Constructor inject (test / wiring tay).
+     *
+     * @param areaQueryService           truy vấn phòng/khu vực
+     * @param allocationStageViewService build view theo stage
+     * @param allocationActionService    action phân bổ thí sinh
+     * @param candidateQueueService      refresh/publish queue
+     */
     AllocationServlet(ExamAreaQueryService areaQueryService,
             AllocationStageViewService allocationStageViewService,
             AllocationActionService allocationActionService,
@@ -70,6 +82,9 @@ public class AllocationServlet extends HttpServlet {
         this.candidateQueueService = candidateQueueService;
     }
 
+    /**
+     * GET: resolve stage từ path → prepare page → xử lý action (redirect) hoặc bind danh sách → forward JSP.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -116,7 +131,7 @@ public class AllocationServlet extends HttpServlet {
             int examId = pageCtx.getExamId();
             List<ExamRegistrationDTO> qList = new ArrayList<>(pageCtx.getCandidates());
             publishCandidateQueue(request, session, qList, examId);
-            session.setAttribute("lastLoadedExamId", examId);
+            session.setAttribute(ExamStaffSessionKeys.LAST_LOADED_EXAM_ID, examId);
             request.setAttribute("allocationActiveExamId", examId);
 
             String action = request.getParameter("action");
@@ -187,7 +202,7 @@ public class AllocationServlet extends HttpServlet {
                 selectionFacade.clearCandidateCache(session);
                 qList = refreshCandidateQueue(session, examId, webRoot, pageCtx.getAllExams());
                 publishCandidateQueue(request, session, qList, examId);
-                session.setAttribute("lastLoadedExamId", examId);
+                session.setAttribute(ExamStaffSessionKeys.LAST_LOADED_EXAM_ID, examId);
 
                 stashAllocationFlash(session, request);
                 response.sendRedirect(buildRedirectUrl(request, servletPath, examId, page, pageSize,
@@ -243,6 +258,7 @@ public class AllocationServlet extends HttpServlet {
         }
     }
 
+    /** Bind dữ liệu stage (counts/list/paging) lên request qua {@link AllocationStageViewBinder}. */
     private void publishStageData(HttpServletRequest request, List<ExamRegistrationDTO> qList,
             String stage, String resultFilter, String searchQ, int page, int pageSize,
             ExamRegistrationSort.Spec sortSpec, Integer areaFilterId) {
@@ -251,44 +267,28 @@ public class AllocationServlet extends HttpServlet {
                         qList, stage, resultFilter, searchQ, page, pageSize, sortSpec, areaFilterId));
     }
 
+    /** Refresh queue từ DB/service rồi publish snapshot vào session. */
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId,
             String webRoot, List<ExamSummaryDTO> allExams) {
-        if (session == null) {
-            return List.of();
-        }
-        ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
-        input.setExamId(examId);
-        input.setWebRoot(webRoot);
-        input.setAllExams(allExams);
-        input.setSelectedExamId(ExamStaffPageBinder.readSelectedExamId(session));
-        @SuppressWarnings("unchecked")
-        List<String> order = (List<String>) session.getAttribute("callQueueOrder");
-        input.setCallQueueOrder(order);
-        input.setCallQueueOrderExamId(ExamStaffPageBinder.readCallQueueOrderExamId(session));
-
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.refreshQueue(input);
-        ExamStaffPageBinder.publishQueue(null, session, snapshot);
-        return snapshot.getFullQueue();
+        return CandidateQueueHttpSupport.refreshAndPublish(null, session, candidateQueueService,
+                examId, examId, webRoot, allExams);
     }
 
+    /** Publish full/active/procedure-done queue lên request + session cho JSP. */
     private void publishCandidateQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> qList, int examId) {
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(qList, examId, examId);
-        ExamSummaryDTO current = selectionFacade.findExamById(selectionFacade.loadAllExams(), examId);
-        if (current == null && examId > 0) {
-            current = selectionFacade.representativeExam(
-                    selectionFacade.loadAllExams(), examId);
-        }
-        ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
-                snapshot.getProcedureDone(), examId, examId, current);
+        CandidateQueueHttpSupport.publishLists(request, session, candidateQueueService,
+                selectionFacade, qList, examId);
     }
 
+    /** POST dùng chung luồng GET (action thường gửi form POST). */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
     }
 
+    /** Đưa alert/error request sang flash session trước redirect PRG. */
     private static void stashAllocationFlash(HttpSession session, HttpServletRequest request) {
         if (session == null || request == null) {
             return;
@@ -303,6 +303,9 @@ public class AllocationServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Xây URL redirect sau action (giữ paging/search/sort/area + cache-buster).
+     */
     private static String buildRedirectUrl(HttpServletRequest request, String servletPath, int examId,
             int page, int pageSize, String searchQ, ExamRegistrationSort.Spec sortSpec, Integer areaFilterId) {
         String extra = AllocationStageHelper.buildExtraQuery(page, pageSize, searchQ,

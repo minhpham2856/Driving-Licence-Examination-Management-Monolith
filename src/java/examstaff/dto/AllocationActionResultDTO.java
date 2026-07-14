@@ -1,5 +1,9 @@
 package examstaff.dto;
 
+/**
+ * Kết quả thao tác phân bổ thí sinh (BLL → Presentation).
+ * Mang alert/error, thông tin audit và đường redirect sau khi xử lý.
+ */
 public class AllocationActionResultDTO {
 
     private String errorMsg;
@@ -66,6 +70,7 @@ public class AllocationActionResultDTO {
         this.redirectServletPath = redirectServletPath;
     }
 
+    /** Có đủ dữ liệu để ghi nhật ký audit. */
     public boolean hasAuditLog() {
         return auditAction != null && auditDetails != null;
     }

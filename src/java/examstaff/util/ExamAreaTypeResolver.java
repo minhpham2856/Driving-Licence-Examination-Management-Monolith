@@ -12,26 +12,49 @@ public final class ExamAreaTypeResolver {
     private ExamAreaTypeResolver() {
     }
 
-    /** Phòng dùng để phân giám khảo / phân thí sinh (bỏ khu hỗn hợp / thủ tục). */
+    /**
+     * Phòng dùng để phân giám khảo / phân thí sinh (bỏ khu hỗn hợp / thủ tục).
+     *
+     * @param area khu vực thi
+     * @return {@code true} nếu là phòng LT hoặc TH có thể phân công
+     */
     public static boolean isAssignableExamArea(ExamArea area) {
         return ExaminerAssignmentRules.isTheoryRoom(area)
                 || ExaminerAssignmentRules.isPracticalRoom(area);
     }
 
-    /** Giá trị AreaType “chuẩn” dùng khi query exact (schema Clean). */
+    /**
+     * Nhãn AreaType “chuẩn” cho lý thuyết (schema Clean).
+     *
+     * @return chuỗi hiển thị lý thuyết
+     */
     public static String theoryAreaTypeLabel() {
         return ExamSection.LY_THUYET.getDisplayName();
     }
 
+    /**
+     * Nhãn AreaType “chuẩn” cho thực hành (schema Clean).
+     *
+     * @return chuỗi hiển thị thực hành
+     */
     public static String practicalAreaTypeLabel() {
         return PRACTICAL_AREA_TYPE;
     }
 
-    /** Alias schema SWP/DLEM: Phòng thi ≈ lý thuyết, Sân thi ≈ thực hành. */
+    /**
+     * Alias schema SWP/DLEM: Phòng thi ≈ lý thuyết.
+     *
+     * @return giá trị {@link ExamAreaType#EXAM_ROOM}
+     */
     public static String theoryAreaTypeAlias() {
         return ExamAreaType.EXAM_ROOM.getValue();
     }
 
+    /**
+     * Alias schema SWP/DLEM: Sân thi ≈ thực hành.
+     *
+     * @return giá trị {@link ExamAreaType#EXAM_GROUND}
+     */
     public static String practicalAreaTypeAlias() {
         return ExamAreaType.EXAM_GROUND.getValue();
     }

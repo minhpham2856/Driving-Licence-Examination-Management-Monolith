@@ -16,12 +16,14 @@ import examstaff.util.ExaminerAssignmentRules;
 import java.util.List;
 import java.util.Set;
 
+/** Implementation: điều phối auto-allocate và thao tác đổi phòng/sân cho thí sinh. */
 public class AllocationActionServiceImpl implements AllocationActionService {
 
     private final ExamRegistrationService regService = new ExamRegistrationServiceImpl();
     private final ExamAreaQueryService areaQueryService = new ExamAreaQueryServiceImpl();
     private final ExaminerAllocationService examinerAllocationService = new ExaminerAllocationServiceImpl();
 
+    /** {@inheritDoc} */
     @Override
     public AllocationActionResultDTO autoAllocateOnOverview(int examId, String stage) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
@@ -44,6 +46,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public AllocationActionResultDTO executeCandidateAction(AllocationCandidateActionRequest request) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
@@ -67,6 +70,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO findCandidate(int regId, int examId, List<ExamRegistrationDTO> queue) {
         if (queue != null) {
@@ -86,6 +90,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         return null;
     }
 
+    /** Đổi / gán phòng lý thuyết cho thí sinh sau khi kiểm tra giám khảo đã phân công. */
     private void handleAllocateRoom(AllocationActionResultDTO result, AllocationCandidateActionRequest request,
             ExamRegistrationDTO profile, int regId, int examId) {
         int areaId = request.getAreaId();
@@ -127,6 +132,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
         }
     }
 
+    /** Đổi / gán sân thực hành cho thí sinh sau khi kiểm tra giám khảo đã phân công. */
     private void handleAllocatePracticalRoom(AllocationActionResultDTO result,
             AllocationCandidateActionRequest request, ExamRegistrationDTO profile, int regId, int examId) {
         int areaId = request.getAreaId();

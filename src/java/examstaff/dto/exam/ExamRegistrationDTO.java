@@ -4,6 +4,10 @@ package examstaff.dto.exam;
 import java.sql.Timestamp;
 import java.sql.Date;
 
+/**
+ * DTO đăng ký / hồ sơ thí sinh trong kỳ thi — mang dữ liệu qua Presentation và BLL ExamStaff.
+ * Gồm enrollment, trạng thái có mặt/vắng/đình chỉ, kết quả phần thi và cờ thủ tục.
+ */
 public class ExamRegistrationDTO {
     private int id;
     private int examId;
@@ -17,7 +21,7 @@ public class ExamRegistrationDTO {
     private Timestamp presentMarkedAt;
     private String notes;
 
-    // Helper fields joined from Person
+    // Thông tin Person (JOIN)
     private String fullName;
     private String govIdNo;
     private Date dateOfBirth;
@@ -25,7 +29,7 @@ public class ExamRegistrationDTO {
     private String email;
     private String photoUrl;
 
-    // Helper fields from allocation/pipeline
+    // Kết quả phần thi / phân bổ
     private String computerCode;
     private String theoryPassed = "none";
     private String practicalPassed = "none";
@@ -57,6 +61,7 @@ public class ExamRegistrationDTO {
         this.notes = notes;
     }
 
+    /** Số báo danh 3 chữ số (từ candidateNo). */
     public String getSbd() {
         if (candidateNo <= 0) {
             return "000";
