@@ -92,7 +92,7 @@
 .login-visual-panel {
     width: 50%;
     position: relative;
-    background-image: url('../imgs/smiling_professional_driver.png');
+    background-image: url('../../imgs/smiling_professional_driver.png');
     background-size: cover;
     background-position: center;
     display: flex;

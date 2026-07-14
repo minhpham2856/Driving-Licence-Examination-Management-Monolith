@@ -903,3 +903,35 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     line-height: 1.5;
 }
 
+/* Form xác nhận đăng ký (cột tóm tắt bên phải) */
+.register-exam-confirm-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+}
+
+.register-exam-date-hint {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+/* My-exams: card cột phải */
+.exam-details-card--right {
+    height: 100%;
+}
+
+/* Track profile / form titles trong panel registrant */
+.r-form-title {
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Upload: slot thiếu file */
+.upload-slot__message--missing {
+    background: rgba(185, 28, 28, 0.88);
+}
+
