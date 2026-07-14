@@ -24,10 +24,13 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/examstaff/examiner-allocation")
+/**
+ * Trang phân công sát hạch viên theo phòng/khu vực: load view → action assign/remove → forward JSP.
+ */
+@WebServlet("/views/staff/examstaff/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
@@ -36,6 +39,9 @@ public class ExaminerAllocationServlet extends HttpServlet {
     private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
+    /**
+     * GET: prepare page (không load queue), xử lý action nếu có, bind allocation view, forward.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -98,6 +104,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
         request.getRequestDispatcher("/views/staff/examstaff/examiner-allocation.jsp").forward(request, response);
     }
 
+    /** Điều phối action {@code assign}/{@code remove} sang deskService rồi áp kết quả lên request. */
     private void handleAction(HttpServletRequest request, HttpSession session, String action) {
         try {
             ExaminerAllocationActionResultDTO result;
@@ -117,6 +124,7 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
     }
 
+    /** Gắn alert/error từ DTO; ghi audit khi thành công. */
     private void applyActionResult(HttpServletRequest request, HttpSession session,
             ExaminerAllocationActionResultDTO result) {
         if (result.getAlertMsg() != null) {
@@ -130,14 +138,17 @@ public class ExaminerAllocationServlet extends HttpServlet {
         }
     }
 
+    /** Lấy userId staff từ session. */
     private int resolveStaffId(HttpSession session) {
         return SessionUserHelper.resolveUserId(session);
     }
 
+    /** Ủy quyền ghi audit qua {@link StaffAuditLogSupport}. */
     private void addAuditLog(HttpSession session, String action, String details) {
         auditLogSupport.persist(session, action, details);
     }
 
+    /** POST dùng chung luồng GET. */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

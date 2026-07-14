@@ -15,6 +15,7 @@ import examstaff.util.ExaminerAssignmentRules;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+/** Implementation: điều khiển bắt đầu / tạm dừng / kết thúc kỳ thi qua {@link ExamDAO}. */
 public class ExamControlServiceImpl implements ExamControlService {
 
     public static final String CTX_ACTIVE_EXAM_ID = "examActiveExamId";
@@ -22,15 +23,18 @@ public class ExamControlServiceImpl implements ExamControlService {
     private final ExamDAO examDAO;
     private final ExaminerAssignmentDAO assignmentDAO;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public ExamControlServiceImpl() {
         this(new ExamDAOImpl(), new ExaminerAssignmentDAOImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public ExamControlServiceImpl(ExamDAO examDAO, ExaminerAssignmentDAO assignmentDAO) {
         this.examDAO = examDAO;
         this.assignmentDAO = assignmentDAO;
     }
 
+    /** Ghép nhãn hiển thị kỳ thi (tên + ngày). */
     private static String buildExamLabel(ExamSummaryDTO exam) {
         if (exam == null) {
             return "kỳ thi";
@@ -46,6 +50,7 @@ public class ExamControlServiceImpl implements ExamControlService {
         return name + " - ngày " + date;
     }
 
+    /** {@inheritDoc} */
     @Override
     public StartResult startExam(int examId, int staffUserId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);
@@ -81,6 +86,7 @@ public class ExamControlServiceImpl implements ExamControlService {
         return StartResult.ok(buildExamLabel(examSummary), assignments.size());
     }
 
+    /** {@inheritDoc} */
     @Override
     public EndResult endExam(int examId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);
@@ -98,6 +104,7 @@ public class ExamControlServiceImpl implements ExamControlService {
         return EndResult.ok(buildExamLabel(examSummary));
     }
 
+    /** {@inheritDoc} */
     @Override
     public PauseResult pauseExam(int examId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);
@@ -117,6 +124,7 @@ public class ExamControlServiceImpl implements ExamControlService {
         return PauseResult.ok(buildExamLabel(examSummary));
     }
 
+    /** {@inheritDoc} */
     @Override
     public ResumeResult resumeExam(int examId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);

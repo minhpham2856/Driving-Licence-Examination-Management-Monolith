@@ -10,6 +10,7 @@ import examiner.dao.ExamScoreDAO;
 import examiner.dao.ExamSectionDAO;
 import examiner.dao.ExaminerViewDAO;
 import examiner.dao.ScoreDeductionDAO;
+import examiner.dao.UserDAO;
 import examiner.dao.impl.AuditDAOImpl;
 import examiner.dao.impl.CandidateDAOImpl;
 import examiner.dao.impl.DeductionRecordDAOImpl;
@@ -20,8 +21,7 @@ import examiner.dao.impl.ExamScoreDAOImpl;
 import examiner.dao.impl.ExamSectionDAOImpl;
 import examiner.dao.impl.ExaminerViewDAOImpl;
 import examiner.dao.impl.ScoreDeductionDAOImpl;
-import auth.service.AuthService;
-import auth.service.impl.AuthServiceImpl;
+import examiner.dao.impl.UserDAOImpl;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.ServiceResult;
 import shared.enums.AuditAction;
@@ -42,6 +42,7 @@ import shared.model.ScoreDeduction;
 import shared.model.User;
 import examiner.service.AuditService;
 import examiner.service.RegistrationService;
+import examiner.service.ExamScoreService;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
 import examiner.util.ExamQueue;
@@ -69,13 +70,14 @@ public class CallServiceImpl implements CallService {
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
     private final ExamScoreDAO examScoreDAO = new ExamScoreDAOImpl();
+    private final ExamScoreService examScoreService = new ExamScoreServiceImpl();
     private final DeductionRecordDAO deductionRecordDAO = new DeductionRecordDAOImpl();
     private final ScoreDeductionDAO scoreDeductionDAO = new ScoreDeductionDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
     private final ExamViewService dataService = new ExamViewServiceImpl();
     private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
     private final RegistrationService registrationService = new RegistrationServiceImpl();
-    private final AuthService authService = new AuthServiceImpl();
+    private final UserDAO userDAO = new UserDAOImpl();
 
     @Override
     public void clearPresent(int examId, int sbd) {
@@ -329,6 +331,43 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
+    public ServiceResult<Void> updateTheoryScore(int examId, int sbd, User user, String password, Integer newScore,
+            String reasonCode, String reasonDetail, Integer actionUserId) {
+        if (reasonCode == null || reasonCode.isBlank()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
+        }
+        if (!verifyPassword(user, password)) {
+            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
+        }
+        EnrollmentDTO reg = getRegistration(examId, sbd);
+        if (reg == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+        }
+        int score = newScore != null ? newScore : -1;
+        int maxScore = dataService.theoryMaxQuestions();
+        if (score < 0 || score > maxScore) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Điểm lý thuyết không hợp lệ.");
+        }
+        Integer oldScore = reg.getTheoryScore();
+        String auditReason = buildReasonText(reasonCode, reasonDetail);
+        boolean updated = examScoreService.upsertTheoryCorrectCount(reg.getId(), score,
+                dataService.theoryPassThreshold());
+        if (!updated) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm lý thuyết.");
+        }
+        if (actionUserId != null) {
+            String passed = score >= dataService.theoryPassThreshold() ? "Đạt" : "Trượt";
+            String message = "Sửa điểm lý thuyết SBD " + reg.getCandidateNumber() + ": "
+                    + (oldScore != null ? oldScore : "-") + " -> " + score + " (" + passed + ")";
+            if (!auditReason.isBlank()) {
+                message += " - Lý do: " + auditReason;
+            }
+            auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE, message, reg.getId());
+        }
+        return ServiceResult.ok(null);
+    }
+
+    @Override
     public ServiceResult<Void> logPracticalScoreEditReason(int examId, int sbd, User user, String password,
             String reasonCode, String reasonDetail, Integer actionUserId) {
         if (reasonCode == null || reasonCode.isBlank()) {
@@ -482,17 +521,22 @@ public class CallServiceImpl implements CallService {
         }
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                    "Sát hạch viên hoàn tất nhập điểm SBD " + reg.getCandidateNumber(), reg.getId());
+                    "Giám khảo hoàn tất nhập điểm SBD " + reg.getCandidateNumber(), reg.getId());
         }
         return ServiceResult.ok(null);
     }
 
     @Override
     public boolean verifyPassword(User user, String password) {
-        if (user == null) {
+        if (user == null || password == null || password.isBlank()) {
             return false;
         }
-        return authService.verifyPassword(user.getUserId(), password);
+        // Session User may lack passwordHash; always verify against DB
+        User dbUser = userDAO.getById(user.getUserId());
+        if (dbUser == null || dbUser.getPasswordHash() == null) {
+            return false;
+        }
+        return AuthServiceImpl.passwordsMatch(password.trim(), dbUser.getPasswordHash());
     }
 
     @Override

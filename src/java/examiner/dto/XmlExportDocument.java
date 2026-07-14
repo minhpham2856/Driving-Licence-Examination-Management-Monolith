@@ -9,7 +9,7 @@ public record XmlExportDocument(
         String rootElement,
         // Key-value metadata pairs written as child elements under the root
         Map<String, Object> metadata,
-        // Ordered list of data tables - each rendered as a separate XML section
+        // Ordered list of data tables — each rendered as a separate XML section
         List<XmlExportTable> tables) {
 
 }

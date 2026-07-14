@@ -17,24 +17,38 @@ import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
-@WebServlet("/examstaff/public-call")
+/**
+ * Trang Public Call (JSP): resolve kỳ active → đọc CallBoard → snapshot → bind view.
+ * Chỉ đọc; staff {@link CandidateCallServlet} mới ghi trạng thái gọi.
+ */
+@WebServlet("/views/public/public-call")
 public class PublicCallServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final PublicCallQueryService publicCallQueryService;
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
+    /** Constructor mặc định — lấy service từ composition root. */
     public PublicCallServlet() {
         this(SERVICES.publicCallQuery());
     }
 
+    /**
+     * Constructor inject (test / wiring tay).
+     *
+     * @param publicCallQueryService service dựng snapshot Public Call
+     */
     PublicCallServlet(PublicCallQueryService publicCallQueryService) {
         this.publicCallQueryService = publicCallQueryService;
     }
 
+    /**
+     * Render màn hình bảng gọi công khai.
+     * examId: query/session → fallback active exam trên CallBoard.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

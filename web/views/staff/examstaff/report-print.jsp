@@ -13,7 +13,7 @@
 <body class="report-print-page" data-auto-print="${autoPrint ? 'true' : 'false'}">
 
 <div class="report-print-toolbar no-print">
-    <a href="${pageContext.request.contextPath}/examstaff/report" class="report-print-btn report-print-btn--ghost">&larr; Quay lại báo cáo</a>
+    <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" class="report-print-btn report-print-btn--ghost">&larr; Quay lại báo cáo</a>
     <button type="button" class="report-print-btn report-print-btn--primary">In / Lưu PDF</button>
 </div>
 

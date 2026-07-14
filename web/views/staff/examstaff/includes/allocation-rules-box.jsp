@@ -7,19 +7,19 @@
         <c:set var="boxClass" value="examstaff-rules-box--practical" />
         <c:set var="boxIcon" value="precision_manufacturing" />
         <c:set var="boxLabel" value="Quy định điểm đạt thi thực hành / sa hình" />
-        <c:set var="boxTitle" value="Quy định điểm đạt - Thực hành / Sa hình" />
+        <c:set var="boxTitle" value="Quy định điểm đạt — Thực hành / Sa hình" />
     </c:when>
     <c:when test="${variant eq 'results'}">
         <c:set var="boxClass" value="examstaff-rules-box--results" />
         <c:set var="boxIcon" value="fact_check" />
         <c:set var="boxLabel" value="Tổng hợp quy định điểm đạt các phần thi" />
-        <c:set var="boxTitle" value="Quy định điểm đạt - Tổng hợp kết quả" />
+        <c:set var="boxTitle" value="Quy định điểm đạt — Tổng hợp kết quả" />
     </c:when>
     <c:otherwise>
         <c:set var="boxClass" value="examstaff-rules-box--theory" />
         <c:set var="boxIcon" value="menu_book" />
         <c:set var="boxLabel" value="Quy định điểm đạt thi lý thuyết" />
-        <c:set var="boxTitle" value="Quy định điểm đạt - Thi lý thuyết" />
+        <c:set var="boxTitle" value="Quy định điểm đạt — Thi lý thuyết" />
     </c:otherwise>
 </c:choose>
 

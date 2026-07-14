@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -9,6 +9,12 @@
         <h2 class="procedure-desk-title">Bàn làm thủ tục</h2>
         <p class="procedure-desk-subtitle">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh xác minh danh tính &rarr; Thu lệ phí. Import CSV không cần ảnh; ảnh lưu DB để bộ phận khác in hồ sơ sau khi thi xong.</p>
     </header>
+
+        <c:if test="${requestScope.examMutationsLocked}">
+            <div style="background-color: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; padding: 10px 12px; margin-bottom: 1rem; font-size: 0.85rem; font-weight: 600; color: #b91c1c;">
+                Kỳ thi đã kết thúc — chỉ xem hồ sơ, không sửa / xóa / thu phí lại.
+            </div>
+        </c:if>
 
         <c:if test="${not empty requestScope.profile}">
             <div class="procedure-active-bar">
@@ -26,9 +32,6 @@
                 <c:set var="cName" value="${profile.name}" />
                 <c:set var="cDob">
                     <fmt:formatDate value="${profile.dob}" pattern="dd/MM/yyyy"/>
-                </c:set>
-                <c:set var="cDobIso">
-                    <fmt:formatDate value="${profile.dob}" pattern="dd-MM-yyyy"/>
                 </c:set>
                 <c:set var="cCccd" value="${profile.cccd}" />
                 <c:set var="cClass" value="${profile.clazz}" />
@@ -102,10 +105,10 @@
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                     <div class="input-group">
                                         <label class="input-label">Ngày tháng năm sinh:</label>
-                                        <input type="date" name="dateOfBirth" class="input-field" value="${cDobIso}">
+                                        <input type="text" name="dateOfBirth" class="input-field" value="${cDob}">
                                     </div>
                                     <div class="input-group">
-                                        <label class="input-label">Số định danh / căn cước:</label>
+                                        <label class="input-label">Số định danh CCCD:</label>
                                         <input type="text" name="govIdNo" class="input-field" value="${cCccd}" style="font-family: monospace;">
                                     </div>
                                 </div>
@@ -126,16 +129,18 @@
                                     <input type="text" class="input-field" value="Hạng ${cClass}" readonly style="background-color: #f1f5f9; font-weight: 700; color: #334155;">
                                 </div>
 
+                                <c:if test="${not requestScope.examMutationsLocked}">
                                 <button type="submit" id="submitBtn" class="btn-filter" style="height: 42px; border-radius: 8px; justify-content: center; font-weight: 700; margin-top: 1rem; transition: all 0.3s; background: linear-gradient(135deg, #0052cc, #003d9b); border-color: #003d9b;">
                                     Xác nhận & Sang Bước 2 (Chụp ảnh) &rarr;
                                 </button>
+                                </c:if>
                             </form>
                         </c:if>
 
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung xác minh danh tính</h3>
-                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh - chụp tại bàn thủ tục khi đến làm hồ sơ. Ảnh lưu vào hệ thống để bộ phận khác in hồ sơ sau khi thi xong.</p>
+                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — chụp tại bàn thủ tục khi đến làm hồ sơ. Ảnh lưu vào hệ thống để bộ phận khác in hồ sơ sau khi thi xong.</p>
                             </div>
 
                             <c:if test="${not empty requestScope.photoStaleMsg}">
@@ -157,7 +162,7 @@
                                         <c:choose>
                                             <c:when test="${not empty profile.photoUrl}">
                                                 <img class="camera-captured-img"
-                                                     src="${pageContext.request.contextPath}/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
+                                                     src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                                                      alt="Ảnh chân dung ${cName}">
                                             </c:when>
                                             <c:otherwise>
@@ -169,8 +174,10 @@
                                         </div>
                                     </div>
                                     <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
+                                        <c:if test="${not requestScope.examMutationsLocked}">
                                         <a href="procedure?sbd=${currentSbd}&amp;step=2&amp;action=recapture#procedure-desk" class="btn-reset" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1;">Chụp lại ảnh</a>
-                                        <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Xác nhận &amp; Sang Bước 3 (Thu lệ phí)</a>
+                                        </c:if>
+                                        <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Sang Bước 3</a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -236,7 +243,7 @@
                             <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; align-items: start;">
                                 <div>
                                     <p style="margin: 0 0 0.75rem; font-size: 0.78rem; color: #64748b;">
-                                        Bảng giá theo quy định - Hạng <strong style="color: #0f172a;">${cClass}</strong>
+                                        Bảng giá theo quy định — Hạng <strong style="color: #0f172a;">${cClass}</strong>
                                     </p>
                                     <table class="report-table" style="font-size: 0.85rem; width: 100%;">
                                         <thead>
@@ -289,7 +296,7 @@
                                                     </a>
                                                 </div>
                                             </c:when>
-                                            <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines}">
+                                            <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines and not requestScope.examMutationsLocked}">
                                                 <form action="procedure" method="POST" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
                                                     <input type="hidden" name="action" value="confirmPayment">
                                                     <input type="hidden" name="sbd" value="${currentSbd}">
@@ -302,6 +309,9 @@
                                                         Đóng Tiền Mặt
                                                     </button>
                                                 </form>
+                                            </c:when>
+                                            <c:when test="${requestScope.examMutationsLocked}">
+                                                <span class="procedure-btn procedure-btn--disabled" style="width: 100%;">Kỳ đã kết thúc — không thu phí lại</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="procedure-btn procedure-btn--disabled" style="width: 100%; margin-bottom: 8px;">
@@ -342,7 +352,7 @@
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 1rem 0;">
                             <c:choose>
                                 <c:when test="${requestScope.hasValidPhoto}">
-                                    <img src="${pageContext.request.contextPath}/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
+                                    <img src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                                          alt="Ảnh ${cName}"
                                          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
                                 </c:when>
@@ -362,7 +372,7 @@
                                     <span style="font-weight: 700; color: #0f172a;">Hạng ${cClass}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #64748b;">Căn cước:</span>
+                                    <span style="color: #64748b;">CCCD:</span>
                                     <span style="font-weight: 600; color: #0f172a; font-family: monospace;">${cCccd}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">

@@ -18,8 +18,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/** Implementation: xuất nhật ký audit cá nhân ra Excel. */
 public class StaffAuditExportServiceImpl implements StaffAuditExportService {
 
+    /** {@inheritDoc} */
     @Override
     public void exportAuditLog(OutputStream out, List<AuditDTO> logs, int completedProcedures,
             double totalFees, String staffName, String filterDateLabel) throws IOException {
@@ -106,6 +108,7 @@ public class StaffAuditExportServiceImpl implements StaffAuditExportService {
     }
     // kv
 
+    /** Ghi một cặp khóa-giá trị trên sheet tổng quan. */
     private static int kv(Sheet sheet, int row, String key, Object value) {
         Row r = sheet.createRow(row++);
         r.createCell(0).setCellValue(key);
@@ -118,6 +121,7 @@ public class StaffAuditExportServiceImpl implements StaffAuditExportService {
     // bold style
     }
 
+    /** CellStyle font đậm. */
     private static CellStyle boldStyle(Workbook wb) {
         CellStyle style = wb.createCellStyle();
         Font font = wb.createFont();
@@ -127,6 +131,7 @@ public class StaffAuditExportServiceImpl implements StaffAuditExportService {
         return style;
     }
 
+    /** CellStyle định dạng ngày/giờ theo pattern. */
     private static CellStyle createDateStyle(Workbook wb, String pattern) {
         CellStyle style = wb.createCellStyle();
         style.setDataFormat(wb.getCreationHelper().createDataFormat().getFormat(pattern));

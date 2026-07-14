@@ -6,12 +6,18 @@ import examstaff.dto.view.ExamStaffCandidate;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Map read model → DTO trình bày (tầng service/controller). */
+/** Map {@link ExamStaffCandidate} → {@link ExamRegistrationDTO}. */
 public final class ExamStaffCandidateMapper {
 
     private ExamStaffCandidateMapper() {
     }
 
+    /**
+     * Map một read-model thí sinh sang DTO đăng ký.
+     *
+     * @param row dòng nguồn (null → null)
+     * @return DTO hoặc {@code null}
+     */
     public static ExamRegistrationDTO toDto(ExamStaffCandidate row) {
         if (row == null) {
             return null;
@@ -56,6 +62,12 @@ public final class ExamStaffCandidateMapper {
         return dto;
     }
 
+    /**
+     * Map danh sách read-model → danh sách DTO.
+     *
+     * @param rows danh sách nguồn
+     * @return danh sách DTO (không null)
+     */
     public static List<ExamRegistrationDTO> toDtoList(List<ExamStaffCandidate> rows) {
         List<ExamRegistrationDTO> list = new ArrayList<>();
         if (rows == null) {

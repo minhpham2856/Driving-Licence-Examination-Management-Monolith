@@ -4,10 +4,10 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Sửa thông tin" />
-<c:set var="backUrl" value="${ctx}/examiner/candidate-details" scope="request" />
-<c:set var="pageUrl" value="${ctx}/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
-<c:set var="paperUrl" value="${ctx}/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
-<c:set var="resultUrl" value="${ctx}/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
+<c:set var="backUrl" value="${ctx}/views/examiner/candidate-details" scope="request" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/candidate-details-edit?sbd=${candidate.sbd}" scope="request" />
+<c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
+<c:set var="resultUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -63,7 +63,7 @@
                         </section>
                     </c:when>
                     <c:otherwise>
-                        <form action="${ctx}/examiner/candidate-details-edit" method="post" 
+                        <form action="${ctx}/views/examiner/candidate-details-edit" method="post" 
                               class="examiner-bento examiner-bento--form">
                             <input type="hidden" name="sbd" value="${candidate.sbd}">
 

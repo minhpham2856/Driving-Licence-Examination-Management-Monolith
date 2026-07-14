@@ -4,6 +4,9 @@ import examstaff.dto.ExamSummaryDTO;
 
 import java.util.List;
 
+/**
+ * Input làm mới hàng chờ thí sinh theo kỳ thi đang chọn.
+ */
 public class ExamStaffQueueRefreshInput {
 
     private int examId;

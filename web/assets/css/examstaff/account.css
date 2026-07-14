@@ -1,111 +1,79 @@
-/* Account pages: profile + change-password - match examiner/examstaff portal */
-
+/* Account pages: profile + change-password */
 .account-page {
-  --account-ink: #171c1f;
-  --account-muted: #434654;
-  --account-line: #c3c6d6;
+  --account-ink: #0f172a;
+  --account-muted: #64748b;
+  --account-line: #e2e8f0;
   --account-surface: #ffffff;
-  --account-soft: #f0f4f8;
-  --account-brand: #003d9b;
-  --account-brand-deep: #002f7a;
-  --account-brand-soft: #0052cc;
-  --account-ok-bg: #ecfdf3;
-  --account-ok-bd: #a6f4c5;
-  --account-ok-fg: #027a48;
+  --account-soft: #f8fafc;
+  --account-brand: #0b5fff;
+  --account-brand-deep: #0847c7;
+  --account-ok-bg: #ecfdf5;
+  --account-ok-bd: #a7f3d0;
+  --account-ok-fg: #065f46;
   --account-err-bg: #fef2f2;
   --account-err-bd: #fecaca;
-  --account-err-fg: #b42318;
-  --account-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --account-err-fg: #991b1b;
+  --account-font: "Be Vietnam Pro", "Segoe UI", sans-serif;
   font-family: var(--account-font);
   color: var(--account-ink);
-  box-sizing: border-box;
 }
 
-.account-page *,
-.account-page *::before,
-.account-page *::after {
-  box-sizing: border-box;
-}
-
-/* Public fallback (admin/managingstaff) */
 .account-page--public {
   min-height: calc(100vh - 86px - 160px);
-  display: block;
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
   padding: 2.5rem 1.25rem 3rem;
   background:
-    radial-gradient(ellipse 50% 40% at 90% 10%, rgba(0, 61, 155, 0.08), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgba(11, 95, 255, 0.08), transparent 60%),
     radial-gradient(ellipse 40% 35% at 5% 90%, rgba(15, 23, 42, 0.05), transparent 55%),
-    linear-gradient(180deg, #f6fafe 0%, #eef2f7 100%);
-}
-
-/*
- * Portal (examstaff + examiner): fill main like dashboard pages.
- * Parent .examiner-main / .examstaff-main is flex column - use stretch + 100%.
- */
-.account-page--portal {
-  display: block;
-  flex: 0 0 auto;
-  align-self: stretch !important;
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0;
-}
-
-body.examiner-portal .examiner-main > .account-page--portal,
-body.examstaff-portal .examstaff-main > .account-page--portal {
-  align-self: stretch !important;
-  width: 100% !important;
-  max-width: none !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+    linear-gradient(180deg, #f1f5f9 0%, #eef2ff 100%);
 }
 
 .account-shell {
   width: 100%;
-  max-width: none;
+  max-width: 44rem;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
+}
+
+.account-page--portal .account-shell {
+  max-width: 52rem;
 }
 
 .account-hero {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.25rem;
 }
 
 .account-hero__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 28px;
-  color: #003d9b;
+  line-height: 1.25;
 }
 
 .account-hero__sub {
   margin: 0;
   color: var(--account-muted);
-  font-size: 14px;
-  line-height: 20px;
-  max-width: 42rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 36rem;
 }
 
 .account-alert {
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
   border: 1px solid transparent;
-  font-size: 14px;
-  line-height: 1.5;
-  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .account-alert .material-symbols-outlined {
@@ -125,13 +93,12 @@ body.examstaff-portal .examstaff-main > .account-page--portal {
   color: var(--account-err-fg);
 }
 
-/* Match examiner-card */
 .account-panel {
   background: var(--account-surface);
   border: 1px solid var(--account-line);
-  border-radius: 8px;
-  padding: 16px 18px 18px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 0.85rem;
+  padding: 1.25rem 1.35rem 1.4rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .account-panel + .account-panel {
@@ -139,18 +106,18 @@ body.examstaff-portal .examstaff-main > .account-page--portal {
 }
 
 .account-panel__title {
-  margin: 0 0 14px;
-  font-size: 12px;
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #003d9b;
+  color: var(--account-muted);
 }
 
 .account-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 18px;
+  gap: 0.95rem 1rem;
 }
 
 .account-grid__full {
@@ -160,40 +127,40 @@ body.examstaff-portal .examstaff-main > .account-page--portal {
 .account-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.4rem;
   text-align: left;
 }
 
 .account-field__label {
-  font-size: 13px;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--account-ink);
 }
 
 .account-field__hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--account-muted);
 }
 
 .account-input,
 .account-select {
   width: 100%;
-  height: 42px;
+  height: 2.75rem;
   box-sizing: border-box;
   border: 1px solid var(--account-line);
-  border-radius: 8px;
+  border-radius: 0.55rem;
   background: var(--account-soft);
-  padding: 0 14px;
+  padding: 0 0.85rem;
   font: inherit;
-  font-size: 14px;
+  font-size: 0.92rem;
   color: var(--account-ink);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .account-select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #434654 50%),
-    linear-gradient(135deg, #434654 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, #64748b 50%),
+    linear-gradient(135deg, #64748b 50%, transparent 50%);
   background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
@@ -204,91 +171,85 @@ body.examstaff-portal .examstaff-main > .account-page--portal {
 .account-select:focus {
   outline: none;
   background: #fff;
-  border-color: var(--account-brand-soft);
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.18);
+  border-color: var(--account-brand);
+  box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.15);
 }
 
 .account-input:disabled,
 .account-input[readonly] {
-  color: #434654;
-  background: #e4e9ed;
+  color: #475569;
+  background: #f1f5f9;
   cursor: default;
 }
 
 .account-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.65rem;
   align-items: center;
-  margin-top: 4px;
+  margin-top: 0.35rem;
 }
 
 .account-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 0 17px;
-  border-radius: 4px;
+  gap: 0.4rem;
+  min-height: 2.65rem;
+  padding: 0 1.1rem;
+  border-radius: 0.55rem;
   border: 1px solid transparent;
   font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+  font-size: 0.92rem;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 .account-btn .material-symbols-outlined {
-  font-size: 18px;
+  font-size: 1.1rem;
 }
 
 .account-btn--primary {
   background: var(--account-brand);
-  border-color: var(--account-brand);
   color: #fff;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .account-btn--primary:hover {
   background: var(--account-brand-deep);
-  border-color: var(--account-brand-deep);
 }
 
 .account-btn--ghost {
   background: #fff;
   border-color: var(--account-line);
-  color: var(--account-muted);
+  color: var(--account-ink);
 }
 
 .account-btn--ghost:hover {
   background: var(--account-soft);
+  border-color: #cbd5e1;
 }
 
 .account-btn--muted {
-  background: #434654;
-  border-color: #434654;
+  background: #334155;
   color: #fff;
 }
 
 .account-btn--muted:hover {
-  background: #2f333d;
-  border-color: #2f333d;
+  background: #1e293b;
 }
 
 .account-empty {
   margin: 0;
   color: var(--account-muted);
-  font-size: 14px;
+  font-size: 0.95rem;
 }
 
 .account-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0.95rem;
 }
 
 @media (max-width: 720px) {
@@ -297,12 +258,11 @@ body.examstaff-portal .examstaff-main > .account-page--portal {
   }
 
   .account-page--public {
-    max-width: 100%;
     padding: 1.5rem 0.85rem 2rem;
   }
 
   .account-panel {
-    padding: 14px;
+    padding: 1.1rem;
   }
 
   .account-actions {

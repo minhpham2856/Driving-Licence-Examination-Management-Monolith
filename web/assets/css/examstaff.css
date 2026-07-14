@@ -184,7 +184,7 @@
     min-width: 0;
 }
 
-/* --- allocation.jsp - pipeline tables --- */
+/* --- allocation.jsp — pipeline tables --- */
 .pipeline-container {
     display: flex;
     flex-direction: column;
@@ -462,7 +462,7 @@
     overflow-x: auto;
 }
 
-/* Vùng bảng cao hơn - allocation, kết quả, audit */
+/* Vùng bảng cao hơn — allocation, kết quả, audit */
 body.examstaff-portal .examstaff-main--scroll .allocation-stage-panel .examiner-table-wrap,
 body.examstaff-portal .examstaff-main--scroll .allocation-results-panel .examiner-table-wrap,
 body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel .examiner-table-wrap {
@@ -1611,7 +1611,7 @@ body.examstaff-portal .examstaff-main--scroll .room-monitor-card .examiner-table
     margin-bottom: 2.5rem;
 }
 
-/* Upload preview - badge lỗi/trạng thái: cho phép xuống dòng, không tràn viền */
+/* Upload preview — badge lỗi/trạng thái: cho phép xuống dòng, không tràn viền */
 .upload-preview-table .upload-preview-status-cell {
     min-width: 200px;
     max-width: 260px;

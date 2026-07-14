@@ -21,8 +21,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-    "/examiner/result-details",
-    "/examiner/result-details-edit"
+    "/views/examiner/result-details",
+    "/views/examiner/result-details-edit"
 })
 public class ExaminerResultDetailsServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
@@ -50,12 +50,12 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         if (activeExamId != null && activeExamId > 0) {
-            if (Boolean.TRUE.equals(session.getAttribute(Attributes.Examiner.IS_THEORY))) {
-                response.sendRedirect(request.getContextPath() + "/examiner/candidate-call?error=theoryNoResultEdit");
+            if (Boolean.TRUE.equals(session.getAttribute("isTheory"))) {
+                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-call?error=theoryNoResultEdit");
                 return;
             }
 
-            if ("/examiner/result-details-edit".equals(path) && "adjustDeduction".equals(action)) {
+            if ("/views/examiner/result-details-edit".equals(path) && "adjustDeduction".equals(action)) {
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + path + "?error=noSbd");
                     return;
@@ -78,10 +78,10 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             }
 
             if (sbd != null) {
-                boolean isTheory = Boolean.TRUE.equals(session.getAttribute(Attributes.Examiner.IS_THEORY));
+                boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
                 String sectionName = resolveSectionName(session);
 
-                if ("/examiner/result-details-edit".equals(path)) {
+                if ("/views/examiner/result-details-edit".equals(path)) {
                     Map<String, Object> data = viewDataService.getScoreEntryData(activeExamId, sbd, sectionName);
                     if (data != null) {
                         for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
@@ -92,15 +92,15 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                     request.setAttribute("candidateQueue", viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName));
                     CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
                     if (candidate != null) {
-                        request.setAttribute(Attributes.Request.CANDIDATE, candidate);
+                        request.setAttribute("candidate", candidate);
                     }
                 }
             }
         }
 
         String jsp = switch (path) {
-            case "/examiner/result-details" -> "/views/examiner/result-details.jsp";
-            case "/examiner/result-details-edit" -> "/views/examiner/result-details-edit.jsp";
+            case "/views/examiner/result-details" -> "/views/examiner/result-details.jsp";
+            case "/views/examiner/result-details-edit" -> "/views/examiner/result-details-edit.jsp";
             default -> "/views/examiner/result-details.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
@@ -122,7 +122,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         }
 
         String path = stripContextPath(request);
-        if ("/examiner/result-details-edit".equals(path)) {
+        if ("/views/examiner/result-details-edit".equals(path)) {
             Integer sbd = null;
             try {
                 if (request.getParameter("sbd") != null) {
@@ -131,7 +131,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             } catch (NumberFormatException e) {}
 
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/examiner/result-details?error=noSbd");
+                response.sendRedirect(request.getContextPath() + "/views/examiner/result-details?error=noSbd");
                 return;
             }
 
@@ -146,7 +146,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
                 return;
             }
             
-            response.sendRedirect(request.getContextPath() + "/examiner/result-details?sbd="
+            response.sendRedirect(request.getContextPath() + "/views/examiner/result-details?sbd="
                     + urlEncode(sbd) + "&reasonSaved=1");
             return;
         }
@@ -167,7 +167,7 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object name = session.getAttribute(Attributes.Examiner.EXAM_SECTION_NAME);
+        Object name = session.getAttribute("examSectionName");
         return name != null ? String.valueOf(name) : null;
     }
 

@@ -14,7 +14,5 @@ public interface AuthService {
     ServiceResult<Void> forgotPassword(String email);
 
     ServiceResult<Void> changePassword(int userId, String currentPassword, String newPassword, String confirmPassword);
-
-    boolean verifyPassword(int userId, String rawPassword);
 }
 

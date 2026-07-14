@@ -26,10 +26,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/** Implementation: xuất báo cáo kỳ thi ra file Excel (Apache POI). */
 public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private final ReportFeeQueryService feeLookup = new ReportFeeQueryServiceImpl();
 
+    /** {@inheritDoc} */
     @Override
     public void exportExamReport(OutputStream out, ExamSummaryDTO exam,
             List<ExamRegistrationDTO> candidates, ExamReportStatsDTO stats,
@@ -59,6 +61,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
     }
 
+    /** Sheet tổng quan ca thi và thống kê. */
     private void writeOverviewSheet(Workbook wb, CellStyle headerStyle,
             ExamSummaryDTO exam, ExamReportStatsDTO stats, String exporterName) {
         Sheet sheet = wb.createSheet("Tổng quan");
@@ -79,6 +82,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         sheet.autoSizeColumn(1);
     }
 
+    /** Sheet thống kê theo hạng bằng. */
     private static void writeLicenseSheet(Workbook wb, CellStyle headerStyle, ExamReportStatsDTO stats) {
         Sheet sheet = wb.createSheet("Theo hạng bằng");
         Row header = sheet.createRow(0);
@@ -109,6 +113,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
     }
 
+    /** Sheet thống kê theo phần thi. */
     private void writeSectionSheet(Workbook wb, CellStyle headerStyle, ExamReportStatsDTO stats) {
         Sheet sheet = wb.createSheet("Theo phần thi");
         Row header = sheet.createRow(0);
@@ -129,6 +134,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
     // write candidate sheet
+    /** Ghi một dòng phần thi (LT / TH). */
     private static int writeSectionRow(Sheet sheet, int row, String name, int total, int passed, int failed) {
         Row r = sheet.createRow(row);
         r.createCell(0).setCellValue(name);
@@ -140,6 +146,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return row + 1;
     }
 
+    /** Sheet danh sách kết quả từng thí sinh. */
     private static void writeCandidateSheet(Workbook wb, CellStyle headerStyle, CellStyle dateStyle,
             List<ExamRegistrationDTO> candidates) {
         Sheet sheet = wb.createSheet("Danh sách kết quả");
@@ -212,6 +219,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
     }
 
+    /** Sheet lỗi phổ biến / lý do trừ điểm. */
     private static void writeInfractionSheet(Workbook wb, CellStyle headerStyle,
             List<Map<String, Object>> infractions) {
         Sheet sheet = wb.createSheet("Lỗi phổ biến");
@@ -239,6 +247,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
     }
 
+    /** Sheet thu phí thủ tục. */
     private void writeFeeSheet(Workbook wb, CellStyle headerStyle,
             List<ExamRegistrationDTO> candidates, ExamSummaryDTO exam) {
         Sheet sheet = wb.createSheet("Thu phí thủ tục");
@@ -295,6 +304,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         }
     }
 
+    /** Ghép chi tiết các khoản phí thành chuỗi. */
     private static String formatFeeDetail(List<Fee> feeLines) {
         if (feeLines == null || feeLines.isEmpty()) {
             return "";
@@ -310,6 +320,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
 
     // bold style
+    /** Ghi tiêu đề đậm ở đầu sheet. */
     private static int writeTitleBlock(Sheet sheet, int row, CellStyle headerStyle, String title) {
         Row r = sheet.createRow(row++);
         Cell c = r.createCell(0);
@@ -318,6 +329,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return row;
     }
 
+    /** Ghi một cặp khóa-giá trị. */
     private static int writeKv(Sheet sheet, int row, String key, Object value) {
         Row r = sheet.createRow(row++);
         r.createCell(0).setCellValue(key);
@@ -330,6 +342,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return row;
     }
 
+    /** CellStyle font đậm. */
     private static CellStyle boldStyle(Workbook wb) {
         CellStyle style = wb.createCellStyle();
         Font font = wb.createFont();
@@ -338,6 +351,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return style;
     }
 
+    /** Ghi ô ngày sinh / ngày tháng. */
     private static void writeDateCell(Cell cell, java.sql.Date date, CellStyle dateStyle) {
         if (date == null) {
             cell.setBlank();
@@ -348,6 +362,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         cell.setCellStyle(dateStyle);
     }
 
+    /** Ghi ô điểm hoặc để trống nếu null. */
     private static void writeScoreCell(Cell cell, Integer score) {
         if (score == null) {
             cell.setBlank();
@@ -358,6 +373,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
     }
     // round1
 
+    /** Định dạng java.sql.Date thành dd/MM/yyyy. */
     private static String formatSqlDate(java.sql.Date date) {
         if (date == null) {
     // to int
@@ -366,6 +382,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN")).format(date);
     }
 
+    /** Nhãn ghi chú cột (đình chỉ / vắng / đã phân phòng). */
     private static String notesLabel(ExamRegistrationDTO reg) {
     // to double
         if (reg.isSuspended()) {
@@ -384,14 +401,17 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return "";
     }
 
+    /** Chuỗi null thành rỗng. */
     private static String nullToEmpty(String s) {
         return s != null ? s : "";
     }
 
+    /** Làm tròn 1 chữ số thập phân. */
     private static double round1(double v) {
         return Math.round(v * 10.0) / 10.0;
     }
 
+    /** Ép Object Number thành int. */
     private static int toInt(Object o) {
         if (o instanceof Number) {
             return ((Number) o).intValue();
@@ -399,6 +419,7 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
         return 0;
     }
 
+    /** Ép Object Number thành double. */
     private static double toDouble(Object o) {
         if (o instanceof Number) {
             return ((Number) o).doubleValue();

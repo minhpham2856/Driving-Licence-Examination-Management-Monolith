@@ -9,8 +9,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/** JDBC implementation của {@link ExamRegistrationDAO}. */
 public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrationDAO {
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO getById(int id) {
         String sql = Db2CandidateSql.CANDIDATE_SELECT + " WHERE c.CandidateId = ?";
@@ -27,6 +29,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO getByExamAndSbd(int examId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
@@ -64,6 +67,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamRegistrationDTO> getCandidatesByExam(int examId) {
         if (examId <= 0) {
@@ -81,6 +85,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return list;
     }
 
+    /** Chạy SELECT thí sinh với WHERE và bind tối đa 2 tham số int. */
     private List<ExamRegistrationDTO> queryCandidates(String selectSql, String whereSql, int bindInt, int bindInt2) {
         List<ExamRegistrationDTO> list = new ArrayList<>();
         Connection conn = getConnection();
@@ -106,6 +111,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return list;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updatePresent(int id, boolean isPresent) {
         if (id <= 0) {
@@ -128,6 +134,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updatePayment(int id, boolean isPaymentCompleted) {
         if (!isPaymentCompleted) {
@@ -167,6 +174,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean clearCompletedPayments(int candidateId) {
         if (candidateId <= 0) {
@@ -188,6 +196,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updateAllocatedRoom(int candidateId, int examId, int areaId, String areaName) {
         if (candidateId <= 0 || examId <= 0 || areaId <= 0) {
@@ -202,6 +211,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updatePracticalAllocatedRoom(int candidateId, int examId, int areaId, String areaName) {
         if (candidateId <= 0 || examId <= 0 || areaId <= 0) {
@@ -216,6 +226,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String validateUniqueTheoryAllocation(int candidateId, int examId) {
         if (candidateId <= 0 || examId <= 0) {
@@ -251,12 +262,14 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updateScores(int id, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed) {
         return updateScores(id, 0, theoryScore, theoryPassed, practicalScore, practicalPassed);
     }
 
+    /** Ghi điểm LT/TH (examId=0 → tự resolve enrollment). */
     private boolean updateScores(int id, int examId, Integer theoryScore, String theoryPassed,
             Integer practicalScore, String practicalPassed) {
         try {
@@ -285,6 +298,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updateProfile(int id, String fullName, Date dob, String govIdNo, String email, String phoneNo) {
         String sqlCand = """
@@ -358,6 +372,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean updatePhoto(int id, String photoUrl) {
         String sql = "UPDATE Candidate SET PhotoImageUrl = ? WHERE CandidateId = ?";
@@ -375,6 +390,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean markAbsent(int candidateId) {
         String sql = "UPDATE Candidate SET IsAbsent = 1 WHERE CandidateId = ?";
@@ -387,6 +403,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean markSuspended(int candidateId) {
         String sql = "UPDATE Candidate SET IsSuspended = 1 WHERE CandidateId = ?";
@@ -399,6 +416,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean undoSuspension(int candidateId) {
         String sql = "UPDATE Candidate SET IsSuspended = 0 WHERE CandidateId = ?";
@@ -411,6 +429,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean clearAbsentMarking(int candidateId) {
         String sql = """
@@ -448,6 +467,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return false;
     }
 
+    /** Xóa DeductionRecord / ExamScore / ExamResult khi hủy vắng. */
     private void deleteAbsentExamResults(int candidateId) throws SQLException {
         Integer examCandidateId = getExamEnrollmentId(candidateId);
         if (examCandidateId == null) {
@@ -479,10 +499,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         }
     }
 
+    /** Reset Status lý thuyết sau khi hủy vắng. */
     private void resetSectionStatusAfterAbsentUndo(int candidateId) throws SQLException {
         ExamEnrollmentSectionSupport.resetTheoryStatus(getConnection(), candidateId);
     }
 
+    /** Upsert điểm một phần thi (Theory/Practical) cho thí sinh. */
     private boolean upsertSectionScore(int candidateId, int examId, String sectionKeyword, int score, boolean passed)
             throws SQLException {
         Integer examEnrollmentId = resolveExamEnrollmentForScore(candidateId, examId);
@@ -529,6 +551,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return upsertExamScore(examEnrollmentId, sectionId, score, passed);
     }
 
+    /** Insert hoặc cập nhật ExamScore theo ExamResult + ExamSection. */
     private boolean upsertExamScore(int examCandidateId, int sectionId, int score, boolean passed)
             throws SQLException {
         int resultId = findOrCreateExamResult(examCandidateId, passed);
@@ -562,6 +585,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return true;
     }
 
+    /** Tìm ExamSectionId lý thuyết theo thí sinh. */
     private Integer findTheorySectionIdByCandidate(int candidateId) throws SQLException {
         int examId = resolveExamIdForCandidate(candidateId);
         if (examId <= 0) {
@@ -571,6 +595,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 getConnection(), examId, examstaff.dao.Db2ExamSchemaSql.THEORY_SECTION_TYPES);
     }
 
+    /** Tìm ExamSectionId thực hành theo thí sinh. */
     private Integer findPracticalSectionIdByCandidate(int candidateId) throws SQLException {
         int examId = resolveExamIdForCandidate(candidateId);
         if (examId <= 0) {
@@ -580,6 +605,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 getConnection(), examId, examstaff.dao.Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES);
     }
 
+    /** Lấy ExamId mới nhất của thí sinh. */
     private int resolveExamIdForCandidate(int candidateId) throws SQLException {
         String sql = """
                 SELECT TOP 1 ee.ExamId
@@ -599,8 +625,8 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     /**
-     * Ưu tiên ghi danh đúng ca; nếu ca trên URL không khớp (sidebar / session cũ) thì fallback
-     * sang bất kỳ ExamEnrollment hợp lệ của thí sinh.
+     * Ưu tiên ghi danh đúng ca; nếu ca trên URL không khớp thì fallback
+     * sang ExamEnrollment mới nhất của thí sinh.
      */
     private Integer resolveExamEnrollmentForScore(int candidateId, int examId) throws SQLException {
         if (examId > 0) {
@@ -612,6 +638,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return getExamEnrollmentId(candidateId);
     }
 
+    /** Tìm hoặc tạo ExamResult theo ExamEnrollmentId. */
     private int findOrCreateExamResult(int examCandidateId, boolean passed) throws SQLException {
         String check = "SELECT ExamResultId FROM ExamResult WHERE ExamEnrollmentId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(check)) {
@@ -643,6 +670,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         throw new SQLException("Cannot create ExamResult");
     }
 
+    /** Tìm ExamSectionId theo enrollment + keyword Theory/Practical. */
     private Integer findSectionIdForCandidate(int examEnrollmentId, String keyword) throws SQLException {
         Integer examId = getExamIdForEnrollment(examEnrollmentId);
         if (examId == null || examId <= 0) {
@@ -659,6 +687,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return ExamEnrollmentSectionSupport.findSectionId(getConnection(), examId, types);
     }
 
+    /** Tìm ExamSectionId theo ExamId + keyword. */
     private Integer findSectionIdByExam(int examId, String keyword) throws SQLException {
         if (examId <= 0) {
             return null;
@@ -669,6 +698,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return ExamEnrollmentSectionSupport.findSectionId(getConnection(), examId, types);
     }
 
+    /** Lấy ExamId từ ExamEnrollmentId. */
     private Integer getExamIdForEnrollment(int examEnrollmentId) throws SQLException {
         String sql = "SELECT ExamId FROM ExamEnrollment WHERE ExamEnrollmentId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -682,6 +712,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** Lấy ExamEnrollmentId mới nhất theo CandidateId. */
     private Integer getExamEnrollmentId(int candidateId) throws SQLException {
         String sql = """
                 SELECT TOP 1 ee.ExamEnrollmentId
@@ -700,6 +731,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** Lấy ExamEnrollmentId theo CandidateId + ExamId. */
     private Integer getExamEnrollmentIdForExam(int candidateId, int examId) throws SQLException {
         String sql = """
                 SELECT ee.ExamEnrollmentId
@@ -718,6 +750,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** Lấy hạng GPLX gắn với thí sinh (qua ExamEnrollment mới nhất). */
     private String findLicenseClassByCandidate(int candidateId) throws SQLException {
         String sql = """
                 SELECT TOP 1 l.LicenceClass
@@ -739,6 +772,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** Đọc cột BIT; null → false. */
     private static boolean readBit(ResultSet rs, String column) throws SQLException {
         boolean value = rs.getBoolean(column);
         if (rs.wasNull()) {
@@ -747,6 +781,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return value;
     }
 
+    /** Đọc cột BIT nullable. */
     private static Boolean readNullableBoolean(ResultSet rs, String column) throws SQLException {
         boolean value = rs.getBoolean(column);
         if (rs.wasNull()) {
@@ -755,6 +790,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return value;
     }
 
+    /** Ánh xạ ResultSet → {@link ExamRegistrationDTO}. */
     private ExamRegistrationDTO mapResultSetToExamRegistration(ResultSet rs) throws SQLException {
         ExamRegistrationDTO er = new ExamRegistrationDTO();
         er.setId(rs.getInt("id"));

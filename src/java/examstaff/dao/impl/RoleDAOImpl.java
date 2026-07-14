@@ -9,9 +9,11 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/** JDBC implementation của {@link RoleDAO}. */
 public class RoleDAOImpl extends DBContext implements RoleDAO {
     private static final Logger LOG = Logger.getLogger(RoleDAOImpl.class.getName());
 
+    /** {@inheritDoc} */
     @Override
     public Role getByName(String roleName) {
         String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleName = ?";

@@ -16,26 +16,31 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/** Implementation: dựng context / picker trang Exam Staff. */
 public class ExamStaffPageServiceImpl implements ExamStaffPageService {
 
     private final ExamStaffExamQueryService examQuery;
     private final CandidateQueueService queueService;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public ExamStaffPageServiceImpl() {
         this(new ExamStaffExamQueryServiceImpl(), new CandidateQueueServiceImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public ExamStaffPageServiceImpl(ExamStaffExamQueryService examQuery,
             CandidateQueueService queueService) {
         this.examQuery = examQuery;
         this.queueService = queueService;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamSummaryDTO> listAllExams() {
         return examQuery.listAllExams();
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allExams) {
         if (examId <= 0) {
@@ -53,6 +58,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId) {
         if (examId <= 0) {
@@ -69,11 +75,13 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId) {
         return ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public int resolveDefaultExamId(List<ExamSummaryDTO> allExams) {
         ExamSummaryDTO first = firstPickerOption(allExams);
@@ -83,6 +91,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return first.getId() > 0 ? first.getId() : first.getExamId();
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allExams, int examId, int urlExamId) {
         ExamStaffPickerViewDTO view = new ExamStaffPickerViewDTO();
@@ -128,6 +137,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return view;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamStaffPageContextDTO preparePageContext(ExamStaffPagePrepareInput input) {
         ExamStaffPageContextDTO ctx = new ExamStaffPageContextDTO();
@@ -167,6 +177,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return ctx;
     }
 
+    /** Tải hoặc lấy cache hàng đợi thí sinh theo input trang. */
     private List<ExamRegistrationDTO> resolveCandidates(ExamStaffPagePrepareInput input,
             int examId, List<ExamSummaryDTO> allExams) {
         if (!input.isLoadCandidates()) {
@@ -188,6 +199,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return snapshot.getFullQueue();
     }
 
+    /** Chọn examId từ URL / selected / default. */
     private int resolveExamId(ExamStaffPagePrepareInput input, List<ExamSummaryDTO> allExams) {
         int examId = input.getUrlExamId();
         if (examId > 0) {
@@ -207,6 +219,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return resolveDefaultExamId(allExams);
     }
 
+    /** Parse tham số examId dạng chuỗi. */
     private static int parseExamIdParam(String examIdParam) {
         if (examIdParam == null || examIdParam.isBlank()) {
             return 0;
@@ -219,6 +232,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         }
     }
 
+    /** Gom option kỳ thi (unique theo id) cho picker. */
     private List<ExamSummaryDTO> buildExamOptions(List<ExamSummaryDTO> allExams) {
         LinkedHashMap<Integer, ExamSummaryDTO> examOptionMap = new LinkedHashMap<>();
         if (allExams != null) {
@@ -233,6 +247,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return new ArrayList<>(examOptionMap.values());
     }
 
+    /** Khớp examId với option picker. */
     private static int resolvePickerOptionExamId(List<ExamSummaryDTO> options, int examId) {
         if (options == null || examId <= 0) {
             return 0;
@@ -245,10 +260,12 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return 0;
     }
 
+    /** Sắp xếp danh sách kỳ thi hiển thị sidebar. */
     private static List<ExamSummaryDTO> sortExamDaysForSidebar(List<ExamSummaryDTO> options) {
         return ExamStaffExamRules.sortExamDaysForSidebar(options);
     }
 
+    /** Option đầu tiên sau khi sort. */
     private ExamSummaryDTO firstPickerOption(List<ExamSummaryDTO> allExams) {
         List<ExamSummaryDTO> options = sortExamDaysForSidebar(buildExamOptions(allExams));
         return options.isEmpty() ? null : options.get(0);

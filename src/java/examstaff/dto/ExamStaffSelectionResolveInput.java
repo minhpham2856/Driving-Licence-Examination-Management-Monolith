@@ -4,6 +4,9 @@ import examstaff.dto.ExamSummaryDTO;
 
 import java.util.List;
 
+/**
+ * Input resolve kỳ thi đang chọn từ URL, param và session.
+ */
 public class ExamStaffSelectionResolveInput {
 
     private int urlExamId;

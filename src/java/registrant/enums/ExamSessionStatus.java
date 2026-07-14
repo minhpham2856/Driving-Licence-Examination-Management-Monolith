@@ -5,9 +5,7 @@ public enum ExamSessionStatus {
     OPEN("Open"),
     IN_PROGRESS("InProgress"),
     COMPLETED("Completed"),
-    CANCELLED("Cancelled"),
-    NOT_STARTED_VN("Chưa diễn ra"),
-    IN_PROGRESS_VN("Đang diễn ra");
+    CANCELLED("Cancelled");
 
     private final String status;
 
@@ -20,21 +18,11 @@ public enum ExamSessionStatus {
     }
 
     public static boolean canStartSession(String status) {
-        if (status == null) {
-            return false;
-        }
-        return SCHEDULED.status.equalsIgnoreCase(status)
-                || OPEN.status.equalsIgnoreCase(status)
-                || NOT_STARTED_VN.status.equalsIgnoreCase(status)
-                || IN_PROGRESS_VN.status.equalsIgnoreCase(status);
+        return SCHEDULED.status.equalsIgnoreCase(status) || OPEN.status.equalsIgnoreCase(status);
     }
 
     public static boolean isSessionInProgress(String status) {
-        if (status == null) {
-            return false;
-        }
-        return IN_PROGRESS.status.equalsIgnoreCase(status)
-                || IN_PROGRESS_VN.status.equalsIgnoreCase(status);
+        return IN_PROGRESS.status.equalsIgnoreCase(status);
     }
 
     public static boolean isSessionEnded(String status) {

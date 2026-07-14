@@ -21,10 +21,7 @@ var CONFIRM_REMOVE_EXAMINER = 'G\u1ee1 ph\u00e2n c\u00f4ng gi\u00e1m kh\u1ea3o n
 
 document.addEventListener('DOMContentLoaded', function () {
     filterExamAreas();
-    const examSelect = document.getElementById('examId');
-    if (examSelect) {
-        examSelect.addEventListener('change', function () { this.form.submit(); });
-    }
+    // Không gắn change→submit lên #examId (select sidebar): đổi kỳ phải bấm OK như các trang staff khác.
     const targetExamSelect = document.getElementById('targetExamId');
     if (targetExamSelect) {
         targetExamSelect.addEventListener('change', filterExamAreas);

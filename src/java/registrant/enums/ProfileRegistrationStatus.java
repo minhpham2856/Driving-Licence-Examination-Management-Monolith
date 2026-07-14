@@ -14,9 +14,9 @@ public final class ProfileRegistrationStatus {
     private ProfileRegistrationStatus() {
     }
 
-    /** Mệnh đề SQL IN — hỗ trợ cả mã EN (portal) và VN (DML seed). */
+    /** Mệnh đề SQL IN cho các trạng thái workflow tài liệu trên ExamRegistration. */
     public static final String SQL_IN_WORKFLOW =
-            "N'Draft', N'Pending', N'Approved', N'Rejected', N'Chờ duyệt', N'Duyệt', N'Loại'";
+            "N'Draft', N'Pending', N'Approved', N'Rejected'";
 
     public static boolean isDocumentWorkflowStatus(String status) {
         if (status == null || status.isBlank()) {
@@ -26,10 +26,7 @@ public final class ProfileRegistrationStatus {
         return DRAFT.equalsIgnoreCase(s)
                 || PENDING.equalsIgnoreCase(s)
                 || APPROVED.equalsIgnoreCase(s)
-                || REJECTED.equalsIgnoreCase(s)
-                || "Chờ duyệt".equalsIgnoreCase(s)
-                || "Duyệt".equalsIgnoreCase(s)
-                || "Loại".equalsIgnoreCase(s);
+                || REJECTED.equalsIgnoreCase(s);
     }
 
     public static String toDisplayLabel(String status) {
@@ -40,7 +37,7 @@ public final class ProfileRegistrationStatus {
             case DRAFT -> "Đang bổ sung hồ sơ";
             case PENDING -> "Chờ ban quản lý duyệt";
             case APPROVED -> "Đã duyệt hồ sơ";
-            case REJECTED -> "Bị từ chối - cần bổ sung";
+            case REJECTED -> "Bị từ chối — cần bổ sung";
             default -> status.trim();
         };
     }

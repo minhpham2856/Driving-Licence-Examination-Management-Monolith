@@ -1,78 +1,58 @@
 package payment.dao.impl;
 
-import examstaff.enums.PaymentStatus;
+import shared.dbconnection.DBContext;
 import payment.dao.PaymentDAO;
 import payment.dto.PaymentRecord;
-import shared.dbconnection.DBContext;
+import java.sql.*;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-/** Ghi/đọc bảng Payment — cần ExamEnrollmentId (staff tạo enrollment trước). */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
-
-    private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
 
     @Override
     public boolean insert(PaymentRecord payment) {
-        // Ưu tiên enrollmentId có sẵn; nếu thiếu thì suy từ CandidateId
-        int enrollmentId = payment.getExamEnrollmentId();
-        if (enrollmentId <= 0 && payment.getCandidateId() > 0) {
-            enrollmentId = resolveEnrollmentId(payment.getCandidateId());
-        }
-        if (enrollmentId <= 0) {
-            return false; // chưa enroll ngày thi → không ghi Payment
-        }
-
         String sql = """
-                INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, ExamEnrollmentId)
-                VALUES (?, ?, ?, ?, GETDATE(), ?)
+                INSERT INTO RegistrantPayment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, CandidateId, ExamId)
+                VALUES (?, ?, ?, ?, GETDATE(), ?, ?)
                 """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, payment.getPaymentStatus() != null
-                    ? payment.getPaymentStatus()
-                    : PaymentStatus.HOAN_TAT.getDisplayName());
-            ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "SePay");
-            if (payment.getTransactionReference() == null) {
-                ps.setNull(3, Types.NVARCHAR);
-            } else {
-                ps.setString(3, payment.getTransactionReference());
+        try {
+            int examId = resolveExamId(payment.getCandidateId());
+            if (examId <= 0) {
+                return false;
             }
-            ps.setDouble(4, payment.getAmount());
-            ps.setInt(5, enrollmentId);
-
-            if (ps.executeUpdate() > 0) {
-                try (ResultSet gk = ps.getGeneratedKeys()) {
-                    if (gk.next()) {
-                        payment.setId(gk.getInt(1));
-                        payment.setExamEnrollmentId(enrollmentId);
-                        return true;
+            try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, payment.getPaymentStatus() != null ? payment.getPaymentStatus() : "Completed");
+                ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "Cash");
+                if (payment.getTransactionReference() == null) {
+                    ps.setNull(3, Types.NVARCHAR);
+                } else {
+                    ps.setString(3, payment.getTransactionReference());
+                }
+                ps.setDouble(4, payment.getAmount());
+                ps.setInt(5, payment.getCandidateId());
+                ps.setInt(6, examId);
+                int affected = ps.executeUpdate();
+                if (affected > 0) {
+                    try (ResultSet gk = ps.getGeneratedKeys()) {
+                        if (gk.next()) {
+                            payment.setId(gk.getInt(1));
+                            return true;
+                        }
                     }
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.SEVERE, "Failed to insert payment", e);
+            e.printStackTrace();
         }
         return false;
     }
 
     @Override
     public double sumCompletedPaymentsByUserId(int userId) {
-        // Profile ↔ Candidate qua CCCD (không có Candidate.UserId)
         String sql = """
                 SELECT ISNULL(SUM(p.TotalAmount), 0) AS totalPaid
-                FROM Payment p
-                INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
-                INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
-                WHERE prof.UserId = ?
-                  AND p.PaymentStatus IN (""" + PaymentStatus.sqlInClause() + """
-                )
+                FROM RegistrantPayment p
+                INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
+                WHERE c.UserId = ?
+                  AND p.PaymentStatus IN (N'Completed', N'Paid')
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -82,7 +62,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.SEVERE, "Failed to sum payments for user " + userId, e);
+            e.printStackTrace();
         }
         return 0;
     }
@@ -92,13 +72,11 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         if (transactionReference == null || transactionReference.isBlank()) {
             return false;
         }
-        // Idempotent IPN: cùng TransactionReference đã Paid thì bỏ qua
         String sql = """
                 SELECT TOP 1 1
-                FROM Payment
+                FROM RegistrantPayment
                 WHERE TransactionReference = ?
-                  AND PaymentStatus IN (""" + PaymentStatus.sqlInClause() + """
-                )
+                  AND PaymentStatus IN (N'Completed', N'Paid')
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, transactionReference.trim());
@@ -106,27 +84,20 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            LOG.log(Level.SEVERE, "Failed to check payment reference", e);
+            e.printStackTrace();
         }
         return false;
     }
 
-    private int resolveEnrollmentId(int candidateId) {
-        String sql = """
-                SELECT TOP 1 ExamEnrollmentId
-                FROM ExamEnrollment
-                WHERE CandidateId = ?
-                ORDER BY ExamEnrollmentId DESC
-                """;
+    private int resolveExamId(int candidateId) throws SQLException {
+        String sql = "SELECT TOP 1 ExamId FROM Exam_Candidate WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("ExamEnrollmentId");
+                    return rs.getInt("ExamId");
                 }
             }
-        } catch (SQLException e) {
-            LOG.log(Level.SEVERE, "Failed to resolve enrollment for candidate " + candidateId, e);
         }
         return -1;
     }
