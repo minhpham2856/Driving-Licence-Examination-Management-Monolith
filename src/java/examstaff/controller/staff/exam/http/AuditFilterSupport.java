@@ -2,11 +2,17 @@ package examstaff.controller.staff.exam.http;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Helper đọc/chuẩn hóa filter ngày cho trang nhật ký audit.
+ */
 public final class AuditFilterSupport {
 
     private AuditFilterSupport() {
     }
 
+    /**
+     * Đọc {@code filterDate} (ưu tiên) hoặc {@code date} từ request; có thể null/blank.
+     */
     public static String resolveFilterDate(HttpServletRequest request) {
         if (request == null) {
             return null;
@@ -18,7 +24,8 @@ public final class AuditFilterSupport {
         return filterDate;
     }
 
+    /** Chuẩn hóa key lọc ngày — ủy quyền Util. */
     public static String normalizeFilterKey(String filterDate) {
-        return filterDate == null ? "" : filterDate.trim();
+        return examstaff.util.AuditFilterHelper.normalizeFilterKey(filterDate);
     }
 }

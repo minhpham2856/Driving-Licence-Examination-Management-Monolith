@@ -20,13 +20,19 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Trang nhật ký thao tác cá nhân của exam staff; {@code exportExcel=true} redirect sang audit-export.
+ */
 @WebServlet("/views/staff/examstaff/audit")
 public class AuditServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
 
     private final StaffAuditPageService auditPageService = SERVICES.auditPage();
 
+    /**
+     * GET: phân trang + lọc ngày → bind view → forward audit.jsp (hoặc redirect export).
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

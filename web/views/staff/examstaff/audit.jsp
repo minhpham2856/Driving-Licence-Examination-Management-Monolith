@@ -17,10 +17,6 @@
     <jsp:param name="dataAuditExportBase" value="/views/staff/examstaff/audit-export" />
 </jsp:include>
 
-        <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Xem lại lịch sử thao tác nghiệp vụ, đối chiếu hồ sơ thí sinh do chính bạn thực hiện trong ngày trực.</p>
-        </header>
-
         <c:if test="${param.exportError eq '1'}">
             <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
                 <p style="margin: 0; font-size: 0.85rem; color: #991b1b; font-weight: 600;">

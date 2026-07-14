@@ -14,11 +14,13 @@ import examstaff.util.ProcedureFeeTotals;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Implementation: tra cứu tóm tắt thanh toán/phí cho báo cáo. */
 public class ReportFeeQueryServiceImpl implements ReportFeeQueryService {
 
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
     private final FeeDAO feeDAO = new FeeDAOImpl();
 
+    /** {@inheritDoc} */
     @Override
     public ReportPaymentSummaryDTO findPaymentSummary(int candidateId) {
         ReportPaymentSummaryDTO summary = new ReportPaymentSummaryDTO();
@@ -36,6 +38,7 @@ public class ReportFeeQueryServiceImpl implements ReportFeeQueryService {
         return summary;
     }
 
+    /** Thanh toán thủ tục đã hoàn tất. */
     private static boolean isActiveProcedurePayment(Payment payment) {
         return PaymentStatus.isCompleted(payment.getPaymentStatus());
     }

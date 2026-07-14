@@ -12,10 +12,22 @@ import examstaff.util.AuditFilterHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Implementation: dựng view trang nhật ký audit (phân trang + KPI). */
 public class StaffAuditPageServiceImpl implements StaffAuditPageService {
 
-    private final StaffAuditQueryService auditQueryService = new StaffAuditQueryServiceImpl();
+    private final StaffAuditQueryService auditQueryService;
 
+    /** Wiring mặc định. */
+    public StaffAuditPageServiceImpl() {
+        this(new StaffAuditQueryServiceImpl());
+    }
+
+    /** Inject query service từ composition root. */
+    public StaffAuditPageServiceImpl(StaffAuditQueryService auditQueryService) {
+        this.auditQueryService = auditQueryService;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public StaffAuditPageViewDTO buildPage(int userId, String filterDate, int page, int pageSize,
             boolean filterContextChanged) {
@@ -46,6 +58,7 @@ public class StaffAuditPageServiceImpl implements StaffAuditPageService {
         return view;
     }
 
+    /** Tải logs theo user/ngày; lỗi thì list rỗng. */
     private List<AuditDTO> loadLogs(int userId, String filterDate, int page, int pageSize) {
         try {
             return auditQueryService.listLogsByUserAndDatePaginated(userId, filterDate, page, pageSize);
@@ -55,6 +68,7 @@ public class StaffAuditPageServiceImpl implements StaffAuditPageService {
         }
     }
 
+    /** Gắn nhãn tiếng Việt cho từng AuditDTO. */
     private static void applyVietnameseLabels(List<AuditDTO> logs) {
         if (logs == null) {
             return;
