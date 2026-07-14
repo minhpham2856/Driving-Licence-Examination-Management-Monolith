@@ -24,7 +24,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/examiner-allocation")
+@WebServlet("/examstaff/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();

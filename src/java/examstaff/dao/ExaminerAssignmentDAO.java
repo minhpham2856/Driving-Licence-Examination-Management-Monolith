@@ -6,7 +6,7 @@ import examstaff.dto.UserDTO;
 
 import java.util.List;
 
-/** DAO phân công giám khảo theo kỳ thi (Exam). */
+/** DAO phân công sát hạch viên theo kỳ thi (Exam). */
 public interface ExaminerAssignmentDAO {
 
     List<UserDTO> getActiveExaminers();
