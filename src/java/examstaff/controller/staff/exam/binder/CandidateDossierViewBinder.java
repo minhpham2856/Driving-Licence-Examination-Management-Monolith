@@ -3,11 +3,18 @@ package examstaff.controller.staff.exam.binder;
 import examstaff.dto.CandidateDossierViewDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Bind hồ sơ in thí sinh từ {@link CandidateDossierViewDTO} lên request cho JSP dossier.
+ */
 public final class CandidateDossierViewBinder {
 
     private CandidateDossierViewBinder() {
     }
 
+    /**
+     * Set profile/examSummary/hasPhotoFile/feeLines/feeTotal/feesFromPayment,
+     * dossierTitle/Subtitle và {@code autoPrint}.
+     */
     public static void bind(HttpServletRequest request, CandidateDossierViewDTO view, boolean autoPrint) {
         if (request == null || view == null || view.getProfile() == null) {
             return;

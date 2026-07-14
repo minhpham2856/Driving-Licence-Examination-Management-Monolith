@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/** JDBC implementation của {@link FeeDAO}. */
 public class FeeDAOImpl extends DBContext implements FeeDAO {
 
+    /** {@inheritDoc} */
     @Override
     public List<Fee> getProcedureFees(String licenseCode, boolean requiresRoadTest) {
         if (licenseCode == null || licenseCode.isBlank()) {
@@ -56,6 +58,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return applicable;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Fee> getFeesByPaymentId(int paymentId) {
         List<Fee> fees = new ArrayList<>();
@@ -88,6 +91,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return fees;
     }
 
+    /** Lọc phí thủ tục theo loại/tên (không gồm học phí). */
     private boolean appliesToProcedure(Fee fee, boolean motorcycle, boolean requiresRoadTest) {
         String name = normalize(fee.getFeeName());
         String type = normalize(fee.getFeeType());
@@ -113,6 +117,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return "admin".equals(type) || "license".equals(type);
     }
 
+    /** Chuẩn hóa chuỗi (bỏ dấu, lower-case) để so khớp loại phí. */
     private static String normalize(String value) {
         if (value == null) {
             return "";
@@ -123,6 +128,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 .trim();
     }
 
+    /** Kiểm tra haystack chứa bất kỳ needle nào. */
     private static boolean containsAny(String haystack, String... needles) {
         for (String needle : needles) {
             if (haystack.contains(needle)) {
@@ -132,6 +138,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return false;
     }
 
+    /** Nhóm hạng xe máy (A / A1). */
     static boolean isMotorcycleGroup(String licenseCode) {
         if (licenseCode == null || licenseCode.isBlank()) {
             return false;
@@ -140,6 +147,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return lc.equals("A1") || lc.equals("A");
     }
 
+    /** Ánh xạ ResultSet → {@link Fee}. */
     private Fee mapRow(ResultSet rs) throws SQLException {
         Fee fee = new Fee();
         fee.setFeeId(rs.getInt("FeeId"));

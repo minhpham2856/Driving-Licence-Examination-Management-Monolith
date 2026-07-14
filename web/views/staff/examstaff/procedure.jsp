@@ -10,6 +10,12 @@
         <p class="procedure-desk-subtitle">Quy trình 3 bước: Xác minh hồ sơ &rarr; Chụp ảnh xác minh danh tính &rarr; Thu lệ phí. Import CSV không cần ảnh; ảnh lưu DB để bộ phận khác in hồ sơ sau khi thi xong.</p>
     </header>
 
+        <c:if test="${requestScope.examMutationsLocked}">
+            <div style="background-color: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; padding: 10px 12px; margin-bottom: 1rem; font-size: 0.85rem; font-weight: 600; color: #b91c1c;">
+                Kỳ thi đã kết thúc — chỉ xem hồ sơ, không sửa / xóa / thu phí lại.
+            </div>
+        </c:if>
+
         <c:if test="${not empty requestScope.profile}">
             <div class="procedure-active-bar">
                 <div class="procedure-active-bar__meta">
@@ -123,9 +129,11 @@
                                     <input type="text" class="input-field" value="Hạng ${cClass}" readonly style="background-color: #f1f5f9; font-weight: 700; color: #334155;">
                                 </div>
 
+                                <c:if test="${not requestScope.examMutationsLocked}">
                                 <button type="submit" id="submitBtn" class="btn-filter" style="height: 42px; border-radius: 8px; justify-content: center; font-weight: 700; margin-top: 1rem; transition: all 0.3s; background: linear-gradient(135deg, #0052cc, #003d9b); border-color: #003d9b;">
                                     Xác nhận & Sang Bước 2 (Chụp ảnh) &rarr;
                                 </button>
+                                </c:if>
                             </form>
                         </c:if>
 
@@ -166,8 +174,10 @@
                                         </div>
                                     </div>
                                     <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
+                                        <c:if test="${not requestScope.examMutationsLocked}">
                                         <a href="procedure?sbd=${currentSbd}&amp;step=2&amp;action=recapture#procedure-desk" class="btn-reset" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1;">Chụp lại ảnh</a>
-                                        <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Xác nhận &amp; Sang Bước 3 (Thu lệ phí)</a>
+                                        </c:if>
+                                        <a href="procedure?sbd=${currentSbd}&amp;step=3#procedure-desk" class="btn-filter" style="height: 42px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; flex: 1; background-color: #10b981; border-color: #10b981;">Sang Bước 3</a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -286,7 +296,7 @@
                                                     </a>
                                                 </div>
                                             </c:when>
-                                            <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines}">
+                                            <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines and not requestScope.examMutationsLocked}">
                                                 <form action="procedure" method="POST" style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
                                                     <input type="hidden" name="action" value="confirmPayment">
                                                     <input type="hidden" name="sbd" value="${currentSbd}">
@@ -299,6 +309,9 @@
                                                         Đóng Tiền Mặt
                                                     </button>
                                                 </form>
+                                            </c:when>
+                                            <c:when test="${requestScope.examMutationsLocked}">
+                                                <span class="procedure-btn procedure-btn--disabled" style="width: 100%;">Kỳ đã kết thúc — không thu phí lại</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="procedure-btn procedure-btn--disabled" style="width: 100%; margin-bottom: 8px;">

@@ -12,12 +12,14 @@ import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ProcedureFeeQueryService;
 import examstaff.service.ProcedurePaymentService;
 
+/** Implementation: preview phí và ghi nhận thanh toán tiền mặt thủ tục. */
 public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
 
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
     private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
     private final ProcedureFeeQueryService feeQueryService = new ProcedureFeeQueryServiceImpl();
 
+    /** {@inheritDoc} */
     @Override
     public ProcedureFeeResultDTO previewFees(int candidateId, String licenseCode, boolean requiresRoadTest) {
         ExamRegistrationDTO profile = registrationService.getById(candidateId);
@@ -29,6 +31,7 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         return feeQueryService.resolveProcedureFees(profile);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean recordProcedureCashPayment(ExamRegistrationDTO profile) {
         if (profile == null) {
@@ -46,6 +49,7 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         return recordCashPayment(profile.getId(), enrollmentId, total);
     }
 
+    /** Insert Payment tiền mặt; fallback cập nhật cờ payment trên đăng ký. */
     private boolean recordCashPayment(int candidateId, int enrollmentId, double totalAmount) {
         Payment payment = new Payment();
         payment.setExamEnrollmentId(enrollmentId);

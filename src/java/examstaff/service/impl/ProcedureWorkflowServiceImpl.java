@@ -15,12 +15,14 @@ import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ExaminerAllocationService;
 import examstaff.service.ProcedurePaymentService;
 import examstaff.service.ProcedureWorkflowService;
+import examstaff.enums.ExamStatus;
 import examstaff.util.ExamStaffExamRules;
 import examstaff.util.ProcedurePaymentLabels;
 
 import java.sql.Date;
 import java.util.List;
 
+/** Implementation: điều phối luồng thủ tục thí sinh (hồ sơ, ảnh, thu phí, reset). */
 public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
 
     private final ExamRegistrationService regService;
@@ -29,12 +31,14 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
     private final CandidateQueueService queueService;
     private final ExaminerAllocationService allocationService;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public ProcedureWorkflowServiceImpl() {
         this(new ExamRegistrationServiceImpl(), new ProcedurePaymentServiceImpl(),
                 new CandidatePhotoServiceImpl(), new CandidateQueueServiceImpl(),
                 new ExaminerAllocationServiceImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public ProcedureWorkflowServiceImpl(ExamRegistrationService regService,
             ProcedurePaymentService paymentService,
             CandidatePhotoService photoService,
@@ -47,6 +51,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         this.allocationService = allocationService;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO findProfile(String webRoot, int examId, int fallbackExamId,
             String sbd, List<ExamRegistrationDTO> queue) {
@@ -65,6 +70,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return profile;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ProcedureProfilePrepareResultDTO prepareProfileForDesk(String webRoot, int examId, int fallbackExamId,
             ExamRegistrationDTO profile, List<ExamRegistrationDTO> queue) {
@@ -97,6 +103,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO reloadProfile(String webRoot, int examId, int candidateId,
             String sbd, List<ExamRegistrationDTO> queue) {
@@ -115,12 +122,14 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return fresh;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean saveProfile(int candidateId, String fullName, Date dob,
             String govIdNo, String email, String phoneNo) {
         return regService.updateProfile(candidateId, fullName, dob, govIdNo, email, phoneNo);
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO recapturePhoto(int candidateId, String webRoot, int examId,
             String sbd, List<ExamRegistrationDTO> queue) {
@@ -128,6 +137,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return reloadProfile(webRoot, examId, candidateId, sbd, queue);
     }
 
+    /** {@inheritDoc} */
     @Override
     public ProcedurePhotoSaveOutcomeDTO saveCapturedPhoto(String webRoot, String sbd, int examId,
             String base64Data, List<ExamRegistrationDTO> queue) {
@@ -185,6 +195,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public ProcedurePaymentOutcomeDTO confirmPayment(ExamRegistrationDTO profile, String sbd,
             int examId, String webRoot, List<ExamSummaryDTO> allExams) {
@@ -255,10 +266,16 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return outcome;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ProcedureResetOutcomeDTO resetProcedure(String sbd, int examId, String webRoot) {
         ProcedureResetOutcomeDTO outcome = new ProcedureResetOutcomeDTO();
         if (sbd == null || sbd.isBlank()) {
+            return outcome;
+        }
+
+        ExamSummaryDTO exam = allocationService.getExamById(examId);
+        if (exam != null && ExamStatus.isLockedForStaffMutation(exam.getStatus())) {
             return outcome;
         }
 
@@ -281,6 +298,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         return outcome;
     }
 
+    /** Xóa đánh dấu vắng sau khi thu phí thành công. */
     private void clearAbsentAfterPayment(ExamRegistrationDTO profile) {
         regService.clearAbsentMarking(profile.getId());
         profile.setAbsent(false);
@@ -290,6 +308,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
         profile.setPracticalScore(null);
     }
 
+    /** Đồng bộ profile đã refresh vào list hàng đợi. */
     private static void syncProfileInQueue(List<ExamRegistrationDTO> qList, ExamRegistrationDTO refreshed) {
         if (qList == null || refreshed == null) {
             return;
