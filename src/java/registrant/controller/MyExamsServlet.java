@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/** Ca thi đã đăng ký GET/POST /registrant/my-exams — GET list+điểm/SBD; POST requestCancel=1 yêu cầu hủy. */
 @WebServlet("/registrant/my-exams")
 public class MyExamsServlet extends HttpServlet {
 

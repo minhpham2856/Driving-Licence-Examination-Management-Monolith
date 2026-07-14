@@ -10,9 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import registrant.util.RegistrantSessionSupport;
 
-/**
- * Helper xác thực dùng chung cho các servlet cổng thí sinh.
- */
+/** Helper auth servlet thí sinh — requireRegistrant lấy UserDTO an toàn (null = đã redirect/403). */
 public final class RegistrantAuth {
 
     private RegistrantAuth() {
