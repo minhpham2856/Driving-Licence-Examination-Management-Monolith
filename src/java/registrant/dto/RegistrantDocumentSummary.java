@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tóm tắt trạng thái tài liệu đính kèm — dùng chung cho profile.jsp và track-profile.jsp.
+ * Tóm tắt trạng thái tài liệu đính kèm - dùng chung cho profile.jsp và track-profile.jsp.
  */
 public class RegistrantDocumentSummary {
 

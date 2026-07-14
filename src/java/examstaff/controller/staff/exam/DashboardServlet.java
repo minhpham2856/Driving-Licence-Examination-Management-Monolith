@@ -3,7 +3,6 @@ package examstaff.controller.staff.exam;
 import examstaff.controller.staff.exam.adapter.CallBoardHttpFacade;
 import examstaff.controller.staff.exam.binder.ExamStaffDashboardViewBinder;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
-import examstaff.controller.staff.exam.http.ExamStaffSessionKeys;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
 import examstaff.dto.exam.ExamRegistrationDTO;
@@ -14,30 +13,24 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import examstaff.service.CandidateQueueService;
+import examstaff.service.CandidateCallingService;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.ExamStaffDashboardService;
 
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Trang Dashboard exam staff: prepare page → sync CallBoard → bind KPI view → forward JSP.
- */
-@WebServlet("/views/staff/examstaff/dashboard")
+@WebServlet("/examstaff/dashboard")
 public class DashboardServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final ExamStaffDashboardService dashboardService = SERVICES.dashboard();
-    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
+    private final CandidateCallingService callingService = SERVICES.calling();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
-    /**
-     * GET dashboard: load context kỳ thi, sync calling SBD với board, bind view, consume flash.
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -53,19 +46,16 @@ public class DashboardServlet extends HttpServlet {
             int examId = pageCtx.getExamId();
             List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
 
-            session.setAttribute(ExamStaffSessionKeys.LAST_LOADED_EXAM_ID, examId);
+            session.setAttribute("lastLoadedExamId", examId);
 
-            boolean shiftEnded = ExamStaffSessionKeys.FLAG_TRUE.equals(
-                    session.getAttribute(ExamStaffSessionKeys.SHIFT_ENDED));
+            boolean shiftEnded = "true".equals(session.getAttribute("shiftEnded"));
             syncCallingSbd(session, examId, qList, shiftEnded);
 
             ExamStaffDashboardViewDTO dashboardView = dashboardService.buildView(pageCtx.getAllExams(), examId);
             ExamStaffDashboardViewBinder.bind(request, dashboardView);
 
-            ExamStaffHttpSupport.consumeFlash(session, ExamStaffSessionKeys.EXAM_CONTROL_MSG,
-                    request, ExamStaffSessionKeys.EXAM_CONTROL_MSG);
-            ExamStaffHttpSupport.consumeFlash(session, ExamStaffSessionKeys.EXAM_CONTROL_ERROR,
-                    request, ExamStaffSessionKeys.EXAM_CONTROL_ERROR);
+            ExamStaffHttpSupport.consumeFlash(session, "examControlMsg", request, "examControlMsg");
+            ExamStaffHttpSupport.consumeFlash(session, "examControlError", request, "examControlError");
             ExamStaffHttpSupport.consumeFlash(session, "examSelectMsg", request, "examSelectMsg");
             ExamStaffHttpSupport.consumeFlash(session, "examSelectError", request, "examSelectError");
 
@@ -77,19 +67,15 @@ public class DashboardServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Đồng bộ {@code callingSbd} session với CallBoard rồi publish state lên board.
-     */
     private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> queue, boolean shiftEnded) {
-        String httpCalling = session != null
-                ? (String) session.getAttribute(ExamStaffSessionKeys.CALLING_SBD) : null;
+        String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
         examstaff.dto.view.CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
-        String callingSbd = candidateQueueService.resolveSyncedCallingSbd(httpCalling, callBoard, queue);
+        String callingSbd = callingService.resolveSyncedCallingSbd(httpCalling, callBoard, queue);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
-                session.setAttribute(ExamStaffSessionKeys.CALLING_SBD, callingSbd);
+                session.setAttribute("callingSbd", callingSbd);
             } else {
-                session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
+                session.removeAttribute("callingSbd");
             }
         }
         callBoardHttp.sync(getServletContext(), boardExamId, callingSbd, queue, shiftEnded);

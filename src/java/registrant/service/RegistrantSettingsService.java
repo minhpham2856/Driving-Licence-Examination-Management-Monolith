@@ -8,10 +8,6 @@ public interface RegistrantSettingsService {
     void applySettingsView(UserDTO user, HttpServletRequest request);
 
     /** @return null nếu thành công. */
-    String saveNotificationPrefs(HttpServletRequest request, boolean notifyExamResults,
-            boolean notifyPasswordChange);
-
-    /** @return null nếu thành công. */
     String changePassword(UserDTO user, String currentPassword, String newPassword,
             String confirmPassword, HttpSession session);
 

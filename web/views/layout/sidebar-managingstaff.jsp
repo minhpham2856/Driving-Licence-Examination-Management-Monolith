@@ -47,7 +47,7 @@
     <nav class="side-nav-bar__menu" data-node-id="manager:7">
         
         <%-- SC-030: Dashboard quản lý --%>
-        <a href="${ctx}/views/staff/managing/dashboard.jsp"
+        <a href="${ctx}/managingstaff/dashboard.jsp"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}"
            data-node-id="manager:10"
            <c:if test="${activeSidebar eq 'dashboard'}">aria-current="page"</c:if>>
@@ -63,7 +63,7 @@
         </a>
 
         <%-- SC-031: Danh sách registered users --%>
-        <a href="${ctx}/views/staff/managing/users.jsp"
+        <a href="${ctx}/managingstaff/users.jsp"
            class="side-nav-bar__link${activeSidebar eq 'hoc-vien' ? ' is-active' : ''}"
            data-node-id="manager:20"
            <c:if test="${activeSidebar eq 'hoc-vien'}">aria-current="page"</c:if>>
@@ -79,7 +79,7 @@
         </a>
 
         <%-- SC-033: Duyệt / Từ chối hồ sơ, giấy tờ --%>
-        <a href="${ctx}/views/staff/managing/approve.jsp"
+        <a href="${ctx}/managingstaff/approve.jsp"
            class="side-nav-bar__link${activeSidebar eq 'duyet-ho-so' ? ' is-active' : ''}"
            data-node-id="manager:30"
            <c:if test="${activeSidebar eq 'duyet-ho-so'}">aria-current="page"</c:if>>
@@ -108,7 +108,7 @@
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>
-        <a href="${ctx}/views/staff/managing/report.jsp"
+        <a href="${ctx}/managingstaff/report.jsp"
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"
            data-node-id="manager:50"
            <c:if test="${activeSidebar eq 'bao-cao'}">aria-current="page"</c:if>>
@@ -122,7 +122,7 @@
         </a>
 
         <%-- SC-036: Nhật ký thao tác --%>
-        <a href="${ctx}/views/staff/managing/audit.jsp"
+        <a href="${ctx}/managingstaff/audit.jsp"
            class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}"
            data-node-id="manager:60"
            <c:if test="${activeSidebar eq 'audit'}">aria-current="page"</c:if>>
@@ -138,6 +138,24 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="manager:90">
+        <a href="${ctx}/managingstaff/profile" class="side-nav-bar__logout" style="margin-bottom:6px;">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Hồ sơ cá nhân</span>
+        </a>
+        <a href="${ctx}/managingstaff/change-password" class="side-nav-bar__logout" style="margin-bottom:6px;">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Đổi mật khẩu</span>
+        </a>
         <a href="#" class="side-nav-bar__logout" data-node-id="manager:91">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">

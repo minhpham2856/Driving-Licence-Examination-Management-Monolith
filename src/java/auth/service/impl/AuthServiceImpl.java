@@ -202,6 +202,18 @@ public class AuthServiceImpl implements AuthService {
                 "Có lỗi xảy ra, vui lòng thử lại.");
     }
 
+    @Override
+    public boolean verifyPassword(int userId, String rawPassword) {
+        if (userId <= 0 || rawPassword == null || rawPassword.isBlank()) {
+            return false;
+        }
+        User user = userDAO.getById(userId);
+        if (user == null || user.getPasswordHash() == null) {
+            return false;
+        }
+        return passwordsMatch(rawPassword.trim(), user.getPasswordHash());
+    }
+
     // create a new user for registration
     private User createUser(String username,
             String email,

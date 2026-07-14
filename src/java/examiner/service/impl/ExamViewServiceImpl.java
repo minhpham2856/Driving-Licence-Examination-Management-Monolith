@@ -118,6 +118,22 @@ public class ExamViewServiceImpl implements ExamViewService {
         return rows;
     }
 
+    // Returns only suspended candidates for the exam.
+    @Override
+    public List<CandidateRowDTO> loadSuspendedCandidateRows(int examId) {
+        List<CandidateRowDTO> suspended = new ArrayList<>();
+        for (EnrollmentDTO enrollment : enrollmentistrationService.getCandidatesByExam(examId)) {
+            if (!enrollment.isSuspended()) {
+                continue;
+            }
+            CandidateRowDTO row = new CandidateRowDTO();
+            row.setCandidateNumber(enrollment.getCandidateNumber());
+            row.setFullName(enrollment.getFullName());
+            suspended.add(row);
+        }
+        return suspended;
+    }
+
     // Builds a summary of exam statistics for the session. Counts candidates by
     // status (completed, in-progress, not started) and pass/fail.
     @Override
@@ -381,7 +397,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.put("questionNo", question.getQuestionNumber());
             row.put("imageUrl", question.getImageUrl());
             row.put("correctAnswer", question.getCorrectAnswer());
-            row.put("studentAnswer", unanswered ? "—" : studentAnswer.trim().toUpperCase());
+            row.put("studentAnswer", unanswered ? "-" : studentAnswer.trim().toUpperCase());
             row.put("unanswered", unanswered);
             row.put("correct", correct);
             row.put("answerStatus", unanswered ? "skipped" : (correct ? "correct" : "wrong"));
@@ -584,17 +600,19 @@ public class ExamViewServiceImpl implements ExamViewService {
         List<Map<String, Object>> devices = new ArrayList<>();
         LinkedHashMap<Integer, String> areaNames = new LinkedHashMap<>();
         List<Integer> areaIds = new ArrayList<>();
-        boolean assignedRoomOnly = preferredAreaId != null && preferredAreaId > 0;
-        // Determine which area IDs to include
-        if (assignedRoomOnly) {
+
+        // Prefer the examiner's assigned area; otherwise load every area of the exam.
+        if (preferredAreaId != null && preferredAreaId > 0) {
             areaIds.add(preferredAreaId);
         } else {
-            // Get the primary exam area for the exam (examiner is assigned one area)
-            Integer primaryAreaId = examinerDataDAO.findPrimaryExamAreaId(examId);
-            if (primaryAreaId != null && primaryAreaId > 0 && !areaIds.contains(primaryAreaId)) {
-                areaIds.add(primaryAreaId);
+            List<Integer> examAreas = examinerDataDAO.findExamAreaIds(examId);
+            if (examAreas != null) {
+                for (Integer areaId : examAreas) {
+                    if (areaId != null && areaId > 0 && !areaIds.contains(areaId)) {
+                        areaIds.add(areaId);
+                    }
+                }
             }
-            // Fallback to primary area if none found
             if (areaIds.isEmpty()) {
                 Integer fallback = loadPrimaryExamAreaId(examId);
                 if (fallback != null && fallback > 0) {
@@ -602,16 +620,11 @@ public class ExamViewServiceImpl implements ExamViewService {
                 }
             }
         }
-        // For each area, fetch devices and build rows
+
         for (Integer areaId : areaIds) {
             areaNames.putIfAbsent(areaId, loadAreaName(areaId));
             for (ExamDevice device : deviceDAO.getDevicesByAreaId(areaId)) {
-                // If assigned room only, skip non-computer devices
-                if (assignedRoomOnly && !isComputerDevice(device.getDeviceType())) {
-                    continue;
-                }
-                // Apply search filter if present
-                if (searchQuery != null && !searchQuery.isBlank()) {
+                if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                     String q = searchQuery.trim().toLowerCase();
                     String haystack = (device.getDeviceName() + " " + device.getDeviceType()
                             + " " + areaNames.get(areaId)).toLowerCase();

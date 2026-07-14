@@ -5,9 +5,9 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Sửa kết quả" />
-<c:set var="backUrl" value="${ctx}/views/examiner/result-details" scope="request" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
-<c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
+<c:set var="backUrl" value="${ctx}/examiner/result-details" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
+<c:set var="paperUrl" value="${ctx}/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/result" scope="request" />
 <c:set var="currentScore" value="${requestScope.currentScore}" />
 <c:set var="maxScore" value="${empty theoryMaxScore ? 35 : theoryMaxScore}" />
@@ -62,7 +62,7 @@
                 </jsp:include>
 
                 <!--edit form-->
-                <form action="${ctx}/views/examiner/result-details-edit" method="post">
+                <form action="${ctx}/examiner/result-details-edit" method="post">
                     <input type="hidden" name="sbd" value="${candidate.sbd}">
                     <div class="score-entry-grid">
                         <div class="score-entry-col score-entry-col--main">

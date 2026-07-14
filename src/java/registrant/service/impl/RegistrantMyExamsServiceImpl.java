@@ -95,7 +95,7 @@ public class RegistrantMyExamsServiceImpl implements RegistrantMyExamsService {
         }
 
         String examLabel = exam.getExamTitle()
-                + (exam.getExamSectionName() != null ? " — " + exam.getExamSectionName() : "");
+                + (exam.getExamSectionName() != null ? " - " + exam.getExamSectionName() : "");
         RegistrantAuditHelper.logExamCancellationRequest(
                 request.getSession(), profile.getProfileId(), examLabel, reason);
         return null;
