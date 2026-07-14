@@ -21,7 +21,17 @@ import java.util.Locale;
 /** Implementation: xuất nhật ký audit cá nhân ra Excel. */
 public class StaffAuditExportServiceImpl implements StaffAuditExportService {
 
-    /** {@inheritDoc} */
+    /**
+     * Ghi nhật ký audit ra luồng xuất kèm chỉ số thủ tục đã hoàn thành.
+     *
+     * @param out                 luồng ghi file
+     * @param logs                danh sách audit
+     * @param completedProcedures số thủ tục hoàn thành
+     * @param totalFees           tổng phí
+     * @param staffName           tên nhân viên
+     * @param filterDateLabel     nhãn ngày lọc hiển thị trên file
+     * @throws IOException nếu ghi file thất bại
+     */
     @Override
     public void exportAuditLog(OutputStream out, List<AuditDTO> logs, int completedProcedures,
             double totalFees, String staffName, String filterDateLabel) throws IOException {

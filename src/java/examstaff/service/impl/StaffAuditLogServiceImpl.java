@@ -13,7 +13,14 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
 
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Ghi một dòng audit cho thao tác của người dùng.
+     *
+     * @param userId   mã người dùng thực hiện
+     * @param action   mã/loại hành động
+     * @param details  mô tả chi tiết
+     * @param recordId mã bản ghi liên quan (0 nếu không có)
+     */
     @Override
     public void logAction(int userId, String action, String details, int recordId) {
         try {

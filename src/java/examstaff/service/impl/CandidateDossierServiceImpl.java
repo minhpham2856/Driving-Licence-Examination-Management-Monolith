@@ -23,7 +23,14 @@ public class CandidateDossierServiceImpl implements CandidateDossierService {
     private final ProcedureFeeQueryService procedureFeeQueryService = new ProcedureFeeQueryServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Tải view hồ sơ thí sinh theo kỳ thi và SBD.
+     *
+     * @param examId  mã kỳ thi
+     * @param sbd     số báo danh
+     * @param webRoot thư mục gốc web (ảnh, tài liệu)
+     * @return DTO hồ sơ hiển thị, hoặc null nếu không có
+     */
     @Override
     public CandidateDossierViewDTO loadDossier(int examId, String sbd, String webRoot) {
         CandidateDossierViewDTO view = new CandidateDossierViewDTO();

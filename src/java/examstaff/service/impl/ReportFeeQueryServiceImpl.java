@@ -20,7 +20,12 @@ public class ReportFeeQueryServiceImpl implements ReportFeeQueryService {
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
     private final FeeDAO feeDAO = new FeeDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy tổng hợp thanh toán của một thí sinh/đăng ký.
+     *
+     * @param candidateId mã đăng ký thí sinh
+     * @return tóm tắt thanh toán, hoặc null nếu không có
+     */
     @Override
     public ReportPaymentSummaryDTO findPaymentSummary(int candidateId) {
         ReportPaymentSummaryDTO summary = new ReportPaymentSummaryDTO();

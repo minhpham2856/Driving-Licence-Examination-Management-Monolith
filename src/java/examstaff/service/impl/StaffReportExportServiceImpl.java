@@ -31,7 +31,16 @@ public class StaffReportExportServiceImpl implements StaffReportExportService {
 
     private final ReportFeeQueryService feeLookup = new ReportFeeQueryServiceImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Ghi báo cáo kỳ thi ra luồng xuất (ví dụ PDF/Excel tùy triển khai).
+     *
+     * @param out          luồng ghi file
+     * @param exam         thông tin tóm tắt kỳ thi
+     * @param candidates   danh sách thí sinh trong báo cáo
+     * @param stats        thống kê đã tính sẵn
+     * @param exporterName tên người xuất báo cáo
+     * @throws IOException nếu ghi file thất bại
+     */
     @Override
     public void exportExamReport(OutputStream out, ExamSummaryDTO exam,
             List<ExamRegistrationDTO> candidates, ExamReportStatsDTO stats,

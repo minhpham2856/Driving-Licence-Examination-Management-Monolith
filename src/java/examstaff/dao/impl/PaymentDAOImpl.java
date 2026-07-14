@@ -18,7 +18,12 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
 
-    /** {@inheritDoc} */
+    /**
+     * Thêm bản ghi thanh toán mới.
+     *
+     * @param payment entity thanh toán (cần {@code ExamEnrollmentId})
+     * @return {@code true} nếu insert thành công
+     */
     @Override
     public boolean insert(Payment payment) {
         int enrollmentId = payment.getExamEnrollmentId();
@@ -55,7 +60,12 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy thanh toán mới nhất theo mã thí sinh.
+     *
+     * @param candidateId mã thí sinh
+     * @return entity hoặc {@code null}
+     */
     @Override
     public Payment getByCandidateId(int candidateId) {
         String sql = """
@@ -87,7 +97,12 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tra mã ghi danh ({@code ExamEnrollmentId}) mới nhất của thí sinh.
+     *
+     * @param candidateId mã thí sinh
+     * @return mã ghi danh, hoặc -1 nếu không có
+     */
     @Override
     public int resolveEnrollmentId(int candidateId) {
         String sql = """

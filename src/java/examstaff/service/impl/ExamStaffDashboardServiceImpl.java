@@ -29,7 +29,13 @@ public class ExamStaffDashboardServiceImpl implements ExamStaffDashboardService 
         this.allocationService = allocationService;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Ghép view dashboard theo kỳ thi đang chọn.
+     *
+     * @param allExams danh sách kỳ thi
+     * @param examId   mã kỳ đang xem
+     * @return DTO dashboard
+     */
     @Override
     public ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allExams, int examId) {
         ExamStaffDashboardViewDTO view = new ExamStaffDashboardViewDTO();
