@@ -14,7 +14,7 @@ import examstaff.service.CandidatePhotoLookupService;
 import java.io.IOException;
 import java.nio.file.Files;
 
-@WebServlet("/views/staff/examstaff/candidate-photo")
+@WebServlet("/examstaff/candidate-photo")
 public class CandidatePhotoServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();

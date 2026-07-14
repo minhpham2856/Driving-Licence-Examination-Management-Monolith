@@ -320,7 +320,7 @@ public class ExamRegistrationDTO {
         return skipsTheory();
     }
 
-    /** Chỉ thi lại lý thuyết — bảo lưu thực hành/sa hình. */
+    /** Chỉ thi lại lý thuyết - bảo lưu thực hành/sa hình. */
     public boolean skipsPractical() {
         return Boolean.FALSE.equals(takePractical);
     }

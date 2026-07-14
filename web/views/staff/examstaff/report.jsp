@@ -3,7 +3,7 @@
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 <c:if test="${requestScope.candidateList == null}">
-    <c:redirect url="/views/staff/examstaff/report"/>
+    <c:redirect url="/examstaff/report"/>
 </c:if>
 
 <c:set var="rateNum" value="${passRate}" />
@@ -43,10 +43,10 @@
         <header class="page-header page-header--toolbar">
             <p class="examiner-page-desc">Tổng hợp số liệu kết quả thi sát hạch trong ngày, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
             <div class="page-actions">
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportExcel=true"
+                <a href="${pageContext.request.contextPath}/examstaff/report?exportExcel=true"
                    class="btn-filter"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
-                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Xuất Excel'}">
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh - không thể xuất hồ sơ' : 'Xuất Excel'}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M14 2v6h6M8 13h8M8 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -54,11 +54,11 @@
                     Xuất Excel
                 </a>
 
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report?exportPdf=true"
+                <a href="${pageContext.request.contextPath}/examstaff/report?exportPdf=true"
                    target="_blank"
                    class="btn-export"
                    style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid; ${missingPhotoCount > 0 ? 'background-color: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; pointer-events: none; opacity: 0.65;' : 'background-color: #ffffff; color: #0052cc; border-color: #0052cc; box-shadow: 0 2px 8px rgba(0, 82, 204, 0.08);'}"
-                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh — không thể xuất hồ sơ' : 'Mở bản in để In / Lưu PDF'}">
+                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh - không thể xuất hồ sơ' : 'Mở bản in để In / Lưu PDF'}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M6 9V2h12v7" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -74,7 +74,7 @@
                 <span>
                     <strong>${procedurePendingCount}</strong> thí sinh chưa hoàn thành thủ tục tại bàn
                     <c:if test="${missingPhotoCount > 0}">
-                        — trong đó <strong>${missingPhotoCount}</strong> chưa có ảnh chân dung (không thể xuất Excel/PDF).
+                        - trong đó <strong>${missingPhotoCount}</strong> chưa có ảnh chân dung (không thể xuất Excel/PDF).
                     </c:if>
                 </span>
             </div>
@@ -83,7 +83,7 @@
                 <div class="allocation-stage-panel__head">
                     <div class="allocation-stage-panel__title-wrap">
                         <h4 class="allocation-stage-panel__title">Thí sinh chưa hoàn thành thủ tục</h4>
-                        <p class="allocation-stage-panel__meta">Chưa đối chiếu hồ sơ, chụp ảnh hoặc thu lệ phí — cần xử lý tại bàn thủ tục trước khi xuất báo cáo.</p>
+                        <p class="allocation-stage-panel__meta">Chưa đối chiếu hồ sơ, chụp ảnh hoặc thu lệ phí - cần xử lý tại bàn thủ tục trước khi xuất báo cáo.</p>
                     </div>
                     <span class="allocation-stage-panel__count">${procedurePendingCount} thí sinh</span>
                 </div>
@@ -121,7 +121,7 @@
                                         </c:choose>
                                     </td>
                                     <td class="examiner-table__center">
-                                        <a href="${pageContext.request.contextPath}/views/staff/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedExamId}">&amp;examId=${requestScope.selectedExamId}</c:if>#procedure-desk"
+                                        <a href="${pageContext.request.contextPath}/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedExamId}">&amp;examId=${requestScope.selectedExamId}</c:if>#procedure-desk"
                                            class="allocation-table-action allocation-table-action--theory">Làm thủ tục</a>
                                     </td>
                                 </tr>

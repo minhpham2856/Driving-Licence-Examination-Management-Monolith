@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-@WebServlet("/views/staff/examstaff/audit-export")
+@WebServlet("/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
 
     private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
@@ -52,7 +52,7 @@ public class AuditExportServlet extends HttpServlet {
             e.printStackTrace();
             if (!response.isCommitted()) {
                 response.reset();
-                String redirect = request.getContextPath() + "/views/staff/examstaff/audit?exportError=1";
+                String redirect = request.getContextPath() + "/examstaff/audit?exportError=1";
                 if (filterDate != null && !filterDate.isBlank()) {
                     redirect += "&filterDate=" + java.net.URLEncoder.encode(filterDate, "UTF-8");
                 }

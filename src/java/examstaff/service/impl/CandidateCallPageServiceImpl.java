@@ -57,7 +57,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
         String action = command.getAction();
         if ("startShift".equals(action)) {
             view.setResumeShift(true);
-            view.setRedirectPath("/views/staff/examstaff/candidatecall");
+            view.setRedirectPath("/examstaff/candidatecall");
             return view;
         }
 
@@ -74,7 +74,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
                     shiftEnded, command.getCalledByStaffId());
 
             if (actionResult.isRedirectToCallPage()) {
-                view.setRedirectPath("/views/staff/examstaff/candidatecall");
+                view.setRedirectPath("/examstaff/candidatecall");
                 return view;
             }
 

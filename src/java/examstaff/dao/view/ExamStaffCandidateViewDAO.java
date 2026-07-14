@@ -4,7 +4,7 @@ import examstaff.dto.view.ExamStaffCandidate;
 
 import java.util.List;
 
-/** SELECT JOIN — danh sách thí sinh cho màn exam staff / public call. */
+/** SELECT JOIN - danh sách thí sinh cho màn exam staff / public call. */
 public interface ExamStaffCandidateViewDAO {
 
     List<ExamStaffCandidate> findByExamId(int examId);

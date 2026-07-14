@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * JDBC implementation of ExamDAO — get/update status cho điều khiển kỳ thi.
+ * JDBC implementation of ExamDAO - get/update status cho điều khiển kỳ thi.
  */
 public class ExamDAOImpl extends DBContext implements ExamDAO {
 
@@ -18,7 +18,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
             "SELECT e.ExamId AS id, "
             + "e.ExamId AS examId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
+            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "1 AS examTypeId, "
             + "CAST(e.ExamDate AS DATE) AS examDate, "
             + "CAST(e.StartTime AS TIME) AS shiftStartTime, "

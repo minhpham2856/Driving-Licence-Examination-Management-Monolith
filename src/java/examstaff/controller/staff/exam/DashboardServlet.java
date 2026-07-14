@@ -20,7 +20,7 @@ import examstaff.service.ExamStaffDashboardService;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/dashboard")
+@WebServlet("/examstaff/dashboard")
 public class DashboardServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();

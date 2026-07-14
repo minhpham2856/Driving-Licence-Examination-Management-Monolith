@@ -17,7 +17,7 @@ import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
-@WebServlet("/views/public/public-call")
+@WebServlet("/examstaff/public-call")
 public class PublicCallServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
