@@ -1,28 +1,35 @@
 package examstaff.service.impl;
 
+import examstaff.dto.ExamSelectRequestDTO;
+import examstaff.dto.ExamSelectResultDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamStaffPageTransitionInput;
 import examstaff.dto.ExamStaffPageTransitionStateDTO;
 import examstaff.dto.ExamStaffSelectionResolveInput;
 import examstaff.dto.ExamStaffSelectionStateDTO;
+import examstaff.enums.ExamStaffMessage;
 import examstaff.service.ExamStaffPageService;
 import examstaff.service.ExamStaffSelectionService;
 import examstaff.util.ExamStaffExamRules;
 
 import java.util.List;
 
+/** Implementation: resolve / đồng bộ lựa chọn kỳ thi cho trang Exam Staff. */
 public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService {
 
     private final ExamStaffPageService pageService;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public ExamStaffSelectionServiceImpl() {
         this(new ExamStaffPageServiceImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public ExamStaffSelectionServiceImpl(ExamStaffPageService pageService) {
         this.pageService = pageService;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int resolveExamId(ExamStaffSelectionResolveInput input) {
         if (input == null) {
@@ -57,6 +64,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return 0;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int ensureExamId(ExamStaffSelectionResolveInput input) {
         int examId = resolveExamId(input);
@@ -71,6 +79,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return pageService.resolveDefaultExamId(allExams);
     }
 
+    /** {@inheritDoc} */
     @Override
     public int resolveExamFromUrl(int urlExamId, List<ExamSummaryDTO> allExams) {
         if (urlExamId <= 0) {
@@ -83,6 +92,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return picked.getExamId();
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentExamId,
             List<ExamSummaryDTO> allExams) {
@@ -104,6 +114,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return state;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamStaffPageTransitionStateDTO preparePageTransition(ExamStaffPageTransitionInput input) {
         ExamStaffPageTransitionStateDTO state = new ExamStaffPageTransitionStateDTO();
@@ -134,6 +145,7 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return state;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int resolveActiveExamId(int urlExamId, Integer selectedExamId,
             Integer runtimeActiveExamId) {
@@ -147,5 +159,43 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
             return runtimeActiveExamId;
         }
         return 0;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public ExamSelectResultDTO processSelection(ExamSelectRequestDTO request) {
+        ExamSelectResultDTO result = new ExamSelectResultDTO();
+        if (request == null) {
+            result.setSuccess(false);
+            result.setErrorMessage(ExamStaffMessage.EXAM_NOT_FOUND_PREFIX.formatExamNotFound(null));
+            return result;
+        }
+        result.setPreviousExamId(request.getPreviousExamId());
+
+        List<ExamSummaryDTO> allExams = pageService.listAllExams();
+        int urlExamId = request.getUrlExamId();
+        int examId = resolveExamFromUrl(urlExamId, allExams);
+
+        if (examId <= 0) {
+            result.setSuccess(false);
+            String param = urlExamId > 0 ? String.valueOf(urlExamId) : null;
+            result.setErrorMessage(ExamStaffMessage.EXAM_NOT_FOUND_PREFIX.formatExamNotFound(param));
+            return result;
+        }
+
+        int resolvedExamId = urlExamId > 0
+                ? urlExamId
+                : pageService.resolvePrimaryExamId(allExams, examId);
+
+        result.setSuccess(true);
+        result.setExamId(resolvedExamId > 0 ? resolvedExamId : examId);
+        result.setNewExamId(result.getExamId());
+
+        Integer previousExamId = request.getPreviousExamId();
+        if (previousExamId != null && previousExamId > 0 && !previousExamId.equals(result.getExamId())) {
+            result.setClearProcedureOnExamChange(true);
+            result.setClearCandidateCache(true);
+        }
+        return result;
     }
 }

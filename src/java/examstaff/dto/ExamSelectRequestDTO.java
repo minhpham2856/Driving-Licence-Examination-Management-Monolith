@@ -1,5 +1,8 @@
 package examstaff.dto;
 
+/**
+ * Request đổi/chọn kỳ thi từ URL hoặc session (Presentation → BLL).
+ */
 public class ExamSelectRequestDTO {
 
     private int urlExamId;

@@ -8,42 +8,66 @@ import examstaff.service.ExamStaffSelectionService;
 import examstaff.service.ExamStaffServices;
 
 /**
- * Web composition root for examstaff/public-call.
- * Creates one object graph and hands dependencies to servlets/support adapters.
+ * Composition root Presentation cho examstaff / public-call.
+ * Singleton dùng chung một object graph — không nghiệp vụ.
  */
 public final class ExamStaffWebModule {
 
-    private final ExamStaffServices services;
+    private static final ExamStaffWebModule INSTANCE = new ExamStaffWebModule();
 
-    public ExamStaffWebModule() {
+    private final ExamStaffServices services;
+    private final CallBoardHttpFacade callBoardHttp;
+    private final ExamStaffSelectionFacade selectionFacade;
+    private final StaffAuditLogSupport auditLogSupport;
+
+    /** Instance dùng chung toàn app. */
+    public static ExamStaffWebModule getInstance() {
+        return INSTANCE;
+    }
+
+    private ExamStaffWebModule() {
         this(new ExamStaffServices());
     }
 
+    /**
+     * Constructor inject services (test / wiring tay).
+     *
+     * @param services bag service BLL
+     */
     public ExamStaffWebModule(ExamStaffServices services) {
         this.services = services;
+        this.callBoardHttp = new CallBoardHttpFacade(services.callBoardSync());
+        this.selectionFacade = new ExamStaffSelectionFacade(services.page(), services.selection());
+        this.auditLogSupport = new StaffAuditLogSupport(services.auditLog());
     }
 
+    /** Bag service BLL dùng chung. */
     public ExamStaffServices services() {
         return services;
     }
 
+    /** Shortcut {@code services.page()}. */
     public ExamStaffPageService page() {
         return services.page();
     }
 
+    /** Shortcut {@code services.selection()}. */
     public ExamStaffSelectionService selection() {
         return services.selection();
     }
 
+    /** Facade HTTP đồng bộ CallBoard (cached). */
     public CallBoardHttpFacade callBoardHttp() {
-        return new CallBoardHttpFacade(services.callBoardSync());
+        return callBoardHttp;
     }
 
+    /** Facade chọn kỳ / sidebar / resolve examId (cached). */
     public ExamStaffSelectionFacade selectionFacade() {
-        return new ExamStaffSelectionFacade(page(), selection());
+        return selectionFacade;
     }
 
+    /** Adapter ghi nhật ký audit từ session staff (cached). */
     public StaffAuditLogSupport auditLogSupport() {
-        return new StaffAuditLogSupport(services.auditLog());
+        return auditLogSupport;
     }
 }

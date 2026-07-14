@@ -1,5 +1,8 @@
 package examstaff.dto;
 
+/**
+ * View-model dashboard ExamStaff: số sát hạch viên đã phân công / đang hoạt động.
+ */
 public class ExamStaffDashboardViewDTO {
 
     private int assignedExaminerUniqueCount;
