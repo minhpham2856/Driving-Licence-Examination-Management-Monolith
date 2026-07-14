@@ -1,10 +1,12 @@
 package auth.controller.internal;
 
+import shared.Attributes;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
 import static auth.util.FormatUtil.formatString;
 import shared.enums.RoleType;
+import auth.util.SessionUserUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -68,9 +70,9 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // store logged in user
+        // store logged in user without password hash
         HttpSession session = request.getSession();
-        session.setAttribute("user", user);
+        session.setAttribute(Attributes.Session.USER, SessionUserUtil.forSession(user));
 
         // redirect by role
         switch (role) {
@@ -78,7 +80,7 @@ public class LoginServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/views/staff/managing/dashboard");
                 break;
             case EXAM_STAFF:
-                response.sendRedirect(request.getContextPath() + "/views/staff/exam/dashboard");
+                response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/dashboard");
                 break;
             case EXAMINER:
                 response.sendRedirect(request.getContextPath() + "/views/examiner/exam");
@@ -96,15 +98,15 @@ public class LoginServlet extends HttpServlet {
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
 
-        request.setAttribute("error", errorMessage);
+        request.setAttribute(Attributes.Request.ERROR, errorMessage);
         request.getRequestDispatcher("/views/auth/internal/login.jsp").forward(request, response);
     }
 
     // move session messages to request
     private void sessionToRequest(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        transferAttribute(request, session, "successMessage", "success");
-        transferAttribute(request, session, "errorMessage", "error");
+        transferAttribute(request, session, Attributes.Session.SUCCESS_MESSAGE, Attributes.Request.SUCCESS);
+        transferAttribute(request, session, Attributes.Session.ERROR_MESSAGE, Attributes.Request.ERROR);
     }
 
     // move one session attribute to request

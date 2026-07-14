@@ -364,7 +364,7 @@
 
     <div class="side-nav-bar__footer">
 
-        <a href="${ctx}/logout" class="side-nav-bar__logout">
+        <a href="${ctx}/staff/logout" class="side-nav-bar__logout">
 
             <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">logout</span>
 
