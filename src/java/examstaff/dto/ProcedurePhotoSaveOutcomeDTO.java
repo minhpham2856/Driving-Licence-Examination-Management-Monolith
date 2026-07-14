@@ -2,12 +2,20 @@ package examstaff.dto;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
 
+/**
+ * Kết quả lưu ảnh thủ tục thí sinh: status, thông báo, đường dẫn và profile.
+ */
 public class ProcedurePhotoSaveOutcomeDTO {
 
+    /** Kết quả lưu ảnh thủ tục. */
     public enum Status {
+        /** Lưu ảnh thành công. */
         SUCCESS,
+        /** Không tìm thấy thí sinh. */
         CANDIDATE_NOT_FOUND,
+        /** Ảnh không hợp lệ / sai định dạng. */
         INVALID_IMAGE,
+        /** Lỗi không xác định khi lưu. */
         ERROR
     }
 

@@ -4,6 +4,9 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Kết quả reset trạng thái thủ tục một thí sinh: thành công, SBD và hàng chờ cập nhật.
+ */
 public class ProcedureResetOutcomeDTO {
 
     private boolean success;

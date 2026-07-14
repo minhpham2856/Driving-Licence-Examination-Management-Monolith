@@ -4,6 +4,9 @@ import shared.model.Fee;
 
 import java.util.List;
 
+/**
+ * Kết quả truy vấn lệ phí thủ tục: dòng phí, tổng và nguồn (từ Payment hay bảng Fee).
+ */
 public class ProcedureFeeResultDTO {
 
     private List<Fee> feeLines;
