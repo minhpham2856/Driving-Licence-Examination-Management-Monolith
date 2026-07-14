@@ -1,15 +1,34 @@
 package examiner.dao;
 import java.util.List;
 import java.util.Map;
+import shared.model.ExamArea;
+
+// DAO contract for ExaminerView persistence; examiner module SQL boundary.
 public interface ExaminerViewDAO {
-    String findLicenceClassByExamId(int examId);
-    Integer findPrimaryExamAreaId(int examId);
-    Map<Integer, int[]> loadTheoryStatsByExam(int examId);
-    Map<Integer, Double> loadSectionScoresByExam(int examId, String sectionName);
-    Map<Integer, Boolean> loadPassFlagsByExam(int examId);
-    Map<Integer, String> loadDeviceNamesByExam(int examId);
-    List<Map<String, Object>> loadScoreDeductionRules(String sectionName, int examId);
-    Map<Integer, int[]> loadDeductionOccurrences(int candidateId, int examId);
-    Map<Integer, java.util.Date> loadDeductionRecordedAt(int candidateId, int examId);
-    Map<String, Object> loadScoreSummary(int candidateId, int examId, String sectionName);
+    // Returns the first exam area id linked to one exam (Exam_ExamArea).
+    ExamArea getIfPrimaryByExam(int examId);
+
+    // Batch-loads theory answer stats [correct, wrong, unanswered] per enrollment.
+    Map<Integer, int[]> getAllTheoryStatsByExam(int examId);
+
+    // Batch-loads section scores per enrollment for one exam and section type.
+    Map<Integer, Double> getAllSectionScoresByExam(int examId, String sectionType);
+
+    // Batch-loads overall pass flags per enrollment for one exam.
+    Map<Integer, Boolean> getAllPassFlagsByExam(int examId);
+
+    // Batch-loads device id to device name for devices used in one exam.
+    Map<Integer, String> getAllDeviceNamesByExam(int examId);
+
+    // Loads score deduction rules for one section type and exam licence.
+    List<Map<String, Object>> getAllScoreDeductionRulesByExam(String sectionType, int examId);
+
+    // Loads deduction occurrence counts keyed by ScoreDeductionId for one candidate/exam.
+    Map<Integer, int[]> getAllDeductionOccurrencesByExam(int candidateId, int examId);
+
+    // Loads deduction recorded timestamps keyed by ScoreDeductionId for one candidate/exam.
+    Map<Integer, java.util.Date> getAllDeductionRecordedAtByExam(int candidateId, int examId);
+
+    // Loads current score and critical-disqualification flag for one candidate section.
+    Map<String, Object> getIfScoreSummaryByCandidateAndExam(int candidateId, int examId, String sectionType);
 }
