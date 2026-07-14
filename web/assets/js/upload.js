@@ -1,20 +1,25 @@
 document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('fileInput');
     const dropzoneLabel = document.getElementById('dropzoneLabel');
-    const uploadForm = document.getElementById('uploadForm');
     const dropzone = document.querySelector('.upload-dropzone-container');
 
-    if (fileInput && dropzoneLabel && uploadForm) {
+    if (fileInput && dropzoneLabel) {
         fileInput.addEventListener('change', function () {
             if (fileInput.files && fileInput.files[0]) {
-                dropzoneLabel.textContent = 'Đang phân tích: ' + fileInput.files[0].name;
-                uploadForm.submit();
+                dropzoneLabel.textContent = 'Đã chọn: ' + fileInput.files[0].name;
             }
         });
 
         if (dropzone) {
-            dropzone.addEventListener('click', function () {
-                fileInput.click();
+            dropzone.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                dropzone.style.borderColor = '#2563eb';
+            });
+            dropzone.addEventListener('dragleave', function () {
+                dropzone.style.borderColor = '';
+            });
+            dropzone.addEventListener('drop', function () {
+                dropzone.style.borderColor = '';
             });
         }
     }

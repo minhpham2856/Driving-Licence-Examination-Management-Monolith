@@ -84,7 +84,7 @@
                                 <th>Hạng GPLX</th>
                                 <th>Giấy tờ</th>
                                 <th>Trạng thái hồ sơ</th>
-                                <th style="text-align:center">Thao tác</th>
+                                <th style="text-align:center;min-width:292px">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,24 +104,24 @@
                                             ${item.statusLabel}
                                         </span>
                                     </td>
-                                    <td style="text-align:center">
-                                        <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center">
+                                    <td style="text-align:center;vertical-align:middle;white-space:nowrap">
+                                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;justify-items:center;gap:.25rem;width:292px;margin:0 auto">
                                             <a class="btn-export"
                                                href="${ctx}/manager/dossier-detail?id=${item.user.id}"
-                                               style="display:inline-flex;text-decoration:none">Xem chi tiết</a>
+                                               style="grid-column:1;justify-self:start;padding:.4rem .5rem;text-decoration:none">Xem chi tiết</a>
                                             <c:if test="${item.pendingReview}">
                                                 <a class="btn-filter"
                                                    href="${ctx}/manager/dossiers?id=${item.registrationId}&amp;page=${currentPage}"
-                                                   style="display:inline-flex;text-decoration:none">Duyệt hồ sơ</a>
+                                                   style="grid-column:2;padding:.4rem .5rem;text-decoration:none">Duyệt hồ sơ</a>
                                             </c:if>
                                             <c:if test="${item.reminderEligible}">
-                                                <form action="${ctx}/manager/dossiers/remind" method="post" style="margin:0"
+                                                <form action="${ctx}/manager/dossiers/remind" method="post" style="display:inline-flex;grid-column:3;justify-self:end;margin:0"
                                                       onsubmit="return confirm('Gửi email nhắc hoàn thiện hồ sơ này?');">
                                                     <input type="hidden" name="id" value="${item.registrationId}">
                                                     <input type="hidden" name="returnTo" value="list">
                                                     <input type="hidden" name="returnStatus" value="${statusFilter}">
                                                     <input type="hidden" name="returnPage" value="${currentPage}">
-                                                    <button class="btn-export" type="submit">Gửi email nhắc</button>
+                                                    <button class="btn-export" type="submit" style="padding:.4rem .5rem">Gửi email nhắc</button>
                                                 </form>
                                             </c:if>
                                         </div>

@@ -75,7 +75,7 @@ public class DossierDTO {
     }
     public boolean isReviewable() {
         return registrationId > 0
-                && java.util.Set.of("Draft", "Pending", "Submitted", "NeedSupplement", "Rejected")
+                && java.util.Set.of("Draft", "Pending", "Submitted", "NeedSupplement")
                         .contains(status);
     }
     public String getReviewMessage() {

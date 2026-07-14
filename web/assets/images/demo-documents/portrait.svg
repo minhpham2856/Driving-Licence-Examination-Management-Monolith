@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="480" viewBox="0 0 360 480">
+  <rect width="360" height="480" fill="#dbeafe"/>
+  <circle cx="180" cy="155" r="72" fill="#94a3b8"/>
+  <path d="M55 430c8-112 58-174 125-174s117 62 125 174" fill="#64748b"/>
+  <text x="180" y="460" text-anchor="middle" font-family="Arial" font-size="22" fill="#0f172a">&#x1EA2;NH CH&#x00C2;N DUNG DEMO</text>
+</svg>

@@ -11,9 +11,6 @@
         <c:when test="${fn:contains(pageContext.request.requestURI, 'dashboard')}">
             <c:set var="activeSidebar" value="dashboard" />
         </c:when>
-        <c:when test="${fn:contains(pageContext.request.requestURI, 'upload') or fn:contains(pageContext.request.requestURI, 'tai-ds')}">
-            <c:set var="activeSidebar" value="tai-ds" />
-        </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'grading')}">
             <c:set var="activeSidebar" value="cham-diem" />
         </c:when>
@@ -61,19 +58,6 @@
                 </svg>
             </span>
             <span class="side-nav-bar__label" data-node-id="examiner:dash-lbl">Tổng quan ca thi</span>
-        </a>
-
-        <a href="${pageContext.request.contextPath}/views/staff/examstaff/upload"
-           class="side-nav-bar__link${activeSidebar eq 'tai-ds' ? ' is-active' : ''}"
-           data-node-id="4:757"
-           <c:if test="${activeSidebar eq 'tai-ds'}">aria-current="page"</c:if>>
-            <span class="side-nav-bar__icon side-nav-bar__icon--sm" aria-hidden="true">
-                <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 1H3.5C2.67 1 2 1.67 2 2.5V17.5C2 18.33 2.67 19 3.5 19H12.5C13.33 19 14 18.33 14 17.5V6L9 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                    <path d="M9 1V6H14M8 11V15M6 13H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </span>
-            <span class="side-nav-bar__label" data-node-id="4:761">Tải danh sách thi</span>
         </a>
 
         <a href="${pageContext.request.contextPath}/views/staff/examstaff/allocation"

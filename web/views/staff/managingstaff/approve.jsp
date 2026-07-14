@@ -1,6 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -68,18 +67,6 @@
                                             <a class="btn-export" target="_blank" rel="noopener"
                                                href="${ctx}${document.documentUrl}"
                                                style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
-                                            <c:set var="documentUrlLower" value="${fn:toLowerCase(document.documentUrl)}" />
-                                            <c:if test="${(type eq 'ID_FRONT' or type eq 'ID_BACK' or type eq 'HEALTH_CERTIFICATE')
-                                                    and not fn:endsWith(documentUrlLower, '.svg')}">
-                                                <form action="${ctx}/manager/dossiers/ocr" method="post" style="margin-top:.5rem;width:100%">
-                                                    <input type="hidden" name="id" value="${dossier.registrationId}">
-                                                    <input type="hidden" name="documentType" value="${type}">
-                                                    <button class="btn-filter" type="submit" style="width:100%">Đọc bằng OCR.space</button>
-                                                </form>
-                                            </c:if>
-                                            <c:if test="${fn:endsWith(documentUrlLower, '.svg')}">
-                                                <small style="margin-top:.5rem;color:#64748b">Ảnh SVG demo không gửi lên OCR.space.</small>
-                                            </c:if>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="action-badge action-badge--warning">Còn thiếu</span>
@@ -106,20 +93,6 @@
                             </c:if>
                         </div>
                     </div>
-                    <c:if test="${not empty sessionScope.ocrText}">
-                        <div class="report-pane" style="padding:1.5rem;border-color:#0ea5e9">
-                            <strong>Kết quả OCR - <c:out value="${sessionScope.ocrDocumentLabel}" /></strong>
-                            <pre style="white-space:pre-wrap;word-break:break-word;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:1rem;margin-top:1rem;font-family:Arial,sans-serif"><c:out value="${sessionScope.ocrText}" /></pre>
-                        </div>
-                        <c:remove var="ocrText" scope="session" />
-                        <c:remove var="ocrDocumentLabel" scope="session" />
-                    </c:if>
-                    <c:if test="${not empty sessionScope.ocrError}">
-                        <div class="p-alert-banner" style="border-color:#ef4444;color:#991b1b;margin:1rem 0">
-                            <c:out value="${sessionScope.ocrError}" />
-                        </div>
-                        <c:remove var="ocrError" scope="session" />
-                    </c:if>
                     <div class="report-pane" style="padding:1.5rem">
                         <strong>Ghi chú hệ thống:</strong>
                         <p><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú.' : dossier.reviewMessage}" /></p>
@@ -138,12 +111,11 @@
                             <input type="hidden" name="returnPage" value="${currentPage}">
                             <label><input type="radio" name="decision" value="approve"
                                           ${dossier.complete ? 'checked' : 'disabled'}> Duyệt hồ sơ</label><br><br>
-                            <label><input type="radio" name="decision" value="supplement"
-                                          ${not dossier.complete ? 'checked' : ''}> Yêu cầu bổ sung</label><br><br>
-                            <label><input type="radio" name="decision" value="reject"> Từ chối</label><br><br>
+                            <label><input type="radio" name="decision" value="reject"
+                                          ${not dossier.complete ? 'checked' : ''}> Từ chối hồ sơ</label><br><br>
                             <label class="input-label" for="reason">Lý do/Ghi chú</label>
                             <textarea class="input-field" id="reason" name="reason" rows="5"
-                                      style="height:auto" placeholder="Bắt buộc khi yêu cầu bổ sung hoặc từ chối; nội dung này sẽ được gửi qua email."></textarea>
+                                      style="height:auto" placeholder="Bắt buộc khi từ chối; lý do này sẽ được lưu và gửi qua email để thí sinh đăng ký lại."></textarea>
                             <button class="btn-filter" type="submit" style="width:100%;margin-top:1rem">Xác nhận</button>
                         </form>
                     </div>
@@ -154,7 +126,7 @@
             <header class="page-header">
                 <div class="page-title-wrap">
                     <h1 class="page-title">Hồ sơ chưa được duyệt</h1>
-                    <p class="page-subtitle">Dữ liệu lấy theo từng trang từ database, gồm hồ sơ nháp, chờ duyệt, cần bổ sung và đã từ chối.</p>
+                    <p class="page-subtitle">Dữ liệu lấy theo từng trang từ database, gồm các hồ sơ đang chờ thẩm định.</p>
                 </div>
             </header>
             <section class="log-card">

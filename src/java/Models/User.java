@@ -1,5 +1,7 @@
 package Models;
 
+import java.sql.Timestamp;
+
 public class User {
 
     private int id;
@@ -11,6 +13,10 @@ public class User {
     private boolean isActive;
     private Integer profileId;
     private Profile profile;
+    private Integer personId;
+    private Person person;
+    private Timestamp lastLoginAt;
+    private Timestamp createdAt;
 
     public User() {
     }
@@ -99,5 +105,37 @@ public class User {
 
     public void setProfile(Profile profile) {
         this.profile = profile;
+    }
+
+    public Integer getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(Integer personId) {
+        this.personId = personId;
+    }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public void setPerson(Person person) {
+        this.person = person;
+    }
+
+    public Timestamp getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(Timestamp lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 }

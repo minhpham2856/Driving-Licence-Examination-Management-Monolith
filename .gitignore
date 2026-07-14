@@ -2,8 +2,12 @@
 /Driving-Licence-Examination-Management-Monolith/nbproject/private/
 private/
 /build/
+/tmp/
 /nbproject/private
 nbproject/private/private.properties
 /dist/
+/web/uploads/generated-dossiers/
+/output/pdf/
 .env
 web/WEB-INF/.env
+/web/WEB-INF/email.properties

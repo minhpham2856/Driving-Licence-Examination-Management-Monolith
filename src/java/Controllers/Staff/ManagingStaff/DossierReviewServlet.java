@@ -70,10 +70,11 @@ public class DossierReviewServlet extends HttpServlet {
                 + registrationId + "&page=" + returnPage;
         String decision = request.getParameter("decision");
         String reason = request.getParameter("reason");
-        String reviewMessage = reason == null || reason.isBlank() ? "Hồ sơ hợp lệ" : reason.trim();
+        String reviewMessage = reason == null || reason.isBlank()
+                ? "Hồ sơ hợp lệ, đã tạo PDF và đang chờ xếp ngày thi"
+                : reason.trim();
         String status = switch (decision == null ? "" : decision) {
             case "approve" -> "Approved";
-            case "supplement" -> "NeedSupplement";
             case "reject" -> "Rejected";
             default -> "";
         };
@@ -86,7 +87,7 @@ public class DossierReviewServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy hồ sơ.");
             return;
         }
-        if (!Set.of("Draft", "Pending", "Submitted", "NeedSupplement", "Rejected")
+        if (!Set.of("Draft", "Pending", "Submitted", "NeedSupplement")
                 .contains(dossier.getStatus())) {
             request.getSession().setAttribute("reviewError",
                     "Hồ sơ này đã được duyệt hoặc đã chuyển sang quy trình thi.");
@@ -102,14 +103,13 @@ public class DossierReviewServlet extends HttpServlet {
             response.sendRedirect(detailRedirect);
             return;
         }
-        if (!"Approved".equals(status) && (reason == null || reason.isBlank())) {
+        if ("Rejected".equals(status) && (reason == null || reason.isBlank())) {
             request.getSession().setAttribute("reviewError",
-                    "Vui lòng nhập lý do khi yêu cầu bổ sung hoặc từ chối.");
+                    "Vui lòng nhập lý do khi từ chối hồ sơ.");
             response.sendRedirect(detailRedirect);
             return;
         }
-        if (("Approved".equals(status) || "NeedSupplement".equals(status))
-                && !emailService.isConfigured()) {
+        if (!emailService.isConfigured()) {
             request.getSession().setAttribute("reviewError",
                     "Chưa cấu hình SMTP nên chưa thể gửi thông báo cho người đăng ký.");
             response.sendRedirect(detailRedirect);
@@ -145,11 +145,11 @@ public class DossierReviewServlet extends HttpServlet {
             return;
         }
         boolean emailSent = true;
-        if ("NeedSupplement".equals(status)) {
+        if ("Rejected".equals(status)) {
             emailSent = emailService.sendHtmlEmail(
                     dossier.getUser().getEmail(),
-                    "[Lái Vui] Yêu cầu bổ sung hồ sơ sát hạch",
-                    supplementEmailHtml(dossier, reviewMessage));
+                    "[Lái Vui] Hồ sơ sát hạch bị từ chối",
+                    rejectionEmailHtml(dossier, reviewMessage));
         } else if ("Approved".equals(status)) {
             emailSent = emailService.sendHtmlEmailWithAttachment(
                     dossier.getUser().getEmail(),
@@ -180,8 +180,11 @@ public class DossierReviewServlet extends HttpServlet {
 
         AuditLogHelper.persist(request.getSession(), "REVIEW Dossier",
                 status + " hồ sơ #" + registrationId, registrationId);
+        String successMessage = "Approved".equals(status)
+                ? "Đã duyệt hồ sơ, tạo PDF và gửi email xác nhận đến "
+                : "Đã từ chối hồ sơ và gửi email kèm lý do đến ";
         request.getSession().setAttribute("reviewSuccess",
-                "Đã cập nhật hồ sơ và gửi email thông báo đến " + dossier.getUser().getEmail() + ".");
+                successMessage + dossier.getUser().getEmail() + ".");
         response.sendRedirect(listRedirect);
     }
 
@@ -205,26 +208,28 @@ public class DossierReviewServlet extends HttpServlet {
         Files.copy(runtimeFile, sourceDirectory.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
     }
 
-    private static String supplementEmailHtml(DossierDTO dossier, String reason) {
+    private static String rejectionEmailHtml(DossierDTO dossier, String reason) {
         return "<div style='font-family:Arial,sans-serif;line-height:1.6;color:#1f2937'>"
-                + "<h2 style='color:#b45309'>Yêu cầu bổ sung hồ sơ</h2>"
+                + "<h2 style='color:#b91c1c'>Hồ sơ sát hạch bị từ chối</h2>"
                 + "<p>Kính gửi <strong>" + html(dossier.getProfile().getFullName()) + "</strong>,</p>"
                 + "<p>Hồ sơ đăng ký sát hạch hạng <strong>" + html(dossier.getLicenceDisplayClass())
-                + "</strong> cần được bổ sung trước khi duyệt.</p>"
+                + "</strong>, mã hồ sơ <strong>#" + dossier.getRegistrationId() + "</strong> đã bị từ chối.</p>"
                 + "<p><strong>Lý do:</strong> " + html(reason) + "</p>"
-                + "<p>Vui lòng đăng nhập hệ thống hoặc liên hệ trung tâm để hoàn thiện hồ sơ.</p>"
+                + "<p>Hồ sơ này đã kết thúc. Vui lòng đăng nhập hệ thống, tạo đăng ký sát hạch mới "
+                + "và nộp lại đầy đủ tài liệu theo hướng dẫn.</p>"
                 + "<p>Trân trọng,<br>Trung tâm sát hạch Lái Vui</p></div>";
     }
 
     private static String approvalEmailHtml(DossierDTO dossier) {
         return "<div style='font-family:Arial,sans-serif;line-height:1.6;color:#1f2937'>"
-                + "<h2 style='color:#047857'>Hồ sơ đã được duyệt</h2>"
+                + "<h2 style='color:#047857'>Hồ sơ đã được tiếp nhận và duyệt</h2>"
                 + "<p>Kính gửi <strong>" + html(dossier.getProfile().getFullName()) + "</strong>,</p>"
                 + "<p>Hồ sơ đăng ký sát hạch hạng <strong>" + html(dossier.getLicenceDisplayClass())
-                + "</strong>, mã hồ sơ <strong>#" + dossier.getRegistrationId() + "</strong> đã được duyệt.</p>"
+                + "</strong>, mã hồ sơ <strong>#" + dossier.getRegistrationId()
+                + "</strong> đã được nộp đầy đủ và duyệt hợp lệ.</p>"
                 + "<p>File PDF hồ sơ đã duyệt được đính kèm email này. Vui lòng kiểm tra thông tin và "
                 + "ký vào phần chữ ký khi trung tâm yêu cầu.</p>"
-                + "<p>Thời gian và địa điểm sát hạch sẽ được thông báo sau.</p>"
+                + "<p>Hồ sơ hiện đang chờ xếp ngày thi. Thời gian và địa điểm sát hạch sẽ được thông báo sau.</p>"
                 + "<p>Trân trọng,<br>Trung tâm sát hạch Lái Vui</p></div>";
     }
 

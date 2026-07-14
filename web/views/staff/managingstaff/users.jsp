@@ -2,6 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="exportLicence" value="${fn:toUpperCase(param.licence)}" />
+<c:set var="showApprovedExport"
+       value="${param.dossierStatus eq 'Approved' and (exportLicence eq 'A1' or exportLicence eq 'A' or exportLicence eq 'B1')}" />
 <c:if test="${requestScope.registrantReady ne true}">
     <c:redirect url="/manager/registrants" />
 </c:if>
@@ -33,8 +36,6 @@
         <div class="page-actions" style="display:flex;gap:.75rem">
             <a class="btn-export" href="${ctx}/manager/dossier-detail?status=pending"
                style="display:inline-flex;text-decoration:none">Hồ sơ chờ duyệt</a>
-            <a class="btn-filter" href="${ctx}/manager/create-user"
-               style="display:inline-flex;text-decoration:none">Tạo tài khoản &amp; hồ sơ</a>
         </div>
     </header>
 
@@ -54,38 +55,12 @@
         <div class="profile-score-card"><span class="score-card-part">TÀI KHOẢN ĐÃ KHÓA</span><strong style="font-size:1.7rem;color:#dc2626">${lockedCount}</strong></div>
     </div>
 
-    <section class="log-card" style="margin-bottom:1.25rem;border-color:#93c5fd">
-        <header class="log-card-header" style="align-items:flex-start">
-            <div>
-                <h2 class="log-card-title">Lập danh sách hồ sơ đã duyệt gửi cơ quan Công an</h2>
-                <p style="margin:.35rem 0 0;color:#64748b;font-size:.85rem">
-                    File Excel chỉ lấy hồ sơ có trạng thái <strong>Đã duyệt</strong> và tách riêng từng hạng A1, A, B1.
-                </p>
-            </div>
-            <span class="action-badge action-badge--success">${approvedCount} hồ sơ đủ điều kiện</span>
-        </header>
-        <div class="report-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;padding:1.25rem">
-            <c:forEach var="licenceItem" items="${['A1','A','B1']}">
-                <article class="profile-score-card" style="align-items:flex-start;gap:.75rem;border:1px solid #dbeafe">
-                    <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-                        <strong style="font-size:1.15rem;color:#0052cc">Hạng ${licenceItem}</strong>
-                        <span class="action-badge action-badge--success">${approvedByLicence[licenceItem]} đã duyệt</span>
-                    </div>
-                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:auto">
-                        <a class="btn-export"
-                           href="${ctx}/manager/registrants?licence=${licenceItem}&amp;dossierStatus=Approved"
-                           style="display:inline-flex;text-decoration:none">Xem danh sách</a>
-                        <a class="btn-filter"
-                           href="${ctx}/manager/registrants/export-approved?licence=${licenceItem}"
-                           style="display:inline-flex;text-decoration:none">Tải Excel .xlsx</a>
-                    </div>
-                </article>
-            </c:forEach>
-        </div>
-    </section>
-
     <section class="filter-panel">
-        <h2 class="filter-title">Tìm kiếm và lọc dữ liệu</h2>
+        <h2 class="filter-title">Tìm kiếm và lọc danh sách thí sinh</h2>
+        <p style="margin:-.35rem 0 1rem;color:#64748b;font-size:.85rem">
+            Muốn lập danh sách gửi cơ quan Công an, hãy chọn trạng thái <strong>Đã duyệt</strong>
+            và một hạng A1, A hoặc B1. Nút xuất Excel sẽ xuất hiện sau bảng kết quả.
+        </p>
         <form action="${ctx}/manager/registrants" method="get">
             <div class="filter-grid" style="grid-template-columns:2fr 1fr 1.25fr 1fr 1.5fr">
                 <div class="input-group">
@@ -139,7 +114,7 @@
         </header>
         <div class="table-responsive">
             <table class="audit-table">
-                <thead><tr><th>Mã</th><th>Thí sinh</th><th>CCCD / Liên hệ</th><th>Hạng</th><th>Nguồn hồ sơ</th><th>Giấy tờ</th><th>Hồ sơ</th><th>Tài khoản</th><th style="text-align:center">Thao tác</th></tr></thead>
+                <thead><tr><th>Mã</th><th>Thí sinh</th><th>CCCD / Liên hệ</th><th>Hạng</th><th>Nguồn hồ sơ</th><th>Giấy tờ</th><th>Hồ sơ</th><th>Tài khoản</th><th style="text-align:center;min-width:220px">Thao tác</th></tr></thead>
                 <tbody>
                     <c:forEach var="item" items="${registrants}">
                         <tr>
@@ -151,16 +126,16 @@
                             <td>${item.documentCount}/${item.requiredDocumentTotal}</td>
                             <td><span class="action-badge action-badge--${item.statusKey}">${item.statusLabel}</span></td>
                             <td><span class="action-badge action-badge--${item.user.active ? 'success' : 'danger'}">${item.user.active ? 'Hoạt động' : 'Đã khóa'}</span></td>
-                            <td>
-                                <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center">
-                                    <a class="btn-export" href="${ctx}/manager/dossier-detail?id=${item.user.id}" style="padding:.35rem .6rem;text-decoration:none">Chi tiết</a>
+                            <td style="text-align:center;vertical-align:middle;white-space:nowrap">
+                                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;justify-items:center;gap:.25rem;width:220px;margin:0 auto">
+                                    <a class="btn-export" href="${ctx}/manager/dossier-detail?id=${item.user.id}" style="grid-column:1;justify-self:start;padding:.35rem .5rem;text-decoration:none">Chi tiết</a>
                                     <c:if test="${item.reviewable}">
-                                        <a class="btn-export" href="${ctx}/manager/dossiers?id=${item.registrationId}" style="padding:.35rem .6rem;text-decoration:none;color:#d97706">Duyệt</a>
+                                        <a class="btn-export" href="${ctx}/manager/dossiers?id=${item.registrationId}" style="grid-column:2;padding:.35rem .5rem;text-decoration:none;color:#d97706">Duyệt</a>
                                     </c:if>
-                                    <form action="${ctx}/manager/registrants" method="post" style="margin:0" onsubmit="return confirm('${item.user.active ? 'Khóa' : 'Mở khóa'} tài khoản này?');">
+                                    <form action="${ctx}/manager/registrants" method="post" style="display:inline-flex;grid-column:3;justify-self:end;margin:0" onsubmit="return confirm('${item.user.active ? 'Khóa' : 'Mở khóa'} tài khoản này?');">
                                         <input type="hidden" name="id" value="${item.user.id}">
                                         <input type="hidden" name="action" value="${item.user.active ? 'lock' : 'activate'}">
-                                        <button class="btn-export" type="submit" style="padding:.35rem .6rem;color:${item.user.active ? '#dc2626' : '#059669'}">${item.user.active ? 'Khóa' : 'Mở khóa'}</button>
+                                        <button class="btn-export" type="submit" style="padding:.35rem .5rem;color:${item.user.active ? '#dc2626' : '#059669'}">${item.user.active ? 'Khóa' : 'Mở khóa'}</button>
                                     </form>
                                 </div>
                             </td>
@@ -217,6 +192,28 @@
                 </c:choose>
             </nav>
         </footer>
+        <c:if test="${showApprovedExport}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 1.25rem;border-top:1px solid #dbeafe;background:#f8fbff;flex-wrap:wrap">
+                <div>
+                    <strong style="display:block;color:#0f172a">Danh sách đã duyệt hạng ${exportLicence} đã sẵn sàng</strong>
+                    <span style="display:block;margin-top:.25rem;color:#64748b;font-size:.85rem">
+                        File gồm toàn bộ ${approvedByLicence[exportLicence]} hồ sơ đã duyệt của hạng ${exportLicence}, không phụ thuộc trang đang xem.
+                    </span>
+                </div>
+                <c:choose>
+                    <c:when test="${approvedByLicence[exportLicence] gt 0}">
+                        <a class="btn-filter"
+                           href="${ctx}/manager/registrants/export-approved?licence=${exportLicence}"
+                           style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;white-space:nowrap">
+                            Tải danh sách Excel (.xlsx)
+                        </a>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="action-badge action-badge--info">Chưa có hồ sơ để xuất</span>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </c:if>
     </section>
 </main>
 <jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include>

@@ -341,14 +341,13 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
     public List<DossierDTO> findSubmitted() {
         String sql = DOSSIER_SELECT
                 + " WHERE u.[Role] = 'Registrant' AND er.RegistrationStatus IN "
-                + "('Draft','Pending','Submitted','NeedSupplement','Rejected')"
+                + "('Draft','Pending','Submitted','NeedSupplement')"
                 + " ORDER BY CASE er.RegistrationStatus"
                 + " WHEN 'Submitted' THEN 1"
                 + " WHEN 'Pending' THEN 2"
                 + " WHEN 'NeedSupplement' THEN 3"
                 + " WHEN 'Draft' THEN 4"
-                + " WHEN 'Rejected' THEN 5"
-                + " ELSE 6 END, er.ExamRegistrationId DESC";
+                + " ELSE 5 END, er.ExamRegistrationId DESC";
         return executeDossierList(sql, List.of());
     }
 
@@ -358,14 +357,13 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
         int safePageSize = Math.max(1, Math.min(pageSize, 100));
         String sql = DOSSIER_SELECT
                 + " WHERE u.[Role] = 'Registrant' AND er.RegistrationStatus IN "
-                + "('Draft','Pending','Submitted','NeedSupplement','Rejected')"
+                + "('Draft','Pending','Submitted','NeedSupplement')"
                 + " ORDER BY CASE er.RegistrationStatus"
                 + " WHEN 'Submitted' THEN 1"
                 + " WHEN 'Pending' THEN 2"
                 + " WHEN 'NeedSupplement' THEN 3"
                 + " WHEN 'Draft' THEN 4"
-                + " WHEN 'Rejected' THEN 5"
-                + " ELSE 6 END, er.ExamRegistrationId DESC"
+                + " ELSE 5 END, er.ExamRegistrationId DESC"
                 + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         return executeDossierList(sql,
                 List.of((safePage - 1) * safePageSize, safePageSize));
@@ -384,7 +382,7 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
                     ORDER BY er2.ExamRegistrationId DESC
                 )
                 WHERE u.[Role] = 'Registrant'
-                  AND er.RegistrationStatus IN ('Draft','Pending','Submitted','NeedSupplement','Rejected')
+                  AND er.RegistrationStatus IN ('Draft','Pending','Submitted','NeedSupplement')
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
