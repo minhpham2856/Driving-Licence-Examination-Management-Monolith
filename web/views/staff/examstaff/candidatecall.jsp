@@ -16,24 +16,33 @@
             <div class="call-page-actions">
                 <c:if test="${sessionScope.shiftEnded ne 'true' and sessionScope.shiftPaused ne 'true'}">
                     <a href="candidatecall?action=pauseShift" class="call-toolbar-btn call-toolbar-btn--warn"
-                       onclick="return confirm('Tạm dừng kỳ thi? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng.');">
+                       onclick="return confirm('Tạm dừng gọi số? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng. Giám khảo cũng không đăng nhập được khi đang tạm dừng.');">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
                             <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>
                         </svg>
-                        Tạm dừng kỳ thi
+                        Tạm dừng gọi số
                     </a>
                     <a href="candidatecall?action=closeExam" class="call-toolbar-btn call-toolbar-btn--danger"
-                       onclick="return confirm('Đóng kỳ thi? Tất cả thí sinh chưa làm thủ tục trong hàng đợi sẽ bị đánh vắng.');">
+                       onclick="return confirm('Dừng gọi số? Tất cả thí sinh chưa làm thủ tục trong hàng đợi sẽ bị đánh vắng.');">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
                             <path d="M9 9h6v6H9z" fill="currentColor"/>
                         </svg>
-                        Đóng kỳ thi
+                        Dừng gọi số
                     </a>
                 </c:if>
             </div>
         </header>
+
+        <c:if test="${not empty sessionScope.examControlMsg}">
+            <div class="examstaff-flash examstaff-flash--success">${sessionScope.examControlMsg}</div>
+            <c:remove var="examControlMsg" scope="session"/>
+        </c:if>
+        <c:if test="${not empty sessionScope.examControlError}">
+            <div class="examstaff-flash examstaff-flash--error">${sessionScope.examControlError}</div>
+            <c:remove var="examControlError" scope="session"/>
+        </c:if>
 
         <nav class="call-subnav" aria-label="Điều hướng gọi thủ tục">
             <a href="candidatecall" class="call-subnav__link is-active">Gọi thủ tục</a>
@@ -110,11 +119,11 @@
                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #991b1b;">Kỳ thi đã đóng</h3>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #991b1b;">Đã dừng gọi số</h3>
                             <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Hàng đợi gọi thủ tục đã dừng. Các thí sinh chưa làm thủ tục đã được đánh vắng theo quy định.</p>
 
                             <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #0052cc, #003d9b); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
-                                Mở lại hàng đợi gọi thi
+                                Mở lại hàng đợi gọi số
                             </a>
                         </div>
                     </c:when>
@@ -127,11 +136,11 @@
                                     <rect x="13" y="5" width="4" height="14" rx="1" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #92400e;">Kỳ thi tạm dừng</h3>
-                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục.</p>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #92400e;">Đã tạm dừng gọi số</h3>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. Giám khảo không đăng nhập được khi đang tạm dừng.</p>
 
                             <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
-                                Tiếp tục kỳ thi
+                                Tiếp tục gọi số
                             </a>
                         </div>
                     </c:when>

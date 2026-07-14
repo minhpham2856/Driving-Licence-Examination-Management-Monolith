@@ -21,6 +21,25 @@
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
+        <c:if test="${not empty requestScope.examControlMsg}">
+            <div class="examstaff-flash examstaff-flash--success">${requestScope.examControlMsg}</div>
+        </c:if>
+        <c:if test="${not empty requestScope.examControlError}">
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.examControlError}</div>
+        </c:if>
+
+        <c:if test="${not empty currentExam}">
+        <section class="report-pane dashboard-exam-panel" aria-label="Điều hành kỳ thi" style="margin-bottom: 1.25rem;">
+            <div class="report-pane__header dashboard-exam-panel__header">
+                <h2 class="report-pane__title dashboard-exam-panel__title">Điều hành kỳ thi</h2>
+            </div>
+            <jsp:include page="/views/staff/examstaff/includes/exam-summary-line.jsp" />
+            <jsp:include page="/views/staff/examstaff/includes/exam-shift-chip.jsp">
+                <jsp:param name="redirect" value="report" />
+            </jsp:include>
+        </section>
+        </c:if>
+
         <header class="page-header page-header--toolbar">
             <p class="examiner-page-desc">Tổng hợp số liệu kết quả thi sát hạch trong ngày, thống kê tỷ lệ đạt/trượt và lỗi phổ biến.</p>
             <div class="page-actions">

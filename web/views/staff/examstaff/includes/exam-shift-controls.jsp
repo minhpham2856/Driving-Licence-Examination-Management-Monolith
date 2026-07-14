@@ -3,6 +3,8 @@
 <c:set var="shiftStatus" value="${param.status}" />
 <c:set var="shiftCanStart" value="${shiftStatus eq 'Chưa diễn ra' or shiftStatus eq 'Mở' or shiftStatus eq 'Scheduled' or shiftStatus eq 'Open'}" />
 <c:set var="shiftInProgress" value="${shiftStatus eq 'Đang diễn ra' or shiftStatus eq 'InProgress'}" />
+<c:set var="shiftPaused" value="${shiftStatus eq 'Tạm dừng' or shiftStatus eq 'Paused'}" />
+<c:set var="shiftCanEnd" value="${shiftInProgress or shiftPaused}" />
 <c:set var="examCanStartNow" value="${empty requestScope.examCanStartNow or requestScope.examCanStartNow}" />
 <c:set var="startEnabled" value="${shiftCanStart and examCanStartNow}" />
 <div class="exam-shift-chip__actions">
@@ -16,11 +18,33 @@
     <c:if test="${shiftCanStart and not examCanStartNow and not empty requestScope.examScheduledStartLabel}">
         <span class="es-text-muted-sm exam-shift-chip__hint">Mở từ ${requestScope.examScheduledStartLabel}</span>
     </c:if>
+
+    <c:choose>
+        <c:when test="${shiftPaused}">
+            <form action="exam-control" method="POST" class="exam-shift-chip__form"
+                  onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Tiếp tục kỳ thi ${param.examName}? Giám khảo có thể đăng nhập lại.');">
+                <input type="hidden" name="action" value="resumeExam">
+                <input type="hidden" name="examId" value="${param.examId}">
+                <input type="hidden" name="redirect" value="${param.redirect}">
+                <button type="submit" class="btn-filter exam-shift-chip__btn exam-shift-chip__btn--resume">Tiếp tục kỳ thi</button>
+            </form>
+        </c:when>
+        <c:otherwise>
+            <form action="exam-control" method="POST" class="exam-shift-chip__form"
+                  onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Tạm dừng kỳ thi ${param.examName}? Hàng đợi gọi số giữ nguyên; giám khảo sẽ không đăng nhập được khi đang tạm dừng.');">
+                <input type="hidden" name="action" value="pauseExam">
+                <input type="hidden" name="examId" value="${param.examId}">
+                <input type="hidden" name="redirect" value="${param.redirect}">
+                <button type="submit" class="btn-export exam-shift-chip__btn exam-shift-chip__btn--pause" <c:if test="${not shiftInProgress}">disabled</c:if>>Tạm dừng kỳ thi</button>
+            </form>
+        </c:otherwise>
+    </c:choose>
+
     <form action="exam-control" method="POST" class="exam-shift-chip__form"
           onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Kết thúc kỳ thi ${param.examName}? Giám khảo sẽ không đăng nhập được kỳ này nữa.');">
         <input type="hidden" name="action" value="endExam">
         <input type="hidden" name="examId" value="${param.examId}">
         <input type="hidden" name="redirect" value="${param.redirect}">
-        <button type="submit" class="btn-export exam-shift-chip__btn exam-shift-chip__btn--end" <c:if test="${not shiftInProgress}">disabled</c:if>>Kết thúc</button>
+        <button type="submit" class="btn-export exam-shift-chip__btn exam-shift-chip__btn--end" <c:if test="${not shiftCanEnd}">disabled</c:if>>Kết thúc kỳ thi</button>
     </form>
 </div>
