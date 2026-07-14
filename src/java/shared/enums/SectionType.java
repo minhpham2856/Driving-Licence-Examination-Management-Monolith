@@ -18,9 +18,9 @@ public enum SectionType {
         if (value == null) {
             return null;
         }
-        for (SectionType type : values()) {
-            if (type.getValue().equals(value)) {
-                return type;
+        for (SectionType status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
         return null;

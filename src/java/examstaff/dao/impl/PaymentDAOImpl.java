@@ -29,7 +29,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, payment.getPaymentStatus() != null ? payment.getPaymentStatus()
-                    : PaymentStatus.HOAN_TAT.getDisplayName());
+                    : PaymentStatus.COMPLETED.getValue());
             ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "Cash");
             if (payment.getTransactionReference() == null) {
                 ps.setNull(3, Types.NVARCHAR);
@@ -105,4 +105,6 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return -1;
     }
 }
+
+
 

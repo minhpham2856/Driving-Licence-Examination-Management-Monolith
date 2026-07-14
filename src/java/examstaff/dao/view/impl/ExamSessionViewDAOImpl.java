@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Read model ká»³ thi (schema má»›i: má»™t hÃ ng / Exam, khÃ´ng cÃ²n [Session]).
- * {@code sessionId} trÃªn view = {@code ExamId} Ä‘á»ƒ tÆ°Æ¡ng thÃ­ch UI cÅ©.
+ * Read model kỳ thi (schema mới: một hàng / Exam, không còn [Session]).
+ * {@code sessionId} trên view = {@code ExamId} để tương thích UI cũ.
  */
 public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionViewDAO {
 
@@ -22,7 +22,7 @@ public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionView
             + "e.ExamId AS examId, "
             + "CAST(1 AS BIT) AS isMorningSession, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Háº¡ng ' + l.LicenceClass + N' â€” ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS sessionName, "
             + "e.LicenceId AS licenseTypeId, "
             + "1 AS examTypeId, "
             + "CAST(e.ExamDate AS DATE) AS examDate, "
@@ -37,7 +37,7 @@ public class ExamSessionViewDAOImpl extends DBContext implements ExamSessionView
             + "e.StartTime AS createdAt, "
             + "l.LicenceClass AS licenseCode, "
             + "e.ExamCode AS examCode, "
-            + "N'LÃ½ thuyáº¿t + Thá»±c hÃ nh' AS examTypeName, "
+            + "N'Lý thuyết + Thực hành' AS examTypeName, "
             + "ea.AreaName AS areaName "
             + "FROM Exam e "
             + "JOIN Licence l ON l.LicenceId = e.LicenceId "

@@ -136,7 +136,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
-        return getAvailableAreasByType(ExamSection.LY_THUYET.getDisplayName());
+        return getAvailableAreasByType(ExamSection.LY_THUYET.getValue());
     }
 
     @Override
@@ -196,4 +196,5 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         if (val == null) ps.setNull(idx, Types.INTEGER); else ps.setInt(idx, val);
     }
 }
+
 

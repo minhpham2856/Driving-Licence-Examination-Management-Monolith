@@ -26,7 +26,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     ExamRegistration r = new ExamRegistration();
-                    r.setId(rs.getInt("ExamRegistrationId"));
+                    r.setExamRegistrationId(rs.getInt("ExamRegistrationId"));
                     r.setRegistrationStatus(rs.getString("RegistrationStatus"));
                     r.setNotes(rs.getString("Notes"));
                     r.setProfileId(rs.getInt("ProfileId"));
@@ -1548,4 +1548,5 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         String address;
     }
 }
+
 

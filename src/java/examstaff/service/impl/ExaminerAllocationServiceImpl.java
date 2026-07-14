@@ -73,7 +73,7 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         }
         // Ká»³ thi luÃ´n gá»“m LT + TH â€” fallback láº¥y cáº£ hai loáº¡i phÃ²ng/sÃ¢n.
         List<ExamArea> areas = new ArrayList<>(areaDAO.getAvailableAreasByType(
-                ExamSection.LY_THUYET.getDisplayName()));
+                ExamSection.LY_THUYET.getValue()));
         areas.addAll(areaDAO.getAvailableAreasByType(ExamAreaTypeResolver.PRACTICAL_AREA_TYPE));
         return areas;
     }
@@ -372,4 +372,5 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return areaId != null && areaId > 0;
     }
 }
+
 

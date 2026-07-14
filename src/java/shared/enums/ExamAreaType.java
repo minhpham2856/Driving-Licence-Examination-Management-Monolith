@@ -7,7 +7,7 @@ public enum ExamAreaType {
 
     private final String value;
 
-    ExamAreaType(String value) {
+    private ExamAreaType(String value) {
         this.value = value;
     }
 
@@ -19,9 +19,9 @@ public enum ExamAreaType {
         if (value == null) {
             return null;
         }
-        for (ExamAreaType type : values()) {
-            if (type.getValue().equals(value)) {
-                return type;
+        for (ExamAreaType status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
         return null;

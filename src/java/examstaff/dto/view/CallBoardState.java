@@ -3,7 +3,7 @@ package examstaff.dto.view;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Tráº¡ng thÃ¡i báº£ng gá»i thÃ­ sinh (khÃ´ng phá»¥ thuá»™c Servlet API). */
+/** Trạng thái bảng gọi thí sinh (không phụ thuộc Servlet API). */
 public class CallBoardState {
 
     private int examId;

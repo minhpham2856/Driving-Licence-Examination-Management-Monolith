@@ -3,7 +3,7 @@ package examstaff.dto.view;
 import java.sql.Date;
 import java.sql.Timestamp;
 
-/** Read model há»£p nháº¥t Candidate + Enrollment + káº¿t quáº£ thi (SELECT JOIN). */
+/** Read model hợp nhất Candidate + Enrollment + kết quả thi (SELECT JOIN). */
 public class ExamStaffCandidate {
 
     private int candidateId;

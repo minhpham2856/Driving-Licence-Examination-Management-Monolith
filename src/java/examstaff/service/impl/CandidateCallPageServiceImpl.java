@@ -168,7 +168,7 @@ public class CandidateCallPageServiceImpl implements CandidateCallPageService {
             if (synced != null) {
                 callingSbd = synced;
             }
-            // Giá»‘ng ExamStaffViewHelper.syncCallingSbd: luÃ´n sync board khi ca chÆ°a káº¿t thÃºc.
+            // Giống ExamStaffViewHelper.syncCallingSbd: luôn sync board khi ca chưa kết thúc.
             syncBoard = true;
             boardCallingSbd = callingSbd;
         } else if (shiftEnded) {

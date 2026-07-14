@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface ExamEnrollmentDAO {
 
-    // --- CleanMyBranch methods (Æ°u tiÃªn) ---
+    // --- CleanMyBranch methods (ưu tiên) ---
     ExamEnrollment getById(int examEnrollmentId);
 
     int insert(ExamEnrollment enrollment);

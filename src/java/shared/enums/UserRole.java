@@ -1,4 +1,5 @@
-﻿package shared.enums;
+package shared.enums;
+
 public enum UserRole {
     QUAN_TRI_VIEN("Quáº£n trá»‹ viÃªn"),
     SAT_HACH_VIEN("SÃ¡t háº¡ch viÃªn"),
@@ -6,36 +7,26 @@ public enum UserRole {
     CAN_BO_KY_THI("CÃ¡n bá»™ ká»³ thi"),
     THI_SINH("ThÃ­ sinh"),
     NGUOI_DANG_KY_THI("NgÆ°á»i Ä‘Äƒng kÃ½ thi");
-    private final String displayName;
-    UserRole(String displayName) {
-        this.displayName = displayName;
+
+    private final String value;
+
+    private UserRole(String value) {
+        this.value = value;
     }
-    public String getDisplayName() {
-        return displayName;
+
+    public String getValue() {
+        return value;
     }
-    public boolean matches(String roleName) {
-        return roleName != null && displayName.equalsIgnoreCase(roleName.trim());
-    }
-    public static boolean isAdmin(String roleName) {
-        return QUAN_TRI_VIEN.matches(roleName) || equalsRole(roleName, "Admin");
-    }
-    public static boolean isExaminer(String roleName) {
-        return SAT_HACH_VIEN.matches(roleName) || equalsRole(roleName, "Examiner");
-    }
-    public static boolean isManagingStaff(String roleName) {
-        return CAN_BO_QUAN_LY.matches(roleName) || equalsRole(roleName, "ManagingStaff");
-    }
-    public static boolean isExamStaff(String roleName) {
-        return CAN_BO_KY_THI.matches(roleName) || equalsRole(roleName, "ExamStaff");
-    }
-    public static boolean isRegistrant(String roleName) {
-        return NGUOI_DANG_KY_THI.matches(roleName) || equalsRole(roleName, "Registrant");
-    }
-    private static boolean equalsRole(String roleName, String englishName) {
-        return roleName != null && englishName.equalsIgnoreCase(roleName.trim());
-    }
-    public static boolean isStaffPortalRole(String roleName) {
-        return isAdmin(roleName) || isExaminer(roleName) || isManagingStaff(roleName) || isExamStaff(roleName);
+
+    public static UserRole fromValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        for (UserRole status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
+            }
+        }
+        return null;
     }
 }
-

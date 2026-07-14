@@ -24,7 +24,7 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
             INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = er.ExamEnrollmentId
             WHERE ee.ExamId = ?
               AND dr.OccurrenceCount > 0
-              AND sec.SectionType IN (N'Practical', N'Thá»±c hÃ nh', N'Sa hÃ¬nh', N'Layout', N'TH')
+              AND sec.SectionType IN (N'Practical', N'Thực hành', N'Sa hình', N'Layout', N'TH')
             GROUP BY sd.ScoreDeductionId, sd.[Reason]
             ORDER BY countVal DESC
             """;

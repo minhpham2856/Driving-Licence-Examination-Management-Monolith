@@ -94,12 +94,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         UserDTO examiner = examinerMap.get(examinerUserId);
 
         if (targetSession == null || area == null || examiner == null) {
-            result.setErrorMsg("Dá»¯ liá»‡u phÃ¢n cÃ´ng khÃ´ng há»£p lá»‡.");
+            result.setErrorMsg("DÃ¡Â»Â¯ liÃ¡Â»â€¡u phÃƒÂ¢n cÃƒÂ´ng khÃƒÂ´ng hÃ¡Â»Â£p lÃ¡Â»â€¡.");
             return result;
         }
 
         if (!ExamAreaTypeResolver.isAssignableExamArea(area)) {
-            result.setErrorMsg("Chá»‰ phÃ¢n cÃ´ng giÃ¡m kháº£o vÃ o phÃ²ng lÃ½ thuyáº¿t hoáº·c sÃ¢n thá»±c hÃ nh.");
+            result.setErrorMsg("ChÃ¡Â»â€° phÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o vÃƒÂ o phÃƒÂ²ng lÃƒÂ½ thuyÃ¡ÂºÂ¿t hoÃ¡ÂºÂ·c sÃƒÂ¢n thÃ¡Â»Â±c hÃƒÂ nh.");
             return result;
         }
 
@@ -119,14 +119,14 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         boolean ok = allocationService.assignExaminer(slot);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("ÄÃ£ phÃ¢n cÃ´ng giÃ¡m kháº£o " + slot.getExaminerName()
-                    + " vÃ o " + area.getAreaName() + ".");
+            result.setAlertMsg("Ã„ÂÃƒÂ£ phÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o " + slot.getExaminerName()
+                    + " vÃƒÂ o " + area.getAreaName() + ".");
             result.setAuditAction("ASSIGN Examiner");
             result.setAuditDetails(formatAssignAuditDetails(slot.getExaminerName(), area.getAreaName(),
                     targetSession.getSessionName()));
         } else {
             result.setErrorMsg(
-                    "GiÃ¡m kháº£o Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n cÃ´ng á»Ÿ phÃ²ng khÃ¡c trong cÃ¹ng ká»³ thi. Gá»¡ phÃ¢n cÃ´ng cÅ© trÆ°á»›c khi gÃ¡n má»›i.");
+                    "GiÃƒÂ¡m khÃ¡ÂºÂ£o Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c phÃƒÂ¢n cÃƒÂ´ng Ã¡Â»Å¸ phÃƒÂ²ng khÃƒÂ¡c trong cÃƒÂ¹ng kÃ¡Â»Â³ thi. GÃ¡Â»Â¡ phÃƒÂ¢n cÃƒÂ´ng cÃ…Â© trÃ†Â°Ã¡Â»â€ºc khi gÃƒÂ¡n mÃ¡Â»â€ºi.");
         }
         return result;
     }
@@ -135,7 +135,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     public ExaminerAllocationActionResultDTO removeExaminer(String slotKey) {
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
         if (slotKey == null || slotKey.isEmpty()) {
-            result.setErrorMsg("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c phÃ¢n cÃ´ng cáº§n gá»¡.");
+            result.setErrorMsg("KhÃƒÂ´ng xÃƒÂ¡c Ã„â€˜Ã¡Â»â€¹nh Ã„â€˜Ã†Â°Ã¡Â»Â£c phÃƒÂ¢n cÃƒÂ´ng cÃ¡ÂºÂ§n gÃ¡Â»Â¡.");
             return result;
         }
 
@@ -144,12 +144,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         if (ok) {
             result.setSuccess(true);
             result.setAlertMsg(existing != null
-                    ? "ÄÃ£ gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o " + resolveSlotExaminerLabel(existing) + "."
-                    : "ÄÃ£ gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o.");
+                    ? "Ã„ÂÃƒÂ£ gÃ¡Â»Â¡ phÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o " + resolveSlotExaminerLabel(existing) + "."
+                    : "Ã„ÂÃƒÂ£ gÃ¡Â»Â¡ phÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o.");
             result.setAuditAction("REMOVE Examiner");
             result.setAuditDetails(formatRemoveAuditDetails(existing));
         } else {
-            result.setErrorMsg("Gá»¡ phÃ¢n cÃ´ng tháº¥t báº¡i. Vui lÃ²ng thá»­ láº¡i.");
+            result.setErrorMsg("GÃ¡Â»Â¡ phÃƒÂ¢n cÃƒÂ´ng thÃ¡ÂºÂ¥t bÃ¡ÂºÂ¡i. Vui lÃƒÂ²ng thÃ¡Â»Â­ lÃ¡ÂºÂ¡i.");
         }
         return result;
     }
@@ -178,27 +178,27 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     }
 
     private static String formatAssignAuditDetails(String examinerName, String areaName, String sessionName) {
-        StringBuilder details = new StringBuilder("PhÃ¢n cÃ´ng giÃ¡m kháº£o ");
+        StringBuilder details = new StringBuilder("PhÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o ");
         details.append(blankToDash(examinerName));
-        details.append(" vÃ o ").append(blankToDash(areaName));
+        details.append(" vÃƒÂ o ").append(blankToDash(areaName));
         appendSessionSuffix(details, sessionName);
         return details.toString();
     }
 
     private static String formatRemoveAuditDetails(ExaminerSlotDTO slot) {
         if (slot == null) {
-            return "Gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o.";
+            return "GÃ¡Â»Â¡ phÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o.";
         }
-        StringBuilder details = new StringBuilder("Gá»¡ phÃ¢n cÃ´ng giÃ¡m kháº£o ");
+        StringBuilder details = new StringBuilder("GÃ¡Â»Â¡ phÃƒÂ¢n cÃƒÂ´ng giÃƒÂ¡m khÃ¡ÂºÂ£o ");
         details.append(resolveSlotExaminerLabel(slot));
-        details.append(" khá»i ").append(blankToDash(slot.getAreaName()));
+        details.append(" khÃ¡Â»Âi ").append(blankToDash(slot.getAreaName()));
         appendSessionSuffix(details, slot.getSessionName());
         return details.toString();
     }
 
     private static void appendSessionSuffix(StringBuilder details, String sessionName) {
         if (sessionName != null && !sessionName.isBlank()) {
-            details.append(" â€” ká»³ thi ").append(sessionName.trim());
+            details.append(" Ã¢â‚¬â€ kÃ¡Â»Â³ thi ").append(sessionName.trim());
         }
     }
 
@@ -213,7 +213,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
     }
 
     private static String blankToDash(String value) {
-        return value == null || value.isBlank() ? "â€”" : value.trim();
+        return value == null || value.isBlank() ? "Ã¢â‚¬â€" : value.trim();
     }
 
     private static String resolveExaminerName(UserDTO examiner) {
@@ -227,4 +227,6 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return "userId=" + examiner.getId();
     }
 }
+
+
 

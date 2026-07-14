@@ -19,9 +19,9 @@ public enum ViolationReason {
         if (value == null) {
             return null;
         }
-        for (ViolationReason reason : values()) {
-            if (reason.getValue().equals(value)) {
-                return reason;
+        for (ViolationReason status : values()) {
+            if (status.getValue().equals(value)) {
+                return status;
             }
         }
         return null;

@@ -11,7 +11,7 @@ public class ExaminerSchedule {
     private Integer examAreaId;
     private Integer assignedBy;
     private Timestamp assignedAt;
-    // Navigation fields (tá»« mainTest)
+    // Navigation fields (từ mainTest)
     private Exam exam;
     private User examiner;
     private ExamSection examSection;
@@ -48,13 +48,13 @@ public class ExaminerSchedule {
         this.examId = examId;
     }
 
-    /** @deprecated dÃ¹ng {@link #getExamId()} */
+    /** @deprecated dùng {@link #getExamId()} */
     @Deprecated
     public int getSessionId() {
         return examId;
     }
 
-    /** @deprecated dÃ¹ng {@link #setExamId(int)} */
+    /** @deprecated dùng {@link #setExamId(int)} */
     @Deprecated
     public void setSessionId(int sessionId) {
         this.examId = sessionId;
@@ -100,7 +100,7 @@ public class ExaminerSchedule {
         this.assignedAt = assignedAt;
     }
 
-    // Navigation getters/setters (tá»« mainTest)
+    // Navigation getters/setters (từ mainTest)
 
     public Exam getExam() {
         return exam;

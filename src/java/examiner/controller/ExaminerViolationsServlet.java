@@ -189,7 +189,7 @@ public class ExaminerViolationsServlet extends HttpServlet {
                 return;
             }
 
-            request.setAttribute("errorMsg", "KhÃ´ng thá»ƒ ghi nháº­n vi pháº¡m: " + result.getMessage());
+            request.setAttribute("errorMsg", "Không thể ghi nhận vi phạm: " + result.getMessage());
             doGet(request, response);
             return;
         }

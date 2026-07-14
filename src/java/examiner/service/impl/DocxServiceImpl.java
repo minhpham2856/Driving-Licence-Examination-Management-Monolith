@@ -66,10 +66,10 @@ public class DocxServiceImpl implements DocumentService {
             "dung", "sai", "khongTraLoi", "diemLyThuyet", "ketQuaLt",
             "diemThucHanh");
     private static final List<String> CANDIDATE_HEADERS = List.of(
-            "STT", "SBD", "Há» vÃ  tÃªn", "NgÃ y sinh", "Giá»›i tÃ­nh", "Sá»‘ cÄƒn cÆ°á»›c", "Email", "Sá»‘ Ä‘iá»‡n thoáº¡i",
-            "Äá»‹a chá»‰", "Háº¡ng GPLX", "LÃ½ do thi", "NgÃ y thi", "Váº¯ng thi", "TÃ¬nh tráº¡ng thi",
-            "ÄÃºng", "Sai", "KhÃ´ng TL", "Äiá»ƒm lÃ½ thuyáº¿t", "Káº¿t quáº£ LT",
-            "Äiá»ƒm thá»±c hÃ nh");
+            "STT", "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
+            "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi",
+            "Đúng", "Sai", "Không TL", "Điểm lý thuyết", "Kết quả LT",
+            "Điểm thực hành");
     private static final int BLOCK_A_FROM = 1;
     private static final int BLOCK_A_TO = 20;
     private static final int BLOCK_B_FROM = 21;
@@ -122,7 +122,7 @@ public class DocxServiceImpl implements DocumentService {
                     c.getLicenceClass(),
                     c.getReasonForTaking(),
                     c.getExamDate(),
-                    "KhÃ´ng",
+                    "Không",
                     c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
                     c.getCorrect(),
                     c.getWrong(),
@@ -134,7 +134,7 @@ public class DocxServiceImpl implements DocumentService {
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Danh sÃ¡ch thÃ­ sinh", "danhSachThiSinh", Map.of(), List.of(table), null);
+                "Danh sách thí sinh", "danhSachThiSinh", Map.of(), List.of(table), null);
     }
 
     public ExportPayloadDTO buildResultsExport(ExportContextDTO ctx) {
@@ -146,7 +146,7 @@ public class DocxServiceImpl implements DocumentService {
         int index = 1;
         if (ctx.isTheory() == false) {
             fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Há» vÃ  tÃªn", "Äiá»ƒm", "Káº¿t quáº£", "TÃ¬nh tráº¡ng", "Váº¯ng thi");
+            headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         index++,
@@ -155,12 +155,12 @@ public class DocxServiceImpl implements DocumentService {
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "KhÃ´ng"));
+                        "Không"));
             }
         } else {
             fields = List.of("stt", "sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Há» vÃ  tÃªn", "ÄÃºng", "Sai", "KhÃ´ng TL", "Káº¿t quáº£", "TÃ¬nh tráº¡ng",
-                    "Váº¯ng thi");
+            headers = List.of("STT", "SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
+                    "Vắng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         index++,
@@ -171,11 +171,11 @@ public class DocxServiceImpl implements DocumentService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "KhÃ´ng"));
+                        "Không"));
             }
         }
         XmlExportTable table = new XmlExportTable("ketQuaThi", "ketQua", fields, headers, rows);
-        return new ExportPayloadDTO("Káº¿t quáº£ thi", "ketQuaThi", Map.of(), List.of(table), null);
+        return new ExportPayloadDTO("Kết quả thi", "ketQuaThi", Map.of(), List.of(table), null);
     }
 
     public ExportPayloadDTO buildMinutesExport(ExportContextDTO ctx) {
@@ -192,16 +192,16 @@ public class DocxServiceImpl implements DocumentService {
         List<String> headers;
         if (ctx.isTheory() == false) {
             fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Há» vÃ  tÃªn", "Äiá»ƒm", "Káº¿t quáº£", "TÃ¬nh tráº¡ng", "Váº¯ng thi");
+            headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
         } else {
             fields = List.of("stt", "sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Há» vÃ  tÃªn", "ÄÃºng", "Sai", "KhÃ´ng TL", "Káº¿t quáº£", "TÃ¬nh tráº¡ng",
-                    "Váº¯ng thi");
+            headers = List.of("STT", "SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
+                    "Vắng thi");
         }
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", fields, headers, buildMinutesRows(candidates, ctx.isTheory()));
         return new ExportPayloadDTO(
-                "BiÃªn báº£n thi", "bienBanThi", metadata, List.of(table), preamble);
+                "Biên bản thi", "bienBanThi", metadata, List.of(table), preamble);
     }
 
     public ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx) {
@@ -233,7 +233,7 @@ public class DocxServiceImpl implements DocumentService {
             auditViolations = filteredAudits;
         }
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("tieuDe", "BIÃŠN Báº¢N VI PHáº M");
+        metadata.put("tieuDe", "BIÊN BẢN VI PHẠM");
         metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
         metadata.put("maDotThi", nullToDash(meta.get("examCode")));
         List<List<Object>> auditRows = new ArrayList<>();
@@ -258,25 +258,25 @@ public class DocxServiceImpl implements DocumentService {
                     row.get("sectionName"),
                     row.get("violationReason"),
                     row.get("deductionPoints"),
-                    Boolean.TRUE.equals(row.get("critical")) ? "CÃ³" : "KhÃ´ng",
+                    Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
                     row.get("currentScore")));
         }
         XmlExportTable auditTable = new XmlExportTable(
                 "viPhamQuyChe",
                 "viPham",
                 List.of("stt", "nguoiGhi", "noiDung", "lyDo", "thoiGian"),
-                List.of("STT", "NgÆ°á»i ghi", "Ná»™i dung", "LÃ½ do", "Thá»i gian"),
+                List.of("STT", "Người ghi", "Nội dung", "Lý do", "Thời gian"),
                 auditRows);
         XmlExportTable scoreTable = new XmlExportTable(
                 "truDiemThi",
                 "banTruDiem",
                 List.of("stt", "sbd", "hoVaTen", "phanThi", "lyDoTruDiem", "diemTru", "loiNghiemTrong", "diemHienTai"),
-                List.of("STT", "SBD", "Há» vÃ  tÃªn", "Pháº§n thi", "LÃ½ do trá»« Ä‘iá»ƒm", "Äiá»ƒm trá»«",
-                        "Lá»—i nghiÃªm trá»ng", "Äiá»ƒm hiá»‡n táº¡i"),
+                List.of("STT", "SBD", "Họ và tên", "Phần thi", "Lý do trừ điểm", "Điểm trừ",
+                        "Lỗi nghiêm trọng", "Điểm hiện tại"),
                 scoreRows);
         List<List<Object>> excelRows = buildViolationsExcelRows(meta, auditViolations, changerNames, scoreViolations);
         return new ExportPayloadDTO(
-                "BiÃªn báº£n vi pháº¡m", "bienBanViPham", metadata, List.of(auditTable, scoreTable), excelRows);
+                "Biên bản vi phạm", "bienBanViPham", metadata, List.of(auditTable, scoreTable), excelRows);
     }
 
     public ExportPayloadDTO buildAuditExport(ExportContextDTO ctx, String searchQuery) {
@@ -305,20 +305,20 @@ public class DocxServiceImpl implements DocumentService {
                 "nhatKy",
                 "banGhi",
                 List.of("nguoiDung", "thaoTac", "doiTuong", "maBanGhi", "thongTin", "cu", "moi", "lyDo", "thoiGian"),
-                List.of("NgÆ°á»i dÃ¹ng", "Thao tÃ¡c", "Äá»‘i tÆ°á»£ng", "SBD", "ThÃ´ng tin", "CÅ©", "Má»›i", "LÃ½ do",
-                        "Thá»i gian"),
+                List.of("Người dùng", "Thao tác", "Đối tượng", "SBD", "Thông tin", "Cũ", "Mới", "Lý do",
+                        "Thời gian"),
                 rows);
         Map<String, Object> metadata = Map.of();
         if (searchQuery != null && !searchQuery.isBlank()) {
             metadata = Map.of("tuKhoa", searchQuery.trim());
         }
-        return new ExportPayloadDTO("Nháº­t kÃ½", "nhatKyHeThong", metadata, List.of(table), null);
+        return new ExportPayloadDTO("Nhật ký", "nhatKyHeThong", metadata, List.of(table), null);
     }
 
     private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionName) {
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("tieuDe", "BIÃŠN Báº¢N Tá»” CHá»¨C THI");
+        metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
         metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
         metadata.put("maDotThi", nullToDash(meta.get("examCode")));
         metadata.put("ngayThi", formatDate(meta.get("examDate")));
@@ -328,7 +328,7 @@ public class DocxServiceImpl implements DocumentService {
             metadata.put("khuVucPhong", nullToDash(schedule.getExamArea().getAreaName()));
         }
         metadata.put("phanThi",
-                !isTheory ? nullToDash(sectionName) : "LÃ½ thuyáº¿t");
+                !isTheory ? nullToDash(sectionName) : "Lý thuyết");
         Map<String, Object> thongKe = new LinkedHashMap<>();
         thongKe.put("tongThiSinh", summary.getTotal());
         thongKe.put("daThi", summary.getDone());
@@ -343,24 +343,24 @@ public class DocxServiceImpl implements DocumentService {
     private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionName) {
         List<List<Object>> preamble = new ArrayList<>();
-        preamble.add(Arrays.asList("BIÃŠN Báº¢N Tá»” CHá»¨C THI"));
+        preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
         preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
-        preamble.add(Arrays.asList("MÃ£ Ä‘á»£t thi", nullToDash(meta.get("examCode"))));
-        preamble.add(Arrays.asList("NgÃ y thi", formatDate(meta.get("examDate"))));
-        preamble.add(Arrays.asList("Giá» báº¯t Ä‘áº§u", formatTime(meta.get("startTime"))));
-        preamble.add(Arrays.asList("Giá» káº¿t thÃºc", formatTime(meta.get("endTime"))));
+        preamble.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
+        preamble.add(Arrays.asList("Ngày thi", formatDate(meta.get("examDate"))));
+        preamble.add(Arrays.asList("Giờ bắt đầu", formatTime(meta.get("startTime"))));
+        preamble.add(Arrays.asList("Giờ kết thúc", formatTime(meta.get("endTime"))));
         if (schedule != null && schedule.getExamArea() != null) {
-            preamble.add(Arrays.asList("Khu vá»±c / PhÃ²ng", nullToDash(schedule.getExamArea().getAreaName())));
+            preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(schedule.getExamArea().getAreaName())));
         }
-        preamble.add(Arrays.asList("Pháº§n thi",
-                !isTheory ? nullToDash(sectionName) : "LÃ½ thuyáº¿t"));
+        preamble.add(Arrays.asList("Phần thi",
+                !isTheory ? nullToDash(sectionName) : "Lý thuyết"));
         preamble.add(Arrays.asList());
-        preamble.add(Arrays.asList("Tá»•ng thÃ­ sinh", summary.getTotal()));
-        preamble.add(Arrays.asList("ÄÃ£ thi", summary.getDone()));
-        preamble.add(Arrays.asList("Äang thi", summary.getTesting()));
-        preamble.add(Arrays.asList("ChÆ°a thi", summary.getPending()));
-        preamble.add(Arrays.asList("Äáº¡t", summary.getPassed()));
-        preamble.add(Arrays.asList("TrÆ°á»£t", summary.getFailed()));
+        preamble.add(Arrays.asList("Tổng thí sinh", summary.getTotal()));
+        preamble.add(Arrays.asList("Đã thi", summary.getDone()));
+        preamble.add(Arrays.asList("Đang thi", summary.getTesting()));
+        preamble.add(Arrays.asList("Chưa thi", summary.getPending()));
+        preamble.add(Arrays.asList("Đạt", summary.getPassed()));
+        preamble.add(Arrays.asList("Trượt", summary.getFailed()));
         preamble.add(Arrays.asList());
         return preamble;
     }
@@ -378,7 +378,7 @@ public class DocxServiceImpl implements DocumentService {
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "KhÃ´ng"));
+                        "Không"));
             } else {
                 rows.add(Arrays.asList(
                         index++,
@@ -389,7 +389,7 @@ public class DocxServiceImpl implements DocumentService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "KhÃ´ng"));
+                        "Không"));
             }
         }
         return rows;
@@ -398,12 +398,12 @@ public class DocxServiceImpl implements DocumentService {
     private List<List<Object>> buildViolationsExcelRows(Map<String, Object> meta, List<Audit> auditViolations,
             Map<Long, String> changerNames, List<Map<String, Object>> scoreViolations) {
         List<List<Object>> rows = new ArrayList<>();
-        rows.add(Arrays.asList("BIÃŠN Báº¢N VI PHáº M"));
+        rows.add(Arrays.asList("BIÊN BẢN VI PHẠM"));
         rows.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
-        rows.add(Arrays.asList("MÃ£ Ä‘á»£t thi", nullToDash(meta.get("examCode"))));
+        rows.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
         rows.add(Arrays.asList());
-        rows.add(Arrays.asList("I. Vi pháº¡m quy cháº¿ thi (nháº­t kÃ½)"));
-        rows.add(Arrays.asList("STT", "NgÆ°á»i ghi", "Ná»™i dung", "LÃ½ do", "Thá»i gian"));
+        rows.add(Arrays.asList("I. Vi phạm quy chế thi (nhật ký)"));
+        rows.add(Arrays.asList("STT", "Người ghi", "Nội dung", "Lý do", "Thời gian"));
         int index = 1;
         for (Audit log : auditViolations) {
             String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
@@ -416,12 +416,12 @@ public class DocxServiceImpl implements DocumentService {
                     time));
         }
         if (auditViolations.isEmpty()) {
-            rows.add(Arrays.asList("-", "-", "KhÃ´ng cÃ³ vi pháº¡m", "-", "-"));
+            rows.add(Arrays.asList("-", "-", "Không có vi phạm", "-", "-"));
         }
         rows.add(Arrays.asList());
-        rows.add(Arrays.asList("II. Trá»« Ä‘iá»ƒm thi"));
-        rows.add(Arrays.asList("STT", "SBD", "Há» vÃ  tÃªn", "Pháº§n thi", "LÃ½ do trá»« Ä‘iá»ƒm", "Äiá»ƒm trá»«",
-                "Lá»—i nghiÃªm trá»ng", "Äiá»ƒm hiá»‡n táº¡i"));
+        rows.add(Arrays.asList("II. Trừ điểm thi"));
+        rows.add(Arrays.asList("STT", "SBD", "Họ và tên", "Phần thi", "Lý do trừ điểm", "Điểm trừ",
+                "Lỗi nghiêm trọng", "Điểm hiện tại"));
         index = 1;
         for (Map<String, Object> row : scoreViolations) {
             rows.add(Arrays.asList(
@@ -431,11 +431,11 @@ public class DocxServiceImpl implements DocumentService {
                     row.get("sectionName"),
                     row.get("violationReason"),
                     row.get("deductionPoints"),
-                    Boolean.TRUE.equals(row.get("critical")) ? "CÃ³" : "KhÃ´ng",
+                    Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
                     row.get("currentScore")));
         }
         if (scoreViolations.isEmpty()) {
-            rows.add(Arrays.asList("-", "-", "KhÃ´ng cÃ³ trá»« Ä‘iá»ƒm", "-", "-", "-", "-", "-"));
+            rows.add(Arrays.asList("-", "-", "Không có trừ điểm", "-", "-", "-", "-", "-"));
         }
         return rows;
     }
@@ -522,7 +522,7 @@ public class DocxServiceImpl implements DocumentService {
             case "audit" ->
                 buildAuditExport(ctx, searchQuery);
             default ->
-                throw new IllegalArgumentException("Loáº¡i tÃ i liá»‡u xuáº¥t khÃ´ng Ä‘Æ°á»£c há»— trá»£: " + documentType);
+                throw new IllegalArgumentException("Loại tài liệu xuất không được hỗ trợ: " + documentType);
         };
     }
 
@@ -532,7 +532,7 @@ public class DocxServiceImpl implements DocumentService {
     public void export(ExportContextDTO ctx, String documentType, DocumentFormat format,
             String searchQuery, OutputStream out) throws IOException {
         if (format != DocumentFormat.DOCX) {
-            throw new IOException("DocxService chá»‰ há»— trá»£ xuáº¥t DOCX.");
+            throw new IOException("DocxService chỉ hỗ trợ xuất DOCX.");
         }
         ExportPayloadDTO payload = buildPayload(ctx, documentType, searchQuery);
         renderTableExport(payload, out);
@@ -547,7 +547,7 @@ public class DocxServiceImpl implements DocumentService {
             case "BB2", "LAYOUT", "SCORE_SHEET" ->
                 renderBb2Layout(ctx, sbd, out);
             default ->
-                throw new IOException("Loáº¡i vÄƒn báº£n in khÃ´ng Ä‘Æ°á»£c há»— trá»£: " + documentType);
+                throw new IOException("Loại văn bản in không được hỗ trợ: " + documentType);
         }
     }
 
@@ -571,7 +571,7 @@ public class DocxServiceImpl implements DocumentService {
         CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String template = pickTemplate("BB1", candidate.getLicenceClass());
         if (template == null) {
-            throw new IOException("KhÃ´ng tÃ¬m tháº¥y máº«u BB1.");
+            throw new IOException("Không tìm thấy mẫu BB1.");
         }
         render(template, buildBb1Placeholders(ctx, candidate), out);
     }
@@ -580,7 +580,7 @@ public class DocxServiceImpl implements DocumentService {
         CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String template = pickTemplate("BB2", candidate.getLicenceClass());
         if (template == null) {
-            throw new IOException("KhÃ´ng tÃ¬m tháº¥y máº«u BB2.");
+            throw new IOException("Không tìm thấy mẫu BB2.");
         }
         render(template, buildBb2Placeholders(ctx, candidate), out);
     }
@@ -637,7 +637,7 @@ public class DocxServiceImpl implements DocumentService {
         data.put("A", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_A_FROM, BLOCK_A_TO));
         data.put("B", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_B_FROM, BLOCK_B_TO));
         data.put("SCORE", format(candidate.getScoreTheory()));
-        boolean passed = "Äáº¡t".equalsIgnoreCase(stringValue(candidate.getResultLabel()))
+        boolean passed = "Đạt".equalsIgnoreCase(stringValue(candidate.getResultLabel()))
                 || candidate.isPassed();
         data.put("P", passed ? "X" : "");
         data.put("F", passed ? "" : "X");
@@ -660,7 +660,7 @@ public class DocxServiceImpl implements DocumentService {
         TheoryPaper paper = loadTheoryPaper(candidate);
         String shiftLabel = "-";
 
-        data.put("DEPT", "TP. HÃ€ Ná»˜I");
+        data.put("DEPT", "TP. HÀ NỘI");
         data.put("FNAME", format(candidate.getFullName()));
         data.put("EXAM", shiftLabel);
         data.put("PIC", "");
@@ -679,7 +679,7 @@ public class DocxServiceImpl implements DocumentService {
         CandidateRowDTO row = viewDataService.getCandidateViewRow(
                 ctx.examId(), sbd, ctx.isTheory(), ctx.sectionName());
         if (row == null) {
-            throw new IOException("KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh SBD " + sbd);
+            throw new IOException("Không tìm thấy thí sinh SBD " + sbd);
         }
         return row;
     }

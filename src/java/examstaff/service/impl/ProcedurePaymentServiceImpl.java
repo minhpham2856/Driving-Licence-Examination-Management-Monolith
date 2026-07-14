@@ -8,7 +8,6 @@ import shared.enums.PaymentMethod;
 import shared.enums.PaymentStatus;
 import shared.model.Payment;
 import examstaff.service.ExamRegistrationService;
-import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ProcedureFeeQueryService;
 import examstaff.service.ProcedurePaymentService;
 
@@ -56,8 +55,8 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         Payment payment = new Payment();
         payment.setExamEnrollmentId(enrollmentId);
         payment.setTotalAmount(totalAmount);
-        payment.setPaymentStatus(PaymentStatus.HOAN_TAT.getDisplayName());
-        payment.setPaymentMethod(PaymentMethod.CASH.getCode());
+        payment.setPaymentStatus(PaymentStatus.COMPLETED.getValue());
+        payment.setPaymentMethod(PaymentMethod.CASH.getValue());
         payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1_000_000);
         if (paymentDAO.insert(payment)) {
             return true;
@@ -70,4 +69,5 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         return registrationService.clearCompletedPayments(candidateId);
     }
 }
+
 

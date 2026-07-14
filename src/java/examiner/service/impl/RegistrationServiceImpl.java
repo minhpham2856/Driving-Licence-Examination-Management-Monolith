@@ -136,11 +136,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     public ServiceResult<Void> updateProfile(int candidateId, String fullName, Date dateOfBirth,
             String governmentIdNumber, String phoneNumber) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         Candidate candidate = candidateDAO.getById(candidateId);
         if (candidate == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
         boolean updated = candidateDAO.updateExaminerProfile(
                 candidateId,
@@ -152,7 +152,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 candidate.isSex(),
                 candidate.getReasonForTaking());
         if (!updated) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t há»“ sÆ¡ thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật hồ sơ thí sinh.");
         }
         return ServiceResult.ok(null);
     }
@@ -160,15 +160,15 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> updatePhoto(int candidateId, String photoUrl) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         Candidate candidate = candidateDAO.getById(candidateId);
         if (candidate == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
         candidate.setPhotoImageUrl(photoUrl);
         if (!candidateDAO.update(candidate)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t áº£nh chÃ¢n dung.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật ảnh chân dung.");
         }
         return ServiceResult.ok(null);
     }
@@ -176,10 +176,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> markAbsent(int candidateId) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         if (!enrollmentDAO.markAbsent(candidateId)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ Ä‘Ã¡nh dáº¥u váº¯ng máº·t.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể đánh dấu vắng mặt.");
         }
         return ServiceResult.ok(null);
     }
@@ -187,10 +187,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> clearAbsentMarking(int candidateId) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         if (!enrollmentDAO.clearAbsentMarking(candidateId)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ xÃ³a Ä‘Ã¡nh dáº¥u váº¯ng máº·t.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể xóa đánh dấu vắng mặt.");
         }
         return ServiceResult.ok(null);
     }
@@ -198,15 +198,15 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> markSuspended(int candidateId) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         Candidate candidate = candidateDAO.getById(candidateId);
         if (candidate == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
         candidate.setSuspended(true);
         if (!candidateDAO.update(candidate)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ Ä‘Ã¬nh chá»‰ thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể đình chỉ thí sinh.");
         }
         return ServiceResult.ok(null);
     }
@@ -214,15 +214,15 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> undoSuspension(int candidateId) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         Candidate candidate = candidateDAO.getById(candidateId);
         if (candidate == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
         candidate.setSuspended(false);
         if (!candidateDAO.update(candidate)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ gá»¡ Ä‘Ã¬nh chá»‰ thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể gỡ đình chỉ thí sinh.");
         }
         return ServiceResult.ok(null);
     }
@@ -236,20 +236,20 @@ public class RegistrationServiceImpl implements RegistrationService {
     public ServiceResult<Void> updateScores(int candidateId, Integer theoryScore, String theoryResult,
             Integer practicalScore, String practicalResult) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         if (theoryScore != null) {
             boolean passed = "passed".equalsIgnoreCase(theoryResult);
             if (!examScoreService.upsertSectionScore(candidateId, SectionType.THEORY,
                     theoryScore, passed)) {
-                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘iá»ƒm lÃ½ thuyáº¿t.");
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm lý thuyết.");
             }
         }
         if (practicalScore != null) {
             boolean passed = "passed".equalsIgnoreCase(practicalResult);
             if (!examScoreService.upsertSectionScore(candidateId, SectionType.LAYOUT,
                     practicalScore, passed)) {
-                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘iá»ƒm thá»±c hÃ nh.");
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật điểm thực hành.");
             }
         }
         return ServiceResult.ok(null);
@@ -258,10 +258,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> updatePresent(int candidateId, boolean isPresent) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         if (!candidateDAO.updateAbsent(candidateId, !isPresent)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ cáº­p nháº­t tráº¡ng thÃ¡i cÃ³ máº·t.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật trạng thái có mặt.");
         }
         return ServiceResult.ok(null);
     }
@@ -269,11 +269,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> updateAllocatedRoom(int candidateId, int areaId, String areaName) {
         if (candidateId <= 0 || areaId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ´ng tin phÃ¢n phÃ²ng khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thông tin phân phòng không hợp lệ.");
         }
         ExamEnrollment enrollment = enrollmentDAO.getLatestByCandidateId(candidateId);
         if (enrollment == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y ghi danh cá»§a thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy ghi danh của thí sinh.");
         }
         List<ExamDevice> devices = deviceDAO.getDevicesByAreaId(areaId);
         Integer deviceId = null;
@@ -284,10 +284,10 @@ public class RegistrationServiceImpl implements RegistrationService {
             }
         }
         if (deviceId == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y thiáº¿t bá»‹ kháº£ dá»¥ng trong khu vá»±c thi.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thiết bị khả dụng trong khu vực thi.");
         }
         if (!enrollmentDAO.assignExamDevice(candidateId, enrollment.getExamId(), deviceId)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ phÃ¢n phÃ²ng cho thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể phân phòng cho thí sinh.");
         }
         return ServiceResult.ok(null);
     }
@@ -295,14 +295,14 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> updatePayment(int candidateId, boolean isPaid) {
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không hợp lệ.");
         }
         if (!isPaid) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Chá»‰ há»— trá»£ ghi nháº­n Ä‘Ã£ thanh toÃ¡n.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Chỉ hỗ trợ ghi nhận đã thanh toán.");
         }
         ExamEnrollment enrollment = enrollmentDAO.getLatestByCandidateId(candidateId);
         if (enrollment == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "KhÃ´ng tÃ¬m tháº¥y ghi danh cá»§a thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy ghi danh của thí sinh.");
         }
         if (paymentDAO.hasCompletedPayment(enrollment.getExamEnrollmentId())) {
             return ServiceResult.ok(null);
@@ -314,7 +314,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         payment.setTotalAmount(0);
         payment.setPaidAt(new Timestamp(System.currentTimeMillis()));
         if (!paymentDAO.insert(payment)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi nháº­n thanh toÃ¡n.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận thanh toán.");
         }
         return ServiceResult.ok(null);
     }
@@ -345,15 +345,15 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     public ServiceResult<Void> insert(UploadRowDTO dto) {
         if (dto == null || dto.getExamId() <= 0) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Dá»¯ liá»‡u import khÃ´ng há»£p lá»‡.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Dữ liệu import không hợp lệ.");
         }
         if (dto.getGovIdNo() == null || dto.getGovIdNo().isBlank()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiáº¿u sá»‘ CCCD.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiếu số CCCD.");
         }
         Integer existingId = findCandidateIdByGovIdAndExam(dto.getGovIdNo(), dto.getExamId());
         if (existingId != null) {
             dto.setId(existingId);
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "ThÃ­ sinh Ä‘Ã£ tá»“n táº¡i trong ca thi.");
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh đã tồn tại trong ca thi.");
         }
         Candidate candidate = new Candidate();
         candidate.setCandidateNumber(formatCandidateNumber(dto.getCandidateNo()));
@@ -373,7 +373,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         candidate.setSuspended(false);
         int candidateId = candidateDAO.insert(candidate);
         if (candidateId <= 0) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ táº¡o thÃ­ sinh.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể tạo thí sinh.");
         }
         ExamEnrollment enrollment = new ExamEnrollment();
         enrollment.setCandidateId(candidateId);
@@ -382,7 +382,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         enrollment.setSignaturePrinted(false);
         int enrollmentId = enrollmentDAO.insert(enrollment);
         if (enrollmentId <= 0) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "KhÃ´ng thá»ƒ ghi danh thÃ­ sinh vÃ o ca thi.");
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi danh thí sinh vào ca thi.");
         }
         dto.setId(candidateId);
         return ServiceResult.ok(null);

@@ -44,6 +44,7 @@ import java.util.Map;
 import examiner.dao.ExaminerViewDAO;
 import examiner.dao.DeductionRecordDAO;
 import examiner.dao.impl.DeductionRecordDAOImpl;
+import shared.model.ExamArea;
 
 // Service implementation to load examminer realted data
 public class ExamViewServiceImpl implements ExamViewService {
@@ -380,7 +381,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.put("questionNo", question.getQuestionNumber());
             row.put("imageUrl", question.getImageUrl());
             row.put("correctAnswer", question.getCorrectAnswer());
-            row.put("studentAnswer", unanswered ? "â€”" : studentAnswer.trim().toUpperCase());
+            row.put("studentAnswer", unanswered ? "—" : studentAnswer.trim().toUpperCase());
             row.put("unanswered", unanswered);
             row.put("correct", correct);
             row.put("answerStatus", unanswered ? "skipped" : (correct ? "correct" : "wrong"));
@@ -650,7 +651,7 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     // Retrieves area name by area ID, returns empty string if not found.
     private String loadAreaName(int areaId) {
-        examiner.model.ExamArea area = examAreaDAO.getById(areaId);
+        ExamArea area = examAreaDAO.getById(areaId);
         return area != null && area.getAreaName() != null ? area.getAreaName() : "";
     }
 
@@ -729,7 +730,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setResultLabel("-");
         } else {
             row.setPassed(passed);
-            row.setResultLabel(passed ? "Äáº¡t" : "TrÆ°á»£t");
+            row.setResultLabel(passed ? "Đạt" : "Trượt");
         }
         // Device (vehicle) name
         Integer deviceId = enrollment.getEnrollment() != null ? enrollment.getEnrollment().getExamDeviceId() : null;

@@ -35,7 +35,7 @@ public class LoginServlet extends HttpServlet {
 
         // validate required fields
         if (identifier == null || password == null) {
-            forwardWithError(request, response, "Vui lÃ²ng nháº­p tÃªn Ä‘Äƒng nháº­p/email/sá»‘ cÄƒn cÆ°á»›c vÃ  máº­t kháº©u.");
+            forwardWithError(request, response, "Vui lòng nhập tên đăng nhập/email/số căn cước và mật khẩu.");
             return;
         }
 
@@ -44,7 +44,7 @@ public class LoginServlet extends HttpServlet {
 
         // invalid credentials
         if (user == null) {
-            forwardWithError(request, response, "TÃªn Ä‘Äƒng nháº­p/email/sá»‘ cÄƒn cÆ°á»›c hoáº·c máº­t kháº©u khÃ´ng chÃ­nh xÃ¡c.");
+            forwardWithError(request, response, "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
             return;
         }
 
@@ -58,7 +58,7 @@ public class LoginServlet extends HttpServlet {
 
         // only registrants can log in here
         if (RoleType.fromValue(user.getRole().getRoleName()) != RoleType.REGISTRANT) {
-            forwardWithError(request, response, "TÃªn Ä‘Äƒng nháº­p/email/sá»‘ cÄƒn cÆ°á»›c hoáº·c máº­t kháº©u khÃ´ng chÃ­nh xÃ¡c.");
+            forwardWithError(request, response, "Tên đăng nhập/email/số căn cước hoặc mật khẩu không chính xác.");
             return;
         }
 

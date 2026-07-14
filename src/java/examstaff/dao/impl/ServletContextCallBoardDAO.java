@@ -8,7 +8,7 @@ import examstaff.dto.view.CallBoardState;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Stores CallBoardState on ServletContext â€” constructed at the controller/HTTP edge. */
+/** Stores CallBoardState on ServletContext — constructed at the controller/HTTP edge. */
 public class ServletContextCallBoardDAO implements CallBoardDAO {
 
     private final ServletContext servletContext;

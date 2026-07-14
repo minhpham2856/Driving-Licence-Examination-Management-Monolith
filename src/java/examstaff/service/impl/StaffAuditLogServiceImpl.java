@@ -7,7 +7,6 @@ import shared.model.Audit;
 import examstaff.service.StaffAuditLogService;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 public class StaffAuditLogServiceImpl implements StaffAuditLogService {
 
@@ -22,7 +21,7 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     public void logAction(int userId, String action, String details, int recordId) {
         try {
             Audit log = new Audit();
-            log.setEntityName(AuditEntity.resolveLabel(resolveEntityName(action, details)));
+            log.setEntityName(resolveEntityName(action, details));
             log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction(normalizeAction(action));
             log.setReason(details);
@@ -35,15 +34,17 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     }
 
     static String resolveEntityName(String action, String details) {
-        String resolved = examstaff.util.AuditLogHelper.resolveEntityName(action, details);
+        String resolved = (action + " " + details);
         if ("Payment".equalsIgnoreCase(resolved)) {
-            return AuditEntity.THANH_TOAN.getDisplayName();
+            return AuditEntity.PAYMENT.getValue();
         }
         return resolved;
     }
 
     static String normalizeAction(String rawAct) {
-        return examstaff.util.AuditLogHelper.normalizeAction(rawAct);
+        return rawAct;
     }
 }
+
+
 

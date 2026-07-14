@@ -11,7 +11,7 @@ public interface ExamSectionDAO {
     ExamSection getBySectionType(String sectionType);
 
     // --- CleanMyBranch methods ---
-    /** Alias cá»§a {@link #getById(int)} */
+    /** Alias của {@link #getById(int)} */
     ExamSection findById(int examSectionId);
 
     List<ExamSection> findAll();

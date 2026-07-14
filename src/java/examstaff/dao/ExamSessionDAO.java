@@ -33,7 +33,7 @@ public interface ExamSessionDAO {
 
     boolean updateStatus(int sessionId, String status);
 
-    /** Cáº­p nháº­t tráº¡ng thÃ¡i vÃ  ghi thá»i Ä‘iá»ƒm káº¿t thÃºc ká»³ thi (EndTime). */
+    /** Cập nhật trạng thái và ghi thời điểm kết thúc kỳ thi (EndTime). */
     boolean finishSession(int sessionId, String status, Timestamp endTime);
 }
 
