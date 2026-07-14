@@ -6,11 +6,18 @@ import examstaff.dto.view.ExamSummaryRow;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Map {@link ExamSummaryRow} → {@link ExamSummaryDTO}. */
 public final class ExamSummaryMapper {
 
     private ExamSummaryMapper() {
     }
 
+    /**
+     * Map một dòng read-model sang DTO tóm tắt kỳ thi.
+     *
+     * @param row dòng nguồn (null → null)
+     * @return DTO hoặc {@code null}
+     */
     public static ExamSummaryDTO toDto(ExamSummaryRow row) {
         if (row == null) {
             return null;
@@ -33,6 +40,12 @@ public final class ExamSummaryMapper {
         return dto;
     }
 
+    /**
+     * Map danh sách row → danh sách DTO (bỏ qua null list → rỗng).
+     *
+     * @param rows danh sách nguồn
+     * @return danh sách DTO (không null)
+     */
     public static List<ExamSummaryDTO> toDtoList(List<ExamSummaryRow> rows) {
         List<ExamSummaryDTO> list = new ArrayList<>();
         if (rows == null) {

@@ -4,6 +4,9 @@ import examstaff.dto.ExamSummaryDTO;
 
 import java.util.List;
 
+/**
+ * View-model bộ chọn kỳ thi (exam picker) trên các trang ExamStaff.
+ */
 public class ExamStaffPickerViewDTO {
 
     private List<ExamSummaryDTO> examOptions;
