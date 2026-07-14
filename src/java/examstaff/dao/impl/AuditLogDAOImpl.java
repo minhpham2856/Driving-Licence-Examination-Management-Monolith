@@ -15,11 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JDBC implementation of AuditLogDAO for reading and writing audit trail records.
- * Supports paginated queries by user/date and staff KPI calculation.
+ * JDBC implementation của {@link AuditLogDAO} — ghi/đọc nhật ký Audit.
  */
 public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
+    /** SELECT nhật ký kèm tên người thay đổi. */
     private static final String AUDIT_SELECT = """
             SELECT a.AuditId AS id,
                    a.EntityName AS tableName,
@@ -39,13 +39,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             LEFT JOIN Profile p ON p.UserId = u.UserId
             """;
 
-    /**
-     * Inserts a new audit log entry with sensible defaults for null fields.
-     * Generates the audit ID via RETURN_GENERATED_KEYS.
-     *
-     * @param log the Audit entry to persist
-     * @return true if insertion succeeded
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean insert(Audit log) {
         String sql = """
@@ -102,13 +96,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return false;
     }
 
-    /**
-     * Returns logs for a specific user, optionally filtered by date (capped at 200 rows).
-     *
-     * @param userId  the user ID
-     * @param dateStr optional date string (yyyy-MM-dd); if null/empty returns all dates
-     * @return list of AuditDTO records
-     */
+    /** {@inheritDoc} */
     @Override
     public List<AuditDTO> getLogsByUserAndDate(int userId, String dateStr) {
         if (dateStr != null && !dateStr.trim().isEmpty()) {
@@ -122,16 +110,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 ps -> ps.setInt(1, userId), true);
     }
 
-    /**
-     * Paginated query of audit logs for a user, with optional date filter.
-     * Uses OFFSET-FETCH for server-side pagination.
-     *
-     * @param userId   the user ID
-     * @param dateStr  optional date filter (yyyy-MM-dd)
-     * @param page     the page number (1-based)
-     * @param pageSize the number of rows per page
-     * @return list of AuditDTO records for the requested page
-     */
+    /** {@inheritDoc} */
     @Override
     public List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
@@ -152,13 +131,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 }, false);
     }
 
-    /**
-     * Returns the total log count for a user, optionally filtered by date.
-     *
-     * @param userId  the user ID
-     * @param dateStr optional date filter
-     * @return the count
-     */
+    /** {@inheritDoc} */
     @Override
     public int getLogsCountByUserAndDate(int userId, String dateStr) {
         if (dateStr != null && !dateStr.trim().isEmpty()) {
@@ -171,9 +144,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return count("SELECT COUNT(*) FROM Audit WHERE UserId = ?", ps -> ps.setInt(1, userId));
     }
 
-    /**
-     * Executes a log query with parameter binding and optional row cap (TOP 200).
-     */
+    /** Chạy SELECT nhật ký; {@code limited=true} thì TOP 200. */
     private List<AuditDTO> queryLogs(String sql, SqlBinder binder, boolean limited) {
         List<AuditDTO> list = new ArrayList<>();
         String finalSql = limited ? sql.replaceFirst("SELECT", "SELECT TOP 200") : sql;
@@ -190,7 +161,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return list;
     }
 
-    /** Executes a COUNT query with parameter binding. */
+    /** Chạy COUNT với binder tham số. */
     private int count(String sql, SqlBinder binder) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             binder.bind(ps);
@@ -205,14 +176,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return 0;
     }
 
-    /**
-     * Calculates staff KPI: number of completed payments and total fee amount
-     * processed by a staff member, optionally filtered by date.
-     *
-     * @param userId     the staff user ID
-     * @param filterDate optional date filter (yyyy-MM-dd)
-     * @return StaffProcedureKpiDTO with completedCount and totalFees
-     */
+    /** {@inheritDoc} */
     @Override
     public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
@@ -271,7 +235,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return new StaffProcedureKpiDTO(0, 0);
     }
 
-    /** Maps a ResultSet row to an AuditDTO using the aliased column names from AUDIT_SELECT. */
+    /** Ánh xạ ResultSet → {@link AuditDTO} (alias từ AUDIT_SELECT). */
     private AuditDTO mapResultSetToAuditLog(ResultSet rs) throws SQLException {
         AuditDTO log = new AuditDTO();
         log.setTableName(rs.getString("tableName"));

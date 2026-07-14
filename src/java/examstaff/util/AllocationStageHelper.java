@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+/** Stage / filter / phân trang danh sách phân bổ thí sinh. */
 public final class AllocationStageHelper {
 
     public static final String STAGE_OVERVIEW = "overview";
@@ -27,6 +28,7 @@ public final class AllocationStageHelper {
     private AllocationStageHelper() {
     }
 
+    /** Bộ đếm số thí sinh theo từng stage / kết quả. */
     public static final class StageCounts {
         private int waiting;
         private int theory;
@@ -36,38 +38,43 @@ public final class AllocationStageHelper {
         private int suspended;
         private int total;
 
-        // Lay waiting
+        /** @return số đang phòng chờ */
         public int getWaiting() {
             return waiting;
         }
-        // Lay theory
 
+        /** @return số đang lý thuyết */
         public int getTheory() {
             return theory;
-        // Lay practical
         }
 
+        /** @return số đang thực hành */
         public int getPractical() {
             return practical;
         }
 
+        /** @return số đỗ */
         public int getPassCount() {
             return pass;
         }
 
+        /** @return số trượt */
         public int getFailCount() {
             return fail;
         }
 
+        /** @return số đình chỉ */
         public int getSuspendedCount() {
             return suspended;
         }
 
+        /** @return tổng danh sách đầu vào */
         public int getTotal() {
             return total;
         }
     }
 
+    /** Một trang kết quả phân trang. */
     public static final class PageSlice<T> {
         private final List<T> items;
         private final int page;
@@ -75,47 +82,58 @@ public final class AllocationStageHelper {
         private final int totalItems;
         private final int totalPages;
 
-        // Lay items
+        /**
+         * @param items      phần tử trang hiện tại
+         * @param page       số trang (≥ 1)
+         * @param pageSize   kích thước trang (≥ 1)
+         * @param totalItems tổng bản ghi
+         */
         public PageSlice(List<T> items, int page, int pageSize, int totalItems) {
             this.items = items == null ? List.of() : items;
             this.page = Math.max(1, page);
-        // Lay page
             this.pageSize = Math.max(1, pageSize);
             this.totalItems = Math.max(0, totalItems);
             this.totalPages = this.totalItems <= 0 ? 0
-        // Lay page size
                     : (int) Math.ceil((double) this.totalItems / this.pageSize);
         }
 
-        // Lay total items
+        /** @return phần tử trang */
         public List<T> getItems() {
             return items;
         }
-        // Lay total pages
 
+        /** @return số trang hiện tại */
         public int getPage() {
             return page;
         }
 
+        /** @return tổng bản ghi */
         public int getTotalItems() {
             return totalItems;
         }
 
+        /** @return tổng số trang */
         public int getTotalPages() {
             return totalPages;
         }
 
+        /** @return offset hàng đầu trang (0-based) */
         public int getRowOffset() {
             return (page - 1) * pageSize;
         }
     }
 
+    /**
+     * Suy stage từ đuôi servlet path.
+     *
+     * @param servletPath đường dẫn request
+     * @return hằng STAGE_*
+     */
     public static String resolveStageFromServletPath(String servletPath) {
         if (servletPath == null || servletPath.isBlank()) {
             return STAGE_OVERVIEW;
         }
         if (servletPath.endsWith("allocation-waiting")) {
-    // Xac dinh result filter from servlet path
             return STAGE_WAITING;
         }
         if (servletPath.endsWith("allocation-theory")) {
@@ -132,6 +150,12 @@ public final class AllocationStageHelper {
         return STAGE_OVERVIEW;
     }
 
+    /**
+     * Suy filter kết quả (pass/fail/suspended) từ path trang kết quả.
+     *
+     * @param servletPath đường dẫn request
+     * @return hằng RESULT_* (mặc định pass)
+     */
     public static String resolveResultFilterFromServletPath(String servletPath) {
         if (servletPath != null && servletPath.endsWith("allocation-results-fail")) {
             return RESULT_FAIL;
@@ -145,16 +169,20 @@ public final class AllocationStageHelper {
         return RESULT_PASS;
     }
 
+    /**
+     * Map servlet path → đường dẫn JSP tương ứng.
+     *
+     * @param servletPath đường dẫn request
+     * @return path JSP dưới {@code /views/staff/examstaff/}
+     */
     public static String resolveJspPath(String servletPath) {
         if (servletPath == null || servletPath.endsWith("/allocation")) {
             return "/views/staff/examstaff/allocation.jsp";
         }
         if (servletPath.endsWith("allocation-waiting")) {
-    // Tao extra query
             return "/views/staff/examstaff/allocation-waiting.jsp";
         }
         if (servletPath.endsWith("allocation-theory")) {
-    // Tao extra query
             return "/views/staff/examstaff/allocation-theory.jsp";
         }
         if (servletPath.endsWith("allocation-practical")) {
@@ -172,6 +200,18 @@ public final class AllocationStageHelper {
         return "/views/staff/examstaff/allocation.jsp";
     }
 
+    /**
+     * Xây chuỗi query phụ (page/size/q/examId/sort/dir/areaFilter) — bắt đầu bằng {@code &}.
+     *
+     * @param page         trang hiện tại
+     * @param pageSize     kích thước trang
+     * @param searchQuery  từ khóa tìm
+     * @param examIdParam  examId dạng chuỗi
+     * @param sortColumn   cột sort
+     * @param sortDir      hướng sort
+     * @param areaFilterId lọc phòng (null/0 = bỏ)
+     * @return query string (có thể rỗng)
+     */
     public static String buildExtraQuery(int page, int pageSize, String searchQuery, String examIdParam,
             String sortColumn, String sortDir, Integer areaFilterId) {
         StringBuilder sb = new StringBuilder();
@@ -201,7 +241,12 @@ public final class AllocationStageHelper {
         return sb.toString();
     }
 
-    /** {@code null}/0 = tất cả; âm = chưa phân phòng/sân; dương = ExamAreaId. */
+    /**
+     * Parse filter phòng: {@code null}/0 = tất cả; âm = chưa phân phòng/sân; dương = ExamAreaId.
+     *
+     * @param raw giá trị thô ({@code none}/{@code unassigned}/số)
+     * @return Integer filter hoặc {@code null}
+     */
     public static Integer parseAreaFilter(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
@@ -218,6 +263,14 @@ public final class AllocationStageHelper {
         }
     }
 
+    /**
+     * Lọc theo phòng đã phân (LT hoặc TH tùy {@code practical}).
+     *
+     * @param list         danh sách nguồn
+     * @param areaFilterId filter (null/0 = giữ nguyên; &lt;0 = chưa gán; &gt;0 = đúng areaId)
+     * @param practical    {@code true} dùng practicalAllocatedAreaId
+     * @return danh sách đã lọc
+     */
     public static List<ExamRegistrationDTO> filterByAllocatedArea(List<ExamRegistrationDTO> list,
             Integer areaFilterId, boolean practical) {
         if (list == null || list.isEmpty()) {
@@ -242,6 +295,12 @@ public final class AllocationStageHelper {
         return out;
     }
 
+    /**
+     * Suy servlet path từ action form (allocateRoom / allocatePracticalRoom).
+     *
+     * @param action tên action
+     * @return path tương ứng
+     */
     public static String inferServletPathFromAction(String action) {
         if (action == null) {
             return "/views/staff/examstaff/allocation";
@@ -253,18 +312,29 @@ public final class AllocationStageHelper {
         };
     }
 
+    /**
+     * Parse số trang (≥ 1); lỗi → 1.
+     *
+     * @param raw chuỗi trang
+     * @return số trang
+     */
     public static int parsePage(String raw) {
         if (raw == null || raw.isBlank()) {
             return 1;
         }
         try {
             return Math.max(1, Integer.parseInt(raw.trim()));
-    // compute counts
         } catch (NumberFormatException e) {
             return 1;
         }
     }
 
+    /**
+     * Parse page size (10…{@link #MAX_PAGE_SIZE}); lỗi → {@link #DEFAULT_PAGE_SIZE}.
+     *
+     * @param raw chuỗi size
+     * @return kích thước trang
+     */
     public static int parsePageSize(String raw) {
         if (raw == null || raw.isBlank()) {
             return DEFAULT_PAGE_SIZE;
@@ -280,7 +350,13 @@ public final class AllocationStageHelper {
         }
     }
 
-    // in stage
+    /**
+     * Đếm thí sinh theo từng stage trên toàn danh sách.
+     *
+     * @param all               danh sách đầy đủ
+     * @param practicalStageIds id thí sinh đang stage thực hành
+     * @return {@link StageCounts}
+     */
     public static StageCounts computeCounts(List<ExamRegistrationDTO> all, Set<Integer> practicalStageIds) {
         StageCounts counts = new StageCounts();
         if (all == null) {
@@ -310,7 +386,15 @@ public final class AllocationStageHelper {
         return counts;
     }
 
-    // filter for stage
+    /**
+     * Thí sinh có thuộc stage (+ optional resultFilter) hay không.
+     *
+     * @param c                 hồ sơ
+     * @param stage             STAGE_*
+     * @param practicalStageIds id đang TH
+     * @param resultFilter      RESULT_* khi stage = results
+     * @return {@code true} nếu thuộc stage
+     */
     public static boolean inStage(ExamRegistrationDTO c, String stage,
             Set<Integer> practicalStageIds, String resultFilter) {
         if (c == null || stage == null) {
@@ -339,8 +423,16 @@ public final class AllocationStageHelper {
             default -> false;
         };
     }
-    // paginate
 
+    /**
+     * Lọc danh sách theo stage.
+     *
+     * @param all               nguồn
+     * @param stage             STAGE_*
+     * @param practicalStageIds id đang TH
+     * @param resultFilter      RESULT_* (khi results)
+     * @return danh sách thuộc stage
+     */
     public static List<ExamRegistrationDTO> filterForStage(List<ExamRegistrationDTO> all, String stage,
             Set<Integer> practicalStageIds, String resultFilter) {
         List<ExamRegistrationDTO> out = new ArrayList<>();
@@ -354,8 +446,14 @@ public final class AllocationStageHelper {
         }
         return out;
     }
-    // matches search
 
+    /**
+     * Lọc theo từ khóa (SBD / tên / CCCD / SĐT / hạng).
+     *
+     * @param list  nguồn
+     * @param query từ khóa (blank → giữ nguyên)
+     * @return danh sách khớp
+     */
     public static List<ExamRegistrationDTO> filterSearch(List<ExamRegistrationDTO> list, String query) {
         if (list == null || list.isEmpty()) {
             return list == null ? List.of() : list;
@@ -374,8 +472,12 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Xác định phần hiện tại của thí sinh (ưu tiên kết quả -> sa hình -> LT -> chờ).
+     * Xác định phần hiện tại của thí sinh (ưu tiên kết quả -&gt; sa hình -&gt; LT -&gt; chờ).
      * Trả về key: waiting | theory | practical | results-pass | results-fail | results-suspended | unknown.
+     *
+     * @param c                 hồ sơ
+     * @param practicalStageIds id đang TH
+     * @return stage key
      */
     public static String resolveCurrentStageKey(ExamRegistrationDTO c, Set<Integer> practicalStageIds) {
         if (c == null) {
@@ -402,6 +504,12 @@ public final class AllocationStageHelper {
         return "unknown";
     }
 
+    /**
+     * Nhãn tiếng Việt cho stage key.
+     *
+     * @param stageKey key stage
+     * @return nhãn hiển thị
+     */
     public static String stageLabel(String stageKey) {
         if (stageKey == null) {
             return "Chưa xác định";
@@ -417,6 +525,12 @@ public final class AllocationStageHelper {
         };
     }
 
+    /**
+     * Servlet path tương ứng stage key.
+     *
+     * @param stageKey key stage
+     * @return path
+     */
     public static String stageServletPath(String stageKey) {
         if (stageKey == null) {
             return "/views/staff/examstaff/allocation";
@@ -432,6 +546,14 @@ public final class AllocationStageHelper {
         };
     }
 
+    /**
+     * Cắt danh sách thành một trang; chỉnh page nếu vượt quá.
+     *
+     * @param list     nguồn
+     * @param page     trang yêu cầu
+     * @param pageSize kích thước
+     * @return {@link PageSlice}
+     */
     public static PageSlice<ExamRegistrationDTO> paginate(List<ExamRegistrationDTO> list, int page, int pageSize) {
         if (list == null || list.isEmpty()) {
             return new PageSlice<>(List.of(), page, pageSize, 0);
@@ -439,7 +561,6 @@ public final class AllocationStageHelper {
         int total = list.size();
         int safePage = Math.max(1, page);
         int from = (safePage - 1) * pageSize;
-    // digits only
         if (from >= total) {
             safePage = Math.max(1, (int) Math.ceil((double) total / pageSize));
             from = (safePage - 1) * pageSize;
@@ -448,10 +569,10 @@ public final class AllocationStageHelper {
         return new PageSlice<>(list.subList(from, to), safePage, pageSize, total);
     }
 
+    /** Khớp từ khóa với các trường tìm kiếm của thí sinh. */
     private static boolean matchesSearch(ExamRegistrationDTO c, String q) {
         String qDigits = digitsOnly(q);
         if (!qDigits.isEmpty() && qDigits.equals(q)) {
-    // matches sbd numeric
             if (qDigits.length() <= 4) {
                 return matchesSbdNumeric(c.getSbd(), qDigits);
             }
@@ -469,15 +590,13 @@ public final class AllocationStageHelper {
         if (contains(c.getGovIdNo(), q)) {
             return true;
         }
-    // contains
         if (contains(c.getPhoneNo(), q)) {
             return true;
         }
-    // null to pass
         return contains(c.getLicenseCode(), q);
     }
 
-    // url encode
+    /** Trả về chuỗi nếu toàn chữ số; ngược lại {@code ""}. */
     private static String digitsOnly(String q) {
         if (q == null || q.isBlank()) {
             return "";
@@ -490,6 +609,7 @@ public final class AllocationStageHelper {
         return q;
     }
 
+    /** So khớp SBD dạng số (bằng / prefix / suffix). */
     private static boolean matchesSbdNumeric(String sbd, String qDigits) {
         if (sbd == null || sbd.isBlank() || qDigits == null || qDigits.isBlank()) {
             return false;
@@ -508,14 +628,17 @@ public final class AllocationStageHelper {
         return sbdDigits.startsWith(qDigits) || sbdDigits.endsWith(qDigits);
     }
 
+    /** contains không phân biệt hoa thường. */
     private static boolean contains(String value, String q) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(q);
     }
 
+    /** null/blank → {@code none}. */
     private static String nullToPass(String v) {
         return v == null || v.isBlank() ? "none" : v.trim();
     }
 
+    /** URL-encode UTF-8. */
     private static String urlEncode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }

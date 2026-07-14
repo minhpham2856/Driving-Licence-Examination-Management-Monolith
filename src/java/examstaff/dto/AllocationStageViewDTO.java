@@ -5,6 +5,10 @@ import examstaff.util.AllocationStageHelper;
 
 import java.util.List;
 
+/**
+ * View-model trang phân bổ theo stage (BLL → JSP).
+ * Gồm đếm stage, danh sách thí sinh, phân trang và hit tìm kiếm tổng quan.
+ */
 public class AllocationStageViewDTO {
 
     private AllocationStageHelper.StageCounts stageCounts;
