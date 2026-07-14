@@ -87,15 +87,53 @@ public class ExamControlServiceImpl implements ExamControlService {
         if (examSummary == null) {
             return EndResult.fail("Không tìm thấy kỳ thi.");
         }
-        if (!examstaff.enums.ExamStatus.isInProgress(examSummary.getStatus())) {
+        if (!examstaff.enums.ExamStatus.canEnd(examSummary.getStatus())) {
             return EndResult.fail("Kỳ thi \"" + examSummary.getExamName()
-                    + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSummary.getStatus() + ").");
+                    + "\" chưa thể kết thúc (hiện tại: " + examSummary.getStatus() + ").");
         }
         Timestamp endTime = new Timestamp(System.currentTimeMillis());
         if (!examDAO.finishExam(examId, examstaff.enums.ExamStatus.HOAN_TAT.getDisplayName(), endTime)) {
             return EndResult.fail("Không cập nhật được trạng thái kết thúc kỳ thi. Vui lòng thử lại.");
         }
         return EndResult.ok(buildExamLabel(examSummary));
+    }
+
+    @Override
+    public PauseResult pauseExam(int examId) {
+        ExamSummaryDTO examSummary = examDAO.getById(examId);
+        if (examSummary == null) {
+            return PauseResult.fail("Không tìm thấy kỳ thi.");
+        }
+        if (examstaff.enums.ExamStatus.isPaused(examSummary.getStatus())) {
+            return PauseResult.ok(buildExamLabel(examSummary));
+        }
+        if (!examstaff.enums.ExamStatus.isInProgress(examSummary.getStatus())) {
+            return PauseResult.fail("Kỳ thi \"" + examSummary.getExamName()
+                    + "\" chưa ở trạng thái đang diễn ra (hiện tại: " + examSummary.getStatus() + ").");
+        }
+        if (!examDAO.updateStatus(examId, examstaff.enums.ExamStatus.TAM_DUNG.getDisplayName())) {
+            return PauseResult.fail("Không cập nhật được trạng thái tạm dừng kỳ thi. Vui lòng thử lại.");
+        }
+        return PauseResult.ok(buildExamLabel(examSummary));
+    }
+
+    @Override
+    public ResumeResult resumeExam(int examId) {
+        ExamSummaryDTO examSummary = examDAO.getById(examId);
+        if (examSummary == null) {
+            return ResumeResult.fail("Không tìm thấy kỳ thi.");
+        }
+        if (examstaff.enums.ExamStatus.isInProgress(examSummary.getStatus())) {
+            return ResumeResult.ok(buildExamLabel(examSummary));
+        }
+        if (!examstaff.enums.ExamStatus.isPaused(examSummary.getStatus())) {
+            return ResumeResult.fail("Kỳ thi \"" + examSummary.getExamName()
+                    + "\" không ở trạng thái tạm dừng (hiện tại: " + examSummary.getStatus() + ").");
+        }
+        if (!examDAO.updateStatus(examId, examstaff.enums.ExamStatus.DANG_DIEN_RA.getDisplayName())) {
+            return ResumeResult.fail("Không cập nhật được trạng thái tiếp tục kỳ thi. Vui lòng thử lại.");
+        }
+        return ResumeResult.ok(buildExamLabel(examSummary));
     }
 }
 
