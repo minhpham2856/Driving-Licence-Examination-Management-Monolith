@@ -118,7 +118,7 @@ public final class RegistrantExamSupport {
         };
     }
 
-    /** CCCD 12 số hoặc CMND 9 số — dùng validate hồ sơ thí sinh. */
+    /** CCCD 12 số hoặc CMND 9 số - dùng validate hồ sơ thí sinh. */
     public static boolean isValidGovIdNumber(String raw) {
         if (raw == null || raw.isBlank()) {
             return false;
@@ -177,7 +177,7 @@ public final class RegistrantExamSupport {
                 || ExamRegistrationLifecycleStatus.CANCELLED.equalsIgnoreCase(regStatus)) {
             row.setStatusClass("rejected");
             row.setStatusLabel(ExamRegistrationLifecycleStatus.toDisplayLabel(regStatus));
-            row.setOverallResultLabel("—");
+            row.setOverallResultLabel("-");
         } else if (ExamRegistrationLifecycleStatus.isCancellationPending(regStatus)) {
             row.setStatusClass("pending");
             row.setStatusLabel("Chờ hủy đăng ký");
@@ -296,7 +296,7 @@ public final class RegistrantExamSupport {
     }
 
     /**
-     * Công bố giờ ca thi sau khi đã có điểm hoặc ca đã diễn ra — phòng trường hợp thi xong
+     * Công bố giờ ca thi sau khi đã có điểm hoặc ca đã diễn ra - phòng trường hợp thi xong
      * nhưng trạng thái Session chưa đồng bộ.
      */
     public static void finalizeSessionTimeDisplay(RegistrantMyExamRow row, String sessionStatus,
@@ -380,19 +380,19 @@ public final class RegistrantExamSupport {
         row.setSessionTimeDisplay(formatSessionTimeRange(sessionStart, sessionEnd));
     }
 
-    /** Định dạng khoảng giờ ca thi cho dashboard (vd: "08:00 — 10:00"). */
+    /** Định dạng khoảng giờ ca thi cho dashboard (vd: "08:00 - 10:00"). */
     public static String formatSessionTimeRange(java.util.Date start, java.util.Date end) {
         if (start == null && end == null) {
             return null;
         }
         SimpleDateFormat hm = new SimpleDateFormat("HH:mm", Locale.ROOT);
         if (start != null && end != null) {
-            return hm.format(start) + " — " + hm.format(end);
+            return hm.format(start) + " - " + hm.format(end);
         }
         return start != null ? hm.format(start) : hm.format(end);
     }
 
-    /** Đọc cột INT/BIT an toàn — tương thích mọi JDBC driver (tránh pattern matching gây lỗi compile NB). */
+    /** Đọc cột INT/BIT an toàn - tương thích mọi JDBC driver (tránh pattern matching gây lỗi compile NB). */
     public static Integer toInteger(Object value) {
         if (value == null) {
             return null;
@@ -428,11 +428,11 @@ public final class RegistrantExamSupport {
         if (block != null) {
             String statusLabel = ExamRegistrationLifecycleStatus.toDisplayLabel(block.getRegistrationStatus());
             return String.format(
-                    "Bạn đã có đăng ký phần thi %s (Hạng %s) tại %s — trạng thái: %s. "
+                    "Bạn đã có đăng ký phần thi %s (Hạng %s) tại %s - trạng thái: %s. "
                             + "Chỉ được đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.",
                     section.getSectionName(),
-                    uiLicenceCode != null ? uiLicenceCode : "—",
-                    block.getSessionName() != null ? block.getSessionName() : "—",
+                    uiLicenceCode != null ? uiLicenceCode : "-",
+                    block.getSessionName() != null ? block.getSessionName() : "-",
                     statusLabel);
         }
 
@@ -469,11 +469,11 @@ public final class RegistrantExamSupport {
         }
 
         String dateLabel = formatExamDate(existing.getExamDate());
-        String licenceLabel = existing.getUiLicenceCode() != null ? existing.getUiLicenceCode() : "—";
-        String sessionLabel = existing.getSessionName() != null ? existing.getSessionName() : "—";
+        String licenceLabel = existing.getUiLicenceCode() != null ? existing.getUiLicenceCode() : "-";
+        String sessionLabel = existing.getSessionName() != null ? existing.getSessionName() : "-";
         return String.format(
                 "Bạn đã có ca thi Hạng %s (%s) vào ngày %s. "
-                        + "Giữa các hạng GPLX khác nhau chỉ được thi vào ngày khác nhau — vui lòng chọn ca khác ngày.",
+                        + "Giữa các hạng GPLX khác nhau chỉ được thi vào ngày khác nhau - vui lòng chọn ca khác ngày.",
                 licenceLabel, sessionLabel, dateLabel);
     }
 

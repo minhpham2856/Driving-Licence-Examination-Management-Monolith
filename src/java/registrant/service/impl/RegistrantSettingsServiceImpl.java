@@ -133,7 +133,7 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
             request.setAttribute("profileRegistrationStatusLabel", "Chưa có hồ sơ");
             request.setAttribute("profileRegistrationStatusClass", "gray");
             request.setAttribute("cccdImagesComplete", false);
-            request.setAttribute("cccdStatusLabel", "—");
+            request.setAttribute("cccdStatusLabel", "-");
             request.setAttribute("activeExamRegistrationCount", 0);
             request.setAttribute("activeLicenceClassesLabel", null);
             return;

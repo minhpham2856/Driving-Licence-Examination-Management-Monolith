@@ -1311,7 +1311,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     }
 
     private Integer findSectionIdForCandidate(int examCandidateId, String keyword) throws SQLException {
-        // B2: lý thuyết (exam 2) và thực hành/sa hình (exam 3) dùng cùng LicenceId — không chỉ ExamId hiện tại
+        // B2: lý thuyết (exam 2) và thực hành/sa hình (exam 3) dùng cùng LicenceId - không chỉ ExamId hiện tại
         String sql = """
                 SELECT TOP 1 es.ExamSectionId
                 FROM Exam_Candidate ec
