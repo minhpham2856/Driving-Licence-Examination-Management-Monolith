@@ -70,7 +70,9 @@ public final class CallBoardRules {
         state.setDeskSbd(null);
         state.setShiftEnded(false);
         state.setExamPaused(true);
-        state.setQueueOrderSbds(CallQueueRules.extractSbdOrder(queue));
+        if (queue != null && !queue.isEmpty()) {
+            state.setQueueOrderSbds(CallQueueRules.extractSbdOrder(queue));
+        }
         state.setUpdatedAtMs(System.currentTimeMillis());
         return state;
     }

@@ -3,6 +3,7 @@ package shared.enums;
 public enum ExamStatus {
     NOT_STARTED("Chưa diễn ra"),
     IN_PROGRESS("Đang diễn ra"),
+    PAUSED("Tạm dừng"),
     COMPLETED("Hoàn tất"),
     CANCELLED("Đã hủy");
 
