@@ -21,7 +21,7 @@ import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
-@WebServlet("/views/staff/examstaff/select-exam")
+@WebServlet("/examstaff/select-exam")
 public class ExamSelectServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
@@ -55,7 +55,7 @@ public class ExamSelectServlet extends HttpServlet {
             ExamSelectResultDTO result = examSelectService.processSelection(selectRequest);
             if (!result.isSuccess()) {
                 httpSession.setAttribute("examSelectError", result.getErrorMessage());
-                response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard"));
+                response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/examstaff/dashboard"));
                 return;
             }
 
@@ -76,7 +76,7 @@ public class ExamSelectServlet extends HttpServlet {
             httpSession.setAttribute("examStaffExamJustChanged", Boolean.TRUE);
             httpSession.setAttribute("examSelectMsg", ExamStaffMessage.EXAM_SELECTED.getText());
 
-            String redirect = ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard");
+            String redirect = ExamStaffHttpSupport.resolveSafeRedirect(request, "/examstaff/dashboard");
             redirect = ExamStaffHttpSupport.stripQueryString(redirect);
 
             int pickerExamId = ExamStaffHttpSupport.parseExamIdParam(request);
@@ -93,7 +93,7 @@ public class ExamSelectServlet extends HttpServlet {
             httpSession.setAttribute("examSelectError",
                     ExamStaffMessage.EXAM_CHANGE_ERROR_PREFIX.getText()
                             + (e.getMessage() != null ? e.getMessage() : ExamStaffMessage.UNKNOWN_ERROR.getText()));
-            response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/views/staff/examstaff/dashboard"));
+            response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/examstaff/dashboard"));
         }
     }
 

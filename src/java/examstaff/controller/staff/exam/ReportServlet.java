@@ -31,7 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-@WebServlet("/views/staff/examstaff/report")
+@WebServlet("/examstaff/report")
 public class ReportServlet extends HttpServlet {
 
     private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();

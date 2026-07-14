@@ -14,7 +14,7 @@ public final class StaffAuditPageBinder {
         }
         request.setAttribute("personalLogs", view.getPersonalLogs());
         request.setAttribute("examStaffPageSlice", view.getPageSlice());
-        request.setAttribute("examStaffListPath", "/views/staff/examstaff/audit");
+        request.setAttribute("examStaffListPath", "/examstaff/audit");
         int completed = view.getProcedureKpi() != null ? view.getProcedureKpi().getCompletedCount() : 0;
         double totalFees = view.getProcedureKpi() != null ? view.getProcedureKpi().getTotalFees() : 0;
         request.setAttribute("myCompletedProcedures", completed);

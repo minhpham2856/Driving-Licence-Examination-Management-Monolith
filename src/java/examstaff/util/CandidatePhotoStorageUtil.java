@@ -8,7 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Lưu trữ ảnh thí sinh — không dùng Servlet API. */
+/** Lưu trữ ảnh thí sinh - không dùng Servlet API. */
 public final class CandidatePhotoStorageUtil {
 
     private CandidatePhotoStorageUtil() {

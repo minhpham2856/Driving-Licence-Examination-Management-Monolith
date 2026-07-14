@@ -18,7 +18,7 @@ import shared.model.Role;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/views/staff/examstaff/*"})
+@WebFilter(urlPatterns = {"/examstaff/*"})
 public class ExamStaffSidebarFilter extends HttpFilter {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();

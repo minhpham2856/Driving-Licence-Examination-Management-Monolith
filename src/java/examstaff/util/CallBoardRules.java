@@ -5,7 +5,7 @@ import examstaff.dto.view.CallBoardState;
 
 import java.util.List;
 
-/** Đồng bộ trạng thái bảng gọi — logic nghiệp vụ thuần. */
+/** Đồng bộ trạng thái bảng gọi - logic nghiệp vụ thuần. */
 public final class CallBoardRules {
 
     private CallBoardRules() {
@@ -59,7 +59,7 @@ public final class CallBoardRules {
         return state;
     }
 
-    /** Tạm dừng gọi thí sinh — giữ thứ tự hàng đợi, không đánh vắng. */
+    /** Tạm dừng gọi thí sinh - giữ thứ tự hàng đợi, không đánh vắng. */
     public static CallBoardState pauseBoard(CallBoardState current, int examId,
             List<ExamRegistrationDTO> queue) {
         CallBoardState state = current != null ? current : new CallBoardState();

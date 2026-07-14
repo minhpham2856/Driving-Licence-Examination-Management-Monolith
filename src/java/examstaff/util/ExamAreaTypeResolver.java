@@ -4,7 +4,7 @@ import examstaff.enums.ExamSection;
 import shared.enums.ExamAreaType;
 import shared.model.ExamArea;
 
-/** Phân loại khu vực thi (LT / TH) — helper thuần. */
+/** Phân loại khu vực thi (LT / TH) - helper thuần. */
 public final class ExamAreaTypeResolver {
 
     public static final String PRACTICAL_AREA_TYPE = "Thực hành";
@@ -12,7 +12,7 @@ public final class ExamAreaTypeResolver {
     private ExamAreaTypeResolver() {
     }
 
-    /** Phòng dùng để phân giám khảo / phân thí sinh (bỏ khu hỗn hợp / thủ tục). */
+    /** Phòng dùng để phân sát hạch viên / phân thí sinh (bỏ khu hỗn hợp / thủ tục). */
     public static boolean isAssignableExamArea(ExamArea area) {
         return ExaminerAssignmentRules.isTheoryRoom(area)
                 || ExaminerAssignmentRules.isPracticalRoom(area);
