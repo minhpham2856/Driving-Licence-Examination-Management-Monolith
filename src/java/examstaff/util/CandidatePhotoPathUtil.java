@@ -5,12 +5,17 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import java.io.File;
 import java.util.List;
 
-/** Chuẩn hóa đường dẫn ảnh nội bộ — controller dùng {@link examstaff.service.CandidatePhotoService#normalizePhotoPaths}. */
+/** Chuẩn hóa đường dẫn ảnh thí sinh (tuyệt đối / tương đối / web). */
 public final class CandidatePhotoPathUtil {
 
     private CandidatePhotoPathUtil() {
     }
 
+    /**
+     * Thư mục lưu ảnh: property {@code dlem.photos.dir}, rồi Catalina, rồi user home.
+     *
+     * @return thư mục ảnh
+     */
     public static File photoDir() {
         String configured = System.getProperty("dlem.photos.dir");
         if (configured != null && !configured.isBlank()) {
@@ -23,6 +28,12 @@ public final class CandidatePhotoPathUtil {
         return new File(System.getProperty("user.home", "."), ".dlem" + File.separator + "candidate-photos");
     }
 
+    /**
+     * Chuẩn hóa {@code photoUrl} cho từng thí sinh trong hàng đợi (mutate DTO).
+     *
+     * @param webRootPath gốc web app (có thể null)
+     * @param queue       danh sách thí sinh
+     */
     public static void normalizeQueue(String webRootPath, List<ExamRegistrationDTO> queue) {
         if (queue == null || queue.isEmpty()) {
             return;
@@ -38,6 +49,13 @@ public final class CandidatePhotoPathUtil {
         }
     }
 
+    /**
+     * Chuẩn hóa một URL/path ảnh: giữ http(s)/absolute; thử data dir và web root.
+     *
+     * @param webRootPath gốc web (có thể null)
+     * @param photoUrl    đường dẫn gốc
+     * @return đường dẫn đã chuẩn hóa (có thể giữ nguyên)
+     */
     public static String normalizePhotoUrl(String webRootPath, String photoUrl) {
         if (photoUrl == null || photoUrl.isBlank()) {
             return photoUrl;

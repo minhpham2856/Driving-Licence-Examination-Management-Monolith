@@ -14,11 +14,13 @@ import examstaff.util.ProcedureFeeTotals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+/** Implementation: tính và lọc khoản phí thủ tục theo hồ sơ thí sinh. */
 public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
 
     private final FeeDAO feeDAO = new FeeDAOImpl();
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
 
+    /** {@inheritDoc} */
     @Override
     public ProcedureFeeResultDTO resolveProcedureFees(ExamRegistrationDTO profile) {
         ProcedureFeeResultDTO result = new ProcedureFeeResultDTO();
@@ -55,6 +57,7 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
         return result;
     }
 
+    /** Lọc khoản phí theo phần thi thí sinh bỏ qua. */
     private static List<Fee> filterApplicableFees(ExamRegistrationDTO profile, List<Fee> feeLines) {
         if (feeLines == null || feeLines.isEmpty() || profile == null) {
             return feeLines != null ? feeLines : new ArrayList<>();
@@ -78,6 +81,7 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
         return filtered;
     }
 
+    /** Bỏ dấu, chữ thường để so khớp tên phí. */
     private static String normalize(String value) {
         if (value == null) {
             return "";
@@ -88,6 +92,7 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
                 .trim();
     }
 
+    /** Haystack chứa bất kỳ needle nào. */
     private static boolean containsAny(String haystack, String... needles) {
         for (String needle : needles) {
             if (haystack.contains(needle)) {

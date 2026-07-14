@@ -3,6 +3,10 @@ package examstaff.dto;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 
+/**
+ * View-model hồ sơ thí sinh (dossier) trên màn ExamStaff.
+ * Gồm profile, tóm tắt kỳ thi, lệ phí và tiêu đề hiển thị.
+ */
 public class CandidateDossierViewDTO {
 
     private ExamRegistrationDTO profile;

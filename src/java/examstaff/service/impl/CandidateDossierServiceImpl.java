@@ -15,6 +15,7 @@ import examstaff.util.LicenseClassRules;
 import java.util.List;
 import java.util.Locale;
 
+/** Implementation: dựng view hồ sơ thí sinh (phí, ảnh, nhãn hạng). */
 public class CandidateDossierServiceImpl implements CandidateDossierService {
 
     private final CandidateQueueQueryService queueQueryService = new CandidateQueueQueryServiceImpl();
@@ -22,6 +23,7 @@ public class CandidateDossierServiceImpl implements CandidateDossierService {
     private final ProcedureFeeQueryService procedureFeeQueryService = new ProcedureFeeQueryServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
+    /** {@inheritDoc} */
     @Override
     public CandidateDossierViewDTO loadDossier(int examId, String sbd, String webRoot) {
         CandidateDossierViewDTO view = new CandidateDossierViewDTO();
