@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
+/** Cài đặt GET/POST /registrant/settings — POST theo formId: đổi mật khẩu / vô hiệu hóa tài khoản. */
 @WebServlet("/registrant/settings")
 public class SettingsServlet extends HttpServlet {
 
@@ -58,10 +59,6 @@ public class SettingsServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/login");
                 return;
             }
-        } else if ("prefs".equals(formId)) {
-            error = settingsService.saveNotificationPrefs(request,
-                    request.getParameter("emailResultsNotify") != null,
-                    request.getParameter("passwordChangeNotify") != null);
         } else {
             error = "Yêu cầu không hợp lệ.";
         }

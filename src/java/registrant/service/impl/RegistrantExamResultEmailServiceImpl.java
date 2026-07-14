@@ -32,9 +32,6 @@ public class RegistrantExamResultEmailServiceImpl implements RegistrantExamResul
         if (candidateId <= 0 || !emailService.isConfigured()) {
             return false;
         }
-        if (!RegistrantSettingsServiceImpl.isNotifyExamResults(session)) {
-            return false;
-        }
 
         Integer userId = registrantdao.resolveUserIdByCandidateId(candidateId);
         if (userId == null || userId <= 0) {
