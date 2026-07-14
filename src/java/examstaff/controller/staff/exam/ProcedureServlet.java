@@ -19,6 +19,7 @@ import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.CandidatePhotoService;
+import examstaff.service.ExamControlService;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.ProcedureFeeQueryService;
 import examstaff.service.ProcedureWorkflowService;
@@ -47,6 +48,7 @@ public class ProcedureServlet extends HttpServlet {
     private final CandidateCallingService callingService = SERVICES.calling();
     private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final ProcedureFeeQueryService procedureFeeService = SERVICES.procedureFees();
+    private final ExamControlService examControlService = SERVICES.examControl();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
     private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
@@ -61,6 +63,14 @@ public class ProcedureServlet extends HttpServlet {
         if ("startShift".equals(request.getParameter("action"))) {
             List<ExamSummaryDTO> bootstrapExams = selectionFacade.loadAllExams();
             int boardExamId = selectionFacade.resolveExamId(request, session, bootstrapExams, 0);
+            ExamSummaryDTO currentExam = selectionFacade.findExamById(bootstrapExams, boardExamId);
+            if (currentExam != null && examstaff.enums.ExamStatus.isPaused(currentExam.getStatus())) {
+                ExamControlService.ResumeResult resume = examControlService.resumeExam(boardExamId);
+                if (!resume.isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+                    return;
+                }
+            }
             session.removeAttribute("shiftEnded");
             session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), boardExamId);
