@@ -16,7 +16,6 @@ import examstaff.dto.ProcedureResetOutcomeDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.dto.view.CallBoardState;
-import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.CandidatePhotoService;
 import examstaff.service.ExamControlService;
@@ -39,13 +38,12 @@ import java.util.List;
 @WebServlet("/examstaff/procedure")
 public class ProcedureServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final ProcedureWorkflowService procedureWorkflow = SERVICES.procedures();
     private final CandidatePhotoService photoService = SERVICES.photos();
-    private final CandidateCallingService callingService = SERVICES.calling();
     private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final ProcedureFeeQueryService procedureFeeService = SERVICES.procedureFees();
     private final ExamControlService examControlService = SERVICES.examControl();
@@ -533,7 +531,7 @@ public class ProcedureServlet extends HttpServlet {
             return null;
         }
         String callingSbd = (String) session.getAttribute("callingSbd");
-        ExamRegistrationDTO calling = callingService.resolveCallingCandidate(callingSbd, qList);
+        ExamRegistrationDTO calling = candidateQueueService.resolveCallingCandidate(callingSbd, qList);
         if (calling != null && callingSbd != null && !callingSbd.equals(calling.getSbd())) {
             session.setAttribute("callingSbd", calling.getSbd());
         } else if (calling == null && callingSbd != null) {
@@ -545,7 +543,7 @@ public class ProcedureServlet extends HttpServlet {
     private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> qList, boolean shiftEnded) {
         String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
         CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
-        String callingSbd = callingService.resolveSyncedCallingSbd(httpCalling, callBoard, qList);
+        String callingSbd = candidateQueueService.resolveSyncedCallingSbd(httpCalling, callBoard, qList);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
                 session.setAttribute("callingSbd", callingSbd);

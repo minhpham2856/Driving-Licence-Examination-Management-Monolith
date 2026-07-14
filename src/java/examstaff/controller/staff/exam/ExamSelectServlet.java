@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import examstaff.service.CandidateQueueService;
-import examstaff.service.ExamSelectService;
+import examstaff.service.ExamStaffSelectionService;
 import examstaff.service.ExamStaffServices;
 import examstaff.util.Utf8EncodingHelper;
 
@@ -24,11 +24,11 @@ import java.io.IOException;
 @WebServlet("/examstaff/select-exam")
 public class ExamSelectServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
-    private final ExamSelectService examSelectService = SERVICES.examSelect();
+    private final ExamStaffSelectionService examSelectService = SERVICES.selection();
     private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 

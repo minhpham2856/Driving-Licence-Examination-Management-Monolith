@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 @WebServlet("/examstaff/audit")
 public class AuditServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
 
     private final StaffAuditPageService auditPageService = SERVICES.auditPage();
 

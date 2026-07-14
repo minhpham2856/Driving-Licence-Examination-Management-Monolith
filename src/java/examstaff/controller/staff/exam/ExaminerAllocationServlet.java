@@ -27,7 +27,7 @@ import java.util.List;
 @WebServlet("/examstaff/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 

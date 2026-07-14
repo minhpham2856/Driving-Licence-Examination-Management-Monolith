@@ -20,7 +20,7 @@ import java.io.IOException;
 @WebServlet("/examstaff/public-call")
 public class PublicCallServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
