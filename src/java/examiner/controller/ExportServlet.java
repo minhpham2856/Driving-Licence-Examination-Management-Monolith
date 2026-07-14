@@ -1,8 +1,10 @@
 package examiner.controller;
 
 import examiner.dto.ExportContextDTO;
-import examiner.enums.DocumentFormat;
-import examiner.enums.SectionType;
+import shared.Attributes;
+import shared.enums.FileName;
+import shared.enums.FileType;
+import shared.enums.SectionType;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import shared.model.ExaminerSchedule;
-import examiner.service.DocumentService;
 import examiner.service.impl.DocxServiceImpl;
 import examiner.service.impl.ExcelServiceImpl;
 
@@ -22,15 +23,9 @@ import java.nio.charset.StandardCharsets;
 
 @WebServlet(urlPatterns = {
     "/examiner/export/candidates",
-    "/examiner/export/candidates/xml",
-    "/examiner/export/results",
-    "/examiner/export/results/xml",
-    "/examiner/export/minutes",
-    "/examiner/export/minutes/xml",
+    "/examiner/export/result",
     "/examiner/export/violations",
-    "/examiner/export/violations/xml",
     "/examiner/export/audit",
-    "/examiner/export/audit/xml",
     "/examiner/export/docx"
 })
 public class ExportServlet extends HttpServlet {
@@ -41,19 +36,8 @@ public class ExportServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String[] parts = request.getServletPath().split("/");
-        String type;
-        DocumentFormat format;
-        if (parts.length >= 5 && "xml".equals(parts[4])) {
-            type = parts[3];
-            format = DocumentFormat.XML;
-        } else if (parts.length >= 4 && "docx".equals(parts[3])) {
-            type = request.getParameter("type");
-            format = DocumentFormat.DOCX;
-        } else {
-            type = parts.length >= 4 ? parts[3] : null;
-            format = DocumentFormat.EXCEL;
-        }
+        String path = request.getServletPath();
+        String type = resolveDocumentType(path, request);
         if (type == null || type.isBlank()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu loại tài liệu.");
             return;
@@ -63,24 +47,62 @@ public class ExportServlet extends HttpServlet {
             return;
         }
         String searchQuery = request.getParameter("q");
+        FileType format = resolveFileType(request);
         OutputStream out = response.getOutputStream();
         try {
-            if (format == DocumentFormat.DOCX) {
-                handleDocx(request, response, out, type, ctx, searchQuery);
-            } else {
-                prepareExcelOrXml(response, buildFilename(type, format), format);
-                excelService.export(ctx, type, format, searchQuery, out);
+            if ("result".equalsIgnoreCase(type) && format == FileType.DOCX) {
+                handleIndividualResultDocx(request, response, out, ctx);
+                return;
             }
+            if (format == FileType.DOCX) {
+                handleDocx(request, response, out, type, ctx, searchQuery);
+                return;
+            }
+            prepareExcelDownload(response, buildFilename(type));
+            excelService.export(ctx, type, FileType.EXCEL, searchQuery, out);
         } finally {
             out.flush();
         }
     }
 
+    private static String resolveDocumentType(String path, HttpServletRequest request) {
+        if ("/examiner/export/docx".equals(path)) {
+            return request.getParameter("type");
+        }
+        if (path == null || !path.startsWith("/examiner/export/")) {
+            return null;
+        }
+        return path.substring("/examiner/export/".length());
+    }
+
+    private static FileType resolveFileType(HttpServletRequest request) {
+        String typeParam = request.getParameter("type");
+        if (typeParam != null && "docx".equalsIgnoreCase(typeParam.trim())) {
+            return FileType.DOCX;
+        }
+        if ("/examiner/export/docx".equals(request.getServletPath())) {
+            return FileType.DOCX;
+        }
+        return FileType.EXCEL;
+    }
+
+    private void handleIndividualResultDocx(HttpServletRequest request, HttpServletResponse response,
+            OutputStream out, ExportContextDTO ctx) throws IOException {
+        int sbd = parseSbd(request.getParameter("sbd"));
+        if (sbd <= 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu số báo danh.");
+            return;
+        }
+        // [tmp_minhpn] DOCX template for individual candidate result will be added later.
+        prepareDocxDownload(response, FileName.RESULT.getValue() + "-sbd-" + sbd + ".docx");
+        docxService.print(ctx, "result", sbd, out);
+    }
+
     private void handleDocx(HttpServletRequest request, HttpServletResponse response, OutputStream out,
             String type, ExportContextDTO ctx, String searchQuery) throws IOException {
         if (isSessionDocumentType(type)) {
-            prepareDocxDownload(response, buildFilename(type, DocumentFormat.DOCX));
-            docxService.export(ctx, type, DocumentFormat.DOCX, searchQuery, out);
+            prepareDocxDownload(response, buildFilename(type) + ".docx");
+            docxService.export(ctx, type, FileType.DOCX, searchQuery, out);
             return;
         }
         int sbd = parseSbd(request.getParameter("sbd"));
@@ -93,44 +115,34 @@ public class ExportServlet extends HttpServlet {
     }
 
     private static boolean isSessionDocumentType(String type) {
-        return switch (type.toLowerCase()) {
-            case "candidates", "results", "minutes", "violations", "audit" ->
-                true;
-            default ->
-                false;
+        if (type == null) {
+            return false;
+        }
+        return switch (type.trim().toLowerCase()) {
+            case "candidates", "result", "violations", "audit" -> true;
+            default -> false;
         };
     }
 
-    private static String buildFilename(String type, DocumentFormat format) {
-        String base = switch (type.toLowerCase()) {
-            case "candidates" ->
-                "danh-sach-thi-sinh";
-            case "results" ->
-                "ket-qua-thi";
-            case "minutes" ->
-                "bien-ban-thi";
-            case "violations" ->
-                "vi-pham";
-            case "audit" ->
-                "nhat-ky";
-            default ->
-                "tai-lieu";
+    private static String buildFilename(String type) {
+        if (type == null) {
+            return FileName.DEFAULT.getValue();
+        }
+        return switch (type.trim().toLowerCase()) {
+            case "candidates" -> FileName.CANDIDATES.getValue();
+            case "result" -> FileName.RESULTS.getValue();
+            case "violations" -> FileName.VIOLATIONS.getValue();
+            case "audit" -> FileName.AUDIT.getValue();
+            default -> FileName.DEFAULT.getValue();
         };
-        String ext = format == DocumentFormat.XML ? "xml"
-                : format == DocumentFormat.DOCX ? "docx" : "xlsx";
-        return base + "." + ext;
     }
 
     private static String buildPrintFilename(String type, int sbd) {
-        String base = switch (type.toLowerCase()) {
-            case "bb1" ->
-                "bb1-ly-thuyet";
-            case "bb2" ->
-                "bb2-thuc-hanh-trong-hinh";
-            case "bb3" ->
-                "bb3-thuc-hanh-tren-duong";
-            default ->
-                "tai-lieu";
+        String base = switch (type == null ? "" : type.trim().toLowerCase()) {
+            case "bb1" -> FileName.BB1.getValue();
+            case "bb2" -> FileName.BB2.getValue();
+            case "result" -> FileName.RESULT.getValue();
+            default -> FileName.DEFAULT.getValue();
         };
         return base + "-sbd-" + sbd + ".docx";
     }
@@ -147,14 +159,6 @@ public class ExportServlet extends HttpServlet {
         }
     }
 
-    private void prepareExcelOrXml(HttpServletResponse response, String filename, DocumentFormat format) {
-        if (format == DocumentFormat.XML) {
-            prepareXmlDownload(response, filename);
-        } else {
-            prepareExcelDownload(response, filename);
-        }
-    }
-
     private ExportContextDTO requireExportContext(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession(false);
@@ -162,34 +166,29 @@ public class ExportServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
-        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
-        SectionType section = (SectionType) session.getAttribute(ExaminerFilter.ATTR_EXAM_SECTION);
+        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(Attributes.Examiner.SCHEDULE);
+        SectionType section = (SectionType) session.getAttribute(Attributes.Examiner.EXAM_SECTION);
         boolean isTheory = section == SectionType.THEORY;
-        String sectionName = section.getValue();
+        String sectionName = section != null ? section.getValue() : "";
         return new ExportContextDTO(activeExamId, schedule, isTheory, sectionName);
     }
 
     private void prepareExcelDownload(HttpServletResponse response, String filename) {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
-    }
-
-    private void prepareXmlDownload(HttpServletResponse response, String filename) {
-        response.setContentType("application/xml; charset=UTF-8");
-        String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
+        String encoded = URLEncoder.encode(filename + ".xlsx", StandardCharsets.UTF_8).replace("+", "%20");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + filename + ".xlsx\"; filename*=UTF-8''" + encoded);
     }
 
     private void prepareDocxDownload(HttpServletResponse response, String filename) {
         response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encoded);
     }
 }
-

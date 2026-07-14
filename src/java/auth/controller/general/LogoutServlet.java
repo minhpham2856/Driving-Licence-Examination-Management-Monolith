@@ -1,5 +1,6 @@
 package auth.controller.general;
 
+import shared.Attributes;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,7 +31,7 @@ public class LogoutServlet extends HttpServlet {
             session.invalidate();
         }
         HttpSession newSession = request.getSession(true);
-        newSession.setAttribute("successMessage", "Bạn đã đăng xuất.");
+        newSession.setAttribute(Attributes.Session.SUCCESS_MESSAGE, "Bạn đã đăng xuất.");
         response.sendRedirect(request.getContextPath() + "/login");
     }
 }

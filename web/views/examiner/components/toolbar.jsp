@@ -41,11 +41,6 @@
             </a>
         </c:if>
 
-        <c:if test="${param.btnExportXml eq 'left'}">
-            <a href="${requestScope.exportResultsXmlUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất XML
-            </a>
-        </c:if>
 
         <c:if test="${param.btnExportCandidatesExcel eq 'left'}">
             <a href="${requestScope.exportCandidatesUrl}" class="examiner-btn examiner-btn--white">
@@ -53,10 +48,6 @@
             </a>
         </c:if>
 
-        <c:if test="${param.btnExportCandidatesXml eq 'left'}">
-            <a href="${requestScope.exportCandidatesXmlUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất DS XML</a>
-            </c:if>
 
         <c:if test="${param.btnPrintAudit eq 'left'}">
             <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
@@ -64,9 +55,6 @@
             </button>
             <a href="${pageContext.request.contextPath}/examiner/export/audit?q=${requestScope.searchQuery}" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">download</span>Xuất Excel
-            </a>
-            <a href="${pageContext.request.contextPath}/examiner/export/audit/xml?q=${requestScope.searchQuery}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất XML
             </a>
         </c:if>
 
@@ -257,11 +245,6 @@
             </a>
         </c:if>
 
-        <c:if test="${param.btnExportXml eq 'right'}">
-            <a href="${requestScope.exportResultsXmlUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất XML
-            </a>
-        </c:if>
 
         <c:if test="${param.btnExportCandidatesExcel eq 'right'}">
             <a href="${requestScope.exportCandidatesUrl}" class="examiner-btn examiner-btn--white">
@@ -269,11 +252,6 @@
             </a>
         </c:if>
 
-        <c:if test="${param.btnExportCandidatesXml eq 'right'}">
-            <a href="${requestScope.exportCandidatesXmlUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất DS XML
-            </a>
-        </c:if>
 
         <c:if test="${param.btnPrintAudit eq 'right'}">
             <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
@@ -281,9 +259,6 @@
             </button>
             <a href="${pageContext.request.contextPath}/examiner/export/audit?q=${requestScope.searchQuery}" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">download</span>Xuất Excel
-            </a>
-            <a href="${pageContext.request.contextPath}/examiner/export/audit/xml?q=${requestScope.searchQuery}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất XML
             </a>
         </c:if>
 

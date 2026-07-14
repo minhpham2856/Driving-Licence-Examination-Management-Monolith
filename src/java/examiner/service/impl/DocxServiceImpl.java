@@ -19,7 +19,7 @@ import examiner.dto.ExportContextDTO;
 import examiner.dto.ExportPayloadDTO;
 import examiner.dto.XmlExportDocument;
 import examiner.dto.XmlExportTable;
-import examiner.enums.DocumentFormat;
+import shared.enums.FileType;
 import shared.model.Audit;
 import shared.model.CandidateAnswer;
 import shared.model.Exam;
@@ -258,7 +258,7 @@ public class DocxServiceImpl implements DocumentService {
                     row.get("sectionName"),
                     row.get("violationReason"),
                     row.get("deductionPoints"),
-                    Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
+Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
                     row.get("currentScore")));
         }
         XmlExportTable auditTable = new XmlExportTable(
@@ -328,7 +328,7 @@ public class DocxServiceImpl implements DocumentService {
             metadata.put("khuVucPhong", nullToDash(schedule.getExamArea().getAreaName()));
         }
         metadata.put("phanThi",
-                !isTheory ? nullToDash(sectionName) : "Lý thuyết");
+!isTheory ? nullToDash(sectionName) : "Lý thuyết");
         Map<String, Object> thongKe = new LinkedHashMap<>();
         thongKe.put("tongThiSinh", summary.getTotal());
         thongKe.put("daThi", summary.getDone());
@@ -353,7 +353,7 @@ public class DocxServiceImpl implements DocumentService {
             preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(schedule.getExamArea().getAreaName())));
         }
         preamble.add(Arrays.asList("Phần thi",
-                !isTheory ? nullToDash(sectionName) : "Lý thuyết"));
+!isTheory ? nullToDash(sectionName) : "Lý thuyết"));
         preamble.add(Arrays.asList());
         preamble.add(Arrays.asList("Tổng thí sinh", summary.getTotal()));
         preamble.add(Arrays.asList("Đã thi", summary.getDone()));
@@ -431,7 +431,7 @@ public class DocxServiceImpl implements DocumentService {
                     row.get("sectionName"),
                     row.get("violationReason"),
                     row.get("deductionPoints"),
-                    Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
+Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
                     row.get("currentScore")));
         }
         if (scoreViolations.isEmpty()) {
@@ -513,10 +513,8 @@ public class DocxServiceImpl implements DocumentService {
         return switch (normalized) {
             case "candidates" ->
                 buildCandidatesExport(ctx);
-            case "results" ->
+            case "result" ->
                 buildResultsExport(ctx);
-            case "minutes" ->
-                buildMinutesExport(ctx);
             case "violations" ->
                 buildViolationsExport(ctx, searchQuery);
             case "audit" ->
@@ -529,9 +527,9 @@ public class DocxServiceImpl implements DocumentService {
     // === DocumentService ===
 
     @Override
-    public void export(ExportContextDTO ctx, String documentType, DocumentFormat format,
+    public void export(ExportContextDTO ctx, String documentType, FileType format,
             String searchQuery, OutputStream out) throws IOException {
-        if (format != DocumentFormat.DOCX) {
+        if (format != FileType.DOCX) {
             throw new IOException("DocxService chỉ hỗ trợ xuất DOCX.");
         }
         ExportPayloadDTO payload = buildPayload(ctx, documentType, searchQuery);
@@ -546,6 +544,10 @@ public class DocxServiceImpl implements DocumentService {
                 renderBb1Theory(ctx, sbd, out);
             case "BB2", "LAYOUT", "SCORE_SHEET" ->
                 renderBb2Layout(ctx, sbd, out);
+            case "RESULT" -> {
+                // [tmp_minhpn] Individual candidate result DOCX template pending.
+                renderBb1Theory(ctx, sbd, out);
+            }
             default ->
                 throw new IOException("Loại văn bản in không được hỗ trợ: " + documentType);
         }

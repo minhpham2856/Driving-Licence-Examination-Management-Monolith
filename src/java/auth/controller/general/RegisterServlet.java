@@ -1,6 +1,7 @@
 package auth.controller.general;
 
 import auth.dto.RegisterResultDTO;
+import shared.Attributes;
 import shared.model.Profile;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
@@ -117,14 +118,14 @@ public class RegisterServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         if (data.isEmailSent()) {
-            session.setAttribute("successMessage",
+            session.setAttribute(Attributes.Session.SUCCESS_MESSAGE,
                     "Đăng ký thành công! Kiểm tra email để lấy thông tin đăng nhập.");
         } else {
             session.setAttribute(
-                    "successMessage",
+                    Attributes.Session.SUCCESS_MESSAGE,
                     "Đăng ký thành công! Không gửi được email - vui lòng lưu thông tin đăng nhập bên dưới.");
-            session.setAttribute("registrationUsername", data.getUsername());
-            session.setAttribute("registrationPassword", data.getPassword());
+            session.setAttribute(Attributes.Session.REGISTRATION_USERNAME, data.getUsername());
+            session.setAttribute(Attributes.Session.REGISTRATION_PASSWORD, data.getPassword());
         }
 
         // redirect to login page
@@ -134,7 +135,7 @@ public class RegisterServlet extends HttpServlet {
     // forward back to register page with an error
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
-        request.setAttribute("error", errorMessage);
+        request.setAttribute(Attributes.Request.ERROR, errorMessage);
         request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);
     }
 }

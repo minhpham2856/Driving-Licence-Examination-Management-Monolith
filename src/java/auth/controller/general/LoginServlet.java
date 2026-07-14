@@ -1,10 +1,12 @@
 package auth.controller.general;
 
+import shared.Attributes;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
 import static auth.util.FormatUtil.formatString;
 import shared.enums.RoleType;
+import auth.util.SessionUserUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -62,9 +64,9 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // store logged in user
+        // store logged in user without password hash
         HttpSession session = request.getSession();
-        session.setAttribute("user", user);
+        session.setAttribute(Attributes.Session.USER, SessionUserUtil.forSession(user));
 
         // redirect to dashboard
         response.sendRedirect(request.getContextPath() + "/views/registrant/dashboard.jsp");
@@ -74,7 +76,7 @@ public class LoginServlet extends HttpServlet {
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
 
-        request.setAttribute("error", errorMessage);
+        request.setAttribute(Attributes.Request.ERROR, errorMessage);
         request.getRequestDispatcher("/views/auth/general/login.jsp").forward(request, response);
     }
 
@@ -83,12 +85,12 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         // transfer flash messages
-        transferAttribute(request, session, "successMessage", "success");
-        transferAttribute(request, session, "errorMessage", "error");
+        transferAttribute(request, session, Attributes.Session.SUCCESS_MESSAGE, Attributes.Request.SUCCESS);
+        transferAttribute(request, session, Attributes.Session.ERROR_MESSAGE, Attributes.Request.ERROR);
 
         // transfer registration credentials
-        transferAttribute(request, session, "registrationUsername", "registrationUsername");
-        transferAttribute(request, session, "registrationPassword", "registrationPassword");
+        transferAttribute(request, session, Attributes.Session.REGISTRATION_USERNAME, Attributes.Session.REGISTRATION_USERNAME);
+        transferAttribute(request, session, Attributes.Session.REGISTRATION_PASSWORD, Attributes.Session.REGISTRATION_PASSWORD);
     }
 
     // move one attribute from session to request
@@ -102,4 +104,3 @@ public class LoginServlet extends HttpServlet {
         }
     }
 }
-
