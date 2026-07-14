@@ -126,7 +126,12 @@ public class ExaminerFilter extends HttpFilter {
         Exam exam = examService.getById(schedule.getExamId());
         if (exam == null || ExamStatus.fromValue(exam.getStatus()) != ExamStatus.IN_PROGRESS) {
             clearContext(session);
-            session.setAttribute(ATTR_MESSAGE, "Kỳ thi đang không diễn ra");
+            ExamStatus status = exam != null ? ExamStatus.fromValue(exam.getStatus()) : null;
+            if (status == ExamStatus.PAUSED) {
+                session.setAttribute(ATTR_MESSAGE, "Kỳ thi đang tạm dừng");
+            } else {
+                session.setAttribute(ATTR_MESSAGE, "Kỳ thi đang không diễn ra");
+            }
             return false;
         }
 

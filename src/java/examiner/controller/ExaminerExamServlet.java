@@ -85,7 +85,16 @@ public class ExaminerExamServlet extends HttpServlet {
         }
 
         Exam exam = examService.getById(examId);
-        if (exam == null || ExamStatus.fromValue(exam.getStatus()) != ExamStatus.IN_PROGRESS) {
+        if (exam == null) {
+            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=notActive");
+            return;
+        }
+        ExamStatus examStatus = ExamStatus.fromValue(exam.getStatus());
+        if (examStatus == ExamStatus.PAUSED) {
+            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=paused");
+            return;
+        }
+        if (examStatus != ExamStatus.IN_PROGRESS) {
             response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=notActive");
             return;
         }
