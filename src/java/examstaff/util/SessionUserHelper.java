@@ -18,8 +18,11 @@ public final class SessionUserHelper {
             return defaultId;
         }
         Object raw = session.getAttribute(Attributes.Session.USER);
-        if (raw instanceof UserDTO user && user.getUserId() > 0) {
-            return user.getUserId();
+        if (raw instanceof UserDTO) {
+            UserDTO user = (UserDTO) raw;
+            if (user.getUserId() > 0) {
+                return user.getUserId();
+            }
         }
         return defaultId;
     }
@@ -29,8 +32,11 @@ public final class SessionUserHelper {
             return "";
         }
         Object raw = session.getAttribute(Attributes.Session.USER);
-        if (raw instanceof UserDTO user && user.getUsername() != null) {
-            return user.getUsername();
+        if (raw instanceof UserDTO) {
+            UserDTO user = (UserDTO) raw;
+            if (user.getUsername() != null) {
+                return user.getUsername();
+            }
         }
         return "";
     }

@@ -126,7 +126,7 @@ INSERT INTO Document (DocumentTypeId, DocumentUrl, Notes, ProfileId) VALUES
 GO
 
 -- ============================================
--- 5. HẠNG GPLX — chỉ A1, A, B1
+-- 5. HẠNG GPLX - chỉ A1, A, B1
 -- ============================================
 INSERT INTO Licence (LicenceClass, Description, MinimumAge, ValidForYears, UpgradeFromLicenceId) VALUES
 (N'A1', N'Xe mô tô hai bánh có dung tích xi-lanh đến 125 cm³', 18, 0, NULL),
@@ -1218,4 +1218,3 @@ WHERE l.LicenceClass = N'B1'
     567,568,583,592,600
 );
 GO
-

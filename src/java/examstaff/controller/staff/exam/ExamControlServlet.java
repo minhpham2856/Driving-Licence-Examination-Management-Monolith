@@ -4,8 +4,11 @@ import examstaff.controller.staff.exam.adapter.StaffAuditLogSupport;
 import examstaff.controller.staff.exam.adapter.CallBoardHttpFacade;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
+import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.service.ExamControlService;
+import examstaff.service.ExamRegistrationService;
 import examstaff.service.impl.ExamControlServiceImpl;
+import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ExamStaffServices;
 import examstaff.util.SessionUserHelper;
 import jakarta.servlet.ServletException;
@@ -17,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/views/staff/examstaff/exam-control")
 public class ExamControlServlet extends HttpServlet {
@@ -26,6 +30,7 @@ public class ExamControlServlet extends HttpServlet {
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final ExamControlService controlService = SERVICES.examControl();
+    private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
     private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
@@ -60,6 +65,26 @@ public class ExamControlServlet extends HttpServlet {
             } else {
                 session.setAttribute("examControlError", result.getMessage());
             }
+        } else if ("pauseExam".equals(action)) {
+            ExamControlService.PauseResult result = controlService.pauseExam(examId);
+            if (result.isSuccess()) {
+                applyRuntimePause(getServletContext(), session, examId);
+                auditLogSupport.persist(session, "UPDATE Exam",
+                        "Tạm dừng " + result.getExamName(), examId);
+                session.setAttribute("examControlMsg", result.getMessage());
+            } else {
+                session.setAttribute("examControlError", result.getMessage());
+            }
+        } else if ("resumeExam".equals(action)) {
+            ExamControlService.ResumeResult result = controlService.resumeExam(examId);
+            if (result.isSuccess()) {
+                applyRuntimeResume(getServletContext(), session, examId);
+                auditLogSupport.persist(session, "UPDATE Exam",
+                        "Tiếp tục " + result.getExamName(), examId);
+                session.setAttribute("examControlMsg", result.getMessage());
+            } else {
+                session.setAttribute("examControlError", result.getMessage());
+            }
         }
 
         response.sendRedirect(redirect);
@@ -85,6 +110,9 @@ public class ExamControlServlet extends HttpServlet {
         String ctx = request.getContextPath();
         if ("examiner-allocation".equals(from)) {
             return ctx + "/views/staff/examstaff/examiner-allocation?examId=" + examId;
+        }
+        if ("report".equals(from)) {
+            return ctx + "/views/staff/examstaff/report?examId=" + examId;
         }
         return ctx + "/views/staff/examstaff/dashboard?examId=" + examId;
     }
@@ -113,8 +141,33 @@ public class ExamControlServlet extends HttpServlet {
             Integer selected = (Integer) session.getAttribute("selectedExamId");
             if (selected != null && selected == examId) {
                 session.setAttribute("shiftEnded", "true");
+                session.removeAttribute("shiftPaused");
                 session.removeAttribute("callingSbd");
             }
+        }
+    }
+
+    private void applyRuntimePause(ServletContext ctx, HttpSession session, int examId) {
+        List<ExamRegistrationDTO> queue = examId > 0
+                ? registrationService.getCandidatesByExam(examId)
+                : List.of();
+        if (ctx != null && examId > 0) {
+            callBoardHttp.pauseShift(ctx, examId, queue);
+        }
+        if (session != null) {
+            session.setAttribute("shiftPaused", "true");
+            session.removeAttribute("callingSbd");
+            session.removeAttribute("shiftEnded");
+        }
+    }
+
+    private void applyRuntimeResume(ServletContext ctx, HttpSession session, int examId) {
+        if (ctx != null && examId > 0) {
+            callBoardHttp.resumeShift(ctx, examId);
+        }
+        if (session != null) {
+            session.removeAttribute("shiftPaused");
+            session.removeAttribute("shiftEnded");
         }
     }
 }

@@ -27,6 +27,7 @@ import examstaff.service.ExamAreaQueryService;
 import examstaff.service.ExamStaffServices;
 import examstaff.util.ExamRegistrationSort;
 import examstaff.util.AllocationStageHelper;
+import shared.Attributes;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -204,16 +205,16 @@ public class AllocationServlet extends HttpServlet {
                     page, pageSize, searchQ, examIdParam,
                     sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc", areaFilterId));
             request.setAttribute("allocationSearchQuery", searchQ.trim());
-            request.setAttribute("allocationAreaFilter", areaFilterId);
+            request.setAttribute(Attributes.ExamStaff.ALLOCATION_AREA_FILTER, areaFilterId);
             try {
-                request.setAttribute("activeTheoryRooms",
+                request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS,
                         areaQueryService.listStaffedTheoryRoomsForExam(examId));
-                request.setAttribute("activePracticalAreas",
+                request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS,
                         areaQueryService.listStaffedPracticalAreasForExam(examId));
             } catch (Exception e) {
                 e.printStackTrace();
-                request.setAttribute("activeTheoryRooms", List.of());
-                request.setAttribute("activePracticalAreas", List.of());
+                request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS, List.of());
+                request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS, List.of());
             }
 
             ExamStaffHttpSupport.consumeFlash(session, "examSelectMsg", request, "examSelectMsg");
@@ -228,10 +229,10 @@ public class AllocationServlet extends HttpServlet {
                     ExamRegistrationSort.parse(null, null), null);
             request.setAttribute("allocationListPath", servletPath);
             request.setAttribute("allocationSearchQuery", "");
-            request.setAttribute("allocationAreaFilter", null);
+            request.setAttribute(Attributes.ExamStaff.ALLOCATION_AREA_FILTER, null);
             request.setAttribute("allocationExtraQuery", "");
-            request.setAttribute("activeTheoryRooms", List.of());
-            request.setAttribute("activePracticalAreas", List.of());
+            request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS, List.of());
+            request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS, List.of());
             try {
                 request.getRequestDispatcher(jspPath).forward(request, response);
             } catch (Exception forwardError) {

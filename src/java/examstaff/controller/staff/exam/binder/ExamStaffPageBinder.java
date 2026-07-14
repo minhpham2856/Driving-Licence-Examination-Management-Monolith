@@ -5,6 +5,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffPickerViewDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
+import examstaff.enums.ExamStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -134,18 +135,32 @@ public final class ExamStaffPageBinder {
         }
     }
 
-    /** Bind cờ UI điều khiển bắt đầu/kết thúc kỳ (dựa trên StartTime trong DB). */
-    public static void bindExamShiftContext(HttpServletRequest request, ExamSummaryDTO session) {
-        if (request == null || session == null) {
+    /** Bind cờ UI điều khiển bắt đầu/tạm dừng/kết thúc kỳ (đồng bộ session từ Status DB). */
+    public static void bindExamShiftContext(HttpServletRequest request, ExamSummaryDTO sessionExam) {
+        if (request == null || sessionExam == null) {
             return;
         }
-        Timestamp scheduledStart = session.getScheduledStartAt() != null
-                ? session.getScheduledStartAt()
-                : session.getCreatedAt();
+        Timestamp scheduledStart = sessionExam.getScheduledStartAt() != null
+                ? sessionExam.getScheduledStartAt()
+                : sessionExam.getCreatedAt();
         request.setAttribute("examCanStartNow", ExamScheduleRules.canStartNow(scheduledStart));
         if (scheduledStart != null) {
             request.setAttribute("examScheduledStartLabel",
                     ExamScheduleRules.formatScheduledStart(scheduledStart));
+        }
+        HttpSession httpSession = request.getSession(false);
+        if (httpSession == null) {
+            return;
+        }
+        String status = sessionExam.getStatus();
+        if (ExamStatus.isPaused(status)) {
+            httpSession.setAttribute("shiftPaused", "true");
+            httpSession.removeAttribute("shiftEnded");
+        } else if (ExamStatus.isInProgress(status)) {
+            httpSession.removeAttribute("shiftPaused");
+        } else if (ExamStatus.normalize(status) == ExamStatus.HOAN_TAT) {
+            httpSession.setAttribute("shiftEnded", "true");
+            httpSession.removeAttribute("shiftPaused");
         }
     }
 

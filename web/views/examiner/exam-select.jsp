@@ -39,7 +39,10 @@
 
 <main class="examiner-session-select__main">
     <c:if test="${param.error == 'notActive'}">
-        <p class="examiner-session-select__alert">Kỳ thi đã kết thúc. Vui lòng chọn kỳ thi khác.</p>
+        <p class="examiner-session-select__alert">Kỳ thi chưa mở, đang tạm dừng hoặc đã kết thúc. Vui lòng chọn kỳ thi khác.</p>
+    </c:if>
+    <c:if test="${param.error == 'paused'}">
+        <p class="examiner-session-select__alert">Kỳ thi đang tạm dừng. Vui lòng chờ cán bộ kỳ thi tiếp tục.</p>
     </c:if>
     <c:if test="${param.error == 'denied' || param.error == 'invalid'}">
         <p class="examiner-session-select__alert">Không thể vào kỳ thi.</p>

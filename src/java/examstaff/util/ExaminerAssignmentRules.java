@@ -23,10 +23,15 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
+        String lower = normalized.toLowerCase();
+        // Schema Clean: "Lý thuyết" — schema SWP/DLEM: "Phòng thi"
         return ExamSection.LY_THUYET.getDisplayName().equalsIgnoreCase(normalized)
-                || normalized.toLowerCase().contains("theory")
-                || normalized.toLowerCase().contains("lý thuyết")
-                || normalized.toLowerCase().contains("ly thuyet");
+                || ExamAreaTypeResolver.theoryAreaTypeAlias().equalsIgnoreCase(normalized)
+                || lower.contains("theory")
+                || lower.contains("lý thuyết")
+                || lower.contains("ly thuyet")
+                || lower.contains("phòng thi")
+                || lower.contains("phong thi");
     }
 
     public static boolean isPracticalAreaType(String areaType) {
@@ -34,13 +39,16 @@ public final class ExaminerAssignmentRules {
             return false;
         }
         String normalized = areaType.trim();
-        if (examstaff.util.ExamAreaTypeResolver.PRACTICAL_AREA_TYPE.equalsIgnoreCase(normalized)) {
+        if (ExamAreaTypeResolver.PRACTICAL_AREA_TYPE.equalsIgnoreCase(normalized)
+                || ExamAreaTypeResolver.practicalAreaTypeAlias().equalsIgnoreCase(normalized)) {
             return true;
         }
         String lower = normalized.toLowerCase();
+        // Schema Clean: "Thực hành" — schema SWP/DLEM: "Sân thi"
         return lower.contains("thực hành") || lower.contains("thuc hanh")
                 || lower.contains("practical") || lower.contains("sa hình")
-                || lower.contains("sa hinh") || lower.contains("layout");
+                || lower.contains("sa hinh") || lower.contains("layout")
+                || lower.contains("sân thi") || lower.contains("san thi");
     }
 
     public static boolean isTheorySlot(ExaminerSlotDTO slot) {
