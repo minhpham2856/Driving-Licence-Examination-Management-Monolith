@@ -156,6 +156,8 @@
                                 <c:if test="${not empty licenceClassesList}">
                                     <c:forEach var="licence" items="${licenceClassesList}">
                                         <c:set var="licenceDocsAllowed" value="${licenceDocumentAllowed[licence.code]}" />
+                                        <%-- Khóa chọn: chưa đủ/duyệt giấy tờ (canRegisterExam=false) HOẶC hạng cần hồ sơ bổ sung --%>
+                                        <c:set var="licencePickBlocked" value="${not canRegisterExam or licenceDocsAllowed eq false}" />
                                         <c:url var="licencePickUrl" value="/registrant/register-exam">
                                             <c:param name="licenceSelect" value="${licence.code}"/>
                                             <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if>
@@ -163,11 +165,14 @@
                                             <c:if test="${not empty fromDateIso}"><c:param name="fromDate" value="${fromDateIso}"/></c:if>
                                             <c:if test="${not empty toDateIso}"><c:param name="toDate" value="${toDateIso}"/></c:if>
                                         </c:url>
-                                        <c:set var="licencePickFragment" value="${canRegisterExam and licenceDocsAllowed eq false ? '#register-exam-licence-notice' : '#register-exam-session'}" />
-                                        <c:set var="licenceCardClasses" value="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}${canRegisterExam and licenceDocsAllowed eq false ? ' licence-card--restricted' : ''}" />
-                                        <a href="${licencePickUrl}${licencePickFragment}"
-                                           class="licence-card-link${canRegisterExam and licenceDocsAllowed eq false ? ' licence-card-link--blocked' : ''}"
-                                           <c:if test="${canRegisterExam and licenceDocsAllowed eq false}">title="${licenceDocumentBlockMessages[licence.code]}"</c:if>>
+                                        <c:set var="licencePickFragment" value="${licencePickBlocked ? '#register-exam-licence-notice' : '#register-exam-session'}" />
+                                        <%-- Không gắn --active khi bị khóa: 3 thẻ restricted phải cùng style (không highlight vàng) --%>
+                                        <c:set var="licenceCardClasses" value="licence-card ${selectedClassCode eq licence.code and not licencePickBlocked ? 'licence-card--active' : ''}${licencePickBlocked ? ' licence-card--restricted' : ''}" />
+                                        <c:choose>
+                                        <c:when test="${licencePickBlocked}">
+                                        <div class="licence-card-link licence-card-link--blocked"
+                                             title="${not canRegisterExam ? documentGateMessage : licenceDocumentBlockMessages[licence.code]}"
+                                             aria-disabled="true">
                                             <div class="${licenceCardClasses}">
                                                 <div class="licence-card__icon">
                                                     <c:choose>
@@ -200,11 +205,53 @@
                                                 <span class="licence-card__fee">
                                                     <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
                                                 </span>
-                                                <c:if test="${canRegisterExam and licenceDocsAllowed eq false}">
-                                                <span class="licence-card__hint">Chưa có hồ sơ bổ sung cho hạng này</span>
-                                                </c:if>
+                                                <span class="licence-card__hint">
+                                                    <c:choose>
+                                                        <c:when test="${not canRegisterExam}">Chưa đủ giấy tờ / chưa được duyệt</c:when>
+                                                        <c:otherwise>Chưa có hồ sơ bổ sung cho hạng này</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                        <a href="${licencePickUrl}${licencePickFragment}" class="licence-card-link">
+                                            <div class="${licenceCardClasses}">
+                                                <div class="licence-card__icon">
+                                                    <c:choose>
+                                                        <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'moto')}">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <circle cx="6" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
+                                                                <circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
+                                                                <path d="M8.5 10.5 12 6h4l2.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                                <path d="M12 6v11" stroke="currentColor" stroke-width="2"></path>
+                                                            </svg>
+                                                        </c:when>
+                                                        <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'bus')}">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <rect x="3" y="5" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2"></rect>
+                                                                <path d="M3 12h18M7 18v2M17 18v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                                                            </svg>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect>
+                                                                <circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="2"></circle>
+                                                                <circle cx="18" cy="12" r="2.5" stroke="currentColor" stroke-width="2"></circle>
+                                                                <path d="M10 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                                                            </svg>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                                <span class="licence-card__code">Hạng ${licence.code}</span>
+                                                <span class="licence-card__name">${licence.name}</span>
+                                                <span class="licence-card__fee">
+                                                    <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
+                                                </span>
                                             </div>
                                         </a>
+                                        </c:otherwise>
+                                        </c:choose>
                                     </c:forEach>
                                 </c:if>
                                 
@@ -270,7 +317,7 @@
                                 </c:if>
                                 
                                 <c:if test="${empty examSessionsList or (canRegisterExam and not selectedLicenceDocumentAllowed and not empty selectedClassCode)}">
-                                    <p style="color:#64748b;margin:0;">
+                                    <p class="session-selector-list__empty">
                                         <c:choose>
                                             <c:when test="${canRegisterExam and not selectedLicenceDocumentAllowed and not empty selectedClassCode}">
                                                 Không thể chọn đợt thi — vui lòng bổ sung hồ sơ khác cho hạng ${selectedClassCode} hoặc chọn hạng A1/A2.
@@ -278,6 +325,7 @@
                                             <c:when test="${searchActive}">Không có đợt thi phù hợp với bộ lọc.</c:when>
                                             <c:otherwise>
                                                 Không có đợt thi mở cho hạng ${not empty selectedClassCode ? selectedClassCode : 'đã chọn'}.
+                                                Kiểm tra lại hạng GPLX hoặc thử bỏ bộ lọc ngày/địa điểm.
                                             </c:otherwise>
                                         </c:choose>
                                     </p>
