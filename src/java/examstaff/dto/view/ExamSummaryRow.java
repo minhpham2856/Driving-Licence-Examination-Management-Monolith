@@ -4,7 +4,9 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 
-/** Read model kỳ thi (Exam). */
+/**
+ * Read-model kỳ thi (Exam) từ truy vấn JOIN — Persistence → service ánh xạ sang DTO.
+ */
 public class ExamSummaryRow {
 
     private int examId;

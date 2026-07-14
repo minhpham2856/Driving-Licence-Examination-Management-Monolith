@@ -1,5 +1,9 @@
 package examstaff.dto;
 
+/**
+ * Kết quả chọn kỳ thi từ BLL về Presentation.
+ * Báo thành công/lỗi và các cờ xóa cache khi đổi kỳ.
+ */
 public class ExamSelectResultDTO {
 
     private boolean success;
