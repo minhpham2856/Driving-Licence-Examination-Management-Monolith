@@ -3,16 +3,18 @@ package examstaff.controller.staff.exam;
 import examstaff.controller.staff.exam.adapter.CallBoardHttpFacade;
 import examstaff.controller.staff.exam.adapter.ExamStaffSelectionFacade;
 import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
+import examstaff.controller.staff.exam.http.CandidateQueueHttpSupport;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
+import examstaff.controller.staff.exam.http.ExamStaffSessionKeys;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
+import examstaff.dto.CallPageEffects;
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
 import examstaff.enums.ExamStatus;
-import examstaff.service.CandidateCallingService;
+import examstaff.enums.ExamStaffMessage;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamControlService;
@@ -31,15 +33,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Trang staff Gọi thí sinh: điều phối HTTP/session ↔ {@link CandidateCallPageService} ↔ CallBoard.
+ * <p>
+ * Luồng GET (4 bước): build command → preparePage → apply session/board effects → forward JSP.
+ * Public Call chỉ đọc board sau khi servlet này sync.
+ */
 @WebServlet("/views/staff/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
     private final CandidateCallPageService pageService;
-    private final CandidateCallingService callingService = SERVICES.calling();
     private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
     private final ExamControlService examControlService = SERVICES.examControl();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
@@ -60,15 +67,7 @@ public class CandidateCallServlet extends HttpServlet {
         HttpSession session = request.getSession();
 
         if ("desk".equals(request.getParameter("view"))) {
-            String deskSbd = request.getParameter("sbd");
-            if (deskSbd == null || deskSbd.trim().isEmpty()) {
-                deskSbd = (String) session.getAttribute("callingSbd");
-            }
-            if (deskSbd != null && !deskSbd.trim().isEmpty()) {
-                response.sendRedirect("procedure?sbd=" + deskSbd);
-            } else {
-                response.sendRedirect("procedure");
-            }
+            redirectToDesk(request, response, session);
             return;
         }
 
@@ -77,37 +76,27 @@ public class CandidateCallServlet extends HttpServlet {
         ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
                 request, session, webRoot);
 
+        // 1) Command từ HTTP/session
         CandidateCallPageCommand command = buildCommand(request, session, pageCtx, webRoot);
+        // 2) Nghiệp vụ trang
         CandidateCallPageViewDTO view = pageService.preparePage(command);
 
-        if (view.isResumeShift()) {
-            ExamSummaryDTO currentExam = selectionFacade.findExamById(
-                    selectionFacade.loadAllExams(), pageCtx.getExamId());
-            if (currentExam != null && ExamStatus.isPaused(currentExam.getStatus())) {
-                ExamControlService.ResumeResult resume = examControlService.resumeExam(pageCtx.getExamId());
-                if (!resume.isSuccess()) {
-                    session.setAttribute("examControlError", resume.getMessage());
-                    response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
-                    return;
-                }
-                session.setAttribute("examControlMsg", resume.getMessage());
-            }
-            session.removeAttribute("shiftEnded");
-            session.removeAttribute("shiftPaused");
-            callBoardHttp.resumeShift(getServletContext(), pageCtx.getExamId());
-            response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
-            return;
-        }
-        if (view.getRedirectPath() != null) {
-            response.sendRedirect(request.getContextPath() + view.getRedirectPath());
+        if (handleEarlyExit(request, response, session, pageCtx, view)) {
             return;
         }
 
-        applyCallSideEffects(session, view);
-        applyBoardOp(pageCtx.getExamId(), view);
-        bindCandidateCallPageAttributes(request, session, view.getPublishExamId(), view.getFullQueue());
-        publishCandidateQueue(request, session, view.getFullQueue(), view.getPublishExamId());
+        // 3) Side-effect session + CallBoard (một chỗ)
+        CallPageEffects effects = CallPageEffects.fromView(view);
+        applySessionAndBoardEffects(session, pageCtx.getExamId(), view, effects);
+
+        // 4) Bind + forward
+        bindCandidateCallPageAttributes(request, session, effects.getPublishExamId(), view.getFullQueue());
+        publishCandidateQueue(request, session, view.getFullQueue(), effects.getPublishExamId());
         bindActionAlert(request, view);
+        ExamStaffHttpSupport.consumeFlash(session, ExamStaffSessionKeys.EXAM_CONTROL_ERROR,
+                request, "examLockedMsg");
+        ExamStaffHttpSupport.consumeFlash(session, ExamStaffSessionKeys.EXAM_CONTROL_MSG,
+                request, "examControlMsg");
 
         if (view.isShowSuspended()) {
             request.setAttribute("suspendedList", view.getSuspendedList());
@@ -118,6 +107,48 @@ public class CandidateCallServlet extends HttpServlet {
 
         request.setAttribute("nextCallingCandidate", view.getNextCallingCandidate());
         request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
+    }
+
+    private void redirectToDesk(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session) throws IOException {
+        String deskSbd = request.getParameter("sbd");
+        if (deskSbd == null || deskSbd.trim().isEmpty()) {
+            deskSbd = (String) session.getAttribute(ExamStaffSessionKeys.CALLING_SBD);
+        }
+        if (deskSbd != null && !deskSbd.trim().isEmpty()) {
+            response.sendRedirect("procedure?sbd=" + deskSbd);
+        } else {
+            response.sendRedirect("procedure");
+        }
+    }
+
+    /** Resume shift / redirect do service; trả true nếu đã gửi response. */
+    private boolean handleEarlyExit(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, ExamStaffPageFacade.ExamStaffPageContext pageCtx,
+            CandidateCallPageViewDTO view) throws IOException {
+        if (view.isResumeShift()) {
+            ExamSummaryDTO currentExam = selectionFacade.findExamById(
+                    selectionFacade.loadAllExams(), pageCtx.getExamId());
+            if (currentExam != null && ExamStatus.isPaused(currentExam.getStatus())) {
+                ExamControlService.ResumeResult resume = examControlService.resumeExam(pageCtx.getExamId());
+                if (!resume.isSuccess()) {
+                    session.setAttribute(ExamStaffSessionKeys.EXAM_CONTROL_ERROR, resume.getMessage());
+                    response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+                    return true;
+                }
+                session.setAttribute(ExamStaffSessionKeys.EXAM_CONTROL_MSG, resume.getMessage());
+            }
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_ENDED);
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_PAUSED);
+            callBoardHttp.resumeShift(getServletContext(), pageCtx.getExamId());
+            response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+            return true;
+        }
+        if (view.getRedirectPath() != null) {
+            response.sendRedirect(request.getContextPath() + view.getRedirectPath());
+            return true;
+        }
+        return false;
     }
 
     private CandidateCallPageCommand buildCommand(HttpServletRequest request, HttpSession session,
@@ -135,25 +166,36 @@ public class CandidateCallServlet extends HttpServlet {
         CallBoardState board = callBoardHttp.getState(getServletContext(), pageCtx.getExamId());
         command.setBoard(board);
         command.setShiftPaused(resolveShiftPaused(session, pageCtx.getExamId(), board));
-        command.setCallingSbd((String) session.getAttribute("callingSbd"));
-        command.setLastLoadedExamId((Integer) session.getAttribute("lastLoadedExamId"));
+
+        ExamSummaryDTO exam = selectionFacade.findExamById(pageCtx.getAllExams(), pageCtx.getExamId());
+        boolean mutationsLocked = exam != null && ExamStatus.isLockedForStaffMutation(exam.getStatus());
+        command.setExamMutationsLocked(mutationsLocked);
+        if (mutationsLocked && isStaffMutationAction(command.getAction())) {
+            session.setAttribute(ExamStaffSessionKeys.EXAM_CONTROL_ERROR,
+                    ExamStaffMessage.EXAM_MUTATIONS_LOCKED.getText());
+            command.setAction(null);
+        }
+
+        command.setCallingSbd((String) session.getAttribute(ExamStaffSessionKeys.CALLING_SBD));
+        command.setLastLoadedExamId((Integer) session.getAttribute(ExamStaffSessionKeys.LAST_LOADED_EXAM_ID));
         @SuppressWarnings("unchecked")
-        List<String> callQueueOrder = (List<String>) session.getAttribute("callQueueOrder");
+        List<String> callQueueOrder =
+                (List<String>) session.getAttribute(ExamStaffSessionKeys.CALL_QUEUE_ORDER);
         command.setCallQueueOrder(callQueueOrder);
         command.setCallQueueOrderExamId(ExamStaffPageBinder.readCallQueueOrderExamId(session));
 
         @SuppressWarnings("unchecked")
         List<ExamRegistrationDTO> permanentAbsents =
-                (List<ExamRegistrationDTO>) session.getAttribute("permanentAbsents");
+                (List<ExamRegistrationDTO>) session.getAttribute(ExamStaffSessionKeys.PERMANENT_ABSENTS);
         if (permanentAbsents == null) {
             permanentAbsents = new ArrayList<>();
-            session.setAttribute("permanentAbsents", permanentAbsents);
+            session.setAttribute(ExamStaffSessionKeys.PERMANENT_ABSENTS, permanentAbsents);
         }
         command.setPermanentAbsents(permanentAbsents);
 
         @SuppressWarnings("unchecked")
         List<ExamRegistrationDTO> cached =
-                (List<ExamRegistrationDTO>) session.getAttribute("candidateQueue");
+                (List<ExamRegistrationDTO>) session.getAttribute(ExamStaffSessionKeys.CANDIDATE_QUEUE);
         command.setCachedQueue(cached);
 
         return command;
@@ -162,61 +204,58 @@ public class CandidateCallServlet extends HttpServlet {
     private boolean resolveShiftPaused(HttpSession session, int examId, CallBoardState board) {
         if (board != null && board.isExamPaused()) {
             if (session != null) {
-                session.setAttribute("shiftPaused", "true");
+                session.setAttribute(ExamStaffSessionKeys.SHIFT_PAUSED, ExamStaffSessionKeys.FLAG_TRUE);
             }
             return true;
         }
         ExamSummaryDTO exam = selectionFacade.findExamById(selectionFacade.loadAllExams(), examId);
         if (exam != null && ExamStatus.isPaused(exam.getStatus())) {
             if (session != null) {
-                session.setAttribute("shiftPaused", "true");
+                session.setAttribute(ExamStaffSessionKeys.SHIFT_PAUSED, ExamStaffSessionKeys.FLAG_TRUE);
             }
             return true;
         }
         return isShiftPaused(session);
     }
 
-    private void applyCallSideEffects(HttpSession session, CandidateCallPageViewDTO view) {
-        if (view.isClearCallingSbd()) {
-            session.removeAttribute("callingSbd");
-        } else if (view.getCallingSbd() != null) {
-            session.setAttribute("callingSbd", view.getCallingSbd());
+    /** Áp toàn bộ side-effect session + CallBoard từ {@link CallPageEffects}. */
+    private void applySessionAndBoardEffects(HttpSession session, int boardExamId,
+            CandidateCallPageViewDTO view, CallPageEffects effects) {
+        if (effects.isClearCallingSbd()) {
+            session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
+        } else if (effects.getCallingSbd() != null) {
+            session.setAttribute(ExamStaffSessionKeys.CALLING_SBD, effects.getCallingSbd());
         }
-        if (view.isShiftEnded()) {
-            session.setAttribute("shiftEnded", "true");
-            session.removeAttribute("shiftPaused");
+        if (effects.isShiftEnded()) {
+            session.setAttribute(ExamStaffSessionKeys.SHIFT_ENDED, ExamStaffSessionKeys.FLAG_TRUE);
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_PAUSED);
         }
-        if (view.isShiftPaused()) {
-            session.setAttribute("shiftPaused", "true");
-        } else if (view.isResumeShift() || view.isShiftEnded()) {
-            session.removeAttribute("shiftPaused");
+        if (effects.isShiftPaused()) {
+            session.setAttribute(ExamStaffSessionKeys.SHIFT_PAUSED, ExamStaffSessionKeys.FLAG_TRUE);
+        } else if (view.isResumeShift() || effects.isShiftEnded()) {
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_PAUSED);
         }
-        if (view.isClearProcedureJustPaidSbd()) {
-            session.removeAttribute("procedureJustPaidSbd");
+        if (effects.isClearProcedureJustPaidSbd()) {
+            session.removeAttribute(ExamStaffSessionKeys.PROCEDURE_JUST_PAID_SBD);
         }
-        if (view.isPersistQueueOrder()) {
+        if (effects.isPersistQueueOrder()) {
             ExamStaffPageBinder.syncCallQueueOrder(
-                    session, view.getPublishExamId(), view.getFullQueue());
+                    session, effects.getPublishExamId(), view.getFullQueue());
         }
-    }
 
-    private void applyBoardOp(int boardExamId, CandidateCallPageViewDTO view) {
-        if (view.isPauseBoard()) {
-            ExamControlService.PauseResult paused = examControlService.pauseExam(boardExamId);
-            if (!paused.isSuccess()) {
-                // Vẫn pause board để dừng gọi số; status DB có thể đã tạm dừng sẵn.
-            }
+        if (effects.isPauseBoard()) {
+            examControlService.pauseExam(boardExamId);
             callBoardHttp.pauseShift(getServletContext(), boardExamId, view.getFullQueue());
         }
-        if (view.isReleaseDesk()) {
+        if (effects.isReleaseDesk()) {
             callBoardHttp.releaseDeskAndCall(
-                    getServletContext(), boardExamId, view.getReleaseDeskCallingSbd(),
-                    view.getFullQueue(), view.isShiftEnded());
+                    getServletContext(), boardExamId, effects.getReleaseDeskCallingSbd(),
+                    view.getFullQueue(), effects.isShiftEnded());
         }
-        if (view.isSyncBoard()) {
+        if (effects.isSyncBoard()) {
             callBoardHttp.sync(
-                    getServletContext(), boardExamId, view.getBoardCallingSbd(),
-                    view.getFullQueue(), view.isShiftEnded());
+                    getServletContext(), boardExamId, effects.getBoardCallingSbd(),
+                    view.getFullQueue(), effects.isShiftEnded());
         }
     }
 
@@ -227,7 +266,7 @@ public class CandidateCallServlet extends HttpServlet {
         if (resolvedExamId <= 0) {
             resolvedExamId = examId;
         }
-        examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
+        ExamSummaryDTO current = selectionFacade.findExamById(
                 selectionFacade.loadAllExams(), resolvedExamId);
         if (current == null && examId > 0) {
             current = selectionFacade.representativeExam(
@@ -241,27 +280,20 @@ public class CandidateCallServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        String callingSbd = (String) session.getAttribute("callingSbd");
-        ExamRegistrationDTO calling = callingService.resolveCallingCandidate(callingSbd, queue);
+        String callingSbd = (String) session.getAttribute(ExamStaffSessionKeys.CALLING_SBD);
+        ExamRegistrationDTO calling = candidateQueueService.resolveCallingCandidate(callingSbd, queue);
         if (calling != null && callingSbd != null && !callingSbd.equals(calling.getSbd())) {
-            session.setAttribute("callingSbd", calling.getSbd());
+            session.setAttribute(ExamStaffSessionKeys.CALLING_SBD, calling.getSbd());
         } else if (calling == null && callingSbd != null) {
-            session.removeAttribute("callingSbd");
+            session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
         }
         return calling;
     }
 
     private void publishCandidateQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> queue, int examId) {
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(queue, examId, examId);
-        examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
-                selectionFacade.loadAllExams(), examId);
-        if (current == null && examId > 0) {
-            current = selectionFacade.representativeExam(
-                    selectionFacade.loadAllExams(), examId);
-        }
-        ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
-                snapshot.getProcedureDone(), examId, examId, current);
+        CandidateQueueHttpSupport.publishLists(request, session, candidateQueueService,
+                selectionFacade, queue, examId);
     }
 
     private static void bindActionAlert(HttpServletRequest request, CandidateCallPageViewDTO view) {
@@ -286,10 +318,24 @@ public class CandidateCallServlet extends HttpServlet {
     }
 
     private static boolean isShiftEnded(HttpSession session) {
-        return session != null && "true".equals(session.getAttribute("shiftEnded"));
+        return session != null
+                && ExamStaffSessionKeys.FLAG_TRUE.equals(session.getAttribute(ExamStaffSessionKeys.SHIFT_ENDED));
     }
 
     private static boolean isShiftPaused(HttpSession session) {
-        return session != null && "true".equals(session.getAttribute("shiftPaused"));
+        return session != null
+                && ExamStaffSessionKeys.FLAG_TRUE.equals(session.getAttribute(ExamStaffSessionKeys.SHIFT_PAUSED));
+    }
+
+    /** Action thay đổi hồ sơ/đình chỉ khi kỳ đã kết thúc. */
+    private static boolean isStaffMutationAction(String action) {
+        if (action == null || action.isBlank()) {
+            return false;
+        }
+        return switch (action) {
+            case "permanentAbsent", "undoAbsent", "absent", "moveToBottom", "autoAbsent",
+                    "startCall", "endShift", "closeExam", "pauseShift" -> true;
+            default -> false;
+        };
     }
 }

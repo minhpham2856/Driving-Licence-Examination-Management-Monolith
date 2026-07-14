@@ -5,6 +5,7 @@ import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateQueueQueryService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffExamQueryService;
@@ -16,21 +17,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Implementation: làm mới / lọc hàng đợi gọi thí sinh. */
 public class CandidateQueueServiceImpl implements CandidateQueueService {
 
     private final CandidateQueueQueryService queueQuery;
     private final ExamStaffExamQueryService examQuery;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public CandidateQueueServiceImpl() {
         this(new CandidateQueueQueryServiceImpl(), new ExamStaffExamQueryServiceImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public CandidateQueueServiceImpl(CandidateQueueQueryService queueQuery,
             ExamStaffExamQueryService examQuery) {
         this.queueQuery = queueQuery;
         this.examQuery = examQuery;
     }
 
+    /** {@inheritDoc} */
     @Override
     public CandidateQueueSnapshotDTO refreshQueue(ExamStaffQueueRefreshInput input) {
         CandidateQueueSnapshotDTO snapshot = new CandidateQueueSnapshotDTO();
@@ -76,6 +81,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return buildSnapshot(qList, examId, examId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public CandidateQueueSnapshotDTO buildSnapshot(List<ExamRegistrationDTO> queue, int examId, int fallbackExamId) {
         CandidateQueueSnapshotDTO snapshot = new CandidateQueueSnapshotDTO();
@@ -87,6 +93,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return snapshot;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamRegistrationDTO> filterPendingForCall(List<ExamRegistrationDTO> queue) {
         if (queue == null || queue.isEmpty()) {
@@ -101,15 +108,18 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return active;
     }
 
+    /** Thí sinh còn trong hàng đợi gọi được. */
     private boolean isCallablePending(ExamRegistrationDTO candidate) {
         return CallQueueRules.isCallablePending(candidate);
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd) {
         return CallQueueRules.findBySbd(queue, sbd);
     }
 
+    /** SBD tiếp theo sau afterSbd trong hàng chờ gọi. */
     private String findNextPendingSbd(List<ExamRegistrationDTO> queue, String afterSbd) {
         if (queue == null || queue.isEmpty()) {
             return null;
@@ -145,6 +155,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String resolveNextCallingSbd(List<ExamRegistrationDTO> fullQueue, String afterSbd) {
         List<ExamRegistrationDTO> active = filterPendingForCall(fullQueue);
@@ -158,6 +169,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return next;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean moveCallableCandidateToFront(List<ExamRegistrationDTO> queue, String sbd) {
         if (queue == null || sbd == null || sbd.isBlank()) {
@@ -178,6 +190,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean moveCallableCandidateToBottom(List<ExamRegistrationDTO> queue, String sbd) {
         if (queue == null || sbd == null || sbd.isBlank()) {
@@ -195,11 +208,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<ExamRegistrationDTO> listSuspendedInExam(List<ExamRegistrationDTO> queue) {
         return CallQueueRules.listSuspendedInExam(queue);
     }
 
+    /** Thí sinh đã xong thủ tục, mới nhất trước. */
     private List<ExamRegistrationDTO> listProcedureDoneNewestFirst(List<ExamRegistrationDTO> queue) {
         if (queue == null || queue.isEmpty()) {
             return List.of();
@@ -217,6 +232,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return done;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamRegistrationDTO findByExam(int examId, int fallbackExamId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
@@ -243,6 +259,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return null;
     }
 
+    /** Tải danh sách thí sinh theo examId. */
     private List<ExamRegistrationDTO> loadCandidates(int examId, int fallbackExamId, List<ExamSummaryDTO> allExams) {
         try {
             if (examId <= 0 && fallbackExamId > 0) {
@@ -257,6 +274,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return new ArrayList<>();
     }
 
+    /** Tìm ExamSummaryDTO theo id trong list hoặc DAO. */
     private ExamSummaryDTO resolveExam(int examId, List<ExamSummaryDTO> allExams) {
         ExamSummaryDTO found = examstaff.util.ExamStaffExamRules.findExamById(allExams, examId);
         if (found != null) {
@@ -270,6 +288,7 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         }
     }
 
+    /** Áp thứ tự gọi tùy chỉnh theo SBD. */
     private List<ExamRegistrationDTO> applyCallQueueOrder(List<String> order, Integer orderExamId,
             int examId, List<ExamRegistrationDTO> qList) {
         if (qList == null || qList.isEmpty() || order == null || order.isEmpty()
@@ -291,5 +310,54 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         }
         reordered.addAll(bySbd.values());
         return reordered;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public ExamRegistrationDTO resolveCallingCandidate(String callingSbd, List<ExamRegistrationDTO> queue) {
+        if (queue == null || callingSbd == null || callingSbd.isBlank()) {
+            return null;
+        }
+        for (ExamRegistrationDTO c : queue) {
+            if (!callingSbd.equals(c.getSbd())) {
+                continue;
+            }
+            if (!c.isProcedureComplete()) {
+                return c;
+            }
+            String nextSbd = resolveNextCallingSbd(queue, callingSbd);
+            return nextSbd != null ? findBySbd(queue, nextSbd) : null;
+        }
+        return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String resolveSyncedCallingSbd(String httpCallingSbd, CallBoardState callBoard,
+            List<ExamRegistrationDTO> queue) {
+        String boardCalling = callBoard != null ? callBoard.getCallingSbd() : null;
+        String callingSbd = httpCallingSbd != null && !httpCallingSbd.isBlank()
+                ? httpCallingSbd
+                : boardCalling;
+        if (callingSbd != null && !callingSbd.isBlank() && queue != null) {
+            ExamRegistrationDTO atDesk = findBySbd(queue, callingSbd);
+            if (atDesk == null || atDesk.isProcedureComplete() || atDesk.isSuspended() || atDesk.isAbsent()) {
+                callingSbd = resolveNextCallingSbd(queue, callingSbd);
+            }
+        }
+        return callingSbd;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String advanceCallingIfDone(String callingSbd, List<ExamRegistrationDTO> candidateQueue) {
+        if (candidateQueue == null || callingSbd == null || callingSbd.isBlank()) {
+            return callingSbd;
+        }
+        ExamRegistrationDTO current = findBySbd(candidateQueue, callingSbd);
+        if (current != null && !current.isSuspended() && !current.isProcedureComplete()) {
+            return callingSbd;
+        }
+        return resolveNextCallingSbd(candidateQueue, callingSbd);
     }
 }

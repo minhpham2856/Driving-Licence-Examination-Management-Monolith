@@ -4,6 +4,10 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Snapshot hàng chờ thí sinh tại một thời điểm (BLL → Presentation).
+ * Tách full/active queue, danh sách đã xong thủ tục và examId đã resolve.
+ */
 public class CandidateQueueSnapshotDTO {
 
     private List<ExamRegistrationDTO> fullQueue;
