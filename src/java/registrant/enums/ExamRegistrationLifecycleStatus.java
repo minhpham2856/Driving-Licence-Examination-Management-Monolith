@@ -56,7 +56,7 @@ public final class ExamRegistrationLifecycleStatus {
 
     public static String toDisplayLabel(String status) {
         if (status == null || status.isBlank()) {
-            return "—";
+            return "-";
         }
         return switch (status.trim()) {
             case PRE_REGISTERED -> "Chờ xét duyệt";

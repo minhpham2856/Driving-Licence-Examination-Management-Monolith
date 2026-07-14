@@ -26,7 +26,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
 
     private static final Logger LOG = Logger.getLogger(DocumentDAOImpl.class.getName());
 
-    /** Marker ASCII — tránh lỗi LIKE/SQL và encoding khi lưu Notes. */
+    /** Marker ASCII - tránh lỗi LIKE/SQL và encoding khi lưu Notes. */
     public static final String MARK_PENDING = "#PENDING#";
     public static final String MARK_APPROVED = "#APPROVED#";
     public static final String MARK_LICENCE_PREFIX = "#LICENCE#";
@@ -610,7 +610,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return notes.length() <= 255 ? notes : notes.substring(0, 252) + "...";
     }
 
-    /** Truy vấn cục bộ — tránh phụ thuộc vòng RegistrantDAOImpl ↔ DocumentDAOImpl. */
+    /** Truy vấn cục bộ - tránh phụ thuộc vòng RegistrantDAOImpl ↔ DocumentDAOImpl. */
     private String resolveLatestLicenceClassByProfileId(int profileId) {
         String sql = """
                 SELECT TOP 1 l.LicenceClass

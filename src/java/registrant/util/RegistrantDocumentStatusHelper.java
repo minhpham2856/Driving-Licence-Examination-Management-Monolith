@@ -100,7 +100,7 @@ public final class RegistrantDocumentStatusHelper {
         return true;
     }
 
-    /** Thông báo lý do chưa được đăng ký thi — null nếu đủ điều kiện. */
+    /** Thông báo lý do chưa được đăng ký thi - null nếu đủ điều kiện. */
     public static String examRegistrationBlockMessage(String registrationStatus,
             List<RegistrantDocumentView> allDocs, RegistrantDocumentSummary summary) {
         if (isEligibleForExamRegistration(registrationStatus, allDocs)) {
@@ -391,7 +391,7 @@ public final class RegistrantDocumentStatusHelper {
             summary.setOverallStatusClass("incomplete");
             summary.setOverallStatusLabel("Chưa đủ giấy tờ");
             summary.setOverallMessage(String.format(
-                    "Đã tải %d/%d giấy tờ bắt buộc — còn thiếu %d mục.",
+                    "Đã tải %d/%d giấy tờ bắt buộc - còn thiếu %d mục.",
                     summary.getRequiredUploaded(), summary.getRequiredTotal(), missing));
             return;
         }
@@ -401,9 +401,9 @@ public final class RegistrantDocumentStatusHelper {
                     ? "Giấy tờ bắt buộc đã được phê duyệt. Hồ sơ bổ sung đang chờ ban quản lý xem xét."
                     : "Tất cả giấy tờ bắt buộc đã được ban quản lý phê duyệt.";
             case ProfileRegistrationStatus.PENDING ->
-                    "Hồ sơ đã gửi ban quản lý — đang chờ phê duyệt.";
+                    "Hồ sơ đã gửi ban quản lý - đang chờ phê duyệt.";
             case ProfileRegistrationStatus.REJECTED ->
-                    "Hồ sơ bị từ chối — vui lòng bổ sung và gửi duyệt lại.";
+                    "Hồ sơ bị từ chối - vui lòng bổ sung và gửi duyệt lại.";
             default -> String.format(
                     "Đã tải đủ %d giấy tờ bắt buộc%s. Hãy gửi yêu cầu duyệt trên trang tải hồ sơ.",
                     summary.getRequiredTotal(),
@@ -458,7 +458,7 @@ public final class RegistrantDocumentStatusHelper {
             }
             sb.append(doc.getFileSizeLabel());
         }
-        return sb.length() > 0 ? sb.toString() : "—";
+        return sb.length() > 0 ? sb.toString() : "-";
     }
 
     private static String extractRejectReason(String notes) {

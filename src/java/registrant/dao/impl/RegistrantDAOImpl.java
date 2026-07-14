@@ -41,7 +41,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     private final DocumentDAO documentdao = new DocumentDAOImpl();
 
-    /** JOIN lấy một phòng thi đại diện mỗi ca — tránh nhân bản dòng khi ca có nhiều ExamArea. */
+    /** JOIN lấy một phòng thi đại diện mỗi ca - tránh nhân bản dòng khi ca có nhiều ExamArea. */
     private static final String SESSION_AREA_JOIN = """
             LEFT JOIN (
                 SELECT sea2.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId
@@ -51,7 +51,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId
             """;
 
-    /** Subquery đánh dấu thí sinh đã thanh toán — tái sử dụng cho mọi truy vấn registrant. */
+    /** Subquery đánh dấu thí sinh đã thanh toán - tái sử dụng cho mọi truy vấn registrant. */
     private static final String PAYMENT_COMPLETED_JOIN = """
             LEFT JOIN (
                 SELECT p1.CandidateId, MIN(p1.PaymentId) AS PaymentId
@@ -64,7 +64,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     @Override
     public List<RegistrantLicenceOption> listOpenLicenceOptions() {
         /*
-         * Lấy toàn bộ hạng GPLX từ bảng Licence — không giới hạn A1/B2 cố định.
+         * Lấy toàn bộ hạng GPLX từ bảng Licence - không giới hạn A1/B2 cố định.
          * Mã UI (A2/B2) được map từ mã DB (A/B) qua RegistrantExamSupport.
          */
         String sql = """
@@ -890,7 +890,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             return false;
         }
         if (getConnection() == null) {
-            LOG.log(Level.WARNING, "Không đồng bộ RegistrationStatus — mất kết nối DB (profile {0})", profileId);
+            LOG.log(Level.WARNING, "Không đồng bộ RegistrationStatus - mất kết nối DB (profile {0})", profileId);
             return false;
         }
         try {
@@ -966,7 +966,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         if (examDate == null) {
             return null;
         }
-        // Interface khai báo java.util.Date; impl dùng java.sql.Date ở chỗ khác — chuyển an toàn sang LocalDate.
+        // Interface khai báo java.util.Date; impl dùng java.sql.Date ở chỗ khác - chuyển an toàn sang LocalDate.
         LocalDate target;
         if (examDate instanceof Date) {
             target = ((Date) examDate).toLocalDate();
@@ -1101,7 +1101,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     act.setColorClass("blue");
                     act.setIconPath("M2 10h20");
                     act.setTitle("Thanh toán lệ phí thành công");
-                    act.setDesc(String.format("Lệ phí thi Hạng %s — %,.0f VNĐ đã được xử lý",
+                    act.setDesc(String.format("Lệ phí thi Hạng %s - %,.0f VNĐ đã được xử lý",
                             RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")),
                             rs.getDouble("TotalAmount")));
                     act.setTime(RegistrantExamSupport.formatActivityTime(paidAt));
@@ -1136,7 +1136,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     act.setColorClass("green");
                     act.setIconPath("M20 6L9 17l-5-5");
                     act.setTitle("Đăng ký đợt thi thành công");
-                    act.setDesc(String.format("Đã đăng ký tham gia %s — Hạng %s",
+                    act.setDesc(String.format("Đã đăng ký tham gia %s - Hạng %s",
                             rs.getString("SessionName"),
                             RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"))));
                     act.setTime(RegistrantExamSupport.formatActivityTime(startTime));
@@ -1150,7 +1150,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     private java.util.Date queryProfileCreatedAt(int profileId) {
-        // Profile không có CreatedAt — dùng ExamRegistration đầu tiên làm mốc
+        // Profile không có CreatedAt - dùng ExamRegistration đầu tiên làm mốc
         String sql = """
                 SELECT TOP 1 er.ExamRegistrationId
                 FROM ExamRegistration er WHERE er.ProfileId = ?

@@ -37,7 +37,7 @@ public final class ProfileRegistrationStatus {
             case DRAFT -> "Đang bổ sung hồ sơ";
             case PENDING -> "Chờ ban quản lý duyệt";
             case APPROVED -> "Đã duyệt hồ sơ";
-            case REJECTED -> "Bị từ chối — cần bổ sung";
+            case REJECTED -> "Bị từ chối - cần bổ sung";
             default -> status.trim();
         };
     }
