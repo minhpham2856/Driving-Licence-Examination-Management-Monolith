@@ -13,7 +13,12 @@ public class CandidateAttendanceServiceImpl implements CandidateAttendanceServic
 
     private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Đánh dấu vắng mặt cố định (permanent absent) cho thí sinh.
+     *
+     * @param candidateId mã đăng ký thí sinh
+     * @return true nếu đánh dấu thành công
+     */
     @Override
     public boolean markPermanentAbsent(int candidateId) {
         registrationService.updateScores(candidateId, 0, "failed", 0, "failed");
@@ -21,7 +26,12 @@ public class CandidateAttendanceServiceImpl implements CandidateAttendanceServic
         return registrationService.markAbsent(candidateId);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Khôi phục thí sinh đã bị đánh vắng về trạng thái có thể gọi lại.
+     *
+     * @param profile hồ sơ thí sinh
+     * @return true nếu khôi phục thành công
+     */
     @Override
     public boolean restoreAbsentCandidate(ExamRegistrationDTO profile) {
         if (profile == null) {
@@ -38,7 +48,12 @@ public class CandidateAttendanceServiceImpl implements CandidateAttendanceServic
         return true;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Khi kết thúc ca: đánh vắng các thí sinh còn dở trong hàng đợi active.
+     *
+     * @param activeQueue hàng đợi còn pending khi đóng ca
+     * @return danh sách đã được đánh vắng
+     */
     @Override
     public List<ExamRegistrationDTO> markIncompleteAsAbsentAtEndShift(List<ExamRegistrationDTO> activeQueue) {
         List<ExamRegistrationDTO> marked = new ArrayList<>();

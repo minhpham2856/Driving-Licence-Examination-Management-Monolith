@@ -16,7 +16,19 @@ import java.util.Set;
 /** Implementation: dựng view phân bổ theo giai đoạn (LT / TH / tổng quan). */
 public class AllocationStageViewServiceImpl implements AllocationStageViewService {
 
-    /** {@inheritDoc} */
+    /**
+     * Ghép danh sách thí sinh phân phòng theo stage, bộ lọc và sắp xếp.
+     *
+     * @param candidates   danh sách nguồn
+     * @param stage        giai đoạn (ví dụ lý thuyết / thực hành)
+     * @param resultFilter lọc kết quả đỗ/trượt (có thể rỗng)
+     * @param searchQuery  từ khóa tìm kiếm (có thể rỗng)
+     * @param page         trang hiện tại
+     * @param pageSize     kích thước trang
+     * @param sortSpec     quy tắc sắp xếp
+     * @param areaFilterId lọc theo khu vực (null = không lọc)
+     * @return DTO view phân phòng theo stage
+     */
     @Override
     public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,
             String resultFilter, String searchQuery, int page, int pageSize,

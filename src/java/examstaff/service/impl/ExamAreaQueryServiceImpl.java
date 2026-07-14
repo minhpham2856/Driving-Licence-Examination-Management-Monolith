@@ -28,7 +28,9 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         this.assignmentDAO = assignmentDAO;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Phòng LT gắn kỳ và đã có sát hạch viên - dùng dropdown phân phòng thí sinh. 
+     */
     @Override
     public List<ExamArea> listStaffedTheoryRoomsForExam(int examId) {
         if (examId <= 0) {
@@ -40,7 +42,9 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         return ExaminerAssignmentRules.filterTheoryRoomsWithStaff(examRooms, staffed);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Sân/phòng TH gắn kỳ và đã có sát hạch viên. 
+     */
     @Override
     public List<ExamArea> listStaffedPracticalAreasForExam(int examId) {
         if (examId <= 0) {
@@ -52,7 +56,12 @@ public class ExamAreaQueryServiceImpl implements ExamAreaQueryService {
         return ExaminerAssignmentRules.filterPracticalRoomsWithStaff(examRooms, staffed);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tìm khu vực thi theo mã.
+     *
+     * @param examAreaId mã khu vực
+     * @return khu vực, hoặc null nếu không có
+     */
     @Override
     public ExamArea findById(int examAreaId) {
         return examAreaDAO.getById(examAreaId);

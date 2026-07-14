@@ -35,7 +35,12 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         this.examQuery = examQuery;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Làm mới hàng đợi theo ngữ cảnh kỳ thi / bộ lọc đầu vào.
+     *
+     * @param input ngữ cảnh refresh hàng đợi
+     * @return snapshot hàng đợi sau khi làm mới
+     */
     @Override
     public CandidateQueueSnapshotDTO refreshQueue(ExamStaffQueueRefreshInput input) {
         CandidateQueueSnapshotDTO snapshot = new CandidateQueueSnapshotDTO();
@@ -81,7 +86,14 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return buildSnapshot(qList, examId, examId);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Dựng snapshot hàng đợi từ danh sách đã có.
+     *
+     * @param queue          hàng đợi nguồn
+     * @param examId         mã kỳ ưu tiên
+     * @param fallbackExamId mã kỳ dự phòng
+     * @return snapshot phục vụ UI/gọi số
+     */
     @Override
     public CandidateQueueSnapshotDTO buildSnapshot(List<ExamRegistrationDTO> queue, int examId, int fallbackExamId) {
         CandidateQueueSnapshotDTO snapshot = new CandidateQueueSnapshotDTO();
@@ -93,7 +105,12 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return snapshot;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lọc thí sinh còn chờ gọi (chưa hoàn tất thủ tục gọi theo quy tắc).
+     *
+     * @param queue hàng đợi đầy đủ
+     * @return danh sách còn pending để gọi
+     */
     @Override
     public List<ExamRegistrationDTO> filterPendingForCall(List<ExamRegistrationDTO> queue) {
         if (queue == null || queue.isEmpty()) {
@@ -113,7 +130,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return CallQueueRules.isCallablePending(candidate);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tìm thí sinh trong hàng đợi theo số báo danh.
+     *
+     * @param queue hàng đợi
+     * @param sbd   số báo danh
+     * @return hồ sơ khớp, hoặc null
+     */
     @Override
     public ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd) {
         return CallQueueRules.findBySbd(queue, sbd);
@@ -155,7 +178,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xác định SBD kế tiếp cần gọi sau một SBD cho trước.
+     *
+     * @param fullQueue hàng đợi đầy đủ
+     * @param afterSbd  SBD tham chiếu (có thể null = lấy đầu danh sách gọi được)
+     * @return SBD kế tiếp, hoặc null nếu hết
+     */
     @Override
     public String resolveNextCallingSbd(List<ExamRegistrationDTO> fullQueue, String afterSbd) {
         List<ExamRegistrationDTO> active = filterPendingForCall(fullQueue);
@@ -169,7 +198,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return next;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đưa thí sinh còn gọi được lên đầu hàng đợi.
+     *
+     * @param queue hàng đợi (sửa tại chỗ)
+     * @param sbd   số báo danh
+     * @return true nếu đã chuyển vị trí
+     */
     @Override
     public boolean moveCallableCandidateToFront(List<ExamRegistrationDTO> queue, String sbd) {
         if (queue == null || sbd == null || sbd.isBlank()) {
@@ -190,7 +225,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đưa thí sinh còn gọi được xuống cuối hàng đợi.
+     *
+     * @param queue hàng đợi (sửa tại chỗ)
+     * @param sbd   số báo danh
+     * @return true nếu đã chuyển vị trí
+     */
     @Override
     public boolean moveCallableCandidateToBottom(List<ExamRegistrationDTO> queue, String sbd) {
         if (queue == null || sbd == null || sbd.isBlank()) {
@@ -208,7 +249,12 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Liệt kê thí sinh đang bị đình chỉ trong hàng đợi kỳ thi.
+     *
+     * @param queue hàng đợi
+     * @return danh sách thí sinh suspended
+     */
     @Override
     public List<ExamRegistrationDTO> listSuspendedInExam(List<ExamRegistrationDTO> queue) {
         return CallQueueRules.listSuspendedInExam(queue);
@@ -232,7 +278,14 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return done;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tìm thí sinh theo kỳ thi và SBD (ưu tiên examId, fallback nếu cần).
+     *
+     * @param examId         mã kỳ ưu tiên
+     * @param fallbackExamId mã kỳ dự phòng
+     * @param sbd            số báo danh
+     * @return hồ sơ tìm được, hoặc null
+     */
     @Override
     public ExamRegistrationDTO findByExam(int examId, int fallbackExamId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
@@ -312,7 +365,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return reordered;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xác định thí sinh đang gọi từ SBD (có thể nhảy sang SBD kế nếu đã hoàn tất thủ tục).
+     *
+     * @param callingSbd SBD đang gọi
+     * @param queue      hàng đợi
+     * @return hồ sơ đang gọi, hoặc null
+     */
     @Override
     public ExamRegistrationDTO resolveCallingCandidate(String callingSbd, List<ExamRegistrationDTO> queue) {
         if (queue == null || callingSbd == null || callingSbd.isBlank()) {
@@ -331,7 +390,14 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đồng bộ SBD đang gọi giữa HTTP session và CallBoard (bỏ SBD đã xong/vắng/đình chỉ).
+     *
+     * @param httpCallingSbd SBD từ HTTP (ưu tiên)
+     * @param callBoard      trạng thái bảng gọi (có thể null)
+     * @param queue          hàng đợi
+     * @return SBD đang gọi sau đồng bộ (có thể null)
+     */
     @Override
     public String resolveSyncedCallingSbd(String httpCallingSbd, CallBoardState callBoard,
             List<ExamRegistrationDTO> queue) {
@@ -348,7 +414,13 @@ public class CandidateQueueServiceImpl implements CandidateQueueService {
         return callingSbd;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Nếu SBD hiện tại đã xong/đình chỉ thì chuyển sang SBD kế tiếp còn gọi được.
+     *
+     * @param callingSbd     SBD đang gọi
+     * @param candidateQueue hàng đợi
+     * @return SBD sau khi advance (có thể null)
+     */
     @Override
     public String advanceCallingIfDone(String callingSbd, List<ExamRegistrationDTO> candidateQueue) {
         if (candidateQueue == null || callingSbd == null || callingSbd.isBlank()) {

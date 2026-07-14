@@ -20,7 +20,12 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
     private final FeeDAO feeDAO = new FeeDAOImpl();
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Xác định các khoản phí thủ tục áp dụng cho hồ sơ.
+     *
+     * @param profile hồ sơ đăng ký thí sinh
+     * @return kết quả phí (khoản mục, tổng, …)
+     */
     @Override
     public ProcedureFeeResultDTO resolveProcedureFees(ExamRegistrationDTO profile) {
         ProcedureFeeResultDTO result = new ProcedureFeeResultDTO();

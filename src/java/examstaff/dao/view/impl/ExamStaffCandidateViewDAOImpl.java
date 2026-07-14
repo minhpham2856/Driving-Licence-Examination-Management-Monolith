@@ -16,7 +16,12 @@ import java.util.Locale;
 /** JDBC implementation của {@link ExamStaffCandidateViewDAO}. */
 public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaffCandidateViewDAO {
 
-    /** {@inheritDoc} */
+    /**
+     * Liệt kê thí sinh thuộc kỳ thi.
+     *
+     * @param examId mã kỳ thi
+     * @return danh sách thí sinh view
+     */
     @Override
     public List<ExamStaffCandidate> findByExamId(int examId) {
         if (examId <= 0) {
@@ -31,7 +36,13 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return list;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tìm thí sinh theo kỳ thi và số báo danh.
+     *
+     * @param examId mã kỳ thi
+     * @param sbd    số báo danh
+     * @return thí sinh hoặc null
+     */
     @Override
     public ExamStaffCandidate findByExamIdAndSbd(int examId, String sbd) {
         if (sbd == null || sbd.isBlank()) {
