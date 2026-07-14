@@ -11,11 +11,15 @@ import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
+import examstaff.enums.ExamStatus;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateQueueService;
+import examstaff.service.ExamControlService;
 import examstaff.service.ExamStaffServices;
 import examstaff.util.SessionUserHelper;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.view.CallBoardState;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,6 +41,7 @@ public class CandidateCallServlet extends HttpServlet {
     private final CandidateCallPageService pageService;
     private final CandidateCallingService callingService = SERVICES.calling();
     private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
+    private final ExamControlService examControlService = SERVICES.examControl();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
     private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
 
@@ -76,6 +81,17 @@ public class CandidateCallServlet extends HttpServlet {
         CandidateCallPageViewDTO view = pageService.preparePage(command);
 
         if (view.isResumeShift()) {
+            ExamSummaryDTO currentExam = selectionFacade.findExamById(
+                    selectionFacade.loadAllExams(), pageCtx.getExamId());
+            if (currentExam != null && ExamStatus.isPaused(currentExam.getStatus())) {
+                ExamControlService.ResumeResult resume = examControlService.resumeExam(pageCtx.getExamId());
+                if (!resume.isSuccess()) {
+                    session.setAttribute("examControlError", resume.getMessage());
+                    response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+                    return;
+                }
+                session.setAttribute("examControlMsg", resume.getMessage());
+            }
             session.removeAttribute("shiftEnded");
             session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), pageCtx.getExamId());
@@ -116,7 +132,9 @@ public class CandidateCallServlet extends HttpServlet {
         command.setCalledByStaffId(SessionUserHelper.resolveUserId(session));
         command.setWebRoot(webRoot);
         command.setShiftEnded(isShiftEnded(session));
-        command.setShiftPaused(isShiftPaused(session));
+        CallBoardState board = callBoardHttp.getState(getServletContext(), pageCtx.getExamId());
+        command.setBoard(board);
+        command.setShiftPaused(resolveShiftPaused(session, pageCtx.getExamId(), board));
         command.setCallingSbd((String) session.getAttribute("callingSbd"));
         command.setLastLoadedExamId((Integer) session.getAttribute("lastLoadedExamId"));
         @SuppressWarnings("unchecked")
@@ -138,8 +156,24 @@ public class CandidateCallServlet extends HttpServlet {
                 (List<ExamRegistrationDTO>) session.getAttribute("candidateQueue");
         command.setCachedQueue(cached);
 
-        command.setBoard(callBoardHttp.getState(getServletContext(), pageCtx.getExamId()));
         return command;
+    }
+
+    private boolean resolveShiftPaused(HttpSession session, int examId, CallBoardState board) {
+        if (board != null && board.isExamPaused()) {
+            if (session != null) {
+                session.setAttribute("shiftPaused", "true");
+            }
+            return true;
+        }
+        ExamSummaryDTO exam = selectionFacade.findExamById(selectionFacade.loadAllExams(), examId);
+        if (exam != null && ExamStatus.isPaused(exam.getStatus())) {
+            if (session != null) {
+                session.setAttribute("shiftPaused", "true");
+            }
+            return true;
+        }
+        return isShiftPaused(session);
     }
 
     private void applyCallSideEffects(HttpSession session, CandidateCallPageViewDTO view) {
@@ -168,6 +202,10 @@ public class CandidateCallServlet extends HttpServlet {
 
     private void applyBoardOp(int boardExamId, CandidateCallPageViewDTO view) {
         if (view.isPauseBoard()) {
+            ExamControlService.PauseResult paused = examControlService.pauseExam(boardExamId);
+            if (!paused.isSuccess()) {
+                // Vẫn pause board để dừng gọi số; status DB có thể đã tạm dừng sẵn.
+            }
             callBoardHttp.pauseShift(getServletContext(), boardExamId, view.getFullQueue());
         }
         if (view.isReleaseDesk()) {
