@@ -74,8 +74,7 @@
                             <span class="input-icon">
                                 <span class="material-symbols-outlined" style="font-size:18px">mail</span>
                             </span>
-                            <input class="form-input" type="text" id="identifier" name="identifier"
-                                   placeholder="Tên đăng nhập (vd: user_dung), email hoặc SĐT đã đăng ký" required>
+                            <input class="form-input" type="text" id="identifier" name="identifier" placeholder="example@gmail.com hoặc 0912..." required>
                         </div>
                     </div>
 
