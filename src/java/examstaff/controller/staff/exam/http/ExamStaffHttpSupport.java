@@ -75,7 +75,7 @@ public final class ExamStaffHttpSupport {
             return fallbackPath;
         }
         String referer = request.getHeader("Referer");
-        if (referer != null && referer.contains("/views/staff/examstaff/")) {
+        if (referer != null && referer.contains("/examstaff/")) {
             return referer;
         }
         String ctx = request.getContextPath();

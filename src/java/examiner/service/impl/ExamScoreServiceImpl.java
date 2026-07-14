@@ -24,11 +24,6 @@ public class ExamScoreServiceImpl implements ExamScoreService {
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
 
     @Override
-    public boolean upsertTheoryCorrectCount(int candidateId, int correct, int passThreshold) {
-        return upsertSectionScore(candidateId, SectionType.THEORY, correct, correct >= passThreshold);
-    }
-
-    @Override
     public boolean upsertSectionScore(int candidateId, SectionType section, double score, boolean passed) {
         if (candidateId <= 0 || section == null || score < 0) {
             return false;

@@ -14,11 +14,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.TreeMap;
 import java.util.UUID;
-import shared.util.ConfigManager;
+import shared.ConfigManager;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
- * Upload hồ sơ thí sinh lên Cloudinary (authenticated) — phục vụ xem khi chờ duyệt.
+ * Upload hồ sơ thí sinh lên Cloudinary (authenticated) - phục vụ xem khi chờ duyệt.
  * <p>
  * Cấu trúc: {@code dlem/pending/p{profileId}/{DocumentType}/{uuid}}.
  * Trong DB: {@code cloudinary:image:dlem/pending/p42/IdFront/a1b2c3d4}.

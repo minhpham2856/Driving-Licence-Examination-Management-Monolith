@@ -103,7 +103,7 @@
         const candidate = resolveAnnounceCandidate(state);
         if (!candidate) return null;
         const mode = isPrepareMode(state) ? 'prepare' : 'call';
-        // Khong gan updatedAtMs — moi lan sync/procedure chi bump timestamp se lam loa reset cau.
+        // Khong gan updatedAtMs - moi lan sync/procedure chi bump timestamp se lam loa reset cau.
         return mode + ':' + candidate.sbd;
     }
 

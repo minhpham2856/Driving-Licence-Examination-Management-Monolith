@@ -87,7 +87,7 @@ public class ProcedureWorkflowServiceImpl implements ProcedureWorkflowService {
                 current.setPhotoUrl(null);
                 current.setValidCapturedPhoto(false);
                 result.setPhotoStaleMessage(
-                        "Ảnh trong hồ sơ không tìm thấy trên máy chủ — vui lòng chụp lại ảnh chân dung.");
+                        "Ảnh trong hồ sơ không tìm thấy trên máy chủ - vui lòng chụp lại ảnh chân dung.");
                 syncProfileInQueue(queue, current);
             }
         }

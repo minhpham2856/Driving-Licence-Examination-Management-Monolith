@@ -102,7 +102,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null || !ExaminerAssignmentRules.isTheoryAreaType(targetArea.getAreaType())) {
-            result.setErrorMsg("Phòng thi không hợp lệ — chỉ dùng phòng loại Lý thuyết / Phòng thi.");
+            result.setErrorMsg("Phòng thi không hợp lệ - chỉ dùng phòng loại Lý thuyết / Phòng thi.");
             return;
         }
 
@@ -110,7 +110,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
                 examinerAllocationService.getAssignmentsByExamId(enrollExamId));
         if (!staffedTheoryAreas.contains(targetArea.getId())) {
             result.setErrorMsg("Phòng \"" + targetArea.getAreaName()
-                    + "\" chưa được phân công giám khảo trong kỳ thi này.");
+                    + "\" chưa được phân công sát hạch viên trong kỳ thi này.");
             return;
         }
 
@@ -144,7 +144,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
 
         ExamArea targetArea = areaQueryService.findById(areaId);
         if (targetArea == null || !ExaminerAssignmentRules.isPracticalAreaType(targetArea.getAreaType())) {
-            result.setErrorMsg("Sân thi không hợp lệ — chỉ dùng khu vực loại Thực hành.");
+            result.setErrorMsg("Sân thi không hợp lệ - chỉ dùng khu vực loại Thực hành.");
             return;
         }
 
@@ -152,7 +152,7 @@ public class AllocationActionServiceImpl implements AllocationActionService {
                 examinerAllocationService.getAssignmentsByExamId(enrollExamId));
         if (!staffedPracticalAreas.contains(targetArea.getId())) {
             result.setErrorMsg("Sân \"" + targetArea.getAreaName()
-                    + "\" chưa được phân công giám khảo trong kỳ thi này.");
+                    + "\" chưa được phân công sát hạch viên trong kỳ thi này.");
             return;
         }
 

@@ -161,6 +161,25 @@ public class UserDAOImpl extends DBContext implements UserDAO {
     }
 
     @Override
+    public boolean updateCredentials(int userId, String username, String email) {
+        String sql = """
+                     update [User]
+                     set Username = ?, Email = ?
+                     where UserId = ?
+                     """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, email);
+            ps.setInt(3, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to update credentials for user {0}: {1}",
+                    new Object[]{userId, e.getMessage()});
+        }
+        return false;
+    }
+
+    @Override
     public boolean deactivate(int userId) {
         String sql = """
                      update [User]

@@ -29,9 +29,8 @@
                 <div class="site-footer__col">
                     <h4 class="site-footer__col-title">Dịch vụ</h4>
                     <nav class="site-footer__col-nav" aria-label="Liên kết Dịch vụ">
-                        <a href="${ctx}/license-categories" class="site-footer__link">Đăng ký thi</a>
+                        <a href="${ctx}/register" class="site-footer__link">Đăng ký thi</a>
                         <a href="${ctx}/license-categories" class="site-footer__link">Các hạng bằng</a>
-                        <a href="#" class="site-footer__link">Liên hệ đăng ký học</a>
                     </nav>
                 </div>
 
@@ -39,9 +38,8 @@
                 <div class="site-footer__col">
                     <h4 class="site-footer__col-title">Hỗ trợ</h4>
                     <nav class="site-footer__col-nav" aria-label="Liên kết Hỗ trợ">
-                        <a href="#" class="site-footer__link">Câu hỏi thường gặp</a>
-                        <a href="#" class="site-footer__link">Liên hệ</a>
-                        <a href="#" class="site-footer__link">Trung tâm trợ giúp</a>
+                        <a href="${ctx}/process" class="site-footer__link">Quy trình thi</a>
+                        <a href="${ctx}/process#lien-he" class="site-footer__link">Liên hệ</a>
                     </nav>
                 </div>
             </div>

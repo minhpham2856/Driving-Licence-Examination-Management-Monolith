@@ -5,7 +5,7 @@
 
 <header class="examiner-header examiner-header--examstaff">
     <div class="examiner-header__title examiner-header__crumb-row">
-        <c:url var="dashboardUrl" value="/views/staff/examstaff/dashboard">
+        <c:url var="dashboardUrl" value="/examstaff/dashboard">
             <c:if test="${not empty param.examId}"><c:param name="examId" value="${param.examId}" /></c:if>
             <c:if test="${empty param.examId and not empty requestScope.selectedExamId}">
                 <c:param name="examId" value="${requestScope.selectedExamId}" />
@@ -42,7 +42,7 @@
         <c:choose>
             <c:when test="${not empty requestScope.currentExam}">
                 <span class="examiner-header__exam-license">
-                    Hạng <c:out value="${requestScope.currentExam.licenseCode}" default="—" />
+                    Hạng <c:out value="${requestScope.currentExam.licenseCode}" default="-" />
                 </span>
                 <c:if test="${not empty requestScope.currentExam.examDate}">
                     <span class="examiner-header__exam-date">

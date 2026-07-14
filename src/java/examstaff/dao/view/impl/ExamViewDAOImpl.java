@@ -21,7 +21,7 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
     private static final String EXAM_SELECT =
             "SELECT e.ExamId AS examId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
+            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "1 AS examTypeId, "
             + "CAST(e.ExamDate AS DATE) AS examDate, "
             + "CAST(e.StartTime AS TIME) AS shiftStartTime, "
