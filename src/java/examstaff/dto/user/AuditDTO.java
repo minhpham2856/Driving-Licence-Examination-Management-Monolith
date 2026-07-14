@@ -2,6 +2,10 @@ package examstaff.dto.user;
 
 import java.sql.Timestamp;
 
+/**
+ * DTO nhật ký audit cho trang staff (BLL → JSP).
+ * Giữ giá trị thô từ DB và nhãn tiếng Việt đã chuẩn hóa cho hiển thị.
+ */
 public class AuditDTO {
 
     private String tableName;

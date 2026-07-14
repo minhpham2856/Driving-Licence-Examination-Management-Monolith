@@ -31,16 +31,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Trang staff Báo cáo kỳ thi: điều phối HTTP ↔ thống kê/xuất Excel/PDF.
+ * Action ghi trạng thái không có; chỉ đọc queue và stream/export.
+ */
 @WebServlet("/views/staff/examstaff/report")
 public class ReportServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = new ExamStaffWebModule().services();
+    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
 
     private final ExamReportStatsService reportStatsService = SERVICES.reportStats();
     private final StaffReportExportService reportExportService = SERVICES.reportExport();
     private final ExamReportProcedureStatusService procedureStatusService = SERVICES.reportProcedureStatus();
 
-    // Xu ly yeu cau GET
+    /**
+     * GET trang báo cáo: prepare page → bind stats/procedure status → forward JSP
+     * hoặc stream Excel / in PDF khi có query export.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -78,9 +85,15 @@ public class ReportServlet extends HttpServlet {
         }
 
         request.getRequestDispatcher("/views/staff/examstaff/report.jsp").forward(request, response);
-    // stream excel
     }
 
+    /**
+     * Stream file Excel báo cáo kỳ thi ra response (Content-Disposition attachment).
+     *
+     * @param currentExam kỳ thi đang chọn (đặt tên file)
+     * @param qList       danh sách thí sinh
+     * @param examId      mã kỳ để tính thống kê
+     */
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
             ExamSummaryDTO currentExam, List<ExamRegistrationDTO> qList, int examId) throws IOException {
         String token = ReportExportLabels.safeFileToken(
@@ -100,19 +113,25 @@ public class ReportServlet extends HttpServlet {
                 qList,
                 stats,
                 exporterName);
-    // Xac dinh exporter name
         response.getOutputStream().flush();
     }
 
+    /** Lấy tên người xuất báo cáo từ Profile/User session; fallback username. */
     private String resolveExporterName(HttpSession session) {
         Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
-        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
-            return profile.getFullName();
+        if (profileObj instanceof Profile) {
+            Profile profile = (Profile) profileObj;
+            if (profile.getFullName() != null && !profile.getFullName().isBlank()) {
+                return profile.getFullName();
+            }
         }
         Object userObj = session.getAttribute(Attributes.Session.USER);
-        if (userObj instanceof UserDTO user && user.getProfile() != null
-                && user.getProfile().getFullName() != null) {
-            return user.getProfile().getFullName();
+        if (userObj instanceof UserDTO) {
+            UserDTO user = (UserDTO) userObj;
+            if (user.getProfile() != null && user.getProfile().getFullName() != null
+                    && !user.getProfile().getFullName().isBlank()) {
+                return user.getProfile().getFullName();
+            }
         }
         return SessionUserHelper.resolveUsername(session);
     }
