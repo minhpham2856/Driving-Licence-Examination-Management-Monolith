@@ -11,7 +11,6 @@ import auth.dao.impl.UserDAOImpl;
 import shared.model.Profile;
 import registrant.dto.RegistrantRegisteredExamRow;
 import auth.dto.UserDTO;
-import auth.service.EmailService;
 import auth.service.impl.EmailServiceImpl;
 import auth.util.PasswordUtil;
 import registrant.service.RegistrantSettingsService;
@@ -21,11 +20,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
-/** Đổi mật khẩu, tùy chọn Gmail và vô hiệu hoá tài khoản thí sinh. */
+/** Đổi mật khẩu và vô hiệu hoá tài khoản thí sinh. Thông báo Gmail luôn bật (không lưu tùy chọn). */
 public class RegistrantSettingsServiceImpl implements RegistrantSettingsService {
-
-    static final String SESSION_NOTIFY_EXAM_RESULTS = "registrantNotifyExamResultsGmail";
-    static final String SESSION_NOTIFY_PASSWORD_CHANGE = "registrantNotifyPasswordChangeGmail";
 
     private final UserDAO userdao = new UserDAOImpl();
     private final ProfileDAO profiledao = new ProfileDAOImpl();
@@ -35,21 +31,9 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
 
     @Override
     public void applySettingsView(UserDTO user, HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
         request.setAttribute("userEmail", user.getEmail());
         request.setAttribute("emailServiceConfigured", emailService.isConfigured());
-        request.setAttribute("notifyExamResults", isNotifyExamResults(session));
-        request.setAttribute("notifyPasswordChange", isNotifyPasswordChange(session));
         applyAccountSummary(user, request);
-    }
-
-    @Override
-    public String saveNotificationPrefs(HttpServletRequest request, boolean notifyExamResults,
-            boolean notifyPasswordChange) {
-        HttpSession session = request.getSession(true);
-        session.setAttribute(SESSION_NOTIFY_EXAM_RESULTS, notifyExamResults);
-        session.setAttribute(SESSION_NOTIFY_PASSWORD_CHANGE, notifyPasswordChange);
-        return null;
     }
 
     @Override
@@ -75,9 +59,7 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
         }
         if (session != null) {
             RegistrantAuditHelper.logPasswordChange(session, user.getUserId());
-            if (isNotifyPasswordChange(session)) {
-                sendPasswordChangedEmail(user);
-            }
+            sendPasswordChangedEmail(user);
         }
         return null;
     }
@@ -106,22 +88,6 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
             RegistrantAuditHelper.logAccountDeactivate(session, user.getUserId());
         }
         return null;
-    }
-
-    static boolean isNotifyExamResults(HttpSession session) {
-        if (session == null) {
-            return true;
-        }
-        Object value = session.getAttribute(SESSION_NOTIFY_EXAM_RESULTS);
-        return value == null || Boolean.TRUE.equals(value);
-    }
-
-    static boolean isNotifyPasswordChange(HttpSession session) {
-        if (session == null) {
-            return true;
-        }
-        Object value = session.getAttribute(SESSION_NOTIFY_PASSWORD_CHANGE);
-        return value == null || Boolean.TRUE.equals(value);
     }
 
     private void applyAccountSummary(UserDTO user, HttpServletRequest request) {
