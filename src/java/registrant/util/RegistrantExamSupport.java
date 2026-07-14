@@ -17,10 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Tiện ích dùng chung cho luồng thí sinh: ánh xạ mã GPLX UI ↔ DB,
- * gán nhãn trạng thái, định dạng thời gian hiển thị.
- */
+/** Tiện ích thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch đăng ký. */
 public final class RegistrantExamSupport {
 
     public static final String SBD_PENDING_MESSAGE = "SBD sẽ được cập nhật sau";
@@ -46,6 +43,19 @@ public final class RegistrantExamSupport {
             return SBD_PENDING_MESSAGE;
         }
         return candidateNumber.trim();
+    }
+
+    /** UI dùng B2/A2; DB có thể lưu B/A hoặc đã là B2/A2 — trả cả hai để JOIN không miss. */
+    public static String[] licenceClassLookupCodes(String uiCode) {
+        if (uiCode == null || uiCode.isBlank()) {
+            return new String[] { "B" };
+        }
+        String ui = uiCode.trim().toUpperCase(Locale.ROOT);
+        String db = toDbLicenceCode(ui);
+        if (db.equalsIgnoreCase(ui)) {
+            return new String[] { ui };
+        }
+        return new String[] { ui, db };
     }
 
     /** UI dùng B2/A2 trong khi DB seed dùng B/A. */
@@ -134,10 +144,7 @@ public final class RegistrantExamSupport {
         return raw.trim().replaceAll("\\s+", "");
     }
 
-    /**
-     * Gán badge trạng thái cho bảng dashboard: chờ xét duyệt (chưa có SBD import)
-     * hoặc lịch thi chính thức (đã có SBD từ danh sách import). Thanh toán thực hiện khi sát hạch.
-     */
+    /** Badge dashboard: chờ xét duyệt (chưa SBD import) hoặc lịch chính thức (đã SBD); thanh toán khi sát hạch. */
     public static void applyExamStatusBadge(RegistrantRegisteredExamRow row,
             String candidateNumber, String regStatus, String sectionStatus) {
         if ("Completed".equalsIgnoreCase(sectionStatus) || "Passed".equalsIgnoreCase(sectionStatus)) {
@@ -160,9 +167,7 @@ public final class RegistrantExamSupport {
         row.setStatusLabel("Được xét duyệt");
     }
 
-    /**
-     * Gán badge cho trang my-exams: chờ xét duyệt (chưa có SBD) → được xét duyệt (có SBD, chờ ngày thi).
-     */
+    /** Badge my-exams: chờ xét duyệt (chưa SBD) → được xét duyệt (có SBD, chờ ngày thi). */
     public static void applyMyExamStatus(RegistrantMyExamRow row, String candidateNumber,
             String regStatus, String sectionStatus, Integer overallPassed) {
         if (overallPassed != null && overallPassed == 1) {
@@ -295,10 +300,7 @@ public final class RegistrantExamSupport {
         }
     }
 
-    /**
-     * Công bố giờ ca thi sau khi đã có điểm hoặc ca đã diễn ra — phòng trường hợp thi xong
-     * nhưng trạng thái Session chưa đồng bộ.
-     */
+    /** Công bố giờ ca thi sau khi có điểm hoặc ca đã diễn ra — phòng Session status chưa đồng bộ. */
     public static void finalizeSessionTimeDisplay(RegistrantMyExamRow row, String sessionStatus,
             java.util.Date sessionStart, java.util.Date sessionEnd, String sectionStatus) {
         if (!row.isSessionTimePublished() && shouldRevealSessionTime(row, sessionStatus, sectionStatus)) {
@@ -416,6 +418,7 @@ public final class RegistrantExamSupport {
 
     // --- Quy tắc đăng ký ca thi ---
 
+    /** Validate insert ca mới: xác định section, không trùng licence+section, không cùng ngày hạng khác — null nếu OK. */
     public static String validateNewSessionRegistration(ExamRegistrationDAO examRegistrationdao,
             int profileId, int sessionId, int licenceId, String uiLicenceCode) {
         SessionExamSectionInfo section = examRegistrationdao.findPrimarySectionForSession(sessionId);
