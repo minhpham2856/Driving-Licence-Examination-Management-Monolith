@@ -82,7 +82,7 @@
 .register-brand-panel {
   width: 50%;
   background-color: var(--color-dark-bg);
-  background-image: url('../imgs/register_bg.png');
+  background-image: url('../../imgs/register_bg.png');
   background-size: cover;
   background-position: center;
   padding: 48px;
