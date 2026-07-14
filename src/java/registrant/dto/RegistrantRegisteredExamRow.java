@@ -8,21 +8,21 @@ import java.util.Date;
  */
 public class RegistrantRegisteredExamRow {
 
-    /** CandidateId - dùng làm examId khi điều hướng sang trang chi tiết. */
+    /** CandidateId — dùng làm examId khi điều hướng sang trang chi tiết. */
     private int id;
     private String examName;
     private String examCode;
     private String licenceClass;
-    /** Mô tả đầy đủ hạng GPLX - nạp từ {@link util.registrant.RegistrantExamSupport#licenceClassDescription}. */
+    /** Mô tả đầy đủ hạng GPLX — nạp từ {@link util.registrant.RegistrantExamSupport#licenceClassDescription}. */
     private String licenceClassDescription;
     private Date examDate;
     private String location;
     private String statusClass;
     private String statusLabel;
-    /** SBD từ DB - dùng phân biệt lịch chính thức vs chờ duyệt trên dashboard. */
+    /** SBD từ DB — dùng phân biệt lịch chính thức vs chờ duyệt trên dashboard. */
     private String candidateNumber;
     private boolean sbdPending;
-    /** Giờ bắt đầu/kết thúc ca thi - chỉ có sau khi Ban sát hạch mở ca. */
+    /** Giờ bắt đầu/kết thúc ca thi — chỉ có sau khi Ban sát hạch mở ca. */
     private Date sessionStart;
     private Date sessionEnd;
     private boolean sessionTimePublished;

@@ -2,10 +2,8 @@
 .print-btn {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    height: 38px;
-    padding: 0 17px;
+    padding: 9px 17px;
     border: 1px solid #c3c6d6;
     border-radius: 4px;
     background: #fff;
@@ -14,12 +12,6 @@
     cursor: pointer;
     white-space: nowrap;
     transition: background 0.15s;
-    box-sizing: border-box;
-    margin: 0;
-    font: inherit;
-    line-height: 1;
-    appearance: none;
-    -webkit-appearance: none;
 }
 
 .print-btn:hover {
@@ -27,20 +19,10 @@
     text-decoration: none;
 }
 
-.print-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
 .print-btn__text {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.6px;
-    line-height: 1;
     color: #003d9b;
-}
-
-.print-btn .material-symbols-outlined {
-    font-size: 15px;
 }

@@ -57,7 +57,7 @@
                                     <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
                                     <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi phòng">
                                         <c:if test="${empty c.allocatedAreaId}">
-                                            <option value="" disabled selected>-</option>
+                                            <option value="" disabled selected>—</option>
                                         </c:if>
                                         <c:forEach var="room" items="${activeTheoryRooms}">
                                             <c:set var="roomLabel" value="${fn:replace(room.areaName, 'Phòng thi lý thuyết ', '')}" />
@@ -67,7 +67,7 @@
                                 </form>
                             </c:if>
                             <c:if test="${empty activeTheoryRooms}">
-                                <span class="allocation-room-pending">-</span>
+                                <span class="allocation-room-pending">—</span>
                             </c:if>
                         </td>
                         <td>
@@ -83,7 +83,7 @@
                                     </span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="es-text-muted-sm">Chờ sát hạch viên chấm</span>
+                                    <span class="es-text-muted-sm">Chờ giám khảo chấm</span>
                                 </c:otherwise>
                             </c:choose>
                         </td>

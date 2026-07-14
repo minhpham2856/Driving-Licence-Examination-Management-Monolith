@@ -1,6 +1,6 @@
 package payment.util.sepay;
 
-/** Hằng số SePay Payment Gateway - tham chiếu developer.sepay.vn */
+/** Hằng số SePay Payment Gateway — tham chiếu developer.sepay.vn */
 public final class SePayConstants {
 
     public static final String ENV_SANDBOX = "sandbox";

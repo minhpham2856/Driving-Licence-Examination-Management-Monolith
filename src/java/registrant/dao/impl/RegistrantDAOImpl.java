@@ -2,6 +2,7 @@ package registrant.dao.impl;
 
 import registrant.dao.DocumentDAO;
 import registrant.dao.RegistrantDAO;
+import registrant.dao.impl.DocumentDAOImpl;
 import shared.dbconnection.DBContext;
 import registrant.dto.RegistrantDashboardActivity;
 import registrant.dto.RegistrantExamSessionOption;
@@ -9,9 +10,6 @@ import registrant.dto.RegistrantLicenceOption;
 import registrant.dto.RegistrantMyExamRow;
 import registrant.dto.RegistrantRegisteredExamRow;
 import registrant.dto.RegistrantTrackingLog;
-import examstaff.dao.Db2ExamSchemaSql;
-import examstaff.enums.PaymentStatus;
-import registrant.enums.ExamRegistrationLifecycleStatus;
 import registrant.util.RegistrantDocumentHelper;
 import registrant.enums.ProfileRegistrationStatus;
 import registrant.util.RegistrantDocumentStatusHelper;
@@ -32,45 +30,36 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** DAO cổng thí sinh: hạng GPLX, đợt thi mở, đăng ký ExamRegistration, dashboard/tracking. */
+/**
+ * Triển khai truy vấn dữ liệu cho cổng thí sinh.
+ * Các câu SQL JOIN nhiều bảng (Candidate, Exam, RegistrantPayment, ExamResult...)
+ * được gom tại đây để servlet/service chỉ gọi một lớp dao.
+ */
 public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     private static final Logger LOG = Logger.getLogger(RegistrantDAOImpl.class.getName());
 
     private final DocumentDAO documentdao = new DocumentDAOImpl();
 
-    // Một ExamArea đại diện / kỳ thi (tránh nhân dòng khi nhiều area)
+    /** JOIN lấy một phòng thi đại diện mỗi ca — tránh nhân bản dòng khi ca có nhiều ExamArea. */
     private static final String SESSION_AREA_JOIN = """
             LEFT JOIN (
-                SELECT eea2.ExamId, MIN(eea2.ExamAreaId) AS ExamAreaId
-                FROM Exam_ExamArea eea2
-                GROUP BY eea2.ExamId
-            ) eea ON eea.ExamId = e.ExamId
-            LEFT JOIN ExamArea ea ON ea.ExamAreaId = eea.ExamAreaId
+                SELECT sea2.SessionId, MIN(sea2.ExamAreaId) AS ExamAreaId
+                FROM Session_ExamArea sea2
+                GROUP BY sea2.SessionId
+            ) sea ON sea.SessionId = s.SessionId
+            LEFT JOIN ExamArea ea ON ea.ExamAreaId = sea.ExamAreaId
             """;
 
-    // Payment đã hoàn tất (optional — chỉ có sau khi staff enroll)
+    /** Subquery đánh dấu thí sinh đã thanh toán — tái sử dụng cho mọi truy vấn registrant. */
     private static final String PAYMENT_COMPLETED_JOIN = """
             LEFT JOIN (
-                SELECT p1.ExamEnrollmentId, MIN(p1.PaymentId) AS PaymentId
-                FROM Payment p1
-                WHERE p1.PaymentStatus IN (""" + PaymentStatus.sqlInClause() + """
-                )
-                GROUP BY p1.ExamEnrollmentId
-            ) pay ON pay.ExamEnrollmentId = ee.ExamEnrollmentId
+                SELECT p1.CandidateId, MIN(p1.PaymentId) AS PaymentId
+                FROM RegistrantPayment p1
+                WHERE p1.PaymentStatus IN (N'Completed', N'Paid')
+                GROUP BY p1.CandidateId
+            ) pay ON pay.CandidateId = c.CandidateId
             """;
-
-    private static final String EXAM_AREA_JOIN_EX = SESSION_AREA_JOIN.replace("e.ExamId", "ex.ExamId");
-
-    private static final String PAYMENT_COMPLETED_STATUS_FILTER =
-            "p.PaymentStatus IN (" + PaymentStatus.sqlInClause() + ")";
-
-    // Exam còn mở đăng ký (VN seed + EN legacy + biến thể thường gặp)
-    private static final String OPEN_EXAM_STATUS =
-            "e.[Status] IN ("
-                    + "N'Chưa diễn ra', N'Đang diễn ra', N'Mở đăng ký', N'Dang mo dang ky',"
-                    + " N'Open', N'Scheduled', N'InProgress', N'RegistrationOpen'"
-                    + ")";
 
     @Override
     public List<RegistrantLicenceOption> listOpenLicenceOptions() {
@@ -104,11 +93,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     @Override
     public List<RegistrantExamSessionOption> listOpenExamSessionsByLicenceCode(String uiLicenceCode) {
-        String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
-        String placeholders = String.join(", ", java.util.Collections.nCopies(licenceCodes.length, "?"));
+        String dbCode = RegistrantExamSupport.toDbLicenceCode(uiLicenceCode);
         /*
-         * Mỗi Exam (đợt thi) có thể gắn nhiều khu vực.
-         * UI chỉ hiển thị một dòng/ExamCode; sessionId = ExamId.
+         * Mỗi Exam (đợt thi) có thể có nhiều Session (ca).
+         * UI chỉ hiển thị một dòng/ExamCode; sessionId lấy ca đầu tiên còn mở.
          */
         String sql = """
                 SELECT e.ExamId,
@@ -116,25 +104,24 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                        e.ExamDate,
                        e.CentreName,
                        l.LicenceClass,
-                       e.ExamId AS SessionId,
-                       e.ExamCode AS SessionName,
-                       e.[Status] AS sessionStatus,
+                       s.SessionId,
+                       s.SessionName,
+                       s.[Status] AS sessionStatus,
                        ISNULL(ea.Capacity, 100) AS capacity,
-                       (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.ExamId = e.ExamId) AS registeredCount
+                       (SELECT COUNT(*) FROM Exam_Candidate ec WHERE ec.SessionId = s.SessionId) AS registeredCount
                 FROM Exam e
                 INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                INNER JOIN [Session] s ON s.ExamId = e.ExamId
                 """ + SESSION_AREA_JOIN + """
-                WHERE UPPER(LTRIM(RTRIM(l.LicenceClass))) IN (""" + placeholders + """
-                )
-                  AND """ + OPEN_EXAM_STATUS + """
+                WHERE l.LicenceClass = ?
+                  AND e.[Status] IN (N'Open', N'Scheduled')
+                  AND s.[Status] IN (N'Open', N'Scheduled', N'InProgress')
                   AND CAST(e.ExamDate AS DATE) >= CAST(GETDATE() AS DATE)
-                ORDER BY e.ExamDate, e.ExamId
+                ORDER BY e.ExamDate, s.SessionId
                 """;
         Map<String, RegistrantExamSessionOption> uniqueByExamCode = new LinkedHashMap<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            for (int i = 0; i < licenceCodes.length; i++) {
-                ps.setString(i + 1, licenceCodes[i]);
-            }
+            ps.setString(1, dbCode);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     RegistrantExamSessionOption opt = mapSessionOption(rs);
@@ -159,13 +146,14 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                        e.ExamDate,
                        e.CentreName,
                        l.LicenceClass,
-                       e.ExamId AS SessionId,
-                       e.ExamCode AS SessionName,
-                       e.[Status] AS sessionStatus,
+                       s.SessionId,
+                       s.SessionName,
+                       s.[Status] AS sessionStatus,
                        ISNULL(ea.Capacity, 100) AS capacity,
-                       (SELECT COUNT(*) FROM ExamEnrollment ee2 WHERE ee2.ExamId = e.ExamId) AS registeredCount
+                       (SELECT COUNT(*) FROM Exam_Candidate ec WHERE ec.SessionId = s.SessionId) AS registeredCount
                 FROM Exam e
                 INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                INNER JOIN [Session] s ON s.ExamId = e.ExamId
                 """ + SESSION_AREA_JOIN + """
                 WHERE e.ExamCode = ?
                 ORDER BY e.ExamDate
@@ -186,10 +174,27 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     @Override
     public List<RegistrantRegisteredExamRow> listRegisteredExamsByUserId(int userId, int limit) {
         int safeLimit = Math.max(1, Math.min(limit, 50));
-        String sql = REGISTERED_EXAM_SELECT + REGISTERED_EXAM_FROM + """
-                WHERE prof.UserId = ?
-                """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
-                ORDER BY ex.ExamDate DESC
+        String sql = """
+                SELECT TOP (?) c.CandidateId,
+                       c.CandidateNumber,
+                       e.ExamCode,
+                       s.SessionName,
+                       l.LicenceClass,
+                       CAST(e.ExamDate AS DATE) AS examDate,
+                """ + SESSION_SCHEDULE_COLUMNS + """
+                       e.CentreName,
+                       er.RegistrationStatus,
+                       ec.SectionStatus,
+                       CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                """ + PAYMENT_COMPLETED_JOIN + """
+                WHERE c.UserId = ?
+                ORDER BY e.ExamDate DESC
                 """;
         List<RegistrantRegisteredExamRow> rows = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -213,10 +218,27 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             return List.of();
         }
         int safeLimit = Math.max(1, Math.min(limit, 50));
-        String sql = REGISTERED_EXAM_SELECT + REGISTERED_EXAM_FROM + """
-                WHERE prof.ProfileId = ?
-                """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
-                ORDER BY ex.ExamDate DESC
+        String sql = """
+                SELECT TOP (?) c.CandidateId,
+                       c.CandidateNumber,
+                       e.ExamCode,
+                       s.SessionName,
+                       l.LicenceClass,
+                       CAST(e.ExamDate AS DATE) AS examDate,
+                """ + SESSION_SCHEDULE_COLUMNS + """
+                       e.CentreName,
+                       er.RegistrationStatus,
+                       ec.SectionStatus,
+                       CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                """ + PAYMENT_COMPLETED_JOIN + """
+                WHERE er.ProfileId = ?
+                ORDER BY e.ExamDate DESC
                 """;
         List<RegistrantRegisteredExamRow> rows = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -235,48 +257,15 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     private static final String ACTIVE_EXAM_REGISTRATION_FILTER = """
-                  AND """ + ExamRegistrationLifecycleStatus.SQL_LIFECYCLE_ONLY + """
-                  AND """ + ExamRegistrationLifecycleStatus.SQL_EXCLUDE_PROFILE_DOC + """
+                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected',
+                      N'RegistrationRejected', N'Cancelled')
             """;
 
     private static final String SESSION_SCHEDULE_COLUMNS = """
-                       ex.[Status] AS sessionStatus,
-                       ex.StartTime,
-                       ex.EndTime,
+                       s.[Status] AS sessionStatus,
+                       s.StartTime,
+                       s.EndTime,
             """;
-
-    // Portal: ExamRegistration + Exam (#EXAM_ID# trong Notes). CandidateId cột = ExamRegistrationId.
-    // LEFT JOIN enrollment/payment chỉ khi staff đã tạo Candidate ngày thi.
-    private static final String REGISTERED_EXAM_FROM = """
-                FROM ExamRegistration er
-                INNER JOIN Profile prof ON prof.ProfileId = er.ProfileId
-                INNER JOIN Licence l ON l.LicenceId = er.LicenceId
-                LEFT JOIN Exam ex ON er.Notes LIKE N'%#EXAM_ID#' + CAST(ex.ExamId AS NVARCHAR(20)) + N'#%'
-                LEFT JOIN ExamEnrollment ee ON ee.ExamId = ex.ExamId
-                  AND EXISTS (
-                      SELECT 1 FROM Candidate c2
-                      WHERE c2.CandidateId = ee.CandidateId
-                        AND c2.GovernmentIdNumber = prof.GovernmentIdNumber
-                  )
-                """
-            + Db2ExamSchemaSql.JOIN_THEORY_SECTION + """
-                """
-            + PAYMENT_COMPLETED_JOIN + """
-            """;
-
-    private static final String REGISTERED_EXAM_SELECT = """
-                SELECT TOP (?) er.ExamRegistrationId AS CandidateId,
-                       CAST(NULL AS NVARCHAR(50)) AS CandidateNumber,
-                       ex.ExamCode,
-                       ex.ExamCode AS SessionName,
-                       l.LicenceClass,
-                       CAST(ex.ExamDate AS DATE) AS examDate,
-                """ + SESSION_SCHEDULE_COLUMNS + """
-                       ex.CentreName,
-                       er.RegistrationStatus,
-                       theoryEes.Status AS sectionStatus,
-                       CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
-                """;
 
     @Override
     public List<RegistrantRegisteredExamRow> listActiveExamRegistrationsByProfileId(int profileId, int limit) {
@@ -284,10 +273,28 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             return List.of();
         }
         int safeLimit = Math.max(1, Math.min(limit, 50));
-        String sql = REGISTERED_EXAM_SELECT + REGISTERED_EXAM_FROM + """
-                WHERE prof.ProfileId = ?
+        String sql = """
+                SELECT TOP (?) c.CandidateId,
+                       c.CandidateNumber,
+                       e.ExamCode,
+                       s.SessionName,
+                       l.LicenceClass,
+                       CAST(e.ExamDate AS DATE) AS examDate,
+                """ + SESSION_SCHEDULE_COLUMNS + """
+                       e.CentreName,
+                       er.RegistrationStatus,
+                       ec.SectionStatus,
+                       CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                """ + PAYMENT_COMPLETED_JOIN + """
+                WHERE er.ProfileId = ?
                 """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
-                ORDER BY ex.ExamDate ASC
+                ORDER BY e.ExamDate ASC
                 """;
         List<RegistrantRegisteredExamRow> rows = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -312,18 +319,16 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
          */
         String sql = """
                 SELECT
-                  (SELECT COUNT(*)
+                  (SELECT COUNT(DISTINCT ec.ExamCandidateId)
                    FROM ExamRegistration er
-                   WHERE er.ProfileId = ?
-                     AND """ + ExamRegistrationLifecycleStatus.SQL_LIFECYCLE_ONLY + """
-                     AND """ + ExamRegistrationLifecycleStatus.SQL_EXCLUDE_PROFILE_DOC + """
-                  ) AS registeredExams,
-                  (SELECT COUNT(DISTINCT ee.ExamEnrollmentId)
-                   FROM Profile prof
-                   INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                   INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                   INNER JOIN ExamResult er2 ON er2.ExamEnrollmentId = ee.ExamEnrollmentId
-                   WHERE prof.UserId = ?) AS examResults
+                   INNER JOIN Candidate c ON c.ExamRegistrationId = er.ExamRegistrationId
+                   INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                   WHERE er.ProfileId = ?) AS registeredExams,
+                  (SELECT COUNT(DISTINCT c.CandidateId)
+                   FROM Candidate c
+                   INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                   INNER JOIN ExamResult er ON er.ExamCandidateId = ec.ExamCandidateId
+                   WHERE c.UserId = ?) AS examResults
                 """;
         Map<String, Object> stats = new HashMap<>();
         stats.put("registeredExams", 0);
@@ -346,12 +351,28 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     @Override
     public RegistrantRegisteredExamRow findUpcomingExamByUserId(int userId) {
-        String sql = REGISTERED_EXAM_SELECT.replace("SELECT TOP (?)", "SELECT TOP 1")
-                + REGISTERED_EXAM_FROM + """
-                WHERE prof.UserId = ?
-                  AND CAST(ex.ExamDate AS DATE) >= CAST(GETDATE() AS DATE)
-                """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
-                ORDER BY ex.ExamDate ASC
+        String sql = """
+                SELECT TOP 1 c.CandidateId,
+                       c.CandidateNumber,
+                       e.ExamCode,
+                       s.SessionName,
+                       l.LicenceClass,
+                       CAST(e.ExamDate AS DATE) AS examDate,
+                """ + SESSION_SCHEDULE_COLUMNS + """
+                       e.CentreName,
+                       er.RegistrationStatus,
+                       ec.SectionStatus,
+                       CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                """ + PAYMENT_COMPLETED_JOIN + """
+                WHERE c.UserId = ?
+                  AND CAST(e.ExamDate AS DATE) >= CAST(GETDATE() AS DATE)
+                ORDER BY e.ExamDate ASC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -372,12 +393,28 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         if (profileId <= 0) {
             return null;
         }
-        String sql = REGISTERED_EXAM_SELECT.replace("SELECT TOP (?)", "SELECT TOP 1")
-                + REGISTERED_EXAM_FROM + """
-                WHERE prof.ProfileId = ?
-                  AND CAST(ex.ExamDate AS DATE) >= CAST(GETDATE() AS DATE)
-                """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
-                ORDER BY ex.ExamDate ASC
+        String sql = """
+                SELECT TOP 1 c.CandidateId,
+                       c.CandidateNumber,
+                       e.ExamCode,
+                       s.SessionName,
+                       l.LicenceClass,
+                       CAST(e.ExamDate AS DATE) AS examDate,
+                """ + SESSION_SCHEDULE_COLUMNS + """
+                       e.CentreName,
+                       er.RegistrationStatus,
+                       ec.SectionStatus,
+                       CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                """ + PAYMENT_COMPLETED_JOIN + """
+                WHERE er.ProfileId = ?
+                  AND CAST(e.ExamDate AS DATE) >= CAST(GETDATE() AS DATE)
+                ORDER BY e.ExamDate ASC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, profileId);
@@ -396,7 +433,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     @Override
     public List<RegistrantDashboardActivity> listRecentActivities(int profileId, int limit) {
         /*
-         * Tổng hợp hoạt động từ Payment + ExamEnrollment
+         * Tổng hợp hoạt động từ Audit + RegistrantPayment + ExamRegistration
          * thay vì chỉ Audit (seed data có thể ít bản ghi Audit cho thí sinh).
          */
         List<RegistrantDashboardActivity> activities = new ArrayList<>();
@@ -427,77 +464,75 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return queryMyExams(userId, null);
     }
 
-    /** SQL danh sách kỳ thi; extraPredicate thêm sau UserId (vd. AND c.CandidateId = ?) hoặc rỗng. */
+    /**
+     * SQL danh sách kỳ thi.
+     * @param extraPredicate điều kiện bổ sung sau {@code UserId} (vd: {@code AND c.CandidateId = ?}), hoặc rỗng.
+     */
     private String buildMyExamsSql(String extraPredicate) {
         return """
                 SELECT c.CandidateId,
                        c.CandidateNumber,
-                       ex.ExamCode AS SessionName,
-                       CAST(ex.ExamDate AS DATE) AS examDate,
+                       s.SessionName,
+                       CAST(e.ExamDate AS DATE) AS examDate,
                 """ + SESSION_SCHEDULE_COLUMNS + """
                        l.LicenceClass,
                        ea.AreaName,
                        er.RegistrationStatus,
-                       theoryEes.Status AS sectionStatus,
-                       (SELECT TOP 1 sec.SectionType
-                        FROM ExamSection sec
-                        WHERE sec.ExamId = ex.ExamId
-                        ORDER BY sec.ExamSectionId) AS sectionName,
+                       ec.SectionStatus,
+                       (SELECT TOP 1 es.SectionName
+                        FROM Session_ExamSection ses2
+                        INNER JOIN ExamSection es ON es.ExamSectionId = ses2.ExamSectionId
+                        WHERE ses2.SessionId = s.SessionId
+                        ORDER BY ses2.ExamSectionId) AS sectionName,
                        CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid,
                        theory.scoreVal AS theoryScore,
                        practical.scoreVal AS practicalScore,
                        road.scoreVal AS roadScore,
                        erOverall.IsPassed AS overallPassed
-                FROM Profile prof
-                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
-                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                LEFT JOIN ExamRegistration er ON er.ProfileId = prof.ProfileId
-                  AND """
-            + ExamRegistrationLifecycleStatus.SQL_LIFECYCLE_ONLY + """
-                  AND """
-            + ExamRegistrationLifecycleStatus.SQL_EXCLUDE_PROFILE_DOC + """
-                """
-            + Db2ExamSchemaSql.JOIN_THEORY_SECTION + """
-                """
-            + EXAM_AREA_JOIN_EX + PAYMENT_COMPLETED_JOIN + """
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                """ + SESSION_AREA_JOIN + PAYMENT_COMPLETED_JOIN + """
                 LEFT JOIN (
-                    SELECT er2.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                    FROM ExamResult er2
+                    SELECT ec3.CandidateId, CAST(MAX(es.Score) AS INT) AS scoreVal
+                    FROM Exam_Candidate ec3
+                    JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
                     JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                     JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                    WHERE sec.SectionType IN ("""
-            + Db2ExamSchemaSql.THEORY_SECTION_TYPES + """
-                    )
-                    GROUP BY er2.ExamEnrollmentId
-                ) theory ON theory.ExamEnrollmentId = ee.ExamEnrollmentId
+                    WHERE sec.SectionName LIKE N'%Lý thuyết%' OR sec.SectionName LIKE '%Theory%'
+                    GROUP BY ec3.CandidateId
+                ) theory ON theory.CandidateId = c.CandidateId
                 LEFT JOIN (
-                    SELECT er2.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                    FROM ExamResult er2
+                    SELECT ec3.CandidateId, CAST(MAX(es.Score) AS INT) AS scoreVal
+                    FROM Exam_Candidate ec3
+                    JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
                     JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                     JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                    WHERE sec.SectionType IN ("""
-            + Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES + """
-                    )
-                    GROUP BY er2.ExamEnrollmentId
-                ) practical ON practical.ExamEnrollmentId = ee.ExamEnrollmentId
+                    WHERE sec.SectionName LIKE N'%Thực hành%' OR sec.SectionName LIKE '%Practical%'
+                       OR sec.SectionName LIKE N'%Sa hình%'
+                    GROUP BY ec3.CandidateId
+                ) practical ON practical.CandidateId = c.CandidateId
                 LEFT JOIN (
-                    SELECT er2.ExamEnrollmentId, CAST(MAX(es.Score) AS INT) AS scoreVal
-                    FROM ExamResult er2
+                    SELECT ec3.CandidateId, CAST(MAX(es.Score) AS INT) AS scoreVal
+                    FROM Exam_Candidate ec3
+                    JOIN ExamResult er2 ON er2.ExamCandidateId = ec3.ExamCandidateId
                     JOIN ExamScore es ON es.ExamResultId = er2.ExamResultId
                     JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
-                    WHERE sec.SectionType IN (N'Road', N'Đường', N'RoadTest')
-                    GROUP BY er2.ExamEnrollmentId
-                ) road ON road.ExamEnrollmentId = ee.ExamEnrollmentId
+                    WHERE sec.SectionName LIKE N'%Đường%' OR sec.SectionName LIKE '%Road%'
+                    GROUP BY ec3.CandidateId
+                ) road ON road.CandidateId = c.CandidateId
                 LEFT JOIN (
-                    SELECT er3.ExamEnrollmentId, MAX(CAST(er3.IsPassed AS INT)) AS IsPassed
-                    FROM ExamResult er3
-                    GROUP BY er3.ExamEnrollmentId
-                ) erOverall ON erOverall.ExamEnrollmentId = ee.ExamEnrollmentId
-                WHERE prof.UserId = ?
+                    SELECT ec4.CandidateId, MAX(CAST(er3.IsPassed AS INT)) AS IsPassed
+                    FROM Exam_Candidate ec4
+                    JOIN ExamResult er3 ON er3.ExamCandidateId = ec4.ExamCandidateId
+                    GROUP BY ec4.CandidateId
+                ) erOverall ON erOverall.CandidateId = c.CandidateId
+                WHERE c.UserId = ?
                 """ + extraPredicate + """
-                ORDER BY ex.ExamDate DESC
+                ORDER BY e.ExamDate DESC
                 """;
     }
 
@@ -533,12 +568,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         if (candidateId <= 0) {
             return null;
         }
-        String sql = """
-                SELECT prof.UserId
-                FROM Candidate c
-                INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
-                WHERE c.CandidateId = ?
-                """;
+        String sql = "SELECT UserId FROM Candidate WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -580,11 +610,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     public int countExamResultsByUserId(int userId) {
         String sql = """
                 SELECT COUNT(DISTINCT c.CandidateId) AS cnt
-                FROM Profile prof
-                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                INNER JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
-                WHERE prof.UserId = ?
+                FROM Candidate c
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN ExamResult er ON er.ExamCandidateId = ec.ExamCandidateId
+                WHERE c.UserId = ?
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -629,14 +658,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     @Override
     public int resolveLicenceIdByUiCode(String uiLicenceCode) {
-        String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
-        String placeholders = String.join(", ", java.util.Collections.nCopies(licenceCodes.length, "?"));
-        String sql = "SELECT TOP 1 LicenceId FROM Licence WHERE UPPER(LTRIM(RTRIM(LicenceClass))) IN ("
-                + placeholders + ")";
+        String dbCode = RegistrantExamSupport.toDbLicenceCode(uiLicenceCode);
+        String sql = "SELECT LicenceId FROM Licence WHERE LicenceClass = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            for (int i = 0; i < licenceCodes.length; i++) {
-                ps.setString(i + 1, licenceCodes[i]);
-            }
+            ps.setString(1, dbCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("LicenceId");
@@ -655,14 +680,13 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
         String fromExam = queryLicenceClass("""
                 SELECT TOP 1 l.LicenceClass
-                FROM Profile prof
-                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
-                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                INNER JOIN ExamRegistration er ON er.ProfileId = prof.ProfileId
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                WHERE er.ProfileId = ?
                   AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected')
-                WHERE prof.ProfileId = ?
                 ORDER BY c.CandidateId DESC
                 """, profileId);
         if (fromExam != null) {
@@ -768,7 +792,6 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return null;
     }
 
-    /** Tạo ER hồ sơ bổ sung với Notes #SUPPLEMENT_DOC# — trả ExamRegistrationId (>0) hoặc 0. */
     @Override
     public int insertSupplementDocumentRegistration(int profileId, int licenceId, String status, String notes) {
         if (profileId <= 0 || licenceId <= 0 || status == null || status.isBlank()) {
@@ -861,7 +884,6 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return false;
     }
 
-    /** Đồng bộ RegistrationStatus ER hồ sơ gốc (#PROFILE_DOC#): UPDATE primary hoặc INSERT; không đụng #SUPPLEMENT_DOC#. */
     @Override
     public boolean syncProfileDocumentRegistration(int profileId, String status, String notes) {
         if (profileId <= 0 || status == null || status.isBlank()) {
@@ -1061,15 +1083,12 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     private void appendPaymentActivities(int profileId, List<RegistrantDashboardActivity> out, int limit) {
         String sql = """
                 SELECT TOP (?) p.TotalAmount, p.PaidAt, l.LicenceClass
-                FROM Payment p
-                INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
-                INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
-                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
-                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                WHERE prof.ProfileId = ?
-                  AND """
-            + PAYMENT_COMPLETED_STATUS_FILTER + """
+                FROM RegistrantPayment p
+                INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Licence l ON l.LicenceId = er.LicenceId
+                WHERE er.ProfileId = ?
+                  AND p.PaymentStatus IN (N'Completed', N'Paid')
                 ORDER BY p.PaidAt DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -1097,14 +1116,15 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     private void appendRegistrationActivities(int profileId, List<RegistrantDashboardActivity> out, int limit) {
         String sql = """
-                SELECT TOP (?) ex.ExamCode AS SessionName, l.LicenceClass, ex.StartTime
-                FROM Profile prof
-                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
-                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                WHERE prof.ProfileId = ?
-                ORDER BY ee.ExamEnrollmentId DESC
+                SELECT TOP (?) s.SessionName, l.LicenceClass, s.StartTime
+                FROM Candidate c
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Exam_Candidate ec ON ec.CandidateId = c.CandidateId
+                INNER JOIN [Session] s ON s.SessionId = ec.SessionId
+                INNER JOIN Exam e ON e.ExamId = ec.ExamId
+                INNER JOIN Licence l ON l.LicenceId = e.LicenceId
+                WHERE er.ProfileId = ?
+                ORDER BY c.CandidateId DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, limit);
@@ -1224,15 +1244,12 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     private void loadPaymentTracking(int userId, List<RegistrantTrackingLog> logs) {
         String sql = """
                 SELECT TOP 1 p.TotalAmount, p.PaidAt, p.PaymentMethod, l.LicenceClass
-                FROM Payment p
-                INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
-                INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
-                INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
-                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
-                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                WHERE prof.UserId = ?
-                  AND """
-            + PAYMENT_COMPLETED_STATUS_FILTER + """
+                FROM RegistrantPayment p
+                INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
+                INNER JOIN Licence l ON l.LicenceId = er.LicenceId
+                WHERE c.UserId = ?
+                  AND p.PaymentStatus IN (N'Completed', N'Paid')
                 ORDER BY p.PaidAt DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -1249,7 +1266,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không tải tracking Payment: {0}", e.getMessage());
+            LOG.log(Level.WARNING, "Không tải tracking RegistrantPayment: {0}", e.getMessage());
         }
     }
 

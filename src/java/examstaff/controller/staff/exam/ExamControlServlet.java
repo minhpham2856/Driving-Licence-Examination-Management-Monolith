@@ -3,6 +3,7 @@ package examstaff.controller.staff.exam;
 import examstaff.controller.staff.exam.adapter.StaffAuditLogSupport;
 import examstaff.controller.staff.exam.adapter.CallBoardHttpFacade;
 import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
+import examstaff.controller.staff.exam.http.ExamStaffSessionKeys;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.service.ExamControlService;
@@ -22,10 +23,13 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/examstaff/exam-control")
+/**
+ * Endpoint điều khiển kỳ thi (start/end/pause/resume): POST action → service → sync session/CallBoard → redirect.
+ */
+@WebServlet("/views/staff/examstaff/exam-control")
 public class ExamControlServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
+    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
 
     private static final ExamStaffServices SERVICES = MODULE.services();
 
@@ -34,6 +38,9 @@ public class ExamControlServlet extends HttpServlet {
     private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
     private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
 
+    /**
+     * POST: chạy action start/end/pause/resumeExam, ghi flash session rồi redirect về trang gọi.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -90,12 +97,14 @@ public class ExamControlServlet extends HttpServlet {
         response.sendRedirect(redirect);
     }
 
+    /** GET ủy quyền sang {@link #doPost} (action có thể gửi qua query). */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doPost(request, response);
     }
 
+    /** Parse {@code examId} từ request; fallback {@code selectedExamId} session hoặc 2. */
     private int parseExamId(HttpServletRequest request) {
         int examId = ExamStaffHttpSupport.parseExamIdParam(request);
         if (examId > 0) {
@@ -105,30 +114,35 @@ public class ExamControlServlet extends HttpServlet {
         return selectedExamId != null ? selectedExamId : 2;
     }
 
+    /**
+     * Xây URL redirect theo param {@code redirect} (examiner-allocation / report / dashboard).
+     */
     private String buildRedirect(HttpServletRequest request, int examId) {
         String from = request.getParameter("redirect");
         String ctx = request.getContextPath();
         if ("examiner-allocation".equals(from)) {
-            return ctx + "/examstaff/examiner-allocation?examId=" + examId;
+            return ctx + "/views/staff/examstaff/examiner-allocation?examId=" + examId;
         }
         if ("report".equals(from)) {
-            return ctx + "/examstaff/report?examId=" + examId;
+            return ctx + "/views/staff/examstaff/report?examId=" + examId;
         }
-        return ctx + "/examstaff/dashboard?examId=" + examId;
+        return ctx + "/views/staff/examstaff/dashboard?examId=" + examId;
     }
 
+    /** Side-effect runtime khi bắt đầu kỳ: context active + session chọn kỳ, xóa flag shift. */
     private void applyRuntimeStart(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null) {
             ctx.setAttribute(ExamControlServiceImpl.CTX_ACTIVE_EXAM_ID, examId);
         }
         if (session != null) {
-            session.setAttribute("selectedExamId", examId);
-            session.removeAttribute("shiftEnded");
-            session.removeAttribute("shiftPaused");
-            session.removeAttribute("callingSbd");
+            session.setAttribute(ExamStaffSessionKeys.SELECTED_EXAM_ID, examId);
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_ENDED);
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_PAUSED);
+            session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
         }
     }
 
+    /** Kết thúc kỳ: gỡ active context, sync CallBoard ended, set {@code shiftEnded}. */
     private void applyRuntimeEnd(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null) {
             Integer active = (Integer) ctx.getAttribute(ExamControlServiceImpl.CTX_ACTIVE_EXAM_ID);
@@ -138,15 +152,16 @@ public class ExamControlServlet extends HttpServlet {
             callBoardHttp.sync(ctx, examId, null, null, true);
         }
         if (session != null) {
-            Integer selected = (Integer) session.getAttribute("selectedExamId");
+            Integer selected = (Integer) session.getAttribute(ExamStaffSessionKeys.SELECTED_EXAM_ID);
             if (selected != null && selected == examId) {
-                session.setAttribute("shiftEnded", "true");
-                session.removeAttribute("shiftPaused");
-                session.removeAttribute("callingSbd");
+                session.setAttribute(ExamStaffSessionKeys.SHIFT_ENDED, ExamStaffSessionKeys.FLAG_TRUE);
+                session.removeAttribute(ExamStaffSessionKeys.SHIFT_PAUSED);
+                session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
             }
         }
     }
 
+    /** Tạm dừng kỳ: pause CallBoard + flag {@code shiftPaused}, xóa callingSbd. */
     private void applyRuntimePause(ServletContext ctx, HttpSession session, int examId) {
         List<ExamRegistrationDTO> queue = examId > 0
                 ? registrationService.getCandidatesByExam(examId)
@@ -155,19 +170,20 @@ public class ExamControlServlet extends HttpServlet {
             callBoardHttp.pauseShift(ctx, examId, queue);
         }
         if (session != null) {
-            session.setAttribute("shiftPaused", "true");
-            session.removeAttribute("callingSbd");
-            session.removeAttribute("shiftEnded");
+            session.setAttribute(ExamStaffSessionKeys.SHIFT_PAUSED, ExamStaffSessionKeys.FLAG_TRUE);
+            session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_ENDED);
         }
     }
 
+    /** Tiếp tục kỳ: resume CallBoard, gỡ flag pause/ended trên session. */
     private void applyRuntimeResume(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null && examId > 0) {
             callBoardHttp.resumeShift(ctx, examId);
         }
         if (session != null) {
-            session.removeAttribute("shiftPaused");
-            session.removeAttribute("shiftEnded");
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_PAUSED);
+            session.removeAttribute(ExamStaffSessionKeys.SHIFT_ENDED);
         }
     }
 }

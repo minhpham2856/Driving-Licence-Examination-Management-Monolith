@@ -1,6 +1,6 @@
 package payment.dto.sepay;
 
-/** Kết quả xử lý IPN - servlet gọi service rồi trả JSON {@code {"success":true}}. */
+/** Kết quả xử lý IPN — servlet gọi service rồi trả JSON {@code {"success":true}}. */
 public class SePayIpnResult {
 
     private final boolean accepted;

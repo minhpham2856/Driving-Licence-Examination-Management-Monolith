@@ -5,18 +5,21 @@ import java.sql.Timestamp;
 public class TheoryPaper {
 
     private int theoryPaperId;
-    private int examEnrollmentSectionId;
+    private int examEnrollmentId;
+    private int examDeviceId;
     private Timestamp startedAt;
     private Timestamp submittedAt;
-    private ExamEnrollmentSection examEnrollmentSection;
+    private ExamEnrollment examEnrollment;
+    private ExamDevice examDevice;
 
     public TheoryPaper() {
     }
 
-    public TheoryPaper(int theoryPaperId, int examEnrollmentSectionId, Timestamp startedAt,
+    public TheoryPaper(int theoryPaperId, int examEnrollmentId, int examDeviceId, Timestamp startedAt,
             Timestamp submittedAt) {
         this.theoryPaperId = theoryPaperId;
-        this.examEnrollmentSectionId = examEnrollmentSectionId;
+        this.examEnrollmentId = examEnrollmentId;
+        this.examDeviceId = examDeviceId;
         this.startedAt = startedAt;
         this.submittedAt = submittedAt;
     }
@@ -29,12 +32,20 @@ public class TheoryPaper {
         this.theoryPaperId = theoryPaperId;
     }
 
-    public int getExamEnrollmentSectionId() {
-        return examEnrollmentSectionId;
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
     }
 
-    public void setExamEnrollmentSectionId(int examEnrollmentSectionId) {
-        this.examEnrollmentSectionId = examEnrollmentSectionId;
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
+    }
+
+    public int getExamDeviceId() {
+        return examDeviceId;
+    }
+
+    public void setExamDeviceId(int examDeviceId) {
+        this.examDeviceId = examDeviceId;
     }
 
     public Timestamp getStartedAt() {
@@ -53,11 +64,20 @@ public class TheoryPaper {
         this.submittedAt = submittedAt;
     }
 
-    public ExamEnrollmentSection getExamEnrollmentSection() {
-        return examEnrollmentSection;
+    public ExamEnrollment getExamEnrollment() {
+        return examEnrollment;
     }
 
-    public void setExamEnrollmentSection(ExamEnrollmentSection examEnrollmentSection) {
-        this.examEnrollmentSection = examEnrollmentSection;
+    public void setExamEnrollment(ExamEnrollment examEnrollment) {
+        this.examEnrollment = examEnrollment;
+    }
+
+    public ExamDevice getExamDevice() {
+        return examDevice;
+    }
+
+    public void setExamDevice(ExamDevice examDevice) {
+        this.examDevice = examDevice;
     }
 }
+

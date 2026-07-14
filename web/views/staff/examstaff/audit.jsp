@@ -3,7 +3,7 @@
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
 <c:if test="${requestScope.personalLogs == null}">
-    <c:redirect url="/examstaff/audit"/>
+    <c:redirect url="/views/staff/examstaff/audit"/>
 </c:if>
 
 <jsp:useBean id="now" class="java.util.Date" />
@@ -13,8 +13,8 @@
     <jsp:param name="activeSidebar" value="nhat-ky" />
     <jsp:param name="pageTitle" value="Nhật ký cá nhân" />
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
-    <jsp:param name="dataAuditBase" value="/examstaff/audit" />
-    <jsp:param name="dataAuditExportBase" value="/examstaff/audit-export" />
+    <jsp:param name="dataAuditBase" value="/views/staff/examstaff/audit" />
+    <jsp:param name="dataAuditExportBase" value="/views/staff/examstaff/audit-export" />
 </jsp:include>
 
         <c:if test="${param.exportError eq '1'}">
@@ -67,7 +67,7 @@
                 <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">Bộ lọc thời gian nhật ký:</span>
             </div>
 
-            <form id="auditFilterForm" action="${pageContext.request.contextPath}/examstaff/audit" method="GET" style="display: flex; align-items: center; gap: 10px; margin: 0;">
+            <form id="auditFilterForm" action="${pageContext.request.contextPath}/views/staff/examstaff/audit" method="GET" style="display: flex; align-items: center; gap: 10px; margin: 0;">
                 <c:if test="${not empty param.examId}">
                     <input type="hidden" name="examId" value="${param.examId}" />
                 </c:if>
@@ -76,7 +76,7 @@
                     Lọc kết quả
                 </button>
                 <c:if test="${not empty param.filterDate}">
-                    <a href="${pageContext.request.contextPath}/examstaff/audit<c:if test='${not empty param.examId}'>?examId=${param.examId}</c:if>" data-audit-clear-filter="true" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
+                    <a href="${pageContext.request.contextPath}/views/staff/examstaff/audit<c:if test='${not empty param.examId}'>?examId=${param.examId}</c:if>" data-audit-clear-filter="true" style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-decoration: none; padding: 0 5px;">Xóa bộ lọc</a>
                 </c:if>
             </form>
         </div>
@@ -153,7 +153,7 @@
                 <div class="allocation-panel-head-actions log-card-actions">
                     <span class="allocation-stage-panel__count">${pg.totalItems} thao tác</span>
                     <a id="auditExportLink"
-                       href="${pageContext.request.contextPath}/examstaff/audit-export<c:if test='${not empty param.filterDate}'>?filterDate=${param.filterDate}</c:if>"
+                       href="${pageContext.request.contextPath}/views/staff/examstaff/audit-export<c:if test='${not empty param.filterDate}'>?filterDate=${param.filterDate}</c:if>"
                        class="btn-export allocation-table-action">
                         Xuất Excel
                     </a>
@@ -179,7 +179,7 @@
                                         <c:when test="${not empty log.changedAt}">
                                             <fmt:formatDate value="${log.changedAt}" pattern="dd/MM/yyyy HH:mm" />
                                         </c:when>
-                                        <c:otherwise>-</c:otherwise>
+                                        <c:otherwise>—</c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td>

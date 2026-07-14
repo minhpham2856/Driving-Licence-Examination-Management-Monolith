@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** Dashboard GET /registrant/dashboard — thống kê ca thi, tổng SePay, tiến độ hồ sơ, action items. */
 @WebServlet("/registrant/dashboard")
 public class DashboardServlet extends HttpServlet {
 

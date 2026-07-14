@@ -14,13 +14,13 @@
 
     <c:when test="${hasExam}">
 
-        <c:set var="backUrl" value="${ctx}/examstaff/candidatecall?examId=${examId}" />
+        <c:set var="backUrl" value="${ctx}/views/staff/examstaff/candidatecall?examId=${examId}" />
 
     </c:when>
 
     <c:otherwise>
 
-        <c:set var="backUrl" value="${ctx}/examstaff/candidatecall" />
+        <c:set var="backUrl" value="${ctx}/views/staff/examstaff/candidatecall" />
 
     </c:otherwise>
 
@@ -60,7 +60,7 @@
 
       data-msg-no-exam-label="Chưa chọn kỳ thi"
 
-      data-msg-no-exam-queue="Chưa có kỳ thi - không hiển thị danh sách chờ"
+      data-msg-no-exam-queue="Chưa có kỳ thi — không hiển thị danh sách chờ"
 
       data-msg-no-exam-sync="Chưa kết nối kỳ thi"
 
@@ -68,7 +68,7 @@
 
       data-msg-shift-ended="Kỳ thi đã đóng"
 
-      data-msg-exam-paused="Kỳ thi tạm dừng - chờ tiếp tục"
+      data-msg-exam-paused="Kỳ thi tạm dừng — chờ tiếp tục"
 
       data-msg-class-prefix="Hạng "
 
@@ -82,19 +82,19 @@
 
       data-msg-prepare-tail="xin chuẩn bị, sắp đến lượt làm thủ tục tại bàn."
 
-      data-msg-exam-prefix="Phòng chờ chính - Kỳ thi "
+      data-msg-exam-prefix="Phòng chờ chính — Kỳ thi "
 
       data-msg-sync-connecting="Đang kết nối..."
 
       data-msg-sync-ready="Đồng bộ &amp; loa sẵn sàng"
 
-      data-msg-sync-needs-audio="Đồng bộ - cần bật loa một lần"
+      data-msg-sync-needs-audio="Đồng bộ — cần bật loa một lần"
 
       data-msg-sync-no-speech="Trình duyệt không hỗ trợ đọc loa"
 
-      data-msg-sync-speech-error="Lỗi phát loa - kiểm tra âm lượng TV"
+      data-msg-sync-speech-error="Lỗi phát loa — kiểm tra âm lượng TV"
 
-      data-msg-sync-offline="Mất kết nối - thử lại..."
+      data-msg-sync-offline="Mất kết nối — thử lại..."
 
       data-msg-audio-unlock="Đã bật loa">
 
@@ -134,7 +134,7 @@
 
                 <c:when test="${hasExam and not empty currentExam}">
 
-                    Phòng chờ chính - Kỳ thi <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy" />
+                    Phòng chờ chính — Kỳ thi <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy" />
 
                 </c:when>
 
@@ -164,7 +164,7 @@
 
                     <c:when test="${not hasExam}">
 
-                        <li class="tv-queue-empty">Chưa có kỳ thi - không hiển thị danh sách chờ</li>
+                        <li class="tv-queue-empty">Chưa có kỳ thi — không hiển thị danh sách chờ</li>
 
                     </c:when>
 
@@ -182,7 +182,7 @@
 
                                 <span class="tv-queue-item__sbd">${wc.sbd}</span>
 
-                                <span class="tv-queue-item__sep" aria-hidden="true">-</span>
+                                <span class="tv-queue-item__sep" aria-hidden="true">—</span>
 
                                 <span class="tv-queue-item__name">${wc.name}</span>
 

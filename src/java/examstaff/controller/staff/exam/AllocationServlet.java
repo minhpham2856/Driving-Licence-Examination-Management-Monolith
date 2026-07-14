@@ -37,13 +37,13 @@ import java.util.List;
  * điều phối HTTP ↔ AllocationAction/StageView ↔ redirect/forward JSP theo servlet path.
  */
 @WebServlet(urlPatterns = {
-        "/examstaff/allocation",
-        "/examstaff/allocation-waiting",
-        "/examstaff/allocation-theory",
-        "/examstaff/allocation-practical",
-        "/examstaff/allocation-results-pass",
-        "/examstaff/allocation-results-fail",
-        "/examstaff/allocation-results-suspended"
+        "/views/staff/examstaff/allocation",
+        "/views/staff/examstaff/allocation-waiting",
+        "/views/staff/examstaff/allocation-theory",
+        "/views/staff/examstaff/allocation-practical",
+        "/views/staff/examstaff/allocation-results-pass",
+        "/views/staff/examstaff/allocation-results-fail",
+        "/views/staff/examstaff/allocation-results-suspended"
 })
 public class AllocationServlet extends HttpServlet {
 

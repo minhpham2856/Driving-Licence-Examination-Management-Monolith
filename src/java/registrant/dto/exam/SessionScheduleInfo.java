@@ -2,7 +2,7 @@ package registrant.dto.exam;
 
 import java.util.Date;
 
-/** Ngày thi đăng ký - dùng kiểm tra trùng ngày giữa các hạng GPLX. */
+/** Ngày thi đăng ký — dùng kiểm tra trùng ngày giữa các hạng GPLX. */
 public class SessionScheduleInfo {
 
     private int sessionId;

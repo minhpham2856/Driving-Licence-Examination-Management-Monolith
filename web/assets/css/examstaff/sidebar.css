@@ -81,7 +81,7 @@
     padding-left: 8px;
 }
 
-/* Luôn hiện submenu phân bổ - tránh không bấm được khi chưa mở hoặc JS lỗi */
+/* Luôn hiện submenu phân bổ — tránh không bấm được khi chưa mở hoặc JS lỗi */
 .side-nav-bar--examstaff [data-allocation-menu] .side-nav-bar__submenu {
     display: flex;
     flex-direction: column;

@@ -16,8 +16,9 @@ public class LicenceDAOImpl implements LicenceDAO {
         "SELECT l.LicenceId, l.LicenceClass, l.Description, l.MinimumAge, l.ValidForYears, l.UpgradeFromLicenceId "
       + "FROM Licence l ";
     private static final String VEHICLE_TYPE_CASE =
-        "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'moto-2' "
-      + "WHEN l.LicenceClass IN ('B1') THEN 'moto-3' "
+        "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'xe-may' "
+      + "WHEN l.LicenceClass IN ('B1') THEN 'o-to-con' "
+      + "WHEN l.LicenceClass IN ('B','C','D','E','F') THEN 'xe-tai-khach' "
       + "ELSE 'other' END";
     private static final String DURATION_CASE =
         "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'duoi-3-thang' "

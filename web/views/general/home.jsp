@@ -27,11 +27,11 @@
                     <div class="vision-mission-row">
                         <div class="vision-mission-card vision-card">
                             <h3>Đào tạo</h3>
-                            <p>Kiến thức & kỹ năng lái an toàn.</p>
+                            <p>Trang bị kiến thức và kỹ năng lái xe an toàn cho mọi người.</p>
                         </div>
                         <div class="vision-mission-card mission-card">
                             <h3>Sát hạch</h3>
-                            <p>Quy trình nhanh, minh bạch.</p>
+                            <p>Quy trình hiện đại, nhanh chóng, uy tín.</p>
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,8 @@
                     </div>
                     <div class="bento-overlay">
                         <h3 class="bento-card-title">Sân tập tiêu chuẩn</h3>
-                        <p class="bento-card-desc">20.000m² · 11 bài sa hình chuẩn.</p>
+                        <p class="bento-card-desc">Diện tích 20.000m² với đầy đủ 11 bài thi sa hình, mô phỏng thực
+                            tế các tình huống giao thông phức tạp nhất.</p>
                     </div>
                 </div>
 
@@ -69,7 +70,8 @@
                         </div>
                         <div class="bento-overlay bento-overlay-small">
                             <h3 class="bento-card-title">Hệ thống lái cabin</h3>
-                            <p class="bento-card-desc">Cabin mô phỏng trước khi lên xe thật.</p>
+                            <p class="bento-card-desc">Học viên được làm quen với cabin ảo trước khi thực hành trên
+                                xe thật.</p>
                         </div>
                     </div>
 
@@ -80,7 +82,8 @@
                         </div>
                         <div class="bento-overlay bento-overlay-small">
                             <h3 class="bento-card-title">Dàn xe tiêu chuẩn</h3>
-                            <p class="bento-card-desc">Xe Vios / Accent bảo dưỡng định kỳ.</p>
+                            <p class="bento-card-desc">Sử dụng các dòng xe phổ biến như Toyota Vios, Hyundai Accent
+                                được bảo dưỡng định kỳ.</p>
                         </div>
                     </div>
                 </div>
@@ -95,6 +98,13 @@
                 <div class="instructors-title-wrap">
                     <h2 class="instructors-title">Đội ngũ giảng viên tận tâm</h2>
                 </div>
+                <a href="#" class="btn-view-all">
+                    Xem tất cả giảng viên
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" />
+                    </svg>
+                </a>
             </div>
 
             <div class="instructor-grid">
@@ -102,7 +112,7 @@
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_1.png');">
-                        <span class="instructor-badge">Hạng A1</span>
+                        <span class="instructor-badge">Hạng B</span>
                     </div>
                     <div class="instructor-info">
                         <h4 class="instructor-name">Thầy Trần Nam</h4>
@@ -150,7 +160,7 @@
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_3.png');">
-                        <span class="instructor-badge">Hạng B1</span>
+                        <span class="instructor-badge">Hạng C</span>
                     </div>
                     <div class="instructor-info">
                         <h4 class="instructor-name">Thầy Phạm Hùng</h4>
@@ -174,7 +184,7 @@
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_4.png');">
-                        <span class="instructor-badge">Hạng A1</span>
+                        <span class="instructor-badge">Hạng B1/B</span>
                     </div>
                     <div class="instructor-info">
                         <h4 class="instructor-name">Cô Nguyễn Anh</h4>
@@ -198,7 +208,7 @@
     </section>
 
     <!-- Section 4: CTA Section -->
-    <section class="landing-section landing-section--cta">
+    <section class="landing-section">
         <div class="landing-container">
             <div class="cta-container">
                 <div class="cta-ambient-1"></div>
@@ -207,12 +217,10 @@
                 <p class="cta-desc">Gia nhập cộng đồng hơn 50.000 học viên đã tốt nghiệp tại Lái Vui và nhận chứng
                     chỉ lái xe an toàn ngay hôm nay.</p>
                 <div class="cta-buttons">
-                    <a href="${pageContext.request.contextPath}/register" class="btn-cta-primary">Đăng ký ngay</a>
-                    <a href="${pageContext.request.contextPath}/process#lien-he" class="btn-cta-secondary">Liên hệ tư vấn</a>
+                    <a href="register.jsp" class="btn-cta-primary">Đăng ký ngay</a>
+                    <a href="#" class="btn-cta-secondary">Liên hệ tư vấn</a>
                 </div>
             </div>
         </div>
     </section>
 </main>
-
-<jsp:include page="/views/layout/footer.jsp" />
