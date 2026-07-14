@@ -48,23 +48,6 @@
                     <div class="export-row">
                         <div class="export-row__left">
                             <div class="export-row__icon export-row__icon--blue">
-                                <span class="material-symbols-outlined">description</span>
-                            </div>
-                            <div class="export-row__info">
-                                <p class="export-row__title">Biên bản thi</p>
-                            </div>
-                        </div>
-                        <div class="export-row__actions">
-                            <a href="#" class="print-btn">
-                                <span class="material-symbols-outlined">print</span>
-                                <span class="print-btn__text">In</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="export-row">
-                        <div class="export-row__left">
-                            <div class="export-row__icon export-row__icon--blue">
                                 <span class="material-symbols-outlined">group</span>
                             </div>
                             <div class="export-row__info">
@@ -96,30 +79,17 @@
                         </div>
                     </div>
 
-                    <div class="export-row">
-                        <div class="export-row__left">
-                            <div class="export-row__icon export-row__icon--blue">
-                                <span class="material-symbols-outlined">assignment_turned_in</span>
-                            </div>
-                            <div class="export-row__info">
-                                <p class="export-row__title">Phiếu điểm thực hành</p>
-                            </div>
-                        </div>
-                        <div class="export-row__actions">
-                            <a href="${ctx}/views/examiner/score-entry" class="print-btn">
-                                <span class="material-symbols-outlined">print</span>
-                                <span class="print-btn__text">In</span>
-                            </a>
-                        </div>
-                    </div>
+                    <jsp:include page="/views/examiner/components/violation-export-row.jsp">
+                        <jsp:param name="mode" value="print" />
+                    </jsp:include>
 
                     <div class="export-row export-row--last">
                         <div class="export-row__left">
-                            <div class="export-row__icon export-row__icon--red">
-                                <span class="material-symbols-outlined">warning</span>
+                            <div class="export-row__icon export-row__icon--blue">
+                                <span class="material-symbols-outlined">list_alt</span>
                             </div>
                             <div class="export-row__info">
-                                <p class="export-row__title">Biên bản vi phạm</p>
+                                <p class="export-row__title">Nhật ký</p>
                             </div>
                         </div>
                         <div class="export-row__actions">

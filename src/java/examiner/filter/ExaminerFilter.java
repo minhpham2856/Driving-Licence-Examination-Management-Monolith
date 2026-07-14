@@ -30,7 +30,7 @@ import examiner.service.impl.ExamSectionServiceImpl;
 import examiner.service.impl.RoleServiceImpl;
 import examiner.service.impl.ScheduleServiceImpl;
 
-@WebFilter(urlPatterns = {"/views/examiner/*", "/examiner/*"})
+@WebFilter(urlPatterns = {"/examiner/*"})
 public class ExaminerFilter extends HttpFilter {
 
     // Session attributes shared between examiner pages (delegate to shared.Attributes)
@@ -41,7 +41,7 @@ public class ExaminerFilter extends HttpFilter {
     public static final String ATTR_MESSAGE = Attributes.Examiner.EXAM_MESSAGE;
 
     // Session selection page
-    private static final String SESSION_SELECT_PATH = "/views/examiner/exam";
+    private static final String SESSION_SELECT_PATH = "/examiner/exam";
 
     // Business services
     private final RoleService roleService = new RoleServiceImpl();
@@ -67,15 +67,25 @@ public class ExaminerFilter extends HttpFilter {
         }
 
         // Allow only examiners to access examiner pages
-        Role role = roleService.getById(user.getRoleId());
-        if (RoleType.fromValue(role.getRoleName()) != RoleType.EXAMINER) {
+        Role role = user.getRole();
+        if (role == null && user.getRoleId() > 0) {
+            role = roleService.getById(user.getRoleId());
+        }
+        if (role == null || RoleType.fromValue(role.getRoleName()) != RoleType.EXAMINER) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        // Skip exam session validation on the session selection page
+        // skip exam-session redirect on session select and account pages,
+        // but still publish section flags so sidebar grey-out stays correct
         String path = requestPath(request);
-        if (SESSION_SELECT_PATH.equals(path)) {
+        if (SESSION_SELECT_PATH.equals(path)
+                || "/examiner/profile".equals(path)
+                || "/examiner/change-password".equals(path)) {
+            if (session != null) {
+                updateRequest(session, request);
+                publishSectionFlags(session, request);
+            }
             chain.doFilter(request, response);
             return;
         }
@@ -88,6 +98,7 @@ public class ExaminerFilter extends HttpFilter {
 
         // Make session data available as request attributes
         updateRequest(session, request);
+        publishSectionFlags(session, request);
 
         // Prevent export requests when no active session exists
         if (!isActive(session) && isExportPath(request)) {
@@ -154,6 +165,9 @@ public class ExaminerFilter extends HttpFilter {
         session.setAttribute(ATTR_EXAMINER_SCHEDULE, schedule);
         session.setAttribute(ATTR_ACTIVE_EXAM_ID, exam.getExamId());
         session.setAttribute(ATTR_EXAM_SECTION, examSection);
+        session.setAttribute(Attributes.Examiner.IS_THEORY, examSection == THEORY);
+        session.setAttribute(Attributes.Examiner.EXAM_SECTION_NAME,
+                examSection != null ? examSection.getValue() : null);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.TRUE);
         session.setAttribute(ATTR_MESSAGE, null);
 
@@ -165,6 +179,8 @@ public class ExaminerFilter extends HttpFilter {
         session.removeAttribute(ATTR_EXAMINER_SCHEDULE);
         session.removeAttribute(ATTR_ACTIVE_EXAM_ID);
         session.removeAttribute(ATTR_EXAM_SECTION);
+        session.removeAttribute(Attributes.Examiner.IS_THEORY);
+        session.removeAttribute(Attributes.Examiner.EXAM_SECTION_NAME);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.FALSE);
     }
 
@@ -175,6 +191,17 @@ public class ExaminerFilter extends HttpFilter {
         copySessionToRequest(session, request, ATTR_ACTIVE_EXAM_ID);
         copySessionToRequest(session, request, ATTR_EXAM_SECTION);
         copySessionToRequest(session, request, ATTR_MESSAGE);
+        copySessionToRequest(session, request, Attributes.Examiner.IS_THEORY);
+        copySessionToRequest(session, request, Attributes.Examiner.EXAM_SECTION_NAME);
+    }
+
+    // Expose section flags for examiner JSP components
+    private void publishSectionFlags(HttpSession session, HttpServletRequest request) {
+        SectionType section = (SectionType) request.getAttribute(ATTR_EXAM_SECTION);
+        boolean isTheory = section == THEORY;
+        request.setAttribute(Attributes.Examiner.SECTION_THEORY, isTheory);
+        request.setAttribute(Attributes.Examiner.EXAM_SECTION_NAME,
+                section != null ? section.getValue() : "");
     }
 
     // Copy a single session attribute to the request

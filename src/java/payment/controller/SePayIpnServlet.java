@@ -12,10 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Endpoint IPN mẫu cho SePay — đăng ký URL này trên my.sepay.vn.
- * Module nghiệp vụ mở rộng: sau {@link SePayIpnResult#getEvent()} cập nhật PaymentRecord / đơn hàng.
- */
+/** Endpoint IPN SePay (/payment/sepay/ipn): raw body + auth headers → handleIpn → JSON 200/401. */
 @WebServlet("/payment/sepay/ipn")
 public class SePayIpnServlet extends HttpServlet {
 
@@ -24,6 +21,7 @@ public class SePayIpnServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Đọc raw bytes — không parse form — vì HMAC ký trên đúng chuỗi này
         String rawBody = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         String secret = request.getHeader(SePayConstants.HEADER_SECRET_KEY);
         String signature = request.getHeader(SePayConstants.HEADER_SIGNATURE);

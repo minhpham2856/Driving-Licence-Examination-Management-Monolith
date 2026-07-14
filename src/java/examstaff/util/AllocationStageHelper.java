@@ -303,12 +303,12 @@ public final class AllocationStageHelper {
      */
     public static String inferServletPathFromAction(String action) {
         if (action == null) {
-            return "/views/staff/examstaff/allocation";
+            return "/examstaff/allocation";
         }
         return switch (action) {
-            case "allocateRoom" -> "/views/staff/examstaff/allocation-theory";
-            case "allocatePracticalRoom" -> "/views/staff/examstaff/allocation-practical";
-            default -> "/views/staff/examstaff/allocation";
+            case "allocateRoom" -> "/examstaff/allocation-theory";
+            case "allocatePracticalRoom" -> "/examstaff/allocation-practical";
+            default -> "/examstaff/allocation";
         };
     }
 
@@ -533,16 +533,16 @@ public final class AllocationStageHelper {
      */
     public static String stageServletPath(String stageKey) {
         if (stageKey == null) {
-            return "/views/staff/examstaff/allocation";
+            return "/examstaff/allocation";
         }
         return switch (stageKey) {
-            case STAGE_WAITING -> "/views/staff/examstaff/allocation-waiting";
-            case STAGE_THEORY -> "/views/staff/examstaff/allocation-theory";
-            case STAGE_PRACTICAL -> "/views/staff/examstaff/allocation-practical";
-            case "results-pass" -> "/views/staff/examstaff/allocation-results-pass";
-            case "results-fail" -> "/views/staff/examstaff/allocation-results-fail";
-            case "results-suspended" -> "/views/staff/examstaff/allocation-results-suspended";
-            default -> "/views/staff/examstaff/allocation";
+            case STAGE_WAITING -> "/examstaff/allocation-waiting";
+            case STAGE_THEORY -> "/examstaff/allocation-theory";
+            case STAGE_PRACTICAL -> "/examstaff/allocation-practical";
+            case "results-pass" -> "/examstaff/allocation-results-pass";
+            case "results-fail" -> "/examstaff/allocation-results-fail";
+            case "results-suspended" -> "/examstaff/allocation-results-suspended";
+            default -> "/examstaff/allocation";
         };
     }
 

@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <jsp:include page="/views/layout/header.jsp">
     <jsp:param name="title" value="Lái Vui - Hạng GPLX" />
@@ -24,39 +24,11 @@
 <c:set var="typeParams" value="${fn:join(paramValues.type, ',')}" />
 <c:set var="durationParams" value="${fn:join(paramValues.duration, ',')}" />
 
-<c:choose>
-    <c:when test="${empty paramValues.type}">
-        <c:set var="showXeMay" value="true" />
-        <c:set var="showOToCon" value="true" />
-        <c:set var="showXeTaiKhach" value="true" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="showXeMay" value="${fn:contains(typeParams, 'xe-may')}" />
-        <c:set var="showOToCon" value="${fn:contains(typeParams, 'o-to-con')}" />
-        <c:set var="showXeTaiKhach" value="${fn:contains(typeParams, 'xe-tai-khach')}" />
-    </c:otherwise>
-</c:choose>
-
-<c:choose>
-    <c:when test="${empty paramValues.duration}">
-        <c:set var="showDuoi3Thang" value="true" />
-        <c:set var="showTu3To6Thang" value="true" />
-        <c:set var="showDurationOther" value="true" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="showDuoi3Thang" value="${fn:contains(durationParams, 'duoi-3-thang')}" />
-        <c:set var="showTu3To6Thang" value="${fn:contains(durationParams, 'tu-3-6-thang')}" />
-        <c:set var="showDurationOther" value="${fn:contains(durationParams, 'other')}" />
-    </c:otherwise>
-</c:choose>
-
-<c:set var="hasResults" value="false" scope="page" />
-
 <main class="public-main categories-page">
     <div class="categories-container">
         <header class="page-header">
             <h1 class="page-title">Danh mục hạng GPLX</h1>
-            <p class="page-subtitle">Tìm kiếm và lựa chọn hạng bằng phù hợp với nhu cầu của bạn</p>
+            <p class="page-subtitle">Ba hạng bằng mô tô hiện có tại trung tâm: A1, A và B1</p>
         </header>
 
         <div class="workspace-layout">
@@ -66,9 +38,7 @@
 
                     <div class="filter-card__header">
                         <div class="filter-card__header-title">
-                            <svg class="filter-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <span class="material-symbols-outlined filter-icon" aria-hidden="true">filter_list</span>
                             <span>Bộ lọc</span>
                         </div>
                         <c:if test="${not isFirstLoad}">
@@ -78,57 +48,50 @@
 
                     <div class="filter-search">
                         <input type="text" name="q" class="filter-search__input"
-                               placeholder="Tìm hạng bằng..." value="${searchQuery}">
+                               placeholder="Tìm hạng bằng..." value="<c:out value='${searchQuery}' />">
                     </div>
 
                     <div class="filter-group">
                         <h3 class="filter-group__title">LOẠI PHƯƠNG TIỆN</h3>
                         <div class="filter-group__options">
                             <label class="filter-option">
-                                <input type="checkbox" name="type" value="xe-may"
-                                       <c:if test="${fn:contains(typeParams, 'xe-may')}">checked</c:if>>
-                                       <span class="filter-label-text">Xe máy</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="type" value="o-to-con"
-                                    <c:if test="${fn:contains(typeParams, 'o-to-con')}">checked</c:if>>
-                                    <span class="filter-label-text">Ô tô con</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="type" value="xe-tai-khach"
-                                    <c:if test="${fn:contains(typeParams, 'xe-tai-khach')}">checked</c:if>>
-                                    <span class="filter-label-text">Xe tải / Khách</span>
-                                </label>
-                            </div>
+                                <input type="checkbox" name="type" value="moto-2"
+                                       <c:if test="${fn:contains(typeParams, 'moto-2')}">checked</c:if>>
+                                <span class="filter-label-text">Mô tô 2 bánh</span>
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="type" value="moto-3"
+                                       <c:if test="${fn:contains(typeParams, 'moto-3')}">checked</c:if>>
+                                <span class="filter-label-text">Mô tô 3 bánh</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <div class="filter-group filter-group--bordered">
-                            <h3 class="filter-group__title">THỜI GIAN ĐÀO TẠO</h3>
-                            <div class="filter-group__options">
-                                <label class="filter-option">
-                                    <input type="checkbox" name="duration" value="duoi-3-thang"
-                                    <c:if test="${fn:contains(durationParams, 'duoi-3-thang')}">checked</c:if>>
-                                    <span class="filter-label-text">Dưới 3 tháng</span>
-                                </label>
-                                <label class="filter-option">
-                                    <input type="checkbox" name="duration" value="tu-3-6-thang"
-                                    <c:if test="${fn:contains(durationParams, 'tu-3-6-thang')}">checked</c:if>>
-                                    <span class="filter-label-text">Từ 3-6 tháng</span>
-                                </label>
-                                <input type="checkbox" name="duration" value="other"
-                                <c:if test="${fn:contains(durationParams, 'other')}">checked</c:if> style="display:none;">
-                            </div>
+                    <div class="filter-group filter-group--bordered">
+                        <h3 class="filter-group__title">THỜI GIAN ĐÀO TẠO</h3>
+                        <div class="filter-group__options">
+                            <label class="filter-option">
+                                <input type="checkbox" name="duration" value="duoi-3-thang"
+                                       <c:if test="${fn:contains(durationParams, 'duoi-3-thang')}">checked</c:if>>
+                                <span class="filter-label-text">Dưới 3 tháng</span>
+                            </label>
+                            <label class="filter-option">
+                                <input type="checkbox" name="duration" value="tu-3-6-thang"
+                                       <c:if test="${fn:contains(durationParams, 'tu-3-6-thang')}">checked</c:if>>
+                                <span class="filter-label-text">Từ 3–6 tháng</span>
+                            </label>
                         </div>
+                    </div>
 
-                        <button type="submit" class="btn-filter-submit">Áp dụng bộ lọc</button>
-                    </form>
-                </aside>
+                    <button type="submit" class="btn-filter-submit">Áp dụng bộ lọc</button>
+                </form>
+            </aside>
 
-                <section class="results-grid-wrap">
-                    <div class="results-toolbar">
+            <section class="results-grid-wrap">
+                <div class="results-toolbar">
                     <c:if test="${not empty searchQuery}">
                         <span class="results-toolbar__hint">
-                            Kết quả tìm kiếm: <strong>${searchQuery}</strong>
+                            Kết quả tìm kiếm: <strong><c:out value="${searchQuery}" /></strong>
                             <a href="${ctx}/license-categories" class="results-toolbar__clear">✕</a>
                         </span>
                     </c:if>
@@ -138,7 +101,7 @@
 
                         <c:set var="preservedParams" value="submit=true" />
                         <c:if test="${not empty searchQuery}">
-                            <c:set var="preservedParams" value="${preservedParams}&q=${searchQuery}" />
+                            <c:set var="preservedParams" value="${preservedParams}&q=${fn:escapeXml(searchQuery)}" />
                         </c:if>
                         <c:forTokens var="t" items="${typeParams}" delims=",">
                             <c:if test="${not empty t}">
@@ -170,6 +133,7 @@
                     </div>
                 </div>
 
+                <c:set var="hasResults" value="false" scope="page" />
                 <div class="results-grid">
                     <c:forEach var="licence" items="${requestScope.licences}">
                         <c:set var="lc" value="${licence.licenceClass}" />
@@ -177,63 +141,62 @@
 
                         <c:choose>
                             <c:when test="${lc eq 'A1' or lc eq 'A'}">
-                                <c:set var="iconSuffix" value="${lc eq 'A1' ? 'a1' : 'a2'}" />
-                                <c:set var="badgeCls" value="${lc eq 'A1' ? 'category-card__badge--orange' : ''}" />
-                                <c:set var="badgeText" value="${lc eq 'A1' ? 'Phổ biến' : ''}" />
                                 <c:set var="durationText" value="15 ngày" />
                             </c:when>
                             <c:when test="${lc eq 'B1'}">
-                                <c:set var="iconSuffix" value="b1" />
-                                <c:set var="badgeCls" value="" />
-                                <c:set var="badgeText" value="" />
                                 <c:set var="durationText" value="3 tháng" />
                             </c:when>
                             <c:otherwise>
-                                <c:set var="iconSuffix" value="f" />
-                                <c:set var="badgeCls" value="" />
-                                <c:set var="badgeText" value="" />
-                                <c:set var="durationText" value="—" />
+                                <c:set var="durationText" value="-" />
                             </c:otherwise>
                         </c:choose>
 
-                        <div class="category-card">
-                            <div class="category-card__header">
-                                <img src="${ctx}/assets/imgs/card_${iconSuffix}_icon.svg" alt="${lc}" class="category-card__icon"
-                                     onerror="this.style.display='none'">
-                                <c:if test="${not empty badgeText}">
-                                    <span class="category-card__badge ${badgeCls}">${badgeText}</span>
-                                </c:if>
-                            </div>
+                        <article class="category-card">
                             <div class="category-card__body">
-                                <h2 class="category-card__title">Hạng ${lc}</h2>
-                                <p class="category-card__desc">${empty licence.description ? 'Phạm vi sát hạch quốc gia theo quy định của Bộ Giao thông Vận tải.' : licence.description}</p>
+                                <p class="category-card__eyebrow">Hạng bằng</p>
+                                <h2 class="category-card__title">Hạng <c:out value="${lc}" /></h2>
+                                <p class="category-card__desc">
+                                    <c:choose>
+                                        <c:when test="${empty licence.description}">
+                                            Phạm vi sát hạch theo quy định hiện hành.
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:out value="${licence.description}" />
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
                             </div>
                             <div class="category-card__footer">
                                 <div class="category-card__info-row">
-                                    <span class="info-label">Thời gian:</span>
-                                    <span class="info-value">${durationText}</span>
+                                    <span class="info-label">Thời gian đào tạo</span>
+                                    <span class="info-value"><c:out value="${durationText}" /></span>
                                 </div>
                                 <div class="category-card__info-row">
-                                    <span class="info-label">Độ tuổi tối thiểu:</span>
-                                    <span class="info-value">${licence.minimumAge}</span>
+                                    <span class="info-label">Độ tuổi tối thiểu</span>
+                                    <span class="info-value">${licence.minimumAge} tuổi</span>
                                 </div>
                                 <div class="category-card__info-row">
-                                    <span class="info-label">Thời hạn GPLX:</span>
-                                    <span class="info-value info-value--blue">${licence.validForYears} năm</span>
+                                    <span class="info-label">Thời hạn GPLX</span>
+                                    <span class="info-value info-value--blue">
+                                        <c:choose>
+                                            <c:when test="${empty licence.validForYears or licence.validForYears le 0}">
+                                                Vô thời hạn
+                                            </c:when>
+                                            <c:otherwise>
+                                                ${licence.validForYears} năm
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </span>
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     </c:forEach>
                 </div>
 
                 <c:if test="${not hasResults}">
                     <div class="no-results-panel">
-                        <svg class="no-results-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
                         <h3 class="no-results-title">Không tìm thấy kết quả phù hợp</h3>
-                        <p class="no-results-desc">Vui lòng thay đổi lựa chọn bộ lọc hoặc đặt lại bộ lọc để xem các hạng bằng khác.</p>
+                        <p class="no-results-desc">Thử đổi bộ lọc hoặc đặt lại để xem các hạng A1, A, B1.</p>
                         <a href="${ctx}/license-categories" class="btn-reset-filters">Đặt lại bộ lọc</a>
                     </div>
                 </c:if>
@@ -241,3 +204,5 @@
         </div>
     </div>
 </main>
+
+<jsp:include page="/views/layout/footer.jsp" />

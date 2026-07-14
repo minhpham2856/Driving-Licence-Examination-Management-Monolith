@@ -5,9 +5,9 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Vi phạm" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/violations" scope="request" />
-<c:set var="violationConfirmUrl" value="${ctx}/views/examiner/violation-confirm" scope="request" />
-<c:set var="violationUndoUrl" value="${ctx}/views/examiner/violation-undo" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/violations" scope="request" />
+<c:set var="violationConfirmUrl" value="${ctx}/examiner/violation-confirm" scope="request" />
+<c:set var="violationUndoUrl" value="${ctx}/examiner/violation-undo" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>

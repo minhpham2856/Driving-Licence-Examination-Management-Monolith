@@ -31,7 +31,7 @@ public class ExamRegistration {
     private String deviceCode;
     private String theoryPassed = "none"; // 'none', 'passed', 'failed'
     private String practicalPassed = "none";
-    private String roadTestPassed = "none"; // 'none', 'passed', 'failed' — chỉ áp dụng B1/B2/C/D/E/F
+    private String roadTestPassed = "none"; // 'none', 'passed', 'failed' - chỉ áp dụng B1/B2/C/D/E/F
     private Integer theoryScore;
     private Integer practicalScore;
     private Integer roadTestScore;

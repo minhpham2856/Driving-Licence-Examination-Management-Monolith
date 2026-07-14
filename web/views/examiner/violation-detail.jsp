@@ -4,7 +4,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Chi tiết vi phạm / đình chỉ" />
-<c:set var="backUrl" value="${ctx}/views/examiner/violations" />
+<c:set var="backUrl" value="${ctx}/examiner/violations" />
 <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx?type=violations" scope="request" />
 
 <!--page-->
@@ -105,10 +105,10 @@
                                     <p class="examiner-table__empty">Không có dữ liệu.</p>
                                 </c:when>
                                 <c:when test="${candidate.suspended}">
-                                    <p>Thí sinh đang bị <strong>đình chỉ</strong> thi. Giám khảo chỉ được xem thông tin, không thể ghi nhận hoặc hoàn tác vi phạm tại đây.</p>
+                                    <p>Thí sinh đang bị <strong>đình chỉ</strong> thi. Sát hạch viên chỉ được xem thông tin, không thể ghi nhận hoặc hoàn tác vi phạm tại đây.</p>
                                 </c:when>
                                 <c:otherwise>
-                                    <p>Thí sinh <strong>chưa bị đình chỉ</strong>. Giám khảo không có quyền ghi nhận vi phạm tại cổng giám khảo.</p>
+                                    <p>Thí sinh <strong>chưa bị đình chỉ</strong>. Sát hạch viên không có quyền ghi nhận vi phạm tại cổng sát hạch viên.</p>
                                 </c:otherwise>
                             </c:choose>
                         </section>

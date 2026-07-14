@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/views/examiner/exam")
+@WebServlet("/examiner/exam")
 public class ExaminerExamServlet extends HttpServlet {
 
     private final ScheduleService scheduleService = new ScheduleServiceImpl();
@@ -74,28 +74,28 @@ public class ExaminerExamServlet extends HttpServlet {
         try {
             examId = Integer.parseInt(request.getParameter("examId"));
         } catch (NumberFormatException ex) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=invalid");
+            response.sendRedirect(request.getContextPath() + "/examiner/exam?error=invalid");
             return;
         }
 
         ExaminerSchedule schedule = scheduleService.getScheduleByExaminerAndExam(user.getUserId(), examId);
         if (schedule == null) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=denied");
+            response.sendRedirect(request.getContextPath() + "/examiner/exam?error=denied");
             return;
         }
 
         Exam exam = examService.getById(examId);
         if (exam == null) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=notActive");
+            response.sendRedirect(request.getContextPath() + "/examiner/exam?error=notActive");
             return;
         }
         ExamStatus examStatus = ExamStatus.fromValue(exam.getStatus());
         if (examStatus == ExamStatus.PAUSED) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=paused");
+            response.sendRedirect(request.getContextPath() + "/examiner/exam?error=paused");
             return;
         }
         if (examStatus != ExamStatus.IN_PROGRESS) {
-            response.sendRedirect(request.getContextPath() + "/views/examiner/exam?error=notActive");
+            response.sendRedirect(request.getContextPath() + "/examiner/exam?error=notActive");
             return;
         }
 
@@ -106,11 +106,12 @@ public class ExaminerExamServlet extends HttpServlet {
 
         httpSession.setAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE, schedule);
         httpSession.setAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID, exam.getExamId());
-        httpSession.setAttribute("isTheory", examSection == SectionType.THEORY);
+        httpSession.setAttribute(Attributes.Examiner.IS_THEORY, examSection == SectionType.THEORY);
         httpSession.setAttribute(ExaminerFilter.ATTR_EXAM_SECTION, examSection);
-        httpSession.setAttribute("examSectionName", examSection != null ? examSection.getValue() : null);
+        httpSession.setAttribute(Attributes.Examiner.EXAM_SECTION_NAME,
+                examSection != null ? examSection.getValue() : null);
 
-        response.sendRedirect(request.getContextPath() + "/views/examiner/dashboard");
+        response.sendRedirect(request.getContextPath() + "/examiner/dashboard");
     }
 
     private ExaminerSchedule hydrateSchedule(ExaminerSchedule schedule, Map<Integer, Licence> licencesByExamId) {

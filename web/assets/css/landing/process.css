@@ -1,4 +1,4 @@
-/* ========================================================
+﻿/* ========================================================
    Process & Lộ trình Page Styling
    ======================================================== */
 
@@ -9,10 +9,10 @@
 }
 
 .process-container {
-    max-width: 1216px;
+    max-width: none;
     width: 100%;
-    margin: 0 auto;
-    padding: 0 16px;
+    margin: 0;
+    padding: 0 28px;
     box-sizing: border-box;
 }
 
@@ -20,7 +20,7 @@
 .process-hero {
     position: relative;
     background: linear-gradient(177deg, #0052cc 0%, #003d9b 100%);
-    padding: 80px 0;
+    padding: 64px 0;
     overflow: hidden;
     text-align: center;
     color: #ffffff;
@@ -70,7 +70,28 @@
     line-height: 1.5;
     color: #c4d2ff;
     max-width: 720px;
-    margin: 0 auto;
+    margin: 0 auto 20px;
+}
+
+.hero-contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+    padding-bottom: 4px;
+    transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.hero-contact-link:hover,
+.hero-contact-link:focus-visible {
+    border-bottom-color: #fff;
+    outline: none;
 }
 
 @media (max-width: 768px) {
@@ -89,7 +110,7 @@
 
 /* --- Timeline Section --- */
 .process-section {
-    padding: 80px 0;
+    padding: 64px 0;
 }
 
 .timeline-section {
@@ -148,22 +169,39 @@
 }
 
 .step-icon {
-    width: 96px;
-    height: 96px;
-    object-fit: contain;
+    font-size: 42px !important;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+    color: #003d9b;
+    line-height: 1;
+    width: auto;
+    height: auto;
+    object-fit: unset;
 }
 
 .step-content {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 8px;
+    text-align: center;
+    width: 100%;
 }
 
 .step-number {
+    display: block;
     font-size: 12px;
     font-weight: 700;
     color: #a04100;
     letter-spacing: 0.1em;
+    text-align: center;
+    border: none;
+    background: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    height: auto;
+    line-height: 1.3;
 }
 
 .step-title {
@@ -172,14 +210,17 @@
     color: #131b2e;
     margin: 0;
     line-height: 1.4;
+    text-align: center;
 }
 
 .step-desc {
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
     color: #434654;
-    margin: 0;
-    padding: 0 8px;
+    margin: 0 auto;
+    padding: 0 4px;
+    max-width: 12.5rem;
+    text-align: center;
 }
 
 /* Responsive Timeline */
@@ -237,8 +278,9 @@
     }
 
     .step-icon {
-        width: 72px;
-        height: 72px;
+        font-size: 32px !important;
+        width: auto;
+        height: auto;
     }
 
     .step-content {
@@ -269,16 +311,16 @@
 }
 
 .bento-card {
-    border-radius: 16px;
+    border-radius: 0;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    box-shadow: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .bento-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .bento-card--left {
@@ -324,6 +366,7 @@
     font-size: 24px;
     font-weight: 600;
     margin: 0 0 8px 0;
+    color: #ffffff;
 }
 
 .bento-card-desc {
@@ -368,6 +411,7 @@
     font-weight: 800;
     line-height: 1.2;
     margin: 0;
+    color: #ffffff;
 }
 
 .bento-card--right .bento-card-desc {
@@ -426,3 +470,108 @@
         font-size: 28px;
     }
 }
+
+/* --- Contact strip --- */
+.contact-section {
+    background: #f4f7ff;
+    padding: 0;
+}
+
+.contact-section .process-container {
+    padding: 0;
+}
+
+.contact-strip {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.9fr) minmax(280px, 1.1fr);
+    gap: clamp(24px, 4vw, 48px);
+    align-items: stretch;
+    padding: clamp(40px, 5vw, 64px) 28px;
+    background:
+        linear-gradient(105deg, rgba(0, 82, 204, 0.06) 0%, transparent 42%),
+        #f4f7ff;
+    color: #131b2e;
+}
+
+.contact-strip__eyebrow {
+    margin: 0 0 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fe6b00;
+}
+
+.contact-strip__title {
+    margin: 0 0 10px;
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #131b2e;
+}
+
+.contact-strip__desc {
+    margin: 0;
+    color: #434654;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    max-width: 28rem;
+}
+
+.contact-strip__channels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    align-content: center;
+}
+
+.contact-channel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 16px;
+    background: #ffffff;
+    border: 1px solid #c3c6d6;
+    color: #131b2e;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.contact-channel:hover,
+.contact-channel:focus-visible {
+    background: #eaedff;
+    border-color: #0052cc;
+    outline: none;
+}
+
+.contact-channel--static {
+    cursor: default;
+}
+
+.contact-channel__label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #003d9b;
+}
+
+.contact-channel__value {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    word-break: break-word;
+    color: #131b2e;
+}
+
+@media (max-width: 992px) {
+    .contact-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-strip__channels {
+        grid-template-columns: 1fr;
+    }
+}
+

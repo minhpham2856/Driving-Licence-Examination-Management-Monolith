@@ -24,9 +24,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 @WebServlet(urlPatterns = {
-    "/views/examiner/candidate-details",
-    "/views/examiner/candidate-details-edit",
-    "/views/examiner/candidate-paper"
+    "/examiner/candidate-details",
+    "/examiner/candidate-details-edit",
+    "/examiner/candidate-paper"
 })
 public class ExaminerCandidateDetailsServlet extends HttpServlet {
     protected final ExamViewService viewDataService = new ExamViewServiceImpl();
@@ -53,20 +53,20 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
-            boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
+            boolean isTheory = Boolean.TRUE.equals(session.getAttribute(Attributes.Examiner.IS_THEORY));
             String sectionName = resolveSectionName(session);
 
             List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
-            request.setAttribute("candidates", candidates);
+            request.setAttribute(Attributes.Request.CANDIDATES, candidates);
             request.setAttribute("candidateQueue", candidates);
 
             if (sbd != null && sbd > 0) {
                 CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
                 if (candidate != null) {
-                    request.setAttribute("candidate", candidate);
+                    request.setAttribute(Attributes.Request.CANDIDATE, candidate);
                 }
                 
-                if ("/views/examiner/candidate-paper".equals(path)) {
+                if ("/examiner/candidate-paper".equals(path)) {
                     Map<String, Object> ansData = viewDataService.getPaperAnswersData(activeExamId, sbd, request.getContextPath());
                     if (ansData != null) {
                         for (Map.Entry<String, Object> mapEntry : ansData.entrySet()) {
@@ -78,9 +78,9 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         }
 
         String jsp = switch (path) {
-            case "/views/examiner/candidate-details" -> "/views/examiner/candidate-details.jsp";
-            case "/views/examiner/candidate-details-edit" -> "/views/examiner/candidate-details-edit.jsp";
-            case "/views/examiner/candidate-paper" -> "/views/examiner/candidate-paper.jsp";
+            case "/examiner/candidate-details" -> "/views/examiner/candidate-details.jsp";
+            case "/examiner/candidate-details-edit" -> "/views/examiner/candidate-details-edit.jsp";
+            case "/examiner/candidate-paper" -> "/views/examiner/candidate-paper.jsp";
             default -> "/views/examiner/candidate-details.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
@@ -101,7 +101,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         }
 
         String path = stripContextPath(request);
-        if ("/views/examiner/candidate-details-edit".equals(path)) {
+        if ("/examiner/candidate-details-edit".equals(path)) {
             Integer sbd = null;
             try {
                 if (request.getParameter("sbd") != null) {
@@ -110,7 +110,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             } catch (NumberFormatException e) {}
 
             if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details?error=noSbd");
+                response.sendRedirect(request.getContextPath() + "/examiner/candidate-details?error=noSbd");
                 return;
             }
 
@@ -138,19 +138,19 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
             );
 
             if (result.isSuccess()) {
-                response.sendRedirect(request.getContextPath() + "/views/examiner/candidate-details-edit?sbd="
+                response.sendRedirect(request.getContextPath() + "/examiner/candidate-details-edit?sbd="
                         + urlEncode(sbd) + "&saved=1");
                 return;
             }
 
-            boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
+            boolean isTheory = Boolean.TRUE.equals(session.getAttribute(Attributes.Examiner.IS_THEORY));
             String sectionName = resolveSectionName(session);
             List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(activeExamId, isTheory, sectionName);
-            request.setAttribute("candidates", candidates);
+            request.setAttribute(Attributes.Request.CANDIDATES, candidates);
             request.setAttribute("candidateQueue", candidates);
             CandidateRowDTO candidate = viewDataService.getCandidateViewRow(activeExamId, sbd, isTheory, sectionName);
             if (candidate != null) {
-                request.setAttribute("candidate", candidate);
+                request.setAttribute(Attributes.Request.CANDIDATE, candidate);
             }
 
             request.setAttribute("profileError", "Không lưu được thông tin: " + result.getMessage());
@@ -173,7 +173,7 @@ public class ExaminerCandidateDetailsServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object name = session.getAttribute("examSectionName");
+        Object name = session.getAttribute(Attributes.Examiner.EXAM_SECTION_NAME);
         return name != null ? String.valueOf(name) : null;
     }
 
