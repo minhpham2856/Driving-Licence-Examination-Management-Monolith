@@ -4,7 +4,7 @@ import payment.dto.sepay.SePayIpnEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Parser JSON IPN tối giản — không phụ thuộc thư viện JSON bên ngoài. */
+/** Parser JSON IPN tối giản - không phụ thuộc thư viện JSON bên ngoài. */
 public final class SePayIpnParser {
 
     private SePayIpnParser() {

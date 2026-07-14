@@ -6,7 +6,7 @@ import payment.dto.sepay.SePayIpnResult;
 import payment.dto.sepay.SePayPaymentException;
 
 /**
- * Facade thanh toán SePay — module khác inject / new {@code SePayPaymentServiceImpl} và gọi.
+ * Facade thanh toán SePay - module khác inject / new {@code SePayPaymentServiceImpl} và gọi.
  */
 public interface SePayPaymentService {
 
