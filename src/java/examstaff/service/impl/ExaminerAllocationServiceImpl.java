@@ -15,7 +15,7 @@ import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
 
 import examstaff.dto.AutoAllocateResultDTO;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 import examstaff.dto.ExaminerSlotDTO;
 
@@ -47,25 +47,44 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
     private final ExaminerAssignmentDAO assignmentDAO = new ExaminerAssignmentDAOImpl();
     private final ExamRegistrationDAO registrationDAO = new ExamRegistrationDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy tóm tắt kỳ thi theo mã.
+     *
+     * @param examId mã kỳ thi
+     * @return DTO kỳ thi hoặc null
+     */
     @Override
     public ExamSummaryDTO getExamById(int examId) {
         return examQuery.findByExamId(examId);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy khu vực thi theo mã.
+     *
+     * @param id mã ExamArea
+     * @return khu vực hoặc null
+     */
     @Override
     public ExamArea getAreaById(int id) {
         return areaDAO.getById(id);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Danh sách giám khảo đang active để chọn phân công.
+     *
+     * @return danh sách UserDTO giám khảo
+     */
     @Override
     public List<UserDTO> getActiveExaminers() {
         return assignmentDAO.getActiveExaminers();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Các khu vực được phép dùng cho kỳ thi (gắn Exam_ExamArea; fallback theo loại nếu chưa gắn).
+     *
+     * @param examId mã kỳ thi
+     * @return danh sách ExamArea
+     */
     @Override
     public List<ExamArea> getAvailableAreasForExam(int examId) {
         if (examId <= 0) {
@@ -89,37 +108,65 @@ public class ExaminerAllocationServiceImpl implements ExaminerAllocationService 
         return new ArrayList<>(byId.values());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Các slot phân công giám khảo hiện có của kỳ thi.
+     *
+     * @param examId mã kỳ thi
+     * @return danh sách slot
+     */
     @Override
     public List<ExaminerSlotDTO> getAssignmentsByExamId(int examId) {
         return assignmentDAO.getByExamId(examId);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Gán giám khảo vào một slot (kỳ + khu vực + phần thi).
+     *
+     * @param slot thông tin phân công
+     * @return true nếu lưu thành công
+     */
     @Override
     public boolean assignExaminer(ExaminerSlotDTO slot) {
         return assignmentDAO.assign(slot);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Gỡ phân công giám khảo theo khóa slot.
+     *
+     * @param slotKey khóa slot
+     * @return true nếu gỡ thành công
+     */
     @Override
     public boolean removeAssignment(String slotKey) {
         return assignmentDAO.remove(slotKey);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tự động phân phòng lý thuyết cho toàn bộ thí sinh của kỳ.
+     *
+     * @param examId mã kỳ thi
+     * @return kết quả phân bổ (số thành công / lỗi)
+     */
     @Override
     public AutoAllocateResultDTO autoAllocateExam(int examId) {
         return autoAllocate(examId, null);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tự động phân phòng cho một thí sinh cụ thể.
+     *
+     * @param examId         mã kỳ thi
+     * @param registrationId mã đăng ký thí sinh
+     * @return kết quả phân bổ
+     */
     @Override
     public AutoAllocateResultDTO autoAllocateCandidate(int examId, int registrationId) {
         return autoAllocate(examId, registrationId);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có sát hạch viên). 
+     */
     @Override
     public AutoAllocateResultDTO autoAllocatePracticalExam(int examId) {
         return autoAllocatePractical(examId);

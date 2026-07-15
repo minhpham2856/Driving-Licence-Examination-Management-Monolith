@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.user.AuditDTO;
+import examstaff.dto.AuditDTO;
 
 import examstaff.enums.AuditEntity;
 

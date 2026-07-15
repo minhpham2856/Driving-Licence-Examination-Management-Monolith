@@ -172,8 +172,6 @@
 
                     data-committed-exam-id="${not empty requestScope.pickerCommittedExamId ? requestScope.pickerCommittedExamId : navExamId}"
 
-                    data-committed-exam-id="${not empty requestScope.pickerCommittedExamId ? requestScope.pickerCommittedExamId : pickerExamId}"
-
                     onchange="if(window.syncExamStaffSessionApply){window.syncExamStaffSessionApply(this);}">
 
                 <c:if test="${empty sidebarOptions}">
@@ -185,13 +183,9 @@
                 <c:forEach var="exam" items="${sidebarOptions}" varStatus="optSt">
 
                     <option value="${exam.id}" data-exam-id="${exam.examId}"
-
                             <c:choose>
                                 <c:when test="${not empty requestScope.pickerCommittedExamId}">
                                     <c:if test="${exam.examId == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
-                                </c:when>
-                                <c:when test="${not empty requestScope.pickerCommittedExamId}">
-                                    <c:if test="${exam.id == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
                                 </c:when>
                                 <c:when test="${not empty pickerExamIdValue or not empty pickerExamId}">
                                     <c:if test="${pickerExamIdValue == exam.id or pickerExamId == exam.examId}">selected="selected"</c:if>

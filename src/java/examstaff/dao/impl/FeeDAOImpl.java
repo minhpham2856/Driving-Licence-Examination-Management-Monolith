@@ -13,7 +13,13 @@ import java.util.Locale;
 /** JDBC implementation của {@link FeeDAO}. */
 public class FeeDAOImpl extends DBContext implements FeeDAO {
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy danh sách lệ phí thủ tục áp dụng theo hạng GPLX.
+     *
+     * @param licenseCode      mã hạng bằng
+     * @param requiresRoadTest có phần thi đường trường hay không
+     * @return danh sách phí phù hợp
+     */
     @Override
     public List<Fee> getProcedureFees(String licenseCode, boolean requiresRoadTest) {
         if (licenseCode == null || licenseCode.isBlank()) {
@@ -58,7 +64,12 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return applicable;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy các khoản phí gắn với một thanh toán.
+     *
+     * @param paymentId mã thanh toán
+     * @return danh sách phí
+     */
     @Override
     public List<Fee> getFeesByPaymentId(int paymentId) {
         List<Fee> fees = new ArrayList<>();

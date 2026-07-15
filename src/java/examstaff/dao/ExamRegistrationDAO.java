@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import java.util.List;
 
 /**

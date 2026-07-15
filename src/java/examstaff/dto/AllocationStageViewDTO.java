@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.util.AllocationStageHelper;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /**
  * Kết quả lưu ảnh thủ tục thí sinh: status, thông báo, đường dẫn và profile.

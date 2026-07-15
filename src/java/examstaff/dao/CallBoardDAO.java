@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.dto.view.CallBoardState;
+import examstaff.dto.CallBoardState;
 
 /**
  * Truy cập trạng thái bảng gọi thí sinh runtime.

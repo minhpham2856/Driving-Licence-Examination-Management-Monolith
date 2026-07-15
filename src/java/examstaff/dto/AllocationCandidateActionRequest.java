@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /**
  * Request thao tác phân bổ một thí sinh (Presentation → BLL).

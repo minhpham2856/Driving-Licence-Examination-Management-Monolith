@@ -2,7 +2,7 @@ package examstaff.service.impl;
 
 import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.PaymentDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
 import examstaff.enums.PaymentMethod;
 import examstaff.enums.PaymentStatus;
@@ -19,7 +19,14 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
     private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
     private final ProcedureFeeQueryService feeQueryService = new ProcedureFeeQueryServiceImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Xem trước phí thủ tục trước khi xác nhận thanh toán.
+     *
+     * @param candidateId      mã đăng ký thí sinh
+     * @param licenseCode      mã hạng bằng
+     * @param requiresRoadTest true nếu cần sát hạch đường trường
+     * @return kết quả phí dự kiến
+     */
     @Override
     public ProcedureFeeResultDTO previewFees(int candidateId, String licenseCode, boolean requiresRoadTest) {
         ExamRegistrationDTO profile = registrationService.getById(candidateId);
@@ -31,7 +38,12 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         return feeQueryService.resolveProcedureFees(profile);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Ghi nhận thanh toán tiền mặt thủ tục cho hồ sơ.
+     *
+     * @param profile hồ sơ đăng ký thí sinh
+     * @return true nếu ghi nhận thành công
+     */
     @Override
     public boolean recordProcedureCashPayment(ExamRegistrationDTO profile) {
         if (profile == null) {

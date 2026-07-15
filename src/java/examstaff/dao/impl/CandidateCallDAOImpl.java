@@ -5,7 +5,7 @@ import shared.dbconnection.DBContext;
 
 import examstaff.dao.CandidateCallDAO;
 
-import examstaff.dto.candidate.CandidateCallDTO;
+import examstaff.dto.CandidateCallDTO;
 import examstaff.util.CallAuditFormatter;
 
 import java.sql.*;
