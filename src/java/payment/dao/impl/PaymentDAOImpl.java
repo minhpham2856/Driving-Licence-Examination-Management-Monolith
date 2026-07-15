@@ -20,13 +20,15 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     @Override
     public boolean insert(PaymentRecord payment) {
-        // Ưu tiên enrollmentId có sẵn; nếu thiếu thì suy từ CandidateId
         int enrollmentId = payment.getExamEnrollmentId();
-        if (enrollmentId <= 0 && payment.getCandidateId() > 0) {
+        if (enrollmentId > 0 && payment.getCandidateId() > 0
+                && !enrollmentBelongsToCandidate(enrollmentId, payment.getCandidateId())) {
+            enrollmentId = resolveEnrollmentId(payment.getCandidateId());
+        } else if (enrollmentId <= 0 && payment.getCandidateId() > 0) {
             enrollmentId = resolveEnrollmentId(payment.getCandidateId());
         }
         if (enrollmentId <= 0) {
-            return false; // chưa enroll ngày thi → không ghi Payment
+            return false;
         }
 
         String sql = """
@@ -129,5 +131,22 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
             LOG.log(Level.SEVERE, "Failed to resolve enrollment for candidate " + candidateId, e);
         }
         return -1;
+    }
+
+    private boolean enrollmentBelongsToCandidate(int enrollmentId, int candidateId) {
+        String sql = """
+                SELECT TOP 1 1 FROM ExamEnrollment
+                WHERE ExamEnrollmentId = ? AND CandidateId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, enrollmentId);
+            ps.setInt(2, candidateId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Failed to verify enrollment " + enrollmentId, e);
+        }
+        return false;
     }
 }
