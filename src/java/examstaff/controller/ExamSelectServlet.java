@@ -1,88 +1,97 @@
 package examstaff.controller;
 
-import examstaff.controller.ExamStaffSelectionFacade;
-import examstaff.controller.ExamStaffPageBinder;
-import examstaff.controller.ExamStaffHttpSupport;
-import examstaff.controller.ExamStaffWebModule;
 import examstaff.dto.CandidateQueueSnapshotDTO;
-import examstaff.dto.ExamSelectRequestDTO;
-import examstaff.dto.ExamSelectResultDTO;
-import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.enums.ExamStaffMessage;
+import examstaff.dto.ExamStaffPageCommand;
+import examstaff.dto.ExamTransitionResultDTO;
+import examstaff.dto.ServiceResult;
+import shared.enums.ExamStaffMessage;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import examstaff.service.CandidateQueueService;
-import examstaff.service.ExamStaffSelectionService;
-import examstaff.service.ExamStaffServices;
-import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
+/**
+ * Chọn / đổi kỳ thi trên sidebar: processSelection → clear state → refresh queue → redirect PRG.
+ */
 @WebServlet("/examstaff/select-exam")
 public class ExamSelectServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
 
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final ExamStaffSelectionService examSelectService = SERVICES.selection();
-    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
-    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
-
+    /** GET: ủy quyền {@link #handleSelect}. */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         handleSelect(request, response);
     }
 
+    /** POST: ủy quyền {@link #handleSelect} (form chọn kỳ). */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         handleSelect(request, response);
     }
 
+    /**
+     * Luồng chọn kỳ: UTF-8 → processSelection → apply examId → clear procedure (nếu đổi) →
+     * refresh queue → flash success → redirect Referer/dashboard kèm examId.
+     *
+     * @throws IOException lỗi redirect
+     */
     private void handleSelect(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Utf8EncodingHelper.apply(request, response);
         ExamStaffHttpSupport.applyNoCacheHeaders(response);
         HttpSession httpSession = request.getSession();
         try {
-            ExamSelectRequestDTO selectRequest = new ExamSelectRequestDTO();
+            // 1) Service quyết định transition
+            ExamStaffPageCommand selectRequest = new ExamStaffPageCommand();
             selectRequest.setUrlExamId(ExamStaffHttpSupport.parseExamIdParam(request));
             selectRequest.setPreviousExamId(ExamStaffPageBinder.readSelectedExamId(httpSession));
             selectRequest.setWebRoot(request.getServletContext().getRealPath("/"));
 
-            ExamSelectResultDTO result = examSelectService.processSelection(selectRequest);
-            if (!result.isSuccess()) {
-                httpSession.setAttribute("examSelectError", result.getErrorMessage());
+            ServiceResult<ExamTransitionResultDTO> selectResult = viewService.processSelection(selectRequest);
+            if (!selectResult.isSuccess()) {
+                String error = selectResult.getMessage();
+                if (error == null && selectResult.getData() != null) {
+                    error = selectResult.getData().getErrorMessage();
+                }
+                httpSession.setAttribute("examSelectError", error);
                 response.sendRedirect(ExamStaffHttpSupport.resolveSafeRedirect(request, "/examstaff/dashboard"));
                 return;
             }
 
-            selectionFacade.applyExamIdFromRequest(request, httpSession,
-                    selectionFacade.loadAllExams());
+            ExamTransitionResultDTO result = selectResult.getData();
+            ExamStaffPageSupport.applyExamIdFromRequest(request, httpSession,
+                    viewService.listAllExams(), viewService);
 
-            // Đổi kỳ: clearProcedure đã gồm clearCandidateCache + persist selection.
-            if (result.isClearProcedureOnExamChange()) {
+            // 2) Đổi kỳ → xóa state bàn thủ tục cũ
+            if (result != null && result.isClearProcedureState()) {
                 ExamStaffPageBinder.clearProcedureStateOnExamChange(httpSession,
                         result.getNewExamId(), result.getNewExamId());
             }
 
-            refreshCandidateQueue(httpSession, result.getExamId(),
-                    selectRequest.getWebRoot(), selectionFacade.loadAllExams());
+            // 3) Nạp lại queue + đánh dấu vừa đổi kỳ
+            int examId = result != null ? result.getExamId() : 0;
+            refreshCandidateQueue(httpSession, examId,
+                    selectRequest.getWebRoot(), viewService.listAllExams());
 
             httpSession.setAttribute("examStaffQueueRevision", System.currentTimeMillis());
             httpSession.setAttribute("examStaffExamJustChanged", Boolean.TRUE);
             httpSession.setAttribute("examSelectMsg", ExamStaffMessage.EXAM_SELECTED.getText());
 
+            // 4) Redirect PRG giữ examId trên URL
             String redirect = ExamStaffHttpSupport.resolveSafeRedirect(request, "/examstaff/dashboard");
             redirect = ExamStaffHttpSupport.stripQueryString(redirect);
 
             int pickerExamId = ExamStaffHttpSupport.parseExamIdParam(request);
             if (pickerExamId > 0) {
                 redirect = ExamStaffHttpSupport.upsertQueryParam(redirect, "examId", String.valueOf(pickerExamId));
-            } else if (result.getExamId() > 0) {
-                redirect = ExamStaffHttpSupport.upsertQueryParam(redirect, "examId", String.valueOf(result.getExamId()));
+            } else if (examId > 0) {
+                redirect = ExamStaffHttpSupport.upsertQueryParam(redirect, "examId", String.valueOf(examId));
             }
 
             redirect = ExamStaffHttpSupport.upsertQueryParam(redirect, "_", String.valueOf(System.currentTimeMillis()));
@@ -96,12 +105,19 @@ public class ExamSelectServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Refresh queue từ DB rồi publish snapshot vào session (không bind request).
+     *
+     * @param examId   kỳ cần nạp
+     * @param webRoot  real path web
+     * @param allExams danh sách kỳ
+     */
     private void refreshCandidateQueue(HttpSession session, int examId,
             String webRoot, java.util.List<examstaff.dto.ExamSummaryDTO> allExams) {
         if (session == null) {
             return;
         }
-        ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
+        ExamStaffPageCommand input = new ExamStaffPageCommand();
         input.setExamId(examId);
         input.setWebRoot(webRoot);
         input.setAllExams(allExams);
@@ -111,7 +127,7 @@ public class ExamSelectServlet extends HttpServlet {
         input.setCallQueueOrder(order);
         input.setCallQueueOrderExamId(ExamStaffPageBinder.readCallQueueOrderExamId(session));
 
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.refreshQueue(input);
+        CandidateQueueSnapshotDTO snapshot = viewService.refreshQueue(input);
         ExamStaffPageBinder.publishQueue(null, session, snapshot);
     }
 }

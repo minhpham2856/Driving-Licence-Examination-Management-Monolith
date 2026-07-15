@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** JDBC implementation của {@link ReportInfractionViewDAO}. */
+/** Triển khai JDBC của {@link ReportInfractionViewDAO} — thống kê lỗi trừ điểm thực hành. */
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
-    /** SQL gom top lý do trừ điểm theo OccurrenceCount. */
+    /** SQL gom top lý do trừ điểm theo OccurrenceCount từ DeductionRecord/ScoreDeduction. */
     private static final String TOP_INFRACTIONS_SQL = """
             SELECT TOP (?) sd.[Reason] AS deductionReason,
                    SUM(dr.OccurrenceCount) AS countVal
@@ -33,6 +33,8 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
     /**
      * Lấy top lỗi trừ điểm của phần thực hành trong kỳ thi.
+     * Truy vấn {@code DeductionRecord} JOIN {@code ScoreDeduction}, {@code ExamScore},
+     * {@code ExamSection}, {@code ExamResult}, {@code ExamEnrollment} theo {@code examId}.
      *
      * @param examId mã kỳ thi
      * @param limit  số dòng tối đa (mặc định 3 nếu &le; 0)
@@ -45,13 +47,17 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
         }
         int top = limit > 0 ? limit : 3;
         List<Map<String, Object>> infractions = new ArrayList<>();
+        // Chuẩn bị PreparedStatement với SQL SELECT top lỗi trừ điểm
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(TOP_INFRACTIONS_SQL)) {
+            // Gán tham số truy vấn: TOP limit và examId
             ps.setInt(1, top);
             ps.setInt(2, examId);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 int totalInfractions = 0;
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → map reason/count
                     Map<String, Object> map = new HashMap<>();
                     map.put("reason", rs.getString("deductionReason"));
                     int cnt = rs.getInt("countVal");
@@ -59,6 +65,7 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
                     totalInfractions += cnt;
                     infractions.add(map);
                 }
+                // Tính phần trăm cho từng lý do sau khi có tổng
                 for (Map<String, Object> map : infractions) {
                     int cnt = (int) map.get("count");
                     double pct = totalInfractions > 0 ? ((double) cnt / totalInfractions) * 100.0 : 0.0;

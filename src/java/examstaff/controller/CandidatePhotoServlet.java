@@ -1,29 +1,32 @@
 package examstaff.controller;
 
 import examstaff.dto.CandidatePhotoStreamDTO;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import examstaff.controller.ExamStaffSelectionFacade;
-import examstaff.controller.ExamStaffWebModule;
-import examstaff.service.ExamStaffServices;
-import examstaff.service.CandidatePhotoService;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
+/**
+ * Stream ảnh thí sinh đã chụp: resolve file theo SBD/kỳ → ghi binary response.
+ */
 @WebServlet("/examstaff/candidate-photo")
 public class CandidatePhotoServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
 
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final CandidatePhotoService photoService = SERVICES.photos();
-    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
-
+    /**
+     * GET: {@code sbd} bắt buộc → resolvePhoto → 404 nếu thiếu → stream Content-Type + file.
+     *
+     * @throws ServletException không dùng
+     * @throws IOException      lỗi đọc/ghi file
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -34,8 +37,8 @@ public class CandidatePhotoServlet extends HttpServlet {
             return;
         }
 
-        int examId = selectionFacade.resolveExamId(request, request.getSession(), null, 0);
-        CandidatePhotoStreamDTO photo = photoService.resolvePhoto(
+        int examId = ExamStaffPageSupport.resolveExamId(request, request.getSession(), null, 0, viewService);
+        CandidatePhotoStreamDTO photo = viewService.resolvePhoto(
                 request.getServletContext().getRealPath("/"), examId, examId, sbd.trim());
 
         if (photo.getStatus() != CandidatePhotoStreamDTO.Status.FOUND) {

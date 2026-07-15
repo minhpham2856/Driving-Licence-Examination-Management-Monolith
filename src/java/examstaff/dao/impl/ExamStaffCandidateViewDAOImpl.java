@@ -13,14 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** JDBC implementation của {@link ExamStaffCandidateViewDAO}. */
+/** Triển khai JDBC của {@link ExamStaffCandidateViewDAO} — read model thí sinh theo kỳ thi. */
 public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaffCandidateViewDAO {
 
     /**
-     * Liệt kê thí sinh thuộc kỳ thi.
+     * Liệt kê thí sinh thuộc kỳ thi từ view SQL {@link Db2CandidateSql}.
+     * Fallback sang {@code CANDIDATE_SELECT_MINIMAL} nếu SELECT đầy đủ không trả dữ liệu.
      *
      * @param examId mã kỳ thi
-     * @return danh sách thí sinh view
+     * @return danh sách {@link ExamStaffCandidate}; rỗng nếu {@code examId} không hợp lệ
      */
     @Override
     public List<ExamStaffCandidate> findByExamId(int examId) {
@@ -37,11 +38,12 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     }
 
     /**
-     * Tìm thí sinh theo kỳ thi và số báo danh.
+     * Tìm thí sinh theo kỳ thi và số báo danh (SBD).
+     * Duyệt danh sách kỳ thi và so khớp SBD đã format 3 chữ số.
      *
      * @param examId mã kỳ thi
-     * @param sbd    số báo danh
-     * @return thí sinh hoặc null
+     * @param sbd    số báo danh (chuỗi, có thể có/không zero-pad)
+     * @return thí sinh khớp hoặc {@code null}
      */
     @Override
     public ExamStaffCandidate findByExamIdAndSbd(int examId, String sbd) {
@@ -57,7 +59,14 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return null;
     }
 
-    /** Chạy SELECT + WHERE và map danh sách thí sinh. */
+    /**
+     * Chạy SELECT thí sinh (từ {@code selectSql} + {@code whereSql}) và ánh xạ danh sách.
+     *
+     * @param selectSql phần SELECT (từ {@link Db2CandidateSql})
+     * @param whereSql  mệnh đề WHERE + ORDER BY
+     * @param bindInt   giá trị bind cho placeholder đầu tiên (thường là {@code examId})
+     * @return danh sách thí sinh; rỗng nếu không có kết nối hoặc lỗi SQL
+     */
     private List<ExamStaffCandidate> query(String selectSql, String whereSql, int bindInt) {
         List<ExamStaffCandidate> list = new ArrayList<>();
         Connection conn = getConnection();
@@ -65,10 +74,14 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
             return list;
         }
         String sql = selectSql + whereSql;
+        // Chuẩn bị PreparedStatement với SQL SELECT thí sinh
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            // Gán tham số truy vấn
             ps.setInt(1, bindInt);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
                     list.add(mapRow(rs));
                 }
             }
@@ -78,7 +91,13 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return list;
     }
 
-    /** Ánh xạ ResultSet → {@link ExamStaffCandidate}. */
+    /**
+     * Ánh xạ một dòng ResultSet (alias từ {@link Db2CandidateSql}) sang {@link ExamStaffCandidate}.
+     *
+     * @param rs ResultSet đang trỏ tại dòng cần đọc
+     * @return DTO thí sinh view đầy đủ thông tin hiển thị
+     * @throws SQLException nếu đọc cột bắt buộc thất bại
+     */
     private static ExamStaffCandidate mapRow(ResultSet rs) throws SQLException {
         ExamStaffCandidate row = new ExamStaffCandidate();
         row.setCandidateId(rs.getInt("id"));
@@ -156,13 +175,27 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return row;
     }
 
-    /** Đọc cột BIT; null → false. */
+    /**
+     * Đọc cột BIT; giá trị SQL NULL được coi là {@code false}.
+     *
+     * @param rs     ResultSet nguồn
+     * @param column tên cột BIT
+     * @return giá trị boolean (false nếu NULL)
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private static boolean readBit(ResultSet rs, String column) throws SQLException {
         boolean value = rs.getBoolean(column);
         return !rs.wasNull() && value;
     }
 
-    /** Đọc cột BIT nullable. */
+    /**
+     * Đọc cột BIT nullable, trả {@code null} nếu SQL NULL.
+     *
+     * @param rs     ResultSet nguồn
+     * @param column tên cột BIT
+     * @return {@link Boolean} hoặc {@code null}
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private static Boolean readNullableBoolean(ResultSet rs, String column) throws SQLException {
         boolean value = rs.getBoolean(column);
         if (rs.wasNull()) {
@@ -171,7 +204,12 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return value;
     }
 
-    /** Format SBD 3 chữ số. */
+    /**
+     * Format số báo danh thành chuỗi 3 chữ số (zero-pad).
+     *
+     * @param candidateNo số thứ tự thí sinh
+     * @return SBD dạng {@code 001}, {@code 042}, ...
+     */
     private static String formatSbd(int candidateNo) {
         return String.format(Locale.ROOT, "%03d", candidateNo);
     }

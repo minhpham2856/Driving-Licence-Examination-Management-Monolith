@@ -1,23 +1,19 @@
 package examstaff.controller;
 
-import examstaff.service.ExamReportStatsService;
-import examstaff.service.StaffReportExportService;
-import examstaff.controller.ReportProcedureStatusBinder;
-import examstaff.controller.ReportStatsBinder;
-import examstaff.controller.ExamStaffHttpSupport;
-import examstaff.controller.ExamStaffWebModule;
-import examstaff.controller.ExamStaffPageFacade;
-import examstaff.service.ExamReportProcedureStatusService;
-import examstaff.service.ExamStaffServices;
-import examstaff.dto.ExamReportProcedureStatusDTO;
-import examstaff.dto.ExamRegistrationDTO;
-import examstaff.dto.ExamReportStatsDTO;
-import examstaff.dto.ExamSummaryDTO;
-import examstaff.util.ReportExportLabels;
-import examstaff.util.SessionUserHelper;
 import auth.dto.UserDTO;
+import examstaff.dto.ExamRegistrationDTO;
+import examstaff.dto.ExamReportProcedureStatusDTO;
+import examstaff.dto.ExamReportStatsDTO;
+import examstaff.dto.ExamStaffPageContext;
+import examstaff.dto.ExamSummaryDTO;
+import examstaff.service.DocumentService;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.impl.DocumentServiceImpl;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+import examstaff.util.ExamStaffLabels;
 import shared.Attributes;
 import shared.model.Profile;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -31,35 +27,72 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Báo cáo kỳ thi: thống kê + trạng thái thủ tục; xuất Excel/PDF hoặc forward {@code report.jsp}.
+ */
 @WebServlet("/examstaff/report")
 public class ReportServlet extends HttpServlet {
 
-    private static final ExamStaffServices SERVICES = ExamStaffWebModule.getInstance().services();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
+    private final DocumentService documentService = new DocumentServiceImpl();
 
-    private final ExamReportStatsService reportStatsService = SERVICES.reportStats();
-    private final StaffReportExportService reportExportService = SERVICES.reportExport();
-    private final ExamReportProcedureStatusService procedureStatusService = SERVICES.reportProcedureStatus();
-
-    // Xu ly yeu cau GET
+    /**
+     * GET: prepare page → analyze procedure + stats → (exportExcel/Pdf nếu không bị chặn) hoặc JSP.
+     * <p>
+     * Export bị chặn khi còn thiếu ảnh thủ tục ({@code missingPhotoCount &gt; 0}).
+     *
+     * @throws ServletException lỗi forward
+     * @throws IOException      lỗi stream/export
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
-        ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
-                request, session, webRoot);
+
+        // 1) Chuẩn bị kỳ + queue
+        ExamStaffPageContext pageCtx = ExamStaffPageSupport.prepareExamStaffPage(
+                request, session, webRoot, true, viewService);
         int examId = pageCtx.getExamId();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
         ExamSummaryDTO currentExam = (ExamSummaryDTO) request.getAttribute("currentExam");
         ExamStaffHttpSupport.consumeFlash(session, "examControlMsg", request, "examControlMsg");
         ExamStaffHttpSupport.consumeFlash(session, "examControlError", request, "examControlError");
-        ExamReportProcedureStatusDTO procedureStatus = procedureStatusService.analyze(qList, webRoot);
-        ReportProcedureStatusBinder.bind(request, procedureStatus);
-        int missingPhotoCount = procedureStatus.getMissingPhotoCount();
 
+        // 2) Phân tích thiếu ảnh / chưa xong thủ tục
+        ExamReportProcedureStatusDTO procedureStatus = viewService.analyzeProcedureStatus(qList, webRoot);
+        if (procedureStatus != null) {
+            request.setAttribute("missingPhotoCount", procedureStatus.getMissingPhotoCount());
+            request.setAttribute("missingPhotoSbds", procedureStatus.getMissingPhotoSbds());
+            request.setAttribute("missingPhotoCandidates", procedureStatus.getMissingPhotoCandidates());
+            request.setAttribute("procedurePendingCandidates", procedureStatus.getProcedurePendingCandidates());
+            request.setAttribute("procedureCompleteCount", procedureStatus.getProcedureCompleteCount());
+            request.setAttribute("procedurePendingCount", procedureStatus.getProcedurePendingCount());
+        }
+        int missingPhotoCount = procedureStatus != null ? procedureStatus.getMissingPhotoCount() : 0;
+
+        // 3) KPI báo cáo
         request.setAttribute("candidateList", qList);
-        ReportStatsBinder.bind(request, reportStatsService.computeStats(qList, examId));
+        ExamReportStatsDTO stats = viewService.computeReportStats(qList, examId);
+        if (stats != null) {
+            request.setAttribute("totalCandidates", stats.getTotalCandidates());
+            request.setAttribute("examCompletedCount", stats.getExamCompletedCount());
+            request.setAttribute("passedCount", stats.getPassedCount());
+            request.setAttribute("failedCount", stats.getFailedCount());
+            request.setAttribute("absentCount", stats.getAbsentCount());
+            request.setAttribute("suspendedCount", stats.getSuspendedCount());
+            request.setAttribute("passRate", stats.getPassRate());
+            request.setAttribute("licenseStats", stats.getLicenseStats());
+            request.setAttribute("theoryCount", stats.getTheoryCount());
+            request.setAttribute("theoryPassed", stats.getTheoryPassed());
+            request.setAttribute("theoryFailed", stats.getTheoryFailed());
+            request.setAttribute("practicalCount", stats.getPracticalCount());
+            request.setAttribute("practicalPassed", stats.getPracticalPassed());
+            request.setAttribute("practicalFailed", stats.getPracticalFailed());
+            request.setAttribute("infractions", stats.getInfractions());
+        }
 
+        // 4) Nhánh export hoặc hiển thị
         boolean exportExcel = "true".equals(request.getParameter("exportExcel"));
         boolean exportPdf = "true".equals(request.getParameter("exportPdf"));
         boolean exportBlocked = (exportExcel || exportPdf) && missingPhotoCount > 0;
@@ -78,12 +111,16 @@ public class ReportServlet extends HttpServlet {
         }
 
         request.getRequestDispatcher("/views/staff/examstaff/report.jsp").forward(request, response);
-    // stream excel
     }
 
+    /**
+     * Stream file Excel báo cáo kỳ thi (Content-Disposition attachment).
+     *
+     * @throws IOException lỗi ghi output stream
+     */
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
             ExamSummaryDTO currentExam, List<ExamRegistrationDTO> qList, int examId) throws IOException {
-        String token = ReportExportLabels.safeFileToken(
+        String token = ExamStaffLabels.safeFileToken(
                 currentExam != null ? currentExam.getExamName() : "ky_thi");
         String datePart = new SimpleDateFormat("ddMMyyyy", Locale.forLanguageTag("vi-VN")).format(new Date());
         String filename = "bao_cao_ky_thi_" + token + "_" + datePart + ".xlsx";
@@ -91,19 +128,23 @@ public class ReportServlet extends HttpServlet {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 
-        ExamReportStatsDTO stats = reportStatsService.computeStats(qList, examId);
+        ExamReportStatsDTO stats = viewService.computeReportStats(qList, examId);
         String exporterName = resolveExporterName(request.getSession());
 
-        reportExportService.exportExamReport(
+        documentService.exportExamReport(
                 response.getOutputStream(),
                 currentExam,
                 qList,
                 stats,
                 exporterName);
-    // Xac dinh exporter name
         response.getOutputStream().flush();
     }
 
+    /**
+     * Tên người xuất báo cáo: profile.fullName → user.profile → username.
+     *
+     * @return tên hiển thị
+     */
     private String resolveExporterName(HttpSession session) {
         Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {

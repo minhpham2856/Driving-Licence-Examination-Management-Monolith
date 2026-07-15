@@ -7,19 +7,20 @@ import examstaff.dao.AuditLogDAO;
 
 import shared.model.Audit;
 import examstaff.dto.AuditDTO;
-
+import examstaff.dto.CandidateCallDTO;
 import examstaff.dto.StaffProcedureKpiDTO;
+import examstaff.util.ExamStaffFormat;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JDBC implementation của {@link AuditLogDAO} — ghi/đọc nhật ký Audit.
+ * Triển khai JDBC của {@link AuditLogDAO} — ghi/đọc nhật ký kiểm tra trên bảng {@code Audit}.
  */
 public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
-    /** SELECT nhật ký kèm tên người thay đổi. */
+    /** SELECT nhật ký kèm tên người thay đổi từ {@code Audit} JOIN {@code User}, {@code Profile}. */
     private static final String AUDIT_SELECT = """
             SELECT a.AuditId AS id,
                    a.EntityName AS tableName,
@@ -40,10 +41,12 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             """;
 
     /**
-     * Ghi một bản ghi nhật ký kiểm tra mới.
+     * Ghi một bản ghi nhật ký kiểm tra mới vào bảng {@code Audit}.
+     * INSERT các trường: {@code UserId}, {@code Action}, {@code Reason}, {@code EntityName},
+     * {@code EntityId}, {@code OldValue}, {@code NewValue}, {@code Details}, {@code CreatedAt}.
      *
-     * @param log đối tượng Audit chứa thông tin nhật ký
-     * @return true nếu ghi thành công
+     * @param log đối tượng {@link Audit} chứa thông tin nhật ký; {@code AuditId} được gán sau INSERT
+     * @return {@code true} nếu ghi thành công và lấy được khóa sinh
      */
     @Override
     public boolean insert(Audit log) {
@@ -51,6 +54,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
+        // Chuẩn bị PreparedStatement với SQL INSERT Audit
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             String tbl = log.getEntityName();
             if (tbl == null || tbl.trim().isEmpty()) {
@@ -60,6 +64,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             int userId = log.getUserId() != null && log.getUserId() > 0 ? log.getUserId() : 3;
             String recId = log.getEntityId() != null ? log.getEntityId() : "0";
 
+            // Gán tham số truy vấn
             ps.setInt(1, userId);
             ps.setString(2, act);
             if (log.getReason() != null) {
@@ -86,6 +91,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             }
             ps.setTimestamp(9, log.getCreatedAt() != null ? log.getCreatedAt() : new Timestamp(System.currentTimeMillis()));
 
+            // Thực thi INSERT và lấy AuditId sinh ra
             if (ps.executeUpdate() > 0) {
                 try (ResultSet gk = ps.getGeneratedKeys()) {
                     if (gk.next()) {
@@ -102,11 +108,47 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     }
 
     /**
-     * Lấy danh sách nhật ký của người dùng theo ngày cụ thể.
+     * Ghi nhật ký cuộc gọi thí sinh vào bảng {@code Audit} với {@code Action='CALL'}.
+     * INSERT {@code EntityName='Candidate'}, {@code EntityId=examId-candidateNo}.
      *
-     * @param userId mã người dùng
-     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return danh sách AuditDTO
+     * @param call thông tin cuộc gọi ({@link CandidateCallDTO})
+     * @return {@code true} nếu INSERT thành công; {@code false} nếu {@code call} null hoặc lỗi SQL
+     */
+    @Override
+    public boolean insertCall(CandidateCallDTO call) {
+        if (call == null) {
+            return false;
+        }
+        String sql = """
+                INSERT INTO Audit (UserId, Action, Reason, EntityName, EntityId, NewValue, CreatedAt)
+                VALUES (?, 'CALL', ?, 'Candidate', ?, ?, GETDATE())
+                """;
+        // Chuẩn bị PreparedStatement với SQL INSERT nhật ký cuộc gọi
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            int userId = call.getCalledBy() != 0 ? call.getCalledBy() : 3;
+            String entityId = call.getExamId() + "-" + call.getCandidateNo();
+            String detail = ExamStaffFormat.formatDetail(call.getCalledTo(), call.getResult());
+            // Gán tham số truy vấn
+            ps.setInt(1, userId);
+            ps.setString(2, detail);
+            ps.setString(3, entityId);
+            ps.setString(4, detail);
+            // Thực thi INSERT
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("AuditLogDAOImpl insertCall failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Lấy danh sách nhật ký của người dùng theo ngày cụ thể từ bảng {@code Audit}.
+     * Giới hạn tối đa 200 bản ghi gần nhất.
+     *
+     * @param userId  mã người dùng ({@code UserId})
+     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd); null/rỗng → lấy mọi ngày
+     * @return danh sách {@link AuditDTO}
      */
     @Override
     public List<AuditDTO> getLogsByUserAndDate(int userId, String dateStr) {
@@ -122,13 +164,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     }
 
     /**
-     * Lấy danh sách nhật ký của người dùng theo ngày có phân trang.
+     * Lấy danh sách nhật ký của người dùng theo ngày có phân trang (OFFSET/FETCH).
      *
      * @param userId   mã người dùng
-     * @param dateStr  ngày cần lọc (định dạng yyyy-MM-dd)
+     * @param dateStr  ngày cần lọc (yyyy-MM-dd); null/rỗng → mọi ngày
      * @param page     số trang (bắt đầu từ 1)
-     * @param pageSize số lượng bản ghi trên mỗi trang
-     * @return danh sách AuditDTO theo trang
+     * @param pageSize số bản ghi mỗi trang
+     * @return danh sách {@link AuditDTO} theo trang
      */
     @Override
     public List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
@@ -151,11 +193,11 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     }
 
     /**
-     * Đếm số lượng nhật ký của người dùng theo ngày.
+     * Đếm số lượng nhật ký của người dùng theo ngày từ bảng {@code Audit}.
      *
      * @param userId  mã người dùng
-     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
-     * @return số lượng bản ghi nhật ký
+     * @param dateStr ngày cần lọc (yyyy-MM-dd); null/rỗng → đếm mọi ngày
+     * @return số bản ghi nhật ký; {@code 0} nếu lỗi hoặc không có
      */
     @Override
     public int getLogsCountByUserAndDate(int userId, String dateStr) {
@@ -169,14 +211,25 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return count("SELECT COUNT(*) FROM Audit WHERE UserId = ?", ps -> ps.setInt(1, userId));
     }
 
-    /** Chạy SELECT nhật ký; {@code limited=true} thì TOP 200. */
+    /**
+     * Chạy SELECT nhật ký với binder tùy chỉnh; {@code limited=true} thêm {@code TOP 200}.
+     *
+     * @param sql     câu SELECT (từ {@link #AUDIT_SELECT} + WHERE/ORDER BY)
+     * @param binder  lambda gán tham số PreparedStatement
+     * @param limited {@code true} giới hạn 200 dòng
+     * @return danh sách {@link AuditDTO}
+     */
     private List<AuditDTO> queryLogs(String sql, SqlBinder binder, boolean limited) {
         List<AuditDTO> list = new ArrayList<>();
         String finalSql = limited ? sql.replaceFirst("SELECT", "SELECT TOP 200") : sql;
+        // Chuẩn bị PreparedStatement với SQL SELECT nhật ký
         try (PreparedStatement ps = getConnection().prepareStatement(finalSql)) {
+            // Gán tham số truy vấn qua binder
             binder.bind(ps);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
                     list.add(mapResultSetToAuditLog(rs));
                 }
             }
@@ -186,10 +239,19 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return list;
     }
 
-    /** Chạy COUNT với binder tham số. */
+    /**
+     * Chạy truy vấn COUNT với binder tham số.
+     *
+     * @param sql    câu SELECT COUNT(*)
+     * @param binder lambda gán tham số
+     * @return giá trị đếm; {@code 0} nếu không có dòng hoặc lỗi
+     */
     private int count(String sql, SqlBinder binder) {
+        // Chuẩn bị PreparedStatement với SQL COUNT
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            // Gán tham số truy vấn
             binder.bind(ps);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
@@ -202,11 +264,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     }
 
     /**
-     * Lấy chỉ số KPI thủ tục của cán bộ (số thí sinh đã có ảnh + thanh toán do cán bộ đó thu).
+     * Lấy chỉ số KPI thủ tục của cán bộ: số thí sinh đã thu lệ phí và tổng tiền.
+     * Truy vấn {@code Audit} JOIN {@code Candidate}, {@code ExamEnrollment}, {@code Payment}
+     * lọc theo hành động thu phí của {@code userId}.
      *
      * @param userId     mã cán bộ
-     * @param filterDate ngày lọc (định dạng yyyy-MM-dd) hoặc null để lấy tất cả
-     * @return StaffProcedureKpiDTO chứa thông tin KPI
+     * @param filterDate ngày lọc (yyyy-MM-dd) hoặc null để lấy tất cả
+     * @return {@link StaffProcedureKpiDTO} chứa {@code completedCount} và {@code totalFees}
      */
     @Override
     public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
@@ -250,13 +314,17 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 ) x
                 WHERE x.candidateId IS NOT NULL
                 """;
+        // Chuẩn bị PreparedStatement với SQL SELECT KPI thủ tục
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            // Gán tham số truy vấn
             ps.setInt(1, userId);
             if (hasDate) {
                 ps.setString(2, filterDate);
             }
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    // Ánh xạ ResultSet → DTO KPI
                     return new StaffProcedureKpiDTO(rs.getInt("completedCount"), rs.getDouble("totalFees"));
                 }
             }
@@ -266,7 +334,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return new StaffProcedureKpiDTO(0, 0);
     }
 
-    /** Ánh xạ ResultSet → {@link AuditDTO} (alias từ AUDIT_SELECT). */
+    /**
+     * Ánh xạ một dòng ResultSet (alias từ {@link #AUDIT_SELECT}) sang {@link AuditDTO}.
+     *
+     * @param rs ResultSet đang trỏ tại dòng cần đọc
+     * @return DTO nhật ký kiểm tra
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private AuditDTO mapResultSetToAuditLog(ResultSet rs) throws SQLException {
         AuditDTO log = new AuditDTO();
         log.setTableName(rs.getString("tableName"));
@@ -279,8 +353,15 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return log;
     }
 
+    /** Giao diện functional gán tham số cho {@link PreparedStatement}. */
     @FunctionalInterface
     private interface SqlBinder {
+        /**
+         * Gán các placeholder {@code ?} trên PreparedStatement.
+         *
+         * @param ps PreparedStatement cần bind
+         * @throws SQLException nếu set tham số thất bại
+         */
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
