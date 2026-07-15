@@ -12,24 +12,21 @@ import shared.enums.SectionType;
 import shared.model.ExamEnrollment;
 import shared.model.ExamResult;
 import shared.model.ExamScore;
-import examiner.service.ExamScoreService;
 import java.sql.Timestamp;
 import shared.model.ExamSection;
+import examiner.service.ScoreService;
 
-public class ExamScoreServiceImpl implements ExamScoreService {
+// Persists theory/practical section scores and pass flags for examiner scoring flows.
+public class ScoreServiceImpl implements ScoreService {
 
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
     private final ExamScoreDAO examScoreDAO = new ExamScoreDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
 
+    // Creates or updates a section score row and syncs the exam result pass flag.
     @Override
-    public boolean upsertTheoryCorrectCount(int candidateId, int correct, int passThreshold) {
-        return upsertSectionScore(candidateId, SectionType.THEORY, correct, correct >= passThreshold);
-    }
-
-    @Override
-    public boolean upsertSectionScore(int candidateId, SectionType section, double score, boolean passed) {
+    public boolean update(int candidateId, SectionType section, double score, boolean passed) {
         if (candidateId <= 0 || section == null || score < 0) {
             return false;
         }
@@ -48,6 +45,7 @@ public class ExamScoreServiceImpl implements ExamScoreService {
         return upsertScore(examResultId, sectionRow.getExamSectionId(), score);
     }
 
+    // Gets or creates an ExamResult row and updates its pass flag when it already exists.
     private int getOrCreateExamResultId(int examEnrollmentId, boolean passed) {
         int examResultId = examResultDAO.getExamResultIdByExamEnrollmentId(examEnrollmentId);
         if (examResultId > 0) {
@@ -61,6 +59,7 @@ public class ExamScoreServiceImpl implements ExamScoreService {
         return examResultDAO.add(result);
     }
 
+    // Private helper: upsert score.
     private boolean upsertScore(int examResultId, int examSectionId, double score) {
         ExamScore existing = examScoreDAO.getByExamResultAndSection(examResultId, examSectionId);
         if (existing != null) {
