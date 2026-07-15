@@ -6,8 +6,8 @@
     <c:when test="${variant eq 'practical'}">
         <c:set var="boxClass" value="examstaff-rules-box--practical" />
         <c:set var="boxIcon" value="precision_manufacturing" />
-        <c:set var="boxLabel" value="Quy định điểm đạt thi thực hành / sa hình" />
-        <c:set var="boxTitle" value="Quy định điểm đạt - Thực hành / Sa hình" />
+        <c:set var="boxLabel" value="Quy định điểm đạt thi thực hành" />
+        <c:set var="boxTitle" value="Quy định điểm đạt - Thực hành" />
     </c:when>
     <c:when test="${variant eq 'results'}">
         <c:set var="boxClass" value="examstaff-rules-box--results" />
@@ -32,11 +32,11 @@
     <div class="examstaff-rules-doc">
         <c:choose>
             <c:when test="${variant eq 'practical'}">
-                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi thực hành / sa hình khi đáp ứng các điều kiện sau:</p>
+                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi thực hành khi đáp ứng các điều kiện sau:</p>
                 <ol class="examstaff-rules-doc__list">
                     <li>Đạt tối thiểu <strong>80 điểm trên tổng 100 điểm</strong>.</li>
                     <li>Không mắc <strong>lỗi liệt</strong> trong quá trình thi.</li>
-                    <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại sa hình</strong>.</li>
+                    <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại thực hành</strong>.</li>
                 </ol>
             </c:when>
 
@@ -51,7 +51,7 @@
                         </ul>
                     </div>
                     <div class="examstaff-rules-doc__card">
-                        <p class="examstaff-rules-doc__card-title">2. Thực hành / Sa hình</p>
+                        <p class="examstaff-rules-doc__card-title">2. Thực hành</p>
                         <p class="examstaff-rules-doc__card-text">Đạt tối thiểu <strong>80 điểm</strong>, không mắc lỗi liệt.</p>
                     </div>
                 </div>
