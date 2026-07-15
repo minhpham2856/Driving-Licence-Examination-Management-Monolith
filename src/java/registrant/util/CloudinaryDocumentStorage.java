@@ -67,7 +67,7 @@ public final class CloudinaryDocumentStorage {
      */
     public static String upload(Part part, int profileId, String docType, String ext) throws IOException {
         if (!isConfigured()) {
-            throw new IOException("Cloudinary chưa được cấu hình (CLOUDINARY_CLOUD_NAME, API_KEY, API_SECRET).");
+            throw new IOException("Hệ thống lưu tệp tạm thời chưa sẵn sàng. Vui lòng thử lại sau.");
         }
         if (part == null || part.getSize() <= 0) {
             throw new IOException("Tệp upload trống.");
@@ -110,9 +110,9 @@ public final class CloudinaryDocumentStorage {
         if (returnedId == null || returnedId.isBlank()) {
             String error = extractJsonString(responseBody, "error");
             if (error != null && !error.isBlank()) {
-                throw new IOException("Cloudinary: " + error);
+                throw new IOException("Không tải được tệp lên máy chủ. Vui lòng thử lại.");
             }
-            throw new IOException("Cloudinary không trả về public_id.");
+            throw new IOException("Không xác nhận được tệp đã tải lên. Vui lòng thử lại.");
         }
         return buildStoredRef(resourceType, returnedId);
     }
@@ -144,7 +144,7 @@ public final class CloudinaryDocumentStorage {
         }
         String error = extractJsonString(responseBody, "error");
         if (error != null && !error.isBlank()) {
-            throw new IOException("Cloudinary destroy: " + error);
+            throw new IOException("Không xóa được tệp cũ trên máy chủ lưu trữ.");
         }
     }
 
@@ -316,7 +316,7 @@ public final class CloudinaryDocumentStorage {
         int code = conn.getResponseCode();
         InputStream stream = code >= 400 ? conn.getErrorStream() : conn.getInputStream();
         if (stream == null) {
-            throw new IOException("Cloudinary HTTP " + code + " (không có nội dung phản hồi).");
+            throw new IOException("Không kết nối được máy chủ lưu tệp. Vui lòng thử lại sau.");
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
@@ -325,11 +325,7 @@ public final class CloudinaryDocumentStorage {
                 sb.append(line);
             }
             if (code >= 400) {
-                String error = extractJsonString(sb.toString(), "message");
-                if (error == null) {
-                    error = sb.toString();
-                }
-                throw new IOException("Cloudinary HTTP " + code + ": " + error);
+                throw new IOException("Không tải được tệp lên máy chủ. Vui lòng thử lại sau.");
             }
             return sb.toString();
         } finally {

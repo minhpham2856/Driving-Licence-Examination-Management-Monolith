@@ -17,6 +17,8 @@ public final class RegistrantDocumentHelper {
 
     public static final String MARK_PROFILE_DOC = "#PROFILE_DOC#";
     public static final String MARK_SUPPLEMENT_DOC = "#SUPPLEMENT_DOC#";
+    /** ER xin duyệt thêm hạng (tái sử dụng 4 giấy đã duyệt). */
+    public static final String MARK_LICENCE_DOC = "#LICENCE_DOC#";
     /** Prefix gắn Document.Notes với ExamRegistrationId bổ sung: {@code #SUPPLEMENT_ER#42#}. */
     public static final String MARK_SUPPLEMENT_ER_PREFIX = "#SUPPLEMENT_ER#";
 
@@ -35,9 +37,15 @@ public final class RegistrantDocumentHelper {
         return notes != null && notes.contains(MARK_SUPPLEMENT_DOC);
     }
 
-    /** ER hồ sơ gốc: notes trống hoặc không có marker supplement. */
+    /** ER xin duyệt hạng (tái sử dụng hồ sơ) — Notes chứa #LICENCE_DOC#. */
+    public static boolean isLicenceDocExamRegistrationNotes(String notes) {
+        return notes != null && notes.contains(MARK_LICENCE_DOC);
+    }
+
+    /** ER hồ sơ gốc: không phải supplement / licence-doc. */
     public static boolean isPrimaryExamRegistrationNotes(String notes) {
-        return notes == null || notes.isBlank() || !isSupplementExamRegistrationNotes(notes);
+        return notes == null || notes.isBlank()
+                || (!isSupplementExamRegistrationNotes(notes) && !isLicenceDocExamRegistrationNotes(notes));
     }
 
     /** Đảm bảo notes ER hồ sơ gốc luôn có #PROFILE_DOC# (idempotent). */
@@ -56,6 +64,12 @@ public final class RegistrantDocumentHelper {
     public static String buildSupplementExamRegistrationNotes(String message) {
         String body = message != null && !message.isBlank() ? message.trim() : "Yêu cầu duyệt hồ sơ bổ sung.";
         return MARK_SUPPLEMENT_DOC + " " + body;
+    }
+
+    /** Ghép notes xin duyệt thêm hạng (tái sử dụng hồ sơ đã duyệt). */
+    public static String buildLicenceDocExamRegistrationNotes(String message) {
+        String body = message != null && !message.isBlank() ? message.trim() : "Xin duyệt hạng với hồ sơ đã có.";
+        return MARK_LICENCE_DOC + " " + body;
     }
 
     /** Mã hóa: #SUPPLEMENT_ER#<examRegistrationId># */

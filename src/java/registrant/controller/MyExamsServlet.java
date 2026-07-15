@@ -29,7 +29,7 @@ public class MyExamsServlet extends HttpServlet {
 
         if ("registered".equals(request.getParameter("success"))) {
             request.setAttribute("successMessage",
-                    "Đăng ký đợt thi thành công. Trạng thái hiện là Chờ xét duyệt - SBD sẽ được cập nhật sau khi Ban sát hạch duyệt và nhập danh sách chính thức.");
+                    "Đã ghi nhận nguyện vọng ngày thi. Vui lòng chờ thông báo từ phía trung tâm về lịch thi chính thức và số báo danh — mục này sẽ cập nhật khi trung tâm công bố.");
         }
 
         RegistrantServletSupport.forwardView(request, response, VIEW);
