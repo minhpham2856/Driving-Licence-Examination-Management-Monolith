@@ -46,8 +46,8 @@
                     <div class="examstaff-rules-doc__card">
                         <p class="examstaff-rules-doc__card-title">1. Thi lý thuyết</p>
                         <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
-                            <li>Hạng <strong>A / A1</strong>: ≥ <strong>36 / 40</strong></li>
-                            <li>Hạng <strong>B1</strong>: ≥ <strong>45 / 50</strong></li>
+                            <li>Hạng <strong>A / A1 / B1</strong>: ≥ <strong>21 / 25</strong> câu đúng</li>
+                            <li>Không sai <strong>câu điểm liệt</strong></li>
                         </ul>
                     </div>
                     <div class="examstaff-rules-doc__card">
@@ -59,12 +59,12 @@
             </c:when>
 
             <c:otherwise>
-                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi lý thuyết khi đáp ứng ngưỡng số câu đúng theo hạng GPLX:</p>
+                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi lý thuyết khi đáp ứng đồng thời:</p>
                 <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
-                    <li>Hạng <strong>A / A1</strong>: tối thiểu <strong>36 / 40</strong> câu đúng.</li>
-                    <li>Hạng <strong>B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
+                    <li>Hạng <strong>A / A1 / B1</strong>: tối thiểu <strong>21 / 25</strong> câu đúng.</li>
+                    <li>Không sai <strong>câu điểm liệt</strong>.</li>
                 </ul>
-                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt.</p>
+                <p class="examstaff-rules-doc__note">Lưu ý: Sai một câu điểm liệt → trượt lý thuyết dù đủ số câu đúng.</p>
             </c:otherwise>
         </c:choose>
     </div>
