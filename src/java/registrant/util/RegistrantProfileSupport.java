@@ -187,11 +187,19 @@ public final class RegistrantProfileSupport {
     /** Ghi RegistrationStatus + Notes mô tả lên dòng hồ sơ gốc ({@code #PROFILE_DOC#}). */
     public static boolean updateRegistrationStatus(int profileId, String status,
             List<RegistrantDocumentView> docs, RegistrantDAO registrantdao) {
+        return updateRegistrationStatus(profileId, status, docs, registrantdao, 0);
+    }
+
+    /** Như trên, kèm hạng GPLX thí sinh chọn khi gửi duyệt. */
+    public static boolean updateRegistrationStatus(int profileId, String status,
+            List<RegistrantDocumentView> docs, RegistrantDAO registrantdao, int licenceId) {
         if (profileId <= 0 || status == null || status.isBlank()) {
             return false;
         }
         String notes = deriveRegistrationNotes(docs, status.trim());
-        boolean written = registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes);
+        boolean written = licenceId > 0
+                ? registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes, licenceId)
+                : registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes);
         if (!written) {
             LOG.log(Level.WARNING, "Không cập nhật RegistrationStatus profile {0} → {1}",
                     new Object[] { profileId, status });

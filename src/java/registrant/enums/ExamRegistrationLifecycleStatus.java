@@ -21,9 +21,12 @@ public final class ExamRegistrationLifecycleStatus {
             )
             """;
 
-    /** SQL: bỏ dòng ER đánh dấu hồ sơ gốc (#PROFILE_DOC#). */
+    /** SQL: bỏ dòng ER hồ sơ gốc / xin duyệt hạng tài liệu. */
     public static final String SQL_EXCLUDE_PROFILE_DOC =
-            "(er.Notes IS NULL OR er.Notes NOT LIKE N'%#PROFILE_DOC#%')";
+            "(er.Notes IS NULL OR ("
+                    + "er.Notes NOT LIKE N'%#PROFILE_DOC#%'"
+                    + " AND er.Notes NOT LIKE N'%#LICENCE_DOC#%'"
+                    + "))";
 
     private ExamRegistrationLifecycleStatus() {
     }

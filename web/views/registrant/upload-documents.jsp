@@ -303,37 +303,10 @@
                                       class="upload-other-form" data-upload-form>
                                     <input type="hidden" name="documentType" value="Other">
 
-                                    <div class="upload-licence-picker">
-                                        <div class="upload-licence-picker__head">
-                                            <span class="upload-licence-picker__badge" aria-hidden="true">
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                                                <path d="M7 9h4M7 13h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                                </svg>
-                                            </span>
-                                            <label class="upload-licence-picker__label" for="supplement-licence">
-                                                Hạng bằng bổ sung <span class="profile-edit-required">*</span>
-                                            </label>
-                                        </div>
-                                        <div class="p-input-wrapper upload-licence-picker__field">
-                                            <span class="p-input-icon" aria-hidden="true">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                                <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
-                                                </svg>
-                                            </span>
-                                            <select id="supplement-licence" name="supplementLicenceCode"
-                                                    class="p-input-field p-input-field--select upload-licence-picker__select" required>
-                                                <option value="" disabled selected>Chọn hạng GPLX...</option>
-                                                <c:forEach var="licence" items="${supplementLicenceOptions}">
-                                                    <option value="${licence.code}" title="${licence.name}">
-                                                        Hạng ${licence.code} - ${licence.name}
-                                                    </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                        <p class="upload-licence-picker__hint">Hạng A1/A2 chỉ cần 4 giấy tờ bắt buộc, không cần hồ sơ bổ sung.</p>
-                                    </div>
+                                    <p class="upload-licence-picker__hint" style="margin-top:0;">
+                                        Hồ sơ khác là tùy chọn. Hạng A1 / A / B1 chỉ cần 4 giấy tờ bắt buộc —
+                                        chọn hạng khi <strong>Gửi yêu cầu duyệt</strong> bên dưới. Hồ sơ đã duyệt được tái sử dụng khi thi hạng khác nếu không cần đổi.
+                                    </p>
 
                                     <label class="upload-other-form__label" for="other-reason">Lý do / ghi chú <span class="profile-edit-required">*</span></label>
                                     <textarea id="other-reason" name="reasonNote" class="upload-card__reason" rows="2"
@@ -367,10 +340,11 @@
                                     <p class="upload-request-card__desc">
                                         <c:choose>
                                             <c:when test="${profileApproved}">
-                                                Chỉ gửi các tệp tại mục <strong>Hồ sơ khác</strong> chưa gửi duyệt. Bốn giấy tờ bắt buộc giữ nguyên trạng thái <strong>Đã duyệt</strong>.
+                                                Chọn hạng bằng. Bốn giấy tờ bắt buộc giữ nguyên nếu đã duyệt.
+                                                Hồ sơ khác chỉ gửi khi bạn đã thêm tệp mới cần xét.
                                             </c:when>
                                             <c:otherwise>
-                                                Sau khi tải đủ tài liệu, gửi yêu cầu để ban quản lý kiểm tra và phê duyệt.
+                                                Chọn hạng bằng bạn gửi duyệt (A1 / A / B1 đều chỉ cần 4 giấy tờ bắt buộc), rồi gửi yêu cầu để ban quản lý phê duyệt.
                                             </c:otherwise>
                                         </c:choose>
                                     </p>
@@ -389,9 +363,47 @@
                                 </div>
                                 <form method="post" action="${pageContext.request.contextPath}/registrant/upload-documents" class="upload-request-card__form">
                                     <input type="hidden" name="action" value="requestApproval">
+
+                                    <div class="upload-licence-picker">
+                                        <div class="upload-licence-picker__head">
+                                            <span class="upload-licence-picker__badge" aria-hidden="true">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M7 9h4M7 13h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                            </span>
+                                            <label class="upload-licence-picker__label" for="approval-licence">
+                                                Hạng bằng gửi duyệt <span class="profile-edit-required">*</span>
+                                            </label>
+                                        </div>
+                                        <div class="p-input-wrapper upload-licence-picker__field">
+                                            <span class="p-input-icon" aria-hidden="true">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                                <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/>
+                                                </svg>
+                                            </span>
+                                            <select id="approval-licence" name="approvalLicenceCode"
+                                                    class="p-input-field p-input-field--select upload-licence-picker__select" required>
+                                                <option value="" disabled selected>Chọn hạng GPLX...</option>
+                                                <c:forEach var="licence" items="${approvalLicenceOptions}">
+                                                    <option value="${licence.code}" title="${licence.name}">
+                                                        Hạng ${licence.code}<c:if test="${not empty licence.name}"> — ${licence.name}</c:if>
+                                                    </option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                        <c:if test="${empty approvalLicenceOptions}">
+                                            <p class="upload-licence-picker__hint">
+                                                Hiện chưa có hạng bằng để chọn. Vui lòng thử lại sau hoặc liên hệ trung tâm hỗ trợ.
+                                            </p>
+                                        </c:if>
+                                        <p class="upload-licence-picker__hint">Hạng A1 / A / B1 đều chỉ cần 4 giấy tờ bắt buộc. Hồ sơ khác là tùy chọn; hồ sơ đã duyệt có thể tái sử dụng khi thi hạng khác.</p>
+                                    </div>
+
                                     <label class="p-input-label" for="request-note">Ghi chú gửi ban quản lý (tùy chọn)</label>
                                     <textarea id="request-note" name="requestNote" class="upload-card__reason" rows="2"
-                                              placeholder="${profileApproved ? 'Ví dụ: Đã bổ sung hồ sơ cho hạng B2, nhờ ban quản lý xem xét.' : 'Ví dụ: Đã bổ sung giấy khám sức khỏe mới, nhờ ban quản lý xem xét.'}"></textarea>
+                                              placeholder="${profileApproved ? 'Ví dụ: Đã bổ sung hồ sơ cho hạng B1, nhờ ban quản lý xem xét.' : 'Ví dụ: Đã đủ giấy tờ hạng A1, nhờ ban quản lý xem xét.'}"></textarea>
                                     <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary"
                                             ${canRequestApproval ? '' : 'disabled'}>
                                         <c:choose>

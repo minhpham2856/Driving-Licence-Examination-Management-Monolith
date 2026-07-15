@@ -18,6 +18,7 @@ import registrant.util.DocumentUrlResolver;
 import registrant.util.RegistrantAuditHelper;
 import registrant.util.RegistrantDocumentHelper;
 import registrant.util.RegistrantDocumentStatusHelper;
+import registrant.util.RegistrantExamSupport;
 import registrant.util.RegistrantProfileSupport;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -27,9 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-/** Upload hồ sơ lên Cloudinary: chính (4 giấy→#PENDING#) hoặc bổ sung (Other+#LICENCE#→ER #SUPPLEMENT_DOC#); RegistrationStatus chỉ đổi khi Gửi duyệt. */
+/** Upload hồ sơ Cloudinary: chính / bổ sung (Other); hạng GPLX chọn lúc Gửi duyệt; RegistrationStatus đổi khi gửi duyệt. */
 public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();
@@ -69,7 +69,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         model.put("profileApproved", profileApproved);
         model.put("profileRejected", profileRejected);
         model.put("primaryPendingReview", primaryPending);
-        model.put("supplementLicenceOptions", listSupplementLicenceOptions());
+        model.put("approvalLicenceOptions", listApprovalLicenceOptions());
         model.put("hasSupplementAwaitingSubmit", RegistrantDocumentStatusHelper.hasSupplementAwaitingSubmit(docs));
         model.put("hasSupplementPendingReview", supplementPending);
         model.put("canRequestApproval", canRequestApproval(registrationStatus, docs, supplementPending));
@@ -79,14 +79,10 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
     }
 
     @Override
-    public String handleOtherUpload(UserDTO user, String reasonNote, String supplementLicenceCode,
+    public String handleOtherUpload(UserDTO user, String reasonNote,
             List<Part> fileParts, HttpServletRequest request) {
         if (reasonNote == null || reasonNote.isBlank()) {
             return "Vui lòng nhập lý do / ghi chú cho hồ sơ khác.";
-        }
-        String licenceError = validateSupplementLicenceCode(supplementLicenceCode);
-        if (licenceError != null) {
-            return licenceError;
         }
         if (fileParts == null || fileParts.isEmpty()) {
             return "Vui lòng chọn ít nhất một tệp để tải lên.";
@@ -97,9 +93,8 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             return "Không tìm thấy hồ sơ.";
         }
 
-        String normalizedLicence = supplementLicenceCode.trim();
         for (Part filePart : fileParts) {
-            String error = uploadSingleOther(profile.getProfileId(), reasonNote, normalizedLicence, filePart, request);
+            String error = uploadSingleOther(profile.getProfileId(), reasonNote, filePart, request);
             if (error != null) {
                 return error;
             }
@@ -118,12 +113,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             if (profile == null) {
                 return "Không tìm thấy hồ sơ.";
             }
-            String licenceError = validateSupplementLicenceCode(request.getParameter("supplementLicenceCode"));
-            if (licenceError != null) {
-                return licenceError;
-            }
-            return uploadSingleOther(profile.getProfileId(), reasonNote,
-                    request.getParameter("supplementLicenceCode").trim(), filePart, request);
+            return uploadSingleOther(profile.getProfileId(), reasonNote, filePart, request);
         }
 
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
@@ -163,12 +153,23 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         }
     }
 
-    /** Gửi duyệt: Pending→từ chối; Approved→requestSupplementApproval; Draft/Rejected→duyệt 4 giấy chính. */
+    /** Gửi duyệt: Pending→từ chối; Approved→requestSupplementApproval; Draft/Rejected→duyệt hồ sơ chính (+ hạng đã chọn). */
     @Override
-    public String requestApproval(UserDTO user, String requestNote, HttpSession session) {
+    public String requestApproval(UserDTO user, String requestNote, String approvalLicenceCode,
+            HttpSession session) {
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
         if (profile == null) {
             return "Không tìm thấy hồ sơ.";
+        }
+
+        String licenceError = validateApprovalLicenceCode(approvalLicenceCode);
+        if (licenceError != null) {
+            return licenceError;
+        }
+        String licenceCode = approvalLicenceCode.trim();
+        int licenceId = registrantdao.resolveLicenceIdByUiCode(licenceCode);
+        if (licenceId <= 0) {
+            return "Hạng GPLX không hợp lệ.";
         }
 
         List<RegistrantDocumentView> docs = documentdao.listByProfileId(profile.getProfileId());
@@ -179,12 +180,32 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         }
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(registrationStatus)) {
             if (registrantdao.hasOpenSupplementPending(profile.getProfileId())) {
-                return "Hồ sơ bổ sung đang chờ duyệt.";
+                return "Hồ sơ bổ sung / xin duyệt hạng đang chờ duyệt.";
             }
+            List<String> approvedLicences = registrantdao.listApprovedDocumentLicenceCodes(
+                    profile.getProfileId());
+            boolean alreadyApprovedForLicence = RegistrantDocumentStatusHelper
+                    .isLicenceAllowedWithDocuments(licenceCode, docs, approvedLicences);
+
             if (!RegistrantDocumentStatusHelper.hasSupplementAwaitingSubmit(docs)) {
-                return "Chưa có hồ sơ bổ sung mới. Vui lòng thêm tệp tại mục Hồ sơ khác trước khi gửi duyệt.";
+                if (alreadyApprovedForLicence) {
+                    return "Hạng " + licenceCode.trim().toUpperCase()
+                            + " đã được duyệt kèm hồ sơ. Bạn có thể đăng ký thi hạng này ngay.";
+                }
+                // Tái sử dụng hồ sơ đã duyệt: xin duyệt thêm hạng mới (không upload lại)
+                String msg = requestNote != null && !requestNote.isBlank()
+                        ? requestNote.trim()
+                        : "Xin duyệt hạng " + licenceCode.trim().toUpperCase()
+                            + " với hồ sơ đã có (tái sử dụng 4 giấy tờ bắt buộc).";
+                int erId = registrantdao.insertLicenceDocumentRegistration(
+                        profile.getProfileId(), licenceId, ProfileRegistrationStatus.PENDING, msg);
+                if (erId <= 0) {
+                    return "Không thể gửi yêu cầu duyệt hạng " + licenceCode + ". Vui lòng thử lại.";
+                }
+                RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(), msg);
+                return null;
             }
-            if (!requestSupplementApproval(profile.getProfileId(), requestNote, docs)) {
+            if (!requestSupplementApproval(profile.getProfileId(), requestNote, docs, licenceId, licenceCode)) {
                 return "Không thể gửi yêu cầu duyệt hồ sơ bổ sung. Vui lòng thử lại.";
             }
             RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(), requestNote);
@@ -193,25 +214,29 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             return "Chưa có tài liệu nào để gửi duyệt. Vui lòng tải lên ít nhất một tệp.";
         }
 
+        // A1/A/B1 (và hạng chỉ-4-giấy): không bắt buộc Hồ sơ khác khi gửi duyệt lần đầu
+        stampLicenceOnOtherDocuments(profile.getProfileId(), docs, licenceCode);
+
         if (!documentdao.requestApproval(profile.getProfileId(), requestNote)) {
             return "Không thể gửi yêu cầu duyệt. Vui lòng thử lại.";
         }
 
+        docs = documentdao.listByProfileId(profile.getProfileId());
         RegistrantProfileSupport.updateRegistrationStatus(
-                profile.getProfileId(), ProfileRegistrationStatus.PENDING, docs, registrantdao);
+                profile.getProfileId(), ProfileRegistrationStatus.PENDING, docs, registrantdao, licenceId);
         RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(), requestNote);
         return null;
     }
 
-    /** Tạo ER bổ sung + gắn Other: lọc awaiting → hạng #LICENCE# → insertSupplement → #SUPPLEMENT_ER#id# + #PENDING#. */
+    /** Tạo ER bổ sung + gắn Other awaiting với hạng chọn lúc gửi duyệt. */
     private boolean requestSupplementApproval(int profileId, String requestNote,
-            List<RegistrantDocumentView> docs) {
+            List<RegistrantDocumentView> docs, int licenceId, String licenceCode) {
         List<RegistrantDocumentView> awaiting = new ArrayList<>();
         for (RegistrantDocumentView doc : docs) {
             if (!DocumentDAOImpl.isOtherType(doc.getDocumentType())) {
                 continue;
             }
-            if (doc.getDocumentUrl() == null || doc.getDocumentUrl().isBlank()) {
+            if (!hasUploadedUrl(doc)) {
                 continue;
             }
             if (DocumentDAOImpl.isApproved(doc.getNotes())) {
@@ -229,27 +254,12 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             return false;
         }
 
-        String licenceCode = awaiting.stream()
-                .map(RegistrantDocumentView::getSupplementLicenceCode)
-                .filter(code -> code != null && !code.isBlank())
-                .findFirst()
-                .orElse(null);
-        if (licenceCode == null) {
-            for (RegistrantDocumentView doc : awaiting) {
-                licenceCode = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
-                if (licenceCode != null && !licenceCode.isBlank()) {
-                    break;
-                }
-            }
-        }
-        int licenceId = licenceCode != null ? registrantdao.resolveLicenceIdByUiCode(licenceCode) : 0;
-        if (licenceId <= 0) {
-            licenceId = resolveLicenceIdForSupplement(profileId);
-        }
+        stampLicenceOnDocuments(profileId, awaiting, licenceCode);
 
         String erMessage = requestNote != null && !requestNote.isBlank()
-                ? "Thí sinh gửi duyệt hồ sơ bổ sung. Yêu cầu: " + requestNote.trim()
-                : "Thí sinh gửi duyệt hồ sơ bổ sung.";
+                ? "Thí sinh gửi duyệt hồ sơ bổ sung hạng " + licenceCode.trim().toUpperCase()
+                    + ". Yêu cầu: " + requestNote.trim()
+                : "Thí sinh gửi duyệt hồ sơ bổ sung hạng " + licenceCode.trim().toUpperCase() + ".";
         int supplementErId = registrantdao.insertSupplementDocumentRegistration(
                 profileId, licenceId, ProfileRegistrationStatus.PENDING, erMessage);
         if (supplementErId <= 0) {
@@ -258,7 +268,8 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
         boolean updated = false;
         for (RegistrantDocumentView doc : awaiting) {
-            String merged = RegistrantDocumentHelper.appendSupplementErMarker(doc.getNotes(), supplementErId);
+            String notes = doc.getNotes();
+            String merged = RegistrantDocumentHelper.appendSupplementErMarker(notes, supplementErId);
             merged = mergeSupplementPendingNote(merged, requestNote);
             if (documentdao.updateDocumentNotes(profileId, doc.getDocumentType(), merged)) {
                 updated = true;
@@ -267,13 +278,39 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return updated;
     }
 
-    private int resolveLicenceIdForSupplement(int profileId) {
-        try {
-            return registrantdao.resolveLicenceIdByUiCode(
-                    registrantdao.resolveLatestLicenceClassByProfileId(profileId));
-        } catch (Exception ex) {
-            return registrantdao.resolveLicenceIdByUiCode("B2");
+    private void stampLicenceOnOtherDocuments(int profileId, List<RegistrantDocumentView> docs,
+            String licenceCode) {
+        List<RegistrantDocumentView> others = new ArrayList<>();
+        for (RegistrantDocumentView doc : docs) {
+            if (DocumentDAOImpl.isOtherType(doc.getDocumentType()) && hasUploadedUrl(doc)
+                    && !DocumentDAOImpl.isApproved(doc.getNotes())) {
+                others.add(doc);
+            }
         }
+        stampLicenceOnDocuments(profileId, others, licenceCode);
+    }
+
+    private void stampLicenceOnDocuments(int profileId, List<RegistrantDocumentView> docs, String licenceCode) {
+        if (docs == null || licenceCode == null || licenceCode.isBlank()) {
+            return;
+        }
+        for (RegistrantDocumentView doc : docs) {
+            String stamped = applyLicenceMarker(doc.getNotes(), licenceCode);
+            if (stamped != null && !stamped.equals(doc.getNotes())) {
+                documentdao.updateDocumentNotes(profileId, doc.getDocumentType(), stamped);
+                doc.setNotes(stamped);
+                doc.setSupplementLicenceCode(licenceCode.trim().toUpperCase());
+            }
+        }
+    }
+
+    private static String applyLicenceMarker(String notes, String licenceCode) {
+        String body = DocumentDAOImpl.stripLicenceMarker(notes != null ? notes : "");
+        return DocumentDAOImpl.encodeLicenceMarker(licenceCode) + (body != null ? body.trim() : "");
+    }
+
+    private static boolean hasUploadedUrl(RegistrantDocumentView doc) {
+        return doc != null && doc.getDocumentUrl() != null && !doc.getDocumentUrl().isBlank();
     }
 
     private static String mergeSupplementPendingNote(String existingNotes, String requestNote) {
@@ -329,7 +366,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return null;
     }
 
-    private String uploadSingleOther(int profileId, String reasonNote, String supplementLicenceCode,
+    private String uploadSingleOther(int profileId, String reasonNote,
             Part filePart, HttpServletRequest request) {
         String validationError = RegistrantDocumentHelper.validateOtherUpload(filePart);
         if (validationError != null) {
@@ -342,7 +379,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             String storageType = DocumentDAOImpl.newOtherDocumentType();
             String storedRef = uploadToCloudinary(filePart, profileId, storageType, ext);
             String notes = DocumentDAOImpl.buildUploadNote(
-                    storageType, reasonNote, filePart.getSize(), submitted, supplementLicenceCode);
+                    storageType, reasonNote, filePart.getSize(), submitted, null);
 
             if (!documentdao.insertDocument(profileId, storageType, storedRef, notes)) {
                 return "Không lưu được thông tin tài liệu.";
@@ -355,25 +392,36 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         }
     }
 
-    private String validateSupplementLicenceCode(String supplementLicenceCode) {
-        if (supplementLicenceCode == null || supplementLicenceCode.isBlank()) {
-            return "Vui lòng chọn hạng bằng mà hồ sơ này bổ sung.";
+    private String validateApprovalLicenceCode(String approvalLicenceCode) {
+        if (approvalLicenceCode == null || approvalLicenceCode.isBlank()) {
+            return "Vui lòng chọn hạng bằng khi gửi yêu cầu duyệt.";
         }
-        String code = supplementLicenceCode.trim();
-        if (RegistrantDocumentStatusHelper.isBasicDocsOnlyLicence(code)) {
-            return "Hạng A1 và A2 không cần hồ sơ bổ sung — vui lòng chọn hạng từ B1 trở lên.";
-        }
-        if (registrantdao.resolveLicenceIdByUiCode(code) <= 0) {
+        if (registrantdao.resolveLicenceIdByUiCode(approvalLicenceCode.trim()) <= 0) {
             return "Hạng GPLX không hợp lệ.";
         }
         return null;
     }
 
-    private List<RegistrantLicenceOption> listSupplementLicenceOptions() {
-        return registrantdao.listOpenLicenceOptions().stream()
-                .filter(opt -> opt.getCode() != null
-                        && !RegistrantDocumentStatusHelper.isBasicDocsOnlyLicence(opt.getCode()))
-                .collect(Collectors.toCollection(ArrayList::new));
+    private List<RegistrantLicenceOption> listApprovalLicenceOptions() {
+        List<RegistrantLicenceOption> fromDb = registrantdao.listOpenLicenceOptions();
+        if (fromDb != null && !fromDb.isEmpty()) {
+            return new ArrayList<>(fromDb);
+        }
+        // Fallback nếu Licence trống / lỗi DB — vẫn cho chọn đủ hạng seed
+        List<RegistrantLicenceOption> fallback = new ArrayList<>();
+        for (String code : List.of("A1", "A", "B1")) {
+            RegistrantLicenceOption opt = new RegistrantLicenceOption();
+            opt.setCode(code);
+            opt.setName(switch (code) {
+                case "A1" -> "Xe mô tô đến 125 cm³";
+                case "A" -> "Xe mô tô trên 125 cm³";
+                default -> "Xe mô tô ba bánh";
+            });
+            opt.setExamFee(RegistrantExamSupport.defaultExamFee(code));
+            opt.setVehicleType(RegistrantExamSupport.inferVehicleType(code));
+            fallback.add(opt);
+        }
+        return fallback;
     }
 
     private static String validateMandatoryUploadAllowed(String registrationStatus) {
@@ -407,7 +455,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             throws IOException {
         if (!CloudinaryDocumentStorage.isConfigured()) {
             throw new IOException(
-                    "Cloudinary chưa được cấu hình. Thêm CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET vào .env.");
+                    "Hệ thống lưu tệp tạm thời chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ trung tâm hỗ trợ.");
         }
         return CloudinaryDocumentStorage.upload(part, profileId, docType, ext);
     }
@@ -424,7 +472,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                 doc.getDocumentUrl() != null && !doc.getDocumentUrl().isBlank());
     }
 
-    /** Nút Gửi duyệt: Draft cần ≥1 tệp; Approved cần Other awaiting và không còn ER bổ sung Pending. */
+    /** Nút Gửi duyệt: Draft cần ≥1 tệp; Approved: cho gửi xin duyệt hạng khác / hồ sơ khác nếu không còn Pending. */
     private static boolean canRequestApproval(String registrationStatus, List<RegistrantDocumentView> docs,
             boolean supplementErPending) {
         String status = registrationStatus != null ? registrationStatus.trim() : ProfileRegistrationStatus.DRAFT;
@@ -432,10 +480,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             return false;
         }
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status)) {
-            if (supplementErPending) {
-                return false;
-            }
-            return RegistrantDocumentStatusHelper.hasSupplementAwaitingSubmit(docs);
+            return !supplementErPending;
         }
         return hasUploadableDocumentsForReview(docs);
     }

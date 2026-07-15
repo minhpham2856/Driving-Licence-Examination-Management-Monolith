@@ -179,9 +179,14 @@
                                     <td colspan="6" style="text-align:center;padding:2rem;color:#64748b;">
                                         <c:choose>
                                             <c:when test="${searchActive}">Không có kỳ thi phù hợp với bộ lọc.</c:when>
+                                            <c:when test="${not empty successMessage}">
+                                                Lịch thi chính thức và kết quả sẽ hiện tại đây sau khi trung tâm thông báo.
+                                                Vui lòng chờ thông báo từ phía trung tâm.
+                                            </c:when>
                                             <c:otherwise>
-                                                Chưa có kỳ thi nào.
-                                                <a href="${pageContext.request.contextPath}/registrant/register-exam">Đăng ký thi mới</a>
+                                                Chưa có kỳ thi chính thức nào.
+                                                Nếu bạn đã gửi nguyện vọng ngày thi, vui lòng chờ thông báo từ phía trung tâm.
+                                                <a href="${pageContext.request.contextPath}/registrant/register-exam">Đăng ký nguyện vọng</a>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>

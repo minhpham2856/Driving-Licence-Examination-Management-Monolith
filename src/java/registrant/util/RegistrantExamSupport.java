@@ -45,10 +45,10 @@ public final class RegistrantExamSupport {
         return candidateNumber.trim();
     }
 
-    /** UI dùng B2/A2; DB có thể lưu B/A hoặc đã là B2/A2 — trả cả hai để JOIN không miss. */
+    /** Lookup JOIN theo mã DB seed A/A1/B1; vẫn nhận alias A2→A, B2→B nếu URL cũ. */
     public static String[] licenceClassLookupCodes(String uiCode) {
         if (uiCode == null || uiCode.isBlank()) {
-            return new String[] { "B" };
+            return new String[] { "B1" };
         }
         String ui = uiCode.trim().toUpperCase(Locale.ROOT);
         String db = toDbLicenceCode(ui);
@@ -58,10 +58,10 @@ public final class RegistrantExamSupport {
         return new String[] { ui, db };
     }
 
-    /** UI dùng B2/A2 trong khi DB seed dùng B/A. */
+    /** Chuẩn hóa mã chọn trên UI về mã LicenceClass trong DB (seed: A, A1, B1). Alias cũ: A2→A, B2→B. */
     public static String toDbLicenceCode(String uiCode) {
         if (uiCode == null) {
-            return "B";
+            return "B1";
         }
         return switch (uiCode.trim().toUpperCase(Locale.ROOT)) {
             case "B2" -> "B";
@@ -70,32 +70,29 @@ public final class RegistrantExamSupport {
         };
     }
 
+    /** Hiển thị đúng mã DB (A/A1/B1) — không đổi A→A2 nữa (DB seed không có A2). */
     public static String toUiLicenceCode(String dbCode) {
         if (dbCode == null) {
-            return "B2";
+            return "B1";
         }
-        return switch (dbCode.trim().toUpperCase(Locale.ROOT)) {
-            case "B" -> "B2";
-            case "A" -> "A2";
-            default -> dbCode.trim().toUpperCase(Locale.ROOT);
-        };
+        return dbCode.trim().toUpperCase(Locale.ROOT);
     }
 
-    /** Lệ phí mặc định khớp mock trên register-exam.jsp khi chưa tính từ bảng Fee. */
+    /** Lệ phí mặc định khi chưa lấy từ bảng Fee — khớp seed Licence A/A1/B1. */
     public static long defaultExamFee(String uiCode) {
         if (uiCode == null) {
-            return 1_200_000L;
+            return 800_000L;
         }
         return switch (uiCode.trim().toUpperCase(Locale.ROOT)) {
             case "A1" -> 250_000L;
-            case "A2" -> 350_000L;
+            case "A", "A2" -> 350_000L;
             case "B1" -> 800_000L;
-            case "B2" -> 1_200_000L;
+            case "B", "B2" -> 1_200_000L;
             case "C1" -> 1_500_000L;
             case "C" -> 2_000_000L;
             case "D1", "D2" -> 2_500_000L;
             case "D" -> 3_000_000L;
-            default -> 1_200_000L;
+            default -> 800_000L;
         };
     }
 
@@ -113,16 +110,16 @@ public final class RegistrantExamSupport {
         return "car";
     }
 
-    /** Nhãn hiển thị hạng GPLX trên hồ sơ / đăng ký thi. */
+    /** Nhãn hiển thị hạng GPLX — khớp mô tả seed DB (A/A1/B1). */
     public static String licenceClassDescription(String uiCode) {
         if (uiCode == null || uiCode.isBlank()) {
             return null;
         }
         return switch (uiCode.trim().toUpperCase(Locale.ROOT)) {
-            case "A1" -> "Hạng A1 (Mô tô 2 bánh dưới 175cc)";
-            case "A2" -> "Hạng A2 (Mô tô 2 bánh trên 175cc)";
-            case "B1" -> "Hạng B1 (Ô tô số tự động)";
-            case "B2" -> "Hạng B2 (Ô tô chở người đến 9 chỗ, tải dưới 3.5t)";
+            case "A1" -> "Hạng A1 (Xe mô tô hai bánh đến 125 cm³)";
+            case "A", "A2" -> "Hạng A (Xe mô tô hai bánh trên 125 cm³)";
+            case "B1" -> "Hạng B1 (Xe mô tô ba bánh)";
+            case "B", "B2" -> "Hạng B2 (Ô tô chở người đến 9 chỗ, tải dưới 3.5t)";
             case "C", "C1" -> "Hạng C (Xe tải trên 3.5t)";
             default -> "Hạng " + uiCode.trim().toUpperCase(Locale.ROOT);
         };

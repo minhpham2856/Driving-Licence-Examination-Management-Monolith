@@ -58,7 +58,6 @@ public class UploadDocumentsServlet extends HttpServlet {
         if ("Other".equals(documentType)) {
             error = uploadService.handleOtherUpload(
                     user, request.getParameter("reasonNote"),
-                    request.getParameter("supplementLicenceCode"),
                     collectFileParts(request), request);
         } else {
             error = uploadService.handleUpload(
@@ -75,7 +74,11 @@ public class UploadDocumentsServlet extends HttpServlet {
 
     private void handleRequestApproval(UserDTO user, HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String error = uploadService.requestApproval(user, request.getParameter("requestNote"), request.getSession());
+        String error = uploadService.requestApproval(
+                user,
+                request.getParameter("requestNote"),
+                request.getParameter("approvalLicenceCode"),
+                request.getSession());
         if (error != null) {
             renderPage(user, request, response, error);
             return;
