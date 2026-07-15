@@ -5,7 +5,7 @@ import payment.dto.sepay.SePayCheckoutSession;
 import payment.dto.sepay.SePayIpnResult;
 import payment.dto.sepay.SePayPaymentException;
 
-/** Facade SePay: checkout (createCheckout → buildAutoSubmitHtml), IPN handleIpn, invoice nhúng CandidateId. */
+/** Facade SePay: checkout, IPN, invoice DLEM. */
 public interface SePayPaymentService {
 
     boolean isConfigured();
@@ -16,7 +16,14 @@ public interface SePayPaymentService {
 
     String buildAutoSubmitHtml(SePayCheckoutSession session);
 
-    String generateInvoiceNumber(String businessPrefix, long internalOrderId);
+    /** DLEM-{prefix}-{candidateId}-{timestamp} */
+    String generateInvoiceNumber(String businessPrefix, long candidateId);
+
+    /** DLEM-{prefix}-{candidateId}-{enrollmentId}-{timestamp} */
+    String generateInvoiceNumber(String businessPrefix, long candidateId, long enrollmentId);
+
+    /** {SEPAY_APP_BASE_URL}/payment/sepay/ipn */
+    String ipnCallbackUrl();
 
     SePayIpnResult handleIpn(String rawBody, String secretHeader,
             String signatureHeader, String timestampHeader);
