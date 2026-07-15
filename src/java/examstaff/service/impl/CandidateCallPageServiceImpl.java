@@ -1,12 +1,12 @@
 package examstaff.service.impl;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.dto.view.CallBoardState;
+import examstaff.dto.CallBoardState;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateCallWorkflowService;
 import examstaff.service.CandidateQueueService;

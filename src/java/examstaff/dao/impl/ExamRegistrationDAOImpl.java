@@ -3,7 +3,7 @@ package examstaff.dao.impl;
 import shared.dbconnection.DBContext;
 import examstaff.dao.Db2CandidateSql;
 import examstaff.dao.ExamRegistrationDAO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.util.AllocationPassRules;
 import java.sql.*;
 import java.util.ArrayList;

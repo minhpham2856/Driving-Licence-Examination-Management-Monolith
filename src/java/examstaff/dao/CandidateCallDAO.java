@@ -1,7 +1,7 @@
 package examstaff.dao;
 
 
-import examstaff.dto.candidate.CandidateCallDTO;
+import examstaff.dto.CandidateCallDTO;
 
 
 /**

@@ -4,7 +4,7 @@ import examstaff.dto.ExamReportStatsDTO;
 import examstaff.dto.ReportPaymentSummaryDTO;
 import examstaff.service.ReportFeeQueryService;
 import examstaff.service.StaffReportExportService;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ExamSummaryDTO;
 import shared.model.Fee;
 import shared.model.Payment;

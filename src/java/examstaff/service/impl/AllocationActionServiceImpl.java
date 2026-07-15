@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
 import examstaff.dto.AutoAllocateResultDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
 import shared.model.ExamArea;

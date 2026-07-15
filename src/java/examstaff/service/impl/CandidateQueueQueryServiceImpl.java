@@ -1,8 +1,8 @@
 package examstaff.service.impl;
 
-import examstaff.dao.view.ExamStaffCandidateViewDAO;
-import examstaff.dao.view.impl.ExamStaffCandidateViewDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dao.ExamStaffCandidateViewDAO;
+import examstaff.dao.impl.ExamStaffCandidateViewDAOImpl;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.service.CandidatePhotoService;
 import examstaff.service.CandidateQueueQueryService;
 import examstaff.service.impl.CandidatePhotoServiceImpl;

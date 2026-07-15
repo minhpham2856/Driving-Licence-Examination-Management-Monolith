@@ -4,7 +4,7 @@ import examstaff.dao.FeeDAO;
 import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.FeeDAOImpl;
 import examstaff.dao.impl.PaymentDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
 import shared.model.Fee;
 import shared.model.Payment;

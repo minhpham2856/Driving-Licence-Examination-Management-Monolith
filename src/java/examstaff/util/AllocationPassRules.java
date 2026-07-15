@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /** Quy tắc điểm đạt / điều kiện vào giai đoạn thực hành theo hạng GPLX. */
 public final class AllocationPassRules {
