@@ -89,11 +89,107 @@
         });
         bindProcedureNavigation();
         bindPaymentPrintPreopen();
+        bindSePayCheckout();
         initFormChangeChecking();
         initWebcamCapture();
         scrollToProcedureDeskIfNeeded();
         maybeOpenDossierPrint();
     });
+
+    function bindSePayCheckout() {
+        var card = document.getElementById('sePayQrCard');
+        if (!card) {
+            return;
+        }
+        var sbd = card.getAttribute('data-sbd') || '';
+        var ctx = card.getAttribute('data-ctx') || '';
+        var configured = card.getAttribute('data-configured') === 'true';
+        var awaiting = card.getAttribute('data-awaiting') === 'true';
+        var btnPay = document.getElementById('btnSePayCheckout');
+        var btnCheck = document.getElementById('btnSePayCheck');
+        var statusMsg = document.getElementById('sePayStatusMsg');
+        var pollTimer = null;
+
+        function setMsg(text, tone) {
+            if (!statusMsg) {
+                return;
+            }
+            statusMsg.textContent = text || '';
+            statusMsg.style.color = tone === 'ok' ? '#047857' : (tone === 'err' ? '#b91c1c' : '#64748b');
+        }
+
+        function procedureUrl(action) {
+            return (ctx || '') + '/examstaff/procedure?action=' + encodeURIComponent(action)
+                + '&sbd=' + encodeURIComponent(sbd) + '&step=3';
+        }
+
+        function checkPaid(reloadOnPaid) {
+            return fetch(procedureUrl('checkSePayPayment'), {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            }).then(function (res) {
+                return res.json().then(function (data) {
+                    return { ok: res.ok, data: data };
+                });
+            }).then(function (result) {
+                if (result.data && result.data.paid) {
+                    setMsg('Đã nhận thanh toán SePay.', 'ok');
+                    if (pollTimer) {
+                        clearInterval(pollTimer);
+                        pollTimer = null;
+                    }
+                    if (reloadOnPaid) {
+                        markProcedureDeskScroll();
+                        window.location.href = (ctx || '') + '/examstaff/procedure?sbd='
+                            + encodeURIComponent(sbd) + '&step=3';
+                    }
+                    return true;
+                }
+                setMsg((result.data && result.data.message) || 'Đang chờ IPN SePay…', 'wait');
+                return false;
+            }).catch(function () {
+                setMsg('Không kiểm tra được trạng thái. Thử lại.', 'err');
+                return false;
+            });
+        }
+
+        function startPoll() {
+            if (pollTimer) {
+                return;
+            }
+            setMsg('Đang chờ xác nhận IPN từ SePay…', 'wait');
+            pollTimer = setInterval(function () {
+                checkPaid(true);
+            }, 3000);
+        }
+
+        if (btnPay) {
+            btnPay.addEventListener('click', function () {
+                if (!configured || !sbd) {
+                    setMsg('SePay chưa cấu hình hoặc thiếu SBD.', 'err');
+                    return;
+                }
+                markProcedureDeskScroll();
+                window.open(procedureUrl('createSePayCheckout'), 'sePayCheckout');
+                startPoll();
+            });
+        }
+
+        if (btnCheck) {
+            btnCheck.addEventListener('click', function () {
+                if (!sbd) {
+                    return;
+                }
+                setMsg('Đang kiểm tra…', 'wait');
+                checkPaid(true);
+            });
+        }
+
+        if (awaiting && configured && sbd) {
+            startPoll();
+        }
+    }
 
     function dossierPrintUrl(ctx, sbd) {
         return (ctx || '') + '/examstaff/candidate-dossier?sbd='

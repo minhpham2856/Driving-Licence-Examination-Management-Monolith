@@ -4,6 +4,7 @@ import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ProcedureActionOutcome;
 import examstaff.dto.ProcedureFeeResultDTO;
+import examstaff.dto.SePayProcedureCheckoutDTO;
 import examstaff.dto.ServiceResult;
 import examstaff.service.ProcedureService;
 import examstaff.service.impl.support.view.CandidatePhotoServiceImpl;
@@ -12,6 +13,8 @@ import examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl;
 import examstaff.service.impl.support.procedure.ProcedureFeeQueryServiceImpl;
 import examstaff.service.impl.support.procedure.ProcedurePaymentServiceImpl;
 import examstaff.service.impl.support.procedure.ProcedureWorkflowServiceImpl;
+import payment.service.SePayPaymentService;
+import payment.service.impl.SePayPaymentServiceImpl;
 import shared.enums.ErrorType;
 
 import java.sql.Date;
@@ -23,11 +26,13 @@ public class ProcedureServiceImpl implements ProcedureService {
     private final ProcedureWorkflowServiceImpl workflow;
     private final ProcedureFeeQueryServiceImpl feeQuery;
     private final ProcedurePaymentServiceImpl payment;
+    private final SePayPaymentService sePayPaymentService;
 
     /** Wiring mặc định (composition root). */
     public ProcedureServiceImpl() {
         this.payment = new ProcedurePaymentServiceImpl();
         this.feeQuery = new ProcedureFeeQueryServiceImpl();
+        this.sePayPaymentService = new SePayPaymentServiceImpl();
         CandidateQueueServiceImpl queue = new CandidateQueueServiceImpl();
         this.workflow = new ProcedureWorkflowServiceImpl(
                 new RegistrationServiceImpl(),
@@ -39,10 +44,6 @@ public class ProcedureServiceImpl implements ProcedureService {
 
     /**
      * Inject dependencies (test / composition).
-     *
-     * @param workflow luồng thủ tục
-     * @param feeQuery truy vấn phí
-     * @param payment  thanh toán / preview phí
      */
     public ProcedureServiceImpl(ProcedureWorkflowServiceImpl workflow,
             ProcedureFeeQueryServiceImpl feeQuery,
@@ -50,6 +51,7 @@ public class ProcedureServiceImpl implements ProcedureService {
         this.workflow = workflow;
         this.feeQuery = feeQuery;
         this.payment = payment;
+        this.sePayPaymentService = new SePayPaymentServiceImpl();
     }
 
     /**
@@ -192,6 +194,40 @@ public class ProcedureServiceImpl implements ProcedureService {
             };
         }
         return ServiceResult.fail(ErrorType.VALIDATION_FAILED, message, data);
+    }
+
+    @Override
+    public SePayProcedureCheckoutDTO startSePayCheckout(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot) {
+        return workflow.startSePayCheckout(profile, sbd, examId, webRoot);
+    }
+
+    @Override
+    public ServiceResult<ProcedureActionOutcome> finalizeAfterSePayPayment(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot, List<ExamSummaryDTO> allExams) {
+        ProcedureActionOutcome data = workflow.finalizeAfterSePayPayment(profile, sbd, examId, webRoot, allExams);
+        if (data != null && (data.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.SUCCESS
+                || data.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.ALREADY_PAID)) {
+            return ServiceResult.ok(data);
+        }
+        String message = data != null && data.getMessage() != null
+                ? data.getMessage() : "Đang chờ xác nhận SePay.";
+        return ServiceResult.fail(ErrorType.VALIDATION_FAILED, message, data);
+    }
+
+    @Override
+    public String sePayIpnCallbackUrl() {
+        return sePayPaymentService.ipnCallbackUrl();
+    }
+
+    @Override
+    public boolean isSePayConfigured() {
+        return sePayPaymentService.isConfigured();
+    }
+
+    @Override
+    public boolean isSePaySandbox() {
+        return sePayPaymentService.sandbox();
     }
 
     /**
