@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+// JDBC implementation for Profile; examiner module DAO layer only.
 public class ProfileDAOImpl extends DBContext implements ProfileDAO {
     private static final Logger LOG = Logger.getLogger(ProfileDAOImpl.class.getName());
     private static final String PROFILE_SELECT = """
@@ -18,6 +19,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
                             GovernmentIdNumber, Address, UserId
                      from Profile
                      """;
+    // Loads one profile row by government id number.
     @Override
     public Profile getByGovIdNo(String govIdNo) {
         String sql = PROFILE_SELECT + " where GovernmentIdNumber = ?";
@@ -33,6 +35,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         }
         return null;
     }
+    // Loads one profile row by phone number.
     @Override
     public Profile getByPhoneNo(String phoneNo) {
         String sql = PROFILE_SELECT + " where PhoneNumber = ?";
@@ -48,8 +51,9 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         }
         return null;
     }
+    // Inserts a new profile row linked to a user.
     @Override
-    public boolean insert(Profile profile) {
+    public boolean add(Profile profile) {
         Connection conn = getConnection();
         if (conn == null) {
             LOG.severe("Cannot insert profile: database connection is unavailable.");
@@ -86,6 +90,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         }
         return false;
     }
+    // Updates an existing profile row.
     @Override
     public boolean update(Profile profile) {
         String sql = """
@@ -113,6 +118,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         }
         return false;
     }
+    // Private helper: map result set.
     private Profile mapResultSet(ResultSet rs) throws SQLException {
         Profile profile = new Profile();
         profile.setProfileId(rs.getInt("ProfileId"));
@@ -125,6 +131,7 @@ public class ProfileDAOImpl extends DBContext implements ProfileDAO {
         profile.setSex(rs.getBoolean("Sex"));
         return profile;
     }
+    // Batch-loads profile rows for a list of user ids.
     @Override
     public List<Profile> getAllByUserIds(List<Integer> userIds) {
         if (userIds == null || userIds.isEmpty()) {
