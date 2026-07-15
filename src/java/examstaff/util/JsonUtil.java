@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /** Escape / nối field JSON thủ công cho payload bảng gọi / thí sinh. */
 public final class JsonUtil {

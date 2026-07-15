@@ -1,7 +1,7 @@
 package examstaff.service;
 
 import examstaff.dto.PublicCallSnapshotDTO;
-import examstaff.dto.view.CallBoardState;
+import examstaff.dto.CallBoardState;
 
 /**
  * Truy vấn dữ liệu chỉ-đọc cho màn hình Public Call (bảng LED / màn hình chờ).

@@ -2,9 +2,9 @@ package examstaff.dao;
 
 
 import shared.model.Audit;
-import examstaff.dto.user.AuditDTO;
+import examstaff.dto.AuditDTO;
 
-import examstaff.dto.staff.StaffProcedureKpiDTO;
+import examstaff.dto.StaffProcedureKpiDTO;
 
 import java.util.List;
 

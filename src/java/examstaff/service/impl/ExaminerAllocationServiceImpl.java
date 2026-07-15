@@ -15,7 +15,7 @@ import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
 
 import examstaff.dto.AutoAllocateResultDTO;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 import examstaff.dto.ExaminerSlotDTO;
 

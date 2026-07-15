@@ -1,10 +1,10 @@
 package examstaff.filter;
 
 import auth.dto.UserDTO;
-import examstaff.controller.staff.exam.adapter.ExamStaffSelectionFacade;
-import examstaff.controller.staff.exam.binder.ExamStaffPageBinder;
-import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
-import examstaff.controller.staff.exam.module.ExamStaffWebModule;
+import examstaff.controller.ExamStaffSelectionFacade;
+import examstaff.controller.ExamStaffPageBinder;
+import examstaff.controller.ExamStaffHttpSupport;
+import examstaff.controller.ExamStaffWebModule;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;

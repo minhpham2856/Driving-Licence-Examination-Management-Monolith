@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /** Nhãn tiếng Việt cho xuất báo cáo kết quả thi. */
 public final class ReportExportLabels {

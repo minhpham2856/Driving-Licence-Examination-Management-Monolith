@@ -1,9 +1,9 @@
 package examstaff.service.impl;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.PublicCallSnapshotDTO;
-import examstaff.dto.view.CallBoardState;
+import examstaff.dto.CallBoardState;
 import examstaff.service.CallBoardSyncService;
 import examstaff.service.CandidateQueueQueryService;
 import examstaff.service.ExamStaffExamQueryService;

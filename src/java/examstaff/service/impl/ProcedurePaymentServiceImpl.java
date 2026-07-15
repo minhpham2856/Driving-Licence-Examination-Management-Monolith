@@ -2,7 +2,7 @@ package examstaff.service.impl;
 
 import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.PaymentDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
 import examstaff.enums.PaymentMethod;
 import examstaff.enums.PaymentStatus;
