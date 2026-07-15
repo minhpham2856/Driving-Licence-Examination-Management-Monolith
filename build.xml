@@ -11,6 +11,18 @@
     <description>Builds, tests, and runs the project Driving-Licence-Examination-Management-Monolith.</description>
     <property name="source.encoding" value="UTF-8"/>
     <import file="nbproject/build-impl.xml"/>
+
+    <!-- Orphan package from older layout; must not sit beside examstaff.controller.PublicCallStateServlet -->
+    <target name="-post-compile">
+        <delete dir="${build.classes.dir}/examstaff/controller/pub" quiet="true"/>
+    </target>
+    <target name="-post-compile-single">
+        <delete dir="${build.classes.dir}/examstaff/controller/pub" quiet="true"/>
+    </target>
+    <target name="-pre-run-deploy">
+        <delete dir="${build.classes.dir}/examstaff/controller/pub" quiet="true"/>
+    </target>
+
     <!--
 
     There exist several targetS which are by default empty and which can be 
