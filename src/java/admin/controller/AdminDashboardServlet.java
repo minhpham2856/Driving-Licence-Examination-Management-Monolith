@@ -1,9 +1,9 @@
-package Controllers.Admin;
+package admin.controller;
 
-import DAO.AdminStatsDAO;
-import DAO.ExamRoomDAO;
-import DAO.Impl.ExamRoomDAOImpl;
-import Utils.SessionUtil;
+import admin.dao.AdminStatsDAO;
+import admin.dao.ExamRoomDAO;
+import admin.dao.impl.ExamRoomDAOImpl;
+import admin.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

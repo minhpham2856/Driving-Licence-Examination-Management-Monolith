@@ -1,18 +1,15 @@
-package Controllers.Admin;
+package admin.controller;
 
-import DAO.ExamAreaDAO;
-import DAO.ExamDeviceManageDAO;
-import DAO.ExamRoomDAO;
-import DAO.Impl.ExamAreaDAOImpl;
-import DAO.Impl.ExamDeviceManageDAOImpl;
-import DAO.Impl.ExamRoomDAOImpl;
-import Models.ExamDeviceView;
-import Models.ExamRoom;
-import Models.User;
-import Utils.AuditLogHelper;
-import Utils.Sanitize;
-import Utils.SessionUtil;
-import Utils.Validator;
+import admin.dao.ExamAreaDAO;
+import admin.dao.ExamRoomDAO;
+import admin.dao.impl.ExamAreaDAOImpl;
+import admin.dao.impl.ExamRoomDAOImpl;
+import admin.model.ExamRoom;
+import admin.model.User;
+import admin.util.AuditLogHelper;
+import admin.util.Sanitize;
+import admin.util.SessionUtil;
+import admin.util.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,13 +19,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-@WebServlet(name = "ExamDeviceServlet", urlPatterns = {"/admin/exam-computer"})
-public class ExamDeviceServlet extends HttpServlet {
+@WebServlet(name = "ExamRoomServlet", urlPatterns = {"/admin/exam-room"})
+public class ExamRoomServlet extends HttpServlet {
 
-    private final ExamDeviceManageDAO dao = new ExamDeviceManageDAOImpl();
-    private final ExamRoomDAO roomDAO = new ExamRoomDAOImpl();
+    private final ExamRoomDAO dao = new ExamRoomDAOImpl();
     private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
-    private static final String LIST_VIEW = "/views/admin/exam-computer.jsp";
+    private static final String LIST_VIEW = "/views/admin/exam-room.jsp";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -37,22 +33,24 @@ public class ExamDeviceServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
 
         String action = Sanitize.text(req.getParameter("action"));
+
+        // ---- AJAX: danh sách phòng theo khu vực (cascade) ----
         if ("roomsByArea".equals(action)) {
             writeRoomsByArea(req, resp);
             return;
         }
 
         String keyword = Sanitize.text(req.getParameter("searchKeyword"));
-        Integer roomId = Sanitize.toIntegerOrNull(req.getParameter("filterRoom"));
+        Integer areaId = Sanitize.toIntegerOrNull(req.getParameter("filterArea"));
+        String type = Sanitize.text(req.getParameter("filterType"));
         String status = Sanitize.text(req.getParameter("filterStatus"));
 
-        req.setAttribute("examDevices", dao.search(keyword, roomId, status));
-        req.setAttribute("rooms", roomDAO.search(null, null, null, null)); // filter dropdown
-        req.setAttribute("examAreas", areaDAO.search(null, null));         // modal cascade
-        req.setAttribute("totalDevices", dao.countAll());
-        req.setAttribute("activeDevices", dao.countByStatus("Operational") + dao.countByStatus("Available"));
-        req.setAttribute("maintenanceDevices", dao.countByStatus("Maintenance"));
-        req.setAttribute("brokenDevices", dao.countByStatus("Broken"));
+        req.setAttribute("examRooms", dao.search(keyword, areaId, type, status));
+        req.setAttribute("examAreas", areaDAO.search(null, null)); // dropdown
+        req.setAttribute("totalRooms", dao.countAll());
+        req.setAttribute("activeRooms", dao.countByStatus("active"));
+        req.setAttribute("theoryRooms", dao.countByType("theory"));
+        req.setAttribute("practicalRooms", dao.countByType("practical"));
         req.getRequestDispatcher(LIST_VIEW).forward(req, resp);
     }
 
@@ -65,68 +63,78 @@ public class ExamDeviceServlet extends HttpServlet {
         String action = Sanitize.text(req.getParameter("action"));
         boolean ajax = "1".equals(req.getParameter("ajax"));
         User admin = SessionUtil.getCurrentUser(req);
-        Integer adminId = (admin != null) ? admin.getId() : null;
+        String ctx = req.getContextPath();
 
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
-            ExamDeviceView dev = dao.findById(id);
+            ExamRoom room = dao.findById(id);
             boolean ok = id > 0 && dao.delete(id);
             if (ok) {
                 AuditLogHelper.persist(req.getSession(), "DELETE",
-                        "Xóa máy thi: " + (dev != null ? dev.getDeviceName() : id), id);
-                SessionUtil.flash(req, "success", "Đã xóa máy thi.");
+                        "Xóa phòng thi: " + (room != null ? room.getRoomName() : id), id);
+                SessionUtil.flash(req, "success", "Đã xóa phòng thi.");
             } else {
-                SessionUtil.flash(req, "danger", "Xóa máy thi thất bại.");
+                SessionUtil.flash(req, "danger",
+                        "Không thể xóa phòng này (có thể đang có máy thi trực thuộc).");
             }
-            resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
+            resp.sendRedirect(ctx + "/admin/exam-room");
             return;
         }
 
-        int id = Sanitize.toInt(req.getParameter("examDeviceId"), 0);
-        String name = Sanitize.text(req.getParameter("deviceName"));
-        String type = Sanitize.text(req.getParameter("deviceType"));
+        // ---- save (insert/update) ----
+        int id = Sanitize.toInt(req.getParameter("examRoomId"), 0);
+        String name = Sanitize.text(req.getParameter("roomName"));
+        String type = Sanitize.text(req.getParameter("roomType"));
         String status = Sanitize.text(req.getParameter("status"));
-        int roomId = Sanitize.toInt(req.getParameter("examRoomId"), 0);
+        String floor = Sanitize.text(req.getParameter("floor"));
+        Integer capacity = Sanitize.toIntegerOrNull(req.getParameter("capacity"));
         int areaId = Sanitize.toInt(req.getParameter("examAreaId"), 0);
         boolean isEdit = id > 0;
 
-        // Validate — khu vực -> phòng -> các field còn lại
+        // Validate — khu vực trước để đúng thứ tự cascade
         String error = null;
         if (areaId <= 0) {
             error = "Vui lòng chọn khu vực thi.";
-        } else if (roomId <= 0) {
-            error = "Vui lòng chọn phòng thi.";
         } else if (name.isEmpty()) {
-            error = "Vui lòng nhập tên máy thi.";
+            error = "Vui lòng nhập tên phòng thi.";
         } else {
-            error = Validator.name("Tên máy/thiết bị", name, 2, 100);
+            error = Validator.name("Tên phòng thi", name, 3, 100);
         }
-        if (error == null && type.isEmpty()) error = "Vui lòng nhập loại thiết bị.";
-        if (error == null && status.isEmpty()) error = "Vui lòng chọn tình trạng máy.";
+        if (error == null && type.isEmpty()) error = "Vui lòng chọn loại phòng.";
+        if (error == null && status.isEmpty()) error = "Vui lòng chọn trạng thái.";
+        if (error == null && capacity != null) error = Validator.intRange("Sức chứa", capacity, 0, 1000);
+        if (error == null && isDuplicateName(name, areaId, id)) {
+            error = "Khu vực này đã có phòng thi tên \"" + name + "\".";
+        }
 
         if (error != null) {
             respond(req, resp, ajax, false, error);
             return;
         }
 
-        ExamDeviceView dev = new ExamDeviceView();
-        dev.setExamDeviceId(id);
-        dev.setDeviceName(name);
-        dev.setDeviceType(type);
-        dev.setStatus(status);
-        dev.setExamRoomId(roomId);
+        ExamRoom room = new ExamRoom();
+        room.setExamRoomId(id);
+        room.setRoomName(name);
+        room.setRoomType(type);
+        room.setStatus(status);
+        room.setFloor(floor.isEmpty() ? null : floor);
+        room.setCapacity(capacity);
+        room.setExamAreaId(areaId);
 
         boolean ok;
         String msg;
         if (isEdit) {
-            ok = dao.update(dev, adminId);
-            AuditLogHelper.persist(req.getSession(), "UPDATE", "Cập nhật máy thi: " + name, id);
-            msg = ok ? "Đã cập nhật máy \"" + name + "\"." : "Cập nhật máy thi thất bại.";
+            room.setUpdatedByUserId(admin.getId());
+            ok = dao.update(room);
+            AuditLogHelper.persist(req.getSession(), "UPDATE", "Cập nhật phòng thi: " + name, id);
+            msg = ok ? "Đã cập nhật phòng \"" + name + "\"." : "Cập nhật phòng thi thất bại.";
         } else {
-            int newId = dao.insert(dev, adminId);
+            room.setCreatedByUserId(admin.getId());
+            room.setUpdatedByUserId(admin.getId());
+            int newId = dao.insert(room);
             ok = newId > 0;
-            AuditLogHelper.persist(req.getSession(), "INSERT", "Tạo máy thi: " + name, newId);
-            msg = ok ? "Đã thêm máy \"" + name + "\"." : "Thêm máy thi thất bại.";
+            AuditLogHelper.persist(req.getSession(), "INSERT", "Tạo phòng thi: " + name, newId);
+            msg = ok ? "Đã thêm phòng \"" + name + "\"." : "Thêm phòng thi thất bại.";
         }
         respond(req, resp, ajax, ok, msg);
     }
@@ -136,19 +144,31 @@ public class ExamDeviceServlet extends HttpServlet {
     private void respond(HttpServletRequest req, HttpServletResponse resp,
                          boolean ajax, boolean ok, String message) throws IOException {
         if (ajax) {
-            if (ok) SessionUtil.flash(req, "success", message);
+            if (ok) SessionUtil.flash(req, "success", message); // hiện sau khi JS reload
             writeJson(resp, "{\"ok\":" + ok + ",\"message\":\"" + esc(message) + "\"}");
         } else {
             SessionUtil.flash(req, ok ? "success" : "danger", message);
-            resp.sendRedirect(req.getContextPath() + "/admin/exam-computer");
+            resp.sendRedirect(req.getContextPath() + "/admin/exam-room");
         }
+    }
+
+    private boolean isDuplicateName(String name, int areaId, int selfId) {
+        List<ExamRoom> rooms = dao.search(null, areaId, null, null);
+        for (ExamRoom r : rooms) {
+            if (r.getExamRoomId() != selfId
+                    && r.getRoomName() != null
+                    && r.getRoomName().trim().equalsIgnoreCase(name.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void writeRoomsByArea(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Integer areaId = Sanitize.toIntegerOrNull(req.getParameter("areaId"));
         List<ExamRoom> rooms = (areaId == null || areaId <= 0)
                 ? java.util.Collections.emptyList()
-                : roomDAO.search(null, areaId, null, null);
+                : dao.search(null, areaId, null, null);
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < rooms.size(); i++) {
             ExamRoom r = rooms.get(i);

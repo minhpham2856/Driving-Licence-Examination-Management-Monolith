@@ -1,13 +1,13 @@
-package Controllers.Admin;
+package admin.controller;
 
-import DAO.ExamAreaDAO;
-import DAO.Impl.ExamAreaDAOImpl;
-import Models.ExamArea;
-import Models.User;
-import Utils.AuditLogHelper;
-import Utils.Sanitize;
-import Utils.SessionUtil;
-import Utils.Validator;
+import admin.dao.ExamAreaDAO;
+import admin.dao.impl.ExamAreaDAOImpl;
+import admin.model.ExamArea;
+import admin.model.User;
+import admin.util.AuditLogHelper;
+import admin.util.Sanitize;
+import admin.util.SessionUtil;
+import admin.util.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

@@ -1,13 +1,13 @@
-package Controllers.Admin;
+package admin.controller;
 
-import DAO.Impl.LicenceDAOImpl;
-import DAO.LicenceDAO;
-import Models.Licence;
-import Models.User;
-import Utils.AuditLogHelper;
-import Utils.Sanitize;
-import Utils.SessionUtil;
-import Utils.Validator;
+import admin.dao.impl.LicenceDAOImpl;
+import admin.dao.LicenceDAO;
+import admin.model.Licence;
+import admin.model.User;
+import admin.util.AuditLogHelper;
+import admin.util.Sanitize;
+import admin.util.SessionUtil;
+import admin.util.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

@@ -1,15 +1,15 @@
-package Controllers.Admin;
+package admin.controller;
 
-import DAO.FeeManageDAO;
-import DAO.LicenceDAO;
-import DAO.Impl.FeeManageDAOImpl;
-import DAO.Impl.LicenceDAOImpl;
-import Models.FeeView;
-import Models.User;
-import Utils.AuditLogHelper;
-import Utils.Sanitize;
-import Utils.SessionUtil;
-import Utils.Validator;
+import admin.dao.FeeManageDAO;
+import admin.dao.LicenceDAO;
+import admin.dao.impl.FeeManageDAOImpl;
+import admin.dao.impl.LicenceDAOImpl;
+import admin.dto.FeeView;
+import admin.model.User;
+import admin.util.AuditLogHelper;
+import admin.util.Sanitize;
+import admin.util.SessionUtil;
+import admin.util.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

@@ -1,15 +1,15 @@
-package Controllers.Admin;
+package admin.controller;
 
-import Constants.RoleUi;
-import DAO.AccountManageDAO;
-import DAO.Impl.AccountManageDAOImpl;
-import Models.AccountView;
-import Models.User;
-import Utils.AuditLogHelper;
-import Utils.PasswordGenerator;
-import Utils.Sanitize;
-import Utils.SessionUtil;
-import Utils.Validator;
+import admin.constants.RoleUi;
+import admin.dao.AccountManageDAO;
+import admin.dao.impl.AccountManageDAOImpl;
+import admin.dto.AccountView;
+import admin.model.User;
+import admin.util.AuditLogHelper;
+import admin.util.PasswordGenerator;
+import admin.util.Sanitize;
+import admin.util.SessionUtil;
+import admin.util.Validator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

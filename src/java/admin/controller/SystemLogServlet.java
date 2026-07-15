@@ -1,10 +1,10 @@
-package Controllers.Admin;
+package admin.controller;
 
-import Constants.RoleUi;
-import DAO.AuditLogViewDAO;
-import DAO.Impl.AuditLogViewDAOImpl;
-import Utils.Sanitize;
-import Utils.SessionUtil;
+import admin.constants.RoleUi;
+import admin.dao.AuditLogViewDAO;
+import admin.dao.impl.AuditLogViewDAOImpl;
+import admin.util.Sanitize;
+import admin.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
