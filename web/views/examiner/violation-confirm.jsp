@@ -9,7 +9,6 @@
 <c:set var="sbdParam" value="${not empty candidate.sbd ? candidate.sbd : param.sbd}" />
 <c:set var="pageUrl" value="${ctx}/views/examiner/violation-confirm?sbd=${sbdParam}" />
 <c:set var="exportExcelUrl" value="${ctx}/examiner/export/violations" />
-<c:set var="exportXmlUrl" value="${ctx}/examiner/export/violations/xml" />
 <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
