@@ -401,11 +401,11 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         try {
             boolean ok = true;
             if (theoryScore != null) {
+                String license = AllocationPassRules.normalizeLicense(findLicenseClassByCandidate(id), null);
+                boolean hasWrongCritical = hasWrongCriticalTheory(id, examId);
                 boolean passed = theoryPassed != null
                         ? "passed".equalsIgnoreCase(theoryPassed)
-                        : AllocationPassRules.isTheoryPassed(
-                                AllocationPassRules.normalizeLicense(findLicenseClassByCandidate(id), null),
-                                theoryScore);
+                        : AllocationPassRules.isTheoryPassed(license, theoryScore, hasWrongCritical);
                 ok = upsertSectionScore(id, examId, "Theory", theoryScore, passed) && ok;
             }
             if (practicalScore != null) {
@@ -1070,6 +1070,65 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         return null;
     }
 
+    /** Có sai câu điểm liệt LT (ưu tiên enrollment theo examId nếu &gt; 0). */
+    private boolean hasWrongCriticalTheory(int candidateId, int examId) throws SQLException {
+        String sql = examId > 0
+                ? """
+                SELECT TOP 1 ee.ExamEnrollmentId
+                FROM ExamEnrollment ee
+                WHERE ee.CandidateId = ? AND ee.ExamId = ?
+                ORDER BY ee.ExamEnrollmentId DESC
+                """
+                : """
+                SELECT TOP 1 ee.ExamEnrollmentId
+                FROM ExamEnrollment ee
+                WHERE ee.CandidateId = ?
+                ORDER BY ee.ExamEnrollmentId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, candidateId);
+            if (examId > 0) {
+                ps.setInt(2, examId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+                return countWrongCriticalByEnrollment(rs.getInt(1)) > 0;
+            }
+        }
+    }
+
+    /** Đếm câu {@code Question.IsCritical} thí sinh đã trả lời sai trên một enrollment. */
+    private int countWrongCriticalByEnrollment(int examEnrollmentId) {
+        if (examEnrollmentId <= 0) {
+            return 0;
+        }
+        String sql = """
+                SELECT COUNT(*)
+                FROM CandidateAnswer ca
+                JOIN Question q ON q.QuestionId = ca.QuestionId
+                JOIN TheoryPaper tp ON tp.TheoryPaperId = ca.TheoryPaperId
+                JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentSectionId = tp.ExamEnrollmentSectionId
+                WHERE ees.ExamEnrollmentId = ?
+                  AND q.IsCritical = 1
+                  AND ca.Answer IS NOT NULL AND LTRIM(RTRIM(ca.Answer)) <> N''
+                  AND UPPER(LTRIM(RTRIM(ca.Answer))) <> UPPER(LTRIM(RTRIM(q.CorrectAnswer)))
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examEnrollmentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[countWrongCriticalByEnrollment] enrollmentId=" + examEnrollmentId
+                    + " -> " + e.getMessage());
+        }
+        return 0;
+    }
+
     /**
      * Đọc cột BIT; giá trị SQL NULL được coi là {@code false}.
      *
@@ -1186,7 +1245,10 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             er.setTheoryPassed("none");
         } else {
             er.setTheoryScore(tScoreVal);
-            er.setTheoryPassed(AllocationPassRules.isTheoryPassed(licenseForPass, tScoreVal) ? "passed" : "failed");
+            boolean hasWrongCritical = er.getExamEnrollmentId() > 0
+                    && countWrongCriticalByEnrollment(er.getExamEnrollmentId()) > 0;
+            er.setTheoryPassed(AllocationPassRules.isTheoryPassed(licenseForPass, tScoreVal, hasWrongCritical)
+                    ? "passed" : "failed");
         }
 
         int pScoreVal = rs.getInt("practicalScore");
