@@ -325,22 +325,50 @@
                                     </div>
                                 </div>
 
-                                <div class="qr-card">
-                                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; width: 110px; height: 110px;">
-                                        <div style="width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 2px solid #000000; padding: 4px; box-sizing: border-box; background-color: #ffffff;">
-                                            <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
-                                            <div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div>
-                                            <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div>
-                                            <div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
-                                        </div>
-                                    </div>
-                                    <span style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase;">VIETQR Chuyển Khoản</span>
-                                    <c:if test="${not empty requestScope.feeTotal and requestScope.feeTotal > 0}">
-                                        <span style="font-size: 0.95rem; font-weight: 800; color: #0052cc;">
-                                            <fmt:formatNumber value="${requestScope.feeTotal}" pattern="#,##0"/> đ
-                                        </span>
-                                    </c:if>
-                                    <span style="font-size: 0.65rem; color: #64748b; text-align: center;">Tự động xác nhận khi nhận tiền</span>
+                                <div class="qr-card sepay-pay-card" id="sePayQrCard"
+                                     data-sbd="${currentSbd}"
+                                     data-ctx="${pageContext.request.contextPath}"
+                                     data-configured="${sePayConfigured}"
+                                     data-awaiting="${not empty sessionScope.sePayAwaitingSbd and sessionScope.sePayAwaitingSbd eq currentSbd}">
+                                    <c:choose>
+                                        <c:when test="${profile.paymentCompleted}">
+                                            <div class="sepay-pay-card__paid">
+                                                <span class="sepay-pay-card__paid-badge">Đã thanh toán</span>
+                                                <span class="sepay-pay-card__paid-hint">SePay / Tiền mặt</span>
+                                            </div>
+                                        </c:when>
+                                        <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines and not requestScope.examMutationsLocked}">
+                                            <c:if test="${not empty requestScope.feeTotal and requestScope.feeTotal > 0}">
+                                                <div class="sepay-pay-card__amount">
+                                                    <span class="sepay-pay-card__amount-label">Tổng lệ phí</span>
+                                                    <span class="sepay-pay-card__amount-value">
+                                                        <fmt:formatNumber value="${requestScope.feeTotal}" pattern="#,##0"/> đ
+                                                    </span>
+                                                </div>
+                                            </c:if>
+                                            <div class="sepay-pay-card__actions">
+                                                <button type="button" id="btnSePayCheckout"
+                                                        class="procedure-btn procedure-btn--pay sepay-pay-card__btn-primary"
+                                                        ${sePayConfigured ? '' : 'disabled'}
+                                                        title="${sePayConfigured ? 'Mở cổng SePay (QR)' : 'Chưa cấu hình SePay (.env)'}">
+                                                    Thu qua SePay (QR)
+                                                </button>
+                                                <button type="button" id="btnSePayCheck"
+                                                        class="sepay-pay-card__btn-check"
+                                                        ${sePayConfigured ? '' : 'disabled'}>
+                                                    Kiểm tra đã thanh toán
+                                                </button>
+                                            </div>
+                                            <p id="sePayStatusMsg" class="sepay-pay-card__status" role="status">
+                                                <c:if test="${not sePayConfigured}">SePay chưa cấu hình — dùng tiền mặt</c:if>
+                                            </p>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="sepay-pay-card__waiting">
+                                                <span>Chờ đủ điều kiện thu phí</span>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
                         </c:if>
