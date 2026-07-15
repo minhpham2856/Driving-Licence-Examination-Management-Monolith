@@ -272,7 +272,7 @@
 
                 <a href="${ctx}/examstaff/allocation-practical${examQuery}"
 
-                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-practical') ? ' is-active' : ''}"><span class="submenu-dot"></span> TH / Sa hình</a>
+                   class="side-nav-bar__submenu-link${fn:contains(allocUri, 'allocation-practical') ? ' is-active' : ''}"><span class="submenu-dot"></span> Thực hành</a>
 
                 <a href="${ctx}/examstaff/allocation-results-pass${examQuery}"
 
