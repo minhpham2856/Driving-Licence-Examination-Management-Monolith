@@ -9,6 +9,7 @@ import examstaff.dto.ProcedureActionOutcome;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.CallBoardState;
 import examstaff.dto.ServiceResult;
+import examstaff.dto.SePayProcedureCheckoutDTO;
 import examstaff.service.AuditService;
 import examstaff.service.ExamControlService;
 import examstaff.service.ExamStaffViewService;
@@ -157,6 +158,16 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
 
+        if ("createSePayCheckout".equals(pAction) && profile != null) {
+            processSePayCheckout(request, response, session, profile, sbdParam, webRoot, examId);
+            return;
+        }
+
+        if ("checkSePayPayment".equals(pAction) && profile != null) {
+            processSePayCheck(request, response, session, profile, sbdParam, webRoot, allExams, examId);
+            return;
+        }
+
         // Callback sau cổng thanh toán (paymentSuccess=true)
         if ("true".equals(request.getParameter("paymentSuccess")) && profile != null) {
             if (!profile.isValidCapturedPhoto()) {
@@ -190,6 +201,10 @@ public class ProcedureServlet extends HttpServlet {
             hasValidPhoto = profile.isValidCapturedPhoto();
         }
 
+        request.setAttribute("sePayConfigured", procedureService.isSePayConfigured());
+        request.setAttribute("sePaySandbox", procedureService.isSePaySandbox());
+        request.setAttribute("sePayIpnUrl", procedureService.sePayIpnCallbackUrl());
+
         session.setAttribute("procedureStep", stepParam);
         request.setAttribute("step", stepParam);
         request.setAttribute("hasValidPhoto", hasValidPhoto);
@@ -221,7 +236,76 @@ public class ProcedureServlet extends HttpServlet {
             doGet(request, response);
             return;
         }
+        if ("createSePayCheckout".equals(action) || "checkSePayPayment".equals(action)) {
+            doGet(request, response);
+            return;
+        }
         doGet(request, response);
+    }
+
+    private void processSePayCheckout(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, ExamRegistrationDTO profile, String sbdParam, String webRoot, int examId)
+            throws IOException {
+        SePayProcedureCheckoutDTO result = procedureService.startSePayCheckout(
+                profile, sbdParam, examId, webRoot);
+        if (result.getStatus() == SePayProcedureCheckoutDTO.Status.READY
+                && result.getCheckoutHtml() != null) {
+            session.setAttribute("sePayAwaitingSbd", sbdParam);
+            session.setAttribute("sePayAwaitingInvoice", result.getInvoiceNumber());
+            addAuditLog(session, "SEPAY Checkout",
+                    "Mở SePay QR SBD " + sbdParam + " invoice " + result.getInvoiceNumber(),
+                    profile.getId());
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(result.getCheckoutHtml());
+            return;
+        }
+        response.setContentType("application/json;charset=UTF-8");
+        Utf8EncodingHelper.applyResponse(response);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        String msg = result.getMessage() != null ? result.getMessage().replace("\"", "'") : "Không tạo được SePay";
+        response.getWriter().write("{\"success\":false,\"status\":\"" + result.getStatus()
+                + "\",\"message\":\"" + msg + "\"}");
+    }
+
+    private void processSePayCheck(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, ExamRegistrationDTO profile, String sbdParam,
+            String webRoot, List<ExamSummaryDTO> allExams, int examId) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        Utf8EncodingHelper.applyResponse(response);
+
+        ServiceResult<ProcedureActionOutcome> result = procedureService.finalizeAfterSePayPayment(
+                profile, sbdParam, examId, webRoot, allExams);
+        ProcedureActionOutcome outcome = result.getData();
+
+        if (outcome != null
+                && outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.SUCCESS) {
+            applyPaymentOutcome(request, session, sbdParam, outcome, examId);
+            ExamStaffPageSupport.syncExamSelection(session, allExams, examId, viewService);
+            session.setAttribute("procedureJustPaidSbd", sbdParam);
+            session.setAttribute("lastSelectedSbd", sbdParam);
+            session.setAttribute("callingSbd", sbdParam);
+            session.setAttribute("procedureStep", "3");
+            addAuditLog(session, "SEPAY Paid",
+                    outcome.getPaymentAuditDetail() != null ? outcome.getPaymentAuditDetail()
+                            : ("Xác nhận SePay SBD " + sbdParam),
+                    outcome.getProfile() != null ? outcome.getProfile().getId() : 0);
+            response.getWriter().write("{\"success\":true,\"paid\":true,\"finalized\":true}");
+            return;
+        }
+        if (outcome != null
+                && outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.ALREADY_PAID) {
+            response.getWriter().write("{\"success\":true,\"paid\":true,\"finalized\":false}");
+            return;
+        }
+        if (outcome != null
+                && outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.NO_PHOTO) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"success\":false,\"paid\":false,\"message\":\"Thiếu ảnh thủ tục.\"}");
+            return;
+        }
+        String waitMsg = result.getMessage() != null ? result.getMessage().replace("\"", "'")
+                : "Đang chờ IPN SePay.";
+        response.getWriter().write("{\"success\":true,\"paid\":false,\"message\":\"" + waitMsg + "\"}");
     }
 
     /**

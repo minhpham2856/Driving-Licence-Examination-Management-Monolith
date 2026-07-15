@@ -11,14 +11,14 @@ import payment.dto.PaymentRecord;
 import payment.service.SePayPaymentService;
 import payment.util.sepay.SePayConfig;
 import payment.util.sepay.SePayConstants;
+import payment.util.sepay.SePayInvoice;
 import payment.util.sepay.SePayIpnParser;
 import payment.util.sepay.SePaySignature;
 import examstaff.enums.PaymentStatus;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
-/** SePay: checkout (createCheckout → buildAutoSubmitHtml) rồi IPN (handleIpn → recordPaidIpn idempotent). Invoice DLEM-{prefix}-{candidateId}-{timestamp}. */
+/** SePay: checkout → IPN. Invoice DLEM-{prefix}-{candidateId}[-{enrollmentId}]-{ts}. */
 public class SePayPaymentServiceImpl implements SePayPaymentService {
 
     /** Cho phép lệch tối đa 5 phút giữa timestamp webhook và đồng hồ server (chống replay). */
@@ -41,7 +41,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
     public SePayCheckoutSession createCheckout(SePayCheckoutRequest request) throws SePayPaymentException {
         if (!isConfigured()) {
             throw new SePayPaymentException(
-                    "SePay chưa cấu hình (SEPAY_MERCHANT_ID, SEPAY_SECRET_KEY trong web/WEB-INF/.env).");
+                    "SePay chưa cấu hình (SEPAY_MERCHANT_ID, SEPAY_SECRET_KEY trong .env / WEB-INF/.env).");
         }
         validateCheckoutRequest(request);
 
@@ -99,12 +99,23 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return html.toString();
     }
 
-    /** Mã hóa đơn DLEM-{prefix}-{internalOrderId}-{timestamp}; internalOrderId thường là CandidateId cho IPN. */
     @Override
-    public String generateInvoiceNumber(String businessPrefix, long internalOrderId) {
-        String prefix = businessPrefix == null || businessPrefix.isBlank()
-                ? "PAY" : businessPrefix.trim().toUpperCase(Locale.ROOT);
-        return "DLEM-" + prefix + "-" + internalOrderId + "-" + System.currentTimeMillis();
+    public String generateInvoiceNumber(String businessPrefix, long candidateId) {
+        return SePayInvoice.generate(businessPrefix, candidateId, 0);
+    }
+
+    @Override
+    public String generateInvoiceNumber(String businessPrefix, long candidateId, long enrollmentId) {
+        return SePayInvoice.generate(businessPrefix, candidateId, enrollmentId);
+    }
+
+    @Override
+    public String ipnCallbackUrl() {
+        String base = SePayConfig.appBaseUrl();
+        if (base == null || base.isBlank()) {
+            return "";
+        }
+        return base + "/payment/sepay/ipn";
     }
 
     /** IPN: auth → parse → ORDER_PAID+CAPTURED thì ghi Payment → OK/reject. */
@@ -125,39 +136,39 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         if (event.getOrderInvoiceNumber() == null || event.getOrderInvoiceNumber().isBlank()) {
             return SePayIpnResult.reject("Missing order_invoice_number");
         }
-        // Chỉ ghi DB khi notification = ORDER_PAID và order_status = CAPTURED
         if (event.isPaid()) {
             recordPaidIpn(event);
         }
         return SePayIpnResult.ok(event);
     }
 
-    /** Ghi Payment idempotent; bỏ qua nếu TransactionReference đã có (SePay retry). */
     private void recordPaidIpn(SePayIpnEvent event) {
         String transactionRef = resolveTransactionReference(event);
         if (transactionRef != null && paymentdao.existsCompletedByTransactionReference(transactionRef)) {
-            return; // đã ghi → không insert trùng
+            return;
         }
-        Integer candidateId = parseCandidateIdFromInvoice(event.getOrderInvoiceNumber());
+        Integer candidateId = SePayInvoice.parseCandidateId(event.getOrderInvoiceNumber());
         if (candidateId == null || candidateId <= 0) {
-            return; // invoice không parse được CandidateId
+            return;
         }
         double amount = parseAmountVnd(event.getOrderAmount());
         if (amount <= 0) {
             return;
         }
+        Integer enrollmentId = SePayInvoice.parseEnrollmentId(event.getOrderInvoiceNumber());
         PaymentRecord payment = new PaymentRecord();
         payment.setCandidateId(candidateId);
+        if (enrollmentId != null && enrollmentId > 0) {
+            payment.setExamEnrollmentId(enrollmentId);
+        }
         payment.setAmount(amount);
         payment.setPaymentStatus(PaymentStatus.HOAN_TAT.getDisplayName());
         payment.setPaymentMethod(event.getPaymentMethod() != null && !event.getPaymentMethod().isBlank()
                 ? event.getPaymentMethod().trim() : "SePay");
         payment.setTransactionReference(transactionRef);
-        // insert cần ExamEnrollment sẵn; DAO resolve từ CandidateId
         paymentdao.insert(payment);
     }
 
-    /** Ưu tiên transaction_id → order_id → invoice number làm khóa idempotent. */
     private static String resolveTransactionReference(SePayIpnEvent event) {
         if (event.getTransactionId() != null && !event.getTransactionId().isBlank()) {
             return event.getTransactionId().trim();
@@ -166,22 +177,6 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
             return event.getSePayOrderId().trim();
         }
         return event.getOrderInvoiceNumber() != null ? event.getOrderInvoiceNumber().trim() : null;
-    }
-
-    /** Tách CandidateId từ invoice DLEM-{prefix}-{candidateId}-{timestamp} (parts[2]). */
-    static Integer parseCandidateIdFromInvoice(String invoice) {
-        if (invoice == null || invoice.isBlank()) {
-            return null;
-        }
-        String[] parts = invoice.trim().split("-");
-        if (parts.length < 4 || !"DLEM".equalsIgnoreCase(parts[0])) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(parts[2]);
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
     }
 
     private static double parseAmountVnd(String raw) {
