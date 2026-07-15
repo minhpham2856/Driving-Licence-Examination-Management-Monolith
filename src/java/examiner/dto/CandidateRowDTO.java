@@ -3,6 +3,7 @@ package examiner.dto;
 import shared.enums.CandidateStatus;
 import shared.enums.Sex;
 
+// Data transfer object for examiner candidate row views.
 public class CandidateRowDTO {
 
     private int candidateNumber;
@@ -18,6 +19,10 @@ public class CandidateRowDTO {
     private String reasonForTaking;
     private String examDate;
     private CandidateStatus sectionStatus;
+    private String status;
+    private String statusLabel;
+    private String sexValue;
+    private String sexLabel;
     private int correct;
     private int wrong;
     private int unanswered;
@@ -28,6 +33,21 @@ public class CandidateRowDTO {
     private String resultLabel;
     private String vehicleName;
     private String avatarClass;
+    private String photoImageUrl;
+    private String dobRaw;
+    private boolean suspended;
+    private boolean absent;
+    private boolean resultPrinted;
+    private boolean awaitingSignature;
+    private boolean actionEligible;
+    private boolean violationEligible;
+    private boolean markPresentEligible;
+    private boolean undoPresentEligible;
+    private boolean wrongInfoEligible;
+    private boolean completeEligible;
+    private boolean practicalEntryAllowed = true;
+    private boolean active;
+    private boolean invoked;
 
     public int getCandidateNumber() {
         return candidateNumber;
@@ -133,6 +153,38 @@ public class CandidateRowDTO {
         this.sectionStatus = sectionStatus;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatusLabel() {
+        return statusLabel;
+    }
+
+    public void setStatusLabel(String statusLabel) {
+        this.statusLabel = statusLabel;
+    }
+
+    public String getSexValue() {
+        return sexValue;
+    }
+
+    public void setSexValue(String sexValue) {
+        this.sexValue = sexValue;
+    }
+
+    public String getSexLabel() {
+        return sexLabel;
+    }
+
+    public void setSexLabel(String sexLabel) {
+        this.sexLabel = sexLabel;
+    }
+
     public int getCorrect() {
         return correct;
     }
@@ -211,5 +263,125 @@ public class CandidateRowDTO {
 
     public void setAvatarClass(String avatarClass) {
         this.avatarClass = avatarClass;
+    }
+
+    public String getPhotoImageUrl() {
+        return photoImageUrl;
+    }
+
+    public void setPhotoImageUrl(String photoImageUrl) {
+        this.photoImageUrl = photoImageUrl;
+    }
+
+    public String getDobRaw() {
+        return dobRaw;
+    }
+
+    public void setDobRaw(String dobRaw) {
+        this.dobRaw = dobRaw;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
+    }
+
+    public boolean isAbsent() {
+        return absent;
+    }
+
+    public void setAbsent(boolean absent) {
+        this.absent = absent;
+    }
+
+    public boolean isResultPrinted() {
+        return resultPrinted;
+    }
+
+    public void setResultPrinted(boolean resultPrinted) {
+        this.resultPrinted = resultPrinted;
+    }
+
+    public boolean isAwaitingSignature() {
+        return awaitingSignature;
+    }
+
+    public void setAwaitingSignature(boolean awaitingSignature) {
+        this.awaitingSignature = awaitingSignature;
+    }
+
+    public boolean isActionEligible() {
+        return actionEligible;
+    }
+
+    public void setActionEligible(boolean actionEligible) {
+        this.actionEligible = actionEligible;
+    }
+
+    public boolean isViolationEligible() {
+        return violationEligible;
+    }
+
+    public void setViolationEligible(boolean violationEligible) {
+        this.violationEligible = violationEligible;
+    }
+
+    public boolean isMarkPresentEligible() {
+        return markPresentEligible;
+    }
+
+    public void setMarkPresentEligible(boolean markPresentEligible) {
+        this.markPresentEligible = markPresentEligible;
+    }
+
+    public boolean isUndoPresentEligible() {
+        return undoPresentEligible;
+    }
+
+    public void setUndoPresentEligible(boolean undoPresentEligible) {
+        this.undoPresentEligible = undoPresentEligible;
+    }
+
+    public boolean isWrongInfoEligible() {
+        return wrongInfoEligible;
+    }
+
+    public void setWrongInfoEligible(boolean wrongInfoEligible) {
+        this.wrongInfoEligible = wrongInfoEligible;
+    }
+
+    public boolean isCompleteEligible() {
+        return completeEligible;
+    }
+
+    public void setCompleteEligible(boolean completeEligible) {
+        this.completeEligible = completeEligible;
+    }
+
+    public boolean isPracticalEntryAllowed() {
+        return practicalEntryAllowed;
+    }
+
+    public void setPracticalEntryAllowed(boolean practicalEntryAllowed) {
+        this.practicalEntryAllowed = practicalEntryAllowed;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isInvoked() {
+        return invoked;
+    }
+
+    public void setInvoked(boolean invoked) {
+        this.invoked = invoked;
     }
 }
