@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
 
@@ -108,7 +108,7 @@ public interface CandidateQueueService {
      * @param queue          hàng đợi
      * @return SBD đang gọi sau đồng bộ (có thể null)
      */
-    String resolveSyncedCallingSbd(String httpCallingSbd, examstaff.dto.view.CallBoardState callBoard,
+    String resolveSyncedCallingSbd(String httpCallingSbd, examstaff.dto.CallBoardState callBoard,
             List<ExamRegistrationDTO> queue);
 
     /**

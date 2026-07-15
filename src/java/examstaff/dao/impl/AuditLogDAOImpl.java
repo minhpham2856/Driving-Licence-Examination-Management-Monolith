@@ -6,9 +6,9 @@ import shared.dbconnection.DBContext;
 import examstaff.dao.AuditLogDAO;
 
 import shared.model.Audit;
-import examstaff.dto.user.AuditDTO;
+import examstaff.dto.AuditDTO;
 
-import examstaff.dto.staff.StaffProcedureKpiDTO;
+import examstaff.dto.StaffProcedureKpiDTO;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -39,7 +39,12 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             LEFT JOIN Profile p ON p.UserId = u.UserId
             """;
 
-    /** {@inheritDoc} */
+    /**
+     * Ghi một bản ghi nhật ký kiểm tra mới.
+     *
+     * @param log đối tượng Audit chứa thông tin nhật ký
+     * @return true nếu ghi thành công
+     */
     @Override
     public boolean insert(Audit log) {
         String sql = """
@@ -96,7 +101,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy danh sách nhật ký của người dùng theo ngày cụ thể.
+     *
+     * @param userId mã người dùng
+     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
+     * @return danh sách AuditDTO
+     */
     @Override
     public List<AuditDTO> getLogsByUserAndDate(int userId, String dateStr) {
         if (dateStr != null && !dateStr.trim().isEmpty()) {
@@ -110,7 +121,15 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 ps -> ps.setInt(1, userId), true);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy danh sách nhật ký của người dùng theo ngày có phân trang.
+     *
+     * @param userId   mã người dùng
+     * @param dateStr  ngày cần lọc (định dạng yyyy-MM-dd)
+     * @param page     số trang (bắt đầu từ 1)
+     * @param pageSize số lượng bản ghi trên mỗi trang
+     * @return danh sách AuditDTO theo trang
+     */
     @Override
     public List<AuditDTO> getLogsByUserAndDatePaginated(int userId, String dateStr, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
@@ -131,7 +150,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
                 }, false);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đếm số lượng nhật ký của người dùng theo ngày.
+     *
+     * @param userId  mã người dùng
+     * @param dateStr ngày cần lọc (định dạng yyyy-MM-dd)
+     * @return số lượng bản ghi nhật ký
+     */
     @Override
     public int getLogsCountByUserAndDate(int userId, String dateStr) {
         if (dateStr != null && !dateStr.trim().isEmpty()) {
@@ -176,7 +201,13 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return 0;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy chỉ số KPI thủ tục của cán bộ (số thí sinh đã có ảnh + thanh toán do cán bộ đó thu).
+     *
+     * @param userId     mã cán bộ
+     * @param filterDate ngày lọc (định dạng yyyy-MM-dd) hoặc null để lấy tất cả
+     * @return StaffProcedureKpiDTO chứa thông tin KPI
+     */
     @Override
     public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();

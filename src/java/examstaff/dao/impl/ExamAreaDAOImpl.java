@@ -35,7 +35,12 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return a;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy khu vực theo mã.
+     *
+     * @param examAreaId mã khu vực
+     * @return entity hoặc {@code null} nếu không tìm thấy
+     */
     @Override
     public ExamArea getById(int examAreaId) {
         String sql = "SELECT * FROM ExamArea WHERE ExamAreaId = ?";
@@ -51,7 +56,11 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy danh sách phòng lý thuyết đang dùng được (gộp theo schema).
+     *
+     * @return danh sách phòng lý thuyết
+     */
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
         // Schema Clean: "Lý thuyết" - schema SWP/DLEM: "Phòng thi"
@@ -65,7 +74,12 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return new ArrayList<>(byId.values());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy khu vực theo loại ({@code AreaType}).
+     *
+     * @param areaType loại khu vực
+     * @return danh sách khu vực, rỗng nếu {@code areaType} trống
+     */
     @Override
     public List<ExamArea> getAvailableAreasByType(String areaType) {
         if (areaType == null || areaType.isBlank()) {
@@ -87,7 +101,12 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         return list;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy khu vực được gán cho một kỳ thi.
+     *
+     * @param examId mã kỳ thi
+     * @return danh sách khu vực của kỳ thi
+     */
     @Override
     public List<ExamArea> getAreasByExamId(int examId) {
         List<ExamArea> list = new ArrayList<>();

@@ -3,7 +3,7 @@ package examstaff.dao.impl;
 import examstaff.dao.CallBoardAttributeKeys;
 import examstaff.dao.CallBoardDAO;
 import jakarta.servlet.ServletContext;
-import examstaff.dto.view.CallBoardState;
+import examstaff.dto.CallBoardState;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /** Suy luận bước thủ tục (1–3) và thông báo lỗi ảnh/thu phí. */
 public final class ProcedureStepHelper {

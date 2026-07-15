@@ -1,6 +1,6 @@
 package examstaff.util;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 import java.io.File;
 import java.util.List;

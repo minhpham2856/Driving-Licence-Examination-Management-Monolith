@@ -1,9 +1,9 @@
 package examstaff.service.impl;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.PublicCallSnapshotDTO;
-import examstaff.dto.view.CallBoardState;
+import examstaff.dto.CallBoardState;
 import examstaff.service.CallBoardSyncService;
 import examstaff.service.CandidateQueueQueryService;
 import examstaff.service.ExamStaffExamQueryService;
@@ -42,7 +42,14 @@ public class PublicCallQueryServiceImpl implements PublicCallQueryService {
         this.callBoardSyncService = callBoardSyncService;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Ghép hàng đợi DB + trạng thái CallBoard thành snapshot hiển thị công khai.
+     *
+     * @param examId      mã kỳ thi đang active
+     * @param webRootPath đường dẫn web root (chuẩn hóa URL ảnh)
+     * @param board       trạng thái bảng gọi hiện tại (có thể null)
+     * @return snapshot gồm thí sinh đang gọi, kế tiếp, hàng chờ và cờ pause/end
+     */
     @Override
     public PublicCallSnapshotDTO loadSnapshot(int examId, String webRootPath, CallBoardState board) {
         PublicCallSnapshotDTO snapshot = new PublicCallSnapshotDTO();

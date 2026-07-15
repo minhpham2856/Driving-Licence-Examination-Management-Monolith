@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
-import examstaff.dto.candidate.CandidateCallDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.CandidateCallDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dao.CandidateCallDAO;
 import examstaff.dao.impl.CandidateCallDAOImpl;
@@ -41,7 +41,18 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         this.attendanceService = attendanceService;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Chạy một action gọi thí sinh và trả kết quả side-effect cho orchestrator trang.
+     *
+     * @param action           mã action ({@code startCall}, {@code absent}, {@code pauseShift}…)
+     * @param sbd              SBD liên quan (nếu có)
+     * @param fullQueue        hàng đợi đầy đủ (có thể bị sửa thứ tự in-place)
+     * @param permanentAbsents danh sách đình chỉ trên session
+     * @param boardExamId      kỳ thi trên bảng gọi
+     * @param shiftEnded       ca đã đóng hay chưa
+     * @param calledByStaffId  userId staff đang thao tác
+     * @return kết quả: cập nhật callingSbd, alert, cờ reload/sync/promote…
+     */
     @Override
     public CandidateCallActionResultDTO executeAction(String action, String sbd,
             List<ExamRegistrationDTO> fullQueue, List<ExamRegistrationDTO> permanentAbsents,
@@ -196,7 +207,13 @@ public class CandidateCallWorkflowServiceImpl implements CandidateCallWorkflowSe
         }
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Ghi nhận lượt gọi thí sinh (audit CALL) khi promote SBD lên số đang gọi.
+     *
+     * @param activeQueue     hàng đợi còn pending
+     * @param nextSbd         SBD được gọi
+     * @param calledByStaffId userId staff
+     */
     @Override
     public void recordCallingCandidate(List<ExamRegistrationDTO> activeQueue, String nextSbd, int calledByStaffId) {
         if (nextSbd == null || nextSbd.isBlank()) {

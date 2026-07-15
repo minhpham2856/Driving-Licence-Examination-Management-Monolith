@@ -96,7 +96,7 @@
     });
 
     function dossierPrintUrl(ctx, sbd) {
-        return (ctx || '') + '/views/staff/examstaff/candidate-dossier?sbd='
+        return (ctx || '') + '/examstaff/candidate-dossier?sbd='
             + encodeURIComponent(sbd) + '&print=true';
     }
 
@@ -313,7 +313,7 @@
             body.append('photoBase64', dataUrl);
 
             try {
-                var resp = await fetch(ctxPath + '/views/staff/examstaff/procedure', {
+                var resp = await fetch(ctxPath + '/examstaff/procedure', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
                     body: body.toString(),
@@ -325,7 +325,7 @@
                 }
                 stopCamera();
                 markProcedureDeskScroll();
-                window.location.href = ctxPath + '/views/staff/examstaff/procedure?sbd='
+                window.location.href = ctxPath + '/examstaff/procedure?sbd='
                     + encodeURIComponent(sbd) + '&step=2#procedure-desk';
             } catch (err) {
                 console.error(err);

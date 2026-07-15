@@ -1,7 +1,7 @@
 package examstaff.service;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ExamReportStatsDTO;
 
 import java.io.IOException;
