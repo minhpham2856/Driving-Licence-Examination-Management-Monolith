@@ -18,7 +18,7 @@ import examstaff.enums.PaymentStatus;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** SePay: checkout → IPN. Invoice DLEM-{prefix}-{candidateId}[-{enrollmentId}]-{ts}. */
+/** SePay Payment Gateway: checkout (form signed) → khách trả → IPN ghi Payment. */
 public class SePayPaymentServiceImpl implements SePayPaymentService {
 
     /** Cho phép lệch tối đa 5 phút giữa timestamp webhook và đồng hồ server (chống replay). */
@@ -36,7 +36,10 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return SePayConfig.sandbox();
     }
 
-    /** Bước 1 checkout: ghép form fields + ký HMAC theo SIGN_FIELD_ORDER (sai thứ tự thì SePay từ chối). */
+    /**
+     * Bước 1 — tạo payload checkout: field theo spec + success/error/cancel URL + chữ ký HMAC.
+     * Sai thứ tự field khi ký → SePay từ chối form.
+     */
     @Override
     public SePayCheckoutSession createCheckout(SePayCheckoutRequest request) throws SePayPaymentException {
         if (!isConfigured()) {
@@ -61,6 +64,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         }
         fields.put("success_url", resolveUrl(request.getSuccessUrl(), SePayConfig.defaultSuccessUrl()));
         fields.put("error_url", resolveUrl(request.getErrorUrl(), SePayConfig.defaultErrorUrl()));
+        // cancel_url: khách bấm Hủy trên SePay → SePayReturnServlet → bàn thu phí
         fields.put("cancel_url", resolveUrl(request.getCancelUrl(), SePayConfig.defaultCancelUrl()));
 
         // Ký HMAC-SHA256 → Base64, gắn vào form trước khi POST
@@ -68,6 +72,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         fields.put("signature", signature);
 
         SePayCheckoutSession session = new SePayCheckoutSession();
+        // pay.sepay.vn/.../checkout/init — form POST (không phải pgapi REST)
         session.setCheckoutUrl(SePayConfig.checkoutInitUrl());
         session.setOrderInvoiceNumber(request.getOrderInvoiceNumber().trim());
         // Chỉ đưa field theo đúng thứ tự ký (kể cả signature) để POST ổn định
@@ -75,7 +80,10 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return session;
     }
 
-    /** Bước 2 checkout: HTML form hidden + JS auto-submit POST thẳng lên SePay. */
+    /**
+     * Bước 2 — HTML tạm trong popup: form hidden + JS submit → cổng SePay.
+     * Staff mở URL này qua {@code window.open(createSePayCheckout)}.
+     */
     @Override
     public String buildAutoSubmitHtml(SePayCheckoutSession session) {
         if (session == null || session.getCheckoutUrl() == null) {
@@ -111,6 +119,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
 
     @Override
     public String ipnCallbackUrl() {
+        // Phải trùng URL khai báo trên SePay Dashboard (public / ngrok)
         String base = SePayConfig.appBaseUrl();
         if (base == null || base.isBlank()) {
             return "";
@@ -118,7 +127,10 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         return base + "/payment/sepay/ipn";
     }
 
-    /** IPN: auth → parse → ORDER_PAID+CAPTURED thì ghi Payment → OK/reject. */
+    /**
+     * IPN: auth → parse → nếu ORDER_PAID+CAPTURED thì ghi Payment → trả OK/reject.
+     * Idempotent: {@link #recordPaidIpn} bỏ qua nếu transaction_ref đã có.
+     */
     @Override
     public SePayIpnResult handleIpn(String rawBody, String secretHeader,
             String signatureHeader, String timestampHeader) {
@@ -137,11 +149,16 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
             return SePayIpnResult.reject("Missing order_invoice_number");
         }
         if (event.isPaid()) {
+            // Chỉ ghi DB khi thật sự đã thu; notification khác (pending/fail) bỏ qua
             recordPaidIpn(event);
         }
         return SePayIpnResult.ok(event);
     }
 
+    /**
+     * Insert Payment từ invoice DLEM-CHK-{candidateId}-{enrollmentId}-{ts}.
+     * Duplicate webhook (cùng transaction_ref) → không insert lại.
+     */
     private void recordPaidIpn(SePayIpnEvent event) {
         String transactionRef = resolveTransactionReference(event);
         if (transactionRef != null && paymentdao.existsCompletedByTransactionReference(transactionRef)) {

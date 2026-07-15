@@ -96,6 +96,16 @@
         maybeOpenDossierPrint();
     });
 
+    /**
+     * SePay trên bàn thủ tục (bước 3).
+     *
+     * Luồng:
+     * 1) Thu qua SePay → mở tab createSePayCheckout (HTML form → cổng SePay QR)
+     * 2) Poll / nút Kiểm tra → checkSePayPayment (xem IPN đã ghi Payment chưa)
+     * 3) Khách hủy trên SePay → return cancel → refresh bước thu phí (chọn lại tiền mặt/SePay)
+     *
+     * Nguồn sự thật thanh toán = IPN webhook, không phải trang success.
+     */
     function bindSePayCheckout() {
         var card = document.getElementById('sePayQrCard');
         if (!card) {
@@ -123,6 +133,7 @@
                 + '&sbd=' + encodeURIComponent(sbd) + '&step=3';
         }
 
+        /** Gọi servlet kiểm tra: paid=true → reload desk; false → hiện message chờ IPN. */
         function checkPaid(reloadOnPaid) {
             return fetch(procedureUrl('checkSePayPayment'), {
                 method: 'GET',
@@ -154,6 +165,7 @@
             });
         }
 
+        /** Poll 3s sau khi mở cổng — IPN về sẽ tự finalize mà không cần bấm Kiểm tra. */
         function startPoll() {
             if (pollTimer) {
                 return;
@@ -171,6 +183,7 @@
                     return;
                 }
                 markProcedureDeskScroll();
+                // Popup nhận HTML auto-submit; tab gốc giữ desk và bắt đầu poll
                 window.open(procedureUrl('createSePayCheckout'), 'sePayCheckout');
                 startPoll();
             });
@@ -186,6 +199,7 @@
             });
         }
 
+        // Reload desk khi còn cờ awaiting (vd. quay lại sau hủy) → tiếp tục poll
         if (awaiting && configured && sbd) {
             startPoll();
         }
