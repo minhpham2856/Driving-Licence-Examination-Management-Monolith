@@ -11,8 +11,16 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Return sau SePay. Hủy/lỗi → bước thu lệ phí (chọn lại SePay / tiền mặt).
- * Thành công → thông báo đóng tab.
+ * Trang return mà SePay redirect trình duyệt sau thanh toán (không phải IPN).
+ * <p>
+ * Ba URL map cùng servlet:
+ * <ul>
+ *   <li>{@code /payment/sepay/success} — khách thanh toán xong (chỉ UX; Payment ghi bởi IPN)</li>
+ *   <li>{@code /payment/sepay/cancel} — khách bấm Hủy trên cổng SePay</li>
+ *   <li>{@code /payment/sepay/error} — lỗi phía cổng SePay</li>
+ * </ul>
+ * Hủy/lỗi: đưa staff về bước 3 thu lệ phí để chọn lại SePay hoặc tiền mặt.
+ * Thành công: hiện thông báo đóng tab; desk tự cập nhật khi IPN tới hoặc bấm “Kiểm tra”.
  */
 @WebServlet({"/payment/sepay/success", "/payment/sepay/error", "/payment/sepay/cancel"})
 public class SePayReturnServlet extends HttpServlet {
@@ -26,6 +34,7 @@ public class SePayReturnServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Một số cổng gọi return bằng POST — xử lý giống GET
         handleReturn(request, response);
     }
 
@@ -35,14 +44,16 @@ public class SePayReturnServlet extends HttpServlet {
         boolean cancelled = path != null && path.endsWith("/cancel");
         boolean error = path != null && path.endsWith("/error");
 
+        // --- Hủy hoặc lỗi: quay bàn thủ tục bước thu phí ---
         if (cancelled || error) {
             HttpSession session = request.getSession(false);
             String sbd = resolveSbd(request, session);
             if (session != null) {
-                session.setAttribute("procedureStep", "3");
+                session.setAttribute("procedureStep", "3"); // giữ wizard ở bước lệ phí
                 if (sbd != null) {
                     session.setAttribute("callingSbd", sbd);
                 }
+                // Ngừng cờ chờ IPN để desk không tiếp tục poll SBD này
                 session.removeAttribute("sePayAwaitingSbd");
                 session.removeAttribute("sePayAwaitingInvoice");
             }
@@ -50,6 +61,7 @@ public class SePayReturnServlet extends HttpServlet {
             return;
         }
 
+        // --- Thành công: chỉ thông báo; không ghi DB tại đây ---
         response.setContentType("text/html;charset=UTF-8");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.getWriter().write("""
@@ -67,6 +79,7 @@ public class SePayReturnServlet extends HttpServlet {
                 """);
     }
 
+    /** Ưu tiên ?sbd= trên URL; fallback session khi mở checkout từ bàn thủ tục. */
     private static String resolveSbd(HttpServletRequest request, HttpSession session) {
         String sbd = blankToNull(request.getParameter("sbd"));
         if (sbd != null) {
@@ -83,6 +96,10 @@ public class SePayReturnServlet extends HttpServlet {
         return value.isEmpty() ? null : value;
     }
 
+    /**
+     * URL bước 3 desk: SePay + tiền mặt cùng hiện.
+     * {@code #procedure-desk} giúp cuộn đúng khối thu phí.
+     */
     private static String paymentStepUrl(HttpServletRequest request, String sbd, boolean cancelled) {
         String ctx = request.getContextPath() == null ? "" : request.getContextPath();
         StringBuilder url = new StringBuilder(ctx).append("/examstaff/procedure?step=3");
@@ -94,6 +111,10 @@ public class SePayReturnServlet extends HttpServlet {
         return url.toString();
     }
 
+    /**
+     * Checkout mở bằng {@code window.open} → tab return là popup.
+     * Ưu tiên: refresh tab gốc (opener) rồi đóng popup; không có opener thì redirect tab hiện tại.
+     */
     private static void writeBackToPayment(HttpServletResponse response, String deskUrl, boolean cancelled)
             throws IOException {
         response.setContentType("text/html;charset=UTF-8");
