@@ -4,6 +4,7 @@ import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ProcedureActionOutcome;
 import examstaff.dto.ProcedureFeeResultDTO;
+import examstaff.dto.SePayProcedureCheckoutDTO;
 import examstaff.dto.ServiceResult;
 
 import java.sql.Date;
@@ -103,6 +104,21 @@ public interface ProcedureService {
      */
     ServiceResult<ProcedureActionOutcome> confirmPayment(ExamRegistrationDTO profile, String sbd,
             int examId, String webRoot, List<ExamSummaryDTO> allExams);
+
+    /** Tạo checkout SePay (QR) — không ghi Payment. */
+    SePayProcedureCheckoutDTO startSePayCheckout(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot);
+
+    /** Sau IPN: present + allocate nếu đã có Payment. */
+    ServiceResult<ProcedureActionOutcome> finalizeAfterSePayPayment(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot, List<ExamSummaryDTO> allExams);
+
+    /** URL IPN để khai báo SePay / hiển thị trên desk. */
+    String sePayIpnCallbackUrl();
+
+    boolean isSePayConfigured();
+
+    boolean isSePaySandbox();
 
     /**
      * Reset trạng thái thủ tục (ảnh / thanh toán) theo SBD.

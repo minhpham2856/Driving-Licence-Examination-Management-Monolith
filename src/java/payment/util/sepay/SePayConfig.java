@@ -29,31 +29,63 @@ public final class SePayConfig {
         return !SePayConstants.ENV_PRODUCTION.equalsIgnoreCase(env.trim());
     }
 
+    /**
+     * Form POST checkout — dùng domain pay.*, không dùng pgapi.* (REST API).
+     * Docs/SDK: production https://pay.sepay.vn/v1/checkout/init
+     */
     public static String checkoutInitUrl() {
         String override = ConfigManager.get("SEPAY_CHECKOUT_URL");
         if (!blank(override)) {
             return override.trim();
         }
+        // Ưu tiên base checkout; tương thích biến cũ SEPAY_*_PGAPI_URL nếu đã set tay
         String base = sandbox()
-                ? ConfigManager.get("SEPAY_SANDBOX_PGAPI_URL", "https://pgapi-sandbox.sepay.vn")
-                : ConfigManager.get("SEPAY_PRODUCTION_PGAPI_URL", "https://pgapi.sepay.vn");
+                ? firstNonBlank(
+                        ConfigManager.get("SEPAY_SANDBOX_CHECKOUT_URL"),
+                        ConfigManager.get("SEPAY_SANDBOX_PGAPI_URL"),
+                        "https://pay-sandbox.sepay.vn")
+                : firstNonBlank(
+                        ConfigManager.get("SEPAY_PRODUCTION_CHECKOUT_URL"),
+                        ConfigManager.get("SEPAY_PRODUCTION_PGAPI_URL"),
+                        "https://pay.sepay.vn");
         return trimTrailingSlash(base) + SePayConstants.CHECKOUT_INIT_PATH;
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values == null) {
+            return "";
+        }
+        for (String value : values) {
+            if (!blank(value)) {
+                return value.trim();
+            }
+        }
+        return "";
     }
 
     public static String appBaseUrl() {
         return trimTrailingSlash(ConfigManager.get("SEPAY_APP_BASE_URL", ""));
     }
 
+    /** Base URL hủy/lỗi trên trình duyệt. Prefer SEPAY_RETURN_BASE_URL (localhost) khi dùng ngrok. */
+    public static String browserReturnBaseUrl() {
+        String override = ConfigManager.get("SEPAY_RETURN_BASE_URL");
+        if (!blank(override)) {
+            return trimTrailingSlash(override);
+        }
+        return appBaseUrl();
+    }
+
     public static String defaultSuccessUrl() {
-        return ConfigManager.get("SEPAY_SUCCESS_URL", appBaseUrl() + "/payment/sepay/success");
+        return ConfigManager.get("SEPAY_SUCCESS_URL", browserReturnBaseUrl() + "/payment/sepay/success");
     }
 
     public static String defaultErrorUrl() {
-        return ConfigManager.get("SEPAY_ERROR_URL", appBaseUrl() + "/payment/sepay/error");
+        return ConfigManager.get("SEPAY_ERROR_URL", browserReturnBaseUrl() + "/payment/sepay/error");
     }
 
     public static String defaultCancelUrl() {
-        return ConfigManager.get("SEPAY_CANCEL_URL", appBaseUrl() + "/payment/sepay/cancel");
+        return ConfigManager.get("SEPAY_CANCEL_URL", browserReturnBaseUrl() + "/payment/sepay/cancel");
     }
 
     private static String trimTrailingSlash(String url) {

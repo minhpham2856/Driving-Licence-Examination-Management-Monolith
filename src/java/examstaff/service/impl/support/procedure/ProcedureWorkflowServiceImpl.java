@@ -12,9 +12,17 @@ import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ProcedureActionOutcome;
 import examstaff.dto.ProcedureFeeResultDTO;
+import examstaff.dto.SePayProcedureCheckoutDTO;
 import examstaff.dto.ServiceResult;
 import examstaff.enums.ExamStatus;
 import examstaff.util.ExamStaffLabels;
+import examstaff.dao.PaymentDAO;
+import examstaff.dao.impl.PaymentDAOImpl;
+import payment.dto.sepay.SePayCheckoutRequest;
+import payment.dto.sepay.SePayCheckoutSession;
+import payment.dto.sepay.SePayPaymentException;
+import payment.service.SePayPaymentService;
+import payment.service.impl.SePayPaymentServiceImpl;
 
 import java.sql.Date;
 import java.util.List;
@@ -27,33 +35,43 @@ public class ProcedureWorkflowServiceImpl {
     private final CandidatePhotoServiceImpl photoService;
     private final CandidateQueueServiceImpl queueService;
     private final ExaminerAllocationServiceImpl allocationService;
+    private final SePayPaymentService sePayPaymentService;
+    private final PaymentDAO paymentDAO;
 
     /** Wiring mặc định khi không inject từ composition root. */
     public ProcedureWorkflowServiceImpl() {
         this(new RegistrationServiceImpl(), new ProcedurePaymentServiceImpl(),
                 new CandidatePhotoServiceImpl(), new CandidateQueueServiceImpl(),
-                new ExaminerAllocationServiceImpl());
+                new ExaminerAllocationServiceImpl(), new SePayPaymentServiceImpl(),
+                new PaymentDAOImpl());
     }
 
     /**
      * Inject dependencies cho unit test / composition root.
-     *
-     * @param regService         CRUD đăng ký / hồ sơ
-     * @param paymentService     preview + ghi thanh toán thủ tục
-     * @param photoService       chuẩn hóa / ghi file ảnh
-     * @param queueService       tìm thí sinh trong hàng đợi / kỳ
-     * @param allocationService  auto-allocate sau thu phí
      */
     public ProcedureWorkflowServiceImpl(RegistrationService regService,
             ProcedurePaymentServiceImpl paymentService,
             CandidatePhotoServiceImpl photoService,
             CandidateQueueServiceImpl queueService,
             ExaminerAllocationServiceImpl allocationService) {
+        this(regService, paymentService, photoService, queueService, allocationService,
+                new SePayPaymentServiceImpl(), new PaymentDAOImpl());
+    }
+
+    public ProcedureWorkflowServiceImpl(RegistrationService regService,
+            ProcedurePaymentServiceImpl paymentService,
+            CandidatePhotoServiceImpl photoService,
+            CandidateQueueServiceImpl queueService,
+            ExaminerAllocationServiceImpl allocationService,
+            SePayPaymentService sePayPaymentService,
+            PaymentDAO paymentDAO) {
         this.regService = regService;
         this.paymentService = paymentService;
         this.photoService = photoService;
         this.queueService = queueService;
         this.allocationService = allocationService;
+        this.sePayPaymentService = sePayPaymentService != null ? sePayPaymentService : new SePayPaymentServiceImpl();
+        this.paymentDAO = paymentDAO != null ? paymentDAO : new PaymentDAOImpl();
     }
 
     /**
@@ -314,6 +332,126 @@ public class ProcedureWorkflowServiceImpl {
             return outcome;
         }
 
+        return completeProcedureAfterPaid(profile, sbd, examId, webRoot, allExams, feePreview, "Tiền mặt");
+    }
+
+    /** Tạo checkout SePay (QR) — không ghi Payment; IPN ghi. */
+    public SePayProcedureCheckoutDTO startSePayCheckout(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot) {
+        SePayProcedureCheckoutDTO result = new SePayProcedureCheckoutDTO();
+        if (profile == null) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.PROFILE_NOT_FOUND);
+            result.setMessage("Không tìm thấy hồ sơ thí sinh.");
+            return result;
+        }
+        profile = reloadProfile(webRoot, examId, profile.getId(), sbd, null);
+        result.setProfile(profile);
+        if (profile == null) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.PROFILE_NOT_FOUND);
+            result.setMessage("Không tìm thấy hồ sơ thí sinh.");
+            return result;
+        }
+        if (!profile.isValidCapturedPhoto()) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.NO_PHOTO);
+            result.setMessage("Cần chụp ảnh trước khi thu phí SePay.");
+            return result;
+        }
+        if (profile.isPaymentCompleted()) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.ALREADY_PAID);
+            result.setMessage("Thí sinh đã thanh toán.");
+            return result;
+        }
+        if (!sePayPaymentService.isConfigured()) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.NOT_CONFIGURED);
+            result.setMessage("SePay chưa cấu hình (.env: MERCHANT_ID, SECRET_KEY, APP_BASE_URL).");
+            return result;
+        }
+
+        int enrollmentId = profile.getExamEnrollmentId();
+        if (enrollmentId <= 0) {
+            enrollmentId = paymentDAO.resolveEnrollmentId(profile.getId());
+        }
+        if (enrollmentId <= 0) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.NO_ENROLLMENT);
+            result.setMessage("Thí sinh chưa có ExamEnrollment.");
+            return result;
+        }
+
+        ProcedureFeeResultDTO fees = paymentService.previewFees(
+                profile.getId(), profile.getLicenseCode(), false);
+        long amountVnd = Math.round(fees != null ? fees.getFeeTotal() : 0);
+        if (amountVnd <= 0) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.INVALID_AMOUNT);
+            result.setMessage("Chưa cấu hình lệ phí cho hạng này.");
+            return result;
+        }
+
+        String invoice = sePayPaymentService.generateInvoiceNumber("CHK", profile.getId(), enrollmentId);
+        try {
+            SePayCheckoutRequest req = new SePayCheckoutRequest();
+            req.setAmountVnd(amountVnd);
+            req.setOrderInvoiceNumber(invoice);
+            req.setOrderDescription("Le phi thu tuc SBD "
+                    + (sbd != null ? sbd.trim() : String.valueOf(profile.getId())));
+            req.setCustomerId(String.valueOf(profile.getId()));
+
+            SePayCheckoutSession session = sePayPaymentService.createCheckout(req);
+            String html = sePayPaymentService.buildAutoSubmitHtml(session);
+            if (html == null || html.isBlank()) {
+                result.setStatus(SePayProcedureCheckoutDTO.Status.FAILED);
+                result.setMessage("Không tạo được form SePay.");
+                return result;
+            }
+            result.setStatus(SePayProcedureCheckoutDTO.Status.READY);
+            result.setCheckoutHtml(html);
+            result.setInvoiceNumber(invoice);
+            return result;
+        } catch (SePayPaymentException ex) {
+            result.setStatus(SePayProcedureCheckoutDTO.Status.FAILED);
+            result.setMessage(ex.getMessage() != null ? ex.getMessage() : "Lỗi SePay checkout.");
+            return result;
+        }
+    }
+
+    /** Sau IPN: present + allocate. Chưa có Payment → PAYMENT_FAILED (đang chờ). */
+    public ProcedureActionOutcome finalizeAfterSePayPayment(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot, List<ExamSummaryDTO> allExams) {
+        ProcedureActionOutcome outcome = new ProcedureActionOutcome();
+        if (profile == null) {
+            outcome.setPaymentStatus(ProcedureActionOutcome.PaymentStatus.PROFILE_NOT_FOUND);
+            return outcome;
+        }
+        profile = reloadProfile(webRoot, examId, profile.getId(), sbd, null);
+        if (profile == null) {
+            outcome.setPaymentStatus(ProcedureActionOutcome.PaymentStatus.PROFILE_NOT_FOUND);
+            return outcome;
+        }
+        if (!profile.isValidCapturedPhoto()) {
+            outcome.setPaymentStatus(ProcedureActionOutcome.PaymentStatus.NO_PHOTO);
+            outcome.setProfile(profile);
+            return outcome;
+        }
+        if (!profile.isPaymentCompleted()) {
+            outcome.setPaymentStatus(ProcedureActionOutcome.PaymentStatus.PAYMENT_FAILED);
+            outcome.setProfile(profile);
+            outcome.setMessage("Đang chờ IPN SePay.");
+            return outcome;
+        }
+        if (profile.isPresent() && profile.isValidCapturedPhoto()) {
+            outcome.setPaymentStatus(ProcedureActionOutcome.PaymentStatus.ALREADY_PAID);
+            outcome.setProfile(profile);
+            return outcome;
+        }
+        ProcedureFeeResultDTO feePreview = paymentService.previewFees(
+                profile.getId(), profile.getLicenseCode(), false);
+        return completeProcedureAfterPaid(profile, sbd, examId, webRoot, allExams, feePreview, "SePay");
+    }
+
+    private ProcedureActionOutcome completeProcedureAfterPaid(ExamRegistrationDTO profile, String sbd,
+            int examId, String webRoot, List<ExamSummaryDTO> allExams,
+            ProcedureFeeResultDTO feePreview, String channelLabel) {
+        ProcedureActionOutcome outcome = new ProcedureActionOutcome();
+
         profile.setIsPaymentCompleted(true);
         profile.setIsPresent(true);
         regService.updatePresent(profile.getId(), true);
@@ -335,7 +473,6 @@ public class ProcedureWorkflowServiceImpl {
                 ? profile.getExamId()
                 : ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
 
-        // Result
         String allocDetail = ExamStaffLabels.formatAutoAllocateDetail(allocResult);
         String feeLabel = ExamStaffLabels.formatFeeAmount(feePreview);
 
@@ -343,7 +480,8 @@ public class ProcedureWorkflowServiceImpl {
         outcome.setProfile(profile);
         outcome.setQueue(qList);
         outcome.setBoardExamId(boardExamId);
-        outcome.setPaymentAuditDetail("Thu lệ phí thi " + feeLabel + allocDetail + " cho SBD " + sbd);
+        outcome.setPaymentAuditDetail("Thu lệ phí thi (" + channelLabel + ") " + feeLabel
+                + allocDetail + " cho SBD " + sbd);
         outcome.setAuditAllocate(allocResult != null && allocResult.getAllocatedCount() > 0);
         return outcome;
     }
