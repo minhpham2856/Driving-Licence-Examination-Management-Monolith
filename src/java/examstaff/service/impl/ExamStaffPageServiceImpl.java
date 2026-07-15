@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffPageContextDTO;
 import examstaff.dto.ExamStaffPagePrepareInput;
@@ -34,13 +34,23 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         this.queueService = queueService;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy toàn bộ kỳ thi cho trang staff.
+     *
+     * @return danh sách kỳ thi
+     */
     @Override
     public List<ExamSummaryDTO> listAllExams() {
         return examQuery.listAllExams();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tìm kỳ thi trong danh sách đã tải.
+     *
+     * @param examId   mã kỳ thi
+     * @param allExams danh sách nguồn
+     * @return kỳ thi khớp, hoặc null
+     */
     @Override
     public ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allExams) {
         if (examId <= 0) {
@@ -58,7 +68,13 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         }
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Chọn kỳ đại diện (representative) trong nhóm cùng ngày / ngữ cảnh.
+     *
+     * @param allExams danh sách kỳ
+     * @param examId   mã kỳ tham chiếu
+     * @return kỳ đại diện
+     */
     @Override
     public ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId) {
         if (examId <= 0) {
@@ -75,13 +91,24 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xác định mã kỳ chính để hiển thị / thao tác.
+     *
+     * @param allExams danh sách kỳ
+     * @param examId   mã kỳ tham chiếu
+     * @return mã kỳ chính
+     */
     @Override
     public int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId) {
         return ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Chọn mã kỳ mặc định khi chưa có lựa chọn.
+     *
+     * @param allExams danh sách kỳ
+     * @return mã kỳ mặc định, hoặc 0 nếu danh sách rỗng
+     */
     @Override
     public int resolveDefaultExamId(List<ExamSummaryDTO> allExams) {
         ExamSummaryDTO first = firstPickerOption(allExams);
@@ -91,7 +118,14 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return first.getId() > 0 ? first.getId() : first.getExamId();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xây dựng dữ liệu UI chọn kỳ thi (picker).
+     *
+     * @param allExams  danh sách kỳ
+     * @param examId    mã kỳ đang chọn
+     * @param urlExamId mã kỳ từ URL
+     * @return view picker
+     */
     @Override
     public ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allExams, int examId, int urlExamId) {
         ExamStaffPickerViewDTO view = new ExamStaffPickerViewDTO();
@@ -137,7 +171,12 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return view;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Chuẩn bị toàn bộ ngữ cảnh trang staff từ input.
+     *
+     * @param input dữ liệu chuẩn bị trang
+     * @return ngữ cảnh trang (kỳ thi, hàng đợi, …)
+     */
     @Override
     public ExamStaffPageContextDTO preparePageContext(ExamStaffPagePrepareInput input) {
         ExamStaffPageContextDTO ctx = new ExamStaffPageContextDTO();

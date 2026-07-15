@@ -1,7 +1,7 @@
 package examstaff.service;
 
 import examstaff.dto.ProcedureFeeResultDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /**
  * Tính/giải phí thủ tục theo hồ sơ thí sinh tại bàn thủ tục.

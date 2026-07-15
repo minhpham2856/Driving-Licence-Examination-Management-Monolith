@@ -50,7 +50,13 @@ public class ExamControlServiceImpl implements ExamControlService {
         return name + " - ngày " + date;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Bắt đầu kỳ thi và cho phép sát hạch viên đăng nhập theo phân công.
+     *
+     * @param examId      mã kỳ thi
+     * @param staffUserId mã nhân viên thực hiện
+     * @return kết quả thành công/thất bại kèm thông báo
+     */
     @Override
     public StartResult startExam(int examId, int staffUserId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);
@@ -86,7 +92,12 @@ public class ExamControlServiceImpl implements ExamControlService {
         return StartResult.ok(buildExamLabel(examSummary), assignments.size());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Kết thúc kỳ thi; sát hạch viên không còn đăng nhập được kỳ này.
+     *
+     * @param examId mã kỳ thi
+     * @return kết quả thành công/thất bại kèm thông báo
+     */
     @Override
     public EndResult endExam(int examId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);
@@ -104,7 +115,12 @@ public class ExamControlServiceImpl implements ExamControlService {
         return EndResult.ok(buildExamLabel(examSummary));
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tạm dừng kỳ thi; giữ hàng đợi gọi số, khóa đăng nhập sát hạch viên.
+     *
+     * @param examId mã kỳ thi
+     * @return kết quả thành công/thất bại kèm thông báo
+     */
     @Override
     public PauseResult pauseExam(int examId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);
@@ -124,7 +140,12 @@ public class ExamControlServiceImpl implements ExamControlService {
         return PauseResult.ok(buildExamLabel(examSummary));
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Tiếp tục kỳ thi sau khi tạm dừng.
+     *
+     * @param examId mã kỳ thi
+     * @return kết quả thành công/thất bại kèm thông báo
+     */
     @Override
     public ResumeResult resumeExam(int examId) {
         ExamSummaryDTO examSummary = examDAO.getById(examId);

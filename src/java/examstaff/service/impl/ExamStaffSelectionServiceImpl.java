@@ -29,7 +29,12 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         this.pageService = pageService;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Giải mã kỳ thi cần chọn từ dữ liệu đầu vào (URL, session, danh sách).
+     *
+     * @param input dữ liệu resolve lựa chọn kỳ thi
+     * @return mã kỳ thi đã chọn, hoặc 0/sentinel nếu không hợp lệ
+     */
     @Override
     public int resolveExamId(ExamStaffSelectionResolveInput input) {
         if (input == null) {
@@ -64,7 +69,12 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return 0;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đảm bảo có mã kỳ thi hợp lệ; chọn mặc định nếu đầu vào thiếu/không khớp.
+     *
+     * @param input dữ liệu resolve lựa chọn kỳ thi
+     * @return mã kỳ thi chắc chắn dùng được trong ngữ cảnh hiện tại
+     */
     @Override
     public int ensureExamId(ExamStaffSelectionResolveInput input) {
         int examId = resolveExamId(input);
@@ -79,7 +89,13 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return pageService.resolveDefaultExamId(allExams);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Chọn kỳ thi từ tham số URL trong danh sách kỳ có sẵn.
+     *
+     * @param urlExamId mã kỳ trên URL
+     * @param allExams  danh sách kỳ thi hiện có
+     * @return mã kỳ hợp lệ, hoặc mặc định nếu URL không khớp
+     */
     @Override
     public int resolveExamFromUrl(int urlExamId, List<ExamSummaryDTO> allExams) {
         if (urlExamId <= 0) {
@@ -92,7 +108,14 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return picked.getExamId();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Đồng bộ trạng thái chọn kỳ thi (đổi kỳ / giữ kỳ hiện tại).
+     *
+     * @param examId        mã kỳ muốn chọn
+     * @param currentExamId mã kỳ đang chọn (có thể null)
+     * @param allExams      danh sách kỳ thi
+     * @return trạng thái chọn kỳ sau đồng bộ
+     */
     @Override
     public ExamStaffSelectionStateDTO syncExamSelection(int examId, Integer currentExamId,
             List<ExamSummaryDTO> allExams) {
@@ -114,7 +137,12 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return state;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Chuẩn bị chuyển trang theo ngữ cảnh chọn kỳ và hàng đợi.
+     *
+     * @param input dữ liệu chuyển trang
+     * @return trạng thái trang sau khi chuẩn bị chuyển
+     */
     @Override
     public ExamStaffPageTransitionStateDTO preparePageTransition(ExamStaffPageTransitionInput input) {
         ExamStaffPageTransitionStateDTO state = new ExamStaffPageTransitionStateDTO();
@@ -145,7 +173,14 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return state;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xác định kỳ thi đang active giữa URL, lựa chọn session và runtime.
+     *
+     * @param urlExamId            mã kỳ trên URL
+     * @param selectedExamId       mã kỳ đã chọn (có thể null)
+     * @param runtimeActiveExamId  mã kỳ active runtime (có thể null)
+     * @return mã kỳ thi active ưu tiên theo quy tắc nghiệp vụ
+     */
     @Override
     public int resolveActiveExamId(int urlExamId, Integer selectedExamId,
             Integer runtimeActiveExamId) {
@@ -161,7 +196,12 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
         return 0;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xử lý yêu cầu chọn kỳ thi (endpoint select-exam).
+     *
+     * @param request thông tin chọn kỳ từ URL/session
+     * @return kết quả chọn kỳ và cờ clear cache khi đổi kỳ
+     */
     @Override
     public ExamSelectResultDTO processSelection(ExamSelectRequestDTO request) {
         ExamSelectResultDTO result = new ExamSelectResultDTO();
@@ -193,8 +233,8 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
 
         Integer previousExamId = request.getPreviousExamId();
         if (previousExamId != null && previousExamId > 0 && !previousExamId.equals(result.getExamId())) {
+            // Presentation chỉ cần cờ này: clearProcedureStateOnExamChange đã xóa cache queue.
             result.setClearProcedureOnExamChange(true);
-            result.setClearCandidateCache(true);
         }
         return result;
     }

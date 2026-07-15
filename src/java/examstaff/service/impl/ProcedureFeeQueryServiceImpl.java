@@ -4,7 +4,7 @@ import examstaff.dao.FeeDAO;
 import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.FeeDAOImpl;
 import examstaff.dao.impl.PaymentDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
 import shared.model.Fee;
 import shared.model.Payment;
@@ -20,7 +20,12 @@ public class ProcedureFeeQueryServiceImpl implements ProcedureFeeQueryService {
     private final FeeDAO feeDAO = new FeeDAOImpl();
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
 
-    /** {@inheritDoc} */
+    /**
+     * Xác định các khoản phí thủ tục áp dụng cho hồ sơ.
+     *
+     * @param profile hồ sơ đăng ký thí sinh
+     * @return kết quả phí (khoản mục, tổng, …)
+     */
     @Override
     public ProcedureFeeResultDTO resolveProcedureFees(ExamRegistrationDTO profile) {
         ProcedureFeeResultDTO result = new ProcedureFeeResultDTO();

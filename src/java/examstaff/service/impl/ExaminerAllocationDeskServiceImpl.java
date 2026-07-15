@@ -33,7 +33,14 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         this.allocationService = allocationService;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Xây dựng view phân công sát hạch viên cho kỳ thi.
+     *
+     * @param examId         mã kỳ thi ưu tiên
+     * @param fallbackExamId mã kỳ dự phòng
+     * @param allExams       danh sách kỳ thi ngữ cảnh
+     * @return DTO view phân công
+     */
     @Override
     public ExaminerAllocationViewDTO buildAllocationView(int examId, int fallbackExamId,
             List<ExamSummaryDTO> allExams) {
@@ -86,7 +93,11 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return view;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lập map mã người dùng → thông tin sát hạch viên đang active.
+     *
+     * @return map sát hạch viên theo userId
+     */
     @Override
     public Map<Integer, UserDTO> buildExaminerMap() {
         Map<Integer, UserDTO> map = new HashMap<>();
@@ -96,7 +107,15 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return map;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Gán sát hạch viên vào khu vực của kỳ thi.
+     *
+     * @param targetExamId   mã kỳ thi đích
+     * @param areaId         mã khu vực/phòng
+     * @param examinerUserId mã người dùng sát hạch viên
+     * @param staffId        mã nhân viên thực hiện
+     * @return kết quả thao tác gán
+     */
     @Override
     public ExaminerAllocationActionResultDTO assignExaminer(int targetExamId, int areaId,
             int examinerUserId, int staffId) {
@@ -145,7 +164,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return result;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Gỡ phân công sát hạch viên khỏi slot.
+     *
+     * @param slotKey khóa slot phân công
+     * @return kết quả thao tác gỡ
+     */
     @Override
     public ExaminerAllocationActionResultDTO removeExaminer(String slotKey) {
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
