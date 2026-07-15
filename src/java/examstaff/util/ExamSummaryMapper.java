@@ -1,7 +1,7 @@
 package examstaff.util;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.view.ExamSummaryRow;
+import examstaff.dto.ExamSummaryRow;
 
 import java.util.ArrayList;
 import java.util.List;

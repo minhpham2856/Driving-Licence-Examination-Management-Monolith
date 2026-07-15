@@ -6,9 +6,9 @@ import shared.dbconnection.DBContext;
 import examstaff.dao.AuditLogDAO;
 
 import shared.model.Audit;
-import examstaff.dto.user.AuditDTO;
+import examstaff.dto.AuditDTO;
 
-import examstaff.dto.staff.StaffProcedureKpiDTO;
+import examstaff.dto.StaffProcedureKpiDTO;
 
 import java.sql.*;
 import java.util.ArrayList;

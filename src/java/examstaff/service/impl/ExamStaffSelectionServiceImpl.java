@@ -233,8 +233,8 @@ public class ExamStaffSelectionServiceImpl implements ExamStaffSelectionService 
 
         Integer previousExamId = request.getPreviousExamId();
         if (previousExamId != null && previousExamId > 0 && !previousExamId.equals(result.getExamId())) {
+            // Presentation chỉ cần cờ này: clearProcedureStateOnExamChange đã xóa cache queue.
             result.setClearProcedureOnExamChange(true);
-            result.setClearCandidateCache(true);
         }
         return result;
     }

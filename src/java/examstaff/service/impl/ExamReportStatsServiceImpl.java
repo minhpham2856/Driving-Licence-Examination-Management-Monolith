@@ -1,8 +1,8 @@
 package examstaff.service.impl;
 
-import examstaff.dao.view.ReportInfractionViewDAO;
-import examstaff.dao.view.impl.ReportInfractionViewDAOImpl;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dao.ReportInfractionViewDAO;
+import examstaff.dao.impl.ReportInfractionViewDAOImpl;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ExamReportStatsDTO;
 import examstaff.service.ExamReportStatsService;
 

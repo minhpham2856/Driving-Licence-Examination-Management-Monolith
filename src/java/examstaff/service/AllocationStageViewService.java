@@ -1,6 +1,6 @@
 package examstaff.service;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.AllocationStageViewDTO;
 import examstaff.util.ExamRegistrationSort;
 

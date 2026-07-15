@@ -3,7 +3,7 @@ package examstaff.service.impl;
 import examstaff.dao.ExamRegistrationDAO;
 import examstaff.dao.impl.ExamRegistrationDAOImpl;
 import examstaff.service.ExamRegistrationService;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 import java.util.List;
 
 /** Implementation: uỷ quyền CRUD đăng ký thí sinh xuống {@link ExamRegistrationDAO}. */

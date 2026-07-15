@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
-import examstaff.dao.view.ExamViewDAO;
-import examstaff.dao.view.impl.ExamViewDAOImpl;
+import examstaff.dao.ExamViewDAO;
+import examstaff.dao.impl.ExamViewDAOImpl;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.service.ExamStaffExamQueryService;
 import examstaff.util.ExamSummaryMapper;

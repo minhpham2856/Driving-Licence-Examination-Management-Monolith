@@ -1,7 +1,7 @@
 package examstaff.dto;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /**
  * View-model hồ sơ thí sinh (dossier) trên màn ExamStaff.

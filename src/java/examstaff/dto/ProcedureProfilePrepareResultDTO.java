@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.dto.exam.ExamRegistrationDTO;
+import examstaff.dto.ExamRegistrationDTO;
 
 /**
  * Kết quả chuẩn bị hồ sơ trên bàn thủ tục: profile và cảnh báo ảnh cũ (nếu có).
