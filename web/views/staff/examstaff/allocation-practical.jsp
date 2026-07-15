@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
-    <jsp:param name="pageTitle" value="Thực hành / Sa hình" />
+    <jsp:param name="pageTitle" value="Thực hành" />
     <jsp:param name="breadcrumbLabel" value="Thực hành" />
     <jsp:param name="showSearch" value="true" />
     <jsp:param name="showRoomFilter" value="practical" />
@@ -18,7 +18,7 @@
 </jsp:include>
 <div class="allocation-stage-panel allocation-stage-panel--practical">
     <div class="allocation-stage-panel__head">
-        <h4 class="allocation-stage-panel__title">Thực hành / Sa hình</h4>
+        <h4 class="allocation-stage-panel__title">Thực hành</h4>
         <span class="allocation-stage-panel__count">${pg.totalItems} thí sinh</span>
     </div>
     <div class="examiner-table-wrap">
