@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ExamStaffDashboardService {
 
-    ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allSessions, int examId);
+    ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allExams, int examId);
 }

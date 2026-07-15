@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface StaffReportExportService {
 
-    void exportExamReport(OutputStream out, ExamSummaryDTO session,
+    void exportExamReport(OutputStream out, ExamSummaryDTO exam,
             List<ExamRegistrationDTO> candidates, ExamReportStatsDTO stats,
             String exporterName) throws IOException;
 }

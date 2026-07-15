@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.dto.view.CallBoardState;
+import examstaff.model.view.CallBoardState;
 
 /**
  * Data-access for runtime candidate-call board state.
@@ -8,12 +8,11 @@ import examstaff.dto.view.CallBoardState;
  */
 public interface CallBoardDAO {
 
-    CallBoardState getState(int examSessionId);
+    CallBoardState getState(int examId);
 
-    void saveState(int examSessionId, CallBoardState state);
+    void saveState(int examId, CallBoardState state);
 
-    void setActiveExamId(int examSessionId);
+    void setActiveExamId(int examId);
 
     Integer getActiveExamId();
 }
-

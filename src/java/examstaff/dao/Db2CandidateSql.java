@@ -18,7 +18,7 @@ public final class Db2CandidateSql {
     private static final String CANDIDATE_SELECT_HEAD = """
             SELECT
               c.CandidateId AS id,
-              ee.ExamId AS examSessionId,
+              ee.ExamId AS examId,
               ee.ExamEnrollmentId AS examEnrollmentId,
               CAST(0 AS INT) AS personId,
               COALESCE(
@@ -126,13 +126,14 @@ public final class Db2CandidateSql {
 
     private static String buildCandidateSelect(String scoreColumns, String scoreJoins) {
         return CANDIDATE_SELECT_HEAD
-                + "CASE WHEN ISNULL(c.TakeNo, 1) > 1 THEN N'Retake' ELSE N'PreRegistered' END AS registrationType,\n"
+                + examstaff.enums.RegistrationType.sqlCaseExpression("c.TakeNo")
+                + " AS registrationType,\n"
                 + CANDIDATE_SELECT_MID
                 + GENDER_AS_BIT
                 + CANDIDATE_SELECT_TAIL
                 + scoreColumns
                 + CANDIDATE_FROM_JOIN
-                + "N'Ho?n t?t', N'Paid'"
+                + examstaff.enums.PaymentStatus.sqlInClause()
                 + CANDIDATE_PAYMENT_JOIN_END
                 + scoreJoins;
     }
@@ -143,5 +144,3 @@ public final class Db2CandidateSql {
     public static final String CANDIDATE_SELECT_MINIMAL =
             buildCandidateSelect(CANDIDATE_NULL_SCORE_COLUMNS, "");
 }
-
-

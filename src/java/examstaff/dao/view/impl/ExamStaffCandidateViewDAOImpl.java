@@ -2,8 +2,8 @@ package examstaff.dao.view.impl;
 
 import examstaff.dao.Db2CandidateSql;
 import examstaff.dao.view.ExamStaffCandidateViewDAO;
-import shared.dbconnection.DBContext;
-import examstaff.dto.view.ExamStaffCandidate;
+import examstaff.dbconnection.DBContext;
+import examstaff.model.view.ExamStaffCandidate;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -67,7 +67,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     private static ExamStaffCandidate mapRow(ResultSet rs) throws SQLException {
         ExamStaffCandidate row = new ExamStaffCandidate();
         row.setCandidateId(rs.getInt("id"));
-        row.setExamId(rs.getInt("examSessionId"));
+        row.setExamId(rs.getInt("examId"));
         try {
             row.setExamEnrollmentId(rs.getInt("examEnrollmentId"));
         } catch (SQLException ignored) {
@@ -158,4 +158,3 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
         return String.format(Locale.ROOT, "%03d", candidateNo);
     }
 }
-

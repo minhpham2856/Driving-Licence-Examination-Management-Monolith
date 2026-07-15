@@ -10,15 +10,11 @@ public interface CandidateQueueService {
 
     CandidateQueueSnapshotDTO refreshQueue(ExamStaffQueueRefreshInput input);
 
-    CandidateQueueSnapshotDTO buildSnapshot(List<ExamRegistrationDTO> queue, int examId, int sessionId);
+    CandidateQueueSnapshotDTO buildSnapshot(List<ExamRegistrationDTO> queue, int examId, int fallbackExamId);
 
     List<ExamRegistrationDTO> filterPendingForCall(List<ExamRegistrationDTO> queue);
 
-    boolean isCallablePending(ExamRegistrationDTO candidate);
-
     ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd);
-
-    String findNextPendingSbd(List<ExamRegistrationDTO> queue, String afterSbd);
 
     String resolveNextCallingSbd(List<ExamRegistrationDTO> fullQueue, String afterSbd);
 
@@ -26,9 +22,7 @@ public interface CandidateQueueService {
 
     boolean moveCallableCandidateToBottom(List<ExamRegistrationDTO> queue, String sbd);
 
-    List<ExamRegistrationDTO> listSuspendedInSession(List<ExamRegistrationDTO> queue);
+    List<ExamRegistrationDTO> listSuspendedInExam(List<ExamRegistrationDTO> queue);
 
-    List<ExamRegistrationDTO> listProcedureDoneNewestFirst(List<ExamRegistrationDTO> queue);
-
-    ExamRegistrationDTO findByExamOrSession(int examId, int sessionId, String sbd);
+    ExamRegistrationDTO findByExam(int examId, int fallbackExamId, String sbd);
 }

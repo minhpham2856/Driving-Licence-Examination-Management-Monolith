@@ -106,22 +106,6 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
             licenseStats.add(row);
         }
         stats.setLicenseStats(licenseStats);
-
-        LicenseAgg a1 = sumLicenseBucket(licenseMap, "A1");
-        LicenseAgg a = sumLicenseBucket(licenseMap, "A");
-        LicenseAgg b1 = licenseMap.getOrDefault("B1", new LicenseAgg("B1"));
-        stats.setA1Count(a1.registered);
-        stats.setA1Completed(a1.completed);
-        stats.setA1Passed(a1.passed);
-        stats.setA1Failed(a1.failed);
-        stats.setACount(a.registered);
-        stats.setACompleted(a.completed);
-        stats.setAPassed(a.passed);
-        stats.setAFailed(a.failed);
-        stats.setB1Count(b1.registered);
-        stats.setB1Completed(b1.completed);
-        stats.setB1Passed(b1.passed);
-        stats.setB1Failed(b1.failed);
         stats.setInfractions(infractionViewDAO.findTopInfractions(examId, 3));
         return stats;
     }
@@ -131,21 +115,6 @@ public class ExamReportStatsServiceImpl implements ExamReportStatsService {
             return "N/A";
         }
         return licenseCode.trim().toUpperCase(Locale.ROOT);
-    }
-
-    private static LicenseAgg sumLicenseBucket(Map<String, LicenseAgg> map, String... codes) {
-        LicenseAgg total = new LicenseAgg(codes[0]);
-        for (String code : codes) {
-            LicenseAgg part = map.get(code);
-            if (part == null) {
-                continue;
-            }
-            total.registered += part.registered;
-            total.completed += part.completed;
-            total.passed += part.passed;
-            total.failed += part.failed;
-        }
-        return total;
     }
 
     private static final class LicenseAgg {

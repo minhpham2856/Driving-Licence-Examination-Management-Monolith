@@ -4,30 +4,29 @@ import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.UserDTO;
-import shared.model.ExamArea;
+import examstaff.model.ExamArea;
 
 import java.util.List;
 
 public interface ExaminerAllocationService {
-    ExamSummaryDTO getSessionById(int sessionId);
+    ExamSummaryDTO getExamById(int examId);
 
     ExamArea getAreaById(int id);
 
     List<UserDTO> getActiveExaminers();
 
-    List<ExamArea> getAvailableAreasForSession(int sessionId);
+    List<ExamArea> getAvailableAreasForExam(int examId);
 
-    List<ExaminerSlotDTO> getAssignmentsBySessionId(int sessionId);
+    List<ExaminerSlotDTO> getAssignmentsByExamId(int examId);
 
     boolean assignExaminer(ExaminerSlotDTO slot);
 
     boolean removeAssignment(String slotKey);
 
-    AutoAllocateResultDTO autoAllocateSession(int sessionId);
+    AutoAllocateResultDTO autoAllocateExam(int examId);
 
-    AutoAllocateResultDTO autoAllocateCandidate(int sessionId, int registrationId);
+    AutoAllocateResultDTO autoAllocateCandidate(int examId, int registrationId);
 
     /** Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có giám khảo). */
-    AutoAllocateResultDTO autoAllocatePracticalSession(int sessionId);
+    AutoAllocateResultDTO autoAllocatePracticalExam(int examId);
 }
-

@@ -10,11 +10,11 @@ import java.util.Map;
 
 public interface ExaminerAllocationDeskService {
 
-    ExaminerAllocationViewDTO buildAllocationView(int examId, int sessionId, List<ExamSummaryDTO> allSessions);
+    ExaminerAllocationViewDTO buildAllocationView(int examId, int fallbackExamId, List<ExamSummaryDTO> allExams);
 
     Map<Integer, UserDTO> buildExaminerMap();
 
-    ExaminerAllocationActionResultDTO assignExaminer(int targetSessionId, int areaId,
+    ExaminerAllocationActionResultDTO assignExaminer(int targetExamId, int areaId,
             int examinerUserId, int staffId);
 
     ExaminerAllocationActionResultDTO removeExaminer(String slotKey);

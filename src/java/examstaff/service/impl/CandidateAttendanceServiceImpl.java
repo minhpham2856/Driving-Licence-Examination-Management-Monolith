@@ -13,11 +13,6 @@ public class CandidateAttendanceServiceImpl implements CandidateAttendanceServic
     private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
 
     @Override
-    public boolean markTemporaryAbsent(int candidateId) {
-        return registrationService.markAbsent(candidateId);
-    }
-
-    @Override
     public boolean markPermanentAbsent(int candidateId) {
         registrationService.updateScores(candidateId, 0, "failed", 0, "failed");
         registrationService.markSuspended(candidateId);

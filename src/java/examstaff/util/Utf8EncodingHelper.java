@@ -36,11 +36,6 @@ public final class Utf8EncodingHelper {
         applyResponse(response);
     }
 
-    public static void applyHtml(HttpServletResponse response) {
-        applyResponse(response);
-        response.setContentType("text/html;charset=UTF-8");
-    }
-
     public static void applyJson(HttpServletResponse response) {
         applyResponse(response);
         response.setContentType("application/json;charset=UTF-8");

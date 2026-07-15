@@ -2,8 +2,8 @@ package examstaff.service.impl;
 
 import examstaff.dao.AuditLogDAO;
 import examstaff.dao.impl.AuditLogDAOImpl;
-import shared.enums.AuditEntity;
-import shared.model.Audit;
+import examstaff.enums.AuditEntity;
+import examstaff.model.Audit;
 import examstaff.service.StaffAuditLogService;
 
 import java.sql.Timestamp;
@@ -13,15 +13,10 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
 
     @Override
-    public void logAction(int userId, String action, String details) {
-        logAction(userId, action, details, 0);
-    }
-
-    @Override
     public void logAction(int userId, String action, String details, int recordId) {
         try {
             Audit log = new Audit();
-            log.setEntityName(resolveEntityName(action, details));
+            log.setEntityName(AuditEntity.resolveLabel(resolveEntityName(action, details)));
             log.setEntityId(String.valueOf(recordId > 0 ? recordId : 0));
             log.setAction(normalizeAction(action));
             log.setReason(details);
@@ -34,17 +29,14 @@ public class StaffAuditLogServiceImpl implements StaffAuditLogService {
     }
 
     static String resolveEntityName(String action, String details) {
-        String resolved = (action + " " + details);
+        String resolved = examstaff.util.AuditLogHelper.resolveEntityName(action, details);
         if ("Payment".equalsIgnoreCase(resolved)) {
-            return AuditEntity.PAYMENT.getValue();
+            return AuditEntity.THANH_TOAN.getDisplayName();
         }
         return resolved;
     }
 
     static String normalizeAction(String rawAct) {
-        return rawAct;
+        return examstaff.util.AuditLogHelper.normalizeAction(rawAct);
     }
 }
-
-
-

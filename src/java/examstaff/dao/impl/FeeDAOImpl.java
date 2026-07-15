@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
-import shared.dbconnection.DBContext;
+import examstaff.dbconnection.DBContext;
 import examstaff.dao.FeeDAO;
-import shared.model.Fee;
+import examstaff.model.Fee;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,33 +11,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class FeeDAOImpl extends DBContext implements FeeDAO {
-
-    @Override
-    public List<Fee> getActiveFees() {
-        List<Fee> fees = new ArrayList<>();
-        String sql = """
-                SELECT f.FeeId, f.FeeName, f.FeeType, f.IsActive,
-                       COALESCE(lf.Amount, 0) AS Amount
-                FROM Fee f
-                OUTER APPLY (
-                    SELECT TOP 1 lf.Amount
-                    FROM Licence_Fee lf
-                    WHERE lf.FeeId = f.FeeId
-                    ORDER BY CASE WHEN lf.LicenceId IS NULL THEN 1 ELSE 0 END
-                ) lf
-                WHERE f.IsActive = 1
-                ORDER BY f.FeeType, f.FeeName
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                fees.add(mapRow(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return fees;
-    }
 
     @Override
     public List<Fee> getProcedureFees(String licenseCode, boolean requiresRoadTest) {
@@ -81,13 +54,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
             e.printStackTrace();
         }
         return applicable;
-    }
-
-    @Override
-    public double sumProcedureFees(String licenseCode, boolean requiresRoadTest) {
-        return getProcedureFees(licenseCode, requiresRoadTest).stream()
-                .mapToDouble(Fee::getAmount)
-                .sum();
     }
 
     @Override
@@ -180,9 +146,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         fee.setFeeName(rs.getString("FeeName"));
         fee.setFeeType(rs.getString("FeeType"));
         fee.setAmount(rs.getDouble("Amount"));
-        fee.setActive(rs.getBoolean("IsActive"));
+        fee.setIsActive(rs.getBoolean("IsActive"));
         return fee;
     }
 }
-
-

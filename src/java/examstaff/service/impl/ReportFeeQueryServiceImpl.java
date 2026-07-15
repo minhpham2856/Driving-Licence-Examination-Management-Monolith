@@ -5,9 +5,9 @@ import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.FeeDAOImpl;
 import examstaff.dao.impl.PaymentDAOImpl;
 import examstaff.dto.ReportPaymentSummaryDTO;
-import shared.enums.PaymentStatus;
-import shared.model.Fee;
-import shared.model.Payment;
+import examstaff.enums.PaymentStatus;
+import examstaff.model.Fee;
+import examstaff.model.Payment;
 import examstaff.service.ReportFeeQueryService;
 import examstaff.util.ProcedureFeeTotals;
 
@@ -37,8 +37,6 @@ public class ReportFeeQueryServiceImpl implements ReportFeeQueryService {
     }
 
     private static boolean isActiveProcedurePayment(Payment payment) {
-        return (shared.enums.PaymentStatus.COMPLETED.getValue().equalsIgnoreCase(payment.getPaymentStatus()) || "Paid".equalsIgnoreCase(payment.getPaymentStatus()));
+        return PaymentStatus.isCompleted(payment.getPaymentStatus());
     }
 }
-
-

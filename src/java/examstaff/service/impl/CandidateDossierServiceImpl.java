@@ -7,7 +7,7 @@ import examstaff.dto.ProcedureFeeResultDTO;
 import examstaff.service.CandidateDossierService;
 import examstaff.service.CandidatePhotoService;
 import examstaff.service.CandidateQueueQueryService;
-import examstaff.service.ExamStaffSessionQueryService;
+import examstaff.service.ExamStaffExamQueryService;
 import examstaff.service.ProcedureFeeQueryService;
 import examstaff.util.DossierLabelUtil;
 import examstaff.util.LicenseClassRules;
@@ -18,7 +18,7 @@ import java.util.Locale;
 public class CandidateDossierServiceImpl implements CandidateDossierService {
 
     private final CandidateQueueQueryService queueQueryService = new CandidateQueueQueryServiceImpl();
-    private final ExamStaffSessionQueryService sessionQueryService = new ExamStaffSessionQueryServiceImpl();
+    private final ExamStaffExamQueryService examQueryService = new ExamStaffExamQueryServiceImpl();
     private final ProcedureFeeQueryService procedureFeeQueryService = new ProcedureFeeQueryServiceImpl();
     private final CandidatePhotoService photoService = new CandidatePhotoServiceImpl();
 
@@ -36,7 +36,7 @@ public class CandidateDossierServiceImpl implements CandidateDossierService {
 
         photoService.normalizePhotoPaths(webRoot, List.of(profile));
         ProcedureFeeResultDTO fees = procedureFeeQueryService.resolveProcedureFees(profile);
-        ExamSummaryDTO examSession = sessionQueryService.findByExamId(profile.getExamId());
+        ExamSummaryDTO examSummary = examQueryService.findByExamId(profile.getExamId());
 
         String rawLicenseCode = profile.getLicenseCode() != null ? profile.getLicenseCode() : profile.getClazz();
         String normalized = LicenseClassRules.normalizeManaged(rawLicenseCode);
@@ -46,7 +46,7 @@ public class CandidateDossierServiceImpl implements CandidateDossierService {
         profile.setLicenseCode(normalized);
         String licenseCode = normalized;
         view.setProfile(profile);
-        view.setExamSession(examSession);
+        view.setExam(examSummary);
         view.setFees(fees);
         view.setHasPhotoFile(photoService.photoFileExists(webRoot, profile.getPhotoUrl()));
         view.setDossierTitle(DossierLabelUtil.resolveTitle(licenseCode));

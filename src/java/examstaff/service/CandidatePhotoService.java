@@ -23,8 +23,4 @@ public interface CandidatePhotoService {
     void writePhotoFile(String webRoot, String fileName, byte[] imageBytes) throws IOException;
 
     String toWebPhotoPath(String fileName);
-
-    String extractFileName(String photoUrl);
-
-    File resolveUploadDir(String webRoot);
 }

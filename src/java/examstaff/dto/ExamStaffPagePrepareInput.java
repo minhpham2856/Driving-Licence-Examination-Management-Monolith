@@ -12,10 +12,9 @@ public class ExamStaffPagePrepareInput {
     private Integer selectedExamId;
     private Integer loadedExamId;
     private String examIdParam;
-    private boolean hasExamIdParam;
     private boolean loadCandidates;
     private String webRoot;
-    private List<ExamSummaryDTO> allSessions;
+    private List<ExamSummaryDTO> allExams;
     private List<ExamRegistrationDTO> cachedQueue;
     private List<String> callQueueOrder;
     private Integer callQueueOrderExamId;
@@ -60,14 +59,6 @@ public class ExamStaffPagePrepareInput {
         this.examIdParam = examIdParam;
     }
 
-    public boolean isHasExamIdParam() {
-        return hasExamIdParam;
-    }
-
-    public void setHasExamIdParam(boolean hasExamIdParam) {
-        this.hasExamIdParam = hasExamIdParam;
-    }
-
     public boolean isLoadCandidates() {
         return loadCandidates;
     }
@@ -84,12 +75,12 @@ public class ExamStaffPagePrepareInput {
         this.webRoot = webRoot;
     }
 
-    public List<ExamSummaryDTO> getAllSessions() {
-        return allSessions;
+    public List<ExamSummaryDTO> getAllExams() {
+        return allExams;
     }
 
-    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
-        this.allSessions = allSessions;
+    public void setAllExams(List<ExamSummaryDTO> allExams) {
+        this.allExams = allExams;
     }
 
     public List<ExamRegistrationDTO> getCachedQueue() {

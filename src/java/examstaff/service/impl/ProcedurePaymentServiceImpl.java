@@ -4,10 +4,11 @@ import examstaff.dao.PaymentDAO;
 import examstaff.dao.impl.PaymentDAOImpl;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.ProcedureFeeResultDTO;
-import shared.enums.PaymentMethod;
-import shared.enums.PaymentStatus;
-import shared.model.Payment;
+import examstaff.enums.PaymentMethod;
+import examstaff.enums.PaymentStatus;
+import examstaff.model.Payment;
 import examstaff.service.ExamRegistrationService;
+import examstaff.service.impl.ExamRegistrationServiceImpl;
 import examstaff.service.ProcedureFeeQueryService;
 import examstaff.service.ProcedurePaymentService;
 
@@ -45,29 +46,16 @@ public class ProcedurePaymentServiceImpl implements ProcedurePaymentService {
         return recordCashPayment(profile.getId(), enrollmentId, total);
     }
 
-    @Override
-    public int resolveEnrollmentId(int candidateId) {
-        return paymentDAO.resolveEnrollmentId(candidateId);
-    }
-
-    @Override
-    public boolean recordCashPayment(int candidateId, int enrollmentId, double totalAmount) {
+    private boolean recordCashPayment(int candidateId, int enrollmentId, double totalAmount) {
         Payment payment = new Payment();
         payment.setExamEnrollmentId(enrollmentId);
         payment.setTotalAmount(totalAmount);
-        payment.setPaymentStatus(PaymentStatus.COMPLETED.getValue());
-        payment.setPaymentMethod(PaymentMethod.CASH.getValue());
+        payment.setPaymentStatus(PaymentStatus.HOAN_TAT.getDisplayName());
+        payment.setPaymentMethod(PaymentMethod.CASH.getCode());
         payment.setTransactionReference("REF-" + System.currentTimeMillis() % 1_000_000);
         if (paymentDAO.insert(payment)) {
             return true;
         }
         return registrationService.updatePayment(candidateId, true);
     }
-
-    @Override
-    public boolean clearCompletedPayments(int candidateId) {
-        return registrationService.clearCompletedPayments(candidateId);
-    }
 }
-
-

@@ -1,7 +1,7 @@
 package examstaff.service.impl;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
-import examstaff.dto.view.CallBoardState;
+import examstaff.model.view.CallBoardState;
 import examstaff.service.CandidateCallingService;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.impl.CandidateQueueServiceImpl;
@@ -39,11 +39,11 @@ public class CandidateCallingServiceImpl implements CandidateCallingService {
     }
 
     @Override
-    public String resolveSyncedCallingSbd(String sessionCallingSbd, CallBoardState callBoard,
+    public String resolveSyncedCallingSbd(String httpCallingSbd, CallBoardState callBoard,
             List<ExamRegistrationDTO> queue) {
         String boardCalling = callBoard != null ? callBoard.getCallingSbd() : null;
-        String callingSbd = sessionCallingSbd != null && !sessionCallingSbd.isBlank()
-                ? sessionCallingSbd
+        String callingSbd = httpCallingSbd != null && !httpCallingSbd.isBlank()
+                ? httpCallingSbd
                 : boardCalling;
         if (callingSbd != null && !callingSbd.isBlank() && queue != null) {
             ExamRegistrationDTO atDesk = queueService.findBySbd(queue, callingSbd);
@@ -66,4 +66,3 @@ public class CandidateCallingServiceImpl implements CandidateCallingService {
         return queueService.resolveNextCallingSbd(candidateQueue, callingSbd);
     }
 }
-

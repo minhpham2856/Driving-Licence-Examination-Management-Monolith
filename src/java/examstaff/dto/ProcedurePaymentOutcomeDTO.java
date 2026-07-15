@@ -1,6 +1,5 @@
 package examstaff.dto;
 
-import examstaff.dto.AutoAllocateResultDTO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
@@ -19,8 +18,6 @@ public class ProcedurePaymentOutcomeDTO {
     private ExamRegistrationDTO profile;
     private List<ExamRegistrationDTO> queue;
     private int boardExamId;
-    private ProcedureFeeResultDTO feePreview;
-    private AutoAllocateResultDTO allocResult;
     private String paymentAuditDetail;
     private boolean auditAllocate;
 
@@ -54,22 +51,6 @@ public class ProcedurePaymentOutcomeDTO {
 
     public void setBoardExamId(int boardExamId) {
         this.boardExamId = boardExamId;
-    }
-
-    public ProcedureFeeResultDTO getFeePreview() {
-        return feePreview;
-    }
-
-    public void setFeePreview(ProcedureFeeResultDTO feePreview) {
-        this.feePreview = feePreview;
-    }
-
-    public AutoAllocateResultDTO getAllocResult() {
-        return allocResult;
-    }
-
-    public void setAllocResult(AutoAllocateResultDTO allocResult) {
-        this.allocResult = allocResult;
     }
 
     public String getPaymentAuditDetail() {

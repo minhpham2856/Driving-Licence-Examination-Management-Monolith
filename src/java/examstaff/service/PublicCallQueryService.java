@@ -1,10 +1,9 @@
 package examstaff.service;
 
 import examstaff.dto.PublicCallSnapshotDTO;
-import examstaff.dto.view.CallBoardState;
+import examstaff.model.view.CallBoardState;
 
 public interface PublicCallQueryService {
 
-    PublicCallSnapshotDTO loadSnapshot(int sessionId, String webRootPath, CallBoardState board);
+    PublicCallSnapshotDTO loadSnapshot(int examId, String webRootPath, CallBoardState board);
 }
-

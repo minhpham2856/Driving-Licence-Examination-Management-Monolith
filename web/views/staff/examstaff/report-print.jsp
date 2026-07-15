@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo kỳ thi &mdash; ${currentExam.sessionName}</title>
+    <title>Báo cáo kỳ thi &mdash; ${currentExam.examName}</title>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/report-print.css">
 </head>
@@ -32,7 +32,7 @@
 
     <h1 class="report-print-title">BIÊN BẢN TỔNG HỢP KẾT QUẢ KỲ THI</h1>
     <p class="report-print-subtitle">
-        Kỳ thi: <strong>${currentExam.sessionName}</strong>
+        Kỳ thi: <strong>${currentExam.examName}</strong>
         &mdash; Ngày <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy"/>
     </p>
 

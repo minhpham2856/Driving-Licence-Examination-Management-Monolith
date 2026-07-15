@@ -9,7 +9,7 @@ public class ExamStaffPageTransitionInput {
     private int urlExamId;
     private Integer previousExamId;
     private Integer loadedExamId;
-    private List<ExamSummaryDTO> allSessions;
+    private List<ExamSummaryDTO> allExams;
 
     public int getUrlExamId() {
         return urlExamId;
@@ -35,11 +35,11 @@ public class ExamStaffPageTransitionInput {
         this.loadedExamId = loadedExamId;
     }
 
-    public List<ExamSummaryDTO> getAllSessions() {
-        return allSessions;
+    public List<ExamSummaryDTO> getAllExams() {
+        return allExams;
     }
 
-    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
-        this.allSessions = allSessions;
+    public void setAllExams(List<ExamSummaryDTO> allExams) {
+        this.allExams = allExams;
     }
 }

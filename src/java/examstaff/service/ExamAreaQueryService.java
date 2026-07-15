@@ -1,12 +1,10 @@
 package examstaff.service;
 
-import shared.model.ExamArea;
+import examstaff.model.ExamArea;
 
 import java.util.List;
 
 public interface ExamAreaQueryService {
-
-    List<ExamArea> listActiveTheoryRooms();
 
     /** Phòng LT gắn kỳ và đã có giám khảo — dùng dropdown phân phòng thí sinh. */
     List<ExamArea> listStaffedTheoryRoomsForExam(int examId);
@@ -16,4 +14,3 @@ public interface ExamAreaQueryService {
 
     ExamArea findById(int examAreaId);
 }
-

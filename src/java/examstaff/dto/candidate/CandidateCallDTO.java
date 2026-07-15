@@ -1,44 +1,29 @@
 package examstaff.dto.candidate;
 
-
-import java.sql.Timestamp;
-
 public class CandidateCallDTO {
-    private int id;
-    private int examSessionId;
+    private int examId;
     private int candidateNo;
     private String calledTo;
     private int calledBy;
-    private Timestamp calledAt;
     private String result; // 'Present', 'Absent', etc.
 
     public CandidateCallDTO() {
     }
 
-    public CandidateCallDTO(int id, int examSessionId, int candidateNo, String calledTo, int calledBy, Timestamp calledAt, String result) {
-        this.id = id;
-        this.examSessionId = examSessionId;
+    public CandidateCallDTO(int examId, int candidateNo, String calledTo, int calledBy, String result) {
+        this.examId = examId;
         this.candidateNo = candidateNo;
         this.calledTo = calledTo;
         this.calledBy = calledBy;
-        this.calledAt = calledAt;
         this.result = result;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public int getExamId() {
-        return examSessionId;
+        return examId;
     }
 
-    public void setExamId(int examSessionId) {
-        this.examSessionId = examSessionId;
+    public void setExamId(int examId) {
+        this.examId = examId;
     }
 
     public int getCandidateNo() {
@@ -63,14 +48,6 @@ public class CandidateCallDTO {
 
     public void setCalledBy(int calledBy) {
         this.calledBy = calledBy;
-    }
-
-    public Timestamp getCalledAt() {
-        return calledAt;
-    }
-
-    public void setCalledAt(Timestamp calledAt) {
-        this.calledAt = calledAt;
     }
 
     public String getResult() {

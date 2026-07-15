@@ -9,45 +9,44 @@ import examstaff.dto.ExamStaffPickerViewDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.service.CandidateQueueService;
 import examstaff.service.ExamStaffPageService;
-import examstaff.service.ExamStaffSessionQueryService;
-import examstaff.util.ExamStaffSessionRules;
+import examstaff.service.ExamStaffExamQueryService;
+import examstaff.util.ExamStaffExamRules;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 public class ExamStaffPageServiceImpl implements ExamStaffPageService {
 
-    private final ExamStaffSessionQueryService sessionQuery;
+    private final ExamStaffExamQueryService examQuery;
     private final CandidateQueueService queueService;
 
     public ExamStaffPageServiceImpl() {
-        this(new ExamStaffSessionQueryServiceImpl(), new CandidateQueueServiceImpl());
+        this(new ExamStaffExamQueryServiceImpl(), new CandidateQueueServiceImpl());
     }
 
-    public ExamStaffPageServiceImpl(ExamStaffSessionQueryService sessionQuery,
+    public ExamStaffPageServiceImpl(ExamStaffExamQueryService examQuery,
             CandidateQueueService queueService) {
-        this.sessionQuery = sessionQuery;
+        this.examQuery = examQuery;
         this.queueService = queueService;
     }
 
     @Override
-    public List<ExamSummaryDTO> listAllSessions() {
-        return sessionQuery.listAllSessions();
+    public List<ExamSummaryDTO> listAllExams() {
+        return examQuery.listAllExams();
     }
 
     @Override
-    public ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allSessions) {
+    public ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allExams) {
         if (examId <= 0) {
             return null;
         }
-        ExamSummaryDTO found = ExamStaffSessionRules.findExamById(allSessions, examId);
+        ExamSummaryDTO found = ExamStaffExamRules.findExamById(allExams, examId);
         if (found != null) {
             return found;
         }
         try {
-            return sessionQuery.findByExamId(examId);
+            return examQuery.findByExamId(examId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -55,46 +54,29 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
     }
 
     @Override
-    public ExamSummaryDTO representativeSessionForExam(List<ExamSummaryDTO> allSessions, int examId) {
+    public ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId) {
         if (examId <= 0) {
             return null;
         }
-        List<ExamSummaryDTO> daySessions = sessionsForExam(allSessions, examId);
-        if (!daySessions.isEmpty()) {
-            return daySessions.get(0);
+        List<ExamSummaryDTO> dayExams = ExamStaffExamRules.examsForExam(allExams, examId);
+        if (!dayExams.isEmpty()) {
+            return dayExams.get(0);
         }
-        int primaryId = resolvePrimaryExamId(allSessions, examId);
+        int primaryId = resolvePrimaryExamId(allExams, examId);
         if (primaryId > 0) {
-            return sessionQuery.findByExamId(primaryId);
+            return examQuery.findByExamId(primaryId);
         }
         return null;
     }
 
     @Override
-    public List<ExamSummaryDTO> sessionsForExam(List<ExamSummaryDTO> allSessions, int examId) {
-        if (allSessions == null || examId <= 0) {
-            return List.of();
-        }
-        List<ExamSummaryDTO> result = new ArrayList<>();
-        for (ExamSummaryDTO s : allSessions) {
-            if (s.getExamId() == examId || s.getId() == examId) {
-                result.add(s);
-            }
-        }
-        result.sort(Comparator
-                .comparing(ExamSummaryDTO::getShiftStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(ExamSummaryDTO::getId));
-        return result;
+    public int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId) {
+        return ExamStaffExamRules.resolvePrimaryExamId(allExams, examId);
     }
 
     @Override
-    public int resolvePrimaryExamId(List<ExamSummaryDTO> allSessions, int examId) {
-        return ExamStaffSessionRules.resolvePrimaryExamId(allSessions, examId);
-    }
-
-    @Override
-    public int resolveDefaultExamId(List<ExamSummaryDTO> allSessions) {
-        ExamSummaryDTO first = firstPickerOption(allSessions);
+    public int resolveDefaultExamId(List<ExamSummaryDTO> allExams) {
+        ExamSummaryDTO first = firstPickerOption(allExams);
         if (first == null) {
             return 0;
         }
@@ -102,34 +84,34 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
     }
 
     @Override
-    public ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allSessions, int examId, int urlExamId) {
+    public ExamStaffPickerViewDTO buildPickerView(List<ExamSummaryDTO> allExams, int examId, int urlExamId) {
         ExamStaffPickerViewDTO view = new ExamStaffPickerViewDTO();
-        if (allSessions == null || allSessions.isEmpty()) {
-            allSessions = listAllSessions();
+        if (allExams == null || allExams.isEmpty()) {
+            allExams = listAllExams();
         }
-        List<ExamSummaryDTO> options = sortExamDaysForSidebar(buildExamOptions(allSessions));
+        List<ExamSummaryDTO> options = sortExamDaysForSidebar(buildExamOptions(allExams));
         view.setExamOptions(options);
-        view.setAllSessions(allSessions);
+        view.setAllExams(allExams);
 
         ExamSummaryDTO current = null;
         if (urlExamId > 0) {
-            current = findExamById(urlExamId, allSessions);
+            current = findExamById(urlExamId, allExams);
             if (current != null) {
                 examId = current.getId() > 0 ? current.getId() : current.getExamId();
                 view.setSelectedExamId(urlExamId);
             }
         } else if (examId > 0) {
-            current = findExamById(examId, allSessions);
+            current = findExamById(examId, allExams);
             view.setSelectedExamId(examId);
         }
         if (current == null && examId > 0) {
-            current = representativeSessionForExam(allSessions, examId);
+            current = representativeExam(allExams, examId);
         }
         if (current == null && !options.isEmpty()) {
             current = options.get(0);
             examId = current.getId() > 0 ? current.getId() : current.getExamId();
         }
-        view.setCurrentSession(current);
+        view.setCurrentExam(current);
         view.setExamId(examId);
 
         int committedExamId = 0;
@@ -153,15 +135,15 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
             return ctx;
         }
 
-        List<ExamSummaryDTO> allSessions = input.getAllSessions();
-        if (allSessions == null || allSessions.isEmpty()) {
-            allSessions = listAllSessions();
+        List<ExamSummaryDTO> allExams = input.getAllExams();
+        if (allExams == null || allExams.isEmpty()) {
+            allExams = listAllExams();
         }
-        ctx.setAllSessions(allSessions);
+        ctx.setAllExams(allExams);
 
-        int examId = resolveExamId(input, allSessions);
+        int examId = resolveExamId(input, allExams);
 
-        ExamStaffPickerViewDTO picker = buildPickerView(allSessions, examId, input.getUrlExamId());
+        ExamStaffPickerViewDTO picker = buildPickerView(allExams, examId, input.getUrlExamId());
         examId = picker.getExamId();
         if (input.getUrlExamId() > 0) {
             examId = input.getUrlExamId();
@@ -169,7 +151,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
             examId = picker.getSelectedExamId();
         }
         if (examId <= 0) {
-            examId = resolvePrimaryExamId(allSessions, picker.getExamId());
+            examId = resolvePrimaryExamId(allExams, picker.getExamId());
         }
 
         if (examId <= 0 && picker.getExamOptions() != null && !picker.getExamOptions().isEmpty()) {
@@ -180,13 +162,13 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         ctx.setExamId(examId);
         ctx.setPickerView(picker);
 
-        List<ExamRegistrationDTO> candidates = resolveCandidates(input, examId, allSessions);
+        List<ExamRegistrationDTO> candidates = resolveCandidates(input, examId, allExams);
         ctx.setCandidates(candidates);
         return ctx;
     }
 
     private List<ExamRegistrationDTO> resolveCandidates(ExamStaffPagePrepareInput input,
-            int examId, List<ExamSummaryDTO> allSessions) {
+            int examId, List<ExamSummaryDTO> allExams) {
         if (!input.isLoadCandidates()) {
             if (input.getCachedQueue() != null
                     && input.getLoadedExamId() != null && input.getLoadedExamId() == examId) {
@@ -198,7 +180,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         ExamStaffQueueRefreshInput refresh = new ExamStaffQueueRefreshInput();
         refresh.setExamId(examId);
         refresh.setWebRoot(input.getWebRoot());
-        refresh.setAllSessions(allSessions);
+        refresh.setAllExams(allExams);
         refresh.setSelectedExamId(input.getSelectedExamId());
         refresh.setCallQueueOrder(input.getCallQueueOrder());
         refresh.setCallQueueOrderExamId(input.getCallQueueOrderExamId());
@@ -206,10 +188,10 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         return snapshot.getFullQueue();
     }
 
-    private int resolveExamId(ExamStaffPagePrepareInput input, List<ExamSummaryDTO> allSessions) {
+    private int resolveExamId(ExamStaffPagePrepareInput input, List<ExamSummaryDTO> allExams) {
         int examId = input.getUrlExamId();
         if (examId > 0) {
-            ExamSummaryDTO picked = findExamById(examId, allSessions);
+            ExamSummaryDTO picked = findExamById(examId, allExams);
             if (picked != null) {
                 return picked.getId() > 0 ? picked.getId() : picked.getExamId();
             }
@@ -222,7 +204,7 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         if (parsed > 0) {
             return parsed;
         }
-        return resolveDefaultExamId(allSessions);
+        return resolveDefaultExamId(allExams);
     }
 
     private static int parseExamIdParam(String examIdParam) {
@@ -237,10 +219,10 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
         }
     }
 
-    private List<ExamSummaryDTO> buildExamOptions(List<ExamSummaryDTO> allSessions) {
+    private List<ExamSummaryDTO> buildExamOptions(List<ExamSummaryDTO> allExams) {
         LinkedHashMap<Integer, ExamSummaryDTO> examOptionMap = new LinkedHashMap<>();
-        if (allSessions != null) {
-            for (ExamSummaryDTO s : allSessions) {
+        if (allExams != null) {
+            for (ExamSummaryDTO s : allExams) {
                 int key = s.getId() > 0 ? s.getId() : s.getExamId();
                 if (key <= 0 || examOptionMap.containsKey(key)) {
                     continue;
@@ -264,11 +246,11 @@ public class ExamStaffPageServiceImpl implements ExamStaffPageService {
     }
 
     private static List<ExamSummaryDTO> sortExamDaysForSidebar(List<ExamSummaryDTO> options) {
-        return ExamStaffSessionRules.sortExamDaysForSidebar(options);
+        return ExamStaffExamRules.sortExamDaysForSidebar(options);
     }
 
-    private ExamSummaryDTO firstPickerOption(List<ExamSummaryDTO> allSessions) {
-        List<ExamSummaryDTO> options = sortExamDaysForSidebar(buildExamOptions(allSessions));
+    private ExamSummaryDTO firstPickerOption(List<ExamSummaryDTO> allExams) {
+        List<ExamSummaryDTO> options = sortExamDaysForSidebar(buildExamOptions(allExams));
         return options.isEmpty() ? null : options.get(0);
     }
 }

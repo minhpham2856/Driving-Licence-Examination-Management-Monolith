@@ -1,14 +1,14 @@
 package examstaff.dao;
 
-import shared.enums.ExamStatus;
-import java.util.List;
-import shared.model.Exam;
+import examstaff.dto.ExamSummaryDTO;
+import java.sql.Timestamp;
 
 public interface ExamDAO {
-    int countAll();
-    Exam getById(int examId);
-    List<Exam> getByStatus(ExamStatus status);
-    List<Exam> getExamsByExaminerId(int examinerId);
+
+    ExamSummaryDTO getById(int id);
+
+    boolean updateStatus(int examId, String status);
+
+    /** Cap nhat trang thai va ghi thoi diem ket thuc ky thi (EndTime). */
+    boolean finishExam(int examId, String status, Timestamp endTime);
 }
-
-

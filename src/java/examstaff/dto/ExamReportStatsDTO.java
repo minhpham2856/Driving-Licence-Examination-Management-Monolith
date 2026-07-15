@@ -13,18 +13,6 @@ public class ExamReportStatsDTO {
     private int suspendedCount;
     private double passRate;
     private List<Map<String, Object>> licenseStats;
-    private int a1Count;
-    private int a1Completed;
-    private int a1Passed;
-    private int a1Failed;
-    private int aCount;
-    private int aCompleted;
-    private int aPassed;
-    private int aFailed;
-    private int b1Count;
-    private int b1Completed;
-    private int b1Passed;
-    private int b1Failed;
     private int theoryCount;
     private int theoryPassed;
     private int theoryFailed;
@@ -95,102 +83,6 @@ public class ExamReportStatsDTO {
 
     public void setLicenseStats(List<Map<String, Object>> licenseStats) {
         this.licenseStats = licenseStats;
-    }
-
-    public int getA1Count() {
-        return a1Count;
-    }
-
-    public void setA1Count(int a1Count) {
-        this.a1Count = a1Count;
-    }
-
-    public int getA1Completed() {
-        return a1Completed;
-    }
-
-    public void setA1Completed(int a1Completed) {
-        this.a1Completed = a1Completed;
-    }
-
-    public int getA1Passed() {
-        return a1Passed;
-    }
-
-    public void setA1Passed(int a1Passed) {
-        this.a1Passed = a1Passed;
-    }
-
-    public int getA1Failed() {
-        return a1Failed;
-    }
-
-    public void setA1Failed(int a1Failed) {
-        this.a1Failed = a1Failed;
-    }
-
-    public int getACount() {
-        return aCount;
-    }
-
-    public void setACount(int aCount) {
-        this.aCount = aCount;
-    }
-
-    public int getACompleted() {
-        return aCompleted;
-    }
-
-    public void setACompleted(int aCompleted) {
-        this.aCompleted = aCompleted;
-    }
-
-    public int getAPassed() {
-        return aPassed;
-    }
-
-    public void setAPassed(int aPassed) {
-        this.aPassed = aPassed;
-    }
-
-    public int getAFailed() {
-        return aFailed;
-    }
-
-    public void setAFailed(int aFailed) {
-        this.aFailed = aFailed;
-    }
-
-    public int getB1Count() {
-        return b1Count;
-    }
-
-    public void setB1Count(int b1Count) {
-        this.b1Count = b1Count;
-    }
-
-    public int getB1Completed() {
-        return b1Completed;
-    }
-
-    public void setB1Completed(int b1Completed) {
-        this.b1Completed = b1Completed;
-    }
-
-    public int getB1Passed() {
-        return b1Passed;
-    }
-
-    public void setB1Passed(int b1Passed) {
-        this.b1Passed = b1Passed;
-    }
-
-    public int getB1Failed() {
-        return b1Failed;
-    }
-
-    public void setB1Failed(int b1Failed) {
-        this.b1Failed = b1Failed;
     }
 
     public int getTheoryCount() {

@@ -8,7 +8,7 @@ public class ExamStaffQueueRefreshInput {
 
     private int examId;
     private String webRoot;
-    private List<ExamSummaryDTO> allSessions;
+    private List<ExamSummaryDTO> allExams;
     private Integer selectedExamId;
     private List<String> callQueueOrder;
     private Integer callQueueOrderExamId;
@@ -29,12 +29,12 @@ public class ExamStaffQueueRefreshInput {
         this.webRoot = webRoot;
     }
 
-    public List<ExamSummaryDTO> getAllSessions() {
-        return allSessions;
+    public List<ExamSummaryDTO> getAllExams() {
+        return allExams;
     }
 
-    public void setAllSessions(List<ExamSummaryDTO> allSessions) {
-        this.allSessions = allSessions;
+    public void setAllExams(List<ExamSummaryDTO> allExams) {
+        this.allExams = allExams;
     }
 
     public Integer getSelectedExamId() {

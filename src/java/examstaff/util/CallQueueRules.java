@@ -3,26 +3,12 @@ package examstaff.util;
 import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /** Quy tắc hàng đợi gọi thí sinh — không phụ thuộc HTTP. */
 public final class CallQueueRules {
 
     private CallQueueRules() {
-    }
-
-    public static List<ExamRegistrationDTO> filterActiveCallQueue(List<ExamRegistrationDTO> queue) {
-        List<ExamRegistrationDTO> active = new ArrayList<>();
-        if (queue == null) {
-            return active;
-        }
-        for (ExamRegistrationDTO c : queue) {
-            if (c != null && !c.isAbsent() && !c.isSuspended()) {
-                active.add(c);
-            }
-        }
-        return active;
     }
 
     public static boolean isCallablePending(ExamRegistrationDTO c) {
@@ -129,7 +115,7 @@ public final class CallQueueRules {
         return order;
     }
 
-    public static List<ExamRegistrationDTO> listSuspendedInSession(List<ExamRegistrationDTO> queue) {
+    public static List<ExamRegistrationDTO> listSuspendedInExam(List<ExamRegistrationDTO> queue) {
         List<ExamRegistrationDTO> suspended = new ArrayList<>();
         if (queue == null) {
             return suspended;
@@ -140,19 +126,5 @@ public final class CallQueueRules {
             }
         }
         return suspended;
-    }
-
-    public static List<ExamRegistrationDTO> listProcedureDoneNewestFirst(List<ExamRegistrationDTO> queue) {
-        List<ExamRegistrationDTO> done = new ArrayList<>();
-        if (queue == null) {
-            return done;
-        }
-        for (ExamRegistrationDTO c : queue) {
-            if (c != null && c.isPaymentCompleted() && c.isValidCapturedPhoto()) {
-                done.add(c);
-            }
-        }
-        done.sort(Comparator.comparing(ExamRegistrationDTO::getSbd).reversed());
-        return done;
     }
 }
