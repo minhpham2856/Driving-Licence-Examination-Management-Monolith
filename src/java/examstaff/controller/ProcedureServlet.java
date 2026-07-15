@@ -1,29 +1,25 @@
 package examstaff.controller;
 
-import examstaff.controller.CallBoardHttpFacade;
-import examstaff.controller.ExamStaffSelectionFacade;
-import examstaff.controller.StaffAuditLogSupport;
-import examstaff.controller.ExamStaffPageBinder;
-import examstaff.controller.ExamStaffHttpSupport;
-import examstaff.controller.ExamStaffWebModule;
-import examstaff.controller.ExamStaffPageFacade;
+import examstaff.dao.CallBoardDAO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamRegistrationDTO;
-import examstaff.dto.ProcedurePaymentOutcomeDTO;
-import examstaff.dto.ProcedurePhotoSaveOutcomeDTO;
-import examstaff.dto.ProcedureProfilePrepareResultDTO;
-import examstaff.dto.ProcedureResetOutcomeDTO;
+import examstaff.dto.ExamStaffPageCommand;
+import examstaff.dto.ExamStaffPageContext;
+import examstaff.dto.ProcedureActionOutcome;
 import examstaff.dto.CandidateQueueSnapshotDTO;
-import examstaff.dto.ExamStaffQueueRefreshInput;
 import examstaff.dto.CallBoardState;
-import examstaff.service.CandidateQueueService;
-import examstaff.service.CandidatePhotoService;
+import examstaff.dto.ServiceResult;
+import examstaff.service.AuditService;
 import examstaff.service.ExamControlService;
-import examstaff.service.ExamStaffServices;
-import examstaff.service.ProcedureFeeQueryService;
-import examstaff.service.ProcedureWorkflowService;
-import examstaff.util.Utf8EncodingHelper;
-import examstaff.util.ProcedureStepHelper;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.ProcedureService;
+import examstaff.service.StaffCallService;
+import examstaff.service.impl.AuditServiceImpl;
+import examstaff.service.impl.ExamControlServiceImpl;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+import examstaff.service.impl.ProcedureServiceImpl;
+import examstaff.service.impl.StaffCallServiceImpl;
+import examstaff.service.impl.support.procedure.ProcedureStepHelper;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -35,22 +31,26 @@ import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
 
+/**
+ * Bàn thủ tục thí sinh (wizard lý lịch / ảnh / phí): prepare → actions → bind desk → candidatecall.jsp (deskMode).
+ */
 @WebServlet("/examstaff/procedure")
 public class ProcedureServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private final ProcedureService procedureService = new ProcedureServiceImpl();
+    private final StaffCallService staffCall = new StaffCallServiceImpl();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
+    private final ExamControlService examControlService = new ExamControlServiceImpl();
+    private final AuditService auditService = new AuditServiceImpl();
 
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final ProcedureWorkflowService procedureWorkflow = SERVICES.procedures();
-    private final CandidatePhotoService photoService = SERVICES.photos();
-    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
-    private final ProcedureFeeQueryService procedureFeeService = SERVICES.procedureFees();
-    private final ExamControlService examControlService = SERVICES.examControl();
-    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
-    private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
-    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
-
+    /**
+     * GET: startShift | prepare desk | xử lý action (next/reset/save/photo/payment) | forward desk view.
+     * <p>
+     * Luồng: resolve SBD → find/prepare profile → phân nhánh action → bind step/fees → {@link #forwardDeskView}.
+     *
+     * @throws ServletException lỗi forward
+     * @throws IOException      lỗi redirect / JSON
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -58,40 +58,33 @@ public class ProcedureServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String webRoot = request.getServletContext().getRealPath("/");
 
+        // Bắt đầu / resume ca → quay lại trang gọi
         if ("startShift".equals(request.getParameter("action"))) {
-            List<ExamSummaryDTO> bootstrapExams = selectionFacade.loadAllExams();
-            int boardExamId = selectionFacade.resolveExamId(request, session, bootstrapExams, 0);
-            ExamSummaryDTO currentExam = selectionFacade.findExamById(bootstrapExams, boardExamId);
-            if (currentExam != null && examstaff.enums.ExamStatus.isPaused(currentExam.getStatus())) {
-                ExamControlService.ResumeResult resume = examControlService.resumeExam(boardExamId);
-                if (!resume.isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
-                    return;
-                }
-            }
-            session.removeAttribute("shiftEnded");
-            session.removeAttribute("shiftPaused");
-            callBoardHttp.resumeShift(getServletContext(), boardExamId);
+            List<ExamSummaryDTO> bootstrapExams = viewService.listAllExams();
+            int boardExamId = ExamStaffPageSupport.resolveExamId(request, session, bootstrapExams, 0, viewService);
+            ExamStaffShiftSupport.startOrResumeShift(session, getServletContext(), boardExamId,
+                    viewService, examControlService, staffCall);
             response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
             return;
         }
 
         ExamStaffHttpSupport.applyNoCacheHeaders(response);
-        ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
-                request, session, webRoot);
+        ExamStaffPageContext pageCtx = ExamStaffPageSupport.prepareExamStaffPage(
+                request, session, webRoot, true, viewService);
         int examId = pageCtx.getExamId();
         List<ExamSummaryDTO> allExams = pageCtx.getAllExams();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
 
+        // SBD hiện tại + phát hiện đổi thí sinh (reset bước wizard)
         String sbdParam = resolveSbdParam(request, session);
         boolean sbdChanged = trackSbdChange(session, sbdParam);
 
-        ExamRegistrationDTO profile = procedureWorkflow.findProfile(webRoot, examId, examId, sbdParam, qList);
-        ProcedureProfilePrepareResultDTO prepared = procedureWorkflow.prepareProfileForDesk(
+        ExamRegistrationDTO profile = procedureService.findProfile(webRoot, examId, examId, sbdParam, qList);
+        ServiceResult<ExamRegistrationDTO> prepared = procedureService.prepareProfileForDesk(
                 webRoot, examId, examId, profile, qList);
-        profile = prepared.getProfile();
-        if (prepared.getPhotoStaleMessage() != null) {
-            request.setAttribute("photoStaleMsg", prepared.getPhotoStaleMessage());
+        profile = prepared.getData();
+        if (prepared.getMessage() != null) {
+            request.setAttribute("photoStaleMsg", prepared.getMessage());
         }
         publishCandidateQueue(request, session, qList, examId);
 
@@ -104,6 +97,7 @@ public class ProcedureServlet extends HttpServlet {
 
         String pAction = request.getParameter("action");
 
+        // --- Các nhánh action ---
         if ("nextCandidate".equals(pAction)) {
             session.removeAttribute("procedureJustPaidSbd");
             String finishedSbd = sbdParam;
@@ -116,10 +110,12 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         if ("resetProcedure".equals(pAction) && sbdParam != null && !sbdParam.trim().isEmpty()) {
-            ProcedureResetOutcomeDTO reset = procedureWorkflow.resetProcedure(sbdParam.trim(), examId, webRoot);
-            if (reset.isSuccess()) {
+            ServiceResult<ProcedureActionOutcome> resetResult =
+                    procedureService.resetProcedure(sbdParam.trim(), examId, webRoot);
+            ProcedureActionOutcome reset = resetResult.getData();
+            if (resetResult.isSuccess() && reset != null) {
                 qList = reset.getQueue();
-                candidateQueueService.moveCallableCandidateToFront(qList, reset.getSbd());
+                staffCall.moveCallableCandidateToFront(qList, reset.getSbd());
                 ExamStaffPageBinder.syncCallQueueOrder(session, examId, qList);
                 publishCandidateQueue(request, session, qList, examId);
                 session.setAttribute("callingSbd", reset.getSbd());
@@ -141,7 +137,7 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         if ("recapture".equals(pAction) && profile != null) {
-            profile = procedureWorkflow.recapturePhoto(profile.getId(), webRoot, examId, sbdParam, qList);
+            profile = procedureService.recapturePhoto(profile.getId(), webRoot, examId, sbdParam, qList);
             hasValidPhoto = false;
             stepParam = "2";
             publishCandidateQueue(request, session, qList, examId);
@@ -161,6 +157,7 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
 
+        // Callback sau cổng thanh toán (paymentSuccess=true)
         if ("true".equals(request.getParameter("paymentSuccess")) && profile != null) {
             if (!profile.isValidCapturedPhoto()) {
                 request.setAttribute("photoRequiredMsg", ProcedureStepHelper.paymentBlockedNoPhotoMessage());
@@ -171,20 +168,25 @@ public class ProcedureServlet extends HttpServlet {
                 forwardDeskView(request, response, qList);
                 return;
             }
-            ProcedurePaymentOutcomeDTO outcome = procedureWorkflow.confirmPayment(
-                    profile, sbdParam, examId, webRoot, allExams);
+            ProcedureActionOutcome outcome = procedureService.confirmPayment(
+                    profile, sbdParam, examId, webRoot, allExams).getData();
+            if (outcome == null) {
+                response.sendRedirect("candidatecall");
+                return;
+            }
             applyPaymentOutcome(request, session, sbdParam, outcome, examId);
-            if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.SUCCESS) {
-                selectionFacade.syncExamSelection(session, allExams, examId);
+            if (outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.SUCCESS) {
+                ExamStaffPageSupport.syncExamSelection(session, allExams, examId, viewService);
                 showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, outcome.getQueue(), false);
                 return;
             }
         }
 
+        // Bind hồ sơ + phí + bước wizard rồi mở desk
         if (profile != null) {
             request.setAttribute("profile", profile);
-            ExamStaffPageBinder.bindProcedureFees(request, procedureFeeService.resolveProcedureFees(profile));
-            photoService.resolveCapturedPhoto(webRoot, profile);
+            ExamStaffPageBinder.bindProcedureFees(request, procedureService.resolveProcedureFees(profile));
+            viewService.resolveCapturedPhoto(webRoot, profile);
             hasValidPhoto = profile.isValidCapturedPhoto();
         }
 
@@ -195,6 +197,12 @@ public class ProcedureServlet extends HttpServlet {
         forwardDeskView(request, response, qList);
     }
 
+    /**
+     * POST: saveCapturedPhoto (JSON nhanh) / confirmPayment / còn lại ủy quyền GET.
+     *
+     * @throws ServletException lỗi forward
+     * @throws IOException      lỗi I/O
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -202,8 +210,8 @@ public class ProcedureServlet extends HttpServlet {
         if ("saveCapturedPhoto".equals(action)) {
             HttpSession session = request.getSession();
             String webRoot = request.getServletContext().getRealPath("/");
-            List<ExamSummaryDTO> allExams = selectionFacade.loadAllExams();
-            int examId = selectionFacade.ensureExamId(request, session, allExams);
+            List<ExamSummaryDTO> allExams = viewService.listAllExams();
+            int examId = ExamStaffPageSupport.ensureExamId(request, session, allExams, viewService);
             List<ExamRegistrationDTO> qList = refreshCandidateQueue(session, examId, webRoot, allExams);
             String sbdParam = resolveSbd(request, session);
             handleSaveCapturedPhoto(request, response, session, sbdParam, qList, webRoot, examId);
@@ -216,6 +224,11 @@ public class ProcedureServlet extends HttpServlet {
         doGet(request, response);
     }
 
+    /**
+     * Lưu lý lịch từ form → reload profile → audit.
+     *
+     * @return profile sau khi lưu (hoặc gốc nếu lỗi)
+     */
     private ExamRegistrationDTO handleSaveProfile(HttpServletRequest request, HttpSession session,
             ExamRegistrationDTO profile, String sbdParam, List<ExamRegistrationDTO> qList,
             String webRoot, int examId) {
@@ -227,10 +240,10 @@ public class ProcedureServlet extends HttpServlet {
 
         try {
             Date sqlDob = parseDateOfBirth(dobStr);
-            boolean updated = procedureWorkflow.saveProfile(
+            ServiceResult<Boolean> saveResult = procedureService.saveProfile(
                     profile.getId(), fullName, sqlDob, govIdNo, email, phoneNo);
-            if (updated) {
-                profile = procedureWorkflow.reloadProfile(webRoot, examId, profile.getId(), sbdParam, qList);
+            if (saveResult.isSuccess()) {
+                profile = procedureService.reloadProfile(webRoot, examId, profile.getId(), sbdParam, qList);
                 request.setAttribute("profileUpdatedAlert", "true");
                 addAuditLog(session, "UPDATE on Person", "Sửa đổi lý lịch SBD " + sbdParam);
             }
@@ -241,6 +254,11 @@ public class ProcedureServlet extends HttpServlet {
         return profile;
     }
 
+    /**
+     * Parse ngày sinh từ {@code dd/MM/yyyy} hoặc {@code yyyy-MM-dd}.
+     *
+     * @return java.sql.Date hoặc null nếu trống
+     */
     private static Date parseDateOfBirth(String dobStr) {
         if (dobStr == null || dobStr.trim().isEmpty()) {
             return null;
@@ -252,18 +270,27 @@ public class ProcedureServlet extends HttpServlet {
         return Date.valueOf(dobStr.trim());
     }
 
+    /**
+     * Thu phí: confirmPayment → xử lý từng PaymentStatus → desk sau thanh toán hoặc lỗi.
+     *
+     * @throws IOException lỗi redirect / forward
+     */
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam,
             List<ExamRegistrationDTO> qList, String webRoot, List<ExamSummaryDTO> allExams, int examId)
             throws IOException {
-        ProcedurePaymentOutcomeDTO outcome = procedureWorkflow.confirmPayment(
-                profile, sbdParam, examId, webRoot, allExams);
-
-        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PROFILE_NOT_FOUND) {
+        ProcedureActionOutcome outcome = procedureService.confirmPayment(
+                profile, sbdParam, examId, webRoot, allExams).getData();
+        if (outcome == null) {
             response.sendRedirect("candidatecall");
             return;
         }
-        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.NO_PHOTO) {
+
+        if (outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.PROFILE_NOT_FOUND) {
+            response.sendRedirect("candidatecall");
+            return;
+        }
+        if (outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.NO_PHOTO) {
             try {
                 request.setAttribute("photoRequiredMsg", ProcedureStepHelper.paymentBlockedNoPhotoMessage());
                 request.setAttribute("step", "2");
@@ -276,12 +303,12 @@ public class ProcedureServlet extends HttpServlet {
             }
             return;
         }
-        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.ALREADY_PAID) {
+        if (outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.ALREADY_PAID) {
             boolean openPrint = "true".equals(request.getParameter("printAfterPayment"));
             showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, qList, openPrint);
             return;
         }
-        if (outcome.getStatus() == ProcedurePaymentOutcomeDTO.Status.PAYMENT_FAILED) {
+        if (outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.PAYMENT_FAILED) {
             try {
                 request.setAttribute("paymentErrorMsg", "Không ghi được thanh toán. Vui lòng thử lại.");
                 request.setAttribute("step", "3");
@@ -295,16 +322,19 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         applyPaymentOutcome(request, session, sbdParam, outcome, examId);
-        selectionFacade.syncExamSelection(session, allExams, examId);
+        ExamStaffPageSupport.syncExamSelection(session, allExams, examId, viewService);
         session.setAttribute("lastLoadedExamId", outcome.getBoardExamId());
 
         boolean openPrint = "true".equals(request.getParameter("printAfterPayment"));
         showPostPaymentDesk(request, response, session, outcome.getProfile(), sbdParam, outcome.getQueue(), openPrint);
     }
 
+    /**
+     * Sau thanh toán thành công: publish queue + audit (payment / auto-allocate).
+     */
     private void applyPaymentOutcome(HttpServletRequest request, HttpSession session, String sbdParam,
-            ProcedurePaymentOutcomeDTO outcome, int examId) {
-        if (outcome.getStatus() != ProcedurePaymentOutcomeDTO.Status.SUCCESS) {
+            ProcedureActionOutcome outcome, int examId) {
+        if (outcome.getPaymentStatus() != ProcedureActionOutcome.PaymentStatus.SUCCESS) {
             return;
         }
         publishCandidateQueue(request, session, outcome.getQueue(), examId);
@@ -314,6 +344,12 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Hiển thị bàn bước 3 sau khi thu phí (cờ just-paid + optional mở in).
+     *
+     * @param openPrint true → set openDossierPrint
+     * @throws IOException lỗi forward
+     */
     private void showPostPaymentDesk(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam,
             List<ExamRegistrationDTO> qList, boolean openPrint) throws IOException {
@@ -329,23 +365,33 @@ public class ProcedureServlet extends HttpServlet {
             if (openPrint) {
                 request.setAttribute("openDossierPrint", sbdParam);
             }
-            ExamStaffPageBinder.bindProcedureFees(request, procedureFeeService.resolveProcedureFees(profile));
+            ExamStaffPageBinder.bindProcedureFees(request, procedureService.resolveProcedureFees(profile));
             forwardDeskView(request, response, qList);
         } catch (ServletException e) {
             throw new IOException(e);
         }
     }
 
+    /**
+     * Lưu ảnh webcam (JSON response): service saveCapturedPhoto → status code + body.
+     *
+     * @throws IOException lỗi ghi JSON
+     */
     private void handleSaveCapturedPhoto(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, String sbdParam, List<ExamRegistrationDTO> qList, String webRoot,
             int examId) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
         Utf8EncodingHelper.applyResponse(response);
 
-        ProcedurePhotoSaveOutcomeDTO outcome = procedureWorkflow.saveCapturedPhoto(
-                webRoot, sbdParam, examId, request.getParameter("photoBase64"), qList);
+        ProcedureActionOutcome outcome = procedureService.saveCapturedPhoto(
+                webRoot, sbdParam, examId, request.getParameter("photoBase64"), qList).getData();
+        if (outcome == null) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"success\":false,\"message\":\"Lỗi lưu ảnh\"}");
+            return;
+        }
 
-        switch (outcome.getStatus()) {
+        switch (outcome.getPhotoStatus()) {
             case CANDIDATE_NOT_FOUND, INVALID_IMAGE -> {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("{\"success\":false,\"message\":\"" + outcome.getMessage() + "\"}");
@@ -366,28 +412,38 @@ public class ProcedureServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Forward desk view: refresh queue → bind calling → occupyDesk → candidatecall.jsp (deskMode).
+     * <p>
+     * Luồng: fees nếu thiếu → ensureExamId → refresh DB → publish → sync calling → occupy → sidebar → JSP.
+     *
+     * @throws ServletException lỗi forward
+     * @throws IOException      lỗi I/O
+     */
     private void forwardDeskView(HttpServletRequest request, HttpServletResponse response,
             List<ExamRegistrationDTO> qList) throws ServletException, IOException {
         HttpSession httpSession = request.getSession();
         ExamRegistrationDTO profile = (ExamRegistrationDTO) request.getAttribute("profile");
         if (profile != null && request.getAttribute("feeLines") == null) {
-            ExamStaffPageBinder.bindProcedureFees(request, procedureFeeService.resolveProcedureFees(profile));
+            ExamStaffPageBinder.bindProcedureFees(request, procedureService.resolveProcedureFees(profile));
         }
         String webRoot = request.getServletContext().getRealPath("/");
-        List<ExamSummaryDTO> allExams = selectionFacade.loadAllExams();
-        int examId = selectionFacade.ensureExamId(request, httpSession, allExams);
-        int boardExamId = selectionFacade.resolveExamId(request, httpSession, allExams, 0);
+        List<ExamSummaryDTO> allExams = viewService.listAllExams();
+        int examId = ExamStaffPageSupport.ensureExamId(request, httpSession, allExams, viewService);
+        int boardExamId = ExamStaffPageSupport.resolveExamId(request, httpSession, allExams, 0, viewService);
         if (boardExamId <= 0) {
             boardExamId = examId;
         }
 
+        // Đồng bộ queue + trạng thái gọi trước khi mở bàn
         qList = refreshQueueFromDb(httpSession, webRoot, examId, allExams);
         publishCandidateQueue(request, httpSession, qList, examId);
         bindCandidateCallPageAttributes(request, httpSession, examId, qList);
         boolean shiftEnded = isShiftEnded(httpSession);
         syncCallingSbd(httpSession, boardExamId, qList, shiftEnded);
         if (profile != null && profile.getSbd() != null && !profile.getSbd().isBlank()) {
-            callBoardHttp.occupyDesk(request.getServletContext(), boardExamId, profile.getSbd(), qList, shiftEnded);
+            staffCall.occupyDesk(ExamStaffHttpSupport.callBoardDao(request.getServletContext()),
+                    boardExamId, profile.getSbd(), qList, shiftEnded);
         }
         if (request.getAttribute("callingCandidate") == null && profile != null) {
             String callingSbd = (String) httpSession.getAttribute("callingSbd");
@@ -396,19 +452,29 @@ public class ProcedureServlet extends HttpServlet {
             }
         }
         request.setAttribute("deskMode", Boolean.TRUE);
-        selectionFacade.bindSidebarIfNeeded(request, httpSession);
+        ExamStaffPageSupport.bindSidebarIfNeeded(request, httpSession, viewService);
         request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
     }
 
+    /**
+     * Sync selection + refresh queue từ DB; cập nhật lastLoadedExamId.
+     *
+     * @return queue sau refresh
+     */
     private List<ExamRegistrationDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examId,
             List<ExamSummaryDTO> allExams) {
-        selectionFacade.syncExamSelection(session, allExams, examId);
+        ExamStaffPageSupport.syncExamSelection(session, allExams, examId, viewService);
         List<ExamRegistrationDTO> qList = refreshCandidateQueue(session, examId, webRoot, allExams);
         session.setAttribute("lastLoadedExamId",
-                selectionFacade.resolvePrimaryExamId(allExams, examId));
+                viewService.resolvePrimaryExamId(allExams, examId));
         return qList;
     }
 
+    /**
+     * SBD từ param {@code sbd}; fallback {@code callingSbd} session.
+     *
+     * @return SBD hoặc null
+     */
     private String resolveSbdParam(HttpServletRequest request, HttpSession session) {
         String sbdParam = request.getParameter("sbd");
         if (sbdParam == null || sbdParam.trim().isEmpty()) {
@@ -417,6 +483,11 @@ public class ProcedureServlet extends HttpServlet {
         return sbdParam;
     }
 
+    /**
+     * Theo dõi đổi SBD: cập nhật lastSelectedSbd/callingSbd; trả true nếu đổi thí sinh.
+     *
+     * @return true nếu SBD khác lần trước (reset bước wizard)
+     */
     private boolean trackSbdChange(HttpSession session, String sbdParam) {
         boolean sbdChanged = false;
         String prevSbd = (String) session.getAttribute("lastSelectedSbd");
@@ -432,10 +503,16 @@ public class ProcedureServlet extends HttpServlet {
         return sbdChanged;
     }
 
+    /** Alias {@link #resolveSbdParam} (nhánh POST saveCapturedPhoto). */
     private String resolveSbd(HttpServletRequest request, HttpSession session) {
         return resolveSbdParam(request, session);
     }
 
+    /**
+     * Kết thúc bàn hiện tại: reset procedure step → refresh queue → gọi SBD kế → releaseDeskAndCall.
+     *
+     * @param finishedSbd SBD vừa xong thủ tục
+     */
     private void advanceToNextCandidate(HttpSession session, List<ExamRegistrationDTO> qList,
             String webRoot, int examId, List<ExamSummaryDTO> allExams, String finishedSbd) {
         session.setAttribute("lastSelectedSbd", null);
@@ -444,24 +521,37 @@ public class ProcedureServlet extends HttpServlet {
         session.removeAttribute("procedureJustPaidSbd");
 
         qList = refreshCandidateQueue(session, examId, webRoot, allExams);
-        int boardExamId = selectionFacade.resolvePrimaryExamId(allExams, examId);
+        int boardExamId = viewService.resolvePrimaryExamId(allExams, examId);
         publishCandidateQueue(null, session, qList, examId);
-        selectionFacade.syncExamSelection(session, allExams, examId);
+        ExamStaffPageSupport.syncExamSelection(session, allExams, examId, viewService);
         session.setAttribute("lastLoadedExamId", boardExamId);
 
-        String nextSbd = candidateQueueService.resolveNextCallingSbd(qList, finishedSbd);
+        String nextSbd = viewService.resolveNextCallingSbd(qList, finishedSbd);
         session.setAttribute("callingSbd", nextSbd);
-        callBoardHttp.releaseDeskAndCall(getServletContext(), boardExamId, nextSbd, qList, false);
+        staffCall.releaseDeskAndCall(ExamStaffHttpSupport.callBoardDao(getServletContext()),
+                boardExamId, nextSbd, qList, false);
     }
 
+    /** Ghi audit UI feed + DB với recordId = 0. */
     private void addAuditLog(HttpSession session, String action, String details) {
         addAuditLog(session, action, details, 0);
     }
 
+    /**
+     * Ghi audit UI feed session + AuditService (userId từ session).
+     *
+     * @param recordId id bản ghi liên quan (0 nếu không có)
+     */
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
-        auditLogSupport.persistWithSessionFeed(session, action, details, recordId);
+        ExamStaffPageBinder.appendExamAuditFeed(session, action, details);
+        auditService.logAction(SessionUserHelper.resolveUserId(session), action, details, recordId);
     }
 
+    /**
+     * Refresh queue theo selectedExamId session (fallback examId).
+     *
+     * @return full queue
+     */
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, String webRoot,
             List<ExamSummaryDTO> allExams) {
         int selectedExamId = 0;
@@ -477,12 +567,18 @@ public class ProcedureServlet extends HttpServlet {
         return refreshCandidateQueue(session, examId, selectedExamId, webRoot, allExams);
     }
 
+    /**
+     * Refresh queue theo queueExamId cụ thể rồi publish vào session.
+     *
+     * @param queueExamId mã kỳ nạp queue
+     * @return full queue (có thể null từ snapshot)
+     */
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, int queueExamId,
             String webRoot, List<ExamSummaryDTO> allExams) {
         if (session == null) {
             return List.of();
         }
-        ExamStaffQueueRefreshInput input = new ExamStaffQueueRefreshInput();
+        ExamStaffPageCommand input = new ExamStaffPageCommand();
         input.setExamId(queueExamId > 0 ? queueExamId : examId);
         input.setWebRoot(webRoot);
         input.setAllExams(allExams);
@@ -492,46 +588,54 @@ public class ProcedureServlet extends HttpServlet {
         input.setCallQueueOrder(order);
         input.setCallQueueOrderExamId(ExamStaffPageBinder.readCallQueueOrderExamId(session));
 
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.refreshQueue(input);
+        CandidateQueueSnapshotDTO snapshot = viewService.refreshQueue(input);
         ExamStaffPageBinder.publishQueue(null, session, snapshot);
         return snapshot.getFullQueue();
     }
 
+    /**
+     * Publish snapshot queue + currentExam lên request/session.
+     */
     private void publishCandidateQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> qList, int examId) {
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(qList, examId, examId);
-        ExamSummaryDTO current = selectionFacade.findExamById(selectionFacade.loadAllExams(), examId);
+        CandidateQueueSnapshotDTO snapshot = viewService.buildQueueSnapshot(qList, examId, examId);
+        ExamSummaryDTO current = viewService.findExamById(examId, viewService.listAllExams());
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeExam(
-                    selectionFacade.loadAllExams(), examId);
+            current = viewService.representativeExam(viewService.listAllExams(), examId);
         }
         ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
                 snapshot.getProcedureDone(), examId, examId, current);
     }
 
+    /**
+     * Bind calling/suspended/currentExam cho desk (dùng lại binder candidate-call).
+     */
     private void bindCandidateCallPageAttributes(HttpServletRequest request,
             HttpSession session, int examId, List<ExamRegistrationDTO> qList) {
         ExamRegistrationDTO calling = resolveCallingCandidate(session, qList);
-        int resolvedExamId = selectionFacade.resolveExamId(request, session, null, 0);
+        int resolvedExamId = ExamStaffPageSupport.resolveExamId(request, session, null, 0, viewService);
         if (resolvedExamId <= 0) {
             resolvedExamId = examId;
         }
-        ExamSummaryDTO current = selectionFacade.findExamById(
-                selectionFacade.loadAllExams(), resolvedExamId);
+        ExamSummaryDTO current = viewService.findExamById(resolvedExamId, viewService.listAllExams());
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeExam(
-                    selectionFacade.loadAllExams(), examId);
+            current = viewService.representativeExam(viewService.listAllExams(), examId);
         }
-        int suspendedCount = candidateQueueService.listSuspendedInExam(qList).size();
+        int suspendedCount = viewService.listSuspendedInExam(qList).size();
         ExamStaffPageBinder.bindCandidateCallPage(request, examId, calling, resolvedExamId, suspendedCount, current);
     }
 
+    /**
+     * Resolve thí sinh đang gọi; đồng bộ callingSbd session nếu lệch/null.
+     *
+     * @return DTO hoặc null
+     */
     private ExamRegistrationDTO resolveCallingCandidate(HttpSession session, List<ExamRegistrationDTO> qList) {
         if (session == null) {
             return null;
         }
         String callingSbd = (String) session.getAttribute("callingSbd");
-        ExamRegistrationDTO calling = candidateQueueService.resolveCallingCandidate(callingSbd, qList);
+        ExamRegistrationDTO calling = staffCall.resolveCallingCandidate(callingSbd, qList);
         if (calling != null && callingSbd != null && !callingSbd.equals(calling.getSbd())) {
             session.setAttribute("callingSbd", calling.getSbd());
         } else if (calling == null && callingSbd != null) {
@@ -540,10 +644,15 @@ public class ProcedureServlet extends HttpServlet {
         return calling;
     }
 
-    private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> qList, boolean shiftEnded) {
+    /**
+     * Đồng bộ callingSbd session ↔ CallBoard rồi syncBoard.
+     */
+    private void syncCallingSbd(HttpSession session, int boardExamId, List<ExamRegistrationDTO> qList,
+            boolean shiftEnded) {
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(getServletContext());
         String httpCalling = session != null ? (String) session.getAttribute("callingSbd") : null;
-        CallBoardState callBoard = callBoardHttp.getState(getServletContext(), boardExamId);
-        String callingSbd = candidateQueueService.resolveSyncedCallingSbd(httpCalling, callBoard, qList);
+        CallBoardState callBoard = staffCall.getBoardState(dao, boardExamId);
+        String callingSbd = staffCall.resolveSyncedCallingSbd(httpCalling, callBoard, qList);
         if (session != null) {
             if (callingSbd != null && !callingSbd.isBlank()) {
                 session.setAttribute("callingSbd", callingSbd);
@@ -551,9 +660,10 @@ public class ProcedureServlet extends HttpServlet {
                 session.removeAttribute("callingSbd");
             }
         }
-        callBoardHttp.sync(getServletContext(), boardExamId, callingSbd, qList, shiftEnded);
+        staffCall.syncBoard(dao, boardExamId, callingSbd, qList, shiftEnded);
     }
 
+    /** true nếu session có {@code shiftEnded=true}. */
     private static boolean isShiftEnded(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftEnded"));
     }

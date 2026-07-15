@@ -3,38 +3,45 @@ package examstaff.dao;
 import examstaff.dto.CallBoardState;
 
 /**
- * Truy cập trạng thái bảng gọi thí sinh runtime.
- * Có thể lưu in-memory (ServletContext) thay vì SQL.
+ * Truy cập trạng thái bảng gọi thí sinh runtime (Call Board).
+ * Triển khai thường lưu trên {@code ServletContext} (in-memory) theo khóa
+ * {@link CallBoardAttributeKeys}, không nhất thiết ghi SQL.
  */
 public interface CallBoardDAO {
 
     /**
-     * Lấy trạng thái bảng gọi theo kỳ thi (bản copy an toàn).
+     * Lấy trạng thái bảng gọi theo kỳ thi.
+     * Đọc map boards từ storage runtime (ví dụ attribute ServletContext),
+     * trả về bản copy an toàn của {@link CallBoardState}.
      *
-     * @param examId mã kỳ thi
-     * @return trạng thái hoặc null nếu chưa khởi tạo
+     * @param examId mã kỳ thi cần lấy trạng thái bảng gọi
+     * @return bản copy {@link CallBoardState} nếu đã khởi tạo; {@code null} nếu chưa có
      */
     CallBoardState getState(int examId);
 
     /**
      * Lưu / ghi đè trạng thái bảng gọi của kỳ thi.
+     * Ghi {@link CallBoardState} vào storage runtime theo {@code examId};
+     * bỏ qua nếu {@code state} là {@code null}.
      *
-     * @param examId mã kỳ thi
-     * @param state  trạng thái mới (bỏ qua nếu null)
+     * @param examId mã kỳ thi cần lưu trạng thái
+     * @param state  trạng thái mới của bảng gọi; {@code null} thì không cập nhật
      */
     void saveState(int examId, CallBoardState state);
 
     /**
-     * Đặt kỳ thi đang active trên bảng gọi công khai.
+     * Đặt kỳ thi đang active trên bảng gọi công khai (Public Call).
+     * Ghi attribute {@link CallBoardAttributeKeys#ACTIVE_EXAM_ID} trên storage runtime.
      *
-     * @param examId mã kỳ thi
+     * @param examId mã kỳ thi đang chiếu / gọi thí sinh công khai
      */
     void setActiveExamId(int examId);
 
     /**
-     * Đọc kỳ thi đang active cho Public Call.
+     * Đọc kỳ thi đang active cho màn hình Public Call.
+     * Đọc attribute {@link CallBoardAttributeKeys#ACTIVE_EXAM_ID} từ storage runtime.
      *
-     * @return examId &gt; 0, hoặc null nếu chưa set
+     * @return {@code examId} &gt; 0 nếu đã set; {@code null} nếu chưa đặt kỳ active
      */
     Integer getActiveExamId();
 }

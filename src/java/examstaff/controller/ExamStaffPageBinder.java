@@ -1,6 +1,5 @@
 package examstaff.controller;
 
-import examstaff.controller.ExamStaffSessionKeys;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
@@ -11,11 +10,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.sql.Timestamp;
-import examstaff.util.ExamScheduleRules;
-import examstaff.util.LicenseClassRules;
+import examstaff.service.impl.support.shared.ExamScheduleRules;
+import examstaff.service.impl.support.shared.LicenseClassRules;
 
 /**
  * Chỉ bind request/session attributes. Không tạo *Impl và không chứa nghiệp vụ.
@@ -23,10 +24,41 @@ import examstaff.util.LicenseClassRules;
  */
 public final class ExamStaffPageBinder {
 
+    /** Không khởi tạo. */
     private ExamStaffPageBinder() {
     }
 
-    /** Chuẩn hóa mã hạng GPLX theo quy tắc managed; fallback trim+upper. */
+    /**
+     * Thêm entry time/action/details vào đầu list {@code examAuditLogs} trên session (UI feed).
+     *
+     * @param session session staff
+     * @param action  nhãn hành động
+     * @param details mô tả ngắn
+     */
+    @SuppressWarnings("unchecked")
+    public static void appendExamAuditFeed(HttpSession session, String action, String details) {
+        if (session == null) {
+            return;
+        }
+        List<Map<String, String>> examAuditLogs
+                = (List<Map<String, String>>) session.getAttribute("examAuditLogs");
+        if (examAuditLogs == null) {
+            examAuditLogs = new ArrayList<>();
+            session.setAttribute("examAuditLogs", examAuditLogs);
+        }
+        Map<String, String> audit = new HashMap<>();
+        audit.put("time", new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date()));
+        audit.put("action", action);
+        audit.put("details", details);
+        examAuditLogs.add(0, audit);
+    }
+
+    /**
+     * Chuẩn hóa mã hạng GPLX theo quy tắc managed; fallback trim+upper.
+     *
+     * @param raw mã gốc
+     * @return mã chuẩn hóa hoặc null
+     */
     private static String normalizeLicenseForExamstaff(String raw) {
         if (raw == null) {
             return null;
@@ -38,11 +70,13 @@ public final class ExamStaffPageBinder {
         return raw.trim().toUpperCase(Locale.ROOT);
     }
 
+    /** Chuẩn hóa licenseCode trên ExamSummaryDTO. */
     private static void normalizeExam(ExamSummaryDTO s) {
         if (s == null) return;
         s.setLicenseCode(normalizeLicenseForExamstaff(s.getLicenseCode()));
     }
 
+    /** Chuẩn hóa licenseCode trên ExamRegistrationDTO. */
     private static void normalizeCandidate(ExamRegistrationDTO c) {
         if (c == null) return;
         c.setLicenseCode(normalizeLicenseForExamstaff(c.getLicenseCode()));
@@ -51,11 +85,17 @@ public final class ExamStaffPageBinder {
     /**
      * Bind picker kỳ thi: {@code examOptions}, {@code allExams}, {@code currentExam},
      * {@code selectedExamId}, {@code pickerCommittedExamId} (+ shift context).
+     * <p>
+     * Luồng: normalize hạng → bind shift UI → set attributes picker.
+     *
+     * @param request request JSP
+     * @param picker  DTO picker đã chuẩn bị sẵn
      */
     public static void bindPickerView(HttpServletRequest request, ExamStaffPickerViewDTO picker) {
         if (request == null || picker == null) {
             return;
         }
+        // Chuẩn hóa hạng GPLX trên options/all/current
         if (picker.getExamOptions() != null) {
             for (ExamSummaryDTO s : picker.getExamOptions()) {
                 normalizeExam(s);
@@ -68,6 +108,7 @@ public final class ExamStaffPageBinder {
         }
         normalizeExam(picker.getCurrentExam());
         bindExamShiftContext(request, picker.getCurrentExam());
+        // Attributes sidebar / picker
         request.setAttribute("examOptions", picker.getExamOptions());
         request.setAttribute("allExams", picker.getAllExams());
         request.setAttribute("currentExam", picker.getCurrentExam());
@@ -81,7 +122,11 @@ public final class ExamStaffPageBinder {
         }
     }
 
-    /** Publish queue từ snapshot DTO (ủy quyền overload đầy đủ). */
+    /**
+     * Publish queue từ snapshot DTO (ủy quyền overload đầy đủ, không kèm currentExam).
+     *
+     * @param snapshot snapshot queue; null → no-op
+     */
     public static void publishQueue(HttpServletRequest request, HttpSession session,
             CandidateQueueSnapshotDTO snapshot) {
         if (snapshot == null) {
@@ -92,7 +137,11 @@ public final class ExamStaffPageBinder {
                 null);
     }
 
-    /** Publish queue không kèm {@code currentExam}. */
+    /**
+     * Publish queue không kèm {@code currentExam}.
+     *
+     * @see #publishQueue(HttpServletRequest, HttpSession, List, List, List, int, int, ExamSummaryDTO)
+     */
     public static void publishQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> candidateQueue, List<ExamRegistrationDTO> active,
             List<ExamRegistrationDTO> done, int examId, int fallbackExamId) {
@@ -102,6 +151,12 @@ public final class ExamStaffPageBinder {
     /**
      * Set queue đầy đủ/active/procedure-done lên request+session cùng
      * loaded/selected examId và {@code currentExam}.
+     * <p>
+     * Luồng: null-safe lists → normalize hạng → ghi session → ghi request (+ shift nếu có exam).
+     *
+     * @param examId         mã kỳ load
+     * @param fallbackExamId dùng khi examId ≤ 0
+     * @param currentExam    kỳ hiện tại (có thể null)
      */
     public static void publishQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> candidateQueue, List<ExamRegistrationDTO> active,
@@ -121,6 +176,7 @@ public final class ExamStaffPageBinder {
         for (ExamRegistrationDTO c : active) normalizeCandidate(c);
         for (ExamRegistrationDTO c : done) normalizeCandidate(c);
 
+        // Session: cache queue + loaded/selected
         if (session != null) {
             session.setAttribute(ExamStaffSessionKeys.CANDIDATE_QUEUE, candidateQueue);
             session.setAttribute(ExamStaffSessionKeys.ACTIVE_CALL_QUEUE, active);
@@ -132,6 +188,7 @@ public final class ExamStaffPageBinder {
                 session.setAttribute(ExamStaffSessionKeys.LAST_LOADED_EXAM_ID, resolvedExamId);
             }
         }
+        // Request: cùng keys cho JSP + shift context
         if (request != null) {
             request.setAttribute(ExamStaffSessionKeys.CANDIDATE_QUEUE, candidateQueue);
             request.setAttribute(ExamStaffSessionKeys.ACTIVE_CALL_QUEUE, active);
@@ -150,6 +207,11 @@ public final class ExamStaffPageBinder {
     /**
      * Bind cờ UI lịch thi + đồng bộ cờ ca từ Status DB.
      * Phần ghi session tách rõ trong {@link #syncShiftFlagsFromExamStatus}.
+     * <p>
+     * Luồng: canStartNow/label → mutationsLocked → sync shift session.
+     *
+     * @param request     request JSP
+     * @param sessionExam kỳ đang hiển thị
      */
     public static void bindExamShiftContext(HttpServletRequest request, ExamSummaryDTO sessionExam) {
         if (request == null || sessionExam == null) {
@@ -172,6 +234,9 @@ public final class ExamStaffPageBinder {
     /**
      * Ghi cờ ca ({@code shiftPaused}/{@code shiftEnded}) theo trạng thái kỳ trên DB.
      * Tách khỏi bind UI để hội đồng thấy: bind request ≠ ghi ca.
+     *
+     * @param httpSession session staff
+     * @param sessionExam kỳ tham chiếu status
      */
     public static void syncShiftFlagsFromExamStatus(HttpSession httpSession, ExamSummaryDTO sessionExam) {
         if (httpSession == null || sessionExam == null) {
@@ -192,6 +257,12 @@ public final class ExamStaffPageBinder {
     /**
      * Bind thuộc tính trang gọi: {@code callingCandidate}, {@code suspendedCount},
      * {@code currentExam}/{@code selectedExamId} (+ shift context).
+     *
+     * @param examId            mã kỳ publish
+     * @param callingCandidate  thí sinh đang gọi (có thể null)
+     * @param selectedExamId    fallback selected khi examId ≤ 0
+     * @param suspendedCount    số thí sinh đình chỉ
+     * @param currentExam       kỳ hiện tại (có thể null)
      */
     public static void bindCandidateCallPage(HttpServletRequest request, int examId,
             ExamRegistrationDTO callingCandidate, int selectedExamId, int suspendedCount,
@@ -210,7 +281,11 @@ public final class ExamStaffPageBinder {
         request.setAttribute(ExamStaffSessionKeys.SELECTED_EXAM_ID, examId > 0 ? examId : selectedExamId);
     }
 
-    /** Bind phí thủ tục: {@code feeLines}, {@code feeTotal}, {@code feesFromPayment}. */
+    /**
+     * Bind phí thủ tục: {@code feeLines}, {@code feeTotal}, {@code feesFromPayment}.
+     *
+     * @param fees kết quả tính phí; null → no-op
+     */
     public static void bindProcedureFees(HttpServletRequest request, ProcedureFeeResultDTO fees) {
         if (request == null || fees == null) {
             return;
@@ -220,7 +295,11 @@ public final class ExamStaffPageBinder {
         request.setAttribute("feesFromPayment", fees.isFeesFromPayment());
     }
 
-    /** Đọc {@code selectedExamId} &gt; 0 từ session; null nếu không có. */
+    /**
+     * Đọc {@code selectedExamId} &gt; 0 từ session; null nếu không có.
+     *
+     * @return Integer dương hoặc null
+     */
     public static Integer readSelectedExamId(HttpSession session) {
         if (session == null) {
             return null;
@@ -232,7 +311,11 @@ public final class ExamStaffPageBinder {
         return null;
     }
 
-    /** Đọc {@code callQueueOrderExamId} &gt; 0 từ session. */
+    /**
+     * Đọc {@code callQueueOrderExamId} &gt; 0 từ session.
+     *
+     * @return Integer dương hoặc null
+     */
     public static Integer readCallQueueOrderExamId(HttpSession session) {
         if (session == null) {
             return null;
@@ -244,7 +327,11 @@ public final class ExamStaffPageBinder {
         return null;
     }
 
-    /** Đọc {@code examStaffLoadedExamId} &gt; 0 từ session. */
+    /**
+     * Đọc {@code examStaffLoadedExamId} &gt; 0 từ session.
+     *
+     * @return Integer dương hoặc null
+     */
     public static Integer readLoadedExamId(HttpSession session) {
         if (session == null) {
             return null;
@@ -256,7 +343,12 @@ public final class ExamStaffPageBinder {
         return null;
     }
 
-    /** Ghi {@code selectedExamId} (ưu tiên examId, fallback fallbackExamId). */
+    /**
+     * Ghi {@code selectedExamId} (ưu tiên examId, fallback fallbackExamId).
+     *
+     * @param fallbackExamId dùng khi examId ≤ 0
+     * @param examId         mã kỳ ưu tiên
+     */
     public static void persistExamSelection(HttpSession session, int fallbackExamId, int examId) {
         if (session == null) {
             return;
@@ -267,7 +359,11 @@ public final class ExamStaffPageBinder {
         }
     }
 
-    /** Xóa cache queue thí sinh trên session (candidate/active/done/order…). */
+    /**
+     * Xóa cache queue thí sinh trên session (candidate/active/done/order…).
+     *
+     * @param session session staff
+     */
     public static void clearCandidateCache(HttpSession session) {
         if (session == null) {
             return;
@@ -282,11 +378,17 @@ public final class ExamStaffPageBinder {
 
     /**
      * Khi đổi kỳ: xóa procedure/calling/shift state + cache queue, rồi persist selection mới.
+     * <p>
+     * Luồng: clear calling/procedure/shift → clearCandidateCache → persistExamSelection.
+     *
+     * @param newExamId         kỳ mới
+     * @param newFallbackExamId fallback khi newExamId ≤ 0
      */
     public static void clearProcedureStateOnExamChange(HttpSession session, int newExamId, int newFallbackExamId) {
         if (session == null) {
             return;
         }
+        // State bàn thủ tục / ca cũ không mang sang kỳ mới
         session.removeAttribute(ExamStaffSessionKeys.CALLING_SBD);
         session.removeAttribute(ExamStaffSessionKeys.LAST_SELECTED_SBD);
         session.removeAttribute(ExamStaffSessionKeys.PROCEDURE_STEP);
@@ -303,6 +405,9 @@ public final class ExamStaffPageBinder {
 
     /**
      * Đồng bộ thứ tự gọi số: set {@code callQueueOrder} (list SBD) và {@code callQueueOrderExamId}.
+     *
+     * @param examId kỳ gắn với order
+     * @param queue  hàng đợi nguồn SBD
      */
     public static void syncCallQueueOrder(HttpSession session, int examId, List<ExamRegistrationDTO> queue) {
         if (session == null || queue == null) {

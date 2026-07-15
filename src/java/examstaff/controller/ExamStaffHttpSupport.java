@@ -1,5 +1,8 @@
 package examstaff.controller;
 
+import examstaff.dao.CallBoardDAO;
+import examstaff.dao.impl.ServletContextCallBoardDAO;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -10,10 +13,25 @@ import jakarta.servlet.http.HttpSession;
  */
 public final class ExamStaffHttpSupport {
 
+    /** Không khởi tạo. */
     private ExamStaffHttpSupport() {
     }
 
-    /** Gắn header no-cache / no-store / must-revalidate cho response. */
+    /**
+     * Tạo DAO CallBoard gắn ServletContext (biên Presentation → Persistence).
+     *
+     * @param ctx ServletContext; null → null
+     * @return DAO hoặc null
+     */
+    public static CallBoardDAO callBoardDao(ServletContext ctx) {
+        return ctx == null ? null : new ServletContextCallBoardDAO(ctx);
+    }
+
+    /**
+     * Gắn header no-cache / no-store / must-revalidate cho response.
+     *
+     * @param response response HTTP
+     */
     public static void applyNoCacheHeaders(HttpServletResponse response) {
         if (response == null) {
             return;
@@ -25,6 +43,9 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Đọc mã kỳ thi từ query/form param {@code examId}.
+     *
+     * @param request request HTTP
+     * @return examId dương hoặc 0
      */
     public static int parseExamIdParam(HttpServletRequest request) {
         if (request == null) {
@@ -33,7 +54,12 @@ public final class ExamStaffHttpSupport {
         return parsePositiveIntParam(request, "examId");
     }
 
-    /** Đọc {@code selectedExamId} dương từ session request (không tạo session mới). */
+    /**
+     * Đọc {@code selectedExamId} dương từ session request (không tạo session mới).
+     *
+     * @param request request HTTP
+     * @return Integer dương hoặc null
+     */
     public static Integer readSelectedExamId(HttpServletRequest request) {
         HttpSession session = request != null ? request.getSession(false) : null;
         if (session == null) {
@@ -50,9 +76,11 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Chuyển flash session → request attribute rồi xóa key flash.
+     * Chuyển flash session → request attribute rồi xóa key flash (one-shot PRG).
      *
+     * @param session       session chứa flash
      * @param flashKey      key trên session
+     * @param request       request đích
      * @param attributeName tên attribute trên request
      */
     public static void consumeFlash(HttpSession session, String flashKey,
@@ -68,7 +96,11 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Redirect an toàn: ưu tiên Referer trong /views/staff/examstaff/; không thì context + fallbackPath.
+     * Redirect an toàn: ưu tiên Referer trong {@code /examstaff/}; không thì context + fallbackPath.
+     *
+     * @param request      request hiện tại
+     * @param fallbackPath đường dẫn tương đối (ví dụ {@code /examstaff/dashboard})
+     * @return URL tuyệt đối tương đối context hoặc Referer
      */
     public static String resolveSafeRedirect(HttpServletRequest request, String fallbackPath) {
         if (request == null) {
@@ -85,7 +117,12 @@ public final class ExamStaffHttpSupport {
         return ctx + "/" + fallbackPath;
     }
 
-    /** Cắt phần query string sau {@code ?}. */
+    /**
+     * Cắt phần query string sau {@code ?}.
+     *
+     * @param url URL gốc
+     * @return phần trước {@code ?}, hoặc null nếu url null
+     */
     public static String stripQueryString(String url) {
         if (url == null) {
             return null;
@@ -96,6 +133,13 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Thêm hoặc thay thế một query param trên URL (giữ các param khác).
+     * <p>
+     * Luồng: tách base/query → duyệt param → thay key hoặc append → ghép lại.
+     *
+     * @param url   URL gốc
+     * @param key   tên param
+     * @param value giá trị mới
+     * @return URL đã upsert; trả nguyên url nếu thiếu đầu vào
      */
     public static String upsertQueryParam(String url, String key, String value) {
         if (url == null || key == null || value == null) {
@@ -105,6 +149,7 @@ public final class ExamStaffHttpSupport {
         String query = url.contains("?") ? url.substring(url.indexOf('?') + 1) : "";
         StringBuilder rebuilt = new StringBuilder();
         boolean replaced = false;
+        // Giữ param cũ; thay value nếu trùng key
         if (!query.isBlank()) {
             for (String part : query.split("&")) {
                 if (part.isBlank()) {
@@ -126,6 +171,7 @@ public final class ExamStaffHttpSupport {
                 }
             }
         }
+        // Chưa có key → append
         if (!replaced) {
             if (rebuilt.length() > 0) {
                 rebuilt.append('&');
@@ -135,7 +181,13 @@ public final class ExamStaffHttpSupport {
         return base + "?" + rebuilt;
     }
 
-    /** Parse param số nguyên dương (lấy value hợp lệ cuối cùng nếu multi-value). */
+    /**
+     * Parse param số nguyên dương (lấy value hợp lệ cuối cùng nếu multi-value).
+     *
+     * @param request request HTTP
+     * @param name    tên param
+     * @return số dương hoặc 0
+     */
     private static int parsePositiveIntParam(HttpServletRequest request, String name) {
         String[] values = request.getParameterValues(name);
         if (values == null || values.length == 0) {
