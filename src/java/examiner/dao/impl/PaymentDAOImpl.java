@@ -6,9 +6,11 @@ import shared.enums.PaymentStatus;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+// JDBC implementation for Payment; examiner module DAO layer only.
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
+    // Inserts a payment row for one exam enrollment.
     @Override
-    public boolean insert(Payment payment) {
+    public boolean add(Payment payment) {
         int enrollmentId = payment.getExamEnrollmentId();
         if (enrollmentId <= 0) {
             return false;
@@ -44,6 +46,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
+    // Returns true when a completed payment exists for one enrollment.
     @Override
     public boolean hasCompletedPayment(int examEnrollmentId) {
         if (examEnrollmentId <= 0) {
