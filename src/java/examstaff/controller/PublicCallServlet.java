@@ -1,55 +1,53 @@
 package examstaff.controller;
 
-import examstaff.controller.PublicCallViewBinder;
-import examstaff.controller.CallBoardHttpFacade;
-import examstaff.controller.ExamStaffHttpSupport;
+import examstaff.dao.CallBoardDAO;
+import examstaff.dto.CallBoardState;
 import examstaff.dto.PublicCallSnapshotDTO;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.StaffCallService;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+import examstaff.service.impl.StaffCallServiceImpl;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import examstaff.dto.CallBoardState;
-import examstaff.controller.ExamStaffWebModule;
-import examstaff.service.ExamStaffServices;
-import examstaff.service.PublicCallQueryService;
-import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
+/**
+ * Màn hình gọi số công khai (TV): resolve kỳ active → load snapshot → bind → forward JSP.
+ */
 @WebServlet("/examstaff/public-call")
 public class PublicCallServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private final StaffCallService staffCall = new StaffCallServiceImpl();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
 
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final PublicCallQueryService publicCallQueryService;
-    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
-
-    public PublicCallServlet() {
-        this(SERVICES.publicCallQuery());
-    }
-
-    PublicCallServlet(PublicCallQueryService publicCallQueryService) {
-        this.publicCallQueryService = publicCallQueryService;
-    }
-
+    /**
+     * GET: UTF-8 → resolve examId → board state → public snapshot → bind → {@code public-call.jsp}.
+     *
+     * @throws ServletException lỗi forward
+     * @throws IOException      lỗi I/O
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         Utf8EncodingHelper.apply(request, response);
 
-        int examId = SERVICES.selection().resolveActiveExamId(
+        // Resolve kỳ đang active: URL → session → board
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(getServletContext());
+        int examId = viewService.resolveActiveExamId(
                 ExamStaffHttpSupport.parseExamIdParam(request),
                 ExamStaffHttpSupport.readSelectedExamId(request),
-                callBoardHttp.dao(getServletContext()).getActiveExamId());
-        CallBoardState board = callBoardHttp.getState(getServletContext(), examId);
-        PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(
+                staffCall.getActiveCallExamId(dao));
+        CallBoardState board = staffCall.getBoardState(dao, examId);
+        PublicCallSnapshotDTO snapshot = staffCall.loadPublicSnapshot(
                 examId, request.getServletContext().getRealPath("/"), board);
 
-        PublicCallViewBinder.bind(request, snapshot);
+        PublicCallSnapshotSupport.bindRequest(request, snapshot);
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);
     }
 }

@@ -1,18 +1,17 @@
 package examstaff.controller;
 
-import examstaff.controller.StaffAuditLogSupport;
-import examstaff.controller.CallBoardHttpFacade;
-import examstaff.controller.ExamStaffHttpSupport;
-import examstaff.controller.ExamStaffWebModule;
+import examstaff.dao.CallBoardDAO;
 import examstaff.dto.ExamRegistrationDTO;
+import examstaff.dto.ServiceResult;
+import examstaff.service.AuditService;
 import examstaff.service.ExamControlService;
-import examstaff.service.ExamRegistrationService;
+import examstaff.service.StaffCallService;
+import examstaff.service.impl.AuditServiceImpl;
 import examstaff.service.impl.ExamControlServiceImpl;
-import examstaff.service.impl.ExamRegistrationServiceImpl;
-import examstaff.service.ExamStaffServices;
-import examstaff.util.SessionUserHelper;
-import jakarta.servlet.ServletException;
+import examstaff.service.impl.StaffCallServiceImpl;
+
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,18 +21,22 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Điều khiển ca kỳ thi (start / end / pause / resume): service DB → cập nhật session/board → flash → redirect.
+ */
 @WebServlet("/examstaff/exam-control")
 public class ExamControlServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private final ExamControlService controlService = new ExamControlServiceImpl();
+    private final AuditService auditService = new AuditServiceImpl();
+    private final StaffCallService staffCall = new StaffCallServiceImpl();
 
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final ExamControlService controlService = SERVICES.examControl();
-    private final ExamRegistrationService registrationService = new ExamRegistrationServiceImpl();
-    private final StaffAuditLogSupport auditLogSupport = MODULE.auditLogSupport();
-    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
-
+    /**
+     * POST: đọc {@code action} → gọi controlService → applyRuntime* → audit → flash → redirect.
+     *
+     * @throws ServletException không dùng
+     * @throws IOException      lỗi redirect
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -44,43 +47,44 @@ public class ExamControlServlet extends HttpServlet {
         String redirect = buildRedirect(request, examId);
 
         if ("startExam".equals(action)) {
-            ExamControlService.StartResult result = controlService.startExam(examId, staffId);
-            if (result.isSuccess()) {
+            ServiceResult<ExamControlService.StartExamData> result = controlService.startExam(examId, staffId);
+            if (result.isSuccess() && result.getData() != null) {
                 applyRuntimeStart(getServletContext(), session, examId);
-                auditLogSupport.persist(session, "UPDATE Exam",
-                        "Bắt đầu " + result.getExamName()
-                                + " (" + result.getExaminerCount() + " sát hạch viên)",
+                ExamControlService.StartExamData data = result.getData();
+                auditService.logAction(staffId, "UPDATE Exam",
+                        "Bắt đầu " + data.getExamName()
+                                + " (" + data.getExaminerCount() + " sát hạch viên)",
                         examId);
                 session.setAttribute("examControlMsg", result.getMessage());
             } else {
                 session.setAttribute("examControlError", result.getMessage());
             }
         } else if ("endExam".equals(action)) {
-            ExamControlService.EndResult result = controlService.endExam(examId);
+            ServiceResult<String> result = controlService.endExam(examId);
             if (result.isSuccess()) {
                 applyRuntimeEnd(getServletContext(), session, examId);
-                auditLogSupport.persist(session, "UPDATE Exam",
-                        "Kết thúc " + result.getExamName(), examId);
+                auditService.logAction(staffId, "UPDATE Exam",
+                        "Kết thúc " + result.getData(), examId);
                 session.setAttribute("examControlMsg", result.getMessage());
             } else {
                 session.setAttribute("examControlError", result.getMessage());
             }
         } else if ("pauseExam".equals(action)) {
-            ExamControlService.PauseResult result = controlService.pauseExam(examId);
+            ServiceResult<String> result = controlService.pauseExam(examId);
             if (result.isSuccess()) {
                 applyRuntimePause(getServletContext(), session, examId);
-                auditLogSupport.persist(session, "UPDATE Exam",
-                        "Tạm dừng " + result.getExamName(), examId);
+                auditService.logAction(staffId, "UPDATE Exam",
+                        "Tạm dừng " + result.getData(), examId);
                 session.setAttribute("examControlMsg", result.getMessage());
             } else {
                 session.setAttribute("examControlError", result.getMessage());
             }
         } else if ("resumeExam".equals(action)) {
-            ExamControlService.ResumeResult result = controlService.resumeExam(examId);
+            ServiceResult<String> result = controlService.resumeExam(examId);
             if (result.isSuccess()) {
                 applyRuntimeResume(getServletContext(), session, examId);
-                auditLogSupport.persist(session, "UPDATE Exam",
-                        "Tiếp tục " + result.getExamName(), examId);
+                auditService.logAction(staffId, "UPDATE Exam",
+                        "Tiếp tục " + result.getData(), examId);
                 session.setAttribute("examControlMsg", result.getMessage());
             } else {
                 session.setAttribute("examControlError", result.getMessage());
@@ -90,12 +94,18 @@ public class ExamControlServlet extends HttpServlet {
         response.sendRedirect(redirect);
     }
 
+    /** GET: dùng chung luồng POST (nút điều khiển có thể GET). */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doPost(request, response);
     }
 
+    /**
+     * Đọc examId từ param; fallback selected session; mặc định 2 nếu thiếu.
+     *
+     * @return examId
+     */
     private int parseExamId(HttpServletRequest request) {
         int examId = ExamStaffHttpSupport.parseExamIdParam(request);
         if (examId > 0) {
@@ -105,6 +115,11 @@ public class ExamControlServlet extends HttpServlet {
         return selectedExamId != null ? selectedExamId : 2;
     }
 
+    /**
+     * Xây URL redirect theo {@code redirect} param (examiner-allocation / report / dashboard).
+     *
+     * @return URL tuyệt đối trong context
+     */
     private String buildRedirect(HttpServletRequest request, int examId) {
         String from = request.getParameter("redirect");
         String ctx = request.getContextPath();
@@ -117,6 +132,9 @@ public class ExamControlServlet extends HttpServlet {
         return ctx + "/examstaff/dashboard?examId=" + examId;
     }
 
+    /**
+     * Runtime sau start: gắn active exam trên context + clear cờ ca/gọi trên session.
+     */
     private void applyRuntimeStart(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null) {
             ctx.setAttribute(ExamControlServiceImpl.CTX_ACTIVE_EXAM_ID, examId);
@@ -129,13 +147,16 @@ public class ExamControlServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Runtime sau end: gỡ active context + sync board ended + cờ shiftEnded trên session.
+     */
     private void applyRuntimeEnd(ServletContext ctx, HttpSession session, int examId) {
         if (ctx != null) {
             Integer active = (Integer) ctx.getAttribute(ExamControlServiceImpl.CTX_ACTIVE_EXAM_ID);
             if (active != null && active == examId) {
                 ctx.removeAttribute(ExamControlServiceImpl.CTX_ACTIVE_EXAM_ID);
             }
-            callBoardHttp.sync(ctx, examId, null, null, true);
+            staffCall.syncBoard(ExamStaffHttpSupport.callBoardDao(ctx), examId, null, null, true);
         }
         if (session != null) {
             Integer selected = (Integer) session.getAttribute("selectedExamId");
@@ -147,12 +168,16 @@ public class ExamControlServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Runtime sau pause: pauseBoard + cờ shiftPaused, xóa callingSbd.
+     */
     private void applyRuntimePause(ServletContext ctx, HttpSession session, int examId) {
         List<ExamRegistrationDTO> queue = examId > 0
-                ? registrationService.getCandidatesByExam(examId)
+                ? staffCall.listQueueByExamId(examId)
                 : List.of();
-        if (ctx != null && examId > 0) {
-            callBoardHttp.pauseShift(ctx, examId, queue);
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(ctx);
+        if (dao != null && examId > 0) {
+            staffCall.pauseBoard(dao, examId, queue);
         }
         if (session != null) {
             session.setAttribute("shiftPaused", "true");
@@ -161,9 +186,13 @@ public class ExamControlServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Runtime sau resume: resumeBoard + xóa cờ paused/ended.
+     */
     private void applyRuntimeResume(ServletContext ctx, HttpSession session, int examId) {
-        if (ctx != null && examId > 0) {
-            callBoardHttp.resumeShift(ctx, examId);
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(ctx);
+        if (dao != null && examId > 0) {
+            staffCall.resumeBoard(dao, examId);
         }
         if (session != null) {
             session.removeAttribute("shiftPaused");

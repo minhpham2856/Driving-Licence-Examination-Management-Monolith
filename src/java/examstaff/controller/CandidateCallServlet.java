@@ -1,24 +1,21 @@
 package examstaff.controller;
 
-import examstaff.controller.CallBoardHttpFacade;
-import examstaff.controller.ExamStaffSelectionFacade;
-import examstaff.controller.ExamStaffPageBinder;
-import examstaff.controller.ExamStaffHttpSupport;
-import examstaff.controller.ExamStaffWebModule;
-import examstaff.controller.ExamStaffPageFacade;
-import examstaff.dto.ExamRegistrationDTO;
-import examstaff.dto.CandidateQueueSnapshotDTO;
+import examstaff.dao.CallBoardDAO;
+import examstaff.dto.CallBoardState;
 import examstaff.dto.CandidateCallActionResultDTO;
 import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
-import examstaff.enums.ExamStatus;
-import examstaff.service.CandidateCallPageService;
-import examstaff.service.CandidateQueueService;
-import examstaff.service.ExamControlService;
-import examstaff.service.ExamStaffServices;
-import examstaff.util.SessionUserHelper;
+import examstaff.dto.CandidateQueueSnapshotDTO;
+import examstaff.dto.ExamRegistrationDTO;
+import examstaff.dto.ExamStaffPageContext;
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.CallBoardState;
+import examstaff.enums.ExamStatus;
+import examstaff.service.ExamControlService;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.StaffCallService;
+import examstaff.service.impl.ExamControlServiceImpl;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+import examstaff.service.impl.StaffCallServiceImpl;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -30,33 +27,31 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Trang gọi thí sinh: prepare → StaffCall.preparePage → side-effects/board → bind → JSP
+ * (candidatecall hoặc candidate-suspended). Hỗ trợ view=desk → redirect procedure.
+ */
 @WebServlet("/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
+    private final StaffCallService staffCall = new StaffCallServiceImpl();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
+    private final ExamControlService examControlService = new ExamControlServiceImpl();
 
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final CandidateCallPageService pageService;
-    private final CandidateQueueService candidateQueueService = SERVICES.candidateQueue();
-    private final ExamControlService examControlService = SERVICES.examControl();
-    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
-    private final ExamStaffSelectionFacade selectionFacade = MODULE.selectionFacade();
-
-    public CandidateCallServlet() {
-        this(SERVICES.callPage());
-    }
-
-    CandidateCallServlet(CandidateCallPageService pageService) {
-        this.pageService = pageService;
-    }
-
+    /**
+     * GET: (desk → procedure) hoặc prepare page → preparePage service →
+     * resume/redirect nếu cần → apply side-effects → bind → forward JSP.
+     *
+     * @throws ServletException lỗi forward
+     * @throws IOException      lỗi redirect
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
 
+        // Shortcut: mở bàn thủ tục từ TV/desk
         if ("desk".equals(request.getParameter("view"))) {
             String deskSbd = request.getParameter("sbd");
             if (deskSbd == null || deskSbd.trim().isEmpty()) {
@@ -72,27 +67,19 @@ public class CandidateCallServlet extends HttpServlet {
 
         String webRoot = request.getServletContext().getRealPath("/");
         ExamStaffHttpSupport.applyNoCacheHeaders(response);
-        ExamStaffPageFacade.ExamStaffPageContext pageCtx = ExamStaffPageFacade.prepareExamStaffPage(
-                request, session, webRoot);
+        ExamStaffPageContext pageCtx = ExamStaffPageSupport.prepareExamStaffPage(
+                request, session, webRoot, true, viewService);
 
+        // Service quyết định action gọi số / resume / redirect
         CandidateCallPageCommand command = buildCommand(request, session, pageCtx, webRoot);
-        CandidateCallPageViewDTO view = pageService.preparePage(command);
+        CandidateCallPageViewDTO view = staffCall.preparePage(command);
 
         if (view.isResumeShift()) {
-            ExamSummaryDTO currentExam = selectionFacade.findExamById(
-                    selectionFacade.loadAllExams(), pageCtx.getExamId());
-            if (currentExam != null && ExamStatus.isPaused(currentExam.getStatus())) {
-                ExamControlService.ResumeResult resume = examControlService.resumeExam(pageCtx.getExamId());
-                if (!resume.isSuccess()) {
-                    session.setAttribute("examControlError", resume.getMessage());
-                    response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
-                    return;
-                }
-                session.setAttribute("examControlMsg", resume.getMessage());
+            if (!ExamStaffShiftSupport.startOrResumeShift(session, getServletContext(), pageCtx.getExamId(),
+                    viewService, examControlService, staffCall)) {
+                response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
+                return;
             }
-            session.removeAttribute("shiftEnded");
-            session.removeAttribute("shiftPaused");
-            callBoardHttp.resumeShift(getServletContext(), pageCtx.getExamId());
             response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
             return;
         }
@@ -101,6 +88,7 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
 
+        // Áp session + CallBoard rồi bind UI
         applyCallSideEffects(session, view);
         applyBoardOp(pageCtx.getExamId(), view);
         bindCandidateCallPageAttributes(request, session, view.getPublishExamId(), view.getFullQueue());
@@ -118,8 +106,13 @@ public class CandidateCallServlet extends HttpServlet {
         request.getRequestDispatcher("/views/staff/examstaff/candidatecall.jsp").forward(request, response);
     }
 
+    /**
+     * Build command gọi số từ request/session/pageCtx + board state.
+     *
+     * @return command cho {@link StaffCallService#preparePage}
+     */
     private CandidateCallPageCommand buildCommand(HttpServletRequest request, HttpSession session,
-            ExamStaffPageFacade.ExamStaffPageContext pageCtx, String webRoot) {
+            ExamStaffPageContext pageCtx, String webRoot) {
         CandidateCallPageCommand command = new CandidateCallPageCommand();
         command.setAction(request.getParameter("action"));
         command.setSbd(request.getParameter("sbd"));
@@ -130,7 +123,8 @@ public class CandidateCallServlet extends HttpServlet {
         command.setCalledByStaffId(SessionUserHelper.resolveUserId(session));
         command.setWebRoot(webRoot);
         command.setShiftEnded(isShiftEnded(session));
-        CallBoardState board = callBoardHttp.getState(getServletContext(), pageCtx.getExamId());
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(getServletContext());
+        CallBoardState board = staffCall.getBoardState(dao, pageCtx.getExamId());
         command.setBoard(board);
         command.setShiftPaused(resolveShiftPaused(session, pageCtx.getExamId(), board));
         command.setCallingSbd((String) session.getAttribute("callingSbd"));
@@ -157,6 +151,11 @@ public class CandidateCallServlet extends HttpServlet {
         return command;
     }
 
+    /**
+     * Xác định ca đang paused: board → status kỳ DB → cờ session.
+     *
+     * @return true nếu ca tạm dừng
+     */
     private boolean resolveShiftPaused(HttpSession session, int examId, CallBoardState board) {
         if (board != null && board.isExamPaused()) {
             if (session != null) {
@@ -164,7 +163,7 @@ public class CandidateCallServlet extends HttpServlet {
             }
             return true;
         }
-        ExamSummaryDTO exam = selectionFacade.findExamById(selectionFacade.loadAllExams(), examId);
+        ExamSummaryDTO exam = viewService.findExamById(examId, viewService.listAllExams());
         if (exam != null && ExamStatus.isPaused(exam.getStatus())) {
             if (session != null) {
                 session.setAttribute("shiftPaused", "true");
@@ -174,6 +173,11 @@ public class CandidateCallServlet extends HttpServlet {
         return isShiftPaused(session);
     }
 
+    /**
+     * Áp side-effect session từ view: callingSbd, cờ ca, procedureJustPaid, queue order.
+     *
+     * @param view kết quả preparePage
+     */
     private void applyCallSideEffects(HttpSession session, CandidateCallPageViewDTO view) {
         if (view.isClearCallingSbd()) {
             session.removeAttribute("callingSbd");
@@ -198,49 +202,60 @@ public class CandidateCallServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Thực thi thao tác CallBoard theo cờ view (pause / release desk / sync).
+     *
+     * @param boardExamId kỳ gắn board
+     * @param view        cờ thao tác board
+     */
     private void applyBoardOp(int boardExamId, CandidateCallPageViewDTO view) {
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(getServletContext());
         if (view.isPauseBoard()) {
-            ExamControlService.PauseResult paused = examControlService.pauseExam(boardExamId);
-            if (!paused.isSuccess()) {
-                // Vẫn pause board để dừng gọi số; status DB có thể đã tạm dừng sẵn.
-            }
-            callBoardHttp.pauseShift(getServletContext(), boardExamId, view.getFullQueue());
+            examControlService.pauseExam(boardExamId);
+            staffCall.pauseBoard(dao, boardExamId, view.getFullQueue());
         }
         if (view.isReleaseDesk()) {
-            callBoardHttp.releaseDeskAndCall(
-                    getServletContext(), boardExamId, view.getReleaseDeskCallingSbd(),
+            staffCall.releaseDeskAndCall(dao, boardExamId, view.getReleaseDeskCallingSbd(),
                     view.getFullQueue(), view.isShiftEnded());
         }
         if (view.isSyncBoard()) {
-            callBoardHttp.sync(
-                    getServletContext(), boardExamId, view.getBoardCallingSbd(),
+            staffCall.syncBoard(dao, boardExamId, view.getBoardCallingSbd(),
                     view.getFullQueue(), view.isShiftEnded());
         }
     }
 
+    /**
+     * Bind callingCandidate / suspendedCount / currentExam cho trang gọi.
+     *
+     * @param examId kỳ publish
+     * @param queue  queue đầy đủ
+     */
     private void bindCandidateCallPageAttributes(HttpServletRequest request,
             HttpSession session, int examId, List<ExamRegistrationDTO> queue) {
         ExamRegistrationDTO calling = resolveCallingCandidate(session, queue);
-        int resolvedExamId = selectionFacade.resolveExamId(request, session, null, 0);
+        int resolvedExamId = ExamStaffPageSupport.resolveExamId(request, session, null, 0, viewService);
         if (resolvedExamId <= 0) {
             resolvedExamId = examId;
         }
-        examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
-                selectionFacade.loadAllExams(), resolvedExamId);
+        ExamSummaryDTO current = viewService.findExamById(resolvedExamId, viewService.listAllExams());
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeExam(
-                    selectionFacade.loadAllExams(), examId);
+            current = viewService.representativeExam(viewService.listAllExams(), examId);
         }
-        int suspendedCount = candidateQueueService.listSuspendedInExam(queue).size();
+        int suspendedCount = viewService.listSuspendedInExam(queue).size();
         ExamStaffPageBinder.bindCandidateCallPage(request, examId, calling, resolvedExamId, suspendedCount, current);
     }
 
+    /**
+     * Resolve thí sinh đang gọi từ callingSbd + queue; đồng bộ lại session nếu lệch.
+     *
+     * @return DTO đang gọi hoặc null
+     */
     private ExamRegistrationDTO resolveCallingCandidate(HttpSession session, List<ExamRegistrationDTO> queue) {
         if (session == null) {
             return null;
         }
         String callingSbd = (String) session.getAttribute("callingSbd");
-        ExamRegistrationDTO calling = candidateQueueService.resolveCallingCandidate(callingSbd, queue);
+        ExamRegistrationDTO calling = staffCall.resolveCallingCandidate(callingSbd, queue);
         if (calling != null && callingSbd != null && !callingSbd.equals(calling.getSbd())) {
             session.setAttribute("callingSbd", calling.getSbd());
         } else if (calling == null && callingSbd != null) {
@@ -249,19 +264,26 @@ public class CandidateCallServlet extends HttpServlet {
         return calling;
     }
 
+    /**
+     * Publish snapshot queue lên request + session.
+     *
+     * @param queue  full queue
+     * @param examId kỳ
+     */
     private void publishCandidateQueue(HttpServletRequest request, HttpSession session,
             List<ExamRegistrationDTO> queue, int examId) {
-        CandidateQueueSnapshotDTO snapshot = candidateQueueService.buildSnapshot(queue, examId, examId);
-        examstaff.dto.ExamSummaryDTO current = selectionFacade.findExamById(
-                selectionFacade.loadAllExams(), examId);
+        CandidateQueueSnapshotDTO snapshot = staffCall.buildSnapshot(queue, examId, examId);
+        ExamSummaryDTO current = viewService.findExamById(examId, viewService.listAllExams());
         if (current == null && examId > 0) {
-            current = selectionFacade.representativeExam(
-                    selectionFacade.loadAllExams(), examId);
+            current = viewService.representativeExam(viewService.listAllExams(), examId);
         }
         ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
                 snapshot.getProcedureDone(), examId, examId, current);
     }
 
+    /**
+     * Bind alert vắng/undo theo {@link CandidateCallActionResultDTO.AlertType}.
+     */
     private static void bindActionAlert(HttpServletRequest request, CandidateCallPageViewDTO view) {
         if (view.getAlertType() == CandidateCallActionResultDTO.AlertType.NONE
                 || view.getAlertSbd() == null) {
@@ -277,16 +299,19 @@ public class CandidateCallServlet extends HttpServlet {
         }
     }
 
+    /** POST dùng chung luồng GET (action gọi số thường POST form). */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
     }
 
+    /** true nếu session có {@code shiftEnded=true}. */
     private static boolean isShiftEnded(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftEnded"));
     }
 
+    /** true nếu session có {@code shiftPaused=true}. */
     private static boolean isShiftPaused(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftPaused"));
     }

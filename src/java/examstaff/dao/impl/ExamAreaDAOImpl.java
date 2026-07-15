@@ -15,10 +15,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** JDBC implementation của {@link ExamAreaDAO}. */
+/** Triển khai JDBC của {@link ExamAreaDAO} — đọc bảng {@code ExamArea} và liên kết {@code Exam_ExamArea}. */
 public class ExamAreaDAOImpl implements ExamAreaDAO {
 
-    /** Ánh xạ một dòng ResultSet sang {@link ExamArea}. */
+    /**
+     * Ánh xạ một dòng ResultSet (bảng {@code ExamArea}) sang {@link ExamArea}.
+     *
+     * @param rs ResultSet đang trỏ tại dòng cần đọc
+     * @return entity khu vực thi
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private ExamArea map(ResultSet rs) throws SQLException {
         ExamArea a = new ExamArea();
         a.setExamAreaId(rs.getInt("ExamAreaId"));
@@ -36,30 +42,38 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
 
     /**
-     * Lấy khu vực theo mã.
+     * Lấy một khu vực thi theo mã từ bảng {@code ExamArea}.
      *
-     * @param examAreaId mã khu vực
-     * @return entity hoặc {@code null} nếu không tìm thấy
+     * @param examAreaId mã khu vực ({@code ExamAreaId})
+     * @return entity {@link ExamArea} hoặc {@code null} nếu không tìm thấy
      */
     @Override
     public ExamArea getById(int examAreaId) {
         String sql = "SELECT * FROM ExamArea WHERE ExamAreaId = ?";
+        // Chuẩn bị PreparedStatement với SQL SELECT khu vực theo ExamAreaId
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
+            // Gán tham số truy vấn
             ps.setInt(1, examAreaId);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return map(rs);
+                if (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
+                    return map(rs);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // Không tìm thấy bản ghi
         return null;
     }
 
     /**
-     * Lấy danh sách phòng lý thuyết đang dùng được (gộp theo schema).
+     * Lấy danh sách phòng lý thuyết đang dùng được, gộp theo hai schema
+     * ({@code Lý thuyết} và {@code Phòng thi}), loại trùng theo {@code ExamAreaId}.
      *
-     * @return danh sách phòng lý thuyết
+     * @return danh sách phòng lý thuyết không trùng lặp
      */
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
@@ -75,10 +89,10 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
 
     /**
-     * Lấy khu vực theo loại ({@code AreaType}).
+     * Lấy danh sách khu vực theo loại ({@code AreaType}) từ bảng {@code ExamArea}.
      *
-     * @param areaType loại khu vực
-     * @return danh sách khu vực, rỗng nếu {@code areaType} trống
+     * @param areaType loại khu vực (ví dụ: {@code Lý thuyết}, {@code Phòng thi})
+     * @return danh sách khu vực sắp theo tên; rỗng nếu {@code areaType} trống
      */
     @Override
     public List<ExamArea> getAvailableAreasByType(String areaType) {
@@ -87,11 +101,15 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         }
         List<ExamArea> list = new ArrayList<>();
         String sql = "SELECT * FROM ExamArea WHERE AreaType = ? ORDER BY AreaName";
+        // Chuẩn bị PreparedStatement với SQL SELECT khu vực theo AreaType
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
+            // Gán tham số truy vấn
             ps.setString(1, areaType.trim());
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
                     list.add(map(rs));
                 }
             }
@@ -102,10 +120,10 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     }
 
     /**
-     * Lấy khu vực được gán cho một kỳ thi.
+     * Lấy các khu vực được gán cho một kỳ thi qua bảng liên kết {@code Exam_ExamArea}.
      *
      * @param examId mã kỳ thi
-     * @return danh sách khu vực của kỳ thi
+     * @return danh sách khu vực của kỳ thi, sắp theo tên
      */
     @Override
     public List<ExamArea> getAreasByExamId(int examId) {
@@ -113,11 +131,17 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
         String sql = "SELECT ea.* FROM ExamArea ea "
                    + "JOIN Exam_ExamArea exa ON ea.ExamAreaId = exa.ExamAreaId "
                    + "WHERE exa.ExamId = ? ORDER BY ea.AreaName";
+        // Chuẩn bị PreparedStatement với SQL SELECT khu vực theo ExamId
         try (Connection c = new DBContext().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
+            // Gán tham số truy vấn
             ps.setInt(1, examId);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(map(rs));
+                while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
+                    list.add(map(rs));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

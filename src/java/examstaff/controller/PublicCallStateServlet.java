@@ -1,66 +1,53 @@
 package examstaff.controller;
 
-import examstaff.controller.PublicCallJsonBinder;
-import examstaff.controller.CallBoardHttpFacade;
-import examstaff.controller.ExamStaffHttpSupport;
+import examstaff.dao.CallBoardDAO;
+import examstaff.dto.CallBoardState;
 import examstaff.dto.PublicCallSnapshotDTO;
+import examstaff.service.ExamStaffViewService;
+import examstaff.service.StaffCallService;
+import examstaff.service.impl.ExamStaffViewServiceImpl;
+import examstaff.service.impl.StaffCallServiceImpl;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import examstaff.dto.CallBoardState;
-import examstaff.controller.ExamStaffWebModule;
-import examstaff.service.ExamStaffServices;
-import examstaff.service.PublicCallQueryService;
-import examstaff.util.Utf8EncodingHelper;
 
 import java.io.IOException;
 
 /**
  * API JSON trạng thái Public Call (poll từ {@code public-call.js}).
- * Cùng nguồn dữ liệu với {@link examstaff.controller.PublicCallServlet}, khác output.
+ * <p>
+ * Luồng GET: resolve examId → board → snapshot → JSON ({@link PublicCallSnapshotSupport#toStateJson}).
  */
 @WebServlet("/api/public-call/state")
 public class PublicCallStateServlet extends HttpServlet {
 
-    private static final ExamStaffWebModule MODULE = ExamStaffWebModule.getInstance();
-
-    private static final ExamStaffServices SERVICES = MODULE.services();
-
-    private final PublicCallQueryService publicCallQueryService;
-    private final CallBoardHttpFacade callBoardHttp = MODULE.callBoardHttp();
-
-    /** Constructor mặc định — lấy service từ composition root. */
-    public PublicCallStateServlet() {
-        this(SERVICES.publicCallQuery());
-    }
+    private final StaffCallService staffCall = new StaffCallServiceImpl();
+    private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
 
     /**
-     * Constructor inject (test / wiring tay).
+     * GET: trả JSON state (no-store) cho client poll.
      *
-     * @param publicCallQueryService service dựng snapshot Public Call
-     */
-    PublicCallStateServlet(PublicCallQueryService publicCallQueryService) {
-        this.publicCallQueryService = publicCallQueryService;
-    }
-
-    /**
-     * Trả JSON no-store: calling, next, waitingQueue, deskBusy, pause/end flags.
+     * @throws ServletException không dùng
+     * @throws IOException      lỗi ghi body
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int examId = SERVICES.selection().resolveActiveExamId(
+        CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(getServletContext());
+        // URL / session / board → kỳ đang chiếu
+        int examId = viewService.resolveActiveExamId(
                 ExamStaffHttpSupport.parseExamIdParam(request),
                 ExamStaffHttpSupport.readSelectedExamId(request),
-                callBoardHttp.dao(getServletContext()).getActiveExamId());
-        CallBoardState board = callBoardHttp.getState(getServletContext(), examId);
-        PublicCallSnapshotDTO snapshot = publicCallQueryService.loadSnapshot(
+                staffCall.getActiveCallExamId(dao));
+        CallBoardState board = staffCall.getBoardState(dao, examId);
+        PublicCallSnapshotDTO snapshot = staffCall.loadPublicSnapshot(
                 examId, request.getServletContext().getRealPath("/"), board);
 
         Utf8EncodingHelper.applyJson(response);
         response.setHeader("Cache-Control", "no-store");
-        response.getWriter().write(PublicCallJsonBinder.toStateJson(snapshot));
+        response.getWriter().write(PublicCallSnapshotSupport.toStateJson(snapshot));
     }
 }

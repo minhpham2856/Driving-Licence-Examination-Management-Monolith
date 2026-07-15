@@ -1,14 +1,26 @@
 package examstaff.dao;
 
 /**
- * Hằng SQL SELECT thí sinh (Candidate + ExamEnrollment) cho schema DLEM_DB_2.
+ * Hằng SQL SELECT thí sinh ({@code Candidate} + {@code ExamEnrollment}) cho schema DLEM_DB_2.
+ * Ghép cột hồ sơ, thanh toán, phân phòng LT/TH, trạng thái section và điểm
+ * từ các bảng Enrolment / Section / Payment / ExamResult / ExamScore.
+ * Caller gắn thêm mệnh đề {@code WHERE} khi thực thi.
+ * <p>
+ * Lớp tiện ích — không thể khởi tạo; dùng {@link #CANDIDATE_SELECT}
+ * hoặc {@link #CANDIDATE_SELECT_MINIMAL}.
  */
 public final class Db2CandidateSql {
 
+    /**
+     * Chặn khởi tạo: chỉ dùng hằng SQL tĩnh và phương thức ghép câu SELECT.
+     */
     private Db2CandidateSql() {
     }
 
-    /** Biểu thức giới tính → BIT {@code gender}. */
+    /**
+     * Biểu thức SQL chuyển cột giới tính {@code c.Sex} sang BIT alias {@code gender}
+     * (1 = nam / các giá trị nhận diện được; ngược lại 0).
+     */
     private static final String GENDER_AS_BIT = """
               CAST(CASE
                 WHEN c.Sex IS NULL OR LTRIM(RTRIM(CAST(c.Sex AS NVARCHAR(20)))) = N'' THEN 0
@@ -19,7 +31,9 @@ public final class Db2CandidateSql {
                 ELSE 0
               END AS BIT) AS gender,""";
 
-    /** Phần đầu SELECT (id, examId, candidateNo…). */
+    /**
+     * Phần đầu câu SELECT: mã thí sinh, kỳ thi, enrollment, số báo danh ({@code candidateNo})…
+     */
     private static final String CANDIDATE_SELECT_HEAD = """
             SELECT
               c.CandidateId AS id,
@@ -32,7 +46,10 @@ public final class Db2CandidateSql {
               ) AS candidateNo,
               """;
 
-    /** Phần giữa: thanh toán, có mặt, hồ sơ cơ bản. */
+    /**
+     * Phần giữa SELECT: cờ thanh toán / có mặt / vắng / đình chỉ và hồ sơ cơ bản
+     * (họ tên, CCCD, ngày sinh…).
+     */
     private static final String CANDIDATE_SELECT_MID = """
               CAST(CASE WHEN pay.PaymentId IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS isPaymentCompleted,
               CAST(CASE
@@ -47,7 +64,10 @@ public final class Db2CandidateSql {
               CAST(c.DateOfBirth AS DATE) AS dateOfBirth,
             """;
 
-    /** Phần đuôi cột liên hệ + phân phòng / trạng thái section. */
+    /**
+     * Phần đuôi cột SELECT: liên hệ, hạng GPLX, thiết bị, phân phòng / trạng thái section
+     * (dùng biểu thức từ {@link Db2ExamSchemaSql}).
+     */
     private static final String CANDIDATE_SELECT_TAIL =
             """
               c.PhoneNumber AS phoneNo,
@@ -68,7 +88,10 @@ public final class Db2CandidateSql {
             + Db2ExamSchemaSql.PRACTICAL_ALLOCATED_AREA_EXPR + " AS practicalAllocatedAreaId,\n"
             + Db2ExamSchemaSql.PRACTICAL_ALLOCATED_AREA_NAME_EXPR + " AS practicalAllocatedAreaName,\n";
 
-    /** FROM/JOIN cơ bản + bắt đầu subquery Payment. */
+    /**
+     * Cụm FROM/JOIN cơ bản: Candidate → ExamEnrollment → Exam → Licence,
+     * section LT/TH, Profile/User, bắt đầu subquery Payment.
+     */
     private static final String CANDIDATE_FROM_JOIN =
             """
             FROM Candidate c
@@ -88,7 +111,9 @@ public final class Db2CandidateSql {
                 WHERE p1.PaymentStatus IN (
             """;
 
-    /** Kết thúc subquery Payment + device/area. */
+    /**
+     * Kết thúc subquery Payment + JOIN thiết bị / khu vực fallback phân bổ enrollment.
+     */
     private static final String CANDIDATE_PAYMENT_JOIN_END = """
                 )
                 GROUP BY p1.ExamEnrollmentId
@@ -97,7 +122,10 @@ public final class Db2CandidateSql {
             LEFT JOIN ExamArea allocArea ON allocArea.ExamAreaId = ee.AllocatedExamAreaId
             """;
 
-    /** JOIN tính điểm LT/TH. */
+    /**
+     * Cụm LEFT JOIN subquery tính điểm lý thuyết và thực hành
+     * từ {@code ExamResult} / {@code ExamScore} / {@code ExamSection}.
+     */
     private static final String CANDIDATE_SCORE_JOINS =
             """
             LEFT JOIN (
@@ -124,19 +152,31 @@ public final class Db2CandidateSql {
             ) practical ON practical.ExamEnrollmentId = ee.ExamEnrollmentId
             """;
 
-    /** Cột điểm LT/TH. */
+    /**
+     * Cột điểm LT/TH lấy từ subquery (alias {@code theoryScore}, {@code practicalScore}).
+     */
     private static final String CANDIDATE_SCORE_COLUMNS = """
               theory.scoreVal AS theoryScore,
               practical.scoreVal AS practicalScore
             """;
 
-    /** Cột điểm null (fallback khi thiếu bảng điểm). */
+    /**
+     * Cột điểm null — dùng khi fallback không JOIN bảng điểm.
+     */
     private static final String CANDIDATE_NULL_SCORE_COLUMNS = """
               CAST(NULL AS INT) AS theoryScore,
               CAST(NULL AS INT) AS practicalScore
             """;
 
-    /** Ghép đầy đủ câu SELECT thí sinh. */
+    /**
+     * Ghép đầy đủ câu SELECT thí sinh từ các mảnh cột / JOIN.
+     * Chèn biểu thức {@code registrationType}, trạng thái thanh toán ({@code PaymentStatus.sqlInClause}),
+     * và phần điểm tùy chọn.
+     *
+     * @param scoreColumns đoạn cột điểm (có điểm thật hoặc CAST NULL)
+     * @param scoreJoins   cụm LEFT JOIN điểm; chuỗi rỗng nếu không lấy điểm
+     * @return chuỗi SQL SELECT đầy đủ (chưa có WHERE); caller gắn điều kiện khi chạy
+     */
     private static String buildCandidateSelect(String scoreColumns, String scoreJoins) {
         return CANDIDATE_SELECT_HEAD
                 + examstaff.enums.RegistrationType.sqlCaseExpression("c.TakeNo")
@@ -151,11 +191,17 @@ public final class Db2CandidateSql {
                 + scoreJoins;
     }
 
-    /** SELECT thí sinh đầy đủ (có điểm). Gắn thêm WHERE từ caller. */
+    /**
+     * Câu SELECT thí sinh đầy đủ (có JOIN điểm LT/TH).
+     * Gắn thêm {@code WHERE} từ caller khi thực thi.
+     */
     public static final String CANDIDATE_SELECT =
             buildCandidateSelect(CANDIDATE_SCORE_COLUMNS, CANDIDATE_SCORE_JOINS);
 
-    /** SELECT tối thiểu (không JOIN điểm) — fallback khi query đầy đủ thất bại. */
+    /**
+     * Câu SELECT tối thiểu (không JOIN điểm) — fallback khi query đầy đủ thất bại.
+     * Điểm LT/TH trả về {@code NULL}.
+     */
     public static final String CANDIDATE_SELECT_MINIMAL =
             buildCandidateSelect(CANDIDATE_NULL_SCORE_COLUMNS, "");
 }
