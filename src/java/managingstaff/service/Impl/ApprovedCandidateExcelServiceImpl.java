@@ -25,7 +25,7 @@ public class ApprovedCandidateExcelServiceImpl implements ApprovedCandidateExcel
 
     private static final String[] HEADERS = {
         "STT", "Mã hồ sơ", "Họ và tên", "Ngày sinh", "Giới tính", "Số CCCD",
-        "Số điện thoại", "Email", "Địa chỉ thường trú", "Hạng GPLX", "Nguồn hồ sơ", "Trạng thái"
+        "Số điện thoại", "Email", "Địa chỉ thường trú", "Hạng GPLX"
     };
 
     @Override
@@ -97,8 +97,6 @@ public class ApprovedCandidateExcelServiceImpl implements ApprovedCandidateExcel
                 writeText(row, 7, dossier.getUser().getEmail(), textStyle);
                 writeText(row, 8, dossier.getProfile().getAddress(), textStyle);
                 writeText(row, 9, dossier.getLicenceDisplayClass(), centeredStyle);
-                writeText(row, 10, dossier.getSourceLabel(), textStyle);
-                writeText(row, 11, dossier.getStatusLabel(), centeredStyle);
             }
 
             int lastDataRow = Math.max(4, rowIndex - 1);
@@ -113,13 +111,13 @@ public class ApprovedCandidateExcelServiceImpl implements ApprovedCandidateExcel
             int signatureRowIndex = rowIndex + 4;
             Row signatureRow = sheet.createRow(signatureRowIndex);
             signatureRow.setHeightInPoints(24);
-            writeSignature(sheet, signatureRow, 0, 5, "NGƯỜI LẬP DANH SÁCH", metaStyle);
-            writeSignature(sheet, signatureRow, 6, 11, "ĐẠI DIỆN TRUNG TÂM", metaStyle);
+            writeSignature(sheet, signatureRow, 0, 4, "NGƯỜI LẬP DANH SÁCH", metaStyle);
+            writeSignature(sheet, signatureRow, 5, 9, "ĐẠI DIỆN TRUNG TÂM", metaStyle);
             Row signatureNote = sheet.createRow(signatureRowIndex + 1);
-            writeSignature(sheet, signatureNote, 0, 5, "(Ký, ghi rõ họ tên)", metaStyle);
-            writeSignature(sheet, signatureNote, 6, 11, "(Ký, đóng dấu, ghi rõ họ tên)", metaStyle);
+            writeSignature(sheet, signatureNote, 0, 4, "(Ký, ghi rõ họ tên)", metaStyle);
+            writeSignature(sheet, signatureNote, 5, 9, "(Ký, đóng dấu, ghi rõ họ tên)", metaStyle);
 
-            int[] widths = {7, 14, 28, 14, 11, 19, 17, 30, 40, 13, 20, 16};
+            int[] widths = {7, 14, 28, 14, 11, 19, 17, 30, 40, 13};
             for (int i = 0; i < widths.length; i++) sheet.setColumnWidth(i, widths[i] * 256);
 
             workbook.getProperties().getCoreProperties().setCreator("Trung tâm sát hạch Lái Vui");

@@ -46,6 +46,8 @@ public class DossierDTO {
     public int getRequiredDocumentTotal() { return 4; }
 
     public String getStatusLabel() {
+        if ("WaitingExam".equals(status)) return "Chờ lịch thi chính thức";
+        if ("OfficialScheduled".equals(status)) return "Đã có lịch thi chính thức";
         return switch (status == null ? "" : status) {
             case "Draft" -> "Bản nháp";
             case "Pending", "Submitted" -> "Chờ duyệt";
@@ -59,6 +61,7 @@ public class DossierDTO {
     }
 
     public String getStatusKey() {
+        if ("WaitingExam".equals(status) || "OfficialScheduled".equals(status)) return "success";
         return switch (status == null ? "" : status) {
             case "Approved", "Present", "CheckedIn", "Completed" -> "success";
             case "Rejected" -> "danger";

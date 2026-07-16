@@ -97,8 +97,7 @@ public class DossierReviewServlet extends HttpServlet {
         if ("Approved".equals(status) && !dossier.isComplete()) {
             String missing = String.join(", ", dossier.getMissingRequiredDocumentLabels());
             request.getSession().setAttribute("reviewError",
-                    "Không thể duyệt hồ sơ hạng " + dossier.getLicenceDisplayClass()
-                    + ". Cần đủ " + dossier.getRequiredDocumentTotal()
+                    "Không thể duyệt hồ sơ. Cần đủ " + dossier.getRequiredDocumentTotal()
                     + " giấy tờ, còn thiếu: " + missing + ".");
             response.sendRedirect(detailRedirect);
             return;
@@ -212,8 +211,8 @@ public class DossierReviewServlet extends HttpServlet {
         return "<div style='font-family:Arial,sans-serif;line-height:1.6;color:#1f2937'>"
                 + "<h2 style='color:#b91c1c'>Hồ sơ sát hạch bị từ chối</h2>"
                 + "<p>Kính gửi <strong>" + html(dossier.getProfile().getFullName()) + "</strong>,</p>"
-                + "<p>Hồ sơ đăng ký sát hạch hạng <strong>" + html(dossier.getLicenceDisplayClass())
-                + "</strong>, mã hồ sơ <strong>#" + dossier.getRegistrationId() + "</strong> đã bị từ chối.</p>"
+                + "<p>Hồ sơ đăng ký sát hạch, mã hồ sơ <strong>#" + dossier.getRegistrationId()
+                + "</strong> đã bị từ chối.</p>"
                 + "<p><strong>Lý do:</strong> " + html(reason) + "</p>"
                 + "<p>Hồ sơ này đã kết thúc. Vui lòng đăng nhập hệ thống, tạo đăng ký sát hạch mới "
                 + "và nộp lại đầy đủ tài liệu theo hướng dẫn.</p>"
@@ -224,8 +223,7 @@ public class DossierReviewServlet extends HttpServlet {
         return "<div style='font-family:Arial,sans-serif;line-height:1.6;color:#1f2937'>"
                 + "<h2 style='color:#047857'>Hồ sơ đã được tiếp nhận và duyệt</h2>"
                 + "<p>Kính gửi <strong>" + html(dossier.getProfile().getFullName()) + "</strong>,</p>"
-                + "<p>Hồ sơ đăng ký sát hạch hạng <strong>" + html(dossier.getLicenceDisplayClass())
-                + "</strong>, mã hồ sơ <strong>#" + dossier.getRegistrationId()
+                + "<p>Hồ sơ đăng ký sát hạch, mã hồ sơ <strong>#" + dossier.getRegistrationId()
                 + "</strong> đã được nộp đầy đủ và duyệt hợp lệ.</p>"
                 + "<p>File PDF hồ sơ đã duyệt được đính kèm email này. Vui lòng kiểm tra thông tin và "
                 + "ký vào phần chữ ký khi trung tâm yêu cầu.</p>"
