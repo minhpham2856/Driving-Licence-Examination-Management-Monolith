@@ -121,13 +121,16 @@ public class RegistrantMyExamsServiceImpl implements RegistrantMyExamsService {
 
     private static long countUpcoming(List<RegistrantMyExamRow> exams) {
         return exams.stream()
-                .filter(e -> RegistrantFilterSupport.matchesMyExamStatus(e, "approved_waiting"))
+                .filter(e -> e.isPreferredDate()
+                        || RegistrantFilterSupport.matchesMyExamStatus(e, "approved_waiting")
+                        || RegistrantFilterSupport.matchesMyExamStatus(e, "pending"))
+                .filter(e -> e.getExamDate() != null)
                 .count();
     }
 
     private RegistrantMyExamRow resolveSelectedExam(List<RegistrantMyExamRow> exams, String selectedExamId) {
         int candidateId = RegistrantServletSupport.parsePositiveInt(selectedExamId);
-        if (candidateId <= 0 || exams.isEmpty()) {
+        if (candidateId == 0 || exams.isEmpty()) {
             return null;
         }
         for (RegistrantMyExamRow exam : exams) {
