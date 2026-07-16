@@ -3,11 +3,11 @@ package shared.enums;
 public enum ExamAreaType {
     PROCEDURE_ROOM("Phòng thủ tục"),
     EXAM_ROOM("Phòng thi"),
-    PRACTICE_YARD("Sân thi");
+    EXAM_GROUND("Sân thi");
 
     private final String value;
 
-    private ExamAreaType(String value) {
+    ExamAreaType(String value) {
         this.value = value;
     }
 
@@ -19,9 +19,9 @@ public enum ExamAreaType {
         if (value == null) {
             return null;
         }
-        for (ExamAreaType status : values()) {
-            if (status.getValue().equals(value)) {
-                return status;
+        for (ExamAreaType type : values()) {
+            if (type.getValue().equals(value)) {
+                return type;
             }
         }
         return null;

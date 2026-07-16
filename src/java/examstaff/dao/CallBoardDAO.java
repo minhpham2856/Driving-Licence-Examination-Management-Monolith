@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 
 /**
  * Data-access for runtime candidate-call board state.

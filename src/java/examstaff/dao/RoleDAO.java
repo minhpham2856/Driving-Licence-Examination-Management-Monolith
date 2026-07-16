@@ -1,6 +1,6 @@
 package examstaff.dao;
 
-import examstaff.model.Role;
+import shared.model.Role;
 
 public interface RoleDAO {
     Role getByName(String roleName);

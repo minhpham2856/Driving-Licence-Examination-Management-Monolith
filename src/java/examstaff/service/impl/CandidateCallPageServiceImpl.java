@@ -6,7 +6,7 @@ import examstaff.dto.CandidateCallPageCommand;
 import examstaff.dto.CandidateCallPageViewDTO;
 import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffQueueRefreshInput;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CandidateCallPageService;
 import examstaff.service.CandidateCallWorkflowService;
 import examstaff.service.CandidateCallingService;

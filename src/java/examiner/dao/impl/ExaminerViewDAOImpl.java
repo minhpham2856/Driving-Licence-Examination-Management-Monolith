@@ -1,7 +1,7 @@
 package examiner.dao.impl;
 
 import shared.dbconnection.DBContext;
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

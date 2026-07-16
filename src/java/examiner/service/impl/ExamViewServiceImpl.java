@@ -28,12 +28,12 @@ import examiner.service.ExamViewService;
 import examiner.service.AuditService;
 import examiner.util.ExamQueue;
 import examiner.util.ExamQueue.Lane;
-import examiner.enums.DeviceStatus;
-import examiner.enums.DeviceType;
-import examiner.enums.CandidateStatus;
-import examiner.enums.SectionType;
+import shared.enums.DeviceStatus;
+import shared.enums.DeviceType;
+import shared.enums.CandidateStatus;
+import shared.enums.SectionType;
 import examiner.service.RegistrationService;
-import examiner.enums.ViolationReason;
+import shared.enums.ViolationReason;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -707,7 +707,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setGovernmentId(enrollment.getGovIdNo());
         row.setAddress(enrollment.getAddress());
         row.setPhoneNo(enrollment.getPhoneNo());
-        row.setSex(examiner.enums.Sex.fromDbBit(enrollment.isSex()));
+        row.setSex(enrollment.isSex() ? shared.enums.Sex.FEMALE : shared.enums.Sex.MALE);
         row.setEmail(enrollment.getEmail());
         row.setLicenceClass(licenceClass);
         row.setReasonForTaking(enrollment.getReasonForTaking());
@@ -890,13 +890,9 @@ public class ExamViewServiceImpl implements ExamViewService {
         if (type == DeviceType.MOTORCYCLE) {
             return "two_wheeler";
         }
-        if (type == DeviceType.CAR) {
-            return "directions_car";
-        }
-        if (type == DeviceType.TRUCK) {
+        if (type == DeviceType.TRICYCLE) {
             return "local_shipping";
         }
         return "devices";
     }
 }
-

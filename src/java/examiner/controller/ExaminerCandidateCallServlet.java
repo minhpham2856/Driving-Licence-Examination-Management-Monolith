@@ -4,6 +4,7 @@ import shared.enums.SectionType;
 import examiner.filter.ExaminerFilter;
 import auth.dto.UserDTO;
 import shared.Attributes;
+import shared.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,7 +85,8 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         }
 
         if ("callSelected".equals(action)) {
-            UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
+            UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
+            User user = userDto.toUser();
             int userId = user.getUserId();
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
@@ -112,7 +114,8 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
 
     private boolean handleCallAction(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int activeExamId, String action, Integer sbd) throws IOException {
-        UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
+        UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
+        User user = userDto.toUser();
         int userId = user.getUserId();
         boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
         String sectionName = resolveSectionName(session);

@@ -4,8 +4,8 @@ import examiner.dao.ExamAreaDAO;
 import examiner.dao.impl.ExamAreaDAOImpl;
 import examiner.dto.ServiceResult;
 import examiner.dto.SaveResultDTO;
-import examiner.enums.ExamAreaType;
-import examiner.enums.ErrorType;
+import shared.enums.ExamAreaType;
+import shared.enums.ErrorType;
 import shared.model.ExamArea;
 import examiner.service.ExamAreaService;
 

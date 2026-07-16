@@ -1,6 +1,6 @@
 package examiner.dao;
 
-import examiner.enums.ExamStatus;
+import shared.enums.ExamStatus;
 import java.util.List;
 import shared.model.Exam;
 

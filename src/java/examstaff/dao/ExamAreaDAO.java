@@ -1,5 +1,5 @@
 package examstaff.dao;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import java.util.List;
 public interface ExamAreaDAO {
     ExamArea getById(int examAreaId);

@@ -3,8 +3,8 @@ package examiner.dao.impl;
 import examiner.dao.CandidateDAO;
 import examiner.dao.ExamEnrollmentDAO;
 import shared.dbconnection.DBContext;
-import examiner.enums.CandidateStatus;
-import examiner.enums.Sex;
+import shared.enums.CandidateStatus;
+import shared.enums.Sex;
 import shared.model.ExamEnrollment;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -183,7 +183,7 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
             return false;
         }
         Sex sex = Sex.fromValue(sexDb);
-        boolean female = sex != null ? sex.toDbBit() : false;
+        boolean female = sex == Sex.FEMALE;
         return candidateDAO.updateExaminerProfile(candidateId, fullName.trim(), dateOfBirth, govIdNo, phoneNo,
                 address, female, reasonForTaking);
     }

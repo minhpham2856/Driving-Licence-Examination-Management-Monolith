@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-import examstaff.model.Profile;
+import shared.model.Profile;
 
 public class UserDTO {
     private int userId;

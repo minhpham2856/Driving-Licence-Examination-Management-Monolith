@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import examiner.enums.RoleType;
+import shared.enums.RoleType;
 
 public class UserDAOImpl extends DBContext implements UserDAO {
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());

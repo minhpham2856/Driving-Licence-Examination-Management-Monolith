@@ -1,6 +1,6 @@
 package examiner.util;
 
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;

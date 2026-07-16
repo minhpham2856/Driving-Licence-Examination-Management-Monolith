@@ -5,7 +5,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
 import examstaff.enums.ExamSection;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.service.AllocationActionService;
 import examstaff.service.ExamAreaQueryService;
 import examstaff.service.ExamRegistrationService;

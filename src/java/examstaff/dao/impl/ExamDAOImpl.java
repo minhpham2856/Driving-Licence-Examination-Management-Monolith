@@ -1,6 +1,6 @@
 package examstaff.dao.impl;
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.ExamDAO;
 import examstaff.dto.ExamSummaryDTO;
 

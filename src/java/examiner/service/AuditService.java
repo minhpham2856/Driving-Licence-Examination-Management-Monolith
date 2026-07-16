@@ -1,7 +1,7 @@
 package examiner.service;
 
-import examiner.enums.AuditAction;
-import examiner.enums.AuditEntity;
+import shared.enums.AuditAction;
+import shared.enums.AuditEntity;
 import shared.model.Audit;
 
 import java.util.List;

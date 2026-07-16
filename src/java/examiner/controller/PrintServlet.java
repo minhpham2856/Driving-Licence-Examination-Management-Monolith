@@ -1,8 +1,8 @@
 package examiner.controller;
 
 import examiner.dto.ExportContextDTO;
-import examiner.enums.DocumentName;
-import examiner.enums.SectionType;
+import shared.enums.FileName;
+import shared.enums.SectionType;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -48,13 +48,36 @@ public class PrintServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu số báo danh.");
             return;
         }
-        prepareDocxDownload(response, DocumentName.printCandidate(type, sbd));
+        prepareDocxDownload(response, buildPrintFilename(type, sbd));
         OutputStream out = response.getOutputStream();
         try {
             docxService.print(ctx, type, sbd, out);
         } finally {
             out.flush();
         }
+    }
+
+    private static String buildPrintFilename(String type, int sbd) {
+        String base;
+        if (type == null || type.isBlank()) {
+            base = FileName.DEFAULT.getValue();
+        } else {
+            String normalized = type.trim().toLowerCase();
+            base = switch (normalized) {
+                case "candidates" -> FileName.CANDIDATES.getValue();
+                case "results" -> FileName.RESULTS.getValue();
+                case "minutes" -> FileName.RESULT.getValue();
+                case "violations" -> FileName.VIOLATIONS.getValue();
+                case "audit" -> FileName.AUDIT.getValue();
+                case "bb1", "bb1-ly-thuyet" -> FileName.BB1.getValue();
+                case "bb2", "bb2-thuc-hanh-trong-hinh" -> FileName.BB2.getValue();
+                default -> {
+                    FileName byValue = FileName.fromValue(normalized);
+                    yield byValue != null ? byValue.getValue() : FileName.DEFAULT.getValue();
+                }
+            };
+        }
+        return base + "-sbd-" + sbd + ".docx";
     }
 
     private ExportContextDTO requireExportContext(HttpServletRequest request, HttpServletResponse response)

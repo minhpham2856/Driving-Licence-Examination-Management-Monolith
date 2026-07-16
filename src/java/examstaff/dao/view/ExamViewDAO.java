@@ -1,6 +1,6 @@
 package examstaff.dao.view;
 
-import examstaff.model.view.ExamSummaryRow;
+import examstaff.dto.view.ExamSummaryRow;
 
 import java.util.List;
 

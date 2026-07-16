@@ -1,7 +1,7 @@
 package examiner.dto;
 
-import examiner.enums.CandidateStatus;
-import examiner.enums.Sex;
+import shared.enums.CandidateStatus;
+import shared.enums.Sex;
 
 public class CandidateRowDTO {
 

@@ -1,8 +1,8 @@
 package examstaff.dao.impl;
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.FeeDAO;
-import examstaff.model.Fee;
+import shared.model.Fee;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -146,7 +146,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         fee.setFeeName(rs.getString("FeeName"));
         fee.setFeeType(rs.getString("FeeType"));
         fee.setAmount(rs.getDouble("Amount"));
-        fee.setIsActive(rs.getBoolean("IsActive"));
+        fee.setActive(rs.getBoolean("IsActive"));
         return fee;
     }
 }

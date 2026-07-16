@@ -1,7 +1,7 @@
 package examstaff.dao.view.impl;
 
 import examstaff.dao.view.ReportInfractionViewDAO;
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

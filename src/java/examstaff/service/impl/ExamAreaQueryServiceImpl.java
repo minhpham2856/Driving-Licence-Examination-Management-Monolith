@@ -4,7 +4,7 @@ import examstaff.dao.ExamAreaDAO;
 import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dao.impl.ExamAreaDAOImpl;
 import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import examstaff.service.ExamAreaQueryService;
 import examstaff.util.ExaminerAssignmentRules;
 

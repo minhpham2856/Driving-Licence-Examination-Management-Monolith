@@ -1,9 +1,9 @@
 package examstaff.dao.impl;
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.ExamAreaDAO;
 import examstaff.enums.ExamSection;
-import examstaff.model.ExamArea;
+import shared.model.ExamArea;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

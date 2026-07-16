@@ -4,7 +4,7 @@ import examstaff.dao.CallBoardDAO;
 import examstaff.dao.impl.ServletContextCallBoardDAO;
 import examstaff.dto.exam.ExamRegistrationDTO;
 import jakarta.servlet.ServletContext;
-import examstaff.model.view.CallBoardState;
+import examstaff.dto.view.CallBoardState;
 import examstaff.service.CallBoardSyncService;
 
 import java.util.List;

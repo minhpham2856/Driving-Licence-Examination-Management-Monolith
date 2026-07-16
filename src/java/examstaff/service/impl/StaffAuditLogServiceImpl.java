@@ -3,7 +3,7 @@ package examstaff.service.impl;
 import examstaff.dao.AuditLogDAO;
 import examstaff.dao.impl.AuditLogDAOImpl;
 import examstaff.enums.AuditEntity;
-import examstaff.model.Audit;
+import shared.model.Audit;
 import examstaff.service.StaffAuditLogService;
 
 import java.sql.Timestamp;

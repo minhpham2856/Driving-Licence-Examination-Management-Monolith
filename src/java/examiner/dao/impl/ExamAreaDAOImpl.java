@@ -3,7 +3,7 @@ package examiner.dao.impl;
 import java.sql.*;
 import shared.dbconnection.DBContext;
 import examiner.dao.ExamAreaDAO;
-import examiner.enums.ExamAreaType;
+import shared.enums.ExamAreaType;
 import shared.model.ExamArea;
 import shared.model.ExamZone;
 import java.sql.Connection;

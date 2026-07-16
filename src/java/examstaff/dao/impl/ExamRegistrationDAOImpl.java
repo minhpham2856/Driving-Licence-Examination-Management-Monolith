@@ -1,6 +1,6 @@
 package examstaff.dao.impl;
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.Db2CandidateSql;
 import examstaff.dao.ExamRegistrationDAO;
 import examstaff.dto.exam.ExamRegistrationDTO;

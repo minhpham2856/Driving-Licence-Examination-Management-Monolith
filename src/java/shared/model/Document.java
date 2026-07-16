@@ -3,18 +3,19 @@ package shared.model;
 public class Document {
 
     private int documentId;
-    private String documentType;
+    private int documentTypeId;
     private String documentUrl;
     private String notes;
     private int profileId;
+    private DocumentType documentType;
     private Profile profile;
 
     public Document() {
     }
 
-    public Document(int documentId, String documentType, String documentUrl, String notes, int profileId) {
+    public Document(int documentId, int documentTypeId, String documentUrl, String notes, int profileId) {
         this.documentId = documentId;
-        this.documentType = documentType;
+        this.documentTypeId = documentTypeId;
         this.documentUrl = documentUrl;
         this.notes = notes;
         this.profileId = profileId;
@@ -28,12 +29,12 @@ public class Document {
         this.documentId = documentId;
     }
 
-    public String getDocumentType() {
-        return documentType;
+    public int getDocumentTypeId() {
+        return documentTypeId;
     }
 
-    public void setDocumentType(String documentType) {
-        this.documentType = documentType;
+    public void setDocumentTypeId(int documentTypeId) {
+        this.documentTypeId = documentTypeId;
     }
 
     public String getDocumentUrl() {
@@ -60,6 +61,14 @@ public class Document {
         this.profileId = profileId;
     }
 
+    public DocumentType getDocumentType() {
+        return documentType;
+    }
+
+    public void setDocumentType(DocumentType documentType) {
+        this.documentType = documentType;
+    }
+
     public Profile getProfile() {
         return profile;
     }
@@ -68,4 +77,3 @@ public class Document {
         this.profile = profile;
     }
 }
-

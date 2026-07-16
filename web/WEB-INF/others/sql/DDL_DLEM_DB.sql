@@ -55,9 +55,15 @@ CREATE TABLE Profile (
 );
 GO
 
+CREATE TABLE DocumentType (
+    DocumentTypeId INT PRIMARY KEY IDENTITY(1,1),
+    [Type] NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+
 CREATE TABLE Document (
     DocumentId INT PRIMARY KEY IDENTITY(1,1),
-    DocumentType NVARCHAR(50) NOT NULL,
+    DocumentTypeId INT NOT NULL REFERENCES DocumentType(DocumentTypeId),
     DocumentUrl NVARCHAR(500) NOT NULL,
     Notes NVARCHAR(255),
     ProfileId INT NOT NULL REFERENCES Profile(ProfileId)
@@ -117,7 +123,7 @@ CREATE TABLE ExamZone (
 );
 GO
 
--- Địa điểm cụ thể (phòng / sân / đường) thuộc một ExamZone
+-- Địa điểm cụ thể (phòng / sân) thuộc một ExamZone
 CREATE TABLE ExamArea (
     ExamAreaId INT PRIMARY KEY IDENTITY(1,1),
     AreaName NVARCHAR(100) NOT NULL,
@@ -152,7 +158,7 @@ GO
 CREATE TABLE ExamDevice (
     ExamDeviceId INT PRIMARY KEY IDENTITY(1,1),
     DeviceName NVARCHAR(100) NOT NULL,
-    DeviceType NVARCHAR(50) NOT NULL, -- Máy tính | Mô tô | Xe con
+    DeviceType NVARCHAR(50) NOT NULL, -- Máy tính | Mô tô | Mô tô ba bánh
     IsActive BIT NOT NULL,
     ExamAreaId INT NOT NULL REFERENCES ExamArea(ExamAreaId)
 );

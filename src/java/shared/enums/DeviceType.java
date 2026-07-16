@@ -3,8 +3,7 @@ package shared.enums;
 public enum DeviceType {
     COMPUTER("Máy tính"),
     MOTORCYCLE("Mô tô"),
-    CAR("Xe con"),
-    TRUCK("Xe tải");
+    TRICYCLE("Mô tô ba bánh");
 
     private final String value;
 
@@ -20,9 +19,9 @@ public enum DeviceType {
         if (value == null) {
             return null;
         }
-        for (DeviceType status : values()) {
-            if (status.getValue().equals(value)) {
-                return status;
+        for (DeviceType type : values()) {
+            if (type.getValue().equals(value)) {
+                return type;
             }
         }
         return null;

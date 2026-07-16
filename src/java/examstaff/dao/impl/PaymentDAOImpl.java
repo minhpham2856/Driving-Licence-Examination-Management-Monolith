@@ -1,9 +1,9 @@
 package examstaff.dao.impl;
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 import examstaff.dao.PaymentDAO;
 import examstaff.enums.PaymentStatus;
-import examstaff.model.Payment;
+import shared.model.Payment;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

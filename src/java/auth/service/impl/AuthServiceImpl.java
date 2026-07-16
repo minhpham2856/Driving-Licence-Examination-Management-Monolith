@@ -140,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
         String tempPassword = generateTempPassword();
 
         // update password
-        if (!userDAO.updatePassword(user.getUserId(), tempPassword)) {
+        if (!userDAO.updatePassword(user.getUserId(), PasswordUtil.hash(tempPassword))) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
                     "Lỗi hệ thống. Vui lòng thử lại.");
         }
@@ -188,13 +188,13 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // validate password difference
-        if (newPassword.equals(fresh.getPasswordHash())) {
+        if (passwordsMatch(newPassword, fresh.getPasswordHash())) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
                     "Mật khẩu mới không được trùng mật khẩu cũ.");
         }
 
         // update password
-        if (userDAO.updatePassword(fresh.getUserId(), newPassword)) {
+        if (userDAO.updatePassword(fresh.getUserId(), PasswordUtil.hash(newPassword))) {
             return ServiceResult.ok(null, "Đổi mật khẩu thành công.");
         }
 
@@ -210,7 +210,7 @@ public class AuthServiceImpl implements AuthService {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPasswordHash(password);
+        user.setPasswordHash(PasswordUtil.hash(password));
         user.setActive(true);
 
         Role role = roleDAO.getByName(RoleType.REGISTRANT.getValue());
@@ -284,7 +284,13 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
 
-        return PasswordUtil.matches(rawPassword, storedPasswordHash.trim());
+        String stored = storedPasswordHash.trim();
+        if (PasswordUtil.matches(rawPassword, stored)) {
+            return true;
+        }
+
+        // migration: legacy plaintext passwords in seed data
+        return rawPassword.equals(stored);
     }
 
     // generate a unique username

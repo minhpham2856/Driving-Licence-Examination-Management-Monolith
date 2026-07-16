@@ -2,6 +2,7 @@ package examiner.controller;
 
 import auth.dto.UserDTO;
 import shared.Attributes;
+import shared.model.User;
 import examiner.filter.ExaminerFilter;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
@@ -137,7 +138,8 @@ public class ExaminerResultDetailsServlet extends HttpServlet {
             String reason = request.getParameter("reasonCode");
             String reasonDetail = request.getParameter("reasonDetail");
             String password = request.getParameter("confirmPassword");
-            UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
+            UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
+            User user = userDto.toUser();
             if (!callService.logPracticalScoreEditReason(activeExamId, sbd, user, password, reason, reasonDetail, user.getUserId()).isSuccess()) {
                 request.setAttribute("editError", "Lưu lý do thất bại. Vui lòng kiểm tra lại mật khẩu xác nhận.");
                 doGet(request, response);

@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "ProcessServlet", urlPatterns = {"/public/process"})
+@WebServlet("process")
 public class ProcessServlet extends HttpServlet {
 
     @Override
@@ -15,6 +15,6 @@ public class ProcessServlet extends HttpServlet {
             throws ServletException, IOException {
             
         // forward to view
-        request.getRequestDispatcher("/views/public/process.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/general/process.jsp").forward(request, response);
     }
 }

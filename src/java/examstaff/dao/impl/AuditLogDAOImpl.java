@@ -1,11 +1,11 @@
 package examstaff.dao.impl;
 
 
-import examstaff.dbconnection.DBContext;
+import shared.dbconnection.DBContext;
 
 import examstaff.dao.AuditLogDAO;
 
-import examstaff.model.Audit;
+import shared.model.Audit;
 import examstaff.dto.user.AuditDTO;
 
 import examstaff.dto.staff.StaffProcedureKpiDTO;

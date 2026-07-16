@@ -6,12 +6,12 @@ import examiner.dao.UserDAO;
 import examiner.dao.impl.AuditDAOImpl;
 import examiner.dao.impl.ProfileDAOImpl;
 import examiner.dao.impl.UserDAOImpl;
-import examiner.enums.AuditAction;
-import examiner.enums.AuditEntity;
+import shared.enums.AuditAction;
+import shared.enums.AuditEntity;
 import shared.model.Audit;
 import shared.model.Profile;
 import shared.model.User;
-import examiner.enums.RoleType;
+import shared.enums.RoleType;
 import examiner.service.AuditService;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -324,7 +324,7 @@ public class AuditServiceImpl implements AuditService {
         String username = user != null ? user.getUsername() : "he_thong";
         String fullName = profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()
                 ? profile.getFullName()
-                : (user != null ? user.getUsername() : "Hệ thống");
+: (user != null ? user.getUsername() : "Hệ thống");
         row.put("username", username);
         row.put("fullName", fullName);
         String roleKey = user != null ? mapRoleKey(user.getRoleId()) : "admin";
