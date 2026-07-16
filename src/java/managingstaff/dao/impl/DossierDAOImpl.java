@@ -391,7 +391,12 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
             case "draft" -> where.append(" AND ").append(derived).append("='Draft'");
             case "pending" -> where.append(" AND ").append(derived).append(" IN ('Pending','Submitted')");
             case "supplement", "needsupplement" -> where.append(" AND ").append(derived).append("='NeedSupplement'");
-            case "approved" -> where.append(" AND ").append(derived).append("='Approved'");
+            case "approved" -> where.append(" AND ").append(derived).append("='Approved'")
+                    .append(" AND NOT EXISTS (SELECT 1 FROM RegistrationDates rd WHERE rd.ExamRegistrationId=er.ExamRegistrationId AND rd.IsActive=1)");
+            case "waitingexam" -> where.append(" AND NOT EXISTS (SELECT 1 FROM Candidate c JOIN ExamEnrollment ee ON ee.CandidateId=c.CandidateId WHERE c.GovernmentIdNumber=p.GovernmentIdNumber)")
+                    .append(" AND (er.RegistrationStatus IN ('WaitingExam',N'Chờ thi') OR EXISTS (SELECT 1 FROM RegistrationDates rd WHERE rd.ExamRegistrationId=er.ExamRegistrationId AND rd.IsActive=1))");
+            case "officialscheduled" -> where.append(" AND EXISTS (SELECT 1 FROM Candidate c JOIN ExamEnrollment ee ON ee.CandidateId=c.CandidateId WHERE c.GovernmentIdNumber=p.GovernmentIdNumber)")
+                    .append(" AND NOT EXISTS (SELECT 1 FROM Candidate c JOIN ExamEnrollment ee ON ee.CandidateId=c.CandidateId JOIN ExamResult xr ON xr.ExamEnrollmentId=ee.ExamEnrollmentId WHERE c.GovernmentIdNumber=p.GovernmentIdNumber)");
             case "rejected" -> where.append(" AND ").append(derived).append("='Rejected'");
             case "present" -> where.append(" AND ").append(derived).append("='Present'");
             case "completed" -> where.append(" AND ").append(derived).append("='Completed'");

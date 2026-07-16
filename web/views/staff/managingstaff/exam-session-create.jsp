@@ -240,7 +240,7 @@
             </section>
         </c:if>
 
-        <div class="create-session-layout">
+        <div class="create-session-layout" id="importFormLayout">
             <section class="create-card">
                 <h2 class="create-card__title">1. Chọn phiên thi và tệp danh sách</h2>
                 <p class="create-card__hint">
@@ -271,23 +271,10 @@
                         <input id="fileInput" name="fileInput" type="file" accept=".csv,.txt" required>
                     </div>
 
-                    <div class="full-width form-actions">
-                        <button type="submit" class="btn-filter" style="height:42px;padding:0 1.25rem">
-                            Kiểm tra và xem trước danh sách
-                        </button>
-                    </div>
                 </form>
             </section>
 
             <aside style="display:grid;gap:1rem">
-                <section class="create-card">
-                    <h2 class="create-card__title">Luồng xử lý</h2>
-                    <div class="flow-step"><span class="flow-step__number">1</span><span>Nhập thông tin phiên và tải danh sách Bộ Công an trả về.</span></div>
-                    <div class="flow-step"><span class="flow-step__number">2</span><span>Đối soát CCCD + hạng với hồ sơ <strong>Approved</strong>.</span></div>
-                    <div class="flow-step"><span class="flow-step__number">3</span><span>Xác nhận để lưu danh sách vào phiên thi đã chọn.</span></div>
-                    <div class="flow-step"><span class="flow-step__number">4</span><span>Thí sinh bắt đầu ở trạng thái <strong>Pending</strong>, chưa được coi là có mặt.</span></div>
-                </section>
-
                 <section class="create-card">
                     <h2 class="create-card__title">Quy cách CSV</h2>
                     <ol class="guide-list">
@@ -295,24 +282,25 @@
                         <li><strong>Họ và tên</strong> - bắt buộc.</li>
                         <li><strong>Ngày sinh</strong> - DD/MM/YYYY.</li>
                         <li><strong>CCCD</strong> - đúng 12 chữ số.</li>
-                        <li><strong>Hạng GPLX</strong> - A1, A hoặc B1 và phải cùng hạng phiên.</li>
-                        <li><strong>Số điện thoại</strong> - có thể trống.</li>
-                        <li><strong>Email</strong> - có thể trống.</li>
+                        <li><strong>Hạng GPLX</strong> - A1, A hoặc B1; hệ thống gán hạng này vào hồ sơ khi import.</li>
+                        <li><strong>Số điện thoại</strong> - bắt buộc, gồm 10 chữ số và bắt đầu bằng 0.</li>
+                        <li><strong>Email</strong> - bắt buộc, đúng định dạng email.</li>
                     </ol>
                     <p class="create-card__hint" style="margin-top:.85rem;margin-bottom:0">
                         Hệ thống không tạo tài khoản mới từ CSV. Dòng không khớp hồ sơ đã duyệt sẽ được báo lỗi để xử lý lại.
+                        Khi chỉnh bằng Excel, hãy đặt cột SBD, CCCD và số điện thoại ở định dạng <strong>Text</strong> để giữ số 0 đầu.
                     </p>
                 </section>
             </aside>
         </div>
 
         <c:if test="${param.preview eq 'true' and not empty sessionScope.previewCandidates}">
-            <section class="create-card" style="margin-top:1.25rem">
+            <section class="create-card" id="importPreview" style="margin-bottom:1.25rem">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
                     <div>
                         <h2 class="create-card__title">2. Xem trước và xác nhận import</h2>
                         <p class="create-card__hint" style="margin-bottom:0">
-                            Chỉ có thể xác nhận khi toàn bộ dòng đã khớp hồ sơ Approved và không trùng dữ liệu.
+                            Chỉ có thể xác nhận khi toàn bộ CCCD thuộc hồ sơ đã duyệt và dữ liệu không bị trùng.
                         </p>
                     </div>
                     <div style="display:flex;gap:.6rem">
@@ -333,13 +321,12 @@
                     <div class="summary-item"><span class="summary-label">Tên phiên</span><span class="summary-value"><c:out value="${draft.sessionName}" /></span></div>
                     <div class="summary-item"><span class="summary-label">Hạng / phần thi</span><span class="summary-value">${draft.licenceClass} - <c:out value="${draft.sectionName}" /></span></div>
                     <div class="summary-item"><span class="summary-label">Ngày giờ</span><span class="summary-value">${draft.examDateValue}, ${draft.startTimeValue}-${draft.endTimeValue}</span></div>
-                    <div class="summary-item"><span class="summary-label">Khu vực</span><span class="summary-value"><c:out value="${draft.areaName}" /></span></div>
                     <div class="summary-item"><span class="summary-label">Đối soát</span><span class="summary-value">${sessionScope.validCandidateCount}/${fn:length(sessionScope.previewCandidates)} hợp lệ</span></div>
                 </div>
 
                 <c:if test="${sessionScope.hasInvalidRows}">
                     <div class="alert-box alert-box--error">
-                        Danh sách còn dòng không hợp lệ. Phiên thi chưa được tạo; hãy sửa tệp nguồn rồi kiểm tra lại.
+                        Có thí sinh chưa đối soát được với hồ sơ đã duyệt. Hãy sửa tệp nguồn rồi chọn lại tệp.
                     </div>
                 </c:if>
 
@@ -393,5 +380,14 @@
 </div>
 
 <script src="${ctx}/assets/js/upload.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const preview = document.getElementById('importPreview');
+        const formLayout = document.getElementById('importFormLayout');
+        if (preview && formLayout && formLayout.parentNode) {
+            formLayout.parentNode.insertBefore(preview, formLayout);
+        }
+    });
+</script>
 </body>
 </html>
