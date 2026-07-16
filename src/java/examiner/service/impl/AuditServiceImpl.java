@@ -10,6 +10,7 @@ import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
 import shared.model.Audit;
 import shared.model.Profile;
+import shared.model.Role;
 import shared.model.User;
 import shared.enums.RoleType;
 import examiner.service.AuditService;
@@ -25,6 +26,7 @@ import java.util.regex.Pattern;
 import examiner.service.RoleService;
 import java.util.stream.Collectors;
 
+// Implements examiner audit business logic.
 public class AuditServiceImpl implements AuditService {
 
     private final AuditDAO DAO = new AuditDAOImpl();
@@ -35,22 +37,26 @@ public class AuditServiceImpl implements AuditService {
     private static final SimpleDateFormat AUDIT_TIME_FMT = new SimpleDateFormat("HH:mm:ss");
     private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
 
+    // Writes a simple audit log entry without record id or reason.
     @Override
     public void logAction(Integer userId, AuditAction action, AuditEntity entity, String message) {
         logAction(userId, action, entity, message, 0);
     }
 
+    // Writes an audit log entry tied to a specific record id.
     @Override
     public void logAction(Integer userId, AuditAction action, AuditEntity entity, String message, int recordId) {
         logAction(userId, action, entity, message, recordId, null);
     }
 
+    // Writes an audit log entry with record id and optional reason text.
     @Override
     public void logAction(Integer userId, AuditAction action, AuditEntity entity, String message,
             int recordId, String reason) {
         insertLog(userId, action, entity, message, recordId, reason);
     }
 
+    // Private helper: insert log.
     private void insertLog(Integer actionUserId, AuditAction action, AuditEntity entity, String details,
             int recordId, String reason) {
         try {
@@ -64,17 +70,19 @@ public class AuditServiceImpl implements AuditService {
             log.setReason(reason);
             log.setUserId(userId);
             log.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            DAO.insert(log);
+            DAO.add(log);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    // Converts one audit row into one or more JSP-friendly view row maps.
     @Override
     public List<Map<String, Object>> toViewRows(Audit log, String changerName, Map<Integer, String> sbdByRecordId) {
         return List.of(toViewRow(log, changerName, sbdByRecordId));
     }
 
+    // Converts one audit row into a single JSP-friendly view row map.
     @Override
     public Map<String, Object> toViewRow(Audit log, String changerName, Map<Integer, String> sbdByRecordId) {
         Map<String, Object> row = new LinkedHashMap<>();
@@ -115,6 +123,7 @@ public class AuditServiceImpl implements AuditService {
         return row;
     }
 
+    // Extracts candidate number (SBD) text from audit fields for display.
     @Override
     public String extractSbdForDisplay(Audit log, Map<Integer, String> sbdByRecordId) {
         for (String text : new String[]{log.getNewValue(), log.getOldValue(), log.getReason(), log.getDetails()}) {
@@ -133,11 +142,13 @@ public class AuditServiceImpl implements AuditService {
         return "-";
     }
 
+    // Maps raw DB action string to AuditAction enum with UPDATE fallback.
     private static AuditAction actionFromDb(String rawAction) {
         AuditAction action = AuditAction.fromValue(rawAction);
         return action != null ? action : AuditAction.UPDATE;
     }
 
+    // Maps raw entity name from DB to Vietnamese AuditEntity label when known.
     private static String entityLabelFromDb(String entityName) {
         if (entityName == null || entityName.isBlank()) {
             return "-";
@@ -146,6 +157,7 @@ public class AuditServiceImpl implements AuditService {
         return entity != null ? entity.getValue() : entityName.trim();
     }
 
+    // Private helper: parse entity id.
     private static Integer parseEntityId(String entityId) {
         if (entityId == null || entityId.isBlank()) {
             return null;
@@ -157,6 +169,7 @@ public class AuditServiceImpl implements AuditService {
         }
     }
 
+    // Private helper: extract sbd from text.
     private String extractSbdFromText(String text) {
         if (text == null || text.isBlank()) {
             return null;
@@ -168,6 +181,7 @@ public class AuditServiceImpl implements AuditService {
         return null;
     }
 
+    // Private helper: normalize reason.
     private String normalizeReason(Audit log) {
         String reason = log.getReason();
         if (reason == null || reason.isBlank()) {
@@ -181,6 +195,7 @@ public class AuditServiceImpl implements AuditService {
         return reason;
     }
 
+    // Private helper: build change info.
     private String buildChangeInfo(Audit log, AuditAction action, String sbd) {
         String entity = entityLabelFromDb(log.getEntityName());
         String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
@@ -198,6 +213,7 @@ public class AuditServiceImpl implements AuditService {
         };
     }
 
+    // Private helper: map action badge.
     private static String mapActionBadge(AuditAction action) {
         return switch (action) {
             case CREATE ->
@@ -213,10 +229,12 @@ public class AuditServiceImpl implements AuditService {
         };
     }
 
+    // Returns dash placeholder for blank display strings.
     private String nullToDash(String value) {
         return value == null || value.isBlank() ? "-" : value;
     }
 
+    // Private helper: first non blank.
     private static String firstNonBlank(String... values) {
         if (values == null) {
             return null;
@@ -229,23 +247,27 @@ public class AuditServiceImpl implements AuditService {
         return null;
     }
 
+    // Loads paginated audit logs for an exam with optional search filter.
     @Override
-    public List<Audit> getLogsForExamPaginated(int examId, int page, int pageSize, String searchQuery) {
-        return DAO.getLogsForExamPaginated(examId, page, pageSize, searchQuery);
+    public List<Audit> getAllByExam(int examId, int page, int pageSize, String searchQuery) {
+        return DAO.getAllByExam(examId, page, pageSize, searchQuery);
     }
 
+    // Returns total audit log count for an exam matching the search filter.
     @Override
-    public int getLogsCountForExam(int examId, String searchQuery) {
-        return DAO.getLogsCountForExam(examId, searchQuery);
+    public int countAllByExam(int examId, String searchQuery) {
+        return DAO.countAllByExam(examId, searchQuery);
     }
 
+    // Loads recent violation-related audit logs for an exam up to a limit.
     @Override
-    public List<Audit> getViolationLogsForExam(int examId, int limit) {
-        return DAO.getViolationLogsForExam(examId, limit);
+    public List<Audit> getAllViolationsByExam(int examId, int limit) {
+        return DAO.getAllViolationsByExam(examId, limit);
     }
 
+    // Resolves display names for users who performed audited actions.
     @Override
-    public Map<Long, String> loadChangerNames(List<Audit> audits) {
+    public Map<Long, String> getAllChangerNamesByAudit(List<Audit> audits) {
         Map<Long, String> names = new LinkedHashMap<>();
         if (audits == null || audits.isEmpty()) {
             return names;
@@ -277,17 +299,19 @@ public class AuditServiceImpl implements AuditService {
     private final RoleService roleService = new RoleServiceImpl();
     private static final SimpleDateFormat ADMIN_TS_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
+    // Personal audit logs for one user, optionally restricted to a single day.
     @Override
-    public List<Audit> getLogsByUser(int userId, String dateFilter) {
+    public List<Audit> getAllByUser(int userId, String dateFilter) {
         if (userId <= 0) {
             return new ArrayList<>();
         }
-        return DAO.getLogsByUser(userId, dateFilter);
+        return DAO.getAllByUser(userId, dateFilter);
     }
 
+    // Searches audit logs by keyword and maps them to admin-style view rows.
     @Override
-    public List<Map<String, Object>> searchLogs(String keyword, int limit) {
-        List<Audit> audits = DAO.searchAll(keyword, limit);
+    public List<Map<String, Object>> getFiltered(String keyword, int limit) {
+        List<Audit> audits = DAO.getFiltered(keyword, limit);
         List<Integer> userIds = new ArrayList<>();
         for (Audit audit : audits) {
             if (audit.getUserId() != null && !userIds.contains(audit.getUserId())) {
@@ -309,6 +333,7 @@ public class AuditServiceImpl implements AuditService {
         return rows;
     }
 
+    // Private helper: to admin view row.
     private Map<String, Object> toAdminViewRow(Audit audit, Map<Integer, User> users, Map<Integer, Profile> profiles) {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("id", String.valueOf(audit.getAuditId()));
@@ -345,8 +370,11 @@ public class AuditServiceImpl implements AuditService {
         return row;
     }
 
+    // Private helper: map role key.
     private String mapRoleKey(int roleId) {
-        RoleType role = RoleType.fromValue(roleService.getRoleNameById(roleId));
+        Role roleEntity = roleService.get(roleId);
+        String roleName = roleEntity != null ? roleEntity.getRoleName() : null;
+        RoleType role = RoleType.fromValue(roleName);
         if (role == RoleType.ADMIN) {
             return "admin";
         }
@@ -359,6 +387,7 @@ public class AuditServiceImpl implements AuditService {
         return "coi";
     }
 
+    // Private helper: map role label.
     private static String mapRoleLabel(String roleKey) {
         if ("admin".equals(roleKey)) {
             return "Quản trị viên";
@@ -372,6 +401,7 @@ public class AuditServiceImpl implements AuditService {
         return roleKey;
     }
 
+    // Private helper: map avatar class.
     private static String mapAvatarClass(String roleKey) {
         if ("coi".equals(roleKey)) {
             return "user-avatar--teal";
@@ -382,6 +412,7 @@ public class AuditServiceImpl implements AuditService {
         return "";
     }
 
+    // Private helper: map action key.
     private static String mapActionKey(String action) {
         if (action == null) {
             return "info";
