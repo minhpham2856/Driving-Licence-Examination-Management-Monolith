@@ -1,9 +1,11 @@
 package examiner.filter;
 
-import examiner.enums.SectionType;
-import static examiner.enums.SectionType.THEORY;
-import examiner.enums.ExamStatus;
-import examiner.enums.RoleType;
+import auth.dto.UserDTO;
+import shared.Attributes;
+import shared.enums.SectionType;
+import static shared.enums.SectionType.THEORY;
+import shared.enums.ExamStatus;
+import shared.enums.RoleType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -17,7 +19,6 @@ import shared.model.ExamArea;
 import shared.model.ExamSection;
 import shared.model.ExaminerSchedule;
 import shared.model.Role;
-import shared.model.User;
 import examiner.service.ExamAreaService;
 import examiner.service.ExamSectionService;
 import examiner.service.ExamService;
@@ -32,12 +33,12 @@ import examiner.service.impl.ScheduleServiceImpl;
 @WebFilter(urlPatterns = {"/views/examiner/*", "/examiner/*"})
 public class ExaminerFilter extends HttpFilter {
 
-    // Session attributes shared between examiner pages
-    public static final String ATTR_EXAMINER_SCHEDULE = "examinerSchedule";
-    public static final String ATTR_ACTIVE_EXAM_ID = "activeExamId";
-    public static final String ATTR_EXAM_SECTION = "examSection";
-    public static final String ATTR_HAS_ACTIVE = "examinerHasActiveExam";
-    public static final String ATTR_MESSAGE = "examinerExamMessage";
+    // Session attributes shared between examiner pages (delegate to shared.Attributes)
+    public static final String ATTR_EXAMINER_SCHEDULE = Attributes.Examiner.SCHEDULE;
+    public static final String ATTR_ACTIVE_EXAM_ID = Attributes.Examiner.ACTIVE_EXAM_ID;
+    public static final String ATTR_EXAM_SECTION = Attributes.Examiner.EXAM_SECTION;
+    public static final String ATTR_HAS_ACTIVE = Attributes.Examiner.HAS_ACTIVE_EXAM;
+    public static final String ATTR_MESSAGE = Attributes.Examiner.EXAM_MESSAGE;
 
     // Session selection page
     private static final String SESSION_SELECT_PATH = "/views/examiner/exam";
@@ -55,12 +56,12 @@ public class ExaminerFilter extends HttpFilter {
 
         // Get the logged-in user
         HttpSession session = request.getSession(false);
-        User user = session != null ? (User) session.getAttribute("user") : null;
+        UserDTO user = session != null ? (UserDTO) session.getAttribute(Attributes.Session.USER) : null;
 
         // Redirect unauthenticated users to login page
         if (user == null) {
             HttpSession loginSession = request.getSession(true);
-            loginSession.setAttribute("errorMessage", "Bạn cần đăng nhập để truy cập.");
+            loginSession.setAttribute(Attributes.Session.ERROR_MESSAGE, "Bạn cần đăng nhập để truy cập.");
             response.sendRedirect(request.getContextPath() + "/staff/login");
             return;
         }

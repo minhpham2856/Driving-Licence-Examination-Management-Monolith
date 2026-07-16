@@ -1,8 +1,9 @@
 package examiner.controller;
 
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import examiner.filter.ExaminerFilter;
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,6 @@ import examiner.dto.CandidateRowDTO;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.service.CallService;
 import examiner.service.impl.CallServiceImpl;
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -74,7 +74,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         Integer sbd = null;
         try {
             if (request.getParameter("sbd") != null) {
-                sbd = Integer.parseInt(request.getParameter("sbd").trim());
+                sbd = Integer.valueOf(request.getParameter("sbd").trim());
             }
         } catch (NumberFormatException e) {
         }
@@ -84,7 +84,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
         }
 
         if ("callSelected".equals(action)) {
-            User user = (User) session.getAttribute("user");
+            UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
             int userId = user.getUserId();
             boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
             String sectionName = resolveSectionName(session);
@@ -112,7 +112,7 @@ public class ExaminerCandidateCallServlet extends HttpServlet {
 
     private boolean handleCallAction(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int activeExamId, String action, Integer sbd) throws IOException {
-        User user = (User) session.getAttribute("user");
+        UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
         int userId = user.getUserId();
         boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
         String sectionName = resolveSectionName(session);

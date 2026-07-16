@@ -1,8 +1,9 @@
 package examiner.controller;
 
-import examiner.enums.SectionType;
+import shared.enums.SectionType;
 import examiner.filter.ExaminerFilter;
-import shared.model.User;
+import auth.dto.UserDTO;
+import shared.Attributes;
 import examiner.service.CallService;
 import examiner.service.ExamViewService;
 import examiner.service.impl.CallServiceImpl;
@@ -41,7 +42,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
         } catch (NumberFormatException e) {}
         
         String action = request.getParameter("action");
-        User user = (User) session.getAttribute("user");
+        UserDTO user = (UserDTO) session.getAttribute(Attributes.Session.USER);
         boolean isTheory = Boolean.TRUE.equals(session.getAttribute("isTheory"));
         String sectionName = resolveSectionName(session);
 
@@ -124,7 +125,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
                 return;
             }
 
-            if (!callService.finalizeScoreEntry(activeExamId, sbd, ((User) session.getAttribute("user")).getUserId()).isSuccess()) {
+            if (!callService.finalizeScoreEntry(activeExamId, sbd, ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId()).isSuccess()) {
                 response.sendRedirect(request.getContextPath() + "/views/examiner/score-entry?sbd="
                         + urlEncode(sbd) + "&error=finalizeFailed");
                 return;
@@ -138,7 +139,7 @@ public class ExaminerScoreEntryServlet extends HttpServlet {
     }
 
     private boolean handleScoreEntryAction(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, int activeExamId, String action, Integer sbd, User user,
+            HttpSession session, int activeExamId, String action, Integer sbd, UserDTO user,
             boolean isTheory, String sectionName) throws IOException {
         
         SectionType examSection = SectionType.fromValue(sectionName);
