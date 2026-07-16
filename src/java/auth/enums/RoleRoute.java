@@ -18,7 +18,7 @@ public enum RoleRoute {
             "managingstaff",
             "/managingstaff/profile",
             "/managingstaff/change-password",
-            "/managingstaff/dashboard"),
+            "/manager/dashboard"),
     ADMIN(RoleType.ADMIN,
             "admin",
             "/admin/profile",

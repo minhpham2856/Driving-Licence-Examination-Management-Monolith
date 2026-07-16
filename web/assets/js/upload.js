@@ -12,8 +12,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        // Không để click trên input nổi bọt lên dropzone rồi mở hộp chọn tệp lần hai.
+        fileInput.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
         if (dropzone) {
-            dropzone.addEventListener('click', function () {
+            dropzone.addEventListener('click', function (event) {
+                if (event.target === fileInput) return;
                 fileInput.click();
             });
         }
