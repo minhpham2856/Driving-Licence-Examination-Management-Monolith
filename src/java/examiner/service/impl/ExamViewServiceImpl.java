@@ -16,8 +16,6 @@ import examiner.dao.impl.TheoryPaperDAOImpl;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.CandidateRowDTO;
 import examiner.dto.ExamStatsDTO;
-import examiner.dto.ExamReportDTO;
-import examiner.dto.InfractionDTO;
 import shared.model.Audit;
 import shared.model.CandidateAnswer;
 import shared.model.Exam;
@@ -26,15 +24,15 @@ import shared.model.Question;
 import shared.model.TheoryPaper;
 import examiner.service.ExamViewService;
 import examiner.service.AuditService;
-import examiner.util.ExamQueue;
-import examiner.util.ExamQueue.Lane;
+import shared.queue.ExamRoomQueueRegistry;
 import shared.enums.DeviceStatus;
 import shared.enums.DeviceType;
 import shared.enums.CandidateStatus;
 import shared.enums.SectionType;
-import examiner.service.RegistrationService;
+import shared.enums.Sex;
 import shared.enums.ViolationReason;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,16 +40,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import examiner.dao.ExaminerViewDAO;
-import examiner.dao.DeductionRecordDAO;
-import examiner.dao.impl.DeductionRecordDAOImpl;
+import examiner.dao.LicenceDAO;
+import examiner.dao.impl.LicenceDAOImpl;
 import shared.model.ExamArea;
+import shared.model.Licence;
+import examiner.service.ProgressService;
+import examiner.service.EnrollmentService;
 
-// Service implementation to load examminer realted data
+// Loads and shapes examiner view data: candidate rows, stats, audit logs, score entry, and device lists.
 public class ExamViewServiceImpl implements ExamViewService {
 
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
-    private static final int THEORY_PASS_CORRECT = 32;
-    private static final int THEORY_MAX_QUESTIONS = 35;
+    private static final SimpleDateFormat RAW_DATE_FMT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final int THEORY_PASS_CORRECT = 21;
+    private static final int THEORY_MAX_QUESTIONS = 25;
     private static final int AUDIT_PAGE_SIZE = 20;
     private final AuditService AuditService = new AuditServiceImpl();
 
@@ -61,44 +63,35 @@ public class ExamViewServiceImpl implements ExamViewService {
     private final ExamDAO examDAO = new ExamDAOImpl();
     private final ExamDeviceDAO deviceDAO = new ExamDeviceDAOImpl();
     private final ExamAreaDAO examAreaDAO = new ExamAreaDAOImpl();
-    private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
-    private final RegistrationService enrollmentistrationService = new RegistrationServiceImpl();
-    private final DeductionRecordDAO deductionRecordDAO = new DeductionRecordDAOImpl();
+    private final ExaminerViewDAO viewDAO = new ExaminerViewDAOImpl();
+    private final LicenceDAO licenceDAO = new LicenceDAOImpl();
+    private final EnrollmentService enrollmentService = new EnrollmentServiceImpl();
+    private final ProgressService sectionProgressService = new ProgressServiceImpl();
 
-    // Overloaded method to load candidates for an exam, defaulting to theory section
-    @Override
-    public List<CandidateRowDTO> loadCandidateRows(int examId) {
-        return loadCandidateRows(examId, true, null, null);
+    // Returns DB section type value, defaulting to layout when null.
+    private static String sectionTypeValue(SectionType sectionType) {
+        return sectionType != null ? sectionType.getValue() : SectionType.LAYOUT.getValue();
     }
 
-    // Overloaded method to load all candidate rows for an exam (no search)
+    // Loads candidate rows for display or export.
     @Override
-    public List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName) {
-        return loadCandidateRows(examId, isTheory, sectionName, null);
-    }
-
-    // Loads candidate rows for an exam, optionally filtered by a search keyword.
-    // When a keyword is present, only matching enrollments are loaded from the
-    // database; otherwise all enrollments for the exam are loaded.
-    @Override
-    public List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName,
-            String searchQuery) {
+    public List<CandidateRowDTO> getAllFilteredByExam(int examId, SectionType sectionType, String searchQuery) {
         // Retrieve candidate enrollments for the exam, filtered at the DB when searching
         List<EnrollmentDTO> enrollments;
         if (searchQuery != null && !searchQuery.isBlank()) {
-            enrollments = enrollmentistrationService.searchCandidatesByExam(examId, searchQuery);
+            enrollments = enrollmentService.getFilteredByExam(examId, searchQuery, sectionType);
         } else {
-            enrollments = enrollmentistrationService.getCandidatesByExam(examId);
+            enrollments = enrollmentService.getAllByExam(examId, sectionType);
         }
 
-        // Load theory statistics per enrollment (correct/wrong/unanswered counts)
-        Map<Integer, int[]> theoryStats = examinerDataDAO.loadTheoryStatsByExam(examId);
+        // Load theory statistics per enrollment (correct/wrong/unanswered)
+        Map<Integer, int[]> theoryStats = viewDAO.getAllTheoryStatsByExam(examId);
 
-        // Load section-specific scores if sectionName provided
-        Map<Integer, Double> sectionScores = examinerDataDAO.loadSectionScoresByExam(examId, sectionName);
+        // Load section-specific scores for the active section
+        Map<Integer, Double> sectionScores = viewDAO.getAllSectionScoresByExam(examId, sectionTypeValue(sectionType));
 
         // Load pass/fail flags for each enrollment
-        Map<Integer, Boolean> passFlags = examinerDataDAO.loadPassFlagsByExam(examId);
+        Map<Integer, Boolean> passFlags = viewDAO.getAllPassFlagsByExam(examId);
 
         // Format exam date for display
         String examDate = formatExamDate(examId);
@@ -107,30 +100,29 @@ public class ExamViewServiceImpl implements ExamViewService {
         String licenceClass = loadLicenceClass(examId);
 
         // Load device names assigned to each enrollment
-        Map<Integer, String> deviceNames = examinerDataDAO.loadDeviceNamesByExam(examId);
+        Map<Integer, String> deviceNames = viewDAO.getAllDeviceNamesByExam(examId);
         List<CandidateRowDTO> rows = new ArrayList<>();
 
         // For each enrollment, build a candidate row DTO and add to list
         for (EnrollmentDTO en : enrollments) {
             rows.add(buildCandidateRow(en, theoryStats, sectionScores, passFlags,
-                    examDate, licenceClass, deviceNames));
+                    examDate, licenceClass, deviceNames, sectionType));
         }
         return rows;
     }
 
-    // Builds a summary of exam statistics for the session. Counts candidates by
-    // status (completed, in-progress, not started) and pass/fail.
+    // Builds aggregate counts (total, done, testing, pending, passed, failed) for the exam section.
     @Override
-    public ExamStatsDTO buildCandidateSummary(int examId, boolean isTheory, String sectionName) {
+    public ExamStatsDTO getStatsByExam(int examId, SectionType sectionType) {
         // Load all candidate rows for the session
-        List<CandidateRowDTO> rows = loadCandidateRows(examId, isTheory, sectionName);
+        List<CandidateRowDTO> rows = getAllFilteredByExam(examId, sectionType, null);
         ExamStatsDTO summary = new ExamStatsDTO();
         int done = 0;        // COMPLETED
         int testing = 0;     // IN_PROGRESS or AWAITING_SIGNATURE
         int pending = 0;     // NOT_STARTED
         int passed = 0;
         int failed = 0;
-        // Iterate over rows and tally statuses and results
+
         for (CandidateRowDTO row : rows) {
             // Count by section status
             if (row.getSectionStatus() != null) {
@@ -143,132 +135,38 @@ public class ExamViewServiceImpl implements ExamViewService {
                         pending++;
                 }
             }
-            // Count pass/fail based on passed flag and result label
+
+            // Count pass/fail 
             if (row.isPassed()) {
                 passed++;
             } else if (row.getResultLabel() != null && !"-".equals(row.getResultLabel())) {
                 failed++;
             }
         }
+
         // Retrieve exam details for exam code
-        Exam exam = examDAO.getById(examId);
+        Exam exam = examDAO.get(examId);
         summary.setTotal(rows.size());
         summary.setDone(done);
         summary.setTesting(testing);
         summary.setPending(pending);
         summary.setPassed(passed);
         summary.setFailed(failed);
-        summary.setExamCode(exam != null ? exam.getExamCode() : "-");
+        summary.setExamCode(exam != null ? exam.getExamCode() : "");
+        summary.setExamDate(formatExamDate(examId));
+        summary.setLicenceClass(loadLicenceClass(examId));
         return summary;
     }
 
-    // Builds the end-of-day report for an exam: result tallies, per-licence
-    // breakdown, candidate list, and top deduction reasons.
+    // Loads paginated audit log rows for the exam (page 1 when search is unused).
     @Override
-    public ExamReportDTO buildExamReport(int examId) {
-        List<CandidateRowDTO> rows = loadCandidateRows(examId);
-        ExamReportDTO report = new ExamReportDTO();
-        int total = 0;
-        int done = 0;
-        int testing = 0;
-        int pending = 0;
-        int passed = 0;
-        int failed = 0;
-        int a1Count = 0;
-        int a1Passed = 0;
-        int a1Failed = 0;
-        int b2Count = 0;
-        int b2Passed = 0;
-        int b2Failed = 0;
-        for (CandidateRowDTO row : rows) {
-            total++;
-            if (row.getSectionStatus() != null) {
-                switch (row.getSectionStatus()) {
-                    case COMPLETED ->
-                        done++;
-                    case IN_PROGRESS, AWAITING_SIGNATURE ->
-                        testing++;
-                    case NOT_STARTED ->
-                        pending++;
-                }
-            }
-            boolean isA1 = "A1".equalsIgnoreCase(row.getLicenceClass())
-                    || "A2".equalsIgnoreCase(row.getLicenceClass());
-            boolean isB2 = "B2".equalsIgnoreCase(row.getLicenceClass());
-            if (isA1) {
-                a1Count++;
-            }
-            if (isB2) {
-                b2Count++;
-            }
-            if (row.isPassed()) {
-                passed++;
-                if (isA1) {
-                    a1Passed++;
-                }
-                if (isB2) {
-                    b2Passed++;
-                }
-            } else if (row.getResultLabel() != null && !"-".equals(row.getResultLabel())) {
-                failed++;
-                if (isA1) {
-                    a1Failed++;
-                }
-                if (isB2) {
-                    b2Failed++;
-                }
-            }
-        }
-        double passRate = done > 0 ? ((double) passed / done) * 100.0 : 0.0;
-        report.setTotalCandidates(total);
-        report.setCompletedCount(done);
-        report.setTestingCount(testing);
-        report.setPendingCount(pending);
-        report.setPassedCount(passed);
-        report.setFailedCount(failed);
-        report.setPassRate(passRate);
-        report.setA1Count(a1Count);
-        report.setA1Passed(a1Passed);
-        report.setA1Failed(a1Failed);
-        report.setB2Count(b2Count);
-        report.setB2Passed(b2Passed);
-        report.setB2Failed(b2Failed);
-        report.setCandidateRows(rows);
-        report.setTopInfractions(buildInfractionList(3));
-        return report;
+    public Map<String, Object> getAuditViewByExam(int examId, String pageParam) {
+        return getAuditViewByExam(examId, pageParam, null);
     }
 
-    // Builds the top deduction reasons list with percentage of total occurrences.
-    private List<InfractionDTO> buildInfractionList(int limit) {
-        List<Map<String, Object>> raw = deductionRecordDAO.getTopReasons(limit);
-        List<InfractionDTO> list = new ArrayList<>();
-        int totalOccurrences = 0;
-        for (Map<String, Object> row : raw) {
-            totalOccurrences += (Integer) row.get("count");
-        }
-        for (Map<String, Object> row : raw) {
-            InfractionDTO item = new InfractionDTO();
-            item.setReason((String) row.get("reason"));
-            int count = (Integer) row.get("count");
-            item.setCount(count);
-            double pct = totalOccurrences > 0 ? ((double) count / totalOccurrences) * 100.0 : 0.0;
-            item.setPercentage(pct);
-            list.add(item);
-        }
-        return list;
-    }
-
-    // Overloaded method to get audit logs data without search query.
+    // Loads paginated audit log rows with optional keyword search.
     @Override
-    public Map<String, Object> getAuditLogsData(int examId, String pageParam) {
-        return getAuditLogsData(examId, pageParam, null);
-    }
-
-    // Fetches paginated audit logs for an exam with optional search query.
-    // Parses page parameter, calculates total pages, and transforms Audit
-    // entities into view-friendly map objects.
-    @Override
-    public Map<String, Object> getAuditLogsData(int examId, String pageParam, String searchQuery) {
+    public Map<String, Object> getAuditViewByExam(int examId, String pageParam, String searchQuery) {
         Map<String, Object> model = new HashMap<>();
         int page = 1;
         // Parse page parameter, default to 1 if invalid
@@ -280,16 +178,16 @@ public class ExamViewServiceImpl implements ExamViewService {
             }
         }
         // Get total number of audit logs for session (with optional search)
-        int total = AuditService.getLogsCountForExam(examId, searchQuery);
+        int total = AuditService.countAllByExam(examId, searchQuery);
         // Calculate total pages
         int totalPages = Math.max(1, (int) Math.ceil(total / (double) AUDIT_PAGE_SIZE));
         if (page > totalPages) {
             page = totalPages;
         }
         // Fetch paginated logs
-        List<Audit> logs = AuditService.getLogsForExamPaginated(examId, page, AUDIT_PAGE_SIZE, searchQuery);
+        List<Audit> logs = AuditService.getAllByExam(examId, page, AUDIT_PAGE_SIZE, searchQuery);
         // Load changer names (who performed the action) for each log
-        Map<Long, String> changerNames = AuditService.loadChangerNames(logs);
+        Map<Long, String> changerNames = AuditService.getAllChangerNamesByAudit(logs);
         // Build lookup map from enrollment ID to candidate number (SBD)
         Map<Integer, String> sbdLookup = buildSbdLookup(examId);
         List<Map<String, Object>> viewRows = new ArrayList<>();
@@ -309,9 +207,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         return model;
     }
 
-    // Gathers detailed paper answers data for a candidate. Compares student
-    // answers against correct answers, counts correct/wrong/unanswered. Also
-    // includes question metadata and image URLs.
+    // Loads theory paper answer detail and summary counts for one candidate.
     @Override
     public Map<String, Object> getPaperAnswersData(int examId, int sbd, String contextPath) {
         Map<String, Object> model = new HashMap<>();
@@ -321,14 +217,14 @@ public class ExamViewServiceImpl implements ExamViewService {
         summary.put("correctCount", 0);
         summary.put("wrongCount", 0);
         summary.put("unansweredCount", 0);
-        // Find the enrollmentistration for the given candidate number (SBD)
-        EnrollmentDTO enrollment = findRegistration(examId, sbd);
-        if (enrollment == null || enrollment.getEnrollment() == null) {
+        // Find the enrollment for the given candidate number (SBD) in theory section.
+        EnrollmentDTO enrollment = getIfByExamAndSbd(examId, sbd, SectionType.THEORY);
+        if (enrollment == null || enrollment.getExamEnrollmentId() <= 0) {
             model.put("paperAnswers", rows);
             model.put("paperSummary", summary);
             return model;
         }
-        int enrollmentId = enrollment.getEnrollment().getExamEnrollmentId();
+        int enrollmentId = enrollment.getExamEnrollmentId();
         // Retrieve the theory paper for this enrollment
         TheoryPaper paper = theoryPaperDAO.getByExamEnrollmentId(enrollmentId);
         if (paper == null) {
@@ -337,7 +233,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             return model;
         }
         // Get all candidate answers for this theory paper
-        List<CandidateAnswer> answers = candidateAnswerDAO.findByTheoryPaperId(paper.getTheoryPaperId());
+        List<CandidateAnswer> answers = candidateAnswerDAO.getAllByTheoryPaperId(paper.getTheoryPaperId());
         if (answers.isEmpty()) {
             model.put("paperAnswers", rows);
             model.put("paperSummary", summary);
@@ -350,7 +246,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         }
         // Load all questions by their IDs into a map for quick lookup
         Map<Integer, Question> questionsById = new HashMap<>();
-        for (Question question : questionDAO.findByIds(questionIds)) {
+        for (Question question : questionDAO.getAllByIds(questionIds)) {
             questionsById.put(question.getQuestionId(), question);
         }
         int correctCount = 0;
@@ -381,7 +277,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.put("questionNo", question.getQuestionNumber());
             row.put("imageUrl", question.getImageUrl());
             row.put("correctAnswer", question.getCorrectAnswer());
-            row.put("studentAnswer", unanswered ? "—" : studentAnswer.trim().toUpperCase());
+            row.put("studentAnswer", unanswered ? Character.toString('\u2014') : studentAnswer.trim().toUpperCase());
             row.put("unanswered", unanswered);
             row.put("correct", correct);
             row.put("answerStatus", unanswered ? "skipped" : (correct ? "correct" : "wrong"));
@@ -401,27 +297,31 @@ public class ExamViewServiceImpl implements ExamViewService {
         return model;
     }
 
-    // Returns the pass threshold for theory exam.
+    // Returns the minimum correct-answer count required to pass the theory exam.
     @Override
     public int theoryPassThreshold() {
         return THEORY_PASS_CORRECT;
     }
 
-    // Returns the maximum number of theory questions.
+    // Returns the total number of questions on the theory exam paper.
     @Override
     public int theoryMaxQuestions() {
         return THEORY_MAX_QUESTIONS;
     }
 
-    // Finds the enrollmentistration DTO for a given session and candidate number.
-    // Returns null if not found.
+    // Finds enrollment by exam and SBD using default section context.
     @Override
-    public EnrollmentDTO findRegistration(int examId, int sbd) {
+    public EnrollmentDTO getIfByExamAndSbd(int examId, int sbd) {
+        return getIfByExamAndSbd(examId, sbd, null);
+    }
+
+    // Finds enrollment by exam, SBD, and active section type.
+    @Override
+    public EnrollmentDTO getIfByExamAndSbd(int examId, int sbd, SectionType sectionType) {
         if (sbd <= 0) {
             return null;
         }
-        // Iterate through all candidates in the exam and match by candidate number
-        for (EnrollmentDTO enrollment : enrollmentistrationService.getCandidatesByExam(examId)) {
+        for (EnrollmentDTO enrollment : enrollmentService.getAllByExam(examId, sectionType)) {
             if (enrollment.getCandidateNumber() == sbd) {
                 return enrollment;
             }
@@ -429,130 +329,123 @@ public class ExamViewServiceImpl implements ExamViewService {
         return null;
     }
 
-    // Fetches a single candidate row DTO for the given session and candidate
-    // number. Uses the same data loading logic as loadCandidateRows but returns
-    // only the matching row.
+    // Loads a single candidate row DTO for detail or action screens.
     @Override
-    public CandidateRowDTO getCandidateViewRow(int examId, int sbd, boolean isTheory, String sectionName) {
+    public CandidateRowDTO getCandidateViewRow(int examId, int sbd, SectionType sectionType) {
         // Try to find in the full list of rows
-        for (CandidateRowDTO row : loadCandidateRows(examId, isTheory, sectionName)) {
+        for (CandidateRowDTO row : getAllFilteredByExam(examId, sectionType, null)) {
             if (row.getCandidateNumber() == sbd) {
                 return row;
             }
         }
-        // If not found, fallback to building directly from enrollment
-        EnrollmentDTO enrollment = findRegistration(examId, sbd);
+        // If not found, fallback to building directly from enrollment for this session section.
+        EnrollmentDTO enrollment = getIfByExamAndSbd(examId, sbd, sectionType);
         if (enrollment == null) {
             return null;
         }
         return buildCandidateRow(enrollment,
-                examinerDataDAO.loadTheoryStatsByExam(examId),
-                examinerDataDAO.loadSectionScoresByExam(examId, sectionName),
-                examinerDataDAO.loadPassFlagsByExam(examId),
+                viewDAO.getAllTheoryStatsByExam(examId),
+                viewDAO.getAllSectionScoresByExam(examId, sectionTypeValue(sectionType)),
+                viewDAO.getAllPassFlagsByExam(examId),
                 formatExamDate(examId),
                 loadLicenceClass(examId),
-                examinerDataDAO.loadDeviceNamesByExam(examId));
+                viewDAO.getAllDeviceNamesByExam(examId),
+                sectionType);
     }
 
-    // Prepares data for the score entry screen. Builds a queue of eligible
-    // candidates (not absent, suspended, completed, or awaiting signature),
-    // orders them by the global ExamQueue, loads session vehicles, and fetches
-    // score deductions.
+    // Builds the score-entry view model: candidates, vehicles, deductions, and active SBD.
     @Override
-    public Map<String, Object> getScoreEntryData(int examId, Integer sbdParam, String sectionName) {
+    public Map<String, Object> getScoreEntryViewByExam(int examId, Integer sbdParam, SectionType sectionType) {
         Map<String, Object> model = new HashMap<>();
-        boolean isTheory = false; // Score entry typically for practical sections
-        List<CandidateRowDTO> allRows = loadCandidateRows(examId, isTheory, sectionName);
-        List<CandidateRowDTO> scoreQueue = new ArrayList<>();
-        // Filter candidates eligible for score entry
+        SectionType activeSection = sectionType != null ? sectionType : SectionType.LAYOUT;
+        List<CandidateRowDTO> allRows = getAllFilteredByExam(examId, activeSection, null);
+        // Keep suspended candidates visible but mark selection for the open SBD.
         for (CandidateRowDTO row : allRows) {
-            EnrollmentDTO enrollment = findRegistration(examId, row.getCandidateNumber());
-            if (isScoreQueueEligible(examId, enrollment, isTheory, sectionName)) {
-                scoreQueue.add(row);
-            }
+            int rowSbd = row.getCandidateNumber();
+            boolean selected = sbdParam != null && sbdParam == rowSbd;
+            row.setActive(selected);
+            row.setInvoked(selected);
         }
-        // Determine the exam lane (section type) for queue ordering
-        Lane lane = ExamQueue.laneFor(examSectionFromName(sectionName));
-        List<Integer> eligibleSbds = new ArrayList<>();
-        for (CandidateRowDTO row : scoreQueue) {
-            eligibleSbds.add(row.getCandidateNumber());
-        }
-        // Sync the queue with eligible SBDs
-        ExamQueue.sync(lane, eligibleSbds);
-        // Order rows according to the queue
-        scoreQueue = orderRowsByQueue(scoreQueue, lane);
-        model.put("scoreQueue", scoreQueue);
-        // Load vehicles available in the exam area
+        model.put("scoreQueue", allRows);
+        model.put("candidates", allRows);
         model.put("examVehicles", loadExamVehicles(examId));
-        // Determine active enrollmentistration if sbdParam provided
+        String licenceClass = loadLicenceClass(examId);
+        model.put("licenceClass", licenceClass);
+        model.put("defaultTimerMinutes", defaultTimerMinutesForLicence(licenceClass));
         EnrollmentDTO activeReg = null;
         if (sbdParam != null && sbdParam > 0) {
-            activeReg = findRegistration(examId, sbdParam);
+            activeReg = getIfByExamAndSbd(examId, sbdParam, activeSection);
         }
-        Integer candidateId = activeReg != null ? activeReg.getId() : null;
-        // Load deduction rules and occurrences
-        model.put("scoreDeductions", loadScoreDeductions(sectionName, candidateId, examId));
-        // Add current score and disqualification status
-        applyScoreSummary(model, candidateId, examId, sectionName);
-        // If a specific candidate is requested, add it to the model
+        Integer candidateId = activeReg != null ? activeReg.getCandidateId() : null;
+        if (activeReg != null && activeReg.getExamEnrollmentId() > 0) {
+            model.put("candidateVehicleId", activeReg.getExamDeviceId());
+        }
+        model.put("scoreDeductions", loadScoreDeductions(activeSection, candidateId, examId));
+        applyScoreSummary(model, candidateId, examId, activeSection);
         if (sbdParam != null && sbdParam > 0) {
             for (CandidateRowDTO row : allRows) {
-                if (row.getCandidateNumber() == sbdParam) {
-                    model.put("candidate", row);
-                    break;
-                }
-            }
-        }
-        return model;
-    }
-
-    // Fetches detailed data for editing result details of a candidate. Loads
-    // the candidate row, score deductions, and current score summary.
-    @Override
-    public Map<String, Object> getResultDetailsEditData(int examId, Integer sbdParam) {
-        Map<String, Object> model = new HashMap<>();
-        EnrollmentDTO enrollment = null;
-        // If candidate number provided, locate and add candidate row to model
-        if (sbdParam != null && sbdParam > 0) {
-            for (CandidateRowDTO row : loadCandidateRows(examId, false, null)) {
                 if (row.getCandidateNumber() == sbdParam) {
                     model.put("candidate", row);
                     model.put("singleCandidateList", List.of(row));
                     break;
                 }
             }
-            enrollment = findRegistration(examId, sbdParam);
         }
-        Integer candidateId = enrollment != null ? enrollment.getId() : null;
-        // Load deductions for the candidate
-        model.put("scoreDeductions", loadScoreDeductions(null, candidateId, examId));
-        // Apply score summary
-        applyScoreSummary(model, candidateId, examId, null);
         return model;
     }
 
-    // Determines if a candidate is eligible to be placed in the score entry
-    // queue. Not eligible if absent, suspended, completed, or awaiting
-    // signature.
+    // Builds result-details edit data for layout section (default section overload).
     @Override
-    public boolean isScoreQueueEligible(int examId, EnrollmentDTO enrollment, boolean isTheory,
-            String sectionName) {
-        if (enrollment == null || enrollment.isAbsent() || enrollment.isSuspended()) {
-            return false;
-        }
-        String status = enrollment.getSectionStatus();
-        // Must not be COMPLETED or AWAITING_SIGNATURE
-        return !CandidateStatus.COMPLETED.getValue().equals(status)
-                && !CandidateStatus.AWAITING_SIGNATURE.getValue().equals(status);
+    public Map<String, Object> getResultDetailsViewByExam(int examId, Integer sbdParam) {
+        return getResultDetailsViewByExam(examId, sbdParam, SectionType.LAYOUT);
     }
 
-    // Prepares data for violation handling view. Includes list of candidates
-    // and dropdown of violation reasons.
+    // Builds result-details edit data for the given section type.
     @Override
-    public Map<String, Object> getViolationData(int examId, Integer sbdParam) {
+    public Map<String, Object> getResultDetailsViewByExam(int examId, Integer sbdParam, SectionType sectionType) {
+        SectionType activeSection = sectionType != null ? sectionType : SectionType.LAYOUT;
         Map<String, Object> model = new HashMap<>();
-        // Load all candidates (theory section by default)
-        List<CandidateRowDTO> candidates = loadCandidateRows(examId, true, null);
+        EnrollmentDTO enrollment = null;
+        if (sbdParam != null && sbdParam > 0) {
+            for (CandidateRowDTO row : getAllFilteredByExam(examId, activeSection, null)) {
+                if (row.getCandidateNumber() == sbdParam) {
+                    model.put("candidate", row);
+                    model.put("singleCandidateList", List.of(row));
+                    break;
+                }
+            }
+            enrollment = getIfByExamAndSbd(examId, sbdParam, activeSection);
+        }
+        Integer candidateId = enrollment != null ? enrollment.getCandidateId() : null;
+        model.put("scoreDeductions", loadScoreDeductions(activeSection, candidateId, examId));
+        applyScoreSummary(model, candidateId, examId, activeSection);
+        return model;
+    }
+
+    // Returns whether a candidate may appear in the score-entry queue.
+    @Override
+    public boolean isScoreQueueEligible(int examId, EnrollmentDTO enrollment, SectionType sectionType) {
+        if (enrollment == null || enrollment.isSuspended()) {
+            return false;
+        }
+        CandidateStatus status = enrollment.getSectionStatus();
+        // Must not be COMPLETED or AWAITING_SIGNATURE
+        return status != CandidateStatus.COMPLETED
+                && status != CandidateStatus.AWAITING_SIGNATURE;
+    }
+
+    // Builds violation-handling view data with default theory section.
+    @Override
+    public Map<String, Object> getViolationViewByExam(int examId, Integer sbdParam) {
+        return getViolationViewByExam(examId, sbdParam, SectionType.THEORY);
+    }
+
+    // Builds violation-handling view data for the given section type.
+    @Override
+    public Map<String, Object> getViolationViewByExam(int examId, Integer sbdParam, SectionType sectionType) {
+        Map<String, Object> model = new HashMap<>();
+        SectionType activeSection = sectionType != null ? sectionType : SectionType.THEORY;
+        List<CandidateRowDTO> candidates = getAllFilteredByExam(examId, activeSection, null);
         model.put("candidates", candidates);
         // Build options for violation reason dropdown
         model.put("violationReasons", buildViolationReasonOptions());
@@ -568,33 +461,56 @@ public class ExamViewServiceImpl implements ExamViewService {
         return model;
     }
 
-    // Overloaded method to fetch device data without preferred area.
+    // Lists exam devices with optional search (theory section default).
     @Override
-    public Map<String, Object> getDevicesData(int examId, String searchQuery) {
-        return getDevicesData(examId, searchQuery, null);
+    public Map<String, Object> getDeviceViewByExam(int examId, String searchQuery) {
+        return getDeviceViewByExam(examId, searchQuery, null, SectionType.THEORY);
     }
 
-    // Retrieves active and maintenance exam devices in the exam's area(s).
-    // Filters by search query if provided, and optionally restricts to a
-    // specific area. Returns a list of device rows with status, icon, and area
-    // name.
+    // Lists exam devices filtered by preferred theory room area.
     @Override
-    public Map<String, Object> getDevicesData(int examId, String searchQuery, Integer preferredAreaId) {
+    public Map<String, Object> getDeviceViewByExam(int examId, String searchQuery, Integer preferredAreaId) {
+        return getDeviceViewByExam(examId, searchQuery, preferredAreaId, SectionType.THEORY);
+    }
+
+    // Lists devices or vehicles depending on section type (computers vs practical vehicles).
+    @Override
+    public Map<String, Object> getDeviceViewByExam(int examId, String searchQuery, Integer preferredAreaId,
+            SectionType sectionType) {
         Map<String, Object> model = new HashMap<>();
+        boolean isTheory = sectionType == SectionType.THEORY;
+        if (!isTheory) {
+            List<Map<String, Object>> vehicles = loadExamVehicles(examId);
+            if (searchQuery != null && !searchQuery.isBlank()) {
+                String q = searchQuery.trim().toLowerCase();
+                List<Map<String, Object>> filtered = new ArrayList<>();
+                for (Map<String, Object> row : vehicles) {
+                    String haystack = String.valueOf(row.get("name")) + " "
+                            + String.valueOf(row.get("type")) + " "
+                            + String.valueOf(row.get("area"));
+                    if (haystack.toLowerCase().contains(q)) {
+                        filtered.add(row);
+                    }
+                }
+                model.put("devices", filtered);
+            } else {
+                model.put("devices", vehicles);
+            }
+            return model;
+        }
+
         List<Map<String, Object>> devices = new ArrayList<>();
         LinkedHashMap<Integer, String> areaNames = new LinkedHashMap<>();
         List<Integer> areaIds = new ArrayList<>();
         boolean assignedRoomOnly = preferredAreaId != null && preferredAreaId > 0;
-        // Determine which area IDs to include
         if (assignedRoomOnly) {
             areaIds.add(preferredAreaId);
         } else {
-            // Get the primary exam area for the exam (examiner is assigned one area)
-            Integer primaryAreaId = examinerDataDAO.findPrimaryExamAreaId(examId);
+            ExamArea primaryArea = viewDAO.getIfPrimaryByExam(examId);
+            Integer primaryAreaId = primaryArea != null ? primaryArea.getExamAreaId() : null;
             if (primaryAreaId != null && primaryAreaId > 0 && !areaIds.contains(primaryAreaId)) {
                 areaIds.add(primaryAreaId);
             }
-            // Fallback to primary area if none found
             if (areaIds.isEmpty()) {
                 Integer fallback = loadPrimaryExamAreaId(examId);
                 if (fallback != null && fallback > 0) {
@@ -602,15 +518,12 @@ public class ExamViewServiceImpl implements ExamViewService {
                 }
             }
         }
-        // For each area, fetch devices and build rows
         for (Integer areaId : areaIds) {
             areaNames.putIfAbsent(areaId, loadAreaName(areaId));
             for (ExamDevice device : deviceDAO.getDevicesByAreaId(areaId)) {
-                // If assigned room only, skip non-computer devices
                 if (assignedRoomOnly && !isComputerDevice(device.getDeviceType())) {
                     continue;
                 }
-                // Apply search filter if present
                 if (searchQuery != null && !searchQuery.isBlank()) {
                     String q = searchQuery.trim().toLowerCase();
                     String haystack = (device.getDeviceName() + " " + device.getDeviceType()
@@ -651,7 +564,7 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     // Retrieves area name by area ID, returns empty string if not found.
     private String loadAreaName(int areaId) {
-        ExamArea area = examAreaDAO.getById(areaId);
+        ExamArea area = examAreaDAO.get(areaId);
         return area != null && area.getAreaName() != null ? area.getAreaName() : "";
     }
 
@@ -659,60 +572,87 @@ public class ExamViewServiceImpl implements ExamViewService {
     // audit logs.
     private Map<Integer, String> buildSbdLookup(int examId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (EnrollmentDTO enrollment : enrollmentistrationService.getCandidatesByExam(examId)) {
-            lookup.put(enrollment.getId(), String.valueOf(enrollment.getCandidateNumber()));
+        for (EnrollmentDTO enrollment : enrollmentService.getAllByExam(examId)) {
+            lookup.put(enrollment.getCandidateId(), String.valueOf(enrollment.getCandidateNumber()));
         }
         return lookup;
     }
 
-    // Checks if a candidate is eligible to be called into the exam room.
-    // Candidate must not be suspended or already completed.
+    // Returns whether a candidate is eligible for call-board invoke actions.
     @Override
-    public boolean isCallEligible(int examId, EnrollmentDTO enrollment, boolean isTheory,
-            String sectionName) {
+    public boolean isActionEligible(int examId, EnrollmentDTO enrollment, SectionType sectionType) {
         if (enrollment == null || enrollment.isSuspended()) {
             return false;
         }
-        return !CandidateStatus.COMPLETED.getValue().equals(enrollment.getSectionStatus());
+        return enrollment.getSectionStatus() != CandidateStatus.COMPLETED;
     }
 
-    // Orders candidate rows based on the global ExamQueue for the given exam
-    // section. Uses the lane associated with the section type.
+    // Reorders candidate rows to match room/yard queue display order.
     @Override
-    public List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows,
-            SectionType examSection) {
-        return orderRowsByQueue(rows, ExamQueue.laneFor(examSection));
-    }
-
-    // Converts a section name string to SectionType enum, defaulting to THEORY.
-    private static SectionType examSectionFromName(String sectionName) {
-        SectionType section = SectionType.fromValue(sectionName);
-        return section != null ? section : SectionType.THEORY;
+    public List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows, int examId,
+            int examAreaId, SectionType sectionType) {
+        if (rows == null || rows.isEmpty() || examId <= 0 || examAreaId <= 0 || sectionType == null) {
+            return rows;
+        }
+        return orderRowsByQueue(rows, examId, examAreaId, sectionType);
     }
 
     // Builds a CandidateRowDTO from an EnrollmentDTO
     private CandidateRowDTO buildCandidateRow(EnrollmentDTO enrollment,
             Map<Integer, int[]> theoryStats, Map<Integer, Double> sectionScores,
             Map<Integer, Boolean> passFlags, String examDate, String licenceClass,
-            Map<Integer, String> deviceNames) {
+            Map<Integer, String> deviceNames, SectionType sectionType) {
         CandidateRowDTO row = new CandidateRowDTO();
-        int enrollmentId = enrollment.getEnrollment() != null ? enrollment.getEnrollment().getExamEnrollmentId() : 0;
+        int enrollmentId = enrollment.getExamEnrollmentId();
         // Determine section status from enrollment
         CandidateStatus sectionStatus = sectionStatusOf(enrollment);
         // Set basic candidate details
         row.setCandidateNumber(enrollment.getCandidateNumber());
         row.setEnrollmentId(enrollmentId);
         row.setFullName(enrollment.getFullName());
-        row.setDob(formatDate(enrollment.getDob()));
-        row.setGovernmentId(enrollment.getGovIdNo());
+        row.setDob(formatDate(enrollment.getDateOfBirth()));
+        row.setDobRaw(formatDateRaw(enrollment.getDateOfBirth()));
+        row.setGovernmentId(enrollment.getGovernmentIdNumber());
         row.setAddress(enrollment.getAddress());
-        row.setPhoneNo(enrollment.getPhoneNo());
-        row.setSex(enrollment.isSex() ? shared.enums.Sex.FEMALE : shared.enums.Sex.MALE);
+        row.setPhoneNo(enrollment.getPhoneNumber());
+        Sex sex = enrollment.isSex() ? Sex.FEMALE : Sex.MALE;
+        row.setSex(sex);
         row.setEmail(enrollment.getEmail());
+        row.setPhotoImageUrl(enrollment.getPhotoImageUrl());
         row.setLicenceClass(licenceClass);
         row.setReasonForTaking(enrollment.getReasonForTaking());
         row.setExamDate(examDate);
         row.setSectionStatus(sectionStatus);
+        row.setSuspended(enrollment.isSuspended());
+        row.setStatus(resolveStatusKey(sectionStatus, enrollment.isSuspended()));
+        row.setStatusLabel(resolveStatusLabel(sectionStatus, enrollment.isSuspended()));
+        row.setSexValue(sex == Sex.FEMALE ? "1" : "0");
+        row.setSexLabel(resolveSexLabel(sex));
+        row.setAwaitingSignature(sectionStatus == CandidateStatus.AWAITING_SIGNATURE);
+        row.setAbsent(enrollment.isAbsent());
+        row.setResultPrinted(enrollment.isResultPrinted());
+        boolean isTheory = sectionType == SectionType.THEORY;
+        boolean practicalSection = sectionType == null || sectionType == SectionType.LAYOUT;
+        boolean practicalEntryAllowed = true;
+        if (practicalSection && enrollmentId > 0 && enrollment.getCandidateId() > 0) {
+            practicalEntryAllowed = sectionProgressService.isPracticalEntryAllowed(
+                    enrollmentId,
+                    enrollment.isTakeTheory(),
+                    enrollment.isTakeLayout());
+        }
+        row.setPracticalEntryAllowed(practicalEntryAllowed);
+        // Action eligibility for examiner table buttons.
+        boolean notDone = sectionStatus != CandidateStatus.COMPLETED;
+        row.setActionEligible(!enrollment.isSuspended() && notDone);
+        row.setViolationEligible(!enrollment.isSuspended());
+        row.setMarkPresentEligible(!enrollment.isSuspended()
+                && sectionStatus == CandidateStatus.NOT_STARTED
+                && practicalEntryAllowed);
+        row.setUndoPresentEligible(!enrollment.isSuspended()
+                && sectionStatus == CandidateStatus.IN_PROGRESS);
+        row.setWrongInfoEligible(!enrollment.isSuspended() && notDone);
+        row.setCompleteEligible(sectionStatus == CandidateStatus.AWAITING_SIGNATURE
+                && enrollment.isResultPrinted());
         // Theory stats: [correct, wrong, unanswered]
         int[] stats = theoryStats.getOrDefault(enrollmentId, new int[]{0, 0, 0});
         row.setCorrect(stats[0]);
@@ -723,26 +663,87 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setExamScore(examScore != null ? examScore.intValue() : null);
         row.setScoreTheory(stats[0] > 0 ? stats[0] : null);
         row.setScorePractical(null);
-        // Pass flag and result label
-        Boolean passed = passFlags.get(enrollmentId);
-        if (passed == null) {
-            row.setPassed(false);
-            row.setResultLabel("-");
-        } else {
+        // Pass/fail: practical uses score >= 80; theory uses ExamResult.IsPassed / correct count.
+        if (practicalSection && examScore != null) {
+            boolean passed = examScore >= 80;
             row.setPassed(passed);
             row.setResultLabel(passed ? "Đạt" : "Trượt");
+        } else {
+            Boolean passed = passFlags.get(enrollmentId);
+            if (passed == null && Boolean.TRUE.equals(isTheory) && stats[0] > 0) {
+                passed = stats[0] >= THEORY_PASS_CORRECT;
+            }
+            if (passed == null) {
+                row.setPassed(false);
+                row.setResultLabel("-");
+            } else {
+                row.setPassed(passed);
+                row.setResultLabel(passed ? "Đạt" : "Trượt");
+            }
         }
         // Device (vehicle) name
-        Integer deviceId = enrollment.getEnrollment() != null ? enrollment.getEnrollment().getExamDeviceId() : null;
+        Integer deviceId = enrollment.getExamDeviceId();
         row.setVehicleName(deviceId != null ? deviceNames.getOrDefault(deviceId, "-") : "-");
         return row;
+    }
+
+
+    private static String resolveStatusKey(CandidateStatus sectionStatus, boolean suspended) {
+        if (suspended) {
+            return "suspended";
+        }
+        if (sectionStatus == null) {
+            return "pending";
+        }
+        if (sectionStatus == CandidateStatus.COMPLETED) {
+            return "done";
+        }
+        if (sectionStatus == CandidateStatus.AWAITING_SIGNATURE) {
+            return "awaiting";
+        }
+        if (sectionStatus == CandidateStatus.IN_PROGRESS) {
+            return "testing";
+        }
+        return "pending";
+    }
+
+    private static String resolveStatusLabel(CandidateStatus sectionStatus, boolean suspended) {
+        if (suspended) {
+            return "Đình chỉ";
+        }
+        if (sectionStatus == null) {
+            return CandidateStatus.NOT_STARTED.getValue();
+        }
+        return sectionStatus.getValue();
+    }
+
+    private static String resolveSexLabel(Sex sex) {
+        if (sex == null) {
+            return "-";
+        }
+        return sex.getValue();
     }
 
     // Converts section status string to CandidateStatus enum, defaulting to
     // NOT_STARTED.
     private static CandidateStatus sectionStatusOf(EnrollmentDTO enrollment) {
-        CandidateStatus status = CandidateStatus.fromValue(enrollment.getSectionStatus());
+        CandidateStatus status = enrollment.getSectionStatus();
         return status != null ? status : CandidateStatus.NOT_STARTED;
+    }
+
+
+    private String formatDate(Timestamp timestamp) {
+        if (timestamp == null) {
+            return "-";
+        }
+        return formatDate(new Date(timestamp.getTime()));
+    }
+
+    private String formatDateRaw(Timestamp timestamp) {
+        if (timestamp == null) {
+            return "";
+        }
+        return formatDateRaw(new Date(timestamp.getTime()));
     }
 
     // Formats a Date to dd/MM/yyyy
@@ -755,36 +756,78 @@ public class ExamViewServiceImpl implements ExamViewService {
         }
     }
 
-    // Formats exam start time to string, returns "-" if unavailable.
+    // Formats a Date to yyyy-MM-dd for HTML date fields.
+    private String formatDateRaw(Date date) {
+        if (date == null) {
+            return "";
+        }
+        synchronized (RAW_DATE_FMT) {
+            return RAW_DATE_FMT.format(date);
+        }
+    }
+
+    // Formats exam date (dd/MM/yyyy) for display; falls back to start time date.
     private String formatExamDate(int examId) {
-        Exam exam = examDAO.getById(examId);
-        if (exam == null || exam.getStartTime() == null) {
+        Exam exam = examDAO.get(examId);
+        if (exam == null) {
+            return "-";
+        }
+        java.util.Date date = exam.getExamDate();
+        if (date == null) {
+            date = exam.getStartTime();
+        }
+        if (date == null) {
             return "-";
         }
         synchronized (DATE_FMT) {
-            return DATE_FMT.format(exam.getStartTime());
+            return DATE_FMT.format(date);
         }
     }
 
     // Loads the licence class string for the exam.
     private String loadLicenceClass(int examId) {
-        Exam exam = examDAO.getById(examId);
-        if (exam == null) {
-            return "-";
+        Exam exam = examDAO.get(examId);
+        if (exam == null || exam.getLicenceId() <= 0) {
+            return "";
         }
-        return examinerDataDAO.findLicenceClassByExamId(exam.getExamId());
+        Licence licence = licenceDAO.get(exam.getLicenceId());
+        if (licence != null && licence.getLicenceClass() != null && !licence.getLicenceClass().isBlank()) {
+            return licence.getLicenceClass().trim();
+        }
+        return "";
+    }
+
+    // Practical exam duration presets (minutes) by licence class.
+    private static int defaultTimerMinutesForLicence(String licenceClass) {
+        if (licenceClass == null || licenceClass.isBlank()) {
+            return 20;
+        }
+        String cls = licenceClass.trim().toUpperCase();
+        if ("A1".equals(cls) || "A".equals(cls)) {
+            return 10;
+        }
+        if ("B1".equals(cls) || "B".equals(cls)) {
+            return 18;
+        }
+        if ("D1".equals(cls) || "D2".equals(cls)) {
+            return 15;
+        }
+        if ("C1".equals(cls) || "C".equals(cls) || "D".equals(cls)) {
+            return 20;
+        }
+        return 20;
     }
 
     // Loads score deduction rules for a section, and if candidateId/examId
     // provided, enriches with occurrence counts and recorded timestamps.
-    private List<Map<String, Object>> loadScoreDeductions(String sectionName, Integer candidateId, Integer examId) {
+    private List<Map<String, Object>> loadScoreDeductions(SectionType sectionType, Integer candidateId, Integer examId) {
         // Fetch deduction rules (list of maps with id, name, points, etc.)
-        List<Map<String, Object>> list = examinerDataDAO.loadScoreDeductionRules(sectionName,
+        List<Map<String, Object>> list = viewDAO.getAllScoreDeductionRulesByExam(sectionTypeValue(sectionType),
                 examId != null ? examId : 0);
         // If we have a valid candidate and session, load actual occurrences
         if (candidateId != null && candidateId > 0 && examId != null && examId > 0 && !list.isEmpty()) {
-            Map<Integer, int[]> occurrences = examinerDataDAO.loadDeductionOccurrences(candidateId, examId);
-            Map<Integer, java.util.Date> recordedAt = examinerDataDAO.loadDeductionRecordedAt(candidateId, examId);
+            Map<Integer, int[]> occurrences = viewDAO.getAllDeductionOccurrencesByExam(candidateId, examId);
+            Map<Integer, java.util.Date> recordedAt = viewDAO.getAllDeductionRecordedAtByExam(candidateId, examId);
             for (Map<String, Object> row : list) {
                 int id = (Integer) row.get("id");
                 int[] occ = occurrences.get(id);
@@ -799,51 +842,58 @@ public class ExamViewServiceImpl implements ExamViewService {
     }
 
     // Applies score summary (currentScore and scoreDisqualified) to the model.
-    // Loads from examinerDataDAO.
+    // Loads from viewDAO.
     private void applyScoreSummary(Map<String, Object> model, Integer candidateId, Integer examId,
-            String sectionName) {
-        Map<String, Object> summary = examinerDataDAO.loadScoreSummary(
+            SectionType sectionType) {
+        Map<String, Object> summary = viewDAO.getIfScoreSummaryByCandidateAndExam(
                 candidateId != null ? candidateId : 0,
                 examId != null ? examId : 0,
-                sectionName);
+                sectionTypeValue(sectionType));
         model.put("currentScore", summary.get("currentScore"));
         model.put("scoreDisqualified", summary.get("scoreDisqualified"));
     }
 
     // Finds the primary exam area ID for the session.
     private Integer loadPrimaryExamAreaId(int examId) {
-        return examinerDataDAO.findPrimaryExamAreaId(examId);
+        ExamArea area = viewDAO.getIfPrimaryByExam(examId);
+        return area != null ? area.getExamAreaId() : null;
     }
 
-    // Loads vehicles (devices of type car or motorcycle) within the exam's
-    // primary area. Returns a list of device rows with status and icon.
+    // Loads vehicles (mô tô / mô tô ba bánh) across all areas linked to the exam.
     private List<Map<String, Object>> loadExamVehicles(int examId) {
         List<Map<String, Object>> vehicles = new ArrayList<>();
-        Integer areaId = loadPrimaryExamAreaId(examId);
-        if (areaId == null || areaId <= 0) {
+        List<ExamArea> areas = examAreaDAO.getAreasByExamId(examId);
+        if (areas == null || areas.isEmpty()) {
             return vehicles;
         }
-        for (ExamDevice device : deviceDAO.getDevicesByAreaId(areaId)) {
-            String type = device.getDeviceType() != null ? device.getDeviceType().toLowerCase() : "";
-            // Filter only vehicles (car, motorcycle, etc.)
-            if (!type.contains("car") && !type.contains("motorcycle") && !type.contains("xe")
-                    && !type.contains("oto")) {
+        List<Integer> areaIds = new ArrayList<>();
+        for (ExamArea area : areas) {
+            if (area != null && area.getExamAreaId() > 0) {
+                areaIds.add(area.getExamAreaId());
+            }
+        }
+        if (areaIds.isEmpty()) {
+            return vehicles;
+        }
+        for (ExamDevice device : deviceDAO.getAllByAreaIds(areaIds)) {
+            if (!isVehicleDevice(device.getDeviceType())) {
                 continue;
             }
-            Map<String, Object> row = toDeviceRow(device, loadAreaName(areaId));
-            // Ensure status fields are carried over
-            row.put("status", row.get("status"));
-            row.put("statusLabel", row.get("statusLabel"));
-            row.put("statusClass", row.get("statusClass"));
-            vehicles.add(row);
+            vehicles.add(toDeviceRow(device, loadAreaName(device.getExamAreaId())));
         }
         return vehicles;
     }
 
-    // Reorders candidate rows based on the provided Lane queue. Candidates
-    // present in the queue appear first in queue order, followed by the rest.
-    private static List<CandidateRowDTO> orderRowsByQueue(List<CandidateRowDTO> rows, Lane lane) {
-        List<Integer> order = ExamQueue.asList(lane);
+    // True for motorcycle / tricycle device types used in practical scoring.
+    private static boolean isVehicleDevice(String deviceType) {
+        DeviceType type = DeviceType.fromValue(deviceType);
+        return type == DeviceType.MOTORCYCLE || type == DeviceType.TRICYCLE;
+    }
+
+    // Reorders candidate rows based on the room queue (testing first, then waiting).
+    private static List<CandidateRowDTO> orderRowsByQueue(List<CandidateRowDTO> rows, int examId,
+            int examAreaId, SectionType sectionType) {
+        List<Integer> order = ExamRoomQueueRegistry.displayOrder(examId, examAreaId, sectionType);
         if (order.isEmpty() || rows.isEmpty()) {
             return rows;
         }
