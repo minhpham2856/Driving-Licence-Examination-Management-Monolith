@@ -1,9 +1,9 @@
 package examstaff.controller.staff.exam;
 
-import shared.Attributes;
 import examstaff.controller.staff.exam.http.AuditFilterSupport;
 import examstaff.dto.user.AuditDTO;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
+import shared.Attributes;
 import shared.model.Profile;
 import examstaff.service.ExamStaffServices;
 import examstaff.service.StaffAuditExportService;
@@ -91,7 +91,7 @@ public class AuditExportServlet extends HttpServlet {
     }
 
     private static String resolveStaffName(HttpSession session) {
-        Object profileObj = session.getAttribute("userProfile");
+        Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {
             return profile.getFullName();
         }
