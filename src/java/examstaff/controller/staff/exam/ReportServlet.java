@@ -14,7 +14,9 @@ import examstaff.dto.ExamReportStatsDTO;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.util.ReportExportLabels;
 import examstaff.util.SessionUserHelper;
-import model.Profile;
+import shared.Attributes;
+import shared.model.Profile;
+import auth.dto.UserDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -100,9 +102,14 @@ public class ReportServlet extends HttpServlet {
     }
 
     private String resolveExporterName(HttpSession session) {
-        Object profileObj = session.getAttribute("userProfile");
+        Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
         if (profileObj instanceof Profile profile && profile.getFullName() != null) {
             return profile.getFullName();
+        }
+        Object userObj = session.getAttribute(Attributes.Session.USER);
+        if (userObj instanceof UserDTO user && user.getProfile() != null
+                && user.getProfile().getFullName() != null) {
+            return user.getProfile().getFullName();
         }
         return SessionUserHelper.resolveUsername(session);
     }
