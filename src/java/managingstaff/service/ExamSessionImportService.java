@@ -17,7 +17,7 @@ import shared.dbconnection.DBContext;
 
 /**
  * Creates one Exam and its official candidate roster using the mainTest schema.
- * The whole operation is atomic: Exam, ExamSection, area, Candidate and
+ * The whole operation is atomic: Exam, ExamSection, Candidate and
  * ExamEnrollment rows are either all committed or all rolled back.
  */
 public class ExamSessionImportService {
@@ -35,7 +35,7 @@ public class ExamSessionImportService {
                 SELECT TOP 1 er.RegistrationStatus
                 FROM Profile p
                 JOIN ExamRegistration er ON er.ProfileId=p.ProfileId
-                WHERE p.GovernmentIdNumber=? AND er.LicenceId=?
+                WHERE p.GovernmentIdNumber=?
                 ORDER BY er.ExamRegistrationId DESC
                 """;
         String duplicateSql = """
@@ -54,13 +54,12 @@ public class ExamSessionImportService {
                 }
 
                 registrationPs.setString(1, candidate.getGovIdNo());
-                registrationPs.setInt(2, licenceId);
                 String status = null;
                 try (ResultSet rs = registrationPs.executeQuery()) {
                     if (rs.next()) status = rs.getString(1);
                 }
                 if (status == null) {
-                    results.add("Không tìm thấy hồ sơ đăng ký đúng hạng");
+                    results.add("CCCD không thuộc hồ sơ đã duyệt trong hệ thống");
                     continue;
                 }
                 if (!isApprovedStatus(status)) {
@@ -102,7 +101,6 @@ public class ExamSessionImportService {
             validateDraft(connection, draft, candidates.size());
             int examId = insertExam(connection, draft);
             int examSectionId = insertExamSection(connection, draft, examId);
-            insertExamArea(connection, examId, draft.getExamAreaId());
 
             int imported = 0;
             for (ExamRegistrationDTO row : candidates) {
@@ -146,16 +144,6 @@ public class ExamSessionImportService {
                 try (ResultSet rs = ps.executeQuery()) { if (rs.next()) sectionId = rs.getInt(1); }
             }
             if (sectionId <= 0) throw new IllegalArgumentException("Phiên thi đã bắt đầu hoặc không còn cho phép import.");
-            int current = 0, capacity = 0;
-            try (PreparedStatement ps = connection.prepareStatement("""
-                    SELECT (SELECT COUNT(*) FROM ExamEnrollment WHERE ExamId=?) CurrentCount,
-                           ISNULL((SELECT TOP 1 a.Capacity FROM Exam_ExamArea x JOIN ExamArea a ON a.ExamAreaId=x.ExamAreaId WHERE x.ExamId=?),0) Capacity
-                    """)) {
-                ps.setInt(1, draft.getExamId()); ps.setInt(2, draft.getExamId());
-                try (ResultSet rs=ps.executeQuery()) { if(rs.next()){current=rs.getInt(1);capacity=rs.getInt(2);} }
-            }
-            if (current + candidates.size() > capacity)
-                throw new IllegalArgumentException("Danh sách vượt sức chứa còn lại của phiên thi.");
             int imported = 0;
             for (ExamRegistrationDTO row : candidates) {
                 insertApprovedCandidate(connection, draft, draft.getExamId(), sectionId, row);
@@ -192,42 +180,6 @@ public class ExamSessionImportService {
             throw new IllegalArgumentException("Phần thi không hợp lệ.");
         }
 
-        int capacity = 0;
-        try (PreparedStatement ps = connection.prepareStatement(
-                "SELECT Capacity FROM ExamArea WHERE ExamAreaId=?")) {
-            ps.setInt(1, draft.getExamAreaId());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) capacity = rs.getInt(1);
-            }
-        }
-        if (capacity <= 0) {
-            throw new IllegalArgumentException("Khu vực/phòng thi không tồn tại.");
-        }
-        if (candidateCount > capacity) {
-            throw new IllegalArgumentException("Danh sách có " + candidateCount
-                    + " thí sinh, vượt sức chứa " + capacity + " của khu vực thi.");
-        }
-
-        String overlapSql = """
-                SELECT COUNT(*)
-                FROM Exam e
-                JOIN Exam_ExamArea x ON x.ExamId=e.ExamId
-                WHERE x.ExamAreaId=?
-                  AND e.[Status] NOT IN ('Cancelled',N'Đã hủy')
-                  AND ? < ISNULL(e.EndTime, DATEADD(hour, 8, e.StartTime))
-                  AND ? > e.StartTime
-                """;
-        try (PreparedStatement ps = connection.prepareStatement(overlapSql)) {
-            ps.setInt(1, draft.getExamAreaId());
-            ps.setTimestamp(2, draft.getStartTime());
-            ps.setTimestamp(3, draft.getEndTime());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && rs.getInt(1) > 0) {
-                    throw new IllegalArgumentException(
-                            "Khu vực/phòng thi đã có kỳ thi khác trong khoảng thời gian này.");
-                }
-            }
-        }
     }
 
     private int insertExam(Connection connection, ExamSessionImportDraft draft)
@@ -270,20 +222,10 @@ public class ExamSessionImportService {
         }
     }
 
-    private void insertExamArea(Connection connection, int examId, int areaId)
-            throws SQLException {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO Exam_ExamArea (ExamId, ExamAreaId) VALUES (?,?)")) {
-            ps.setInt(1, examId);
-            ps.setInt(2, areaId);
-            ps.executeUpdate();
-        }
-    }
-
     private void insertApprovedCandidate(Connection connection, ExamSessionImportDraft draft,
             int examId, int examSectionId, ExamRegistrationDTO row) throws SQLException {
         String applicationSql = """
-                SELECT TOP 1 p.FullName, p.DateOfBirth, p.PhoneNumber, p.Sex,
+                SELECT TOP 1 er.ExamRegistrationId,p.FullName, p.DateOfBirth, p.PhoneNumber, p.Sex,
                        p.GovernmentIdNumber, p.Address, u.Email,
                        portrait.DocumentUrl AS PhotoImageUrl
                 FROM Profile p
@@ -296,13 +238,12 @@ public class ExamSessionImportService {
                       AND (UPPER(dt.[Type]) LIKE '%PORTRAIT%' OR dt.[Type] LIKE N'%chân dung%')
                     ORDER BY d.DocumentId DESC
                 ) portrait
-                WHERE p.GovernmentIdNumber=? AND er.LicenceId=?
-                  AND er.RegistrationStatus IN ('Approved',N'Duyệt',N'Đã duyệt')
+                WHERE p.GovernmentIdNumber=?
+                  AND er.RegistrationStatus IN ('Approved','WaitingExam',N'Duyệt',N'Đã duyệt')
                 ORDER BY er.ExamRegistrationId DESC
                 """;
         try (PreparedStatement ps = connection.prepareStatement(applicationSql)) {
             ps.setString(1, row.getGovIdNo());
-            ps.setInt(2, draft.getLicenceId());
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
                     throw new IllegalArgumentException("Hồ sơ CCCD " + row.getGovIdNo()
@@ -339,11 +280,10 @@ public class ExamSessionImportService {
 
                 int enrollmentId;
                 try (PreparedStatement enrollmentPs = connection.prepareStatement(
-                        "INSERT INTO ExamEnrollment (CandidateId,ExamId,AllocatedExamAreaId)"
-                        + " VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+                        "INSERT INTO ExamEnrollment (CandidateId,ExamId) VALUES (?,?)",
+                        Statement.RETURN_GENERATED_KEYS)) {
                     enrollmentPs.setInt(1, candidateId);
                     enrollmentPs.setInt(2, examId);
-                    enrollmentPs.setInt(3, draft.getExamAreaId());
                     enrollmentPs.executeUpdate();
                     enrollmentId = generatedId(enrollmentPs,
                             "Không ghi danh được thí sinh " + row.getGovIdNo());
@@ -351,12 +291,20 @@ public class ExamSessionImportService {
 
                 try (PreparedStatement sectionPs = connection.prepareStatement(
                         "INSERT INTO ExamEnrollmentSection"
-                        + " (ExamEnrollmentId,ExamSectionId,ExamAreaId,[Status])"
-                        + " VALUES (?,?,?,'Pending')")) {
+                        + " (ExamEnrollmentId,ExamSectionId,[Status])"
+                        + " VALUES (?,?,'Pending')")) {
                     sectionPs.setInt(1, enrollmentId);
                     sectionPs.setInt(2, examSectionId);
-                    sectionPs.setInt(3, draft.getExamAreaId());
                     sectionPs.executeUpdate();
+                }
+                try (PreparedStatement statusPs = connection.prepareStatement("""
+                        UPDATE ExamRegistration
+                        SET LicenceId=?,RegistrationStatus='OfficialScheduled'
+                        WHERE ExamRegistrationId=?
+                        """)) {
+                    statusPs.setInt(1, draft.getLicenceId());
+                    statusPs.setInt(2, rs.getInt("ExamRegistrationId"));
+                    statusPs.executeUpdate();
                 }
             }
         }
@@ -403,6 +351,7 @@ public class ExamSessionImportService {
         if (status == null) return false;
         String normalized = status.trim();
         return "Approved".equalsIgnoreCase(normalized)
+                || "WaitingExam".equalsIgnoreCase(normalized)
                 || "Duyệt".equalsIgnoreCase(normalized)
                 || "Đã duyệt".equalsIgnoreCase(normalized);
     }

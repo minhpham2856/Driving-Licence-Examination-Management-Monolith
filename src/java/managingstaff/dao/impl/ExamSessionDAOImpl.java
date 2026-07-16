@@ -20,12 +20,9 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         SELECT e.ExamId,e.ExamCode,CAST(e.ExamDate AS date) ExamDate,
                CAST(e.StartTime AS time) StartTime,CAST(e.EndTime AS time) EndTime,
                e.[Status],e.CentreName,e.LicenceId,l.LicenceClass,
-               ISNULL(a.ExamAreaId,0) ExamAreaId,ISNULL(a.AreaName,N'Chưa gán khu vực') AreaName,
-               ISNULL(a.Capacity,0) Capacity,ISNULL(s.SectionType,N'Lý thuyết') SectionType,
+               0 ExamAreaId,N'' AreaName,0 Capacity,ISNULL(s.SectionType,N'Lý thuyết') SectionType,
                (SELECT COUNT(*) FROM ExamEnrollment ee WHERE ee.ExamId=e.ExamId) RegisteredCount
         FROM Exam e JOIN Licence l ON l.LicenceId=e.LicenceId
-        OUTER APPLY (SELECT TOP 1 ea.ExamAreaId,ea.AreaName,ea.Capacity FROM Exam_ExamArea x
-          JOIN ExamArea ea ON ea.ExamAreaId=x.ExamAreaId WHERE x.ExamId=e.ExamId ORDER BY x.ExamExamAreaId) a
         OUTER APPLY (SELECT TOP 1 es.SectionType FROM ExamSection es WHERE es.ExamId=e.ExamId ORDER BY es.ExamSectionId) s
         WHERE l.LicenceClass IN ('A1','A','B1')
         """;
@@ -49,16 +46,14 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         List<Integer> r=new ArrayList<>();try(PreparedStatement ps=getConnection().prepareStatement("SELECT DISTINCT YEAR(ExamDate) y FROM Exam WHERE ExamDate IS NOT NULL ORDER BY y DESC");ResultSet rs=ps.executeQuery()){while(rs.next())r.add(rs.getInt(1));return r;}catch(SQLException e){throw dbError(e);}
     }
 
-    @Override public int create(SessionDTO s){validateFuture(s);Connection c=getConnection();try{c.setAutoCommit(false);int id;
+    @Override public int create(SessionDTO s){validateFuture(s);Connection c=getConnection();validateAvailableDate(c,s.getExamDate(),0);try{c.setAutoCommit(false);int id;
         try(PreparedStatement ps=c.prepareStatement("INSERT INTO Exam(ExamCode,ExamDate,StartTime,EndTime,[Status],CentreName,LicenceId) VALUES(?,?,?,NULL,N'Chưa diễn ra',?,?)",Statement.RETURN_GENERATED_KEYS)){
             ps.setString(1,buildCode(c,s));ps.setDate(2,s.getExamDate());ps.setTimestamp(3,startTimestamp(s));ps.setString(4,s.getCentreName());ps.setInt(5,s.getLicenceId());ps.executeUpdate();try(ResultSet k=ps.getGeneratedKeys()){if(!k.next())throw new SQLException("Không lấy được mã phiên thi");id=k.getInt(1);}}
-        try(PreparedStatement ps=c.prepareStatement("INSERT INTO Exam_ExamArea(ExamId,ExamAreaId) VALUES(?,?)")){ps.setInt(1,id);ps.setInt(2,s.getAreaId());ps.executeUpdate();}
         try(PreparedStatement ps=c.prepareStatement("INSERT INTO ExamSection(SectionType,LicenceId,DurationMinutes,ExamId) VALUES(N'Lý thuyết',?,1,?)")){ps.setInt(1,s.getLicenceId());ps.setInt(2,id);ps.executeUpdate();}
         c.commit();return id;}catch(SQLException e){rollback(c);throw dbError(e);}finally{auto(c);}}
 
-    @Override public boolean update(SessionDTO s){validateFuture(s);SessionDTO old=findById(s.getId());if(old==null||!old.isEditable())throw new IllegalArgumentException("Chỉ được sửa phiên chưa thi.");Connection c=getConnection();try{c.setAutoCommit(false);
+    @Override public boolean update(SessionDTO s){validateFuture(s);SessionDTO old=findById(s.getId());if(old==null||!old.isEditable())throw new IllegalArgumentException("Chỉ được sửa phiên chưa thi.");Connection c=getConnection();validateAvailableDate(c,s.getExamDate(),s.getId());try{c.setAutoCommit(false);
         try(PreparedStatement ps=c.prepareStatement("UPDATE Exam SET ExamDate=?,StartTime=?,EndTime=NULL,CentreName=?,LicenceId=? WHERE ExamId=? AND CAST(ExamDate AS date)>CAST(GETDATE() AS date) AND [Status] NOT IN ('Cancelled',N'Đã hủy')")){ps.setDate(1,s.getExamDate());ps.setTimestamp(2,startTimestamp(s));ps.setString(3,s.getCentreName());ps.setInt(4,s.getLicenceId());ps.setInt(5,s.getId());if(ps.executeUpdate()==0)throw new IllegalArgumentException("Phiên không còn được phép sửa.");}
-        try(PreparedStatement ps=c.prepareStatement("UPDATE Exam_ExamArea SET ExamAreaId=? WHERE ExamId=?")){ps.setInt(1,s.getAreaId());ps.setInt(2,s.getId());ps.executeUpdate();}
         try(PreparedStatement ps=c.prepareStatement("UPDATE ExamSection SET LicenceId=? WHERE ExamId=?")){ps.setInt(1,s.getLicenceId());ps.setInt(2,s.getId());ps.executeUpdate();}
         c.commit();return true;}catch(SQLException e){rollback(c);throw dbError(e);}finally{auto(c);}}
 
@@ -71,6 +66,14 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     private static void applyLifecycle(SessionDTO x){LocalDate d=x.getExamDate().toLocalDate(),today=LocalDate.now();boolean cancelled="Đã hủy".equals(x.getStatus())||"Cancelled".equalsIgnoreCase(x.getStatus());x.setEditable(d.isAfter(today)&&!cancelled);if(!cancelled)x.setStatus(d.isAfter(today)?"Chưa thi":d.isBefore(today)?"Đã thi":"Đang thi");}
     private static String tabWhere(String tab,List<Integer> years,List<Object> p){String cancelled="e.[Status] IN ('Cancelled',N'Đã hủy')";String c=switch(tab==null?"upcoming":tab){case"ongoing"->"CAST(e.ExamDate AS date)=CAST(GETDATE() AS date) AND NOT ("+cancelled+")";case"completed"->"CAST(e.ExamDate AS date)<CAST(GETDATE() AS date) AND NOT ("+cancelled+")";case"cancelled"->cancelled;default->"CAST(e.ExamDate AS date)>CAST(GETDATE() AS date) AND NOT ("+cancelled+")";};StringBuilder w=new StringBuilder(" AND ").append(c);if(("completed".equals(tab)||"cancelled".equals(tab))&&years!=null&&!years.isEmpty()){w.append(" AND YEAR(e.ExamDate) IN (").append(String.join(",",Collections.nCopies(years.size(),"?"))).append(")");p.addAll(years);}return w.toString();}
     private static void validateFuture(SessionDTO s){if(s.getExamDate()==null||!s.getExamDate().toLocalDate().isAfter(LocalDate.now()))throw new IllegalArgumentException("Ngày thi phải sau ngày hôm nay.");if(s.getShiftStartTime()==null)throw new IllegalArgumentException("Vui lòng chọn giờ bắt đầu.");}
+    private static void validateAvailableDate(Connection c,java.sql.Date date,int excludedExamId){
+        try(PreparedStatement ps=c.prepareStatement("SELECT 1 FROM Exam WHERE CAST(ExamDate AS date)=? AND ExamId<>? AND [Status] NOT IN ('Cancelled',N'Đã hủy')")){
+            ps.setDate(1,date);ps.setInt(2,excludedExamId);
+            try(ResultSet rs=ps.executeQuery()){
+                if(rs.next())throw new IllegalArgumentException("Ngày này đã có một phiên thi chính thức. Vui lòng chọn ngày khác.");
+            }
+        }catch(SQLException e){throw dbError(e);}
+    }
     private static java.sql.Timestamp startTimestamp(SessionDTO s){return java.sql.Timestamp.valueOf(s.getExamDate().toLocalDate().atTime(s.getShiftStartTime().toLocalTime()));}
     private static String buildCode(Connection c,SessionDTO s)throws SQLException{String prefix=s.getLicenseCode().toUpperCase()+"-"+s.getExamDate().toString().replace("-","");try(PreparedStatement ps=c.prepareStatement("SELECT COUNT(*) FROM Exam WHERE ExamCode LIKE ?")){ps.setString(1,prefix+"%");try(ResultSet rs=ps.executeQuery()){int n=rs.next()?rs.getInt(1):0;return n==0?prefix:prefix+"-"+(n+1);}}}
     private static void bind(PreparedStatement ps,List<?> p)throws SQLException{for(int i=0;i<p.size();i++)ps.setObject(i+1,p.get(i));}

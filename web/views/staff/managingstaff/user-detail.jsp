@@ -78,8 +78,6 @@
                    href="${ctx}/manager/dossier-detail?status=all" style="text-decoration:none">Tất cả (${statusCounts.all})</a>
                 <a class="${statusFilter eq 'pending' ? 'btn-filter' : 'btn-export'}"
                    href="${ctx}/manager/dossier-detail?status=pending" style="text-decoration:none">Chờ duyệt (${statusCounts.pending})</a>
-                <a class="${statusFilter eq 'supplement' ? 'btn-filter' : 'btn-export'}"
-                   href="${ctx}/manager/dossier-detail?status=supplement" style="text-decoration:none">Cần bổ sung (${statusCounts.supplement})</a>
                 <a class="${statusFilter eq 'approved' ? 'btn-filter' : 'btn-export'}"
                    href="${ctx}/manager/dossier-detail?status=approved" style="text-decoration:none">Đã duyệt (${statusCounts.approved})</a>
                 <a class="${statusFilter eq 'rejected' ? 'btn-filter' : 'btn-export'}"
@@ -99,7 +97,6 @@
                                 <th>Họ và tên</th>
                                 <th>CCCD</th>
                                 <th>Liên hệ</th>
-                                <th>Hạng GPLX</th>
                                 <th>Giấy tờ</th>
                                 <th>Trạng thái hồ sơ</th>
                                 <th style="text-align:center;min-width:292px">Thao tác</th>
@@ -115,7 +112,6 @@
                                         <c:out value="${item.profile.phoneNo}" /><br>
                                         <small><c:out value="${item.user.email}" /></small>
                                     </td>
-                                    <td><c:out value="${empty item.licenceDisplayClass ? 'Chưa chọn' : item.licenceDisplayClass}" /></td>
                                     <td>${item.documentCount}/${item.requiredDocumentTotal}</td>
                                     <td>
                                         <span class="action-badge action-badge--${item.statusKey}">
@@ -148,7 +144,7 @@
                             </c:forEach>
                             <c:if test="${empty dossiers}">
                                 <tr>
-                                    <td colspan="8" style="padding:3rem;text-align:center;color:#64748b">
+                                    <td colspan="7" style="padding:3rem;text-align:center;color:#64748b">
                                         Chưa có tài khoản Registrant trong database.
                                     </td>
                                 </tr>
@@ -190,7 +186,6 @@
                     <p class="page-subtitle">
                         Tài khoản @<c:out value="${dossier.user.username}" />
                         · Hồ sơ #${dossier.registrationId}
-                        · Hạng <c:out value="${empty dossier.licenceDisplayClass ? 'Chưa chọn' : dossier.licenceDisplayClass}" />
                     </p>
                 </div>
                 <div class="page-actions" style="display:flex;gap:.75rem">
@@ -300,7 +295,6 @@
                         <h2 class="log-card-title">Kết quả xử lý hồ sơ</h2>
                         <div style="display:grid;grid-template-columns:180px 1fr;gap:.75rem;margin-top:1rem">
                             <strong>Trạng thái hiện tại</strong><span>${dossier.statusLabel}</span>
-                            <strong>Hạng GPLX</strong><span><c:out value="${empty dossier.licenceDisplayClass ? 'Chưa chọn' : dossier.licenceDisplayClass}" /></span>
                             <strong>Ghi chú gần nhất</strong><span><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú' : dossier.reviewMessage}" /></span>
                         </div>
                     </div>

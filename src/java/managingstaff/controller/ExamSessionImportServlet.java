@@ -1,15 +1,12 @@
 package managingstaff.controller;
 
-import managingstaff.dao.ExamAreaDAO;
 import managingstaff.dao.LicenceDAO;
-import managingstaff.dao.impl.ExamAreaDAOImpl;
 import managingstaff.dao.impl.LicenceDAOImpl;
 import managingstaff.dao.ExamSessionDAO;
 import managingstaff.dao.impl.ExamSessionDAOImpl;
 import managingstaff.dto.SessionDTO;
 import managingstaff.dto.ExamRegistrationDTO;
 import managingstaff.dto.ExamSessionImportDraft;
-import shared.model.ExamArea;
 import shared.model.Licence;
 import auth.dto.UserDTO;
 import managingstaff.service.ExamSessionImportService;
@@ -29,6 +26,7 @@ import jakarta.servlet.http.Part;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
@@ -67,7 +65,6 @@ public class ExamSessionImportServlet extends HttpServlet {
     private static final Pattern TRAILING_NUMBER = Pattern.compile("(\\d+)$");
 
     private final LicenceDAO licenceDAO = new LicenceDAOImpl();
-    private final ExamAreaDAO areaDAO = new ExamAreaDAOImpl();
     private final ExamSessionImportService importService = new ExamSessionImportService();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
 
@@ -140,15 +137,6 @@ public class ExamSessionImportServlet extends HttpServlet {
             List<ExamRegistrationDTO> candidates = parseCandidates(fileBytes, draft);
             if (candidates.isEmpty()) {
                 throw new IllegalArgumentException("Tệp không có dòng thí sinh nào.");
-            }
-
-            ExamArea area = areaDAO.findById(draft.getExamAreaId());
-            if (area == null) {
-                throw new IllegalArgumentException("Không tìm thấy khu vực/phòng thi đã chọn.");
-            }
-            if (candidates.size() > area.getCapacity()) {
-                throw new IllegalArgumentException("Danh sách có " + candidates.size()
-                        + " thí sinh, vượt sức chứa " + area.getCapacity() + " của khu vực thi.");
             }
 
             List<String> databaseErrors = importService.validateApprovedCandidates(
@@ -241,68 +229,10 @@ public class ExamSessionImportServlet extends HttpServlet {
         draft.setCentreName(selected.getCentreName());
         draft.setLicenceId(selected.getLicenceId());
         draft.setLicenceClass(selected.getLicenseCode());
-        draft.setExamAreaId(selected.getAreaId());
-        draft.setAreaName(selected.getAreaName());
         draft.setSectionType(selected.getExamTypeName());
         draft.setStartTime(Timestamp.valueOf(selected.getExamDate().toLocalDate().atTime(selected.getShiftStartTime().toLocalTime())));
         draft.setEndTime(Timestamp.valueOf(selected.getExamDate().toLocalDate().atTime(23, 59)));
         return draft;
-        /*
-        String sessionName = trim(request.getParameter("sessionName"));
-        String centreName = trim(request.getParameter("centreName"));
-        int licenceId = parsePositiveInt(request.getParameter("licenceId"), "Hạng GPLX");
-        String sectionType = trim(request.getParameter("sectionType"));
-        int areaId = parsePositiveInt(request.getParameter("areaId"), "Khu vực/phòng thi");
-
-        if (sessionName.length() < 3 || sessionName.length() > 100) {
-            throw new IllegalArgumentException("Tên phiên thi phải từ 3 đến 100 ký tự.");
-        }
-        if (centreName.length() < 3 || centreName.length() > 255) {
-            throw new IllegalArgumentException("Tên trung tâm phải từ 3 đến 255 ký tự.");
-        }
-
-        Licence licence = licenceDAO.findById(licenceId);
-        if (licence == null || !ALLOWED_LICENCES.contains(licence.getLicenceClass().toUpperCase(Locale.ROOT))) {
-            throw new IllegalArgumentException("Chỉ hỗ trợ hạng A1, A và B1.");
-        }
-        ExamArea area = areaDAO.findById(areaId);
-        if (area == null) {
-            throw new IllegalArgumentException("Khu vực/phòng thi không hợp lệ.");
-        }
-        if (!ALLOWED_SECTION_TYPES.contains(sectionType)) {
-            throw new IllegalArgumentException("Phần thi không hợp lệ.");
-        }
-
-        String examDate = trim(request.getParameter("examDate"));
-        String startValue = trim(request.getParameter("startTime"));
-        String endValue = trim(request.getParameter("endTime"));
-        Timestamp startTime;
-        Timestamp endTime;
-        try {
-            LocalDate date = LocalDate.parse(examDate);
-            startTime = Timestamp.valueOf(LocalDateTime.of(date, LocalTime.parse(startValue)));
-            endTime = Timestamp.valueOf(LocalDateTime.of(date, LocalTime.parse(endValue)));
-        } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("Ngày hoặc giờ thi không hợp lệ.");
-        }
-        if (!endTime.after(startTime)) {
-            throw new IllegalArgumentException("Giờ kết thúc phải sau giờ bắt đầu.");
-        }
-        if (startTime.toLocalDateTime().toLocalDate().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Không thể tạo phiên thi trong quá khứ.");
-        }
-
-        ExamSessionImportDraft draft = new ExamSessionImportDraft();
-        draft.setSessionName(sessionName);
-        draft.setCentreName(centreName);
-        draft.setLicenceId(licenceId);
-        draft.setLicenceClass(licence.getLicenceClass().toUpperCase(Locale.ROOT));
-        draft.setExamAreaId(areaId);
-        draft.setAreaName(area.getAreaName());
-        draft.setSectionType(sectionType);
-        draft.setStartTime(startTime);
-        draft.setEndTime(endTime);
-        return draft; */
     }
 
     private List<ExamRegistrationDTO> parseCandidates(byte[] fileBytes, ExamSessionImportDraft draft)
@@ -341,17 +271,19 @@ public class ExamSessionImportServlet extends HttpServlet {
                 }
 
                 ExamRegistrationDTO candidate = new ExamRegistrationDTO();
-                String rawCandidateNumber = columns.get(0).trim();
+                String rawCandidateNumber = normalizeSpreadsheetNumber(columns.get(0), 0);
                 String fullName = columns.get(1).trim();
                 String dob = columns.get(2).trim();
-                String govId = columns.get(3).trim();
+                String govId = normalizeSpreadsheetNumber(columns.get(3), 12);
                 String licenceClass = columns.get(4).trim().toUpperCase(Locale.ROOT);
+                String phoneNo = normalizeSpreadsheetNumber(columns.get(5), 10);
+                String email = columns.get(6).trim();
 
                 candidate.setFullName(fullName);
                 candidate.setGovIdNo(govId);
                 candidate.setLicenseCode(licenceClass);
-                candidate.setPhoneNo(columns.get(5).trim());
-                candidate.setEmail(columns.get(6).trim());
+                candidate.setPhoneNo(phoneNo);
+                candidate.setEmail(email);
                 candidate.setRegistrationType("OfficialList");
                 candidate.setIsPresent(false);
                 candidate.setIsPaymentCompleted(false);
@@ -373,8 +305,18 @@ public class ExamSessionImportServlet extends HttpServlet {
                     candidate.setDuplicate(true);
                     addInvalid(candidate, "Trùng CCCD trong tệp");
                 }
-                if (!draft.getLicenceClass().equals(licenceClass)) {
+                if (licenceClass.isEmpty()) {
+                    addInvalid(candidate, "Thiếu hạng GPLX");
+                } else if (!ALLOWED_LICENCES.contains(licenceClass)) {
+                    addInvalid(candidate, "Hạng GPLX chỉ chấp nhận A1, A hoặc B1");
+                } else if (!draft.getLicenceClass().equals(licenceClass)) {
                     addInvalid(candidate, "Hạng trong tệp không khớp hạng " + draft.getLicenceClass());
+                }
+                if (!phoneNo.matches("0\\d{9}")) {
+                    addInvalid(candidate, "Số điện thoại bắt buộc và phải gồm 10 chữ số, bắt đầu bằng 0");
+                }
+                if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                    addInvalid(candidate, "Email bắt buộc và không đúng định dạng");
                 }
                 try {
                     LocalDate parsedDate = dob.contains("/")
@@ -429,13 +371,32 @@ public class ExamSessionImportServlet extends HttpServlet {
         }
     }
 
+    private String normalizeSpreadsheetNumber(String raw, int expectedLength) {
+        String value = raw == null ? "" : raw.trim();
+        if (value.startsWith("=")) value = value.substring(1).trim();
+        if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+            value = value.substring(1, value.length() - 1).trim();
+        }
+        if (value.startsWith("'")) value = value.substring(1).trim();
+        if (value.matches("(?i)[+-]?\\d+(?:\\.\\d+)?E[+-]?\\d+")) {
+            try { value = new BigDecimal(value).toPlainString(); }
+            catch (NumberFormatException ignored) { return value; }
+        }
+        if (value.endsWith(".0") && value.substring(0, value.length() - 2).matches("\\d+")) {
+            value = value.substring(0, value.length() - 2);
+        }
+        if (expectedLength > 0 && value.matches("\\d+") && value.length() < expectedLength) {
+            value = "0".repeat(expectedLength - value.length()) + value;
+        }
+        return value;
+    }
+
     private void bindPageData(HttpServletRequest request) {
         List<Licence> licences = licenceDAO.findAll().stream()
                 .filter(licence -> licence.getLicenceClass() != null
                 && ALLOWED_LICENCES.contains(licence.getLicenceClass().toUpperCase(Locale.ROOT)))
                 .toList();
         request.setAttribute("licences", licences);
-        request.setAttribute("areas", areaDAO.search(null, null));
         request.setAttribute("sectionTypes", ALLOWED_SECTION_TYPES);
         request.setAttribute("importSessions", sessionDAO.getAllSessions());
         request.setAttribute("today", LocalDate.now().toString());

@@ -160,15 +160,10 @@
                     <input type="hidden" name="sessionId" value="${editingSession.id}">
                     <div class="input-group"><label class="input-label">Trung tâm</label>
                         <input class="input-field" name="centreName" required minlength="3" value="<c:out value='${editingSession.centreName}' />"></div>
-                    <div class="schedule-form__row">
-                        <div class="input-group"><label class="input-label">Hạng GPLX</label><select class="input-field" name="licenceId" required>
-                            <c:forEach var="l" items="${licences}"><option value="${l.licenceId}" ${editingSession.licenceId eq l.licenceId ? 'selected' : ''}>Hạng ${l.licenceClass}</option></c:forEach>
-                        </select></div>
-                        <div class="input-group"><label class="input-label">Khu vực thi</label><select class="input-field" name="areaId" required>
-                            <c:forEach var="a" items="${areas}"><option value="${a.examAreaId}" ${editingSession.areaId eq a.examAreaId ? 'selected' : ''}><c:out value="${a.areaName}" /></option></c:forEach>
-                        </select></div>
-                    </div>
-                    <c:if test="${editingSession.registeredCount gt 0}"><small style="color:#b45309">Phiên đã có thí sinh: hệ thống chỉ cập nhật ngày và trung tâm; hạng GPLX và khu vực được giữ nguyên.</small></c:if>
+                    <div class="input-group"><label class="input-label">Hạng GPLX</label><select class="input-field" name="licenceId" required>
+                        <c:forEach var="l" items="${licences}"><option value="${l.licenceId}" ${editingSession.licenceId eq l.licenceId ? 'selected' : ''}>Hạng ${l.licenceClass}</option></c:forEach>
+                    </select></div>
+                    <c:if test="${editingSession.registeredCount gt 0}"><small style="color:#b45309">Phiên đã có thí sinh: hệ thống chỉ cập nhật ngày và trung tâm; hạng GPLX được giữ nguyên.</small></c:if>
                     <div class="input-group"><label class="input-label">Ngày thi</label>
                         <input class="input-field" type="date" name="examDate" min="${today}" required value="${editingSession.examDate}"></div>
                     <fmt:formatDate var="editingStartTime" value="${editingSession.shiftStartTime}" pattern="HH:mm" />
@@ -192,7 +187,18 @@
                     <a class="${activeTab eq 'completed' ? 'is-active' : ''}" href="${ctx}/manager/exam-schedules?tab=completed">Đã thi (${completedCount})</a>
                     <a class="${activeTab eq 'cancelled' ? 'is-active' : ''}" href="${ctx}/manager/exam-schedules?tab=cancelled">Đã hủy (${cancelledCount})</a>
                 </nav>
-                <c:if test="${activeTab eq 'completed' or activeTab eq 'cancelled'}"><form class="year-filter" method="get" action="${ctx}/manager/exam-schedules"><input type="hidden" name="tab" value="${activeTab}"><strong>Lọc năm:</strong><c:forEach var="y" items="${availableYears}"><label><input type="checkbox" name="year" value="${y}" ${selectedYears.contains(y) ? 'checked' : ''}> ${y}</label></c:forEach><button class="btn-filter" type="submit" style="height:34px">Áp dụng</button><a href="${ctx}/manager/exam-schedules?tab=${activeTab}">Xóa lọc</a></form></c:if>
+                <c:if test="${activeTab eq 'completed' or activeTab eq 'cancelled'}">
+                    <form class="year-filter" method="get" action="${ctx}/manager/exam-schedules">
+                        <input type="hidden" name="tab" value="${activeTab}">
+                        <label for="scheduleYear"><strong>Lọc năm:</strong></label>
+                        <select id="scheduleYear" name="year" class="input-field" style="width:150px;height:38px" onchange="this.form.submit()">
+                            <option value="">Tất cả các năm</option>
+                            <c:forEach var="y" items="${availableYears}">
+                                <option value="${y}" ${selectedYears.contains(y) ? 'selected' : ''}>${y}</option>
+                            </c:forEach>
+                        </select>
+                    </form>
+                </c:if>
 
                 <div class="schedule-table-wrap">
                     <table class="schedule-table">
@@ -201,7 +207,6 @@
                             <th>Phiên thi</th>
                             <th>Hạng</th>
                             <th>Thời gian</th>
-                            <th>Khu vực</th>
                             <th>SL</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
@@ -218,8 +223,7 @@
                                 <td>
                                     <fmt:formatDate value="${s.examDate}" pattern="dd/MM/yyyy" /><br><small><fmt:formatDate value="${s.shiftStartTime}" pattern="HH:mm" /></small>
                                 </td>
-                                <td><c:out value="${empty s.areaName ? 'Chưa gán khu vực' : s.areaName}" /></td>
-                                <td>${s.registeredCount}/${s.maxCandidates}</td>
+                                <td>${s.registeredCount}</td>
                                 <td>
                                     <span class="status-pill status-pill--${s.status}">
                                         <c:out value="${s.status}" />
@@ -227,7 +231,15 @@
                                 </td>
                                 <td>
                                     <div style="display:flex;gap:.4rem;white-space:nowrap">
-                                        <a class="btn-export" href="${ctx}/manager/exam-schedules?view=${s.id}" style="padding:.4rem .55rem;text-decoration:none">Danh sách</a>
+                                        <c:url var="candidateListUrl" value="/manager/exam-schedules">
+                                            <c:param name="view" value="${s.id}" />
+                                            <c:param name="tab" value="${activeTab}" />
+                                            <c:param name="page" value="${currentPage}" />
+                                            <c:forEach var="y" items="${selectedYears}">
+                                                <c:param name="year" value="${y}" />
+                                            </c:forEach>
+                                        </c:url>
+                                        <a class="btn-export" href="${candidateListUrl}#candidate-list" style="padding:.4rem .55rem;text-decoration:none">Danh sách</a>
                                         <c:if test="${s.editable}"><a class="btn-filter" href="${ctx}/manager/exam-schedules?edit=${s.id}" style="padding:.4rem .55rem;text-decoration:none">Sửa</a></c:if>
                                     </div>
                                     <c:if test="${s.editable}"><form action="${ctx}/manager/exam-schedules" method="post" style="margin-top:.45rem" onsubmit="return confirm('Xác nhận hủy phiên thi? Danh sách thí sinh vẫn được giữ lại.');">
@@ -239,7 +251,7 @@
                         </c:forEach>
                         <c:if test="${empty sessions}">
                             <tr>
-                                <td colspan="7" style="text-align:center;color:#64748b;padding:2rem">
+                                <td colspan="6" style="text-align:center;color:#64748b;padding:2rem">
                                     Chưa có phiên thi nào.
                                 </td>
                             </tr>
@@ -252,7 +264,7 @@
         </div>
 
         <c:if test="${not empty viewSession}">
-            <section class="schedule-card" style="margin-top:1.25rem">
+            <section id="candidate-list" class="schedule-card" style="margin-top:1.25rem;scroll-margin-top:1rem">
                 <h2 class="schedule-card__title">Danh sách thí sinh · <c:out value="${viewSession.sessionName}" /></h2>
                 <p class="schedule-card__hint">${viewSession.registeredCount} thí sinh · ${viewSession.status}</p>
                 <div class="schedule-table-wrap"><table class="schedule-table"><thead><tr>
