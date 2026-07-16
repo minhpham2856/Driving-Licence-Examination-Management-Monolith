@@ -58,8 +58,8 @@ public final class RegistrantAuditHelper {
 
     public static void logExamRegistration(HttpSession session, int profileId, String examLabel) {
         RegistrantAuditLogHelper.persistForEntity(session, "ExamRegistration", "INSERT",
-                "Đăng ký đợt thi: " + (examLabel != null ? examLabel : "-"),
-                "PreRegistered", profileId);
+                "Gửi nguyện vọng ngày thi: " + (examLabel != null ? examLabel : "-"),
+                "Chờ thông báo trung tâm", profileId);
     }
 
     public static void logExamCancellationRequest(HttpSession session, int profileId,
