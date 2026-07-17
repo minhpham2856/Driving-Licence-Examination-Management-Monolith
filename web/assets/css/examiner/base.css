@@ -125,7 +125,7 @@ body.examiner-portal--inactive .examiner-main {
     color: #434654;
 }
 
-#callSelectedForm {
+#actionSelectedForm {
     display: flex;
     flex-direction: column;
     flex: 1;
