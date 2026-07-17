@@ -300,6 +300,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
     padding: 25px;
     background: #fff;
     border: 1px solid #c3c6d6;
@@ -317,7 +318,7 @@
 }
 
 .score-entry-timer__value {
-    margin: 0;
+    margin: 0 0 12px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 48px;
     font-weight: 700;
@@ -325,9 +326,70 @@
     color: #131b2e;
 }
 
+.score-entry-timer__setup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-entry-timer__input-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #434654;
+}
+
+.score-entry-timer__input {
+    width: 72px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #c3c6d6;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #131b2e;
+}
+
+.score-entry-timer__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.score-entry-timer__preset {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid #c3c6d6;
+    border-radius: 999px;
+    background: #f8f9fc;
+    font-size: 12px;
+    font-weight: 600;
+    color: #434654;
+    cursor: pointer;
+}
+
+.score-entry-timer__preset:hover {
+    border-color: #003d9b;
+    color: #003d9b;
+}
+
+.score-entry-timer__preset.is-active {
+    border-color: #003d9b;
+    background: #e8f0ff;
+    color: #003d9b;
+}
+
+.score-entry-timer__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 200px;
+}
+
 .score-entry-timer__btn {
     min-width: 200px;
-    height: 60px;
+    height: 48px;
     font-size: 14px;
 }
 
@@ -472,6 +534,15 @@
 .score-entry-penalty-actions {
     text-align: center;
     white-space: nowrap;
+    min-width: 72px;
+    vertical-align: middle;
+}
+
+.score-entry-penalty-form {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
 }
 
 .score-entry-penalty-btn {
@@ -481,6 +552,7 @@
     width: 28px;
     height: 28px;
     margin: 0 2px;
+    padding: 0;
     border-radius: 6px;
     border: 1px solid #c3c6d6;
     background: #fff;
@@ -489,6 +561,9 @@
     font-weight: 700;
     line-height: 1;
     text-decoration: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
 .score-entry-penalty-btn--minus {
@@ -679,7 +754,7 @@
     color: #0369a1 !important;
 }
 
-.score-entry-queue-row--called td:first-child {
+.score-entry-queue-row--invoked td:first-child {
     border-left: 3px solid #006846;
 }
 
