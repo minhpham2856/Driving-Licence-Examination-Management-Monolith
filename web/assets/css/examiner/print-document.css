@@ -1,0 +1,311 @@
+.print-doc {
+    margin: 0;
+    padding: 0;
+    background: #e2e8f0;
+    font-family: "Times New Roman", Times, serif;
+    color: #000;
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.print-doc__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #cbd5e1;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.print-doc__btn {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+}
+
+.print-doc__btn--primary {
+    background: #003d9b;
+    border-color: #003d9b;
+    color: #fff;
+}
+
+.print-doc__page {
+    max-width: 900px;
+    margin: 16px auto;
+    padding: 24px 28px 32px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+/* Preview + print: filled A4 portrait height */
+.print-doc__page--bb1 {
+    width: 210mm;
+    max-width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+    padding: 18mm 18mm 20mm;
+    display: flex;
+    flex-direction: column;
+}
+
+.print-doc__page--table {
+    max-width: 1100px;
+}
+
+.print-doc__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.print-doc__header-col {
+    flex: 1;
+    text-align: center;
+}
+
+.print-doc__org {
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+    line-height: 1.4;
+}
+
+.print-doc__org--underline {
+    display: inline-block;
+    border-bottom: 1px solid #000;
+    padding-bottom: 1px;
+}
+
+.print-doc__motto {
+    font-size: 18px;
+    font-weight: 700;
+    font-style: italic;
+    margin-top: 2px;
+    display: inline-block;
+    border-bottom: 1px solid #000;
+    padding-bottom: 1px;
+}
+
+.print-doc__title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 18px 0 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.print-doc__info {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+}
+
+.print-doc__info-main {
+    flex: 1;
+}
+
+.print-doc__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.55;
+}
+
+.print-doc__row > span {
+    flex: 1;
+    font-weight: 400;
+}
+
+.print-doc__row .print-doc__value {
+    font-weight: 400 !important;
+}
+
+.print-doc__photo {
+    width: 110px;
+    height: 140px;
+    border: 1px dashed #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 400;
+    overflow: hidden;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.print-doc__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.print-doc__answers {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 14px;
+    font-size: 18px;
+    table-layout: fixed;
+    flex: 1 1 auto;
+}
+
+.print-doc__answers th,
+.print-doc__answers td {
+    border: 1px solid #000;
+    padding: 8px 3px;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 400;
+    height: 30px;
+}
+
+.print-doc__answers th {
+    font-weight: 700;
+}
+
+.print-doc__answers .print-doc__traloi {
+    width: 56px;
+    font-weight: 700;
+}
+
+.print-doc__answers .print-doc__choice {
+    width: 24px;
+    font-weight: 700;
+}
+
+.print-doc__answers .print-doc__qno {
+    font-weight: 700;
+}
+
+.print-doc__practice,
+.print-doc__data {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 12px;
+}
+
+.print-doc__practice th,
+.print-doc__practice td,
+.print-doc__data th,
+.print-doc__data td {
+    border: 1px solid #333;
+    padding: 4px 6px;
+    text-align: center;
+}
+
+.print-doc__practice th:nth-child(2),
+.print-doc__practice td:nth-child(2),
+.print-doc__data th,
+.print-doc__data td {
+    text-align: left;
+}
+
+.print-doc__data th {
+    background: #f1f5f9;
+    font-weight: 700;
+}
+
+.print-doc__ketluan {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.6;
+    flex-shrink: 0;
+}
+
+.print-doc__ketluan-label {
+    font-weight: 700 !important;
+}
+
+.print-doc__box {
+    display: inline-block;
+    min-width: 1.2em;
+    text-align: center;
+    border-bottom: 1px solid #000;
+    font-weight: 700;
+}
+
+.print-doc__signs {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 48px;
+    padding-bottom: 8px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 400;
+    flex-shrink: 0;
+}
+
+.print-doc__signs > div {
+    width: 42%;
+}
+
+.print-doc__sign-label {
+    font-weight: 400;
+    text-decoration: underline;
+}
+
+.print-doc__meta {
+    text-align: center;
+    margin: 4px 0;
+    font-size: 12px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 18mm 16mm;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    html,
+    body.print-doc {
+        width: 210mm;
+        height: 297mm;
+        background: #fff;
+        margin: 0;
+        padding: 0;
+    }
+
+    .print-doc__page {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        max-width: none;
+    }
+
+    .print-doc__page--bb1 {
+        width: 100%;
+        max-width: none;
+        min-height: 277mm;
+        height: 277mm;
+        padding: 0;
+    }
+
+    .print-doc__answers th,
+    .print-doc__answers td {
+        height: 32px;
+        padding: 8px 2px;
+        font-size: 18px;
+    }
+}
