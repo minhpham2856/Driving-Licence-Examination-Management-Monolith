@@ -25,6 +25,14 @@
     grid-row: 1 / span 2;
 }
 
+.examiner-summary__meta-row {
+    margin-top: 10px;
+}
+
+.examiner-summary__meta-row .examiner-summary__label {
+    margin-bottom: 2px;
+}
+
 .examiner-summary__stat--total {
     grid-column: 2;
     grid-row: 1;
