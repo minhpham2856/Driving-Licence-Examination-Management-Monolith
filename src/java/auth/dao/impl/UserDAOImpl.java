@@ -68,13 +68,16 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                  WHERE Username = ?
                     OR Email = ?
                     OR UserId IN (
-                        SELECT UserId FROM Profile WHERE GovernmentIdNumber = ?
+                        SELECT UserId FROM Profile
+                        WHERE GovernmentIdNumber = ?
+                           OR PhoneNumber = ?
                     )
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, identifier);
             ps.setString(2, identifier);
             ps.setString(3, identifier);
+            ps.setString(4, identifier);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToUser(rs);
@@ -153,6 +156,23 @@ public class UserDAOImpl extends DBContext implements UserDAO {
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean deactivate(int userId) {
+        String sql = """
+                     update [User]
+                     set IsActive = 0
+                     where UserId = ?
+                     """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Failed to deactivate user {0}: {1}",
+                    new Object[] { userId, e.getMessage() });
         }
         return false;
     }

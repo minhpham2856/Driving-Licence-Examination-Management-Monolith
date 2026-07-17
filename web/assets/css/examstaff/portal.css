@@ -1,0 +1,446 @@
+/* Exam staff portal — bridge style.css components with examiner shell */
+
+/* Shell: đẩy nội dung ra khỏi sidebar fixed (260px) */
+body.examstaff-portal.has-side-nav-bar .examstaff-shell {
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    max-width: none !important;
+    min-height: 100vh;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+}
+
+/* Layout: không double-offset main (style.css gán margin-left cho mọi main) */
+body.examstaff-portal.has-side-nav-bar .examstaff-main,
+body.examstaff-portal.has-side-nav-bar main.examstaff-main {
+    margin-left: 0 !important;
+    max-width: none;
+    padding: 24px;
+    box-sizing: border-box;
+}
+/* Sidebar: ưu tiên style examiner */
+body.examstaff-portal .side-nav-bar.side-nav-bar--examiner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    min-width: 260px;
+    z-index: 1000;
+    padding: 8px 0;
+    gap: 4px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+body.examstaff-portal .side-nav-bar--examiner a.side-nav-bar__link.is-active {
+    color: #c4d2ff !important;
+}
+
+/* Toolbar dưới header (không lặp H1) */
+body.examstaff-portal .page-header {
+    margin-bottom: 0;
+    min-height: 0;
+}
+
+body.examstaff-portal .page-header--toolbar {
+    align-items: flex-start;
+}
+
+body.examstaff-portal .page-header--toolbar .page-title-wrap:empty {
+    display: none;
+}
+
+body.examstaff-portal .examiner-page-desc {
+    flex: 1;
+    min-width: 0;
+}
+
+body.examstaff-portal .page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Cards & panes — đồng bộ examiner */
+body.examstaff-portal .stat-card {
+    border-color: #c3c6d6;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body.examstaff-portal .stat-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 82, 204, 0.08);
+}
+
+body.examstaff-portal .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+}
+
+body.examstaff-portal .stat-icon .material-symbols-outlined {
+    font-size: 22px;
+}
+
+body.examstaff-portal .stat-number {
+    font-size: 1.35rem;
+}
+
+body.examstaff-portal .metrics-row {
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+body.examstaff-portal .page-header--actions-only {
+    justify-content: flex-end;
+}
+
+body.examstaff-portal .report-pane {
+    border-color: #c3c6d6;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body.examstaff-portal .report-pane.examiner-card {
+    padding: 16px;
+}
+
+body.examstaff-portal .room-monitor-card,
+body.examstaff-portal .staff-profile-card,
+body.examstaff-portal .log-card {
+    border-color: #c3c6d6;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body.examstaff-portal .room-monitor-grid {
+    gap: 16px;
+}
+
+/* Nút hành động trang */
+body.examstaff-portal .btn-export,
+body.examstaff-portal .btn-filter,
+body.examstaff-portal .allocation-search-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    height: 36px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+body.examstaff-portal .allocation-search-btn {
+    background: #0052cc;
+    color: #ffffff;
+    border: none;
+    padding: 0 12px;
+}
+
+body.examstaff-portal .allocation-search-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.examstaff-portal .es-search-box__input {
+    height: 36px;
+    border-radius: 4px;
+    border: 1px solid #c3c6d6;
+    font-size: 14px;
+}
+
+/* Flash / alert */
+body.examstaff-portal .es-alert,
+body.examstaff-portal .examstaff-flash {
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+body.examstaff-portal .examstaff-flash--success {
+    background: #ecfdf3;
+    border: 1px solid #a7f3d0;
+    color: #027a48;
+}
+
+body.examstaff-portal .examstaff-flash--error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+body.examstaff-portal .examstaff-flash--warning {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #b45309;
+}
+
+/* Phân trang */
+body.examstaff-portal .allocation-pagination {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
+body.examstaff-portal .allocation-pagination__btn {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0052cc;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+
+body.examstaff-portal .allocation-pagination__btn:hover {
+    background: rgba(0, 82, 204, 0.06);
+}
+
+/* Bảng */
+body.examstaff-portal .audit-table th,
+body.examstaff-portal .report-table th {
+    background: #f0f4f8;
+    border-bottom-color: #c3c6d6;
+    font-size: 12px;
+}
+
+body.examstaff-portal .audit-table td,
+body.examstaff-portal .report-table td {
+    border-bottom-color: #e2e8f0;
+}
+
+body.examstaff-portal .page-header--toolbar .call-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+body.examstaff-portal .call-exam-chip {
+    background: #ffffff;
+    border: 1px solid #c3c6d6;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+body.examstaff-portal .call-exam-chip__label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+/* Dashboard — các ca trong ngày thi (không dùng examiner-card: overflow:hidden làm co panel trong flex) */
+body.examstaff-portal .dashboard-exam-panel {
+    flex-shrink: 0;
+    overflow: visible;
+    padding: 1.25rem 1.5rem 1.5rem;
+    margin-bottom: 0;
+}
+
+body.examstaff-portal .dashboard-exam-panel__header {
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+body.examstaff-portal .dashboard-exam-panel__title {
+    font-size: 1.125rem;
+    line-height: 1.4;
+}
+
+body.examstaff-portal .dashboard-exam-panel__desc {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #475569;
+}
+
+body.examstaff-portal .dashboard-exam-panel__desc a {
+    color: #0052cc;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+body.examstaff-portal .dashboard-exam-panel__desc a:hover {
+    text-decoration: underline;
+}
+
+body.examstaff-portal .dashboard-exam-panel__chips,
+body.examstaff-portal .exam-shift-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.examstaff-portal .dashboard-exam-panel__empty {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    font-size: 0.875rem;
+    color: #64748b;
+    font-style: italic;
+    background: #f8fafc;
+    border: 1px dashed #e2e8f0;
+    border-radius: 8px;
+}
+
+body.examstaff-portal .dashboard-metrics-row {
+    flex-shrink: 0;
+}
+
+/* Ca thi trên dashboard */
+body.examstaff-portal .exam-shift-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+
+body.examstaff-portal .exam-shift-chip__meta {
+    flex: 1;
+    min-width: 0;
+    color: #334155;
+}
+
+body.examstaff-portal .exam-shift-chip__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+body.examstaff-portal .exam-shift-chip__form {
+    margin: 0;
+    display: inline-flex;
+}
+
+body.examstaff-portal .exam-shift-chip .btn-filter,
+body.examstaff-portal .exam-shift-chip .btn-export,
+body.examstaff-portal .exam-shift-chip__btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+body.examstaff-portal .exam-shift-chip__btn--end {
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+body.examstaff-portal .exam-shift-chip__btn--pause {
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+body.examstaff-portal .exam-shift-chip__btn--resume {
+    color: #047857;
+    border-color: #a7f3d0;
+}
+
+body.examstaff-portal .exam-shift-chip__btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Header examstaff — breadcrumb + kỳ thi đang chọn */
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-current {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-primary.examiner-header__crumb-current {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    color: #003d9b;
+    letter-spacing: -0.02em;
+}
+
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-child.examiner-header__crumb-current {
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 600;
+    color: #334155;
+}
+
+body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-sep {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+body.examstaff-portal .examiner-header__exam {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+body.examstaff-portal .examiner-header__exam-license {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #0052cc;
+    white-space: nowrap;
+}
+
+body.examstaff-portal .examiner-header__exam-date {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: #0f172a;
+    padding-left: 8px;
+    border-left: 1px solid #cbd5e1;
+    white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+    body.examstaff-portal .page-header--toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.examstaff-portal .page-actions {
+        width: 100%;
+    }
+
+    body.examstaff-portal.has-side-nav-bar .examstaff-shell {
+        margin-left: 0 !important;
+        width: 100% !important;
+        height: auto;
+        min-height: 100vh;
+    }
+}

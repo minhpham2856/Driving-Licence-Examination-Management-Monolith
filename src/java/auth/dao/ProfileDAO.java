@@ -5,6 +5,8 @@ import java.util.List;
 
 public interface ProfileDAO {
 
+    Profile getByUserId(int userId);
+
     Profile getByGovIdNo(String govIdNo);
 
     Profile getByPhoneNo(String phoneNo);

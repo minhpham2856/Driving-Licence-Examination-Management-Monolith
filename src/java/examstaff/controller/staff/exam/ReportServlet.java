@@ -4,6 +4,7 @@ import examstaff.service.ExamReportStatsService;
 import examstaff.service.StaffReportExportService;
 import examstaff.controller.staff.exam.binder.ReportProcedureStatusBinder;
 import examstaff.controller.staff.exam.binder.ReportStatsBinder;
+import examstaff.controller.staff.exam.http.ExamStaffHttpSupport;
 import examstaff.controller.staff.exam.module.ExamStaffWebModule;
 import examstaff.controller.staff.exam.page.ExamStaffPageFacade;
 import examstaff.service.ExamReportProcedureStatusService;
@@ -50,6 +51,8 @@ public class ReportServlet extends HttpServlet {
         int examId = pageCtx.getExamId();
         List<ExamRegistrationDTO> qList = pageCtx.getCandidates();
         ExamSummaryDTO currentExam = (ExamSummaryDTO) request.getAttribute("currentExam");
+        ExamStaffHttpSupport.consumeFlash(session, "examControlMsg", request, "examControlMsg");
+        ExamStaffHttpSupport.consumeFlash(session, "examControlError", request, "examControlError");
         ExamReportProcedureStatusDTO procedureStatus = procedureStatusService.analyze(qList, webRoot);
         ReportProcedureStatusBinder.bind(request, procedureStatus);
         int missingPhotoCount = procedureStatus.getMissingPhotoCount();
