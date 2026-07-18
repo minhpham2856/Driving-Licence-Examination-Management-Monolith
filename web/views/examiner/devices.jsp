@@ -5,7 +5,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Quản lý thiết bị" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/devices" />
+<c:set var="pageUrl" value="${ctx}/examiner/devices" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
