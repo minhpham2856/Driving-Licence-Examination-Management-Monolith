@@ -4,7 +4,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Nhật ký" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/audit" />
+<c:set var="pageUrl" value="${ctx}/examiner/audit" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -98,11 +98,11 @@
                     <!--pagination-->
                     <div class="audit-pagination">
                         <nav class="audit-page-nav">
-                            <c:url var="prevUrl" value="/views/examiner/audit">
+                            <c:url var="prevUrl" value="/examiner/audit">
                                 <c:param name="page" value="${auditPage - 1}" />
                                 <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
                             </c:url>
-                            <c:url var="nextUrl" value="/views/examiner/audit">
+                            <c:url var="nextUrl" value="/examiner/audit">
                                 <c:param name="page" value="${auditPage + 1}" />
                                 <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}" /></c:if>
                             </c:url>
