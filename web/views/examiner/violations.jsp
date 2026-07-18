@@ -5,9 +5,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Vi phạm" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/violations" scope="request" />
-<c:set var="violationConfirmUrl" value="${ctx}/views/examiner/violation-confirm" scope="request" />
-<c:set var="violationUndoUrl" value="${ctx}/views/examiner/violation-undo" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/violations" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -24,31 +22,19 @@
     </head>
     <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
 
-        <!--sidebar-->
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="violations" />
         </jsp:include>
 
-        <!--shell-->
         <div class="examiner-shell">
-
-            <!--header-->
             <jsp:include page="/views/layout/header-examiner.jsp" />
-
-            <!--main content-->
             <main class="examiner-main examiner-main--dashboard">
-
-                <!--action message-->
                 <jsp:include page="/views/examiner/components/examiner-messages.jsp" />
-
-                <!--toolbar-->
                 <jsp:include page="/views/examiner/components/toolbar.jsp">
                     <jsp:param name="btnSearch" value="right" />
                     <jsp:param name="searchPlaceholder" value="Tìm kiếm SBD, tên..." />
                     <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
-
-                <!--violation list-->
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
                     <jsp:param name="badgeText" value="Tổng: ${fn:length(candidates)} thí sinh" />
