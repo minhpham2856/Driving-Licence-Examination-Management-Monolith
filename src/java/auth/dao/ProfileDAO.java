@@ -17,4 +17,3 @@ public interface ProfileDAO {
 
     List<Profile> getAllByUserIds(List<Integer> userIds);
 }
-
