@@ -4,8 +4,8 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Sửa kết quả" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/result-details" scope="request" />
-<c:set var="editUrl" value="${ctx}/views/examiner/result-details-edit" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/result-details" scope="request" />
+<c:set var="editUrl" value="${ctx}/examiner/result-details-edit" scope="request" />
 <c:set var="exportResultUrl" value="${ctx}/examiner/export/result" scope="request" />
 <c:set var="exportResultsUrl" value="${exportResultUrl}" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" scope="request" />
@@ -58,8 +58,10 @@
                     <jsp:param name="title" value="Danh sách kết quả" />
                     <jsp:param name="showCheckbox" value="true" />
                     <jsp:param name="showAddress" value="false" />
-                    <jsp:param name="showTheoryScores" value="true" />
+                    <jsp:param name="showTheoryScores" value="false" />
+                    <jsp:param name="showExamScore" value="true" />
                     <jsp:param name="showResult" value="true" />
+                    <jsp:param name="showStatus" value="true" />
                     <jsp:param name="actionEditResult" value="true" />
                 </jsp:include>
             </main>
