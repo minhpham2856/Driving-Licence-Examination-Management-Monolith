@@ -1,6 +1,7 @@
 package managingstaff.dao.impl;
 
 import java.sql.Date;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,8 +17,14 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
 
     private static final String SELECT = """
         SELECT ed.ExamDateId,ed.ExamDate,ed.LicenceId,l.LicenceClass,
-               (SELECT COUNT(*) FROM RegistrationDates rd
-                WHERE rd.ExamDateId=ed.ExamDateId AND rd.IsActive=1) RegisteredCount
+               CASE WHEN COALESCE(ed.Status,'Open')='Cancelled'
+                    THEN COALESCE(ed.CancelledRegistrationCount,0)
+                    ELSE (SELECT COUNT(*) FROM RegistrationDates rd
+                          WHERE rd.ExamDateId=ed.ExamDateId AND rd.IsActive=1)
+               END RegisteredCount,
+               COALESCE(ed.Status,'Open') Status,ed.CancelReason,ed.CancelledAt,
+               COALESCE(ed.CancelledBy,0) CancelledBy,
+               COALESCE(ed.CancelledRegistrationCount,0) CancelledRegistrationCount
         FROM ExamDates ed JOIN Licence l ON l.LicenceId=ed.LicenceId
         """;
 
@@ -82,20 +89,94 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
     }
 
     @Override
-    public boolean deleteIfUnused(int id) {
-        String sql = "DELETE FROM ExamDates WHERE ExamDateId=? AND NOT EXISTS (SELECT 1 FROM RegistrationDates rd WHERE rd.ExamDateId=ExamDates.ExamDateId)";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+    public int cancel(int id, String reason, int cancelledByUserId) {
+        String normalizedReason = reason == null ? "" : reason.trim();
+        if (normalizedReason.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập lý do hủy ngày thi dự kiến.");
+        }
+        if (normalizedReason.length() > 500) {
+            throw new IllegalArgumentException("Lý do hủy không được vượt quá 500 ký tự.");
+        }
+        Connection connection = getConnection();
+        if (connection == null) {
+            throw new IllegalStateException("Không thể kết nối cơ sở dữ liệu.");
+        }
+        boolean previousAutoCommit = true;
+        try {
+            previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            Date examDate;
+            String status;
+            try (PreparedStatement lock = connection.prepareStatement(
+                    "SELECT ExamDate,COALESCE(Status,'Open') Status FROM ExamDates WITH (UPDLOCK,HOLDLOCK) WHERE ExamDateId=?")) {
+                lock.setInt(1, id);
+                try (ResultSet rs = lock.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new IllegalArgumentException("Không tìm thấy ngày thi dự kiến.");
+                    }
+                    examDate = rs.getDate("ExamDate");
+                    status = rs.getString("Status");
+                }
+            }
+            if ("Cancelled".equalsIgnoreCase(status)) {
+                throw new IllegalArgumentException("Ngày thi dự kiến này đã được hủy trước đó.");
+            }
+            LocalDate deadline = examDate.toLocalDate().minusDays(7);
+            if (LocalDate.now().isAfter(deadline)) {
+                throw new IllegalArgumentException(
+                        "Chỉ được hủy trước ngày thi dự kiến ít nhất 7 ngày.");
+            }
+            int affected;
+            try (PreparedStatement count = connection.prepareStatement(
+                    "SELECT COUNT(*) FROM RegistrationDates WHERE ExamDateId=? AND IsActive=1")) {
+                count.setInt(1, id);
+                try (ResultSet rs = count.executeQuery()) {
+                    affected = rs.next() ? rs.getInt(1) : 0;
+                }
+            }
+            try (PreparedStatement updateDate = connection.prepareStatement("""
+                    UPDATE ExamDates
+                    SET Status='Cancelled',CancelReason=?,CancelledAt=SYSDATETIME(),
+                        CancelledBy=?,CancelledRegistrationCount=?
+                    WHERE ExamDateId=?
+                    """)) {
+                updateDate.setString(1, normalizedReason);
+                if (cancelledByUserId > 0) updateDate.setInt(2, cancelledByUserId);
+                else updateDate.setNull(2, java.sql.Types.INTEGER);
+                updateDate.setInt(3, affected);
+                updateDate.setInt(4, id);
+                if (updateDate.executeUpdate() != 1) {
+                    throw new SQLException("Không cập nhật được ngày thi dự kiến.");
+                }
+            }
+            try (PreparedStatement deactivate = connection.prepareStatement(
+                    "UPDATE RegistrationDates SET IsActive=0 WHERE ExamDateId=? AND IsActive=1")) {
+                deactivate.setInt(1, id);
+                deactivate.executeUpdate();
+            }
+            connection.commit();
+            return affected;
+        } catch (IllegalArgumentException e) {
+            rollback(connection);
+            throw e;
         } catch (SQLException e) {
-            throw new IllegalStateException("Không thể xóa ngày thi dự kiến: " + e.getMessage(), e);
+            rollback(connection);
+            throw new IllegalStateException("Không thể hủy ngày thi dự kiến: " + e.getMessage(), e);
+        } finally {
+            try { connection.setAutoCommit(previousAutoCommit); } catch (SQLException ignored) { }
         }
     }
 
     private static String dateFilter(String tab) {
-        return "expired".equalsIgnoreCase(tab)
-                ? " WHERE CAST(ed.ExamDate AS date)<CAST(GETDATE() AS date)"
-                : " WHERE CAST(ed.ExamDate AS date)>=CAST(GETDATE() AS date)";
+        if ("cancelled".equalsIgnoreCase(tab)) {
+            return " WHERE COALESCE(ed.Status,'Open')='Cancelled'";
+        }
+        if ("expired".equalsIgnoreCase(tab)) {
+            return " WHERE COALESCE(ed.Status,'Open')<>'Cancelled'"
+                    + " AND CAST(ed.ExamDate AS date)<CAST(GETDATE() AS date)";
+        }
+        return " WHERE COALESCE(ed.Status,'Open')<>'Cancelled'"
+                + " AND CAST(ed.ExamDate AS date)>=CAST(GETDATE() AS date)";
     }
 
     private List<Integer> ids(int dateId, String suffix, List<Integer> tail) {
@@ -103,7 +184,6 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
             SELECT rd.ExamRegistrationId FROM RegistrationDates rd
             JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
             WHERE rd.ExamDateId=? AND rd.IsActive=1
-              AND er.RegistrationStatus IN ('WaitingExam',N'Chờ thi')
             ORDER BY rd.RegistrationDateId
             """ + suffix;
         List<Integer> out = new ArrayList<>();
@@ -150,6 +230,11 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                     x.setLicenceId(rs.getInt(3));
                     x.setLicenceClass(rs.getString(4));
                     x.setRegisteredCount(rs.getInt(5));
+                    x.setStatus(rs.getString(6));
+                    x.setCancelReason(rs.getString(7));
+                    x.setCancelledAt(rs.getTimestamp(8));
+                    x.setCancelledBy(rs.getInt(9));
+                    x.setCancelledRegistrationCount(rs.getInt(10));
                     out.add(x);
                 }
             }
@@ -157,5 +242,9 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private static void rollback(Connection connection) {
+        try { connection.rollback(); } catch (SQLException ignored) { }
     }
 }
