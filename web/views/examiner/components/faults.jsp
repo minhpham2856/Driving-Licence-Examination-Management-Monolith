@@ -2,6 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
+<c:set var="faultSbd" value="${not empty requestScope.candidate ? requestScope.candidate.candidateNumber : param.sbd}" />
+<c:set var="faultPageUrl" value="${not empty requestScope.pageUrl ? requestScope.pageUrl : pageContext.request.contextPath.concat('/examiner/score-entry')}" />
+
 <section class="score-entry-card score-entry-card--penalties">
     <!--header-->
     <div class="score-entry-card__head">
@@ -56,12 +59,28 @@
                                     </c:choose>
                                 </td>
                                 <td class="score-entry-penalty-actions">
-                                    <c:if test="${not empty requestScope.candidate}">
-                                        <a href="${requestScope.pageUrl}?sbd=${requestScope.candidate.sbd}&amp;action=adjustDeduction&amp;deductionId=${deduction.id}&amp;delta=-1"
-                                           class="score-entry-penalty-btn score-entry-penalty-btn--minus">−</a>
-                                        <a href="${requestScope.pageUrl}?sbd=${requestScope.candidate.sbd}&amp;action=adjustDeduction&amp;deductionId=${deduction.id}&amp;delta=1"
-                                           class="score-entry-penalty-btn score-entry-penalty-btn--plus">+</a>
-                                    </c:if>
+                                    <c:choose>
+                                        <c:when test="${not empty faultSbd}">
+                                            <form method="post" action="${faultPageUrl}" class="score-entry-penalty-form">
+                                                <input type="hidden" name="action" value="adjustDeduction">
+                                                <input type="hidden" name="sbd" value="${faultSbd}">
+                                                <input type="hidden" name="deductionId" value="${deduction.id}">
+                                                <input type="hidden" name="delta" value="-1">
+                                                <button type="submit" class="score-entry-penalty-btn score-entry-penalty-btn--minus" title="Giảm">−</button>
+                                            </form>
+                                            <form method="post" action="${faultPageUrl}" class="score-entry-penalty-form">
+                                                <input type="hidden" name="action" value="adjustDeduction">
+                                                <input type="hidden" name="sbd" value="${faultSbd}">
+                                                <input type="hidden" name="deductionId" value="${deduction.id}">
+                                                <input type="hidden" name="delta" value="1">
+                                                <button type="submit" class="score-entry-penalty-btn score-entry-penalty-btn--plus" title="Tăng">+</button>
+                                            </form>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="score-entry-penalty-btn score-entry-penalty-btn--minus examiner-btn--disabled" title="Chọn thí sinh trước">−</span>
+                                            <span class="score-entry-penalty-btn score-entry-penalty-btn--plus examiner-btn--disabled" title="Chọn thí sinh trước">+</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                             </tr>
                         </c:forEach>
