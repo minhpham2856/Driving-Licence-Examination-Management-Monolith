@@ -38,14 +38,12 @@ public class CandidateQueueQueryServiceImpl {
     }
 
     /**
-     * Chuẩn hóa đường dẫn ảnh trên hàng đợi để hiển thị công khai / bảng gọi.
+     * Chuẩn hóa tham chiếu ảnh trên hàng đợi (đĩa data runtime).
      *
-     * @param webRootPath thư mục gốc web
-     * @param queue       hàng đợi thí sinh
+     * @param queue hàng đợi thí sinh
      */
-    public void normalizePhotoPaths(String webRootPath, List<ExamRegistrationDTO> queue) {
-        // Mutate: chuẩn hóa URL rồi đánh dấu ảnh hợp lệ trên từng phần tử
-        photoService.normalizePhotoPaths(webRootPath, queue);
-        photoService.normalizeQueue(webRootPath, queue);
+    public void normalizePhotoPaths(List<ExamRegistrationDTO> queue) {
+        photoService.normalizePhotoPaths(queue);
+        photoService.normalizeQueue(queue);
     }
 }

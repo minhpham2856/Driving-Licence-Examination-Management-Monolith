@@ -39,8 +39,7 @@ public class CandidateDossierServlet extends HttpServlet {
 
         int examId = ExamStaffPageSupport.ensureExamId(request, request.getSession(),
                 viewService.listAllExams(), viewService);
-        CandidateDossierViewDTO view = viewService.loadDossier(
-                examId, sbd, request.getServletContext().getRealPath("/"));
+        CandidateDossierViewDTO view = viewService.loadDossier(examId, sbd);
         if (view.getProfile() == null) {
             response.sendRedirect("candidatecall");
             return;

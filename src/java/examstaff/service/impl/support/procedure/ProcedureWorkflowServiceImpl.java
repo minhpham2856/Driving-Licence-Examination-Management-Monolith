@@ -98,7 +98,7 @@ public class ProcedureWorkflowServiceImpl {
         }
         // Mutate: resolve ảnh + sync lại queue
         if (profile != null) {
-            photoService.resolveCapturedPhoto(webRoot, profile);
+            photoService.resolveCapturedPhoto(profile);
             syncProfileInQueue(queue, profile);
         }
         return profile;
@@ -125,7 +125,7 @@ public class ProcedureWorkflowServiceImpl {
         String photoStaleMessage = null;
         // Load / validate ảnh: bản ghi có nhưng file mất → clear DB
         if (photoService.hasPhotoRecord(current)) {
-            photoService.resolveCapturedPhoto(webRoot, current);
+            photoService.resolveCapturedPhoto(current);
             if (!current.isValidCapturedPhoto()) {
                 regService.updatePhoto(current.getId(), null);
                 current.setPhotoUrl(null);
@@ -175,7 +175,7 @@ public class ProcedureWorkflowServiceImpl {
             }
         }
         // Mutate: ảnh + sync queue
-        photoService.resolveCapturedPhoto(webRoot, fresh);
+        photoService.resolveCapturedPhoto(fresh);
         syncProfileInQueue(queue, fresh);
         return fresh;
     }
@@ -258,7 +258,7 @@ public class ProcedureWorkflowServiceImpl {
 
             String safeSbd = sbd.replaceAll("[^A-Za-z0-9\\-]", "_");
             String fileName = safeSbd + "_captured." + ext;
-            photoService.writePhotoFile(webRoot, fileName, imageBytes);
+            photoService.writePhotoFile(fileName, imageBytes);
 
             String photoPath = photoService.toWebPhotoPath(fileName);
             boolean updated = regService.updatePhoto(profile.getId(), photoPath);
@@ -467,7 +467,7 @@ public class ProcedureWorkflowServiceImpl {
                 allocExamId, profile.getId());
 
         List<ExamRegistrationDTO> qList = regService.getCandidatesByExam(examId);
-        photoService.normalizeQueue(webRoot, qList);
+        photoService.normalizeQueue(qList);
 
         int boardExamId = profile.getExamId() > 0
                 ? profile.getExamId()
@@ -518,7 +518,7 @@ public class ProcedureWorkflowServiceImpl {
 
         // Result: reload queue + gắn outcome
         List<ExamRegistrationDTO> qList = regService.getCandidatesByExam(examId);
-        photoService.normalizeQueue(webRoot, qList);
+        photoService.normalizeQueue(qList);
 
         outcome.setSuccess(true);
         outcome.setSbd(trimmed);
