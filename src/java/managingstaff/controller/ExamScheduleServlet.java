@@ -19,7 +19,6 @@ import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
 import managingstaff.dao.impl.LicenceDAOImpl;
-import managingstaff.dao.impl.ExamAreaDAOImpl;
 import shared.model.Licence;
 import managingstaff.service.EmailService;
 import managingstaff.service.impl.EmailServiceImpl;
@@ -93,16 +92,15 @@ public class ExamScheduleServlet extends HttpServlet {
             dto.setId(parseInt(request.getParameter("sessionId"), 0));
             dto.setCentreName(trim(request.getParameter("centreName")));
             dto.setLicenceId(parseInt(request.getParameter("licenceId"), 0));
-            dto.setAreaId(parseInt(request.getParameter("areaId"), 0));
             LocalDate date = LocalDate.parse(trim(request.getParameter("examDate")));
             dto.setExamDate(Date.valueOf(date));
             dto.setShiftStartTime(Time.valueOf(trim(request.getParameter("startTime")) + ":00"));
             Licence licence = new LicenceDAOImpl().findById(dto.getLicenceId());
-            if (licence == null || dto.getAreaId() <= 0 || dto.getCentreName().length() < 3)
+            if (licence == null || dto.getCentreName().length() < 3)
                 throw new IllegalArgumentException("Vui lòng nhập đầy đủ thông tin phiên thi.");
             dto.setLicenseCode(licence.getLicenceClass());
             SessionDTO previous=dto.getId()>0?sessionDAO.findById(dto.getId()):null;
-            if(previous!=null&&previous.getRegisteredCount()>0){dto.setLicenceId(previous.getLicenceId());dto.setAreaId(previous.getAreaId());dto.setLicenseCode(previous.getLicenseCode());licence=new LicenceDAOImpl().findById(dto.getLicenceId());}
+            if(previous!=null&&previous.getRegisteredCount()>0){dto.setLicenceId(previous.getLicenceId());dto.setLicenseCode(previous.getLicenseCode());licence=new LicenceDAOImpl().findById(dto.getLicenceId());}
             int id = dto.getId() > 0 ? (sessionDAO.update(dto) ? dto.getId() : 0) : sessionDAO.create(dto);
             int rescheduleEmails=previous!=null&&!previous.getExamDate().equals(dto.getExamDate())
                     ? sendRescheduleEmails(previous,dto) : 0;
@@ -146,7 +144,6 @@ public class ExamScheduleServlet extends HttpServlet {
         List<SessionDTO> sessions=sessionDAO.findPage(tab,years,page,PAGE_SIZE);
         request.setAttribute("sessions", sessions);
         request.setAttribute("licences", new LicenceDAOImpl().findAll());
-        request.setAttribute("areas", new ExamAreaDAOImpl().search("", ""));
         request.setAttribute("today", LocalDate.now().toString());
         request.setAttribute("activeTab",tab);request.setAttribute("selectedYears",years);
         request.setAttribute("availableYears",sessionDAO.findAvailableYears());

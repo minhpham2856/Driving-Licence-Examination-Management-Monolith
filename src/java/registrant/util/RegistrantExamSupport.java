@@ -22,6 +22,10 @@ public final class RegistrantExamSupport {
 
     public static final String SBD_PENDING_MESSAGE = "SBD sẽ được cập nhật sau";
 
+    /** Nhãn trạng thái nguyện vọng ngày thi (chờ trung tâm công bố lịch chính thức). */
+    public static final String PREFERRED_DATE_STATUS_LABEL = "Chờ thông báo trung tâm";
+    public static final String PREFERRED_DATE_REG_STATUS = "PreferredDate";
+
     public static final int THEORY_MAX_QUESTIONS = 35;
     public static final int THEORY_PASS_CORRECT = 32;
     public static final int THEORY_PASS_PERCENT = 80;
@@ -162,6 +166,31 @@ public final class RegistrantExamSupport {
         }
         row.setStatusClass("info");
         row.setStatusLabel("Được xét duyệt");
+    }
+
+    /** Badge nguyện vọng ngày thi trên dashboard / my-exams. */
+    public static void applyPreferredDateStatus(RegistrantRegisteredExamRow row) {
+        row.setPreferredDate(true);
+        row.setSbdPending(true);
+        row.setStatusClass("pending");
+        row.setStatusLabel(PREFERRED_DATE_STATUS_LABEL);
+        row.setSessionTimePublished(false);
+        row.setLocation("Theo lịch trung tâm");
+    }
+
+    public static void applyPreferredDateStatus(RegistrantMyExamRow row) {
+        row.setPreferredDate(true);
+        row.setSbdPending(true);
+        row.setSbdDisplay("—");
+        row.setRoomName("Chưa xếp phòng");
+        row.setStatusClass("pending");
+        row.setStatusLabel(PREFERRED_DATE_STATUS_LABEL);
+        row.setRegistrationStatus(PREFERRED_DATE_REG_STATUS);
+        row.setOverallResultLabel("Chờ thông báo từ trung tâm");
+        row.setCancelRequested(false);
+        row.setCanRequestCancellation(false);
+        row.setSessionTimePublished(false);
+        row.setPendingPayment(false);
     }
 
     /** Badge my-exams: chờ xét duyệt (chưa SBD) → được xét duyệt (có SBD, chờ ngày thi). */

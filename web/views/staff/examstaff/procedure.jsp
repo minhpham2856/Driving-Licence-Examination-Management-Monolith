@@ -325,6 +325,9 @@
                                     </div>
                                 </div>
 
+                                <%-- SePay (bước 3): JS bindSePayCheckout đọc data-* —
+                                    createSePayCheckout mở popup; IPN ghi Payment; Kiểm tra/poll finalize.
+                                    Hủy trên cổng → /payment/sepay/cancel → quay lại bước thu phí. --%>
                                 <div class="qr-card sepay-pay-card" id="sePayQrCard"
                                      data-sbd="${currentSbd}"
                                      data-ctx="${pageContext.request.contextPath}"

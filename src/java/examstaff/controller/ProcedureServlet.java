@@ -158,6 +158,7 @@ public class ProcedureServlet extends HttpServlet {
             return;
         }
 
+        // --- SePay: tạo checkout (HTML form auto-submit) hoặc kiểm tra đã IPN ---
         if ("createSePayCheckout".equals(pAction) && profile != null) {
             processSePayCheckout(request, response, session, profile, sbdParam, webRoot, examId);
             return;
@@ -201,6 +202,7 @@ public class ProcedureServlet extends HttpServlet {
             hasValidPhoto = profile.isValidCapturedPhoto();
         }
 
+        // Cờ UI SePay cho procedure.jsp (nút enable/disable, sandbox hint)
         request.setAttribute("sePayConfigured", procedureService.isSePayConfigured());
         request.setAttribute("sePaySandbox", procedureService.isSePaySandbox());
         request.setAttribute("sePayIpnUrl", procedureService.sePayIpnCallbackUrl());
@@ -243,6 +245,11 @@ public class ProcedureServlet extends HttpServlet {
         doGet(request, response);
     }
 
+    /**
+     * Mở cổng SePay: tạo form signed + HTML auto-submit.
+     * Thành công → ghi session {@code sePayAwaitingSbd} để desk poll/Kiểm tra biết đang chờ IPN.
+     * Lỗi nghiệp vụ → JSON 400 cho JS hiển thị message.
+     */
     private void processSePayCheckout(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam, String webRoot, int examId)
             throws IOException {
@@ -250,6 +257,7 @@ public class ProcedureServlet extends HttpServlet {
                 profile, sbdParam, examId, webRoot);
         if (result.getStatus() == SePayProcedureCheckoutDTO.Status.READY
                 && result.getCheckoutHtml() != null) {
+            // Tab SePay + poll trên desk dùng các attribute này
             session.setAttribute("sePayAwaitingSbd", sbdParam);
             session.setAttribute("sePayAwaitingInvoice", result.getInvoiceNumber());
             addAuditLog(session, "SEPAY Checkout",
@@ -267,6 +275,11 @@ public class ProcedureServlet extends HttpServlet {
                 + "\",\"message\":\"" + msg + "\"}");
     }
 
+    /**
+     * Nút “Kiểm tra đã thanh toán” / poll JS.
+     * Không gọi SePay API — chỉ xem DB đã có Payment (do IPN ghi) chưa rồi finalize thủ tục.
+     * Trả JSON: {@code paid=true/false} + message chờ nếu chưa có IPN.
+     */
     private void processSePayCheck(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam,
             String webRoot, List<ExamSummaryDTO> allExams, int examId) throws IOException {
@@ -279,6 +292,7 @@ public class ProcedureServlet extends HttpServlet {
 
         if (outcome != null
                 && outcome.getPaymentStatus() == ProcedureActionOutcome.PaymentStatus.SUCCESS) {
+            // IPN đã ghi Payment → đánh dấu có mặt / phân ca giống thu tiền mặt
             applyPaymentOutcome(request, session, sbdParam, outcome, examId);
             ExamStaffPageSupport.syncExamSelection(session, allExams, examId, viewService);
             session.setAttribute("procedureJustPaidSbd", sbdParam);

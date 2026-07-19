@@ -3728,6 +3728,11 @@ p {
     display: block;
 }
 
+.profile-photo-img--portrait {
+    object-fit: cover;
+    padding: 0;
+}
+
 .profile-photo-meta {
     display: flex;
     flex-direction: column;

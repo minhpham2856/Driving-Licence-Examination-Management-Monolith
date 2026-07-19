@@ -48,6 +48,9 @@ public class RegistrantMyExamRow {
     private Date sessionEnd;
     private boolean sessionTimePublished;
 
+    /** True = nguyện vọng ngày thi (RegistrationDates), chưa phải kỳ chính thức. */
+    private boolean preferredDate;
+
     public int getCandidateId() {
         return candidateId;
     }
@@ -334,5 +337,13 @@ public class RegistrantMyExamRow {
 
     public void setSessionTimeDisplay(String sessionTimeDisplay) {
         this.sessionTimeDisplay = sessionTimeDisplay;
+    }
+
+    public boolean isPreferredDate() {
+        return preferredDate;
+    }
+
+    public void setPreferredDate(boolean preferredDate) {
+        this.preferredDate = preferredDate;
     }
 }

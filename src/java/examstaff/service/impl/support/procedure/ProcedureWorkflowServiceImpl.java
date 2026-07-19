@@ -335,7 +335,15 @@ public class ProcedureWorkflowServiceImpl {
         return completeProcedureAfterPaid(profile, sbd, examId, webRoot, allExams, feePreview, "Tiền mặt");
     }
 
-    /** Tạo checkout SePay (QR) — không ghi Payment; IPN ghi. */
+    /**
+     * Luồng bàn thủ tục → payment module (không ghi Payment tại đây).
+     * <ol>
+     *   <li>Validate: hồ sơ, ảnh đã chụp, chưa trả phí, SePay đã cấu hình, có enrollment, có số tiền</li>
+     *   <li>Sinh invoice {@code DLEM-CHK-{candidateId}-{enrollmentId}-{ts}}</li>
+     *   <li>{@link SePayPaymentService#createCheckout} ký form + build HTML auto-submit</li>
+     * </ol>
+     * IPN ({@code /payment/sepay/ipn}) mới insert bảng Payment.
+     */
     public SePayProcedureCheckoutDTO startSePayCheckout(ExamRegistrationDTO profile, String sbd,
             int examId, String webRoot) {
         SePayProcedureCheckoutDTO result = new SePayProcedureCheckoutDTO();
@@ -388,6 +396,7 @@ public class ProcedureWorkflowServiceImpl {
 
         String invoice = sePayPaymentService.generateInvoiceNumber("CHK", profile.getId(), enrollmentId);
         try {
+            // Prefix CHK = checkout từ bàn thủ tục (phân biệt invoice registrant nếu có)
             SePayCheckoutRequest req = new SePayCheckoutRequest();
             req.setAmountVnd(amountVnd);
             req.setOrderInvoiceNumber(invoice);
@@ -413,7 +422,11 @@ public class ProcedureWorkflowServiceImpl {
         }
     }
 
-    /** Sau IPN: present + allocate. Chưa có Payment → PAYMENT_FAILED (đang chờ). */
+    /**
+     * Sau khi IPN (hoặc poll) đã thấy Payment: hoàn tất thủ tục như thu tiền mặt
+     * (có mặt + allocate). Nếu chưa có Payment → {@code PAYMENT_FAILED} + message chờ IPN
+     * (không coi là lỗi cứng — JS hiện “Đang chờ…”).
+     */
     public ProcedureActionOutcome finalizeAfterSePayPayment(ExamRegistrationDTO profile, String sbd,
             int examId, String webRoot, List<ExamSummaryDTO> allExams) {
         ProcedureActionOutcome outcome = new ProcedureActionOutcome();
