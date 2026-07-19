@@ -81,7 +81,7 @@ public class DossierDetailServlet extends HttpServlet {
 
     private static String normalizeStatusFilter(String value) {
         String filter = value == null ? "pending" : value.trim().toLowerCase(java.util.Locale.ROOT);
-        return Set.of("all", "pending", "supplement", "approved", "rejected", "present", "completed")
+        return Set.of("all", "pending", "approved", "rejected", "present", "completed")
                 .contains(filter) ? filter : "pending";
     }
 

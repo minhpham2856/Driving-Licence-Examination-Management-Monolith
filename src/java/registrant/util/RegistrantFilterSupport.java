@@ -188,20 +188,27 @@ public final class RegistrantFilterSupport {
     }
 
     private static final Map<String, StatusDefinition> DASHBOARD_STATUS = linkedStatusMap(
-            registeredStatus("pending", "Chờ xét duyệt",
-                    exam -> exam.isSbdPending() || "pending".equals(exam.getStatusClass())),
+            registeredStatus("pending", "Chờ xét duyệt / chờ thông báo",
+                    exam -> exam.isPreferredDate()
+                            || exam.isSbdPending()
+                            || "pending".equals(exam.getStatusClass())),
             registeredStatus("approved_waiting", "Được xét duyệt chờ thi",
-                    exam -> "info".equals(exam.getStatusClass()) && !exam.isSbdPending()),
+                    exam -> !exam.isPreferredDate()
+                            && "info".equals(exam.getStatusClass())
+                            && !exam.isSbdPending()),
             registeredStatus("passed", "Đã hoàn thành", exam -> "approved".equals(exam.getStatusClass())),
             registeredStatus("failed", "Không đạt / từ chối",
                     exam -> "rejected".equals(exam.getStatusClass()) || "danger".equals(exam.getStatusClass()))
     );
 
     private static final Map<String, StatusDefinition> MY_EXAMS_STATUS = linkedStatusMap(
-            myExamStatus("pending", "Chờ xét duyệt",
-                    exam -> exam.isSbdPending() || "Chờ xét duyệt".equals(exam.getStatusLabel())),
+            myExamStatus("pending", "Chờ xét duyệt / chờ thông báo",
+                    exam -> exam.isPreferredDate()
+                            || exam.isSbdPending()
+                            || "Chờ xét duyệt".equals(exam.getStatusLabel())
+                            || RegistrantExamSupport.PREFERRED_DATE_STATUS_LABEL.equals(exam.getStatusLabel())),
             myExamStatus("approved_waiting", "Chờ đến ngày thi",
-                    exam -> "Được xét duyệt".equals(exam.getStatusLabel())),
+                    exam -> !exam.isPreferredDate() && "Được xét duyệt".equals(exam.getStatusLabel())),
             myExamStatus("awaiting_result", "Chờ công bố kết quả",
                     exam -> "Chờ công bố".equals(exam.getStatusLabel())
                             || "Đã thi".equals(exam.getStatusLabel())),

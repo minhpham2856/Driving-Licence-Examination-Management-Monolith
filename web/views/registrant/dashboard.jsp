@@ -112,7 +112,7 @@
                         </div>
                         <div>
                             <p class="r-stat-card__value">${registeredExams != null ? registeredExams : 0}</p>
-                            <p class="r-stat-card__label">Đợt thi đã đăng ký</p>
+                            <p class="r-stat-card__label">Đăng ký / nguyện vọng</p>
                         </div>
                     </div>
 
@@ -224,8 +224,8 @@
                                                 <c:choose>
                                                     <c:when test="${searchActive}">Không có đợt thi phù hợp với bộ lọc.</c:when>
                                                     <c:otherwise>
-                                                        Chưa có đợt thi đã đăng ký.
-                                                        <a href="${pageContext.request.contextPath}/registrant/register-exam">Đăng ký đợt thi mới</a>
+                                                        Chưa có nguyện vọng hoặc đợt thi đã đăng ký.
+                                                        <a href="${pageContext.request.contextPath}/registrant/register-exam">Đăng ký nguyện vọng</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </td>

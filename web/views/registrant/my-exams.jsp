@@ -179,13 +179,8 @@
                                     <td colspan="6" style="text-align:center;padding:2rem;color:#64748b;">
                                         <c:choose>
                                             <c:when test="${searchActive}">Không có kỳ thi phù hợp với bộ lọc.</c:when>
-                                            <c:when test="${not empty successMessage}">
-                                                Lịch thi chính thức và kết quả sẽ hiện tại đây sau khi trung tâm thông báo.
-                                                Vui lòng chờ thông báo từ phía trung tâm.
-                                            </c:when>
                                             <c:otherwise>
-                                                Chưa có kỳ thi chính thức nào.
-                                                Nếu bạn đã gửi nguyện vọng ngày thi, vui lòng chờ thông báo từ phía trung tâm.
+                                                Chưa có nguyện vọng hoặc kỳ thi chính thức nào.
                                                 <a href="${pageContext.request.contextPath}/registrant/register-exam">Đăng ký nguyện vọng</a>
                                             </c:otherwise>
                                         </c:choose>
@@ -224,7 +219,12 @@
                                                 <span class="ticket-meta-value ticket-meta-value--badge">Hạng ${selectedExam.licenceClass}</span>
                                             </div>
                                             <div class="ticket-meta-item">
-                                                <span class="ticket-meta-label">Ngày thi</span>
+                                                <span class="ticket-meta-label">
+                                                    <c:choose>
+                                                        <c:when test="${selectedExam.preferredDate}">Ngày nguyện vọng</c:when>
+                                                        <c:otherwise>Ngày thi</c:otherwise>
+                                                    </c:choose>
+                                                </span>
                                                 <span class="ticket-meta-value">
                                                     <fmt:formatDate value="${selectedExam.examDate}" pattern="dd/MM/yyyy"/>
                                                 </span>
@@ -233,6 +233,9 @@
                                                 <span class="ticket-meta-label">Giờ ca thi</span>
                                                 <span class="ticket-meta-value">
                                                     <c:choose>
+                                                        <c:when test="${selectedExam.preferredDate}">
+                                                            Chờ thông báo từ phía trung tâm
+                                                        </c:when>
                                                         <c:when test="${selectedExam.sessionTimePublished and not empty selectedExam.sessionTimeDisplay}">
                                                             ${selectedExam.sessionTimeDisplay}
                                                         </c:when>
@@ -266,6 +269,19 @@
                                     </div>
                                 </div>
 
+                                <c:if test="${selectedExam.preferredDate}">
+                                    <div class="exam-details-card" style="margin-top:1rem;">
+                                        <div class="exam-details-card__body">
+                                            <p class="placeholder-text" style="margin:0;">
+                                                Đây là <strong>ngày thi nguyện vọng</strong> bạn đã đăng ký.
+                                                Lịch thi chính thức, số báo danh và kết quả sát hạch sẽ được cập nhật sau khi
+                                                <strong>trung tâm thông báo</strong>. Vui lòng chờ thông báo từ phía trung tâm.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </c:if>
+
+                                <c:if test="${not selectedExam.preferredDate}">
                                 <div class="exam-details-cards-wrap">
                                     <div class="exam-details-card exam-details-card--right">
                                         <div class="exam-details-card__header">
@@ -380,6 +396,7 @@
                                         </div>
                                     </c:if>
                                 </div>
+                                </c:if>
 
                                 <c:if test="${selectedExam.canRequestCancellation or selectedExam.cancelRequested}">
                                     <div class="exam-details-card exam-details-card--cancel">

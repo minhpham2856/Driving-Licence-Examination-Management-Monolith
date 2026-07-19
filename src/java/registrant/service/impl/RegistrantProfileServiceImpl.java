@@ -44,7 +44,9 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         request.setAttribute("hasProfile", true);
         request.setAttribute("registrantName", profile.getFullName());
         if (profile.getDateOfBirth() != null) {
-            request.setAttribute("birthday", profile.getDateOfBirth().toString());
+            // <input type="date"> cần yyyy-MM-dd; Timestamp.toString() có giờ nên trình duyệt bỏ trống
+            request.setAttribute("birthday",
+                    profile.getDateOfBirth().toLocalDateTime().toLocalDate().toString());
         }
         request.setAttribute("gender", profile.isSex() ? "Nữ" : "Nam");
         request.setAttribute("phone", profile.getPhoneNumber());

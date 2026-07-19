@@ -36,7 +36,7 @@
             <header class="page-header">
                 <div class="page-title-wrap">
                     <h1 class="page-title"><c:out value="${dossier.profile.fullName}" /></h1>
-                    <p class="page-subtitle">CCCD: <c:out value="${dossier.profile.govIdNo}" /> · Hạng <c:out value="${dossier.licenceDisplayClass}" /></p>
+                    <p class="page-subtitle">CCCD: <c:out value="${dossier.profile.govIdNo}" /></p>
                 </div>
                 <div class="page-actions" style="display:flex;gap:.75rem">
                     <a class="btn-export" href="${ctx}/manager/dossier-detail?registrationId=${dossier.registrationId}"
@@ -104,7 +104,7 @@
                         <h3>Quyết định thẩm định</h3>
                         <c:if test="${not dossier.complete}">
                             <div class="p-alert-banner" style="border-color:#f59e0b;color:#92400e;margin:1rem 0">
-                                Hồ sơ hạng ${dossier.licenceDisplayClass} cần đủ ${dossier.requiredDocumentTotal} giấy tờ mới có thể duyệt.
+                                Hồ sơ cần đủ ${dossier.requiredDocumentTotal} giấy tờ mới có thể duyệt.
                             </div>
                         </c:if>
                         <form action="${ctx}/manager/dossiers" method="post" style="width:100%">
@@ -132,14 +132,13 @@
             <section class="log-card">
                 <div class="table-responsive">
                     <table class="audit-table">
-                        <thead><tr><th>Mã</th><th>Họ tên</th><th>CCCD</th><th>Hạng</th><th>Tài liệu</th><th>Trạng thái</th><th></th></tr></thead>
+                        <thead><tr><th>Mã</th><th>Họ tên</th><th>CCCD</th><th>Tài liệu</th><th>Trạng thái</th><th></th></tr></thead>
                         <tbody>
                         <c:forEach var="item" items="${dossiers}">
                             <tr>
                                 <td>#${item.registrationId}</td>
                                 <td><strong><c:out value="${item.profile.fullName}" /></strong></td>
                                 <td><c:out value="${item.profile.govIdNo}" /></td>
-                                <td><c:out value="${item.licenceDisplayClass}" /></td>
                                 <td>${item.documentCount}/${item.requiredDocumentTotal}</td>
                                 <td><span class="action-badge action-badge--${item.statusKey}">${item.statusLabel}</span></td>
                                 <td>
@@ -153,7 +152,7 @@
                             </tr>
                         </c:forEach>
                         <c:if test="${empty dossiers}">
-                            <tr><td colspan="7" style="text-align:center;padding:2rem">Không có hồ sơ chờ duyệt.</td></tr>
+                            <tr><td colspan="6" style="text-align:center;padding:2rem">Không có hồ sơ chờ duyệt.</td></tr>
                         </c:if>
                         </tbody>
                     </table>
