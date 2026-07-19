@@ -12,5 +12,5 @@ public interface TentativeExamDateDAO {
     List<Integer> findRegistrationIds(int examDateId, int page, int pageSize);
     List<Integer> findAllRegistrationIds(int examDateId);
     int countRegistrations(int examDateId);
-    boolean deleteIfUnused(int examDateId);
+    int cancel(int examDateId, String reason, int cancelledByUserId);
 }

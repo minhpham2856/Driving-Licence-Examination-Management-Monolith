@@ -35,7 +35,9 @@ public class AuditLogExcelServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         UserDTO currentUser = requireManager(request, response);
-        if (currentUser == null) return;
+        if (currentUser == null) {
+            return;
+        }
 
         String keyword = Sanitize.text(request.getParameter("keyword"));
         String action = normalizeAction(request.getParameter("action"));
@@ -74,7 +76,9 @@ public class AuditLogExcelServlet extends HttpServlet {
 
     private static String validDate(String value) {
         String date = Sanitize.text(value);
-        if (date.isEmpty()) return "";
+        if (date.isEmpty()) {
+            return "";
+        }
         try {
             return LocalDate.parse(date).toString();
         } catch (DateTimeParseException ignored) {
