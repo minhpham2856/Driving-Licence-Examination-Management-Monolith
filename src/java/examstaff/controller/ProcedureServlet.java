@@ -197,7 +197,7 @@ public class ProcedureServlet extends HttpServlet {
         if (profile != null) {
             request.setAttribute("profile", profile);
             ExamStaffPageBinder.bindProcedureFees(request, procedureService.resolveProcedureFees(profile));
-            viewService.resolveCapturedPhoto(webRoot, profile);
+            viewService.resolveCapturedPhoto(profile);
             hasValidPhoto = profile.isValidCapturedPhoto();
         }
 

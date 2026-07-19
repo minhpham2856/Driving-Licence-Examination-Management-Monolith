@@ -60,7 +60,7 @@ public class ReportServlet extends HttpServlet {
         ExamStaffHttpSupport.consumeFlash(session, "examControlError", request, "examControlError");
 
         // 2) Phân tích thiếu ảnh / chưa xong thủ tục
-        ExamReportProcedureStatusDTO procedureStatus = viewService.analyzeProcedureStatus(qList, webRoot);
+        ExamReportProcedureStatusDTO procedureStatus = viewService.analyzeProcedureStatus(qList);
         if (procedureStatus != null) {
             request.setAttribute("missingPhotoCount", procedureStatus.getMissingPhotoCount());
             request.setAttribute("missingPhotoSbds", procedureStatus.getMissingPhotoSbds());

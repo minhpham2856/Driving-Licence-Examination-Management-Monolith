@@ -174,32 +174,29 @@ public interface ExamStaffViewService {
     /**
      * Load hồ sơ chi tiết thí sinh (dossier).
      *
-     * @param examId  mã kỳ thi
-     * @param sbd     số báo danh
-     * @param webRoot thư mục gốc web
+     * @param examId mã kỳ thi
+     * @param sbd    số báo danh
      * @return DTO dossier
      */
-    CandidateDossierViewDTO loadDossier(int examId, String sbd, String webRoot);
+    CandidateDossierViewDTO loadDossier(int examId, String sbd);
 
     /**
      * Resolve luồng ảnh thí sinh để stream / hiển thị.
      *
-     * @param webRoot        thư mục gốc web
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh
      * @return DTO stream ảnh
      */
-    CandidatePhotoStreamDTO resolvePhoto(String webRoot, int examId, int fallbackExamId, String sbd);
+    CandidatePhotoStreamDTO resolvePhoto(int examId, int fallbackExamId, String sbd);
 
     /**
      * Kiểm tra / gắn cờ ảnh thủ tục đã chụp hợp lệ trên hồ sơ.
      *
-     * @param webRoot thư mục gốc web
-     * @param reg     hồ sơ thí sinh
+     * @param reg hồ sơ thí sinh
      * @return {@code true} nếu có ảnh hợp lệ
      */
-    boolean resolveCapturedPhoto(String webRoot, ExamRegistrationDTO reg);
+    boolean resolveCapturedPhoto(ExamRegistrationDTO reg);
 
     /**
      * Tính thống kê báo cáo từ danh sách thí sinh.
@@ -214,10 +211,9 @@ public interface ExamStaffViewService {
      * Phân tích trạng thái hoàn tất thủ tục của danh sách thí sinh.
      *
      * @param candidates danh sách thí sinh
-     * @param webRoot    thư mục gốc web
      * @return DTO trạng thái thủ tục
      */
-    ExamReportProcedureStatusDTO analyzeProcedureStatus(List<ExamRegistrationDTO> candidates, String webRoot);
+    ExamReportProcedureStatusDTO analyzeProcedureStatus(List<ExamRegistrationDTO> candidates);
 
     /**
      * Ghép trang audit (ủy quyền sang audit page service).

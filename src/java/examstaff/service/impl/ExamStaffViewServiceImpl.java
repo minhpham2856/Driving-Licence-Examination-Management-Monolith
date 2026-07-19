@@ -302,40 +302,37 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     /**
      * Ủy quyền sang {@link CandidateDossierServiceImpl#loadDossier}.
      *
-     * @param examId  mã kỳ thi
-     * @param sbd     số báo danh
-     * @param webRoot thư mục gốc web
+     * @param examId mã kỳ thi
+     * @param sbd    số báo danh
      * @return DTO dossier
      */
     @Override
-    public CandidateDossierViewDTO loadDossier(int examId, String sbd, String webRoot) {
-        return dossiers.loadDossier(examId, sbd, webRoot);
+    public CandidateDossierViewDTO loadDossier(int examId, String sbd) {
+        return dossiers.loadDossier(examId, sbd);
     }
 
     /**
      * Ủy quyền sang {@link CandidatePhotoServiceImpl#resolvePhoto}.
      *
-     * @param webRoot        thư mục gốc web
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh
      * @return DTO stream ảnh
      */
     @Override
-    public CandidatePhotoStreamDTO resolvePhoto(String webRoot, int examId, int fallbackExamId, String sbd) {
-        return photos.resolvePhoto(webRoot, examId, fallbackExamId, sbd);
+    public CandidatePhotoStreamDTO resolvePhoto(int examId, int fallbackExamId, String sbd) {
+        return photos.resolvePhoto(examId, fallbackExamId, sbd);
     }
 
     /**
      * Ủy quyền sang {@link CandidatePhotoServiceImpl#resolveCapturedPhoto}.
      *
-     * @param webRoot thư mục gốc web
-     * @param reg     hồ sơ thí sinh
+     * @param reg hồ sơ thí sinh
      * @return {@code true} nếu có ảnh hợp lệ
      */
     @Override
-    public boolean resolveCapturedPhoto(String webRoot, ExamRegistrationDTO reg) {
-        return photos.resolveCapturedPhoto(webRoot, reg);
+    public boolean resolveCapturedPhoto(ExamRegistrationDTO reg) {
+        return photos.resolveCapturedPhoto(reg);
     }
 
     /**
@@ -354,13 +351,11 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
      * Ủy quyền sang {@link ExamReportProcedureStatusServiceImpl#analyze}.
      *
      * @param candidates danh sách thí sinh
-     * @param webRoot    thư mục gốc web
      * @return trạng thái thủ tục
      */
     @Override
-    public ExamReportProcedureStatusDTO analyzeProcedureStatus(List<ExamRegistrationDTO> candidates,
-            String webRoot) {
-        return procedureStatus.analyze(candidates, webRoot);
+    public ExamReportProcedureStatusDTO analyzeProcedureStatus(List<ExamRegistrationDTO> candidates) {
+        return procedureStatus.analyze(candidates);
     }
 
     /**

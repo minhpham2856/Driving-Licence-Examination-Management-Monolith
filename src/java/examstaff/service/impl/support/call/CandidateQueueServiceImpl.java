@@ -79,9 +79,7 @@ public class CandidateQueueServiceImpl {
 
         // Mutate: tải → chuẩn hóa ảnh → cờ pass → reorder
         List<ExamRegistrationDTO> qList = loadCandidates(examId, examId, allExams);
-        if (input.getWebRoot() != null) {
-            queueQuery.normalizePhotoPaths(input.getWebRoot(), qList);
-        }
+        queueQuery.normalizePhotoPaths(qList);
         for (ExamRegistrationDTO c : qList) {
             AllocationPassRules.applyToCandidate(c);
         }
