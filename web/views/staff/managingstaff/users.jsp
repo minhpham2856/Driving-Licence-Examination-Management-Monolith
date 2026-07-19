@@ -106,16 +106,14 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label class="input-label" for="dossierStatus">Trạng thái hồ sơ</label>
+                    <label class="input-label" for="dossierStatus">Trạng thái thí sinh</label>
                     <select class="input-field" id="dossierStatus" name="dossierStatus">
                         <option value="">Tất cả</option>
-                        <option value="Draft" ${param.dossierStatus eq 'Draft' ? 'selected' : ''}>Bản nháp</option>
-                        <option value="Pending" ${param.dossierStatus eq 'Pending' ? 'selected' : ''}>Chờ duyệt</option>
-                        <option value="NeedSupplement" ${param.dossierStatus eq 'NeedSupplement' ? 'selected' : ''}>Cần bổ sung</option>
-                        <option value="Approved" ${param.dossierStatus eq 'Approved' ? 'selected' : ''}>Đã duyệt</option>
+                        <option value="Approved" ${param.dossierStatus eq 'Approved' ? 'selected' : ''}>Chờ chọn ngày dự kiến</option>
+                        <option value="WaitingExam" ${param.dossierStatus eq 'WaitingExam' ? 'selected' : ''}>Chờ lịch thi chính thức</option>
+                        <option value="OfficialScheduled" ${param.dossierStatus eq 'OfficialScheduled' ? 'selected' : ''}>Đã có lịch thi chính thức</option>
+                        <option value="Completed" ${param.dossierStatus eq 'Completed' ? 'selected' : ''}>Đã thi</option>
                         <option value="Rejected" ${param.dossierStatus eq 'Rejected' ? 'selected' : ''}>Đã từ chối</option>
-                        <option value="Present" ${param.dossierStatus eq 'Present' ? 'selected' : ''}>Đang tham gia thi</option>
-                        <option value="Completed" ${param.dossierStatus eq 'Completed' ? 'selected' : ''}>Đã thi xong</option>
                     </select>
                 </div>
                 <div class="input-group">

@@ -20,7 +20,7 @@ import java.util.Set;
 public class ManagementReportServlet extends HttpServlet {
 
     private static final String VIEW = "/views/staff/managingstaff/report.jsp";
-    private static final Set<String> GROUPS = Set.of("exam", "month", "year");
+    private static final Set<String> GROUPS = Set.of("month", "year");
     private static final Set<String> LICENCE_CLASSES = Set.of("A1", "A", "B1");
 
     private final ManagementReportDAO reportDAO = new ManagementReportDAOImpl();
@@ -32,15 +32,13 @@ public class ManagementReportServlet extends HttpServlet {
 
         String periodGroup = normalizeGroup(request.getParameter("periodGroup"));
         String licenceClass = normalizeLicence(request.getParameter("licenceClass"));
-        int examId = parsePositiveInt(request.getParameter("examId"));
-
         List<Integer> availableYears = reportDAO.findAvailableYears();
         int defaultYear = availableYears.isEmpty() ? Year.now().getValue() : availableYears.get(0);
         int selectedYear = parsePositiveInt(request.getParameter("year"));
         if (selectedYear <= 0) selectedYear = defaultYear;
 
         List<ManagementReportRowDTO> rows = reportDAO.findReportRows(
-                periodGroup, examId, selectedYear, licenceClass);
+                periodGroup, 0, selectedYear, licenceClass);
 
         int total = rows.stream().mapToInt(ManagementReportRowDTO::getTotalCount).sum();
         int passed = rows.stream().mapToInt(ManagementReportRowDTO::getPassCount).sum();
@@ -51,10 +49,9 @@ public class ManagementReportServlet extends HttpServlet {
 
         request.setAttribute("reportReady", true);
         request.setAttribute("reportData", rows);
-        request.setAttribute("examOptions", reportDAO.findExamOptions());
+        request.setAttribute("trendData", rows);
         request.setAttribute("availableYears", availableYears);
         request.setAttribute("periodGroup", periodGroup);
-        request.setAttribute("selectedExamId", examId);
         request.setAttribute("selectedYear", selectedYear);
         request.setAttribute("selectedLicence", licenceClass);
         request.setAttribute("periodGroupLabel", groupLabel(periodGroup));
@@ -80,8 +77,8 @@ public class ManagementReportServlet extends HttpServlet {
     }
 
     private static String normalizeGroup(String value) {
-        String group = value == null ? "exam" : value.trim().toLowerCase(Locale.ROOT);
-        return GROUPS.contains(group) ? group : "exam";
+        String group = value == null ? "month" : value.trim().toLowerCase(Locale.ROOT);
+        return GROUPS.contains(group) ? group : "month";
     }
 
     private static String normalizeLicence(String value) {
@@ -102,7 +99,7 @@ public class ManagementReportServlet extends HttpServlet {
         return switch (group) {
             case "month" -> "Theo tháng";
             case "year" -> "Theo năm";
-            default -> "Theo kỳ thi";
+            default -> "Theo tháng";
         };
     }
 }

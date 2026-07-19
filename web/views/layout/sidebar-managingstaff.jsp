@@ -23,6 +23,9 @@
         <c:when test="${fn:contains(pageContext.request.requestURI, 'exam-schedules') or fn:contains(pageContext.request.requestURI, '/manager/exam-schedules')}">
             <c:set var="activeSidebar" value="phien-thi" />
         </c:when>
+        <c:when test="${fn:contains(pageContext.request.requestURI, 'tentative-exam-dates')}">
+            <c:set var="activeSidebar" value="ngay-du-kien" />
+        </c:when>
         <c:when test="${fn:contains(pageContext.request.requestURI, 'report')}">
             <c:set var="activeSidebar" value="bao-cao" />
         </c:when>
@@ -108,6 +111,15 @@
                 </svg>
             </span>
             <span class="side-nav-bar__label" data-node-id="manager:31">Duyệt hồ sơ</span>
+        </a>
+
+        <a href="${ctx}/manager/tentative-exam-dates"
+           class="side-nav-bar__link${activeSidebar eq 'ngay-du-kien' ? ' is-active' : ''}"
+           <c:if test="${activeSidebar eq 'ngay-du-kien'}">aria-current="page"</c:if>>
+            <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 2v4M16 2v4M3 10h18M8 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+            <span class="side-nav-bar__label">Ngày thi dự kiến</span>
         </a>
 
         <a href="${ctx}/manager/exam-schedules"

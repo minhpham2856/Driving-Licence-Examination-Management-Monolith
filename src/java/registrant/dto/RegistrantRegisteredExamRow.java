@@ -27,6 +27,9 @@ public class RegistrantRegisteredExamRow {
     private Date sessionEnd;
     private boolean sessionTimePublished;
 
+    /** True = dòng nguyện vọng từ RegistrationDates/ExamDates (chưa phải kỳ chính thức). */
+    private boolean preferredDate;
+
     public int getId() {
         return id;
     }
@@ -137,5 +140,13 @@ public class RegistrantRegisteredExamRow {
 
     public void setSessionTimePublished(boolean sessionTimePublished) {
         this.sessionTimePublished = sessionTimePublished;
+    }
+
+    public boolean isPreferredDate() {
+        return preferredDate;
+    }
+
+    public void setPreferredDate(boolean preferredDate) {
+        this.preferredDate = preferredDate;
     }
 }
