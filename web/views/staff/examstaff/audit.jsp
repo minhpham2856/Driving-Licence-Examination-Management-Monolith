@@ -20,7 +20,7 @@
         <c:if test="${param.exportError eq '1'}">
             <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
                 <p style="margin: 0; font-size: 0.85rem; color: #991b1b; font-weight: 600;">
-                    Không xuất được file Excel. Hãy Clean and Build lại project (để copy thư viện POI vào WEB-INF/lib) rồi thử lại.
+                    Không xuất được file Excel.
                 </p>
             </div>
         </c:if>
@@ -95,7 +95,6 @@
                     <span class="stat-trend stat-trend--up">
                         <c:choose>
                             <c:when test="${not empty param.filterDate}">Trong ngày ${param.filterDate}</c:when>
-                            <c:otherwise>Lịch sử tất cả thời gian</c:otherwise>
                         </c:choose>
                     </span>
                 </div>
@@ -111,7 +110,6 @@
                 <div class="stat-info">
                     <span class="stat-number" style="color: #7e22ce;">${requestScope.myCompletedProcedures}</span>
                     <span class="stat-label">Thí sinh đã làm thủ tục</span>
-                    <span class="stat-trend stat-trend--up">Theo log thu lệ phí thủ tục do bạn ghi nhận</span>
                 </div>
             </div>
 
@@ -126,7 +124,6 @@
                         <fmt:formatNumber value="${requestScope.myTotalFees}" type="number" /> đ
                     </span>
                     <span class="stat-label">Lệ phí đã xác nhận thu</span>
-                    <span class="stat-trend stat-trend--up">Tổng từ Payment_Fee (hoặc TotalAmount) của các lần thu bạn ghi log</span>
                 </div>
             </div>
         </section>
