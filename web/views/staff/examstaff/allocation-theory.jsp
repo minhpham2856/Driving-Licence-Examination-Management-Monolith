@@ -78,12 +78,12 @@
                                         <c:choose>
                                             <c:when test="${c.theoryPassed eq 'passed'}">Đạt</c:when>
                                             <c:when test="${c.theoryPassed eq 'failed'}">Không đạt</c:when>
-                                            <c:otherwise>Đã chấm</c:otherwise>
+                                            <c:otherwise>Đã xong</c:otherwise>
                                         </c:choose>
                                     </span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="es-text-muted-sm">Chờ sát hạch viên chấm</span>
+                                    <span class="es-text-muted-sm">chưa thi xong</span>
                                 </c:otherwise>
                             </c:choose>
                         </td>
