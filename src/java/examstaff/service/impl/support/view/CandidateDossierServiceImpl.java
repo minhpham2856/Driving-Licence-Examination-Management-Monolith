@@ -24,12 +24,11 @@ public class CandidateDossierServiceImpl {
     /**
      * Tải view hồ sơ thí sinh theo kỳ thi và SBD.
      *
-     * @param examId  mã kỳ thi
-     * @param sbd     số báo danh
-     * @param webRoot thư mục gốc web (ảnh, tài liệu)
+     * @param examId mã kỳ thi
+     * @param sbd    số báo danh
      * @return DTO hồ sơ hiển thị, hoặc null nếu không có
      */
-    public CandidateDossierViewDTO loadDossier(int examId, String sbd, String webRoot) {
+    public CandidateDossierViewDTO loadDossier(int examId, String sbd) {
         CandidateDossierViewDTO view = new CandidateDossierViewDTO();
         // Validate
         if (sbd == null || sbd.isBlank()) {
@@ -43,7 +42,7 @@ public class CandidateDossierServiceImpl {
         }
 
         // Mutate: ảnh, phí, hạng, nhãn dossier
-        photoService.normalizePhotoPaths(webRoot, List.of(profile));
+        photoService.normalizePhotoPaths(List.of(profile));
         ProcedureFeeResultDTO fees = procedureFeeQueryService.resolveProcedureFees(profile);
         ExamSummaryDTO examSummary = examQueryService.findByExamId(profile.getExamId());
 
@@ -58,7 +57,7 @@ public class CandidateDossierServiceImpl {
         view.setProfile(profile);
         view.setExam(examSummary);
         view.setFees(fees);
-        view.setHasPhotoFile(photoService.photoFileExists(webRoot, profile.getPhotoUrl()));
+        view.setHasPhotoFile(photoService.photoFileExists(profile.getPhotoUrl()));
         view.setDossierTitle(ExamStaffLabels.resolveTitle(licenseCode));
         view.setDossierSubtitle(ExamStaffLabels.resolveSubtitle(licenseCode));
         return view;

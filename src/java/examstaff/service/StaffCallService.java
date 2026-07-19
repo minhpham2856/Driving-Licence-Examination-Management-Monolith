@@ -96,12 +96,11 @@ public interface StaffCallService {
     /**
      * Load snapshot Public Call (màn hình chờ công khai).
      *
-     * @param examId      mã kỳ thi
-     * @param webRootPath thư mục gốc web
-     * @param board       trạng thái CallBoard
+     * @param examId mã kỳ thi
+     * @param board  trạng thái CallBoard
      * @return snapshot public
      */
-    PublicCallSnapshotDTO loadPublicSnapshot(int examId, String webRootPath, CallBoardState board);
+    PublicCallSnapshotDTO loadPublicSnapshot(int examId, CallBoardState board);
 
     /**
      * Xây snapshot hàng đợi nội bộ staff.

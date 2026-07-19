@@ -38,8 +38,7 @@ public class CandidatePhotoServlet extends HttpServlet {
         }
 
         int examId = ExamStaffPageSupport.resolveExamId(request, request.getSession(), null, 0, viewService);
-        CandidatePhotoStreamDTO photo = viewService.resolvePhoto(
-                request.getServletContext().getRealPath("/"), examId, examId, sbd.trim());
+        CandidatePhotoStreamDTO photo = viewService.resolvePhoto(examId, examId, sbd.trim());
 
         if (photo.getStatus() != CandidatePhotoStreamDTO.Status.FOUND) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);

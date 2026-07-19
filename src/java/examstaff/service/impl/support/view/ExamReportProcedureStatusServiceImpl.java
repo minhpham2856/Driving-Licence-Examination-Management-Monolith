@@ -14,10 +14,9 @@ public class ExamReportProcedureStatusServiceImpl {
      * Phân loại / tổng hợp trạng thái thủ tục (ảnh, thanh toán, …) trong danh sách.
      *
      * @param candidates danh sách thí sinh
-     * @param webRoot    thư mục gốc web để kiểm tra ảnh vật lý nếu cần
      * @return DTO trạng thái thủ tục báo cáo
      */
-    public ExamReportProcedureStatusDTO analyze(List<ExamRegistrationDTO> candidates, String webRoot) {
+    public ExamReportProcedureStatusDTO analyze(List<ExamRegistrationDTO> candidates) {
         ExamReportProcedureStatusDTO status = new ExamReportProcedureStatusDTO();
         List<String> missingPhotoSbds = new ArrayList<>();
         List<ExamRegistrationDTO> missingPhotoCandidates = new ArrayList<>();
@@ -30,7 +29,7 @@ public class ExamReportProcedureStatusServiceImpl {
         // Mutate: duyệt danh sách → phân loại hoàn tất / pending / thiếu ảnh
         if (candidates != null) {
             for (ExamRegistrationDTO reg : candidates) {
-                boolean valid = photoService.resolveCapturedPhoto(webRoot, reg);
+                boolean valid = photoService.resolveCapturedPhoto(reg);
                 if (reg.isAbsent()) {
                     continue;
                 }

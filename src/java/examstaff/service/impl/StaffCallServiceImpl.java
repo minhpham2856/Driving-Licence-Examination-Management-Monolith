@@ -217,7 +217,7 @@ public class StaffCallServiceImpl implements StaffCallService {
      * @return snapshot public
      */
     @Override
-    public PublicCallSnapshotDTO loadPublicSnapshot(int examId, String webRootPath, CallBoardState board) {
+    public PublicCallSnapshotDTO loadPublicSnapshot(int examId, CallBoardState board) {
         // Validate / init
         PublicCallSnapshotDTO snapshot = new PublicCallSnapshotDTO();
         snapshot.setExamId(examId);
@@ -229,7 +229,7 @@ public class StaffCallServiceImpl implements StaffCallService {
 
         // Load
         List<ExamRegistrationDTO> queue = queueQuery.listByExamId(examId);
-        queueQuery.normalizePhotoPaths(webRootPath, queue);
+        queueQuery.normalizePhotoPaths(queue);
         if (board != null && board.getQueueOrderSbds() != null && !board.getQueueOrderSbds().isEmpty()) {
             queue = CallQueueRules.applyQueueOrder(queue, board.getQueueOrderSbds());
         }

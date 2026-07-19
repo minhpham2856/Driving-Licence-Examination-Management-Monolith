@@ -44,8 +44,7 @@ public class PublicCallServlet extends HttpServlet {
                 ExamStaffHttpSupport.readSelectedExamId(request),
                 staffCall.getActiveCallExamId(dao));
         CallBoardState board = staffCall.getBoardState(dao, examId);
-        PublicCallSnapshotDTO snapshot = staffCall.loadPublicSnapshot(
-                examId, request.getServletContext().getRealPath("/"), board);
+        PublicCallSnapshotDTO snapshot = staffCall.loadPublicSnapshot(examId, board);
 
         PublicCallSnapshotSupport.bindRequest(request, snapshot);
         request.getRequestDispatcher("/views/public/public-call.jsp").forward(request, response);

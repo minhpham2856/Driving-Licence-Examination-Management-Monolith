@@ -43,8 +43,7 @@ public class PublicCallStateServlet extends HttpServlet {
                 ExamStaffHttpSupport.readSelectedExamId(request),
                 staffCall.getActiveCallExamId(dao));
         CallBoardState board = staffCall.getBoardState(dao, examId);
-        PublicCallSnapshotDTO snapshot = staffCall.loadPublicSnapshot(
-                examId, request.getServletContext().getRealPath("/"), board);
+        PublicCallSnapshotDTO snapshot = staffCall.loadPublicSnapshot(examId, board);
 
         Utf8EncodingHelper.applyJson(response);
         response.setHeader("Cache-Control", "no-store");
