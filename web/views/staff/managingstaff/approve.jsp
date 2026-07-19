@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
 </head>
-<body class="has-side-nav-bar">
+<body class="has-side-nav-bar dossier-review-page">
 <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
     <jsp:param name="activeSidebar" value="duyet-ho-so" />
 </jsp:include>
@@ -36,7 +36,7 @@
             <header class="page-header">
                 <div class="page-title-wrap">
                     <h1 class="page-title"><c:out value="${dossier.profile.fullName}" /></h1>
-                    <p class="page-subtitle">CCCD: <c:out value="${dossier.profile.govIdNo}" /></p>
+                    <p class="page-subtitle">CCCD: <c:out value="${dossier.profile.govIdNo}" /> · Hạng GPLX: <strong><c:out value="${empty dossier.licenceDisplayClass ? 'Chưa xác định' : dossier.licenceDisplayClass}" /></strong></p>
                 </div>
                 <div class="page-actions" style="display:flex;gap:.75rem">
                     <a class="btn-export" href="${ctx}/manager/dossier-detail?registrationId=${dossier.registrationId}"
@@ -45,29 +45,45 @@
                        style="display:inline-flex;text-decoration:none">Quay lại danh sách</a>
                 </div>
             </header>
-            <div class="profile-grid">
+            <c:set var="defaultDocument" value="${dossier.documents['PORTRAIT']}" />
+            <c:set var="defaultDocumentLabel" value="Ảnh chân dung 3x4" />
+            <c:if test="${empty defaultDocument}">
+                <c:set var="defaultDocument" value="${dossier.documents['ID_FRONT']}" />
+                <c:set var="defaultDocumentLabel" value="CCCD mặt trước" />
+            </c:if>
+            <c:if test="${empty defaultDocument}">
+                <c:set var="defaultDocument" value="${dossier.documents['ID_BACK']}" />
+                <c:set var="defaultDocumentLabel" value="CCCD mặt sau" />
+            </c:if>
+            <c:if test="${empty defaultDocument}">
+                <c:set var="defaultDocument" value="${dossier.documents['HEALTH_CERTIFICATE']}" />
+                <c:set var="defaultDocumentLabel" value="Giấy khám sức khỏe" />
+            </c:if>
+            <div class="profile-grid dossier-review-grid">
                 <section class="profile-main-content">
-                    <div class="log-card">
+                    <div class="log-card dossier-documents-card">
                         <div class="log-card-header"><h2 class="log-card-title">Tài liệu đã nộp (${dossier.documentCount}/${dossier.requiredDocumentTotal})</h2></div>
-                        <div class="report-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));padding:1.5rem">
+                        <div class="report-grid dossier-document-grid">
                             <c:set var="documentTypes" value="PORTRAIT,ID_FRONT,ID_BACK,HEALTH_CERTIFICATE" />
                             <c:forTokens var="type" items="${documentTypes}" delims=",">
                                 <c:set var="document" value="${dossier.documents[type]}" />
-                                <div class="profile-score-card" style="align-items:flex-start;min-height:120px">
-                                    <strong>
-                                        <c:choose>
-                                            <c:when test="${type eq 'PORTRAIT'}">Ảnh chân dung 3x4</c:when>
-                                            <c:when test="${type eq 'ID_FRONT'}">CCCD mặt trước</c:when>
-                                            <c:when test="${type eq 'ID_BACK'}">CCCD mặt sau</c:when>
-                                            <c:otherwise>Giấy khám sức khỏe</c:otherwise>
-                                        </c:choose>
-                                    </strong>
+                                <c:set var="documentLabel">
+                                    <c:choose>
+                                        <c:when test="${type eq 'PORTRAIT'}">Ảnh chân dung 3x4</c:when>
+                                        <c:when test="${type eq 'ID_FRONT'}">CCCD mặt trước</c:when>
+                                        <c:when test="${type eq 'ID_BACK'}">CCCD mặt sau</c:when>
+                                        <c:otherwise>Giấy khám sức khỏe</c:otherwise>
+                                    </c:choose>
+                                </c:set>
+                                <div class="profile-score-card dossier-document-card">
+                                    <strong><c:out value="${documentLabel}" /></strong>
                                     <c:choose>
                                         <c:when test="${not empty document}">
                                             <span class="action-badge action-badge--success">Đã tải lên</span>
-                                            <a class="btn-export" target="_blank" rel="noopener"
+                                            <a class="btn-export js-document-preview"
                                                href="${ctx}/manager/document-view?id=${document.documentId}"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
+                                               data-document-label="${documentLabel}"
+                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Xem bên phải</a>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="action-badge action-badge--warning">Còn thiếu</span>
@@ -77,14 +93,15 @@
                             </c:forTokens>
                             <c:if test="${dossier.graduationCertificateRequired}">
                                 <c:set var="document" value="${dossier.documents['GRADUATION_CERTIFICATE']}" />
-                                <div class="profile-score-card" style="align-items:flex-start;min-height:120px">
+                                <div class="profile-score-card dossier-document-card">
                                     <strong>Giấy tốt nghiệp / chứng chỉ đào tạo</strong>
                                     <c:choose>
                                         <c:when test="${not empty document}">
                                             <span class="action-badge action-badge--success">Đã tải lên</span>
-                                            <a class="btn-export" target="_blank" rel="noopener"
+                                            <a class="btn-export js-document-preview"
                                                href="${ctx}/manager/document-view?id=${document.documentId}"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
+                                               data-document-label="Giấy tốt nghiệp / chứng chỉ đào tạo"
+                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Xem bên phải</a>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="action-badge action-badge--warning">Còn thiếu</span>
@@ -94,31 +111,56 @@
                             </c:if>
                         </div>
                     </div>
-                    <div class="report-pane" style="padding:1.5rem">
-                        <strong>Ghi chú hệ thống:</strong>
-                        <p><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú.' : dossier.reviewMessage}" /></p>
-                    </div>
-                </section>
-                <aside class="profile-sidebar">
-                    <div class="profile-sidebar-card">
-                        <h3>Quyết định thẩm định</h3>
-                        <c:if test="${not dossier.complete}">
-                            <div class="p-alert-banner" style="border-color:#f59e0b;color:#92400e;margin:1rem 0">
-                                Hồ sơ cần đủ ${dossier.requiredDocumentTotal} giấy tờ mới có thể duyệt.
+                    <section class="log-card dossier-decision-card dossier-decision-panel" aria-labelledby="dossierDecisionTitle">
+                        <div class="log-card-header"><h2 class="log-card-title" id="dossierDecisionTitle">Duyệt hồ sơ</h2></div>
+                        <div class="dossier-decision-card__body">
+                            <div class="report-pane dossier-licence-summary">
+                                <span>Hạng GPLX đề nghị duyệt</span>
+                                <strong><c:out value="${empty dossier.licenceDisplayClass ? 'Chưa xác định' : dossier.licenceDisplayClass}" /></strong>
                             </div>
-                        </c:if>
-                        <form action="${ctx}/manager/dossiers" method="post" style="width:100%">
-                            <input type="hidden" name="id" value="${dossier.registrationId}">
-                            <input type="hidden" name="returnPage" value="${currentPage}">
-                            <label><input type="radio" name="decision" value="approve"
-                                          ${dossier.complete ? 'checked' : 'disabled'}> Duyệt hồ sơ</label><br><br>
-                            <label><input type="radio" name="decision" value="reject"
-                                          ${not dossier.complete ? 'checked' : ''}> Từ chối</label><br><br>
-                            <label class="input-label" for="reason">Lý do/Ghi chú</label>
-                            <textarea class="input-field" id="reason" name="reason" rows="5"
-                                      style="height:auto" placeholder="Bắt buộc khi từ chối hồ sơ; nội dung này sẽ được gửi qua email."></textarea>
-                            <button class="btn-filter" type="submit" style="width:100%;margin-top:1rem">Xác nhận</button>
-                        </form>
+                            <c:if test="${not dossier.complete}">
+                                <div class="p-alert-banner dossier-review-warning">
+                                    Hồ sơ cần đủ ${dossier.requiredDocumentTotal} giấy tờ mới có thể duyệt.
+                                </div>
+                            </c:if>
+                            <form action="${ctx}/manager/dossiers" method="post" class="dossier-decision-form">
+                                <input type="hidden" name="id" value="${dossier.registrationId}">
+                                <input type="hidden" name="returnPage" value="${currentPage}">
+                                <div class="dossier-decision-choices">
+                                    <label class="dossier-decision-option">
+                                        <input type="radio" name="decision" value="approve"
+                                               ${dossier.complete and dossier.motorcycleLicence ? 'checked' : 'disabled'}>
+                                        <span><strong>Chấp nhận</strong><small>Duyệt hồ sơ và hạng GPLX</small></span>
+                                    </label>
+                                    <label class="dossier-decision-option dossier-decision-option--reject">
+                                        <input type="radio" name="decision" value="reject"
+                                               ${not dossier.complete ? 'checked' : ''}>
+                                        <span><strong>Từ chối</strong><small>Yêu cầu thí sinh hoàn thiện lại</small></span>
+                                    </label>
+                                </div>
+                                <label class="input-label" for="reason">Lý do/Ghi chú</label>
+                                <textarea class="input-field" id="reason" name="reason" rows="2"
+                                          placeholder="Bắt buộc khi từ chối hồ sơ; nội dung này sẽ được gửi qua email."></textarea>
+                                <button class="btn-filter" type="submit">Xác nhận</button>
+                            </form>
+                        </div>
+                    </section>
+                </section>
+                <aside class="profile-sidebar dossier-review-workspace">
+                    <div class="profile-sidebar-card dossier-review-workspace__card">
+                        <section class="dossier-preview-panel" aria-labelledby="documentPreviewLabel">
+                            <h3 id="documentPreviewLabel"><c:out value="${empty defaultDocument ? 'Xem trước tài liệu' : defaultDocumentLabel}" /></h3>
+                            <c:choose>
+                                <c:when test="${not empty defaultDocument}">
+                                    <iframe id="dossierDocumentPreview"
+                                            src="${ctx}/manager/document-view?id=${defaultDocument.documentId}"
+                                            title="Xem trước tài liệu hồ sơ"></iframe>
+                                </c:when>
+                                <c:otherwise>
+                                    <p class="dossier-preview-empty">Hồ sơ chưa có tài liệu để xem trước.</p>
+                                </c:otherwise>
+                            </c:choose>
+                        </section>
                     </div>
                 </aside>
             </div>
@@ -132,13 +174,14 @@
             <section class="log-card">
                 <div class="table-responsive">
                     <table class="audit-table">
-                        <thead><tr><th>Mã</th><th>Họ tên</th><th>CCCD</th><th>Tài liệu</th><th>Trạng thái</th><th></th></tr></thead>
+                        <thead><tr><th>Mã</th><th>Họ tên</th><th>CCCD</th><th>Hạng GPLX</th><th>Tài liệu</th><th>Trạng thái</th><th></th></tr></thead>
                         <tbody>
                         <c:forEach var="item" items="${dossiers}">
                             <tr>
                                 <td>#${item.registrationId}</td>
                                 <td><strong><c:out value="${item.profile.fullName}" /></strong></td>
                                 <td><c:out value="${item.profile.govIdNo}" /></td>
+                                <td><strong><c:out value="${empty item.licenceDisplayClass ? 'Chưa xác định' : item.licenceDisplayClass}" /></strong></td>
                                 <td>${item.documentCount}/${item.requiredDocumentTotal}</td>
                                 <td><span class="action-badge action-badge--${item.statusKey}">${item.statusLabel}</span></td>
                                 <td>
@@ -152,7 +195,7 @@
                             </tr>
                         </c:forEach>
                         <c:if test="${empty dossiers}">
-                            <tr><td colspan="6" style="text-align:center;padding:2rem">Không có hồ sơ chờ duyệt.</td></tr>
+                            <tr><td colspan="7" style="text-align:center;padding:2rem">Không có hồ sơ chờ duyệt.</td></tr>
                         </c:if>
                         </tbody>
                     </table>
@@ -183,6 +226,18 @@
 </main>
 <jsp:include page="/views/layout/footer.jsp" />
 </div>
+<script>
+    document.querySelectorAll('.js-document-preview').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            const preview = document.getElementById('dossierDocumentPreview');
+            if (!preview) return;
+            event.preventDefault();
+            preview.src = link.href;
+            document.getElementById('documentPreviewLabel').textContent =
+                    link.dataset.documentLabel || 'Xem trước tài liệu';
+        });
+    });
+</script>
 </body>
 </html>
 
