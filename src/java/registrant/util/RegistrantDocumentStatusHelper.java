@@ -29,6 +29,7 @@ public final class RegistrantDocumentStatusHelper {
     private RegistrantDocumentStatusHelper() {
     }
 
+    /** Tóm tắt tiến độ tài liệu (đã tải/chờ duyệt/overall) theo RegistrationStatus. */
     public static RegistrantDocumentSummary summarize(List<RegistrantDocumentView> allDocs,
             Map<String, String> typeLabels, String registrationStatus) {
         applyDocumentLabelsFromRegistrationStatus(allDocs, registrationStatus);
@@ -123,6 +124,7 @@ public final class RegistrantDocumentStatusHelper {
         return "Tài liệu chưa được phê duyệt. Hoàn tất duyệt hồ sơ trước khi đăng ký thi.";
     }
 
+    /** True nếu có ít nhất một tệp Hồ sơ khác đã upload. */
     public static boolean hasUploadedOtherDocuments(List<RegistrantDocumentView> allDocs) {
         if (allDocs == null) {
             return false;
@@ -159,6 +161,7 @@ public final class RegistrantDocumentStatusHelper {
         return false;
     }
 
+    /** True nếu Other đã tải nhưng chưa gửi duyệt (#PENDING#). */
     public static boolean hasSupplementAwaitingSubmit(List<RegistrantDocumentView> allDocs) {
         if (allDocs == null) {
             return false;
@@ -173,60 +176,6 @@ public final class RegistrantDocumentStatusHelper {
             }
         }
         return false;
-    }
-
-    public static boolean hasApprovedOtherDocumentForLicence(String uiLicenceCode,
-            List<RegistrantDocumentView> allDocs) {
-        if (uiLicenceCode == null || uiLicenceCode.isBlank() || allDocs == null) {
-            return false;
-        }
-        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
-        for (RegistrantDocumentView doc : allDocs) {
-            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
-                continue;
-            }
-            if (!DocumentDAOImpl.isApproved(doc.getNotes())) {
-                continue;
-            }
-            String docLicence = doc.getSupplementLicenceCode();
-            if (docLicence == null || docLicence.isBlank()) {
-                docLicence = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
-            }
-            if (docLicence != null && !docLicence.isBlank()
-                    && target.equals(docLicence.trim().toUpperCase(Locale.ROOT))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasUploadedOtherDocumentForLicence(String uiLicenceCode,
-            List<RegistrantDocumentView> allDocs) {
-        if (uiLicenceCode == null || uiLicenceCode.isBlank() || allDocs == null) {
-            return false;
-        }
-        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
-        for (RegistrantDocumentView doc : allDocs) {
-            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
-                continue;
-            }
-            String docLicence = doc.getSupplementLicenceCode();
-            if (docLicence == null || docLicence.isBlank()) {
-                docLicence = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
-            }
-            if (docLicence != null && !docLicence.isBlank()
-                    && target.equals(docLicence.trim().toUpperCase(Locale.ROOT))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean isBasicDocsOnlyLicence(String uiLicenceCode) {
-        if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
-            return false;
-        }
-        return BASIC_DOCS_ONLY_LICENCE_CODES.contains(uiLicenceCode.trim().toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -256,33 +205,7 @@ public final class RegistrantDocumentStatusHelper {
         return isLicenceAllowedWithDocuments(uiLicenceCode, allDocs, List.of());
     }
 
-    /** Có ít nhất một tệp Hồ sơ khác đã được ban quản lý duyệt (dùng để tái sử dụng khi thi hạng khác). */
-    public static boolean hasAnyApprovedOtherDocument(List<RegistrantDocumentView> allDocs) {
-        if (allDocs == null) {
-            return false;
-        }
-        for (RegistrantDocumentView doc : allDocs) {
-            if (DocumentDAOImpl.isOtherType(doc.getDocumentType())
-                    && hasUploadedFile(doc)
-                    && DocumentDAOImpl.isApproved(doc.getNotes())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasAnyUploadedOtherDocument(List<RegistrantDocumentView> allDocs) {
-        if (allDocs == null) {
-            return false;
-        }
-        for (RegistrantDocumentView doc : allDocs) {
-            if (DocumentDAOImpl.isOtherType(doc.getDocumentType()) && hasUploadedFile(doc)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    /** Message chặn chọn hạng khi chưa được duyệt kèm hồ sơ. */
     public static String licenceClassBlockMessage(String uiLicenceCode,
             List<RegistrantDocumentView> allDocs, Collection<String> approvedLicenceCodes) {
         if (isLicenceAllowedWithDocuments(uiLicenceCode, allDocs, approvedLicenceCodes)) {
@@ -294,10 +217,12 @@ public final class RegistrantDocumentStatusHelper {
                 + " khi Gửi yêu cầu duyệt (có thể tái sử dụng 4 giấy đã có nếu không cần đổi).";
     }
 
+    /** Overload không có danh sách hạng duyệt (fallback). */
     public static String licenceClassBlockMessage(String uiLicenceCode, List<RegistrantDocumentView> allDocs) {
         return licenceClassBlockMessage(uiLicenceCode, allDocs, List.of());
     }
 
+    /** Map mã hạng → có được phép đăng ký theo hồ sơ đã duyệt. */
     public static Map<String, Boolean> buildLicenceDocumentAllowedMap(
             List<String> licenceCodes, List<RegistrantDocumentView> allDocs,
             Collection<String> approvedLicenceCodes) {
@@ -313,11 +238,13 @@ public final class RegistrantDocumentStatusHelper {
         return allowed;
     }
 
+    /** Overload map hạng được phép (không truyền approved codes). */
     public static Map<String, Boolean> buildLicenceDocumentAllowedMap(
             List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
         return buildLicenceDocumentAllowedMap(licenceCodes, allDocs, List.of());
     }
 
+    /** Map mã hạng → thông báo chặn nếu chưa đủ điều kiện. */
     public static Map<String, String> buildLicenceDocumentBlockMessageMap(
             List<String> licenceCodes, List<RegistrantDocumentView> allDocs,
             Collection<String> approvedLicenceCodes) {
@@ -335,11 +262,13 @@ public final class RegistrantDocumentStatusHelper {
         return messages;
     }
 
+    /** Overload map thông báo chặn hạng. */
     public static Map<String, String> buildLicenceDocumentBlockMessageMap(
             List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
         return buildLicenceDocumentBlockMessageMap(licenceCodes, allDocs, List.of());
     }
 
+    /** Sinh dòng tracking giả lập từ trạng thái từng tài liệu. */
     public static List<RegistrantTrackingLog> buildDocumentTrackingLogs(List<RegistrantDocumentView> docs,
             Map<String, String> typeLabels, Date profileCreatedAt, String registrationStatus) {
         List<RegistrantTrackingLog> logs = new ArrayList<>();

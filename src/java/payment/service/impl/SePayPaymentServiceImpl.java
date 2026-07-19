@@ -138,7 +138,11 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
             return SePayIpnResult.reject("SePay not configured");
         }
         if (!verifyIpnAuth(rawBody, secretHeader, signatureHeader, timestampHeader)) {
-            return SePayIpnResult.reject("Unauthorized IPN");
+            boolean missing = (secretHeader == null || secretHeader.isBlank())
+                    && (signatureHeader == null || signatureHeader.isBlank());
+            return SePayIpnResult.reject(missing
+                    ? "Unauthorized IPN: missing X-Secret-Key (set IPN auth=SECRET_KEY on SePay Dashboard to match SEPAY_SECRET_KEY / SEPAY_IPN_SECRET)"
+                    : "Unauthorized IPN: X-Secret-Key / signature does not match SEPAY_IPN_SECRET (or SEPAY_SECRET_KEY)");
         }
         if (rawBody == null || rawBody.isBlank()) {
             return SePayIpnResult.reject("Empty IPN body");
@@ -207,21 +211,30 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
         }
     }
 
-    /** Xác thực IPN: X-Secret-Key = SEPAY_IPN_SECRET, hoặc HMAC timestamp.body; không có secret → cho qua (dev). */
+    /**
+     * Xác thực IPN:
+     * <ul>
+     *   <li>{@code X-Secret-Key} / Apikey = {@code SEPAY_IPN_SECRET} (mặc định = {@code SEPAY_SECRET_KEY})</li>
+     *   <li>hoặc HMAC {@code X-SePay-Signature} + {@code X-SePay-Timestamp}</li>
+     * </ul>
+     * Dashboard phải chọn auth SECRET_KEY (hoặc HMAC) với đúng secret — thiếu header → Unauthorized.
+     */
     private static boolean verifyIpnAuth(String rawBody, String secretHeader,
             String signatureHeader, String timestampHeader) {
         String expectedSecret = SePayConfig.ipnSecret();
-        if (expectedSecret != null && !expectedSecret.isBlank()) {
-            if (secretHeader != null && constantTimeEquals(secretHeader.trim(), expectedSecret.trim())) {
-                return true;
-            }
-            if (signatureHeader != null && !signatureHeader.isBlank()) {
-                return SePaySignature.verifyWebhookHmac(
-                        rawBody, timestampHeader, signatureHeader, expectedSecret, WEBHOOK_MAX_SKEW_SECONDS);
-            }
-            return false;
+        if (expectedSecret == null || expectedSecret.isBlank()) {
+            return true; // chưa set secret → bỏ qua auth (chỉ dùng khi dev)
         }
-        return true; // chưa set secret → bỏ qua auth (chỉ dùng khi dev)
+        String expected = expectedSecret.trim();
+        if (secretHeader != null && !secretHeader.isBlank()
+                && constantTimeEquals(secretHeader.trim(), expected)) {
+            return true;
+        }
+        if (signatureHeader != null && !signatureHeader.isBlank()) {
+            return SePaySignature.verifyWebhookHmac(
+                    rawBody, timestampHeader, signatureHeader, expected, WEBHOOK_MAX_SKEW_SECONDS);
+        }
+        return false;
     }
 
     private static void validateCheckoutRequest(SePayCheckoutRequest request) throws SePayPaymentException {

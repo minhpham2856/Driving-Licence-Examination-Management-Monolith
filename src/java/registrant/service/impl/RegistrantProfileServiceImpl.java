@@ -28,6 +28,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
     private final DocumentDAO documentdao = new DocumentDAOImpl();
     private final RegistrantDAO registrantdao = new RegistrantDAOImpl();
 
+    /** Đẩy thông tin Profile, trạng thái hồ sơ và tóm tắt tài liệu lên request. */
     @Override
     public void copyProfileToRequest(UserDTO user, HttpServletRequest request) {
         request.setAttribute("email", user.getEmail());
@@ -82,6 +83,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         RegistrantProfileSupport.applyRegistrationStatus(request, registrationStatus);
     }
 
+    /** Validate họ tên/CCCD trước khi lưu hồ sơ; null nếu hợp lệ. */
     @Override
     public String validateProfileUpdate(UserDTO user, Profile updated) {
         if (updated == null || RegistrantProfileSupport.isBlank(updated.getFullName())) {
@@ -98,6 +100,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         return null;
     }
 
+    /** Insert hoặc update Profile và đồng bộ session/audit. */
     @Override
     public boolean updateProfile(UserDTO user, Profile updated, HttpSession session) {
         if (updated == null || RegistrantProfileSupport.isBlank(updated.getFullName())) {
@@ -111,6 +114,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         return updateExistingProfile(user, existing, updated, session);
     }
 
+    /** Kiểm tra Notes giấy khám sức khỏe có dấu hiệu bị từ chối. */
     @Override
     public boolean hasRejectedHealthDocument(int profileId) {
         return documentdao.listByProfileId(profileId).stream()

@@ -2,6 +2,14 @@ package payment.dto;
 
 import java.sql.Timestamp;
 
+/**
+ * DTO map bảng {@code Payment}.
+ * <ul>
+ *   <li>{@code candidateId} — resolve ExamEnrollment khi IPN/cash insert</li>
+ *   <li>{@code examEnrollmentId} — FK thật trên DB</li>
+ *   <li>{@code amount} → TotalAmount; {@code transactionReference} UNIQUE (idempotent IPN)</li>
+ * </ul>
+ */
 public class PaymentRecord {
     private int id;
     /** CandidateId — dùng resolve ExamEnrollmentId khi insert. */

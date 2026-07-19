@@ -9,6 +9,7 @@ public final class RegistrantSessionSupport {
     private RegistrantSessionSupport() {
     }
 
+    /** Lấy ProfileId từ UserDTO (field hoặc Profile lồng). */
     public static int profileId(UserDTO user) {
         if (user == null) {
             return 0;
@@ -20,6 +21,7 @@ public final class RegistrantSessionSupport {
         return profile != null && profile.getProfileId() > 0 ? profile.getProfileId() : 0;
     }
 
+    /** Ghi ProfileId vào UserDTO và Profile kèm theo. */
     public static void setProfileId(UserDTO user, int profileId) {
         if (user == null) {
             return;
@@ -30,6 +32,7 @@ public final class RegistrantSessionSupport {
         }
     }
 
+    /** Gắn đối tượng Profile vào UserDTO và đồng bộ ProfileId. */
     public static void attachProfile(UserDTO user, Profile profile) {
         if (user == null) {
             return;

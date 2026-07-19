@@ -17,6 +17,7 @@ import registrant.enums.ProfileRegistrationStatus;
 import registrant.util.RegistrantDocumentStatusHelper;
 import registrant.util.RegistrantExamSupport;
 import registrant.util.RegistrantTrackingCategories;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -49,7 +50,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             LEFT JOIN ExamArea ea ON ea.ExamAreaId = eea.ExamAreaId
             """;
 
-    // Payment đã hoàn tất (optional — chỉ có sau khi staff enroll)
+    // Payment đã hoàn tất theo ExamEnrollmentId (optional — chỉ có sau khi staff enroll + thu phí desk).
+    // Dùng cho my-exams / registered exams: pay.PaymentId != null ⇒ không còn pendingPayment.
     private static final String PAYMENT_COMPLETED_JOIN = """
             LEFT JOIN (
                 SELECT p1.ExamEnrollmentId, MIN(p1.PaymentId) AS PaymentId
@@ -65,6 +67,9 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     private static final String PAYMENT_COMPLETED_STATUS_FILTER =
             "p.PaymentStatus IN (" + PaymentStatus.sqlInClause() + ")";
 
+    private static final String SQL_AND_PAYMENT_COMPLETED =
+            " AND " + PAYMENT_COMPLETED_STATUS_FILTER;
+
     // Exam còn mở đăng ký (VN seed + EN legacy + biến thể thường gặp)
     private static final String OPEN_EXAM_STATUS =
             "e.[Status] IN ("
@@ -72,6 +77,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     + " N'Open', N'Scheduled', N'InProgress', N'RegistrationOpen'"
                     + ")";
 
+    /** Query hạng đang mở đăng ký từ LicenceClass/ExamDates. */
     @Override
     public List<RegistrantLicenceOption> listOpenLicenceOptions() {
         /* Lấy hạng GPLX từ bảng Licence (seed: A, A1, B1) — hiển thị đúng mã DB qua toUiLicenceCode. */
@@ -99,6 +105,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return options;
     }
 
+    /** Liệt kê ExamDates mở theo mã hạng UI. */
     @Override
     public List<RegistrantExamSessionOption> listOpenExamSessionsByLicenceCode(String uiLicenceCode) {
         String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
@@ -132,6 +139,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return options;
     }
 
+    /** Tìm ExamDate theo id/code từ tham số form. */
     @Override
     public RegistrantExamSessionOption findExamSessionByCode(String examDateIdOrCode) {
         Integer examDateId = parseExamDateId(examDateIdOrCode);
@@ -160,6 +168,15 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return null;
     }
 
+    /**
+     * Ghi nhận ngày thi mong muốn của thí sinh (portal).
+     * <p>
+     * Đọc: ExamDates khớp Licence + còn mở; ExamRegistration Approved theo profile+licence.
+     * Ghi: deactivate RegistrationDates cũ (IsActive=0) → MERGE dòng mới IsActive=1.
+     * Không tạo Candidate / ExamEnrollment / Payment.
+     *
+     * @return {@code null} nếu OK; ngược lại message lỗi tiếng Việt
+     */
     @Override
     public String registerPreferredExamDate(int profileId, int examDateId, int licenceId) {
         if (profileId <= 0 || examDateId <= 0 || licenceId <= 0 || getConnection() == null) {
@@ -311,6 +328,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
     }
 
+    /**
+     * MERGE RegistrationDates: khóa (ExamRegistrationId, ExamDateId).
+     * MATCHED → IsActive=1; NOT MATCHED → INSERT IsActive=1.
+     */
     private boolean insertRegistrationDate(int examRegistrationId, int examDateId) throws SQLException {
         String sql = """
                 MERGE RegistrationDates AS target
@@ -330,6 +351,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
     }
 
+    /** Gộp nguyện vọng + lịch chính thức theo UserId. */
     @Override
     public List<RegistrantRegisteredExamRow> listRegisteredExamsByUserId(int userId, int limit) {
         int safeLimit = Math.max(1, Math.min(limit, 50));
@@ -339,6 +361,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return trimByExamDateDesc(rows, safeLimit);
     }
 
+    /** Gộp nguyện vọng + lịch chính thức theo ProfileId. */
     @Override
     public List<RegistrantRegisteredExamRow> listRegisteredExamsByProfileId(int profileId, int limit) {
         if (profileId <= 0) {
@@ -352,9 +375,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     private List<RegistrantRegisteredExamRow> queryRegisteredExamsOfficial(String ownerPredicate, int ownerId, int limit) {
-        String sql = REGISTERED_EXAM_SELECT + REGISTERED_EXAM_FROM + """
-                WHERE """ + ownerPredicate + """
-                """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
+        String sql = REGISTERED_EXAM_SELECT + REGISTERED_EXAM_FROM
+                + " WHERE " + ownerPredicate
+                + ExamRegistrationLifecycleStatus.SQL_ACTIVE_EXAM_REGISTRATION_FILTER
+                + """
                 ORDER BY ex.ExamDate DESC
                 """;
         List<RegistrantRegisteredExamRow> rows = new ArrayList<>();
@@ -384,7 +408,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
                 INNER JOIN Profile prof ON prof.ProfileId = er.ProfileId
                 INNER JOIN Licence l ON l.LicenceId = ed.LicenceId
-                WHERE """ + ownerPredicate + """
+                """ + " WHERE " + ownerPredicate + """
                   AND rd.IsActive = 1
                 ORDER BY ed.ExamDate DESC, rd.RegistrationDateId DESC
                 """;
@@ -425,11 +449,6 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return new ArrayList<>(rows.subList(0, limit));
     }
 
-    private static final String ACTIVE_EXAM_REGISTRATION_FILTER = """
-                  AND """ + ExamRegistrationLifecycleStatus.SQL_LIFECYCLE_ONLY + """
-                  AND """ + ExamRegistrationLifecycleStatus.SQL_EXCLUDE_PROFILE_DOC + """
-            """;
-
     private static final String SESSION_SCHEDULE_COLUMNS = """
                        ex.[Status] AS sessionStatus,
                        ex.StartTime,
@@ -469,6 +488,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                        CASE WHEN pay.PaymentId IS NULL THEN 0 ELSE 1 END AS paid
                 """;
 
+    /** ER lifecycle còn hiệu lực (không hủy/từ chối/hồ sơ doc). */
     @Override
     public List<RegistrantRegisteredExamRow> listActiveExamRegistrationsByProfileId(int profileId, int limit) {
         if (profileId <= 0) {
@@ -498,6 +518,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return rows;
     }
 
+    /** Tính số liệu thống kê cho dashboard thí sinh. */
     @Override
     public Map<String, Object> loadDashboardStats(int userId, int profileId) {
         /*
@@ -509,8 +530,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     (SELECT COUNT(*)
                      FROM ExamRegistration er
                      WHERE er.ProfileId = ?
-                       AND """ + ExamRegistrationLifecycleStatus.SQL_LIFECYCLE_ONLY + """
-                       AND """ + ExamRegistrationLifecycleStatus.SQL_EXCLUDE_PROFILE_DOC + """
+                """ + ExamRegistrationLifecycleStatus.SQL_AND_LIFECYCLE_ONLY
+                + ExamRegistrationLifecycleStatus.SQL_AND_EXCLUDE_PROFILE_DOC + """
                     )
                     +
                     (SELECT COUNT(*)
@@ -547,6 +568,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return stats;
     }
 
+    /** Chọn kỳ thi sắp tới theo UserId. */
     @Override
     public RegistrantRegisteredExamRow findUpcomingExamByUserId(int userId) {
         return pickUpcomingExam(
@@ -554,6 +576,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 queryUpcomingOfficial("prof.UserId = ?", userId));
     }
 
+    /** Chọn kỳ thi sắp tới theo ProfileId. */
     @Override
     public RegistrantRegisteredExamRow findUpcomingExamByProfileId(int profileId) {
         if (profileId <= 0) {
@@ -566,10 +589,13 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     private RegistrantRegisteredExamRow queryUpcomingOfficial(String ownerPredicate, int ownerId) {
         String sql = REGISTERED_EXAM_SELECT.replace("SELECT TOP (?)", "SELECT TOP 1")
-                + REGISTERED_EXAM_FROM + """
-                WHERE """ + ownerPredicate + """
+                + REGISTERED_EXAM_FROM
+                + " WHERE " + ownerPredicate
+                + """
                   AND CAST(ex.ExamDate AS DATE) >= CAST(GETDATE() AS DATE)
-                """ + ACTIVE_EXAM_REGISTRATION_FILTER + """
+                """
+                + ExamRegistrationLifecycleStatus.SQL_ACTIVE_EXAM_REGISTRATION_FILTER
+                + """
                 ORDER BY ex.ExamDate ASC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -610,6 +636,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return official.getExamDate().compareTo(bestPreferred.getExamDate()) <= 0 ? official : bestPreferred;
     }
 
+    /** Xây danh sách hoạt động gần đây từ audit/đăng ký. */
     @Override
     public List<RegistrantDashboardActivity> listRecentActivities(int profileId, int limit) {
         /*
@@ -640,6 +667,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return activities;
     }
 
+    /**
+     * Danh sách “ca của tôi”: ngày mong muốn (RegistrationDates) + ca chính thức
+     * (Candidate/Enrollment qua CCCD) kèm điểm và cờ thanh toán.
+     */
     @Override
     public List<RegistrantMyExamRow> listMyExamsByUserId(int userId) {
         List<RegistrantMyExamRow> rows = new ArrayList<>();
@@ -674,7 +705,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 """ + SESSION_SCHEDULE_COLUMNS + """
                        l.LicenceClass,
                        ea.AreaName,
-                       er.RegistrationStatus,
+                       CAST(NULL AS NVARCHAR(50)) AS RegistrationStatus,
                        theoryEes.Status AS sectionStatus,
                        (SELECT TOP 1 sec.SectionType
                         FROM ExamSection sec
@@ -690,11 +721,6 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
                 INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
                 INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                LEFT JOIN ExamRegistration er ON er.ProfileId = prof.ProfileId
-                  AND """
-            + ExamRegistrationLifecycleStatus.SQL_LIFECYCLE_ONLY + """
-                  AND """
-            + ExamRegistrationLifecycleStatus.SQL_EXCLUDE_PROFILE_DOC + """
                 """
             + Db2ExamSchemaSql.JOIN_THEORY_SECTION + """
                 """
@@ -742,7 +768,12 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         String extra = candidateId != null ? " AND c.CandidateId = ?" : "";
         String sql = buildMyExamsSql(extra);
         List<RegistrantMyExamRow> rows = new ArrayList<>();
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        Connection conn = getConnection();
+        if (conn == null) {
+            LOG.log(Level.SEVERE, "Không tải kỳ thi user {0}: DB connection null", userId);
+            return rows;
+        }
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             if (candidateId != null) {
                 ps.setInt(2, candidateId);
@@ -753,12 +784,13 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 }
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không tải kỳ thi user {0}: {1}",
-                    new Object[] { userId, e.getMessage() });
+            LOG.log(Level.SEVERE, "Không tải kỳ thi chính thức user " + userId
+                    + " (kiểm tra Candidate/ExamEnrollment qua CCCD): " + e.getMessage(), e);
         }
         return rows;
     }
 
+    /** Load một dòng my-exam theo candidateId thuộc user. */
     @Override
     public RegistrantMyExamRow findMyExamByCandidateId(int userId, int candidateId) {
         if (candidateId < 0) {
@@ -805,31 +837,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return rows;
     }
 
-    @Override
-    public Integer resolveUserIdByCandidateId(int candidateId) {
-        if (candidateId <= 0) {
-            return null;
-        }
-        String sql = """
-                SELECT prof.UserId
-                FROM Candidate c
-                INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
-                WHERE c.CandidateId = ?
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, candidateId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("UserId");
-                }
-            }
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không tải UserId candidate {0}: {1}",
-                    new Object[] { candidateId, e.getMessage() });
-        }
-        return null;
-    }
-
+    /** Ghép log theo dõi hồ sơ rồi sort mới nhất trước. */
     @Override
     public List<RegistrantTrackingLog> buildProfileTrackingLogs(int profileId, int userId) {
         List<RegistrantTrackingLog> logs = new ArrayList<>();
@@ -853,57 +861,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return logs;
     }
 
-    @Override
-    public int countExamResultsByUserId(int userId) {
-        String sql = """
-                SELECT COUNT(DISTINCT c.CandidateId) AS cnt
-                FROM Profile prof
-                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                INNER JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
-                WHERE prof.UserId = ?
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("cnt");
-                }
-            }
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Đếm kết quả thi thất bại: {0}", e.getMessage());
-        }
-        return 0;
-    }
-
-    @Override
-    public int getNextCandidateSequence(String dbLicenceClass) {
-        /*
-         * Chỉ đếm SBD theo format mới: {LicenceClass}-{4 chữ số} (khớp Db2Mappings.buildCandidateNumber).
-         * Bỏ qua legacy seed kiểu "045", "123" không có tiền tố hạng.
-         */
-        String sql = """
-                SELECT ISNULL(MAX(
-                    TRY_CAST(SUBSTRING(c.CandidateNumber,
-                        CHARINDEX('-', c.CandidateNumber) + 1, 10) AS INT)), 0) + 1 AS nextNo
-                FROM Candidate c
-                WHERE c.CandidateNumber LIKE ?
-                  AND CHARINDEX('-', c.CandidateNumber) > 0
-                """;
-        String prefix = dbLicenceClass + "-%";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, prefix);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("nextNo");
-                }
-            }
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không sinh số thứ tự SBD: {0}", e.getMessage());
-        }
-        return (int) (System.currentTimeMillis() % 9000) + 1000;
-    }
-
+    /** Resolve LicenceId từ mã hạng UI. */
     @Override
     public int resolveLicenceIdByUiCode(String uiLicenceCode) {
         String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
@@ -925,6 +883,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return -1;
     }
 
+    /** Mã hạng UI mới nhất từ đăng ký/hồ sơ. */
     @Override
     public String resolveLatestLicenceClassByProfileId(int profileId) {
         if (profileId <= 0) {
@@ -970,6 +929,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return null;
     }
 
+    /** Đọc RegistrationStatus ER hồ sơ gốc (#PROFILE_DOC#). */
     @Override
     public String findProfileDocumentRegistrationStatus(int profileId) {
         String sql = """
@@ -997,6 +957,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return fallbackLegacyProfileDocumentStatus(profileId);
     }
 
+    /** Các hạng UI đã được duyệt kèm hồ sơ. */
     @Override
     public List<String> listApprovedDocumentLicenceCodes(int profileId) {
         List<String> codes = new ArrayList<>();
@@ -1064,13 +1025,14 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return ProfileRegistrationStatus.DRAFT;
     }
 
+    /** True nếu còn ER bổ sung đang Pending. */
     @Override
     public boolean hasOpenSupplementPending(int profileId) {
         return findPendingSupplementExamRegistrationId(profileId) != null;
     }
 
-    @Override
-    public Integer findPendingSupplementExamRegistrationId(int profileId) {
+    /** Id ER bổ sung Pending; null nếu không có. */
+    private Integer findPendingSupplementExamRegistrationId(int profileId) {
         String sql = """
                 SELECT TOP 1 ExamRegistrationId
                 FROM ExamRegistration
@@ -1131,6 +1093,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return 0;
     }
 
+    /** Tạo ER #LICENCE_DOC# xin duyệt thêm hạng. */
     @Override
     public int insertLicenceDocumentRegistration(int profileId, int licenceId, String status, String notes) {
         if (profileId <= 0 || licenceId <= 0 || status == null || status.isBlank()) {
@@ -1168,6 +1131,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return notes.replace(RegistrantDocumentHelper.MARK_SUPPLEMENT_DOC, "").trim();
     }
 
+    /** Map trạng thái các ER #SUPPLEMENT_DOC# của hồ sơ. */
     @Override
     public Map<Integer, String> mapSupplementRegistrationStatuses(int profileId) {
         Map<Integer, String> map = new java.util.LinkedHashMap<>();
@@ -1199,38 +1163,13 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return map;
     }
 
-    @Override
-    public boolean syncSupplementDocumentRegistration(int examRegistrationId, String status, String notes) {
-        if (examRegistrationId <= 0 || status == null || status.isBlank()) {
-            return false;
-        }
-        String sql = """
-                UPDATE ExamRegistration
-                SET RegistrationStatus = ?, Notes = ?
-                WHERE ExamRegistrationId = ?
-                  AND (
-                        Notes LIKE N'%#SUPPLEMENT_DOC#%'
-                     OR Notes LIKE N'%#LICENCE_DOC#%'
-                  )
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, status.trim());
-            ps.setString(2, notes != null ? notes : "");
-            ps.setInt(3, examRegistrationId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không cập nhật request bổ sung ER {0}: {1}",
-                    new Object[] { examRegistrationId, e.getMessage() });
-        }
-        return false;
-    }
-
-    /** Đồng bộ RegistrationStatus ER hồ sơ gốc (#PROFILE_DOC#): UPDATE primary hoặc INSERT; không đụng #SUPPLEMENT_DOC#. */
+    /** Đồng bộ ER hồ sơ gốc (không gắn LicenceId). */
     @Override
     public boolean syncProfileDocumentRegistration(int profileId, String status, String notes) {
         return syncProfileDocumentRegistration(profileId, status, notes, 0);
     }
 
+    /** Đồng bộ ER hồ sơ gốc kèm LicenceId khi gửi duyệt. */
     @Override
     public boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId) {
         if (profileId <= 0 || status == null || status.isBlank()) {
@@ -1334,6 +1273,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return resolveLicenceIdByUiCode("B1");
     }
 
+    /** Số ngày còn lại tới examDate; null nếu không hợp lệ. */
     @Override
     public Integer daysUntil(java.util.Date examDate) {
         if (examDate == null) {
@@ -1404,7 +1344,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         row.setSbdPending(RegistrantExamSupport.isSbdPending(candidateNumber));
 
         String regStatus = rs.getString("RegistrationStatus");
-        String sectionStatus = rs.getString("SectionStatus");
+        String sectionStatus = rs.getString("sectionStatus");
         RegistrantExamSupport.applyExamStatusBadge(row, candidateNumber, regStatus, sectionStatus);
         return row;
     }
@@ -1475,7 +1415,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
         Integer overallPassed = RegistrantExamSupport.toInteger(rs.getObject("overallPassed"));
         String regStatus = rs.getString("RegistrationStatus");
-        String sectionStatus = rs.getString("SectionStatus");
+        String sectionStatus = rs.getString("sectionStatus");
         row.setRegistrationStatus(regStatus);
         row.setExamSectionName(rs.getString("sectionName"));
         RegistrantExamSupport.applyMyExamStatus(row, rawSbd, regStatus, sectionStatus, overallPassed);
@@ -1494,8 +1434,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
                 INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
                 WHERE prof.ProfileId = ?
-                  AND """
-            + PAYMENT_COMPLETED_STATUS_FILTER + """
+                """ + SQL_AND_PAYMENT_COMPLETED + """
                 ORDER BY p.PaidAt DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -1584,7 +1523,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     act.setIconPath("M20 6L9 17l-5-5");
                     act.setTitle("Đã gửi nguyện vọng ngày thi");
                     act.setDesc(String.format(
-                            "Nguyện vọng hạng %s — ngày %s. Đang chờ thông báo từ phía trung tâm.",
+                            "Nguyện vọng hạng %s — ngày %s. Trạng thái: chờ lịch chính thức từ trung tâm.",
                             licence,
                             examDate != null
                                     ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(examDate)
@@ -1701,8 +1640,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
                 INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
                 WHERE prof.UserId = ?
-                  AND """
-            + PAYMENT_COMPLETED_STATUS_FILTER + """
+                """ + SQL_AND_PAYMENT_COMPLETED + """
                 ORDER BY p.PaidAt DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

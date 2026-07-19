@@ -31,16 +31,19 @@ public final class CloudinaryDocumentStorage {
     private CloudinaryDocumentStorage() {
     }
 
+    /** True nếu đủ CLOUDINARY_CLOUD_NAME/API_KEY/SECRET. */
     public static boolean isConfigured() {
         return !blank(ConfigManager.get("CLOUDINARY_CLOUD_NAME"))
                 && !blank(ConfigManager.get("CLOUDINARY_API_KEY"))
                 && !blank(ConfigManager.get("CLOUDINARY_API_SECRET"));
     }
 
+    /** True nếu chuỗi lưu DB là tham chiếu cloudinary:…. */
     public static boolean isCloudinaryRef(String storedRef) {
         return storedRef != null && storedRef.startsWith(REF_PREFIX);
     }
 
+    /** Parse cloudinary:resourceType:publicId thành CloudinaryRef. */
     public static CloudinaryRef parseRef(String storedRef) {
         if (!isCloudinaryRef(storedRef)) {
             return null;
@@ -58,6 +61,7 @@ public final class CloudinaryDocumentStorage {
         return new CloudinaryRef(resourceType, publicId);
     }
 
+    /** Dựng chuỗi tham chiếu lưu DB từ resourceType + publicId. */
     public static String buildStoredRef(String resourceType, String publicId) {
         return REF_PREFIX + resourceType + ":" + publicId;
     }
@@ -117,6 +121,7 @@ public final class CloudinaryDocumentStorage {
         return buildStoredRef(resourceType, returnedId);
     }
 
+    /** Xóa asset trên Cloudinary theo storedRef. */
     public static void destroy(String storedRef) throws IOException {
         CloudinaryRef ref = parseRef(storedRef);
         if (ref == null) {

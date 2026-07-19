@@ -48,6 +48,7 @@ public final class RegistrantTrackingCategories {
     private RegistrantTrackingCategories() {
     }
 
+    /** Nhãn tiếng Việt cho khóa category tracking. */
     public static String categoryLabel(String category) {
         if (category == null || category.isBlank()) {
             return "Khác";
@@ -55,6 +56,7 @@ public final class RegistrantTrackingCategories {
         return CATEGORY_LABELS.getOrDefault(category, category);
     }
 
+    /** Nhãn tiếng Việt cho khóa lọc trạng thái tracking. */
     public static String statusFilterLabel(String statusKey) {
         if (statusKey == null || statusKey.isBlank()) {
             return "Khác";
@@ -62,14 +64,17 @@ public final class RegistrantTrackingCategories {
         return STATUS_LABELS.getOrDefault(statusKey, statusKey);
     }
 
+    /** Thứ tự cố định các category trên dropdown. */
     public static List<String> orderedCategoryKeys() {
         return new ArrayList<>(CATEGORY_LABELS.keySet());
     }
 
+    /** Thứ tự cố định các status filter trên dropdown. */
     public static List<String> orderedStatusKeys() {
         return new ArrayList<>(STATUS_LABELS.keySet());
     }
 
+    /** Map Action+EntityName audit → category tracking. */
     public static String categoryFromAuditAction(String action, String entityName) {
         String upper = action != null ? action.toUpperCase(Locale.ROOT) : "UPDATE";
         String entity = entityName != null ? entityName.toLowerCase(Locale.ROOT) : "";
@@ -86,6 +91,7 @@ public final class RegistrantTrackingCategories {
         };
     }
 
+    /** Xác định category của một TrackingLog (field hoặc suy từ title). */
     public static String resolveCategory(RegistrantTrackingLog log) {
         if (log.getCategory() != null && !log.getCategory().isBlank()) {
             return log.getCategory();
@@ -115,6 +121,7 @@ public final class RegistrantTrackingCategories {
         return OTHER;
     }
 
+    /** True nếu log khớp categoryFilter (hoặc all). */
     public static boolean matchesCategory(RegistrantTrackingLog log, String categoryFilter) {
         if (categoryFilter == null || categoryFilter.isBlank() || "all".equalsIgnoreCase(categoryFilter)) {
             return true;
@@ -122,6 +129,7 @@ public final class RegistrantTrackingCategories {
         return categoryFilter.equals(resolveCategory(log));
     }
 
+    /** True nếu log khớp statusFilter tracking. */
     public static boolean matchesStatusFilter(RegistrantTrackingLog log, String statusFilter) {
         if (statusFilter == null || statusFilter.isBlank() || "all".equalsIgnoreCase(statusFilter)) {
             return true;

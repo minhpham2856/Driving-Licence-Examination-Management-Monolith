@@ -11,7 +11,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-/** Cài đặt GET/POST /registrant/settings — POST theo formId: đổi mật khẩu / vô hiệu hóa tài khoản. */
+/**
+ * Cài đặt tài khoản — {@code GET/POST /registrant/settings}.
+ * Đổi mật khẩu/email ({@code User}); deactivate → IsActive=0 + invalidate session.
+ * Không đụng Payment / SePay.
+ */
 @WebServlet("/registrant/settings")
 public class SettingsServlet extends HttpServlet {
 

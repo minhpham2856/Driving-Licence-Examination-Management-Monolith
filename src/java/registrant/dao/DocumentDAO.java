@@ -9,6 +9,7 @@ import java.util.Map;
  */
 public interface DocumentDAO {
 
+    /** Liệt kê tài liệu của hồ sơ. */
     List<RegistrantDocumentView> listByProfileId(int profileId);
 
     /** Giống listByProfileId nhưng có DocumentId - phục vụ nhật ký theo dõi hồ sơ. */
@@ -31,13 +32,6 @@ public interface DocumentDAO {
 
     /** Đánh dấu mọi tài liệu đã upload là chờ duyệt (gửi yêu cầu cho ban quản lý). */
     boolean requestApproval(int profileId, String requestNote);
-
-    /** Duyệt hoặc từ chối toàn bộ tài liệu đang chờ duyệt của hồ sơ. */
-    boolean reviewProfileDocuments(int profileId, boolean approved, String staffNote);
-
-    /** Duyệt / từ chối các tệp Other gắn với một request bổ sung ({@code ExamRegistrationId}). */
-    boolean reviewSupplementDocuments(int profileId, int supplementExamRegistrationId,
-            boolean approved, String staffNote);
 
     /**
      * Đồng bộ {@code Document.Notes} với trạng thái {@code ExamRegistration} bổ sung

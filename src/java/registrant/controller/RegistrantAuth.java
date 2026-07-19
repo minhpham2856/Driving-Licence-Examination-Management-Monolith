@@ -36,6 +36,7 @@ public final class RegistrantAuth {
         return user;
     }
 
+    /** Trả về ProfileId từ session UserDTO (0 nếu chưa gắn hồ sơ). */
     public static int requireProfileId(UserDTO user) {
         return RegistrantSessionSupport.profileId(user);
     }

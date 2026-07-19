@@ -29,6 +29,7 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
     private final RegistrantDAO registrantdao = new RegistrantDAOImpl();
     private final EmailServiceImpl emailService = new EmailServiceImpl();
 
+    /** Chuẩn bị attribute trang cài đặt (username, CCCD, hạng đang đăng ký). */
     @Override
     public void applySettingsView(UserDTO user, HttpServletRequest request) {
         request.setAttribute("userEmail", user.getEmail());
@@ -36,6 +37,7 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
         applyAccountSummary(user, request);
     }
 
+    /** Đổi mật khẩu sau khi xác thực mật khẩu hiện tại; null nếu OK. */
     @Override
     public String changePassword(UserDTO user, String currentPassword, String newPassword,
             String confirmPassword, HttpSession session) {
@@ -75,6 +77,7 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
         return rawPassword.equals(stored);
     }
 
+    /** Vô hiệu hóa tài khoản và invalidate session khi confirmed; null nếu OK. */
     @Override
     public String deactivateAccount(UserDTO user, boolean confirmed, HttpSession session) {
         if (!confirmed) {

@@ -15,10 +15,12 @@ public enum ExamSessionStatus {
         this.status = status;
     }
 
+    /** Giá trị chuỗi Status lưu trong DB/UI. */
     public String getStatus() {
         return status;
     }
 
+    /** True nếu ca còn có thể bắt đầu (Scheduled/Open/Chưa diễn ra…). */
     public static boolean canStartSession(String status) {
         if (status == null) {
             return false;
@@ -29,6 +31,7 @@ public enum ExamSessionStatus {
                 || IN_PROGRESS_VN.status.equalsIgnoreCase(status);
     }
 
+    /** True nếu ca đang diễn ra (EN/VN). */
     public static boolean isSessionInProgress(String status) {
         if (status == null) {
             return false;
@@ -37,6 +40,7 @@ public enum ExamSessionStatus {
                 || IN_PROGRESS_VN.status.equalsIgnoreCase(status);
     }
 
+    /** True nếu ca đã Completed hoặc Cancelled. */
     public static boolean isSessionEnded(String status) {
         return COMPLETED.status.equalsIgnoreCase(status) || CANCELLED.status.equalsIgnoreCase(status);
     }

@@ -344,7 +344,7 @@
 
                 </div>
 
-                <%-- Right Column: Registration Summary + POST xác nhận --%>
+                <%-- Right: tóm tắt + POST confirmRegistration=1 → MERGE RegistrationDates (không thu SePay) --%>
                 <div class="dashboard-sidebar-column" id="register-exam-summary">
 
                     <form action="${ctx}/registrant/register-exam" method="post" id="registrationForm" class="register-exam-confirm-form">

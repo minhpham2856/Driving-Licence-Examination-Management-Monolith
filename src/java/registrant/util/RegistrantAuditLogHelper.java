@@ -16,6 +16,7 @@ public final class RegistrantAuditLogHelper {
     private RegistrantAuditLogHelper() {
     }
 
+    /** Persist audit cho entity/action từ session thí sinh hiện tại. */
     public static void persistForEntity(HttpSession session, String entityName, String action,
             String details, String newValue, int recordId) {
         insertLog(session, action, details, null, newValue, null, null, recordId, entityName);
