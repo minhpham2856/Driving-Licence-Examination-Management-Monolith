@@ -18,6 +18,7 @@ public final class ProfileRegistrationStatus {
     public static final String SQL_IN_WORKFLOW =
             "N'Draft', N'Pending', N'Approved', N'Rejected', N'Chờ duyệt', N'Duyệt', N'Loại'";
 
+    /** True nếu status thuộc workflow hồ sơ tài liệu (Draft/Pending/…). */
     public static boolean isDocumentWorkflowStatus(String status) {
         if (status == null || status.isBlank()) {
             return false;
@@ -32,6 +33,7 @@ public final class ProfileRegistrationStatus {
                 || "Loại".equalsIgnoreCase(s);
     }
 
+    /** Đổi mã RegistrationStatus sang nhãn tiếng Việt trên UI. */
     public static String toDisplayLabel(String status) {
         if (status == null || status.isBlank()) {
             return "Chưa có hồ sơ";
@@ -45,6 +47,7 @@ public final class ProfileRegistrationStatus {
         };
     }
 
+    /** CSS class badge theo trạng thái duyệt hồ sơ. */
     public static String toBadgeClass(String status) {
         if (status == null || status.isBlank()) {
             return "gray";

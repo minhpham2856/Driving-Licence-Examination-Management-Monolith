@@ -18,18 +18,16 @@ public final class RegistrantUploadStorage {
     private RegistrantUploadStorage() {
     }
 
+    /** Thư mục lưu upload registrant (tạo nếu chưa có). */
     public static Path resolveUploadDirectory(ServletContext ctx) throws IOException {
         Path base = resolveConfiguredDirectory(ctx);
         Files.createDirectories(base);
         return base;
     }
 
+    /** Path file vật lý trong thư mục upload theo fileName. */
     public static Path resolveStoredFile(ServletContext ctx, String fileName) throws IOException {
         return resolveUploadDirectory(ctx).resolve(sanitizeFileName(fileName));
-    }
-
-    public static String buildPublicUrl(HttpServletRequest request, String fileName) {
-        return request.getContextPath() + PUBLIC_PREFIX + sanitizeFileName(fileName);
     }
 
     /** Chuẩn hóa URL đã lưu trong DB thành đường dẫn public qua servlet /uploads/registrant/*. */
@@ -69,6 +67,7 @@ public final class RegistrantUploadStorage {
         }
     }
 
+    /** Tách tên file an toàn từ URL/path đã lưu. */
     public static String extractFileName(String storedUrl) {
         if (storedUrl == null || storedUrl.isBlank()) {
             return "";
@@ -98,6 +97,7 @@ public final class RegistrantUploadStorage {
         return Paths.get(System.getProperty("java.io.tmpdir"), "dlem-uploads", SUBDIR);
     }
 
+    /** Làm sạch tên file (chỉ giữ ký tự an toàn). */
     public static String sanitizeFileName(String fileName) {
         if (fileName == null || fileName.isBlank()) {
             return "file";

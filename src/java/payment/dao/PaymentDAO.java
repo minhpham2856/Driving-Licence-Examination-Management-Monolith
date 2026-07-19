@@ -2,13 +2,27 @@ package payment.dao;
 
 import payment.dto.PaymentRecord;
 
-/** Payment (DLEM_DB_2) — cần ExamEnrollmentId do staff tạo trước. */
+/**
+ * Truy cập bảng {@code Payment}.
+ * <ul>
+ *   <li>{@link #insert} — Cash desk hoặc SePay IPN</li>
+ *   <li>{@link #sumCompletedPaymentsByUserId} — Dashboard Registrant {@code totalFee}</li>
+ *   <li>{@link #existsCompletedByTransactionReference} — chống IPN trùng</li>
+ * </ul>
+ */
 public interface PaymentDAO {
-    /** IPN Paid; resolve enrollment từ CandidateId nếu thiếu. */
+
+    /**
+     * Ghi Payment hoàn tất; resolve ExamEnrollmentId từ CandidateId nếu thiếu.
+     * @return true nếu insert OK (có PaymentId generated)
+     */
     boolean insert(PaymentRecord payment);
 
+    /**
+     * Tổng lệ phí đã nộp của user portal (join CCCD Profile↔Candidate).
+     */
     double sumCompletedPaymentsByUserId(int userId);
 
-    /** Idempotent IPN theo TransactionReference. */
+    /** true nếu đã có Payment hoàn tất cùng TransactionReference (idempotent IPN). */
     boolean existsCompletedByTransactionReference(String transactionReference);
 }

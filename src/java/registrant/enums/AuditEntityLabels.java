@@ -31,6 +31,7 @@ public final class AuditEntityLabels {
     private AuditEntityLabels() {
     }
 
+    /** Đổi EntityName audit sang nhãn tiếng Việt; giữ nguyên nếu không map. */
     public static String toVietnamese(String entityName) {
         if (entityName == null || entityName.isBlank()) {
             return "-";

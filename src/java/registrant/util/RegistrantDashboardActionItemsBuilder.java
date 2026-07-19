@@ -17,6 +17,7 @@ public final class RegistrantDashboardActionItemsBuilder {
     private RegistrantDashboardActionItemsBuilder() {
     }
 
+    /** Sinh danh sách Việc cần làm tối đa 4 mục theo trạng thái hồ sơ/thi. */
     public static List<RegistrantDashboardActionItem> build(
             Profile profile,
             String registrationStatus,

@@ -29,7 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Dashboard cá nhân từ DB: RegistrantDAO stats/ca, PaymentDAO tổng tiền, DocumentDAO + ActionItemsBuilder CTA. */
+/**
+ * Dashboard cá nhân: gom stats + ca thi + hoạt động + CTA.
+ * <p>
+ * {@code totalFee} lấy từ {@link PaymentDAO#sumCompletedPaymentsByUserId} —
+ * không phải API SePay; chỉ cộng các dòng {@code Payment} đã hoàn tất (tiền mặt/SePay desk).
+ */
 public class RegistrantDashboardServiceImpl implements RegistrantDashboardService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();
@@ -37,6 +42,7 @@ public class RegistrantDashboardServiceImpl implements RegistrantDashboardServic
     private final PaymentDAO paymentdao = new PaymentDAOImpl();
     private final DocumentDAO documentdao = new DocumentDAOImpl();
 
+    /** Gom stats, danh sách đăng ký đã lọc, hoạt động, upcoming và việc cần làm. */
     @Override
     public Map<String, Object> buildDashboardModel(UserDTO user, HttpServletRequest request) {
         Map<String, Object> model = new HashMap<>();
@@ -49,6 +55,7 @@ public class RegistrantDashboardServiceImpl implements RegistrantDashboardServic
 
         Map<String, Object> stats = registrantdao.loadDashboardStats(user.getUserId(), profileId);
         model.putAll(stats);
+        // Payment.TotalAmount hoàn tất, join Profile.GovernmentIdNumber = Candidate.GovernmentIdNumber
         model.put("totalFee", paymentdao.sumCompletedPaymentsByUserId(user.getUserId()));
 
         String registrationStatus = resolveRegistrationStatus(profileId);
@@ -93,6 +100,7 @@ public class RegistrantDashboardServiceImpl implements RegistrantDashboardServic
         return model;
     }
 
+    /** Copy model dashboard sang request attribute. */
     @Override
     public void copyToRequest(Map<String, Object> model, HttpServletRequest request) {
         RegistrantServletSupport.copyModelToRequest(model, request);

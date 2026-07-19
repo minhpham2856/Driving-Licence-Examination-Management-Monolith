@@ -29,13 +29,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Upload hồ sơ Cloudinary: chính / bổ sung (Other); hạng GPLX chọn lúc Gửi duyệt; RegistrationStatus đổi khi gửi duyệt. */
+/**
+ * Upload hồ sơ (Cloudinary / storage):
+ * <ul>
+ *   <li>4 loại bắt buộc → bảng Document; Notes marker #PENDING# / #APPROVED#</li>
+ *   <li>Gửi duyệt → ExamRegistration Draft/Rejected → Pending (+ #PROFILE_DOC#)</li>
+ *   <li>Other / xin hạng sau Approved — ER #SUPPLEMENT_DOC# / #LICENCE_DOC#</li>
+ * </ul>
+ * Không liên quan thu phí SePay.
+ */
 public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();
     private final DocumentDAO documentdao = new DocumentDAOImpl();
     private final RegistrantDAO registrantdao = new RegistrantDAOImpl();
 
+    /** Nạp slot tài liệu, summary và cờ đủ điều kiện gửi duyệt. */
     @Override
     public Map<String, Object> loadUploadPage(UserDTO user, HttpServletRequest request) {
         Map<String, Object> model = new HashMap<>();
@@ -78,6 +87,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return model;
     }
 
+    /** Upload nhiều tệp Hồ sơ khác; trả lỗi tiếng Việt hoặc null. */
     @Override
     public String handleOtherUpload(UserDTO user, String reasonNote,
             List<Part> fileParts, HttpServletRequest request) {
@@ -102,6 +112,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return null;
     }
 
+    /** Upload một giấy tờ bắt buộc (Portrait/CCCD/SK); null nếu thành công. */
     @Override
     public String handleUpload(UserDTO user, String documentType, Part filePart, String reasonNote,
             HttpServletRequest request) {
@@ -335,6 +346,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return notes.length() <= 255 ? notes : notes.substring(0, 252) + "...";
     }
 
+    /** Xóa tài liệu (Cloudinary/local + DB) nếu còn được phép xóa. */
     @Override
     public String deleteDocument(UserDTO user, int documentId, HttpServletRequest request) {
         if (documentId <= 0) {

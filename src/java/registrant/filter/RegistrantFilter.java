@@ -14,7 +14,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-/** Bảo vệ /registrant/*: redirect JSP thô → servlet DB, rồi kiểm tra session USER + role REGISTRANT. */
+/**
+ * Bảo vệ vùng Registrant: {@code /registrant/*}, {@code /views/registrant/*}, {@code /uploads/registrant/*}.
+ * <ol>
+ *   <li>JSP thô → redirect sang servlet tương ứng (bắt buộc đi qua DB/service)</li>
+ *   <li>Session {@code USER} null → {@code /login}</li>
+ *   <li>Role ≠ REGISTRANT → HTTP 403</li>
+ * </ol>
+ */
 @WebFilter(
         urlPatterns = { "/views/registrant/*", "/registrant/*", "/uploads/registrant/*" },
         dispatcherTypes = { DispatcherType.REQUEST }

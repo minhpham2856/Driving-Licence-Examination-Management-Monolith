@@ -25,6 +25,7 @@ public final class RegistrantDocumentTypeMapping {
         DB_TO_UI.put(dbType, uiCode);
     }
 
+    /** Đổi mã loại tài liệu UI sang DocumentType.Type trong DB. */
     public static String toDbType(String uiDocumentType) {
         if (uiDocumentType == null || uiDocumentType.isBlank()) {
             return null;
@@ -35,6 +36,7 @@ public final class RegistrantDocumentTypeMapping {
         return UI_TO_DB.getOrDefault(uiDocumentType, uiDocumentType);
     }
 
+    /** Đổi DocumentType DB sang mã UI registrant. */
     public static String toUiType(String dbType) {
         if (dbType == null || dbType.isBlank()) {
             return null;
@@ -42,6 +44,7 @@ public final class RegistrantDocumentTypeMapping {
         return DB_TO_UI.getOrDefault(dbType, dbType);
     }
 
+    /** True nếu mã UI thuộc tập đã đăng ký (kể cả Other_*). */
     public static boolean isKnownUiType(String uiDocumentType) {
         if (uiDocumentType == null) {
             return false;

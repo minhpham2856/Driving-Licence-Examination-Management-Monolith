@@ -42,8 +42,6 @@ public class RegistrantMyExamRow {
     /** Trạng thái ExamRegistration (luồng ca thi). */
     private String registrationStatus;
     private String examSectionName;
-    private boolean cancelRequested;
-    private boolean canRequestCancellation;
     private Date sessionStart;
     private Date sessionEnd;
     private boolean sessionTimePublished;
@@ -201,22 +199,6 @@ public class RegistrantMyExamRow {
 
     public void setExamSectionName(String examSectionName) {
         this.examSectionName = examSectionName;
-    }
-
-    public boolean isCancelRequested() {
-        return cancelRequested;
-    }
-
-    public void setCancelRequested(boolean cancelRequested) {
-        this.cancelRequested = cancelRequested;
-    }
-
-    public boolean isCanRequestCancellation() {
-        return canRequestCancellation;
-    }
-
-    public void setCanRequestCancellation(boolean canRequestCancellation) {
-        this.canRequestCancellation = canRequestCancellation;
     }
 
     public Date getSessionStart() {

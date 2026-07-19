@@ -13,11 +13,21 @@ import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Ghi/đọc bảng Payment — cần ExamEnrollmentId (staff tạo enrollment trước). */
+/**
+ * DAO bảng {@code Payment} (ngày thi) — dùng chung Cash desk + SePay IPN + Dashboard Registrant.
+ * <p>
+ * Bắt buộc có {@code ExamEnrollmentId} (staff tạo Candidate + Enrollment trước).
+ * Không có cột “đã trả” trên Candidate; portal/desk suy từ tồn tại Payment hoàn tất.
+ */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
 
+    /**
+     * INSERT Payment (Cash hoặc SePay IPN).
+     * Cột: PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt=GETDATE(), ExamEnrollmentId.
+     * Nếu enrollment thiếu / không thuộc candidate → resolve TOP 1 ExamEnrollment theo CandidateId.
+     */
     @Override
     public boolean insert(PaymentRecord payment) {
         int enrollmentId = payment.getExamEnrollmentId();
@@ -63,6 +73,11 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
+    /**
+     * Dashboard Registrant {@code totalFee}: SUM TotalAmount các Payment hoàn tất
+     * của user — cầu nối Profile.GovernmentIdNumber = Candidate.GovernmentIdNumber.
+     * Gồm cả Cash và SePay đã thu tại bàn thủ tục.
+     */
     @Override
     public double sumCompletedPaymentsByUserId(int userId) {
         // Profile ↔ Candidate qua CCCD (không có Candidate.UserId)
@@ -89,12 +104,14 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return 0;
     }
 
+    /**
+     * Idempotent IPN: cùng TransactionReference đã Paid → không insert trùng.
+     */
     @Override
     public boolean existsCompletedByTransactionReference(String transactionReference) {
         if (transactionReference == null || transactionReference.isBlank()) {
             return false;
         }
-        // Idempotent IPN: cùng TransactionReference đã Paid thì bỏ qua
         String sql = """
                 SELECT TOP 1 1
                 FROM Payment
@@ -113,6 +130,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
+    /** Enrollment mới nhất của candidate (fallback khi invoice thiếu enrollmentId). */
     private int resolveEnrollmentId(int candidateId) {
         String sql = """
                 SELECT TOP 1 ExamEnrollmentId

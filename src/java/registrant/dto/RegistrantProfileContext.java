@@ -28,6 +28,7 @@ public final class RegistrantProfileContext {
         return profile != null ? profile.getProfileId() : 0;
     }
 
+    /** True nếu snapshot đã có hồ sơ Profile hợp lệ (profileId > 0). */
     public boolean hasProfile() {
         return profile != null && profile.getProfileId() > 0;
     }
