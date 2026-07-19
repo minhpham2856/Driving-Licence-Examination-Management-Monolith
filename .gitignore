@@ -20,3 +20,8 @@ nbproject/build-impl.xml~
 docs/
 CLAUDE.md
 priv
+
+# Local docs and SQL scripts (keep on disk, do not track)
+*.md
+*.sql
+doc/
