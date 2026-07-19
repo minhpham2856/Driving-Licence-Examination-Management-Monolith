@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!--variables-->
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="wrapperClass" value="${not empty param.wrapperClass ? param.wrapperClass : 'examiner-toolbar examiner-toolbar--tools'}" />
 <c:set var="leftClass" value="${not empty param.leftClass ? param.leftClass : 'examiner-toolbar__group'}" />
 <c:set var="rightClass" value="${not empty param.rightClass ? param.rightClass : 'examiner-toolbar__group examiner-toolbar__search-form'}" />
@@ -18,21 +19,21 @@
         </c:if>
 
         <c:if test="${param.btnPrintInfo eq 'left'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=candidates" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In thông tin chi tiết
-            </button>
+            </a>
         </c:if>
 
         <c:if test="${param.btnPrintList eq 'left'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=candidates" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">list</span>In danh sách
-            </button>
+            </a>
         </c:if>
 
         <c:if test="${param.btnPrintResult eq 'left'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=result" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">description</span>In kết quả
-            </button>
+            </a>
         </c:if>
 
         <c:if test="${param.btnExportExcel eq 'left'}">
@@ -50,25 +51,19 @@
 
 
         <c:if test="${param.btnPrintAudit eq 'left'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=audit&amp;q=${requestScope.searchQuery}" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In nhật ký
-            </button>
+            </a>
             <a href="${pageContext.request.contextPath}/examiner/export/audit?q=${requestScope.searchQuery}" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">download</span>Xuất Excel
             </a>
         </c:if>
 
-        <c:if test="${param.btnCallSelected eq 'left'}">
-            <button type="submit" form="callSelectedForm" class="examiner-btn examiner-btn--primary">
-                <span class="material-symbols-outlined">group_add</span>Gọi đã chọn
-            </button>
-        </c:if>
-
         <c:if test="${param.btnVehicle eq 'left'}">
             <c:if test="${not empty requestScope.candidate and not empty requestScope.sessionVehicles}">
-                <form method="get" action="${requestScope.pageUrl}" class="score-entry-vehicle-form">
+                <form method="post" action="${requestScope.pageUrl}" class="score-entry-vehicle-form">
                     <input type="hidden" name="action" value="changeVehicle">
-                    <input type="hidden" name="sbd" value="${requestScope.candidate.sbd}">
+                    <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
                     <select name="deviceId" class="score-entry-select" aria-label="Chọn xe" required>
                         <option value="">Chọn xe...</option>
                         <c:forEach var="vehicle" items="${requestScope.sessionVehicles}">
@@ -84,25 +79,26 @@
             </c:if>
         </c:if>
 
-        <c:if test="${param.btnAbsent eq 'left'}">
-            <c:choose>
-                <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}?action=markAbsentScore&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--danger">Vắng</a>
-                </c:when>
-                <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled>Vắng</button>
-                </c:otherwise>
-            </c:choose>
-        </c:if>
-
         <c:if test="${param.btnViolation eq 'left'}">
             <c:choose>
+                <c:when test="${not empty requestScope.candidate and requestScope.candidate.suspended}">
+                    <form method="post" action="${ctx}/examiner/violations" style="display:inline">
+                        <input type="hidden" name="action" value="undoSuspend">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">undo</span>Gỡ đình chỉ</button>
+                    </form>
+                </c:when>
                 <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}/../violation-confirm?sbd=${requestScope.candidate.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger">
-                        <span class="material-symbols-outlined">gavel</span>Vi phạm</a>
-                    </c:when>
-                    <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Vi phạm</button>
+                    <form method="post" action="${ctx}/examiner/violations" style="display:inline">
+                        <input type="hidden" name="action" value="suspend">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--danger">
+                            <span class="material-symbols-outlined">gavel</span>Đình chỉ</button>
+                    </form>
+                </c:when>
+                <c:otherwise>
+                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Đình chỉ</button>
                 </c:otherwise>
             </c:choose>
         </c:if>
@@ -110,8 +106,13 @@
         <c:if test="${param.btnPrintSignature eq 'left'}">
             <c:choose>
                 <c:when test="${not empty requestScope.candidate and (requestScope.candidate.status == 'awaiting' or requestScope.candidate.status == 'done')}">
-                    <a href="${requestScope.pageUrl}?action=printSignature&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--orange">
-                        <span class="material-symbols-outlined">print</span>In biên bản</a>
+                    <form method="post" action="${requestScope.pageUrl}" target="examinerPrintTab" style="display:inline"
+                          onsubmit="window.open('', 'examinerPrintTab'); setTimeout(function () { window.location.reload(); }, 800);">
+                        <input type="hidden" name="action" value="printResult">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--orange">
+                            <span class="material-symbols-outlined">print</span>In biên bản</button>
+                    </form>
                     </c:when>
                     <c:otherwise>
                     <span class="examiner-btn examiner-btn--orange examiner-btn--disabled"><span class="material-symbols-outlined">print</span>In biên bản</span>
@@ -122,8 +123,12 @@
         <c:if test="${param.btnComplete eq 'left'}">
             <c:choose>
                 <c:when test="${not empty requestScope.candidate and requestScope.candidate.completeEligible}">
-                    <a href="${requestScope.pageUrl}?action=completeSectionScore&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--primary">
-                        <span class="material-symbols-outlined">check_circle</span>Hoàn tất</a>
+                    <form method="post" action="${requestScope.pageUrl}" style="display:inline">
+                        <input type="hidden" name="action" value="completeSectionScore">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--primary">
+                            <span class="material-symbols-outlined">check_circle</span>Hoàn tất</button>
+                    </form>
                     </c:when>
                     <c:when test="${not empty requestScope.candidate and requestScope.candidate.status == 'awaiting'}">
                     <span class="examiner-btn examiner-btn--primary examiner-btn--disabled"><span class="material-symbols-outlined">check_circle</span>Hoàn tất</span>
@@ -140,9 +145,18 @@
 
         <c:if test="${param.btnViewPaper eq 'left'}">
             <c:if test="${requestScope.examinerSectionTheory}">
-                <a href="${requestScope.paperUrl}" class="examiner-btn examiner-btn--white">
-                    <span class="material-symbols-outlined">visibility</span>Xem đề thi
-                </a>
+                <c:choose>
+                    <c:when test="${not empty requestScope.candidate and (requestScope.candidate.status == 'awaiting' or requestScope.candidate.status == 'done')}">
+                        <a href="${requestScope.paperUrl}" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">visibility</span>Xem đề thi
+                        </a>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="examiner-btn examiner-btn--white examiner-btn--disabled">
+                            <span class="material-symbols-outlined">visibility</span>Xem đề thi
+                        </span>
+                    </c:otherwise>
+                </c:choose>
             </c:if>
         </c:if>
 
@@ -155,7 +169,7 @@
         </c:if>
 
         <c:if test="${param.btnPrintDocs eq 'left'}">
-            <a href="${pageContext.request.contextPath}/views/examiner/print-documents" class="examiner-btn examiner-btn--white">
+            <a href="${pageContext.request.contextPath}/examiner/print-documents" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In kết quả thi
             </a>
         </c:if>
@@ -170,9 +184,9 @@
             <a href="${requestScope.exportDocxUrl}" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">download</span>Xuất Docx
             </a>
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
-                <span class="material-symbols-outlined">print</span>In biên bản
-            </button>
+            <a href="${ctx}/examiner/print?type=violations" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
+                <span class="material-symbols-outlined">print</span>In danh sách vi phạm
+            </a>
         </c:if>
 
         <c:if test="${param.btnPaperFilter eq 'left'}">
@@ -222,21 +236,21 @@
         </c:if>
 
         <c:if test="${param.btnPrintInfo eq 'right'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=candidates" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In thông tin chi tiết
-            </button>
+            </a>
         </c:if>
 
         <c:if test="${param.btnPrintList eq 'right'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=candidates" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">list</span>In danh sách
-            </button>
+            </a>
         </c:if>
 
         <c:if test="${param.btnPrintResult eq 'right'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=result" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">description</span>In kết quả
-            </button>
+            </a>
         </c:if>
 
         <c:if test="${param.btnExportExcel eq 'right'}">
@@ -254,24 +268,19 @@
 
 
         <c:if test="${param.btnPrintAudit eq 'right'}">
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
+            <a href="${ctx}/examiner/print?type=audit&amp;q=${requestScope.searchQuery}" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In nhật ký
-            </button>
+            </a>
             <a href="${pageContext.request.contextPath}/examiner/export/audit?q=${requestScope.searchQuery}" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">download</span>Xuất Excel
             </a>
         </c:if>
 
-        <c:if test="${param.btnCallSelected eq 'right'}">
-            <button type="submit" form="callSelectedForm" class="examiner-btn examiner-btn--primary">
-                <span class="material-symbols-outlined">group_add</span>Gọi đã chọn</button>
-            </c:if>
-
         <c:if test="${param.btnVehicle eq 'right'}">
             <c:if test="${not empty requestScope.candidate and not empty requestScope.sessionVehicles}">
-                <form method="get" action="${requestScope.pageUrl}" class="score-entry-vehicle-form">
+                <form method="post" action="${requestScope.pageUrl}" class="score-entry-vehicle-form">
                     <input type="hidden" name="action" value="changeVehicle">
-                    <input type="hidden" name="sbd" value="${requestScope.candidate.sbd}">
+                    <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
                     <select name="deviceId" class="score-entry-select" aria-label="Chọn xe" required>
                         <option value="">Chọn xe...</option>
                         <c:forEach var="vehicle" items="${requestScope.sessionVehicles}">
@@ -287,25 +296,26 @@
             </c:if>
         </c:if>
 
-        <c:if test="${param.btnAbsent eq 'right'}">
-            <c:choose>
-                <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}?action=markAbsentScore&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--danger">Vắng</a>
-                </c:when>
-                <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled>Vắng</button>
-                </c:otherwise>
-            </c:choose>
-        </c:if>
-
         <c:if test="${param.btnViolation eq 'right'}">
             <c:choose>
+                <c:when test="${not empty requestScope.candidate and requestScope.candidate.suspended}">
+                    <form method="post" action="${ctx}/examiner/violations" style="display:inline">
+                        <input type="hidden" name="action" value="undoSuspend">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--white">
+                            <span class="material-symbols-outlined">undo</span>Gỡ đình chỉ</button>
+                    </form>
+                </c:when>
                 <c:when test="${not empty requestScope.candidate}">
-                    <a href="${requestScope.pageUrl}/../violation-confirm?sbd=${requestScope.candidate.sbd}&amp;returnTo=${requestScope.pageUrl}" class="examiner-btn examiner-btn--danger">
-                        <span class="material-symbols-outlined">gavel</span>Vi phạm</a>
-                    </c:when>
-                    <c:otherwise>
-                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Vi phạm</button>
+                    <form method="post" action="${ctx}/examiner/violations" style="display:inline">
+                        <input type="hidden" name="action" value="suspend">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--danger">
+                            <span class="material-symbols-outlined">gavel</span>Đình chỉ</button>
+                    </form>
+                </c:when>
+                <c:otherwise>
+                    <button type="button" class="examiner-btn examiner-btn--danger" disabled><span class="material-symbols-outlined">gavel</span>Đình chỉ</button>
                 </c:otherwise>
             </c:choose>
         </c:if>
@@ -313,8 +323,13 @@
         <c:if test="${param.btnPrintSignature eq 'right'}">
             <c:choose>
                 <c:when test="${not empty requestScope.candidate and (requestScope.candidate.status == 'awaiting' or requestScope.candidate.status == 'done')}">
-                    <a href="${requestScope.pageUrl}?action=printSignature&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--orange">
-                        <span class="material-symbols-outlined">print</span>In biên bản</a>
+                    <form method="post" action="${requestScope.pageUrl}" target="examinerPrintTab" style="display:inline"
+                          onsubmit="window.open('', 'examinerPrintTab'); setTimeout(function () { window.location.reload(); }, 800);">
+                        <input type="hidden" name="action" value="printResult">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--orange">
+                            <span class="material-symbols-outlined">print</span>In biên bản</button>
+                    </form>
                     </c:when>
                     <c:otherwise>
                     <span class="examiner-btn examiner-btn--orange examiner-btn--disabled"><span class="material-symbols-outlined">print</span>In biên bản</span>
@@ -325,8 +340,12 @@
         <c:if test="${param.btnComplete eq 'right'}">
             <c:choose>
                 <c:when test="${not empty requestScope.candidate and requestScope.candidate.completeEligible}">
-                    <a href="${requestScope.pageUrl}?action=completeSectionScore&amp;sbd=${requestScope.candidate.sbd}" class="examiner-btn examiner-btn--primary">
-                        <span class="material-symbols-outlined">check_circle</span>Hoàn tất</a>
+                    <form method="post" action="${requestScope.pageUrl}" style="display:inline">
+                        <input type="hidden" name="action" value="completeSectionScore">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--primary">
+                            <span class="material-symbols-outlined">check_circle</span>Hoàn tất</button>
+                    </form>
                     </c:when>
                     <c:when test="${not empty requestScope.candidate and requestScope.candidate.status == 'awaiting'}">
                     <span class="examiner-btn examiner-btn--primary examiner-btn--disabled"><span class="material-symbols-outlined">check_circle</span>Hoàn tất</span>
@@ -357,7 +376,7 @@
         </c:if>
 
         <c:if test="${param.btnPrintDocs eq 'right'}">
-            <a href="${pageContext.request.contextPath}/views/examiner/print-documents" class="examiner-btn examiner-btn--white">
+            <a href="${pageContext.request.contextPath}/examiner/print-documents" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In kết quả thi
             </a>
         </c:if>
@@ -372,9 +391,9 @@
             <a href="${requestScope.exportDocxUrl}" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">download</span>Xuất Docx
             </a>
-            <button type="button" class="examiner-btn examiner-btn--white" onclick="window.print();">
-                <span class="material-symbols-outlined">print</span>In biên bản
-            </button>
+            <a href="${ctx}/examiner/print?type=violations" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
+                <span class="material-symbols-outlined">print</span>In danh sách vi phạm
+            </a>
         </c:if>
 
         <c:if test="${param.btnPaperFilter eq 'right'}">
