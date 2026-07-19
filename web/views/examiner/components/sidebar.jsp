@@ -4,7 +4,7 @@
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="logoUrl" value="${ctx}/assets/imgs/LOGO.png" />
+<c:set var="logoUrl" value="${ctx}/assets/imgs/csgt-footer.png" />
 <c:set var="activeSidebar" value="${param.activeSidebar}" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
 
@@ -17,13 +17,16 @@
         <c:when test="${fn:contains(requestUri, 'score-entry')}">
             <c:set var="activeSidebar" value="score-entry" />
         </c:when>
-        <c:when test="${fn:contains(requestUri, 'candidate-call') or fn:contains(requestUri, 'confirmation')}">
-            <c:set var="activeSidebar" value="candidate-call" />
+        <c:when test="${fn:contains(requestUri, 'action')}">
+            <c:set var="activeSidebar" value="action" />
         </c:when>
         <c:when test="${fn:contains(requestUri, 'violations') or fn:contains(requestUri, 'violation-')}">
             <c:set var="activeSidebar" value="violations" />
         </c:when>
-        <c:when test="${fn:contains(requestUri, 'candidate-details')}">
+        <c:when test="${fn:contains(requestUri, '/examiner/candidates')}">
+            <c:set var="activeSidebar" value="candidates" />
+        </c:when>
+        <c:when test="${fn:contains(requestUri, 'candidate-details') or fn:contains(requestUri, 'candidate-paper')}">
             <c:set var="activeSidebar" value="candidate-details" />
         </c:when>
         <c:when test="${fn:contains(requestUri, 'result-details')}">
@@ -51,7 +54,7 @@
     <!--top-->
     <div class="side-nav-bar__brand">
         <div class="side-nav-bar__brand-inner">
-            <img src="${logoUrl}" width="40" height="40" class="side-nav-bar__logo-img">
+            <img src="${logoUrl}" alt="CSGT" width="48" class="side-nav-bar__logo-img">
             <div class="side-nav-bar__brand-title-wrap">
                 <h1 class="side-nav-bar__brand-title">Sát hạch viên</h1>
                 <p class="side-nav-bar__brand-subtitle">${sessionScope.userProfile.fullName}</p>
@@ -61,26 +64,26 @@
 
     <!--menu-->
     <nav class="side-nav-bar__menu${empty examinerHasActiveExam or not examinerHasActiveExam ? ' side-nav-bar__menu--locked' : ''}">
-        <a href="${ctx}/views/examiner/dashboard"
+        <a href="${ctx}/examiner/dashboard"
            class="side-nav-bar__link${activeSidebar eq 'dashboard' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">grid_view</span>
             <span class="side-nav-bar__label">Bảng điều khiển</span>
         </a>
 
-        <a href="${ctx}/views/examiner/candidate-call"
-           class="side-nav-bar__link${activeSidebar eq 'candidate-call' ? ' is-active' : ''}">
+        <a href="${ctx}/examiner/action"
+           class="side-nav-bar__link${activeSidebar eq 'action' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">campaign</span>
-            <span class="side-nav-bar__label">Gọi thí sinh</span>
+            <span class="side-nav-bar__label">Thao tác</span>
         </a>
 
-        <a href="${ctx}/views/examiner/violations"
+        <a href="${ctx}/examiner/violations"
            class="side-nav-bar__link${activeSidebar eq 'violations' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">report</span>
             <span class="side-nav-bar__label">Vi phạm</span>
         </a>
 
-        <a href="${ctx}/views/examiner/candidate-details"
-           class="side-nav-bar__link${activeSidebar eq 'candidate-details' ? ' is-active' : ''}">
+        <a href="${ctx}/examiner/candidates"
+           class="side-nav-bar__link${activeSidebar eq 'candidates' or activeSidebar eq 'candidate-details' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">edit_document</span>
             <span class="side-nav-bar__label">Thông tin thí sinh</span>
         </a>
@@ -93,7 +96,7 @@
                 </span>
             </c:when>
             <c:otherwise>
-                <a href="${ctx}/views/examiner/score-entry"
+                <a href="${ctx}/examiner/score-entry"
                    class="side-nav-bar__link${activeSidebar eq 'score-entry' ? ' is-active' : ''}">
                     <span class="side-nav-bar__icon material-symbols-outlined">assignment_turned_in</span>
                     <span class="side-nav-bar__label">Nhập điểm</span>
@@ -109,7 +112,7 @@
                 </span>
             </c:when>
             <c:otherwise>
-                <a href="${ctx}/views/examiner/result-details"
+                <a href="${ctx}/examiner/result-details"
                    class="side-nav-bar__link${activeSidebar eq 'result-details' ? ' is-active' : ''}">
                     <span class="side-nav-bar__icon material-symbols-outlined">fact_check</span>
                     <span class="side-nav-bar__label">Sửa kết quả</span>
@@ -117,25 +120,25 @@
             </c:otherwise>
         </c:choose>
 
-        <a href="${ctx}/views/examiner/devices"
+        <a href="${ctx}/examiner/devices"
            class="side-nav-bar__link${activeSidebar eq 'devices' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">devices</span>
             <span class="side-nav-bar__label">Thiết bị</span>
         </a>
 
-        <a href="${ctx}/views/examiner/export"
+        <a href="${ctx}/examiner/export"
            class="side-nav-bar__link${activeSidebar eq 'export' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">download</span>
             <span class="side-nav-bar__label">Xuất file</span>
         </a>
 
-        <a href="${ctx}/views/examiner/print-documents"
+        <a href="${ctx}/examiner/print-documents"
            class="side-nav-bar__link${activeSidebar eq 'print-documents' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">print</span>
             <span class="side-nav-bar__label">In văn bản</span>
         </a>
 
-        <a href="${ctx}/views/examiner/audit"
+        <a href="${ctx}/examiner/audit"
            class="side-nav-bar__link${activeSidebar eq 'audit' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">history</span>
             <span class="side-nav-bar__label">Nhật Ký</span>
