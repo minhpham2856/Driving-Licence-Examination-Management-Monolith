@@ -5,7 +5,7 @@
             <!--variables-->
             <c:set var="gridUrl" value="${empty param.pageUrl ? pageContext.request.contextPath : param.pageUrl}" />
             <c:if test="${empty param.pageUrl}">
-                <c:set var="gridUrl" value="${gridUrl}/views/examiner/devices" />
+                <c:set var="gridUrl" value="${gridUrl}/examiner/devices" />
             </c:if>
             <c:set var="gridPath" value="${gridUrl}" />
             <c:if
@@ -85,24 +85,30 @@
                                     <div class="device-grid-card__actions">
                                         <c:choose>
                                             <c:when test="${device.status eq 'Bảo trì'}">
-                                                <c:url var="operationalUrl" value="${gridPath}">
-                                                    <c:param name="action" value="operational" />
-                                                    <c:param name="deviceId" value="${device.id}" />
+                                                <form method="post" action="${gridUrl}" style="display:inline">
+                                                    <input type="hidden" name="action" value="operational">
+                                                    <input type="hidden" name="deviceId" value="${device.id}">
                                                     <c:if test="${not empty returnSbd}">
-                                                        <c:param name="sbd" value="${returnSbd}" />
+                                                        <input type="hidden" name="returnSbd" value="${returnSbd}">
                                                     </c:if>
-                                                </c:url>
-                                                <a href="${operationalUrl}" class="examiner-link-action">Sử dụng</a>
+                                                    <c:if test="${not empty requestScope.searchQuery}">
+                                                        <input type="hidden" name="q" value="${requestScope.searchQuery}">
+                                                    </c:if>
+                                                    <button type="submit" class="examiner-link-action">Sử dụng</button>
+                                                </form>
                                             </c:when>
                                             <c:otherwise>
-                                                <c:url var="maintenanceUrl" value="${gridPath}">
-                                                    <c:param name="action" value="maintenance" />
-                                                    <c:param name="deviceId" value="${device.id}" />
+                                                <form method="post" action="${gridUrl}" style="display:inline">
+                                                    <input type="hidden" name="action" value="maintenance">
+                                                    <input type="hidden" name="deviceId" value="${device.id}">
                                                     <c:if test="${not empty returnSbd}">
-                                                        <c:param name="sbd" value="${returnSbd}" />
+                                                        <input type="hidden" name="returnSbd" value="${returnSbd}">
                                                     </c:if>
-                                                </c:url>
-                                                <a href="${maintenanceUrl}" class="examiner-link-action">Bảo trì</a>
+                                                    <c:if test="${not empty requestScope.searchQuery}">
+                                                        <input type="hidden" name="q" value="${requestScope.searchQuery}">
+                                                    </c:if>
+                                                    <button type="submit" class="examiner-link-action">Bảo trì</button>
+                                                </form>
                                             </c:otherwise>
                                         </c:choose>
                                     </div>
