@@ -33,6 +33,7 @@ public final class RegistrantProfileProgressBuilder {
     private RegistrantProfileProgressBuilder() {
     }
 
+    /** Dựng timeline 5 bước track-profile từ status/docs/SBD. */
     public static List<RegistrantProfileProgressStep> build(
             String registrationStatus,
             RegistrantDocumentSummary documentSummary,

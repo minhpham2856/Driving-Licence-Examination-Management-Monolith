@@ -10,7 +10,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** Dashboard GET /registrant/dashboard — thống kê ca thi, tổng SePay, tiến độ hồ sơ, action items. */
+/**
+ * Dashboard Registrant — {@code GET /registrant/dashboard}.
+ * <p>
+ * Service build model rồi copy sang request:
+ * <ul>
+ *   <li>Stats ca thi / hồ sơ từ {@code RegistrantDAO}</li>
+ *   <li>{@code totalFee} = {@link payment.dao.PaymentDAO#sumCompletedPaymentsByUserId}
+ *       (SUM Payment hoàn tất — Cash <b>và</b> SePay — join Profile↔Candidate qua CCCD)</li>
+ *   <li>CTA / upcoming / filter danh sách</li>
+ * </ul>
+ * Registrant <b>không</b> tự checkout SePay; chỉ <b>đọc</b> tiền đã thu tại bàn thủ tục.
+ */
 @WebServlet("/registrant/dashboard")
 public class DashboardServlet extends HttpServlet {
 

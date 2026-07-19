@@ -109,6 +109,7 @@ public final class RegistrantTrackingFilter {
     private RegistrantTrackingFilter() {
     }
 
+    /** Đọc tham số lọc track-profile và dựng TrackingFilterState. */
     public static TrackingFilterState parse(HttpServletRequest request, List<RegistrantTrackingLog> allLogs) {
         String searchQuery = RegistrantListFilter.trimParam(request.getParameter("q"));
         String fromRaw = RegistrantListFilter.trimParam(request.getParameter("fromDate"));
@@ -143,6 +144,7 @@ public final class RegistrantTrackingFilter {
                 categoryOptions, statusOptions, searchActive);
     }
 
+    /** Áp dụng category/status/ngày/search lên danh sách tracking. */
     public static List<RegistrantTrackingLog> apply(List<RegistrantTrackingLog> logs, TrackingFilterState state) {
         if (logs == null || logs.isEmpty()) {
             return List.of();
@@ -171,6 +173,7 @@ public final class RegistrantTrackingFilter {
         return filtered;
     }
 
+    /** Cắt trang danh sách tracking theo page/pageSize. */
     public static List<RegistrantTrackingLog> paginate(List<RegistrantTrackingLog> logs, int page, int pageSize) {
         if (logs == null || logs.isEmpty()) {
             return List.of();
@@ -185,6 +188,7 @@ public final class RegistrantTrackingFilter {
         return new ArrayList<>(logs.subList(from, to));
     }
 
+    /** Đẩy state lọc + meta phân trang lên request JSP. */
     public static void applyToRequest(HttpServletRequest request, TrackingFilterState state,
             int filteredCount, int totalCount, int totalPages) {
         request.setAttribute("searchQuery", state.getSearchQuery());

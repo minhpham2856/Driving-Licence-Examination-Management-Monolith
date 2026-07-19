@@ -64,11 +64,13 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return null;
     }
 
+    /** Map DocumentType UI → nhãn tiếng Việt cho UI. */
     @Override
     public Map<String, String> typeLabels() {
         return TYPE_LABELS;
     }
 
+    /** Tạo slot trống 4 giấy bắt buộc cho form upload. */
     @Override
     public Map<String, RegistrantDocumentView> defaultDocumentSlots() {
         Map<String, RegistrantDocumentView> slots = new HashMap<>();
@@ -85,6 +87,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return slots;
     }
 
+    /** Liệt kê Document của profile (map sang view UI). */
     @Override
     public List<RegistrantDocumentView> listByProfileId(int profileId) {
         String sql = DOCUMENT_SELECT + """
@@ -106,6 +109,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return list;
     }
 
+    /** Như listByProfileId nhưng luôn có DocumentId. */
     @Override
     public List<RegistrantDocumentView> listByProfileIdWithDocumentId(int profileId) {
         String sql = DOCUMENT_SELECT + """
@@ -129,6 +133,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return list;
     }
 
+    /** Insert hoặc cập nhật tài liệu theo DocumentType. */
     @Override
     public boolean upsertDocument(int profileId, String documentType, String documentUrl, String notes) {
         Integer existingId = findDocumentId(profileId, documentType);
@@ -169,6 +174,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Tìm Document thuộc profile theo DocumentId. */
     @Override
     public RegistrantDocumentView findById(int profileId, int documentId) {
         if (documentId <= 0 || profileId <= 0) {
@@ -194,6 +200,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return null;
     }
 
+    /** Xóa Document nếu thuộc đúng profile. */
     @Override
     public boolean deleteDocument(int profileId, int documentId) {
         if (documentId <= 0 || profileId <= 0) {
@@ -211,6 +218,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Insert Document mới (thường dùng cho Other_*). */
     @Override
     public boolean insertDocument(int profileId, String documentType, String documentUrl, String notes) {
         String insertSql = """
@@ -233,6 +241,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Cập nhật Notes/trạng thái duyệt theo loại tài liệu. */
     @Override
     public boolean updateDocumentNotes(int profileId, String documentType, String notes) {
         String sql = """
@@ -271,55 +280,6 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
             }
         }
         return updated;
-    }
-
-    /** Staff duyệt/từ chối tệp #PENDING# hồ sơ gốc: approved → #APPROVED#; false → reject note. */
-    @Override
-    public boolean reviewProfileDocuments(int profileId, boolean approved, String staffNote) {
-        List<RegistrantDocumentView> docs = listByProfileId(profileId);
-        boolean updated = false;
-        for (RegistrantDocumentView doc : docs) {
-            if (!hasUploadedFile(doc) || !isPendingReview(doc.getNotes())) {
-                continue;
-            }
-            String newNotes = approved
-                    ? mergeApprovedNote(doc.getNotes())
-                    : buildRejectNote(staffNote);
-            if (updateDocumentNotes(profileId, doc.getDocumentType(), newNotes)) {
-                updated = true;
-            }
-        }
-        return updated;
-    }
-
-    /** Staff duyệt/từ chối Other gắn ER bổ sung (collectSupplementReviewTargets). */
-    @Override
-    public boolean reviewSupplementDocuments(int profileId, int supplementExamRegistrationId,
-            boolean approved, String staffNote) {
-        if (profileId <= 0 || supplementExamRegistrationId <= 0) {
-            return false;
-        }
-        List<RegistrantDocumentView> docs = listByProfileId(profileId);
-        List<RegistrantDocumentView> targets = RegistrantDocumentHelper.collectSupplementReviewTargets(
-                docs, supplementExamRegistrationId);
-        if (targets.isEmpty()) {
-            return true;
-        }
-        boolean updated = false;
-        boolean hadPending = false;
-        for (RegistrantDocumentView doc : targets) {
-            if (!isPendingReview(doc.getNotes())) {
-                continue;
-            }
-            hadPending = true;
-            String newNotes = approved
-                    ? mergeApprovedNote(doc.getNotes())
-                    : buildRejectNote(staffNote);
-            if (updateDocumentNotes(profileId, doc.getDocumentType(), newNotes)) {
-                updated = true;
-            }
-        }
-        return updated || !hadPending;
     }
 
     /** Đồng bộ Notes Other theo ER bổ sung đã đóng; legacy #PENDING# chưa gắn ER thì lấy ER đóng gần nhất — trả số doc cập nhật. */
@@ -392,7 +352,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return latest;
     }
 
-    /** DocumentType unique Other_uuid8 — DB có thể unique (ProfileId, DocumentType). */
+    /** Sinh DocumentType unique Other_uuid8 cho upload bổ sung. */
     public static String newOtherDocumentType() {
         return "Other_" + java.util.UUID.randomUUID().toString().substring(0, 8);
     }
@@ -402,10 +362,12 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return documentType != null && (documentType.equals("Other") || documentType.startsWith("Other_"));
     }
 
+    /** Dựng Notes mặc định khi thí sinh upload. */
     public static String buildUploadNote(String documentType, String reason, long sizeBytes, String originalName) {
         return buildUploadNote(documentType, reason, sizeBytes, originalName, null);
     }
 
+    /** Dựng Notes upload; gắn #LICENCE# nếu Other kèm hạng. */
     public static String buildUploadNote(String documentType, String reason, long sizeBytes, String originalName,
             String supplementLicenceCode) {
         String meta = formatFileMeta(sizeBytes, originalName);
@@ -421,6 +383,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return body;
     }
 
+    /** Mã hóa #LICENCE#<mã hạng># để gắn Notes. */
     public static String encodeLicenceMarker(String uiLicenceCode) {
         if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
             return "";
@@ -428,7 +391,8 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return MARK_LICENCE_PREFIX + uiLicenceCode.trim().toUpperCase(java.util.Locale.ROOT) + "#";
     }
 
-    public static String parseLicenceCode(String notes) {
+    /** Giải mã mã hạng UI từ marker #LICENCE# trong Notes. */
+    private static String parseLicenceCode(String notes) {
         if (notes == null || !notes.contains(MARK_LICENCE_PREFIX)) {
             return null;
         }
@@ -440,6 +404,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return notes.substring(start, end).trim();
     }
 
+    /** Gỡ marker #LICENCE#…# khỏi chuỗi Notes. */
     public static String stripLicenceMarker(String notes) {
         if (notes == null || notes.isBlank()) {
             return notes;
@@ -451,7 +416,8 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return notes.replace(encodeLicenceMarker(code), "").trim();
     }
 
-    public static String formatFileMeta(long sizeBytes, String originalName) {
+    /** Chuỗi meta dung lượng + tên tệp gốc cho Notes. */
+    private static String formatFileMeta(long sizeBytes, String originalName) {
         StringBuilder meta = new StringBuilder(" · ");
         meta.append(formatSize(sizeBytes));
         if (originalName != null && !originalName.isBlank()) {
@@ -460,7 +426,8 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return meta.toString();
     }
 
-    public static String formatSize(long bytes) {
+    /** Định dạng byte thành B/KB/MB dễ đọc. */
+    private static String formatSize(long bytes) {
         if (bytes < 1024) {
             return bytes + " B";
         }

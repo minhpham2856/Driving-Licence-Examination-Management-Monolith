@@ -234,7 +234,7 @@
                                                 <span class="ticket-meta-value">
                                                     <c:choose>
                                                         <c:when test="${selectedExam.preferredDate}">
-                                                            Chờ thông báo từ phía trung tâm
+                                                            Chờ trung tâm công bố lịch chính thức
                                                         </c:when>
                                                         <c:when test="${selectedExam.sessionTimePublished and not empty selectedExam.sessionTimeDisplay}">
                                                             ${selectedExam.sessionTimeDisplay}
@@ -275,7 +275,7 @@
                                             <p class="placeholder-text" style="margin:0;">
                                                 Đây là <strong>ngày thi nguyện vọng</strong> bạn đã đăng ký.
                                                 Lịch thi chính thức, số báo danh và kết quả sát hạch sẽ được cập nhật sau khi
-                                                <strong>trung tâm thông báo</strong>. Vui lòng chờ thông báo từ phía trung tâm.
+                                                trung tâm công bố. Trạng thái hiện tại: <strong>Nguyện vọng — chờ lịch chính thức</strong>.
                                             </p>
                                         </div>
                                     </div>
@@ -356,6 +356,11 @@
                                                         </ul>
                                                     </div>
                                                 </c:when>
+                                                <c:when test="${selectedExam.theoryResultLabel eq 'Trượt'}">
+                                                    <p class="placeholder-text" style="margin:0;">
+                                                        Không đủ điều kiện thi thực hành vì chưa đạt phần lý thuyết.
+                                                    </p>
+                                                </c:when>
                                                 <c:otherwise>
                                                     <p class="placeholder-text" style="margin:0;">Chưa có kết quả thực hành.</p>
                                                 </c:otherwise>
@@ -398,33 +403,6 @@
                                 </div>
                                 </c:if>
 
-                                <c:if test="${selectedExam.canRequestCancellation or selectedExam.cancelRequested}">
-                                    <div class="exam-details-card exam-details-card--cancel">
-                                        <div class="exam-details-card__header">
-                                            <h3 class="exam-details-card__title">Yêu cầu hủy đăng ký</h3>
-                                        </div>
-                                        <div class="exam-details-card__body">
-                                            <c:choose>
-                                                <c:when test="${selectedExam.cancelRequested}">
-                                                    <p class="placeholder-text" style="margin:0;">Bạn đã gửi yêu cầu hủy. Ban quản lý sẽ xử lý - trạng thái hiện tại: <strong>Chờ hủy đăng ký</strong>.</p>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <p class="placeholder-text" style="margin:0 0 0.75rem;">Chỉ áp dụng khi đăng ký đang <strong>Chờ xét duyệt</strong> và chưa được cấp SBD chính thức.</p>
-                                                    <form method="post" action="${pageContext.request.contextPath}/registrant/my-exams" class="my-exams-cancel-form">
-                                                        <input type="hidden" name="requestCancel" value="1">
-                                                        <input type="hidden" name="candidateId" value="${selectedExam.candidateId}">
-                                                        <c:if test="${not empty searchQuery}"><input type="hidden" name="q" value="${fn:escapeXml(searchQuery)}"></c:if>
-                                                        <c:if test="${statusFilter ne 'all'}"><input type="hidden" name="status" value="${fn:escapeXml(statusFilter)}"></c:if>
-                                                        <c:if test="${licenceFilter ne 'all'}"><input type="hidden" name="licence" value="${fn:escapeXml(licenceFilter)}"></c:if>
-                                                            <label for="cancel-reason" class="registrant-filter__label">Lý do (tuỳ chọn)</label>
-                                                            <textarea id="cancel-reason" name="cancelReason" rows="2" class="registrant-filter__control" maxlength="500" placeholder="Ví dụ: trùng lịch, đổi ca thi..."></textarea>
-                                                            <button type="submit" class="my-exams-cancel-form__submit">Gửi yêu cầu hủy</button>
-                                                        </form>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
-                                    </div>
-                                </c:if>
                             </div>
                         </c:when>
                         <c:when test="${not empty myExamList}">

@@ -32,22 +32,6 @@ public final class RegistrantDocumentHelper {
     private RegistrantDocumentHelper() {
     }
 
-    /** ER notes chứa #SUPPLEMENT_DOC# → đây là dòng đăng ký hồ sơ bổ sung (không phải hồ sơ gốc). */
-    public static boolean isSupplementExamRegistrationNotes(String notes) {
-        return notes != null && notes.contains(MARK_SUPPLEMENT_DOC);
-    }
-
-    /** ER xin duyệt hạng (tái sử dụng hồ sơ) — Notes chứa #LICENCE_DOC#. */
-    public static boolean isLicenceDocExamRegistrationNotes(String notes) {
-        return notes != null && notes.contains(MARK_LICENCE_DOC);
-    }
-
-    /** ER hồ sơ gốc: không phải supplement / licence-doc. */
-    public static boolean isPrimaryExamRegistrationNotes(String notes) {
-        return notes == null || notes.isBlank()
-                || (!isSupplementExamRegistrationNotes(notes) && !isLicenceDocExamRegistrationNotes(notes));
-    }
-
     /** Đảm bảo notes ER hồ sơ gốc luôn có #PROFILE_DOC# (idempotent). */
     public static String ensureProfileDocMarker(String notes) {
         String base = notes != null ? notes.trim() : "";
@@ -123,7 +107,8 @@ public final class RegistrantDocumentHelper {
         return slots;
     }
 
-    public static void applyUploadedRequiredDocs(Map<String, RegistrantDocumentView> slots,
+    /** Ghi đè slot bắt buộc bằng tài liệu đã upload từ DB. */
+    private static void applyUploadedRequiredDocs(Map<String, RegistrantDocumentView> slots,
             List<RegistrantDocumentView> docs) {
         if (slots == null || docs == null) {
             return;
@@ -138,6 +123,7 @@ public final class RegistrantDocumentHelper {
         }
     }
 
+    /** Tạo map 4 slot bắt buộc rồi merge tài liệu đã có. */
     public static Map<String, RegistrantDocumentView> buildRequiredSlots(List<RegistrantDocumentView> allDocs) {
         Map<String, RegistrantDocumentView> slots = new LinkedHashMap<>();
         for (String type : RegistrantDocumentStatusHelper.REQUIRED_TYPES) {
@@ -151,6 +137,7 @@ public final class RegistrantDocumentHelper {
         return slots;
     }
 
+    /** Lọc các DocumentType Other/Other_* từ danh sách. */
     public static List<RegistrantDocumentView> listOtherDocuments(List<RegistrantDocumentView> docs) {
         List<RegistrantDocumentView> others = new ArrayList<>();
         if (docs == null) {
@@ -164,6 +151,7 @@ public final class RegistrantDocumentHelper {
         return others;
     }
 
+    /** Đếm số slot bắt buộc đã có file URL. */
     public static int countUploadedRequired(Map<String, RegistrantDocumentView> slots) {
         if (slots == null) {
             return 0;
@@ -177,34 +165,14 @@ public final class RegistrantDocumentHelper {
         return count;
     }
 
-    /** Other cần staff review cho ER bổ sung: ưu tiên #SUPPLEMENT_ER#id#; legacy thì Other đang #PENDING#. */
-    public static List<RegistrantDocumentView> collectSupplementReviewTargets(
-            List<RegistrantDocumentView> docs, int supplementExamRegistrationId) {
-        List<RegistrantDocumentView> linked = new ArrayList<>();
-        List<RegistrantDocumentView> legacyPending = new ArrayList<>();
-        if (docs == null || supplementExamRegistrationId <= 0) {
-            return linked;
-        }
-        for (RegistrantDocumentView doc : docs) {
-            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
-                continue;
-            }
-            Integer linkedEr = parseSupplementErId(doc.getNotes());
-            if (linkedEr != null && linkedEr == supplementExamRegistrationId) {
-                linked.add(doc);
-            } else if (linkedEr == null && DocumentDAOImpl.isPendingReview(doc.getNotes())) {
-                legacyPending.add(doc);
-            }
-        }
-        return linked.isEmpty() ? legacyPending : linked;
-    }
-
     // --- Upload validation ---
 
+    /** True nếu DocumentType thuộc tập được phép upload. */
     public static boolean isAllowedDocumentType(String documentType) {
         return documentType != null && ALLOWED_MANDATORY_TYPES.contains(documentType);
     }
 
+    /** Validate Part giấy tờ bắt buộc (size/đuôi file); null nếu OK. */
     public static String validateMandatoryUpload(Part filePart, String documentType) {
         if (!isAllowedDocumentType(documentType) || "Other".equals(documentType)) {
             return "Loại tài liệu không hợp lệ.";
@@ -220,6 +188,7 @@ public final class RegistrantDocumentHelper {
         return null;
     }
 
+    /** Validate Part Hồ sơ khác (PNG/JPG/PDF ≤5MB). */
     public static String validateOtherUpload(Part filePart) {
         String sizeError = validatePartSize(filePart, true);
         if (sizeError != null) {
@@ -232,6 +201,7 @@ public final class RegistrantDocumentHelper {
         return null;
     }
 
+    /** Kiểm tra Part khác rỗng và không vượt MAX_UPLOAD_BYTES. */
     public static String validatePartSize(Part filePart, boolean includeFileNameInMessage) {
         if (filePart == null || filePart.getSize() <= 0) {
             return "Vui lòng chọn tệp để tải lên.";
@@ -246,6 +216,7 @@ public final class RegistrantDocumentHelper {
         return null;
     }
 
+    /** Lấy phần mở rộng tệp (mặc định jpg). */
     public static String extractExtension(String fileName) {
         if (fileName == null) {
             return "jpg";
@@ -254,14 +225,11 @@ public final class RegistrantDocumentHelper {
         return dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : "jpg";
     }
 
+    /** True nếu đuôi file hợp lệ theo loại tài liệu. */
     public static boolean isAllowedExtension(String documentType, String ext) {
         if ("Other".equals(documentType)) {
             return "png".equals(ext) || "jpg".equals(ext) || "jpeg".equals(ext) || "pdf".equals(ext);
         }
         return "png".equals(ext) || "jpg".equals(ext) || "jpeg".equals(ext);
-    }
-
-    private static boolean hasUploadedFile(RegistrantDocumentView doc) {
-        return doc != null && doc.getDocumentUrl() != null && !doc.getDocumentUrl().isBlank();
     }
 }

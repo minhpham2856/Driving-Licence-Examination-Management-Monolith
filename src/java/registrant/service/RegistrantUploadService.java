@@ -8,6 +8,7 @@ import java.util.Map;
 
 public interface RegistrantUploadService {
 
+    /** Xây model trang upload tài liệu (slot bắt buộc, Other, trạng thái duyệt). */
     Map<String, Object> loadUploadPage(UserDTO user, HttpServletRequest request);
 
     /** @return null nếu upload thành công. */

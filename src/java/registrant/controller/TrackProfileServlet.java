@@ -10,7 +10,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** Theo dõi hồ sơ GET /registrant/track-profile — audit + documents + ProgressBuilder → timeline 5 bước. */
+/**
+ * Theo dõi hồ sơ — {@code GET /registrant/track-profile}.
+ * <p>
+ * Lấy Audit + Document + đăng ký → {@code RegistrantProfileProgressBuilder}
+ * dựng timeline 5 bước (Tiếp nhận → Duyệt → Bổ sung → Đã duyệt → Cấp SBD) → JSP.
+ */
 @WebServlet("/registrant/track-profile")
 public class TrackProfileServlet extends HttpServlet {
 

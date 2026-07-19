@@ -21,6 +21,7 @@ public final class RegistrantListFilter {
     private RegistrantListFilter() {
     }
 
+    /** Lọc my-exams theo từ khóa, trạng thái và hạng. */
     public static List<RegistrantMyExamRow> filterMyExams(List<RegistrantMyExamRow> exams,
             String searchQuery, String statusFilter, String licenceFilter) {
         if (exams == null || exams.isEmpty()) {
@@ -43,6 +44,7 @@ public final class RegistrantListFilter {
         return filtered;
     }
 
+    /** Lọc danh sách đăng ký dashboard theo query/status/hạng. */
     public static List<RegistrantRegisteredExamRow> filterRegisteredExams(
             List<RegistrantRegisteredExamRow> exams, String searchQuery,
             String statusFilter, String licenceFilter) {
@@ -66,6 +68,7 @@ public final class RegistrantListFilter {
         return filtered;
     }
 
+    /** Lọc hoạt động dashboard theo từ khóa tìm kiếm. */
     public static List<RegistrantDashboardActivity> filterActivities(
             List<RegistrantDashboardActivity> activities, String searchQuery) {
         if (activities == null || activities.isEmpty()) {
@@ -86,20 +89,14 @@ public final class RegistrantListFilter {
         return filtered;
     }
 
-    public static List<String> collectLicenceClasses(List<RegistrantMyExamRow> exams) {
-        return RegistrantFilterSupport.collectLicenceValuesFromMyExams(exams);
-    }
-
-    public static List<String> collectLicenceClassesFromRegistered(List<RegistrantRegisteredExamRow> exams) {
-        return RegistrantFilterSupport.collectLicenceValuesFromRegistered(exams);
-    }
-
+    /** True nếu đang có bất kỳ bộ lọc danh sách nào active. */
     public static boolean hasActivefilter(String q, String status, String licence) {
         return normalizeQuery(q) != null
                 || (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status.trim()))
                 || (licence != null && !licence.isBlank() && !"all".equalsIgnoreCase(licence.trim()));
     }
 
+    /** Lọc ExamDates theo search/địa điểm/khoảng ngày. */
     public static List<RegistrantExamSessionOption> filterExamSessions(
             List<RegistrantExamSessionOption> sessions,
             String searchQuery, String locationFilter, LocalDate fromDate, LocalDate toDate) {
@@ -128,6 +125,7 @@ public final class RegistrantListFilter {
         return filtered;
     }
 
+    /** Danh sách địa điểm distinct từ các đợt thi. */
     public static List<String> collectSessionLocations(List<RegistrantExamSessionOption> sessions) {
         TreeSet<String> locations = new TreeSet<>();
         if (sessions == null) {
@@ -141,6 +139,7 @@ public final class RegistrantListFilter {
         return new ArrayList<>(locations);
     }
 
+    /** True nếu bộ lọc ca thi đang có tham số khác mặc định. */
     public static boolean hasSessionActivefilter(
             String searchQuery, String locationFilter, String fromDate, String toDate) {
         String location = trimParam(locationFilter);
@@ -150,6 +149,7 @@ public final class RegistrantListFilter {
                 || !trimParam(toDate).isEmpty();
     }
 
+    /** Trim tham số request; rỗng → chuỗi rỗng. */
     public static String trimParam(String value) {
         if (value == null || value.isBlank()) {
             return "";

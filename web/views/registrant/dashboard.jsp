@@ -146,6 +146,7 @@
                             <span class="r-stat-card__badge r-stat-card__badge--neutral">VNĐ</span>
                         </div>
                         <div>
+                            <%-- totalFee: PaymentDAO.sumCompletedPaymentsByUserId — Cash+SePay đã Hoàn tất, join CCCD --%>
                             <p class="r-stat-card__value r-stat-card__value--compact">
                                 <fmt:formatNumber value="${totalFee != null ? totalFee : 0}" type="number"/>
                             </p>

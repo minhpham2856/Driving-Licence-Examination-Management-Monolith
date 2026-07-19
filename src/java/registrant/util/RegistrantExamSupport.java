@@ -1,11 +1,7 @@
 package registrant.util;
 
-import registrant.dao.ExamRegistrationDAO;
 import registrant.dto.RegistrantMyExamRow;
 import registrant.dto.RegistrantRegisteredExamRow;
-import registrant.dto.RegistrantSectionRegistrationBlock;
-import registrant.dto.exam.SessionExamSectionInfo;
-import registrant.dto.exam.SessionScheduleInfo;
 import registrant.enums.Db2Mappings;
 import registrant.enums.ExamRegistrationLifecycleStatus;
 import registrant.enums.ExamSessionStatus;
@@ -14,7 +10,6 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 /** Tiện ích thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch đăng ký. */
@@ -23,12 +18,17 @@ public final class RegistrantExamSupport {
     public static final String SBD_PENDING_MESSAGE = "SBD sẽ được cập nhật sau";
 
     /** Nhãn trạng thái nguyện vọng ngày thi (chờ trung tâm công bố lịch chính thức). */
-    public static final String PREFERRED_DATE_STATUS_LABEL = "Chờ thông báo trung tâm";
+    public static final String PREFERRED_DATE_STATUS_LABEL = "Nguyện vọng — chờ lịch chính thức";
     public static final String PREFERRED_DATE_REG_STATUS = "PreferredDate";
+
+    /** Đã có SBD / đã xếp ca, chưa đến ngày thi. */
+    public static final String SCHEDULED_WAITING_STATUS_LABEL = "Đã xếp lịch — chờ ngày thi";
+
+    /** Đã thi xong phần sát hạch, chưa có ExamResult công bố. */
+    public static final String AWAITING_RESULT_STATUS_LABEL = "Đã thi — chờ công bố kết quả";
 
     public static final int THEORY_MAX_QUESTIONS = 35;
     public static final int THEORY_PASS_CORRECT = 32;
-    public static final int THEORY_PASS_PERCENT = 80;
     public static final int PRACTICAL_MAX_SCORE = 100;
     public static final int PRACTICAL_PASS_SCORE = 80;
 
@@ -38,10 +38,12 @@ public final class RegistrantExamSupport {
     private RegistrantExamSupport() {
     }
 
+    /** True nếu CandidateNumber còn dạng PENDING-SBD-*. */
     public static boolean isSbdPending(String candidateNumber) {
         return Db2Mappings.isPendingCandidateNumber(candidateNumber);
     }
 
+    /** Hiển thị SBD; trả thông báo chờ nếu còn pending. */
     public static String formatSbdForDisplay(String candidateNumber) {
         if (candidateNumber == null || candidateNumber.isBlank() || isSbdPending(candidateNumber)) {
             return SBD_PENDING_MESSAGE;
@@ -100,6 +102,7 @@ public final class RegistrantExamSupport {
         };
     }
 
+    /** Suy loại xe (car/moto) từ mã hạng UI. */
     public static String inferVehicleType(String uiCode) {
         if (uiCode == null || uiCode.isBlank()) {
             return "car";
@@ -138,6 +141,7 @@ public final class RegistrantExamSupport {
         return digits.matches("\\d{12}") || digits.matches("\\d{9}");
     }
 
+    /** Chuẩn hóa CCCD/CMND: trim và bỏ khoảng trắng. */
     public static String normalizeGovIdNumber(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
@@ -165,7 +169,7 @@ public final class RegistrantExamSupport {
             return;
         }
         row.setStatusClass("info");
-        row.setStatusLabel("Được xét duyệt");
+        row.setStatusLabel(SCHEDULED_WAITING_STATUS_LABEL);
     }
 
     /** Badge nguyện vọng ngày thi trên dashboard / my-exams. */
@@ -178,6 +182,7 @@ public final class RegistrantExamSupport {
         row.setLocation("Theo lịch trung tâm");
     }
 
+    /** Gán badge/nhãn nguyện vọng ngày thi cho dòng my-exams. */
     public static void applyPreferredDateStatus(RegistrantMyExamRow row) {
         row.setPreferredDate(true);
         row.setSbdPending(true);
@@ -186,14 +191,12 @@ public final class RegistrantExamSupport {
         row.setStatusClass("pending");
         row.setStatusLabel(PREFERRED_DATE_STATUS_LABEL);
         row.setRegistrationStatus(PREFERRED_DATE_REG_STATUS);
-        row.setOverallResultLabel("Chờ thông báo từ trung tâm");
-        row.setCancelRequested(false);
-        row.setCanRequestCancellation(false);
+        row.setOverallResultLabel("Đã gửi nguyện vọng — chờ trung tâm công bố lịch chính thức");
         row.setSessionTimePublished(false);
         row.setPendingPayment(false);
     }
 
-    /** Badge my-exams: chờ xét duyệt (chưa SBD) → được xét duyệt (có SBD, chờ ngày thi). */
+    /** Badge my-exams: nguyện vọng / chờ SBD → đã xếp lịch → đã thi chờ kết quả → đạt/trượt. */
     public static void applyMyExamStatus(RegistrantMyExamRow row, String candidateNumber,
             String regStatus, String sectionStatus, Integer overallPassed) {
         if (overallPassed != null && overallPassed == 1) {
@@ -221,17 +224,13 @@ public final class RegistrantExamSupport {
             row.setOverallResultLabel("Chưa có SBD");
         } else if ("Completed".equalsIgnoreCase(sectionStatus)) {
             row.setStatusClass("info");
-            row.setStatusLabel("Chờ công bố");
-            row.setOverallResultLabel("Chờ công bố");
+            row.setStatusLabel(AWAITING_RESULT_STATUS_LABEL);
+            row.setOverallResultLabel("Đã hoàn thành phần thi — chờ trung tâm công bố kết quả");
         } else {
             row.setStatusClass("info");
-            row.setStatusLabel("Được xét duyệt");
-            row.setOverallResultLabel("Chờ đến ngày thi");
+            row.setStatusLabel(SCHEDULED_WAITING_STATUS_LABEL);
+            row.setOverallResultLabel("Đã có lịch chính thức — chờ đến ngày thi");
         }
-
-        row.setCancelRequested(ExamRegistrationLifecycleStatus.isCancellationPending(regStatus));
-        row.setCanRequestCancellation(
-                ExamRegistrationLifecycleStatus.canRequestCancellation(regStatus, isSbdPending(candidateNumber)));
     }
 
     /** Gán nhãn điểm chi tiết cho thí sinh (lý thuyết / thực hành / đường trường). */
@@ -358,6 +357,7 @@ public final class RegistrantExamSupport {
                 || "Trượt".equals(row.getOverallResultLabel());
     }
 
+    /** Format Timestamp hoạt động dashboard theo locale VI. */
     public static String formatActivityTime(Timestamp ts) {
         if (ts == null) {
             return "Vừa xong";
@@ -380,6 +380,7 @@ public final class RegistrantExamSupport {
         return ExamSessionStatus.isSessionInProgress(sessionStatus) || ExamSessionStatus.isSessionEnded(sessionStatus);
     }
 
+    /** Gán giờ ca thi lên row nếu session đã công bố. */
     public static void applyPublishedSessionSchedule(RegistrantRegisteredExamRow row, String sessionStatus,
             java.util.Date sessionStart, java.util.Date sessionEnd) {
         boolean published = isSessionTimePublished(sessionStatus);
@@ -393,6 +394,7 @@ public final class RegistrantExamSupport {
         row.setSessionEnd(sessionEnd);
     }
 
+    /** Gán giờ ca thi + chuỗi hiển thị cho my-exam row. */
     public static void applyPublishedSessionSchedule(RegistrantMyExamRow row, String sessionStatus,
             java.util.Date sessionStart, java.util.Date sessionEnd) {
         boolean published = isSessionTimePublished(sessionStatus);
@@ -440,81 +442,5 @@ public final class RegistrantExamSupport {
     private static boolean isSameDay(Calendar a, Calendar b) {
         return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
                 && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
-    }
-
-    // --- Quy tắc đăng ký ca thi ---
-
-    /** Validate insert ca mới: xác định section, không trùng licence+section, không cùng ngày hạng khác — null nếu OK. */
-    public static String validateNewSessionRegistration(ExamRegistrationDAO examRegistrationdao,
-            int profileId, int sessionId, int licenceId, String uiLicenceCode) {
-        SessionExamSectionInfo section = examRegistrationdao.findPrimarySectionForSession(sessionId);
-        if (section == null) {
-            return "Không xác định được phần thi của ca thi này. Vui lòng chọn ca khác hoặc liên hệ Ban sát hạch.";
-        }
-
-        RegistrantSectionRegistrationBlock block = examRegistrationdao.findActiveSectionRegistration(
-                profileId, licenceId, section.getSectionId());
-        if (block != null) {
-            String statusLabel = ExamRegistrationLifecycleStatus.toDisplayLabel(block.getRegistrationStatus());
-            return String.format(
-                    "Bạn đã có đăng ký phần thi %s (Hạng %s) tại %s — trạng thái: %s. "
-                            + "Chỉ được đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.",
-                    section.getSectionName(),
-                    uiLicenceCode != null ? uiLicenceCode : "—",
-                    block.getSessionName() != null ? block.getSessionName() : "—",
-                    statusLabel);
-        }
-
-        SessionScheduleInfo newSchedule = examRegistrationdao.findSessionSchedule(sessionId);
-        if (newSchedule == null || newSchedule.getExamDate() == null) {
-            return null;
-        }
-
-        List<SessionScheduleInfo> activeSchedules =
-                examRegistrationdao.listActiveSessionSchedulesByProfileId(profileId);
-        for (SessionScheduleInfo existing : activeSchedules) {
-            if (existing.getLicenceId() == licenceId) {
-                continue;
-            }
-            if (existing.getSessionId() == sessionId) {
-                continue;
-            }
-            String scheduleConflict = validateCrossLicenceScheduleConflict(newSchedule, existing);
-            if (scheduleConflict != null) {
-                return scheduleConflict;
-            }
-        }
-        return null;
-    }
-
-    /** Giữa các hạng GPLX khác nhau: chỉ cho phép thi vào ngày khác nhau. */
-    static String validateCrossLicenceScheduleConflict(SessionScheduleInfo candidate,
-            SessionScheduleInfo existing) {
-        if (candidate.getExamDate() == null || existing.getExamDate() == null) {
-            return null;
-        }
-        if (!sameCalendarDay(candidate.getExamDate(), existing.getExamDate())) {
-            return null;
-        }
-
-        String dateLabel = formatExamDate(existing.getExamDate());
-        String licenceLabel = existing.getUiLicenceCode() != null ? existing.getUiLicenceCode() : "—";
-        String sessionLabel = existing.getSessionName() != null ? existing.getSessionName() : "—";
-        return String.format(
-                "Bạn đã có ca thi Hạng %s (%s) vào ngày %s. "
-                        + "Giữa các hạng GPLX khác nhau chỉ được thi vào ngày khác nhau — vui lòng chọn ca khác ngày.",
-                licenceLabel, sessionLabel, dateLabel);
-    }
-
-    static boolean sameCalendarDay(Date a, Date b) {
-        Calendar calA = Calendar.getInstance(Locale.getDefault());
-        calA.setTime(a);
-        Calendar calB = Calendar.getInstance(Locale.getDefault());
-        calB.setTime(b);
-        return isSameDay(calA, calB);
-    }
-
-    private static String formatExamDate(Date date) {
-        return new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN")).format(date);
     }
 }

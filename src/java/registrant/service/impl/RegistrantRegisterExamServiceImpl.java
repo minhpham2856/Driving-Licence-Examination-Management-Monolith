@@ -26,7 +26,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Đăng ký ngày thi dự kiến (ExamDates) sau khi hồ sơ + hạng được duyệt; ghi RegistrationDates. */
+/**
+ * Đăng ký ngày thi dự kiến sau khi hồ sơ + hạng được duyệt.
+ * <p>
+ * Luồng:
+ * <ol>
+ *   <li>{@link #loadRegisterExamPage} — đọc ExamDates / Licence / Document Approved → request attrs</li>
+ *   <li>{@link #submitRegistration} — validate → {@code RegistrantDAO.registerPreferredExamDate}
+ *       → MERGE {@code RegistrationDates} (không ghi Payment)</li>
+ * </ol>
+ */
 public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExamService {
 
     public static final String FLASH_ERROR_ATTR = "registerExamError";
@@ -35,6 +44,7 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
     private final ProfileDAO profiledao = new ProfileDAOImpl();
     private final DocumentDAO documentdao = new DocumentDAOImpl();
 
+    /** Chuẩn bị form đăng ký: hạng được duyệt, danh sách ExamDates, bộ lọc địa điểm/ngày. */
     @Override
     public void loadRegisterExamPage(UserDTO user, HttpServletRequest request) {
         RegistrantServletSupport.consumeFlash(request, FLASH_ERROR_ATTR, "error");
@@ -91,6 +101,7 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         attachRegistrationRules(user, request, licenceSelect, selectedSession, sessionChosen, docs);
     }
 
+    /** Dựng URL PRG giữ licence/session và tham số lọc hiện tại. */
     @Override
     public String buildRegisterExamPageUrl(HttpServletRequest request, String fragment) {
         StringBuilder url = new StringBuilder(request.getContextPath())

@@ -39,6 +39,7 @@ public class RegistrantTrackProfileServiceImpl implements RegistrantTrackProfile
     private final DocumentDAO documentdao = new DocumentDAOImpl();
     private final AuditLogDAO auditLogdao = new AuditLogDAOImpl();
 
+    /** Build progress steps + nhật ký đã lọc/phân trang cho track-profile. */
     @Override
     public void copyTrackingToRequest(UserDTO user, HttpServletRequest request) {
         var ctx = RegistrantProfileSupport.loadContext(profiledao, documentdao, registrantdao, user);
@@ -61,7 +62,6 @@ public class RegistrantTrackProfileServiceImpl implements RegistrantTrackProfile
                 RegistrantTrackingFilter.paginate(filtered, safePage, TRACKING_PAGE_SIZE);
 
         request.setAttribute("profileTrackingLogs", pageLogs);
-        request.setAttribute("auditViewRows", RegistrantAuditHelper.toAuditViewRows(auditLogs));
         RegistrantTrackingFilter.applyToRequest(request, filterState, filtered.size(), unified.size(), totalPages);
 
         String registrationStatus = ctx.getRegistrationStatus();
