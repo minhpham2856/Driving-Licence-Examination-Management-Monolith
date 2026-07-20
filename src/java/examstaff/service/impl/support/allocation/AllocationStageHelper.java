@@ -411,6 +411,7 @@ public final class AllocationStageHelper {
             case STAGE_WAITING -> !c.isProcedureComplete() && !c.isSuspended()
                     && !c.isExamFinished() && !c.isAbsent();
             case STAGE_THEORY -> c.isProcedureComplete()
+                    && !c.skipsTheory()
                     && "none".equalsIgnoreCase(nullToPass(c.getTheoryPassed()))
                     && !c.isAbsent();
             case STAGE_PRACTICAL -> practicalStageIds != null

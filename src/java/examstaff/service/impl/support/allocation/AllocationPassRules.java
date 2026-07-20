@@ -103,6 +103,7 @@ public final class AllocationPassRules {
 
     /**
      * Thí sinh đủ điều kiện vào giai đoạn thực hành / sa hình.
+     * Bảo lưu lý thuyết ({@code TakeTheory = 0}) → vào TH ngay sau thủ tục.
      *
      * @param c hồ sơ đăng ký
      * @return {@code true} nếu đủ điều kiện
@@ -113,6 +114,10 @@ public final class AllocationPassRules {
         }
         if ("passed".equalsIgnoreCase(nullToPass(c.getPracticalPassed()))) {
             return false;
+        }
+        // Bảo lưu LT: bỏ qua phòng LT, chỉ thi thực hành
+        if (c.skipsTheory()) {
+            return true;
         }
         if ("passed".equalsIgnoreCase(nullToPass(c.getTheoryPassed()))) {
             return true;
