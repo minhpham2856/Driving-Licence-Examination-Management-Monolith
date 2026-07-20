@@ -68,7 +68,8 @@
                             </c:choose>
                         </span>
                         <select name="areaFilter" id="allocationAreaFilter" class="allocation-room-filter__select"
-                                data-auto-submit title="Lọc theo ${param.showRoomFilter eq 'practical' ? 'sân thi' : 'phòng thi'}">
+                                onchange="this.form.submit()"
+                                title="Lọc theo ${param.showRoomFilter eq 'practical' ? 'sân thi' : 'phòng thi'}">
                             <option value="0" ${empty allocationAreaFilter ? 'selected' : ''}>Tất cả</option>
                             <c:choose>
                                 <c:when test="${param.showRoomFilter eq 'practical'}">
@@ -97,10 +98,11 @@
             </div>
         </form>
         </c:if>
-        <button type="button" id="allocationRefreshBtn" class="allocation-search-btn allocation-refresh-btn"
-                title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">
+        <a href="${ctx}${layoutListPath}${allocationExtraQuery}"
+           class="allocation-search-btn allocation-refresh-btn"
+           title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">
             <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
-        </button>
+        </a>
     </div>
 </header>
 
