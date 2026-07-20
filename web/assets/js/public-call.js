@@ -12,26 +12,26 @@
     }
 
     const I18N = {
-        queueEmpty: msg('msg-queue-empty', 'Kh\u00f4ng c\u00f2n th\u00ed sinh ch\u1edd g\u1ecdi'),
-        shiftEnded: msg('msg-shift-ended', 'K\u1ef3 thi \u0111\u00e3 \u0111\u00f3ng'),
-        examPaused: msg('msg-exam-paused', 'K\u1ef3 thi t\u1ea1m d\u1eebng \u2014 ch\u1edd ti\u1ebfp t\u1ee5c'),
-        classPrefix: msg('msg-class-prefix', 'H\u1ea1ng '),
-        callPrefix: msg('msg-call-prefix', 'M\u1eddi th\u00ed sinh s\u1ed1 b\u00e1o danh '),
-        callSuffix: msg('msg-call-suffix', ', nhanh ch\u00f3ng \u0111\u1ebfn b\u00e0n th\u1ee7 t\u1ee5c ch\u00ednh v\u1edbi c\u0103n c\u01b0\u1edbc c\u00f4ng d\u00e2n.'),
-        preparePrefix: msg('msg-prepare-prefix', 'Th\u00ed sinh s\u1ed1 b\u00e1o danh '),
+        queueEmpty: msg('msg-queue-empty', 'Queue empty'),
+        shiftEnded: msg('msg-shift-ended', 'Exam closed'),
+        examPaused: msg('msg-exam-paused', 'Exam paused'),
+        classPrefix: msg('msg-class-prefix', 'Class '),
+        callPrefix: msg('msg-call-prefix', 'Please proceed, candidate '),
+        callSuffix: msg('msg-call-suffix', ', to the main procedure desk with your ID card.'),
+        preparePrefix: msg('msg-prepare-prefix', 'Candidate '),
         prepareSuffix: msg('msg-prepare-suffix', ', '),
-        prepareTail: msg('msg-prepare-tail', 'xin chu\u1ea9n b\u1ecb, s\u1eafp \u0111\u1ebfn l\u01b0\u1ee3t l\u00e0m th\u1ee7 t\u1ee5c t\u1ea1i b\u00e0n.'),
-        examPrefix: msg('msg-exam-prefix', 'Ph\u00f2ng ch\u1edd ch\u00ednh \u2014 K\u1ef3 thi '),
-        syncConnecting: msg('msg-sync-connecting', '\u0110ang k\u1ebft n\u1ed1i...'),
-        syncReady: msg('msg-sync-ready', '\u0110\u1ed3ng b\u1ed9 & loa s\u1eb5n s\u00e0ng'),
-        syncNeedsAudio: msg('msg-sync-needs-audio', '\u0110\u1ed3ng b\u1ed9 \u2014 c\u1ea7n b\u1eadt loa m\u1ed9t l\u1ea7n'),
-        syncNoSpeech: msg('msg-sync-no-speech', 'Tr\u00ecnh duy\u1ec7t kh\u00f4ng h\u1ed7 tr\u1ee3 \u0111\u1ecdc loa'),
-        syncSpeechError: msg('msg-sync-speech-error', 'L\u1ed7i ph\u00e1t loa \u2014 ki\u1ec3m tra \u00e2m l\u01b0\u1ee3ng TV'),
-        syncOffline: msg('msg-sync-offline', 'M\u1ea5t k\u1ebft n\u1ed1i \u2014 th\u1eed l\u1ea1i...'),
-        audioUnlock: msg('msg-audio-unlock', '\u0110\u00e3 b\u1eadt loa'),
-        noExamLabel: msg('msg-no-exam-label', 'Ch\u01b0a ch\u1ecdn k\u1ef3 thi'),
-        noExamQueue: msg('msg-no-exam-queue', 'Ch\u01b0a c\u00f3 k\u1ef3 thi \u2014 kh\u00f4ng hi\u1ec3n th\u1ecb danh s\u00e1ch ch\u1edd'),
-        noExamSync: msg('msg-no-exam-sync', 'Ch\u01b0a k\u1ebft n\u1ed1i k\u1ef3 thi')
+        prepareTail: msg('msg-prepare-tail', 'please prepare; you are next at the desk.'),
+        examPrefix: msg('msg-exam-prefix', 'Main waiting room — Exam '),
+        syncConnecting: msg('msg-sync-connecting', 'Connecting...'),
+        syncReady: msg('msg-sync-ready', 'Synced & audio ready'),
+        syncNeedsAudio: msg('msg-sync-needs-audio', 'Synced — enable audio once'),
+        syncNoSpeech: msg('msg-sync-no-speech', 'Browser has no speech support'),
+        syncSpeechError: msg('msg-sync-speech-error', 'Speech error — check TV volume'),
+        syncOffline: msg('msg-sync-offline', 'Offline — retrying...'),
+        audioUnlock: msg('msg-audio-unlock', 'Audio enabled'),
+        noExamLabel: msg('msg-no-exam-label', 'No exam selected'),
+        noExamQueue: msg('msg-no-exam-queue', 'No exam — queue hidden'),
+        noExamSync: msg('msg-no-exam-sync', 'Not connected to exam')
     };
 
     let audioUnlocked = false;
