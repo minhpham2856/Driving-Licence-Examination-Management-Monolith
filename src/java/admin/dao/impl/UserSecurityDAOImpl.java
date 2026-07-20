@@ -21,8 +21,7 @@ public class UserSecurityDAOImpl extends DBContext implements UserSecurityDAO {
 
     @Override
     public boolean setMustChange(int userId, boolean value) {
-        String sql = "UPDATE [User] SET MustChangePassword = ? WHERE UserId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement("UPDATE [User] SET MustChangePassword = ? WHERE UserId = ?")) {
             ps.setBoolean(1, value); ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); }
@@ -31,8 +30,7 @@ public class UserSecurityDAOImpl extends DBContext implements UserSecurityDAO {
 
     @Override
     public String getPasswordHash(int userId) {
-        String sql = "SELECT PasswordHash FROM [User] WHERE UserId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement("SELECT PasswordHash FROM [User] WHERE UserId = ?")) {
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) { if (rs.next()) return rs.getString(1); }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -41,8 +39,7 @@ public class UserSecurityDAOImpl extends DBContext implements UserSecurityDAO {
 
     @Override
     public boolean updatePassword(int userId, String newPasswordPlain) {
-        String sql = "UPDATE [User] SET PasswordHash = ?, UpdatedAt = GETDATE() WHERE UserId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = getConnection().prepareStatement("UPDATE [User] SET PasswordHash = ? WHERE UserId = ?")) {
             ps.setString(1, newPasswordPlain); ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); }
