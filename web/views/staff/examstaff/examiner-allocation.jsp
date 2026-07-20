@@ -80,7 +80,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <c:forEach var="opt" items="${areaAssignOptions}">
-                                        <option value="${opt.areaId}" data-exam="${opt.examId}" data-type="${opt.areaType}">
+                                        <option value="${opt.areaId}">
                                             ${opt.areaName}
                                         </option>
                                     </c:forEach>
@@ -149,8 +149,7 @@
                                             <c:if test="${a.areaId > 0}">
                                                 <a class="btn-examiner-remove"
                                                    href="${pageContext.request.contextPath}/examstaff/examiner-allocation?examId=${currentExam.id}&action=remove&slotKey=${a.slotKey}"
-                                                   data-confirm-remove="true"
-                                                   data-confirm-msg="Gỡ phân công sát hạch viên này?">Gỡ</a>
+                                                   onclick="return confirm('Gỡ phân công sát hạch viên này?');">Gỡ</a>
                                             </c:if>
                                         </td>
                                     </tr>
@@ -162,6 +161,4 @@
             </div>
         </c:if>
 
-<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
-    <jsp:param name="extraScript" value="/assets/js/examiner-allocation.js" />
-</jsp:include>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />
