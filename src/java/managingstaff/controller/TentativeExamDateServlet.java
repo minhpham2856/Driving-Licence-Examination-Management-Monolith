@@ -27,6 +27,7 @@ import managingstaff.service.ApprovedCandidateExcelService;
 import managingstaff.service.DossierPdfService;
 import managingstaff.service.impl.ApprovedCandidateExcelServiceImpl;
 import managingstaff.service.impl.AwtDossierPdfService;
+import managingstaff.util.AuditLogHelper;
 import managingstaff.util.SessionUtil;
 
 @WebServlet("/manager/tentative-exam-dates")
@@ -50,7 +51,7 @@ public class TentativeExamDateServlet extends HttpServlet {
             export(req, resp, dateId, export);
             return;
         }
-        String tab = "expired".equalsIgnoreCase(req.getParameter("tab")) ? "expired" : "active";
+        String tab = tab(req.getParameter("tab"));
         int page = Math.max(1, integer(req.getParameter("page")));
         int total = dateDAO.countAll(tab);
         int pages = Math.max(1, (total + DATE_PAGE_SIZE - 1) / DATE_PAGE_SIZE);
@@ -64,6 +65,7 @@ public class TentativeExamDateServlet extends HttpServlet {
         req.setAttribute("activeTab", tab);
         req.setAttribute("activeCount", dateDAO.countAll("active"));
         req.setAttribute("expiredCount", dateDAO.countAll("expired"));
+        req.setAttribute("cancelledCount", dateDAO.countAll("cancelled"));
         if (dateId > 0) {
             TentativeExamDateDTO selected = dateDAO.findById(dateId);
             if (selected == null) {
@@ -71,11 +73,15 @@ public class TentativeExamDateServlet extends HttpServlet {
                 return;
             }
             int cp = Math.max(1, integer(req.getParameter("candidatePage")));
-            int ct = dateDAO.countRegistrations(dateId);
+            int ct = selected.isCancelled()
+                    ? selected.getCancelledRegistrationCount()
+                    : dateDAO.countRegistrations(dateId);
             int cps = Math.max(1, (ct + CANDIDATE_PAGE_SIZE - 1) / CANDIDATE_PAGE_SIZE);
             cp = Math.min(cp, cps);
             req.setAttribute("selectedDate", selected);
-            req.setAttribute("candidates", dossiers(dateDAO.findRegistrationIds(dateId, cp, CANDIDATE_PAGE_SIZE)));
+            req.setAttribute("candidates", selected.isCancelled()
+                    ? List.of()
+                    : dossiers(dateDAO.findRegistrationIds(dateId, cp, CANDIDATE_PAGE_SIZE)));
             req.setAttribute("candidatePage", cp);
             req.setAttribute("candidatePages", cps);
             req.setAttribute("candidateTotal", ct);
@@ -88,14 +94,26 @@ public class TentativeExamDateServlet extends HttpServlet {
         if (!authorized(req, resp)) {
             return;
         }
-        if ("delete".equals(req.getParameter("action"))) {
+        if ("cancel".equals(req.getParameter("action"))) {
             int id = integer(req.getParameter("dateId"));
-            boolean deleted = id > 0 && dateDAO.deleteIfUnused(id);
-            req.getSession().setAttribute(deleted ? "tentativeSuccess" : "tentativeError",
-                    deleted ? "Đã xóa ngày thi dự kiến chưa có đăng ký."
-                            : "Không thể xóa vì ngày này đã có thí sinh đăng ký.");
-            String tab = "expired".equals(req.getParameter("returnTab")) ? "expired" : "active";
-            resp.sendRedirect(req.getContextPath() + "/manager/tentative-exam-dates?tab=" + tab);
+            String reason = req.getParameter("cancelReason");
+            try {
+                int affected = dateDAO.cancel(id, reason,
+                        SessionUtil.currentUserId(req.getSession(false)));
+                AuditLogHelper.persistChange(req.getSession(), "CANCEL TENTATIVE EXAM DATE",
+                        "Hủy ngày thi dự kiến #" + id + ". Lý do: " + reason.trim()
+                                + ". Đã giải phóng " + affected + " lựa chọn.",
+                        "Open", "Cancelled", "ExamDates", id);
+                req.getSession().setAttribute("tentativeSuccess",
+                        "Đã hủy ngày thi dự kiến và giải phóng " + affected
+                                + " lựa chọn của thí sinh.");
+                resp.sendRedirect(req.getContextPath()
+                        + "/manager/tentative-exam-dates?tab=cancelled&dateId=" + id);
+            } catch (Exception e) {
+                req.getSession().setAttribute("tentativeError", e.getMessage());
+                resp.sendRedirect(req.getContextPath()
+                        + "/manager/tentative-exam-dates?tab=active&dateId=" + Math.max(id, 0));
+            }
             return;
         }
         try {
@@ -117,6 +135,10 @@ public class TentativeExamDateServlet extends HttpServlet {
         TentativeExamDateDTO date = dateDAO.findById(dateId);
         if (date == null) {
             resp.sendError(404);
+            return;
+        }
+        if (date.isCancelled()) {
+            resp.sendError(409, "Ngày thi dự kiến đã bị hủy.");
             return;
         }
         List<DossierDTO> rows = dossiers(dateDAO.findAllRegistrationIds(dateId));
@@ -201,5 +223,11 @@ public class TentativeExamDateServlet extends HttpServlet {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private static String tab(String value) {
+        if ("expired".equalsIgnoreCase(value)) return "expired";
+        if ("cancelled".equalsIgnoreCase(value)) return "cancelled";
+        return "active";
     }
 }

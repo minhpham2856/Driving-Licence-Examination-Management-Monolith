@@ -27,6 +27,7 @@ public class ChangePasswordServlet extends HttpServlet {
 
     private final AuditService auditService = new AuditServiceImpl();
     private final AuthService authService = new AuthServiceImpl();
+    private static HttpSession session(HttpServletRequest req){ return req.getSession(false); }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -52,6 +53,10 @@ public class ChangePasswordServlet extends HttpServlet {
         ServiceResult<Void> result = authService.changePassword(
                 sessionUser.getUserId(), current, newPwd, confirm);
         if (result.isSuccess()) {
+            // tắt cờ bắt đổi mật khẩu lần đầu
+            new admin.dao.impl.UserSecurityDAOImpl().setMustChange(sessionUser.getUserId(), false);
+            session(request).removeAttribute("forceChangePassword");
+
             auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
                     "Đổi mật khẩu tài khoản", sessionUser.getUserId());
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
