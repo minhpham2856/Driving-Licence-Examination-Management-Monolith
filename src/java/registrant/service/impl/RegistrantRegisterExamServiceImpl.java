@@ -235,7 +235,23 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
             RegistrantExamSessionOption selectedSession, boolean sessionChosen,
             List<RegistrantDocumentView> docs) {
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
-        if (profile == null || !sessionChosen || selectedSession == null) {
+        if (profile == null) {
+            request.setAttribute("canConfirmRegistration", false);
+            return;
+        }
+
+        int licenceId = licenceSelect != null && !licenceSelect.isBlank()
+                ? registrantdao.resolveLicenceIdByUiCode(licenceSelect)
+                : -1;
+        if (licenceId > 0 && registrantdao.hasActivePreferredExamDate(profile.getProfileId(), licenceId)) {
+            request.setAttribute("registrationConflictMessage",
+                    "Bạn đã đăng ký ngày thi dự kiến cho hạng này. "
+                            + "Không thể đổi sang ngày khác — xem tại Lịch thi & kết quả.");
+            request.setAttribute("canConfirmRegistration", false);
+            return;
+        }
+
+        if (!sessionChosen || selectedSession == null) {
             request.setAttribute("canConfirmRegistration", false);
             return;
         }
@@ -249,7 +265,6 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
             return;
         }
 
-        int licenceId = registrantdao.resolveLicenceIdByUiCode(licenceSelect);
         if (licenceId <= 0) {
             request.setAttribute("canConfirmRegistration", false);
             return;

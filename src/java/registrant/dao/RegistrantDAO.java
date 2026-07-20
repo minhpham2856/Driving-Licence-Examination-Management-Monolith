@@ -30,9 +30,13 @@ public interface RegistrantDAO {
 
     /**
      * Ghi lựa chọn ngày dự kiến vào RegistrationDates (IsActive=1).
+     * Mỗi hồ sơ + hạng chỉ được một nguyện vọng active — không cho đổi/ghi đè ngày đã chọn.
      * @return null nếu OK, ngược lại thông báo lỗi thân thiện.
      */
     String registerPreferredExamDate(int profileId, int examDateId, int licenceId);
+
+    /** True nếu hồ sơ đã có nguyện vọng ngày thi active cho hạng (LicenceId) này. */
+    boolean hasActivePreferredExamDate(int profileId, int licenceId);
 
     /** Danh sách đăng ký thi (nguyện vọng + chính thức) theo UserId. */
     List<RegistrantRegisteredExamRow> listRegisteredExamsByUserId(int userId, int limit);
