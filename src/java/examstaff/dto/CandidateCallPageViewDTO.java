@@ -37,6 +37,7 @@ public class CandidateCallPageViewDTO {
     private boolean shiftEnded;
     private boolean shiftPaused;
     private boolean pauseBoard;
+    private boolean resumeBoard;
     private boolean clearProcedureJustPaidSbd;
     private boolean persistQueueOrder;
     private CandidateCallActionResultDTO.AlertType alertType = CandidateCallActionResultDTO.AlertType.NONE;
@@ -165,6 +166,16 @@ public class CandidateCallPageViewDTO {
     /** Gán chỉ thị pause board. */
     public void setPauseBoard(boolean pauseBoard) {
         this.pauseBoard = pauseBoard;
+    }
+
+    /** Yêu cầu servlet tiếp tục CallBoard sau tạm dừng gọi số. */
+    public boolean isResumeBoard() {
+        return resumeBoard;
+    }
+
+    /** Gán chỉ thị resume board. */
+    public void setResumeBoard(boolean resumeBoard) {
+        this.resumeBoard = resumeBoard;
     }
 
     /** Xóa flash SBD vừa thanh toán thủ tục trên session (tránh banner cũ). */
