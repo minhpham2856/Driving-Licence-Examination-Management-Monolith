@@ -2,6 +2,6 @@
 
 <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
 
-    <jsp:param name="extraScript" value="/assets/js/allocation.js?v=5" />
+    <jsp:param name="extraScript" value="/assets/js/allocation.js?v=6" />
 
 </jsp:include>
