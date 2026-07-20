@@ -1,20 +1,20 @@
 package admin.dao;
 
 import admin.model.AccountView;
+import admin.model.RoleOption;
 import java.util.List;
 
 public interface AccountManageDAO {
-    List<AccountView> search(String keyword, String dbRole, Boolean active);
+    List<AccountView> search(String keyword, Integer roleId, Boolean active);
     AccountView findById(int userId);
-    int create(AccountView acc, String passwordPlain, Integer actorId);
-    boolean update(AccountView acc, String newPasswordOrNull, Integer actorId);
-    boolean resetPassword(int userId, String newPasswordPlain, Integer actorId);
-    boolean setStatus(int userId, boolean active, Integer actorId);
+    List<RoleOption> listRoles();
+    int create(AccountView acc, int roleId, boolean sexMale, String passwordPlain);
+    boolean resetPassword(int userId, String newPasswordPlain);
+    boolean setStatus(int userId, boolean active);
     boolean delete(int userId);
-    boolean usernameExists(String username, int excludeUserId);
-    boolean emailExists(String email, int excludeUserId);
-    boolean phoneExists(String phone, int excludeUserId);
-    boolean govIdExists(String govId, int excludeUserId);
+    boolean usernameExists(String username);
+    boolean emailExists(String email);
+    boolean phoneExists(String phone);
+    boolean govIdExists(String govId);
     int countAll();
-    int countByRole(String dbRole);
 }
