@@ -25,11 +25,135 @@
             text-decoration: none;
             white-space: nowrap;
         }
+        .dossier-detail-workspace {
+            display: grid;
+            grid-template-columns: minmax(230px, .65fr) minmax(275px, .8fr) minmax(420px, 1.55fr);
+            gap: 1rem;
+            align-items: start;
+            margin-top: 1rem;
+        }
+        .dossier-detail-card {
+            min-width: 0;
+            background: #fff;
+            border: 1px solid #dbe3ef;
+            border-radius: 14px;
+            padding: 1rem;
+        }
+        .dossier-detail-summary {
+            text-align: center;
+        }
+        .dossier-detail-summary .profile-avatar-large {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto .65rem;
+            font-size: 1.5rem;
+        }
+        .dossier-detail-summary .profile-name {
+            margin-bottom: .45rem;
+            font-size: 1.1rem;
+        }
+        .dossier-detail-summary .profile-quick-info {
+            margin-top: 1rem;
+        }
+        .dossier-detail-summary .quick-info-item {
+            gap: .6rem;
+            padding: .48rem 0;
+        }
+        .dossier-detail-summary .quick-info-value {
+            max-width: 62%;
+            overflow-wrap: anywhere;
+            text-align: right;
+        }
+        .dossier-detail-result {
+            margin-top: .85rem;
+            padding-top: .85rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .dossier-detail-result strong,
+        .dossier-detail-result span {
+            display: block;
+        }
+        .dossier-detail-result span {
+            margin-top: .25rem;
+            color: #64748b;
+            font-size: .85rem;
+            line-height: 1.4;
+        }
+        .dossier-document-list {
+            display: grid;
+            gap: .65rem;
+            margin-top: .85rem;
+        }
+        .dossier-document-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .65rem;
+            align-items: center;
+            padding: .72rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        .dossier-document-item__name {
+            display: block;
+            color: #0f172a;
+            font-size: .88rem;
+            line-height: 1.3;
+        }
+        .dossier-document-item .action-badge {
+            margin-top: .3rem;
+        }
+        .dossier-document-link {
+            min-width: 74px;
+            justify-content: center;
+            padding: .45rem .6rem;
+            text-decoration: none;
+        }
+        .dossier-document-link.is-active {
+            border-color: #075fd8;
+            background: #075fd8;
+            color: #fff;
+            box-shadow: 0 0 0 3px rgba(7, 95, 216, .12);
+        }
+        .dossier-preview-heading {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: .75rem;
+        }
+        .dossier-preview-heading h2 {
+            margin: 0;
+        }
+        .dossier-preview-frame {
+            display: block;
+            width: 100%;
+            height: min(61vh, 570px);
+            min-height: 390px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        .dossier-preview-empty {
+            display: grid;
+            min-height: 390px;
+            place-items: center;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            color: #64748b;
+            text-align: center;
+        }
         @media (max-width: 1100px) {
             .dossier-status-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .dossier-detail-workspace { grid-template-columns: minmax(230px, .7fr) minmax(0, 1.3fr); }
+            .dossier-detail-preview { grid-column: 1 / -1; }
         }
         @media (max-width: 680px) {
             .dossier-status-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .dossier-detail-workspace { grid-template-columns: 1fr; }
+            .dossier-detail-preview { grid-column: auto; }
+            .dossier-preview-frame { height: 430px; min-height: 0; }
         }
     </style>
 </head>
@@ -206,98 +330,82 @@
                 </div>
             </header>
 
-            <div class="profile-grid">
-                <aside class="profile-sidebar">
-                    <div class="profile-sidebar-card">
-                        <div class="profile-avatar-large profile-avatar--blue"
-                             style="margin:auto;background:linear-gradient(135deg,#0052cc,#6366f1)">
-                            ${fn:substring(dossier.profile.fullName, 0, 1)}
-                        </div>
-                        <h2 class="profile-name"><c:out value="${dossier.profile.fullName}" /></h2>
-                        <span class="action-badge action-badge--${dossier.statusKey}">${dossier.statusLabel}</span>
-                        <div class="profile-quick-info" style="margin-top:1.5rem">
-                            <div class="quick-info-item"><span class="quick-info-label">CCCD</span><span class="quick-info-value"><c:out value="${dossier.profile.govIdNo}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Ngày sinh</span><span class="quick-info-value"><fmt:formatDate value="${dossier.profile.dateOfBirth}" pattern="dd/MM/yyyy" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Giới tính</span><span class="quick-info-value"><c:out value="${dossier.profile.sex}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Điện thoại</span><span class="quick-info-value"><c:out value="${dossier.profile.phoneNo}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Email</span><span class="quick-info-value"><c:out value="${dossier.user.email}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Địa chỉ</span><span class="quick-info-value" style="text-align:right"><c:out value="${dossier.profile.address}" /></span></div>
-                            <div class="quick-info-item"><span class="quick-info-label">Tài khoản</span><span class="quick-info-value">${dossier.user.active ? 'Đang hoạt động' : 'Đã khóa'}</span></div>
-                        </div>
+            <c:set var="defaultDocument" value="${dossier.documents['PORTRAIT']}" />
+            <c:set var="defaultDocumentLabel" value="Ảnh chân dung 3x4" />
+            <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['ID_FRONT']}" /><c:set var="defaultDocumentLabel" value="CCCD mặt trước" /></c:if>
+            <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['ID_BACK']}" /><c:set var="defaultDocumentLabel" value="CCCD mặt sau" /></c:if>
+            <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['HEALTH_CERTIFICATE']}" /><c:set var="defaultDocumentLabel" value="Giấy khám sức khỏe" /></c:if>
+            <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['GRADUATION_CERTIFICATE']}" /><c:set var="defaultDocumentLabel" value="Giấy tốt nghiệp / chứng chỉ đào tạo" /></c:if>
+            <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['APPROVED_DOSSIER_PDF']}" /><c:set var="defaultDocumentLabel" value="PDF hồ sơ đã duyệt" /></c:if>
+
+            <div class="dossier-detail-workspace">
+                <aside class="dossier-detail-card dossier-detail-summary">
+                    <div class="profile-avatar-large profile-avatar--blue">${fn:substring(dossier.profile.fullName, 0, 1)}</div>
+                    <h2 class="profile-name"><c:out value="${dossier.profile.fullName}" /></h2>
+                    <span class="action-badge action-badge--${dossier.statusKey}">${dossier.statusLabel}</span>
+                    <div class="profile-quick-info">
+                        <div class="quick-info-item"><span class="quick-info-label">CCCD</span><span class="quick-info-value"><c:out value="${dossier.profile.govIdNo}" /></span></div>
+                        <div class="quick-info-item"><span class="quick-info-label">Ngày sinh</span><span class="quick-info-value"><fmt:formatDate value="${dossier.profile.dateOfBirth}" pattern="dd/MM/yyyy" /></span></div>
+                        <div class="quick-info-item"><span class="quick-info-label">Giới tính</span><span class="quick-info-value"><c:out value="${dossier.profile.sex}" /></span></div>
+                        <div class="quick-info-item"><span class="quick-info-label">Điện thoại</span><span class="quick-info-value"><c:out value="${dossier.profile.phoneNo}" /></span></div>
+                        <div class="quick-info-item"><span class="quick-info-label">Email</span><span class="quick-info-value"><c:out value="${dossier.user.email}" /></span></div>
+                        <div class="quick-info-item"><span class="quick-info-label">Địa chỉ</span><span class="quick-info-value"><c:out value="${dossier.profile.address}" /></span></div>
+                        <div class="quick-info-item"><span class="quick-info-label">Tài khoản</span><span class="quick-info-value">${dossier.user.active ? 'Hoạt động' : 'Đã khóa'}</span></div>
+                    </div>
+                    <div class="dossier-detail-result">
+                        <strong>Kết quả xử lý</strong>
+                        <span><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú' : dossier.reviewMessage}" /></span>
                     </div>
                 </aside>
 
-                <section class="profile-main-content" style="gap:1.5rem">
-                    <div class="log-card">
-                        <div class="log-card-header">
-                            <h2 class="log-card-title">Giấy tờ hồ sơ (${dossier.documentCount}/${dossier.requiredDocumentTotal})</h2>
-                            <span class="action-badge action-badge--${dossier.complete ? 'success' : 'warning'}">
-                                ${dossier.complete ? 'ĐÃ ĐỦ HỒ SƠ' : 'CHƯA ĐỦ HỒ SƠ'}
-                            </span>
-                        </div>
-                        <div class="report-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));padding:1.5rem;gap:1rem">
-                            <c:set var="documentTypes" value="PORTRAIT,ID_FRONT,ID_BACK,HEALTH_CERTIFICATE" />
-                            <c:forTokens var="type" items="${documentTypes}" delims=",">
-                                <c:set var="document" value="${dossier.documents[type]}" />
-                                <div class="profile-score-card" style="align-items:flex-start;min-height:120px">
-                                    <strong>
-                                        <c:choose>
-                                            <c:when test="${type eq 'PORTRAIT'}">Ảnh chân dung 3x4</c:when>
-                                            <c:when test="${type eq 'ID_FRONT'}">CCCD mặt trước</c:when>
-                                            <c:when test="${type eq 'ID_BACK'}">CCCD mặt sau</c:when>
-                                            <c:otherwise>Giấy khám sức khỏe</c:otherwise>
-                                        </c:choose>
-                                    </strong>
-                                    <c:choose>
-                                        <c:when test="${not empty document}">
-                                            <span class="action-badge action-badge--success">Đã tải lên</span>
-                                            <a class="btn-export" target="_blank" rel="noopener"
-                                               href="${ctx}/manager/document-view?id=${document.documentId}"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="action-badge action-badge--warning">Còn thiếu</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </c:forTokens>
-                            <c:if test="${dossier.graduationCertificateRequired}">
-                                <c:set var="document" value="${dossier.documents['GRADUATION_CERTIFICATE']}" />
-                                <div class="profile-score-card" style="align-items:flex-start;min-height:120px">
-                                    <strong>Giấy tốt nghiệp / chứng chỉ đào tạo</strong>
-                                    <c:choose>
-                                        <c:when test="${not empty document}">
-                                            <span class="action-badge action-badge--success">Đã tải lên</span>
-                                            <a class="btn-export" target="_blank" rel="noopener"
-                                               href="${ctx}/manager/document-view?id=${document.documentId}"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Mở tài liệu</a>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="action-badge action-badge--warning">Còn thiếu</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </c:if>
-                        </div>
+                <section class="dossier-detail-card">
+                    <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center">
+                        <h2 class="log-card-title">Giấy tờ (${dossier.documentCount}/${dossier.requiredDocumentTotal})</h2>
+                        <span class="action-badge action-badge--${dossier.complete ? 'success' : 'warning'}">${dossier.complete ? 'Đã đủ' : 'Còn thiếu'}</span>
                     </div>
-
-                    <c:if test="${not empty dossier.documents['APPROVED_DOSSIER_PDF']}">
-                        <div class="report-pane" style="padding:1.5rem;border-color:#10b981">
-                            <h2 class="log-card-title">PDF hồ sơ đã duyệt</h2>
-                            <p>Biểu mẫu hồ sơ, ảnh chân dung và tài liệu căn cước đã được tổng hợp.</p>
-                            <a class="btn-filter" target="_blank" rel="noopener"
-                               href="${fn:startsWith(dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl, 'http://') or fn:startsWith(dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl, 'https://') ? dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl : ctx}${fn:startsWith(dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl, 'http://') or fn:startsWith(dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl, 'https://') ? '' : dossier.documents['APPROVED_DOSSIER_PDF'].documentUrl}"
-                               style="display:inline-flex;text-decoration:none">Mở PDF hồ sơ</a>
-                        </div>
-                    </c:if>
-
-                    <div class="report-pane" style="padding:1.5rem">
-                        <h2 class="log-card-title">Kết quả xử lý hồ sơ</h2>
-                        <div style="display:grid;grid-template-columns:180px 1fr;gap:.75rem;margin-top:1rem">
-                            <strong>Trạng thái hiện tại</strong><span>${dossier.statusLabel}</span>
-                            <strong>Ghi chú gần nhất</strong><span><c:out value="${empty dossier.reviewMessage ? 'Chưa có ghi chú' : dossier.reviewMessage}" /></span>
-                        </div>
+                    <div class="dossier-document-list">
+                        <c:set var="documentTypes" value="PORTRAIT,ID_FRONT,ID_BACK,HEALTH_CERTIFICATE" />
+                        <c:forTokens var="type" items="${documentTypes}" delims=",">
+                            <c:set var="document" value="${dossier.documents[type]}" />
+                            <c:set var="documentLabel">
+                                <c:choose>
+                                    <c:when test="${type eq 'PORTRAIT'}">Ảnh chân dung 3x4</c:when>
+                                    <c:when test="${type eq 'ID_FRONT'}">CCCD mặt trước</c:when>
+                                    <c:when test="${type eq 'ID_BACK'}">CCCD mặt sau</c:when>
+                                    <c:otherwise>Giấy khám sức khỏe</c:otherwise>
+                                </c:choose>
+                            </c:set>
+                            <div class="dossier-document-item">
+                                <div><strong class="dossier-document-item__name"><c:out value="${documentLabel}" /></strong><span class="action-badge action-badge--${not empty document ? 'success' : 'warning'}">${not empty document ? 'Đã tải lên' : 'Còn thiếu'}</span></div>
+                                <c:if test="${not empty document}"><a class="btn-export dossier-document-link js-dossier-document-link ${defaultDocument.documentId eq document.documentId ? 'is-active' : ''}" href="${ctx}/manager/document-view?id=${document.documentId}" data-document-label="${fn:escapeXml(documentLabel)}">Xem</a></c:if>
+                            </div>
+                        </c:forTokens>
+                        <c:if test="${dossier.graduationCertificateRequired}">
+                            <c:set var="document" value="${dossier.documents['GRADUATION_CERTIFICATE']}" />
+                            <div class="dossier-document-item">
+                                <div><strong class="dossier-document-item__name">Giấy tốt nghiệp / chứng chỉ đào tạo</strong><span class="action-badge action-badge--${not empty document ? 'success' : 'warning'}">${not empty document ? 'Đã tải lên' : 'Còn thiếu'}</span></div>
+                                <c:if test="${not empty document}"><a class="btn-export dossier-document-link js-dossier-document-link ${defaultDocument.documentId eq document.documentId ? 'is-active' : ''}" href="${ctx}/manager/document-view?id=${document.documentId}" data-document-label="Giấy tốt nghiệp / chứng chỉ đào tạo">Xem</a></c:if>
+                            </div>
+                        </c:if>
+                        <c:if test="${not empty dossier.documents['APPROVED_DOSSIER_PDF']}">
+                            <c:set var="document" value="${dossier.documents['APPROVED_DOSSIER_PDF']}" />
+                            <div class="dossier-document-item">
+                                <div><strong class="dossier-document-item__name">PDF hồ sơ đã duyệt</strong><span class="action-badge action-badge--success">Đã tạo</span></div>
+                                <a class="btn-export dossier-document-link js-dossier-document-link ${defaultDocument.documentId eq document.documentId ? 'is-active' : ''}" href="${ctx}/manager/document-view?id=${document.documentId}" data-document-label="PDF hồ sơ đã duyệt">Xem</a>
+                            </div>
+                        </c:if>
                     </div>
+                </section>
+
+                <section class="dossier-detail-card dossier-detail-preview">
+                    <div class="dossier-preview-heading">
+                        <h2 id="dossier-preview-title" class="log-card-title"><c:out value="${empty defaultDocument ? 'Xem tài liệu' : defaultDocumentLabel}" /></h2>
+                        <a id="dossier-preview-open" class="btn-export" target="_blank" rel="noopener" href="${ctx}/manager/document-view?id=${defaultDocument.documentId}" ${empty defaultDocument ? 'hidden' : ''} style="text-decoration:none">Mở riêng</a>
+                    </div>
+                    <c:choose>
+                        <c:when test="${not empty defaultDocument}"><iframe id="dossier-document-frame" class="dossier-preview-frame" src="${ctx}/manager/document-view?id=${defaultDocument.documentId}" title="${fn:escapeXml(defaultDocumentLabel)}"></iframe></c:when>
+                        <c:otherwise><div class="dossier-preview-empty">Hồ sơ chưa có tài liệu để xem.</div></c:otherwise>
+                    </c:choose>
                 </section>
             </div>
         </c:when>
@@ -312,6 +420,28 @@
     <jsp:param name="standalone" value="false" />
 </jsp:include>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const links = Array.from(document.querySelectorAll('.js-dossier-document-link'));
+        const frame = document.getElementById('dossier-document-frame');
+        const title = document.getElementById('dossier-preview-title');
+        const openLink = document.getElementById('dossier-preview-open');
+        if (!frame || !title || !openLink) return;
+        links.forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                links.forEach(function (item) { item.classList.remove('is-active'); });
+                link.classList.add('is-active');
+                const label = link.dataset.documentLabel || 'Xem tài liệu';
+                frame.src = link.href;
+                frame.title = label;
+                title.textContent = label;
+                openLink.href = link.href;
+                openLink.hidden = false;
+            });
+        });
+    });
+</script>
 </body>
 </html>
 

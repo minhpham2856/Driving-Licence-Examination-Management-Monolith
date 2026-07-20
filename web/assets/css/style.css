@@ -2146,6 +2146,168 @@ p {
     display: flex;
     flex-direction: column;
 }
+
+/* Managing Staff dossier review: document list, preview and decision in one viewport. */
+.dossier-review-page .page-header {
+    margin-bottom: 1rem;
+}
+
+.dossier-review-grid {
+    grid-template-columns: minmax(410px, .95fr) minmax(500px, 1.3fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.dossier-review-grid .log-card {
+    margin-bottom: 1rem;
+}
+
+.dossier-document-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+    padding: 1rem;
+}
+
+.dossier-document-card {
+    align-items: flex-start;
+    min-height: 92px;
+    padding: .85rem;
+}
+
+.dossier-review-workspace {
+    gap: 0;
+}
+
+.dossier-review-workspace__card {
+    align-items: stretch;
+    padding: 1rem;
+}
+
+.dossier-preview-panel,
+.dossier-decision-panel {
+    min-width: 0;
+}
+
+.dossier-preview-panel h3,
+.dossier-decision-panel h3 {
+    margin: 0 0 .75rem;
+    color: #0f172a;
+}
+
+.dossier-preview-panel iframe {
+    display: block;
+    width: 100%;
+    height: min(66vh, 650px);
+    min-height: 440px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.dossier-preview-empty {
+    margin: 0;
+    color: #64748b;
+}
+
+.dossier-licence-summary {
+    padding: .75rem .85rem;
+    margin: 0 0 .75rem;
+}
+
+.dossier-licence-summary span {
+    display: block;
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.dossier-licence-summary strong {
+    display: block;
+    margin-top: .25rem;
+    font-size: 1.1rem;
+}
+
+.dossier-review-warning {
+    margin: 0 0 .75rem;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.dossier-decision-form {
+    display: grid;
+    gap: .65rem;
+    width: 100%;
+}
+
+.dossier-decision-card__body {
+    padding: 1rem;
+}
+
+.dossier-decision-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+}
+
+.dossier-decision-option {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    padding: .75rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    background: #f0fdf4;
+    cursor: pointer;
+}
+
+.dossier-decision-option--reject {
+    border-color: #fecaca;
+    background: #fff7f7;
+}
+
+.dossier-decision-option input {
+    margin-top: .2rem;
+}
+
+.dossier-decision-option span,
+.dossier-decision-option small {
+    display: block;
+}
+
+.dossier-decision-option small {
+    margin-top: .2rem;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.dossier-decision-form textarea {
+    height: 72px;
+    resize: vertical;
+}
+
+.dossier-decision-form .btn-filter {
+    width: 100%;
+    margin-top: .1rem;
+}
+
+@media (max-width: 1200px) {
+    .dossier-review-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .dossier-document-grid,
+    .dossier-decision-choices {
+        grid-template-columns: 1fr;
+    }
+
+    .dossier-preview-panel iframe {
+        height: 420px;
+        min-height: 0;
+    }
+}
 .profile-section-title {
     font-size: 1rem;
     font-weight: 700;
