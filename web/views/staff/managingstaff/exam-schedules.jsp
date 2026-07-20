@@ -110,6 +110,10 @@
         .schedule-tabs a{text-align:center;text-decoration:none;padding:.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#475569;font-weight:700}
         .schedule-tabs a.is-active{background:#0052cc;color:#fff;border-color:#0052cc}
         .year-filter{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin:0 0 1rem;padding:.8rem;background:#f8fafc;border-radius:10px}
+        .schedule-table tbody tr{transition:background-color .18s ease}
+        .schedule-table tbody tr.schedule-row-selected td{background:#eff6ff;border-bottom-color:#bfdbfe}
+        .schedule-table tbody tr.schedule-row-selected td:first-child{box-shadow:inset 4px 0 #0b5ed7}
+        .schedule-table tbody tr.schedule-row-selected strong{color:#0755b5}
 
         @media (max-width: 1100px) {
             .schedule-grid,
@@ -214,7 +218,7 @@
                         </thead>
                         <tbody>
                         <c:forEach var="s" items="${sessions}">
-                            <tr>
+                            <tr class="${not empty viewSession and viewSession.id eq s.id ? 'schedule-row-selected' : ''}">
                                 <td>
                                     <strong><c:out value="${s.sessionName}" /></strong><br>
                                     <small style="color:#64748b"><c:out value="${s.examTypeName}" /></small>
@@ -239,7 +243,10 @@
                                                 <c:param name="year" value="${y}" />
                                             </c:forEach>
                                         </c:url>
-                                        <a class="btn-export" href="${candidateListUrl}#candidate-list" style="padding:.4rem .55rem;text-decoration:none">Danh sách</a>
+                                        <a class="${not empty viewSession and viewSession.id eq s.id ? 'btn-filter' : 'btn-export'}"
+                                           href="${candidateListUrl}#candidate-list"
+                                           aria-current="${not empty viewSession and viewSession.id eq s.id ? 'true' : 'false'}"
+                                           style="padding:.4rem .55rem;text-decoration:none">${not empty viewSession and viewSession.id eq s.id ? 'Đang xem' : 'Danh sách'}</a>
                                         <c:if test="${s.editable}"><a class="btn-filter" href="${ctx}/manager/exam-schedules?edit=${s.id}" style="padding:.4rem .55rem;text-decoration:none">Sửa</a></c:if>
                                     </div>
                                     <c:if test="${s.editable}"><form action="${ctx}/manager/exam-schedules" method="post" style="margin-top:.45rem" onsubmit="return confirm('Xác nhận hủy phiên thi? Danh sách thí sinh vẫn được giữ lại.');">

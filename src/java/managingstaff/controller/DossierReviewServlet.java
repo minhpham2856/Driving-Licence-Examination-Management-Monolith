@@ -35,7 +35,9 @@ public class DossierReviewServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         UserDTO reviewer = requireReviewer(request, response);
-        if (reviewer == null) return;
+        if (reviewer == null) {
+            return;
+        }
         int id = parseInt(request.getParameter("id"));
         int requestedPage = Math.max(parseInt(request.getParameter("page")), 1);
         request.setAttribute("currentPage", requestedPage);
@@ -62,7 +64,9 @@ public class DossierReviewServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         UserDTO reviewer = requireReviewer(request, response);
-        if (reviewer == null) return;
+        if (reviewer == null) {
+            return;
+        }
         int registrationId = parseInt(request.getParameter("id"));
         int returnPage = Math.max(parseInt(request.getParameter("returnPage")), 1);
         String listRedirect = request.getContextPath() + "/manager/dossiers?page=" + returnPage;
@@ -74,9 +78,12 @@ public class DossierReviewServlet extends HttpServlet {
                 ? "Hồ sơ hợp lệ, đã tạo PDF và đang chờ xếp ngày thi"
                 : reason.trim();
         String status = switch (decision == null ? "" : decision) {
-            case "approve" -> "Approved";
-            case "reject" -> "Rejected";
-            default -> "";
+            case "approve" ->
+                "Approved";
+            case "reject" ->
+                "Rejected";
+            default ->
+                "";
         };
         if (registrationId <= 0 || status.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -99,6 +106,12 @@ public class DossierReviewServlet extends HttpServlet {
             request.getSession().setAttribute("reviewError",
                     "Không thể duyệt hồ sơ. Cần đủ " + dossier.getRequiredDocumentTotal()
                     + " giấy tờ, còn thiếu: " + missing + ".");
+            response.sendRedirect(detailRedirect);
+            return;
+        }
+        if ("Approved".equals(status) && !dossier.isMotorcycleLicence()) {
+            request.getSession().setAttribute("reviewError",
+                    "Không thể duyệt hồ sơ vì chưa có hạng GPLX hợp lệ (A1, A hoặc B1).");
             response.sendRedirect(detailRedirect);
             return;
         }
@@ -197,12 +210,18 @@ public class DossierReviewServlet extends HttpServlet {
         Files.write(runtimeFile, pdf);
 
         Path buildDir = runtimeWebRoot.getParent();
-        if (buildDir == null || !"build".equalsIgnoreCase(buildDir.getFileName().toString())) return;
+        if (buildDir == null || !"build".equalsIgnoreCase(buildDir.getFileName().toString())) {
+            return;
+        }
         Path projectRoot = buildDir.getParent();
-        if (projectRoot == null) return;
+        if (projectRoot == null) {
+            return;
+        }
         Path sourceWebRoot = projectRoot.resolve("web").toAbsolutePath().normalize();
         Path sourceDirectory = sourceWebRoot.resolve("uploads/generated-dossiers").normalize();
-        if (!sourceDirectory.startsWith(sourceWebRoot)) return;
+        if (!sourceDirectory.startsWith(sourceWebRoot)) {
+            return;
+        }
         Files.createDirectories(sourceDirectory);
         Files.copy(runtimeFile, sourceDirectory.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
     }
@@ -224,7 +243,8 @@ public class DossierReviewServlet extends HttpServlet {
                 + "<h2 style='color:#047857'>Hồ sơ đã được tiếp nhận và duyệt</h2>"
                 + "<p>Kính gửi <strong>" + html(dossier.getProfile().getFullName()) + "</strong>,</p>"
                 + "<p>Hồ sơ đăng ký sát hạch, mã hồ sơ <strong>#" + dossier.getRegistrationId()
-                + "</strong> đã được nộp đầy đủ và duyệt hợp lệ.</p>"
+                + "</strong> đã được nộp đầy đủ và duyệt hợp lệ cho hạng GPLX <strong>"
+                + html(dossier.getLicenceDisplayClass()) + "</strong>.</p>"
                 + "<p>File PDF hồ sơ đã duyệt được đính kèm email này. Vui lòng kiểm tra thông tin và "
                 + "ký vào phần chữ ký khi trung tâm yêu cầu.</p>"
                 + "<p>Hồ sơ hiện đang chờ xếp ngày thi. Thời gian và địa điểm sát hạch sẽ được thông báo sau.</p>"
@@ -232,7 +252,9 @@ public class DossierReviewServlet extends HttpServlet {
     }
 
     private static String html(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -255,8 +277,11 @@ public class DossierReviewServlet extends HttpServlet {
     }
 
     private static int parseInt(String value) {
-        try { return Integer.parseInt(value); }
-        catch (Exception e) { return 0; }
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private static void setPaginationAttributes(HttpServletRequest request, int currentPage,
