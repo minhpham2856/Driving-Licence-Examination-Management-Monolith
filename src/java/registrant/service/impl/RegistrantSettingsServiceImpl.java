@@ -13,7 +13,7 @@ import registrant.dto.RegistrantRegisteredExamRow;
 import auth.dto.UserDTO;
 import auth.service.EmailService;
 import auth.service.impl.EmailServiceImpl;
-import auth.util.PasswordUtil;
+import shared.util.PasswordUtil;
 import registrant.service.RegistrantSettingsService;
 import registrant.util.RegistrantAuditHelper;
 import registrant.util.RegistrantProfileSupport;
