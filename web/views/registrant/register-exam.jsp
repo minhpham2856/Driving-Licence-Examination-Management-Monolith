@@ -419,8 +419,9 @@
                         </div>
 
                         <div class="payment-footer-text" style="margin-top:12px;">
-                            Mỗi hạng GPLX chỉ được một đăng ký đang xử lý cho từng phần thi (Lý thuyết, Sa hình, …).
-                            Chỉ đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.
+                            Mỗi hạng GPLX chỉ được đăng ký <strong>một lần</strong> ngày thi dự kiến.
+                            Sau khi xác nhận, không thể đổi sang ngày khác — vui lòng theo dõi lịch chính thức tại
+                            <a href="${pageContext.request.contextPath}/registrant/my-exams" class="profile-checklist-link">Lịch thi &amp; kết quả</a>.
                         </div>
 
                         <c:if test="${not empty licenceGateMessage}">
