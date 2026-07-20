@@ -63,8 +63,7 @@ public class ProcedureServlet extends HttpServlet {
         if ("startShift".equals(request.getParameter("action"))) {
             List<ExamSummaryDTO> bootstrapExams = viewService.listAllExams();
             int boardExamId = ExamStaffPageSupport.resolveExamId(request, session, bootstrapExams, 0, viewService);
-            ExamStaffShiftSupport.startOrResumeShift(session, getServletContext(), boardExamId,
-                    viewService, examControlService, staffCall);
+            ExamStaffShiftSupport.startOrResumeShift(session, getServletContext(), boardExamId, staffCall);
             response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
             return;
         }
@@ -97,6 +96,58 @@ public class ProcedureServlet extends HttpServlet {
         }
 
         String pAction = request.getParameter("action");
+
+        // --- SePay: server-side finalize khi đang chờ IPN ---
+        // Mục tiêu: giảm JS polling fetch; khi UI reload (meta refresh), servlet sẽ tự finalize nếu IPN đã ghi Payment.
+        if ((pAction == null || pAction.isBlank())
+                && "3".equals(stepParam)
+                && profile != null
+                && sbdParam != null
+                && !profile.isPaymentCompleted()) {
+            String awaitingSbd = session.getAttribute("sePayAwaitingSbd") instanceof String
+                    ? (String) session.getAttribute("sePayAwaitingSbd")
+                    : null;
+            if (awaitingSbd != null && awaitingSbd.equals(sbdParam)) {
+                ServiceResult<ProcedureActionOutcome> finalizeResult =
+                        procedureService.finalizeAfterSePayPayment(profile, sbdParam, examId, webRoot, allExams);
+                ProcedureActionOutcome outcome = finalizeResult.getData();
+                if (outcome != null) {
+                    switch (outcome.getPaymentStatus()) {
+                        case SUCCESS -> {
+                            applyPaymentOutcome(request, session, sbdParam, outcome, examId);
+                            session.removeAttribute("sePayAwaitingSbd");
+                            session.removeAttribute("sePayAwaitingInvoice");
+                            showPostPaymentDesk(request, response, session,
+                                    outcome.getProfile(), sbdParam, outcome.getQueue(), false);
+                            return;
+                        }
+                        case ALREADY_PAID -> {
+                            session.removeAttribute("sePayAwaitingSbd");
+                            session.removeAttribute("sePayAwaitingInvoice");
+                            showPostPaymentDesk(request, response, session,
+                                    outcome.getProfile(), sbdParam, outcome.getQueue(), false);
+                            return;
+                        }
+                        case NO_PHOTO -> {
+                            request.setAttribute("photoRequiredMsg",
+                                    ProcedureStepHelper.paymentBlockedNoPhotoMessage());
+                            request.setAttribute("step", "2");
+                            session.setAttribute("procedureStep", "2");
+                            request.setAttribute("hasValidPhoto", false);
+                            request.setAttribute("profile", outcome.getProfile() != null ? outcome.getProfile() : profile);
+                            session.removeAttribute("sePayAwaitingSbd");
+                            session.removeAttribute("sePayAwaitingInvoice");
+                            List<ExamRegistrationDTO> fallbackQ = qList != null ? qList : List.of();
+                            List<ExamRegistrationDTO> nextQ = outcome.getQueue() != null ? outcome.getQueue() : fallbackQ;
+                            forwardDeskView(request, response, nextQ);
+                            return;
+                        }
+                        default -> {
+                        }
+                    }
+                }
+            }
+        }
 
         // --- Các nhánh action ---
         if ("nextCandidate".equals(pAction)) {
