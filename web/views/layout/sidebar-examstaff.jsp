@@ -165,14 +165,7 @@
             <label class="side-nav-bar__exam-label" for="examId">Kỳ thi</label>
 
             <select id="examId" name="examId" class="side-nav-bar__exam-select"
-
-                    aria-label="Chọn kỳ thi" data-exam-picker="true"
-
-                    data-selected-exam-id="${pickerExamId}"
-
-                    data-committed-exam-id="${not empty requestScope.pickerCommittedExamId ? requestScope.pickerCommittedExamId : navExamId}"
-
-                    onchange="if(window.syncExamStaffSessionApply){window.syncExamStaffSessionApply(this);}">
+                    aria-label="Chọn kỳ thi">
 
                 <c:if test="${empty sidebarOptions}">
 
@@ -182,7 +175,7 @@
 
                 <c:forEach var="exam" items="${sidebarOptions}" varStatus="optSt">
 
-                    <option value="${exam.id}" data-exam-id="${exam.examId}"
+                    <option value="${exam.id}"
                             <c:choose>
                                 <c:when test="${not empty requestScope.pickerCommittedExamId}">
                                     <c:if test="${exam.examId == requestScope.pickerCommittedExamId}">selected="selected"</c:if>
@@ -207,12 +200,7 @@
 
             </select>
 
-            <button type="submit" class="side-nav-bar__exam-apply" data-exam-apply="true"
-
-                    data-loading-label="Đang tải..."
-
-                    data-default-label="Xác nhận"
-
+            <button type="submit" class="side-nav-bar__exam-apply"
                     aria-label="Xác nhận đổi kỳ thi">Xác nhận</button>
 
         </form>

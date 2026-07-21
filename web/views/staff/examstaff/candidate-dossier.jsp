@@ -10,11 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/dossier-print.css">
 </head>
-<body class="dossier-page"<c:if test="${autoPrint}"> data-auto-print="true"</c:if>>
+<body class="dossier-page"<c:if test="${autoPrint}"> onload="window.print()"</c:if>>
 
 <div class="dossier-toolbar no-print">
     <a href="${pageContext.request.contextPath}/examstaff/candidatecall" class="dossier-toolbar__btn dossier-toolbar__btn--ghost">&larr; Quay lại gọi thủ tục</a>
-    <button type="button" class="dossier-toolbar__btn dossier-toolbar__btn--primary">In hồ sơ</button>
+    <button type="button" class="dossier-toolbar__btn dossier-toolbar__btn--primary" onclick="window.print()">In hồ sơ</button>
 </div>
 
 <article class="dossier-sheet">
@@ -115,6 +115,5 @@
     </section>
 </article>
 
-<script src="${pageContext.request.contextPath}/assets/js/dossier-print.js" charset="UTF-8"></script>
 </body>
 </html>

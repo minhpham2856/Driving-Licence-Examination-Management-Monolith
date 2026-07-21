@@ -23,6 +23,6 @@ priv
 
 # Local docs and SQL scripts (keep on disk, do not track)
 *.md
-*.sql
+
 !web/WEB-INF/others/sql/MIGRATE_EXAM_DATES_CANCELLATION.sql
 doc/

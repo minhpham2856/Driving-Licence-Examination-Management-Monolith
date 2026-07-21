@@ -13,8 +13,6 @@
     <jsp:param name="activeSidebar" value="nhat-ky" />
     <jsp:param name="pageTitle" value="Nhật ký cá nhân" />
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
-    <jsp:param name="dataAuditBase" value="/examstaff/audit" />
-    <jsp:param name="dataAuditExportBase" value="/examstaff/audit-export" />
 </jsp:include>
 
         <c:if test="${param.exportError eq '1'}">
@@ -208,6 +206,4 @@
             </div>
         </div>
 
-<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
-    <jsp:param name="extraScript" value="/assets/js/audit.js" />
-</jsp:include>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

@@ -10,10 +10,8 @@ import examstaff.dto.ExamRegistrationDTO;
 import examstaff.dto.ExamStaffPageContext;
 import examstaff.dto.ExamSummaryDTO;
 import examstaff.enums.ExamStatus;
-import examstaff.service.ExamControlService;
 import examstaff.service.ExamStaffViewService;
 import examstaff.service.StaffCallService;
-import examstaff.service.impl.ExamControlServiceImpl;
 import examstaff.service.impl.ExamStaffViewServiceImpl;
 import examstaff.service.impl.StaffCallServiceImpl;
 
@@ -36,7 +34,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     private final StaffCallService staffCall = new StaffCallServiceImpl();
     private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
-    private final ExamControlService examControlService = new ExamControlServiceImpl();
 
     /**
      * GET: (desk → procedure) hoặc prepare page → preparePage service →
@@ -75,11 +72,7 @@ public class CandidateCallServlet extends HttpServlet {
         CandidateCallPageViewDTO view = staffCall.preparePage(command);
 
         if (view.isResumeShift()) {
-            if (!ExamStaffShiftSupport.startOrResumeShift(session, getServletContext(), pageCtx.getExamId(),
-                    viewService, examControlService, staffCall)) {
-                response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
-                return;
-            }
+            ExamStaffShiftSupport.startOrResumeShift(session, getServletContext(), pageCtx.getExamId(), staffCall);
             response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
             return;
         }
@@ -190,7 +183,7 @@ public class CandidateCallServlet extends HttpServlet {
         }
         if (view.isShiftPaused()) {
             session.setAttribute("shiftPaused", "true");
-        } else if (view.isResumeShift() || view.isShiftEnded()) {
+        } else {
             session.removeAttribute("shiftPaused");
         }
         if (view.isClearProcedureJustPaidSbd()) {
@@ -210,8 +203,11 @@ public class CandidateCallServlet extends HttpServlet {
      */
     private void applyBoardOp(int boardExamId, CandidateCallPageViewDTO view) {
         CallBoardDAO dao = ExamStaffHttpSupport.callBoardDao(getServletContext());
+        if (view.isResumeBoard()) {
+            staffCall.resumeBoard(dao, boardExamId);
+        }
         if (view.isPauseBoard()) {
-            examControlService.pauseExam(boardExamId);
+            // Chỉ tạm dừng hàng gọi (CallBoard), không đổi trạng thái kỳ thi trên DB.
             staffCall.pauseBoard(dao, boardExamId, view.getFullQueue());
         }
         if (view.isReleaseDesk()) {
@@ -277,8 +273,37 @@ public class CandidateCallServlet extends HttpServlet {
         if (current == null && examId > 0) {
             current = viewService.representativeExam(viewService.listAllExams(), examId);
         }
+        String doneQ = request.getParameter("doneQ");
+        List<ExamRegistrationDTO> done = snapshot.getProcedureDone();
+        if (doneQ != null && !doneQ.trim().isEmpty()) {
+            done = filterProcedureDoneCandidates(done, doneQ);
+        }
         ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
-                snapshot.getProcedureDone(), examId, examId, current);
+                done, examId, examId, current);
+    }
+
+    /**
+     * Filter server-side danh sách "đã xong thủ tục" theo keyword.
+     * Match: chứa theo SBD hoặc tên (case-insensitive).
+     */
+    private static List<ExamRegistrationDTO> filterProcedureDoneCandidates(
+            List<ExamRegistrationDTO> doneCandidates, String doneQ) {
+        if (doneCandidates == null || doneCandidates.isEmpty()) {
+            return List.of();
+        }
+        String q = doneQ == null ? "" : doneQ.trim().toLowerCase();
+        if (q.isEmpty()) {
+            return doneCandidates;
+        }
+        List<ExamRegistrationDTO> out = new ArrayList<>();
+        for (ExamRegistrationDTO c : doneCandidates) {
+            String sbd = c != null && c.getSbd() != null ? c.getSbd().toLowerCase() : "";
+            String name = c != null && c.getName() != null ? c.getName().toLowerCase() : "";
+            if (sbd.contains(q) || name.contains(q)) {
+                out.add(c);
+            }
+        }
+        return out;
     }
 
     /**
@@ -290,7 +315,6 @@ public class CandidateCallServlet extends HttpServlet {
             return;
         }
         switch (view.getAlertType()) {
-            case AUTO_ABSENT -> request.setAttribute("autoAbsentAlert", view.getAlertSbd());
             case ABSENT -> request.setAttribute("absentAlert", view.getAlertSbd());
             case PERMANENT_ABSENT -> request.setAttribute("permanentAbsentAlert", view.getAlertSbd());
             case UNDO -> request.setAttribute("undoAlert", view.getAlertSbd());

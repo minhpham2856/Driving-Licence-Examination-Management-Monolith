@@ -15,7 +15,7 @@
             <div class="call-page-actions">
                 <c:if test="${sessionScope.shiftEnded ne 'true' and sessionScope.shiftPaused ne 'true'}">
                     <a href="candidatecall?action=pauseShift" class="call-toolbar-btn call-toolbar-btn--warn"
-                       onclick="return confirm('Tạm dừng gọi số? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng. Sát hạch viên cũng không đăng nhập được khi đang tạm dừng.');">
+                       onclick="return confirm('Tạm dừng gọi số? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng. Kỳ thi vẫn diễn ra bình thường, sát hạch viên vẫn đăng nhập được.');">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
                             <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>
@@ -69,17 +69,6 @@
                 </svg>
                 <span style="font-size: 0.82rem; font-weight: 600; color: #b91c1c;">
                     Đã đánh dấu thí sinh <strong style="color: #7f1d1d;">${requestScope.absentAlert}</strong> vắng mặt! Hệ thống đã xếp người này xuống cuối danh sách chờ và tự động gọi thí sinh kế tiếp.
-                </span>
-            </div>
-        </c:if>
-
-        <c:if test="${not empty requestScope.autoAbsentAlert}">
-            <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; margin-bottom: 1.25rem; display: flex; gap: 8px; align-items: center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: #d97706; flex-shrink: 0;">
-                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span style="font-size: 0.82rem; font-weight: 600; color: #b45309;">
-                    [Tự Động Hết Giờ] Thí sinh <strong style="color: #78350f;">${requestScope.autoAbsentAlert}</strong> đã quá 1 phút chưa trình diện! Hệ thống tự động chuyển xuống cuối hàng đợi.
                 </span>
             </div>
         </c:if>
@@ -144,10 +133,10 @@
                                 </svg>
                             </div>
                             <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #92400e;">Đã tạm dừng gọi số</h3>
-                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. Sát hạch viên không đăng nhập được khi đang tạm dừng.</p>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. Hàng đợi được giữ nguyên. Kỳ thi vẫn diễn ra — sát hạch viên vẫn đăng nhập và chấm thi bình thường. Nhấn nút bên dưới để tiếp tục gọi thí sinh đầu hàng.</p>
 
-                            <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
-                                Tiếp tục gọi số
+                            <a href="candidatecall?action=startCall" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
+                                Bắt đầu gọi thi (Tự động)
                             </a>
                         </div>
                     </c:when>
@@ -225,27 +214,11 @@
                                             </div>
                                         </c:if>
 
-                                        <div style="margin-top: 1.25rem; text-align: left; width: 100%;">
-                                            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 4px;">
-                                                <span>GIỚI HẠN THỦ TỤC TRÌNH DIỆN</span>
-                                                <span id="countdownText" style="font-family: monospace; color: #10b981; font-weight: 800;"><span id="countdownValue">1:00</span></span>
-                                            </div>
-                                            <div style="background-color: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.05); height: 6px; border-radius: 99px; overflow: hidden; width: 100%;">
-                                                <div id="countdownBar" class="countdown-bar" style="width: 100%; height: 100%; background: #10b981;"></div>
-                                            </div>
-                                            <span id="countdownHint" style="font-size: 0.65rem; color: #94a3b8; display: block; margin-top: 4px; line-height: 1.3;">
-                                                <c:choose>
-                                                    <c:when test="${requestScope.deskMode}">
-                                                        Đếm ngược tạm dừng khi đang làm thủ tục tại bàn.
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        Hệ thống sẽ tự chuyển người sau 1 phút nếu thí sinh này không có mặt.
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </div>
+                                        <p style="margin: 1.25rem 0 0; font-size: 0.72rem; color: #64748b; line-height: 1.45; text-align: left; width: 100%;">
+                                            Nếu thí sinh không trình diện, bấm <strong>Vắng</strong> để đẩy xuống cuối hàng đợi và gọi người tiếp theo.
+                                        </p>
 
-                                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 1.25rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
+                                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
                                             <a href="procedure?sbd=${callingCandidate.sbd}#procedure-desk" class="btn-batch" style="background-color: #0052cc; border-color: #0052cc; height: 40px; font-size: 0.85rem;">
                                                 Tiến hành lập hồ sơ &rarr;
                                             </a>
@@ -364,11 +337,22 @@
                             <p class="procedure-done-panel__hint">Sửa hồ sơ, in phiếu xác nhận, đình chỉ hoặc xóa để làm lại thủ tục.</p>
                         </div>
                         <div class="procedure-done-panel__toolbar">
-                            <input id="doneProcedureSearchInput"
-                                   type="search"
-                                   class="procedure-done-search"
-                                   placeholder="Tìm theo SBD hoặc tên thí sinh..."
-                                   autocomplete="off">
+                            <form method="GET" action="candidatecall" class="procedure-done-search-form">
+                                <c:if test="${not empty param.view}">
+                                    <input type="hidden" name="view" value="${param.view}">
+                                </c:if>
+                                <input id="doneProcedureSearchInput"
+                                       type="search"
+                                       name="doneQ"
+                                       class="procedure-done-search"
+                                       placeholder="Tìm theo SBD hoặc tên thí sinh..."
+                                       value="${fn:escapeXml(param.doneQ)}"
+                                       autocomplete="off">
+                                <button type="submit" class="procedure-done-search-submit">Tìm</button>
+                                <c:if test="${not empty param.doneQ}">
+                                    <a href="candidatecall" class="procedure-done-search-clear">Xóa</a>
+                                </c:if>
+                            </form>
                         </div>
                         <div class="table-responsive procedure-done-scroll">
                             <table class="report-table procedure-done-table">
@@ -428,10 +412,6 @@
             <jsp:include page="/views/staff/examstaff/procedure.jsp"/>
         </c:if>
 
-        <div id="candidateCallConfig"
-             data-sbd="${not empty callingCandidate ? callingCandidate.sbd : ''}"
-             data-pause-countdown="${requestScope.deskMode ? 'true' : 'false'}"
-             hidden></div>
         <c:if test="${requestScope.deskMode}">
             <c:set var="currentStep" value="${not empty requestScope.step ? requestScope.step : param.step}" />
             <c:if test="${empty currentStep}"><c:set var="currentStep" value="1" /></c:if>
@@ -453,6 +433,4 @@
             <script src="${pageContext.request.contextPath}/assets/js/procedure.js" charset="UTF-8"></script>
         </c:if>
 
-<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp">
-    <jsp:param name="extraScript" value="/assets/js/candidatecall.js" />
-</jsp:include>
+<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />
