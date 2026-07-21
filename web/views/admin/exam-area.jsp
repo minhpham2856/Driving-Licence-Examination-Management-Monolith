@@ -22,13 +22,14 @@
             <span class="breadcrumbs__current" aria-current="page">Khu vực thi</span>
         </nav>
 
-        <c:if test="${not empty sessionScope.flashMessage}">
-            <div style="margin-bottom:1.25rem;padding:.85rem 1.1rem;border-radius:10px;font-weight:600;font-size:.9rem;
-                        background:${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)'};
-                        border:1px solid ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,.25)' : 'rgba(239,68,68,.25)'};
-                        color:${sessionScope.flashType eq 'success' ? '#047857' : '#b91c1c'};">${sessionScope.flashMessage}</div>
-            <c:remove var="flashMessage" scope="session" /><c:remove var="flashType" scope="session" />
-        </c:if>
+<%-- Chỉ hiển thị thông báo này ngoài màn hình nếu ĐÂY KHÔNG PHẢI là lỗi từ form modal --%>
+<c:if test="${not empty sessionScope.flashMessage && sessionScope.reopenModal ne 'zone'}">
+    <div style="margin-bottom:1.25rem;padding:.85rem 1.1rem;border-radius:10px;font-weight:600;font-size:.9rem;
+                background:${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)'};
+                border:1px solid ${sessionScope.flashType eq 'success' ? 'rgba(16,185,129,.25)' : 'rgba(239,68,68,.25)'};
+                color:${sessionScope.flashType eq 'success' ? '#047857' : '#b91c1c'};">${sessionScope.flashMessage}</div>
+    <c:remove var="flashMessage" scope="session" /><c:remove var="flashType" scope="session" />
+</c:if>
 
         <header class="page-header">
             <div class="page-title-wrap">
@@ -155,15 +156,26 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeZoneModal();});
 
 <c:if test="${sessionScope.reopenModal eq 'zone'}">
 <script>
-document.getElementById('zoneTitle').textContent='${sessionScope.f_mode eq "edit" ? "Chỉnh sửa khu vực thi" : "Thêm khu vực thi"}';
-document.getElementById('z_id').value='${sessionScope.f_zoneId}';
-document.getElementById('z_name').value="${fn:escapeXml(sessionScope.f_zoneName)}";
-document.getElementById('z_location').value="${fn:escapeXml(sessionScope.f_location)}";
-document.getElementById('z_status').value='${sessionScope.f_active ? "active" : "inactive"}';
-var e=document.getElementById('zoneErr');e.textContent="${fn:escapeXml(sessionScope.flashMessage)}";e.classList.add('show');
-document.getElementById('zoneModal').classList.add('is-open');
+    // Đợi DOM tải xong để gán giá trị chính xác
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('zoneTitle').textContent = '${sessionScope.f_mode eq "edit" ? "Chỉnh sửa khu vực thi" : "Thêm khu vực thi"}';
+        document.getElementById('z_id').value = '${sessionScope.f_zoneId}';
+        document.getElementById('z_name').value = "${fn:escapeXml(sessionScope.f_zoneName)}";
+        document.getElementById('z_location').value = "${fn:escapeXml(sessionScope.f_location)}";
+        document.getElementById('z_status').value = '${sessionScope.f_active ? "active" : "inactive"}';
+        
+        var errorDiv = document.getElementById('zoneErr');
+        if (errorDiv) {
+            errorDiv.textContent = "${fn:escapeXml(sessionScope.flashMessage)}";
+            errorDiv.classList.add('show');
+        }
+        document.getElementById('zoneModal').classList.add('is-open');
+    });
 </script>
-<c:remove var="reopenModal" scope="session" /><c:remove var="flashMessage" scope="session" /><c:remove var="flashType" scope="session" />
+<%-- Xóa các session flag để không bị lặp lại ở lần tải trang sau --%>
+<c:remove var="reopenModal" scope="session" />
+<c:remove var="flashMessage" scope="session" />
+<c:remove var="flashType" scope="session" />
 </c:if>
 
 </body></html>
