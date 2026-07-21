@@ -1,7 +1,7 @@
 package examstaff.controller;
 
 import examstaff.dao.CallBoardDAO;
-import examstaff.dao.impl.ServletContextCallBoardDAO;
+import examstaff.dao.impl.InMemoryCallBoardDAO;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,13 +18,16 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Tạo DAO CallBoard gắn ServletContext (biên Presentation → Persistence).
-     *
-     * @param ctx ServletContext; null → null
-     * @return DAO hoặc null
+     * Repository CallBoard in-memory dùng chung (singleton JVM).
+     * Tham số {@code ctx} giữ để tương thích caller cũ; không còn đọc/ghi ServletContext.
      */
     public static CallBoardDAO callBoardDao(ServletContext ctx) {
-        return ctx == null ? null : new ServletContextCallBoardDAO(ctx);
+        return InMemoryCallBoardDAO.getInstance();
+    }
+
+    /** Repository CallBoard in-memory dùng chung (singleton JVM). */
+    public static CallBoardDAO callBoardDao() {
+        return InMemoryCallBoardDAO.getInstance();
     }
 
     /**

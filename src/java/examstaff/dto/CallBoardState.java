@@ -9,11 +9,11 @@ import java.util.List;
  * <h2>Vai trò trong luồng examstaff</h2>
  * Lưu calling / next / thứ tự queue / desk busy / pause / end theo từng {@code examId}.
  * Không phụ thuộc Servlet API trong model; persistence runtime qua {@code CallBoardDAO}
- * (thường {@code ServletContextCallBoardDAO}). Staff ghi khi gọi / thủ tục / control ca;
+ * (thường {@code InMemoryCallBoardDAO}). Staff ghi khi gọi / thủ tục / control ca;
  * Public Call đọc để dựng {@link PublicCallSnapshotDTO}.
  *
  * <h2>Ai tạo / cập nhật</h2>
- * {@code CallBoardRules} (new/update); copy qua {@code ServletContextCallBoardDAO};
+ * {@code CallBoardRules} (new/update); copy qua {@code InMemoryCallBoardDAO};
  * mutate từ {@code StaffCallServiceImpl} (get/sync/occupy/release/pause).
  *
  * <h2>Ai tiêu thụ</h2>
