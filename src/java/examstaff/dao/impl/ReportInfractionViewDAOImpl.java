@@ -1,5 +1,6 @@
 package examstaff.dao.impl;
 
+import examstaff.dao.Db2ExamSchemaSql;
 import examstaff.dao.ReportInfractionViewDAO;
 import shared.dbconnection.DBContext;
 
@@ -14,9 +15,13 @@ import java.util.Map;
 /** Triển khai JDBC của {@link ReportInfractionViewDAO} — thống kê lỗi trừ điểm thực hành. */
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
-    /** SQL gom top lý do trừ điểm theo OccurrenceCount từ DeductionRecord/ScoreDeduction. */
+    /**
+     * SQL gom top lý do trừ điểm thực hành theo {@code OccurrenceCount}.
+     * Lọc {@code SectionType} bằng {@link Db2ExamSchemaSql#PRACTICAL_SECTION_TYPES}.
+     */
     private static final String TOP_INFRACTIONS_SQL = """
-            SELECT TOP (?) sd.[Reason] AS deductionReason,
+            SELECT TOP (?)
+                   sd.[Reason] AS deductionReason,
                    SUM(dr.OccurrenceCount) AS countVal
             FROM DeductionRecord dr
             INNER JOIN ScoreDeduction sd ON sd.ScoreDeductionId = dr.ScoreDeductionId
@@ -26,7 +31,8 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
             INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = er.ExamEnrollmentId
             WHERE ee.ExamId = ?
               AND dr.OccurrenceCount > 0
-              AND sec.SectionType IN (N'Practical', N'Thực hành', N'Sa hình', N'Layout', N'TH')
+              AND sec.SectionType IN (""" + Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES + """
+              )
             GROUP BY sd.ScoreDeductionId, sd.[Reason]
             ORDER BY countVal DESC
             """;

@@ -51,35 +51,36 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             """;
 
     /** SELECT ca phân công giám thị JOIN Exam, Licence, User, Profile, ExamArea, ExamSection. */
-    private static final String SLOT_SELECT =
-            "SELECT esch.ExaminerScheduleId AS ExamExaminerId, "
-            + "esch.ExamId AS examId, "
-            + "esch.ExaminerId AS examinerUserId, "
-            + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
-            + "eu.Username AS examinerUsername, "
-            + "ep.FullName AS examinerName, "
-            + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
-            + "ea.ExamAreaId AS areaId, "
-            + "ea.AreaName AS areaName, "
-            + "ea.AreaType AS areaType, "
-            + "CASE "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sân thi%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2 "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4 "
-            + "    ELSE 1 "
-            + "END AS examTypeId, "
-            + "COALESCE(esect.SectionType, ea.AreaType) AS examTypeName "
-            + "FROM ExaminerSchedule esch "
-            + "JOIN Exam e ON e.ExamId = esch.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
-            + "JOIN [User] eu ON eu.UserId = esch.ExaminerId "
-            + "LEFT JOIN Profile ep ON ep.UserId = eu.UserId "
-            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId "
-            + "LEFT JOIN ExamSection esect ON esect.ExamSectionId = esch.ExamSectionId";
+    private static final String SLOT_SELECT = """
+            SELECT esch.ExaminerScheduleId AS ExamExaminerId,
+                   esch.ExamId AS examId,
+                   esch.ExaminerId AS examinerUserId,
+                   COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''),
+                     N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName,
+                   eu.Username AS examinerUsername,
+                   ep.FullName AS examinerName,
+                   CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId,
+                   ea.ExamAreaId AS areaId,
+                   ea.AreaName AS areaName,
+                   ea.AreaType AS areaType,
+                   CASE
+                       WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sân thi%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2
+                       WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4
+                       ELSE 1
+                   END AS examTypeId,
+                   COALESCE(esect.SectionType, ea.AreaType) AS examTypeName
+            FROM ExaminerSchedule esch
+            JOIN Exam e ON e.ExamId = esch.ExamId
+            JOIN Licence l ON l.LicenceId = e.LicenceId
+            JOIN [User] eu ON eu.UserId = esch.ExaminerId
+            LEFT JOIN Profile ep ON ep.UserId = eu.UserId
+            LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId
+            LEFT JOIN ExamSection esect ON esect.ExamSectionId = esch.ExamSectionId
+            """;
 
     /**
      * Lấy danh sách giám thị đang hoạt động từ {@code User} JOIN {@code Role}, {@code Profile}.

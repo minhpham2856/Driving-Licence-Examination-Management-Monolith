@@ -28,7 +28,8 @@ public final class Db2ExamSchemaSql {
      * (dùng trong mệnh đề {@code IN (...)} của SQL).
      */
     public static final String PRACTICAL_SECTION_TYPES =
-            "N'Practical', N'Thực hành', N'Thực hành trong hình', N'Sa hình', N'Layout', N'TH'";
+            "N'Practical', N'Thực hành', N'Thực hành trong hình', N'Thực hành trên đường', "
+                    + "N'Sa hình', N'Layout', N'TH'";
 
     /**
      * Cụm LEFT JOIN lấy section lý thuyết của kỳ thi và bản ghi enrollment section tương ứng.
