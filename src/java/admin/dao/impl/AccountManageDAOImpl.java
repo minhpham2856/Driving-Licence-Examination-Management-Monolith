@@ -8,6 +8,7 @@ import admin.model.RoleOption;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import auth.util.PasswordUtil;
 
 public class AccountManageDAOImpl extends DBContext implements AccountManageDAO {
 
@@ -71,7 +72,7 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
             try (PreparedStatement st = conn.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {
                 st.setString(1, a.getUsername());
                 st.setString(2, a.getEmail());
-                st.setString(3, passwordPlain);
+                st.setString(3, PasswordUtil.hash(passwordPlain));
                 st.setInt(4, roleId);
                 st.setBoolean(5, a.isActive());
                 if (st.executeUpdate() == 0) { conn.rollback(); return 0; }
@@ -104,7 +105,9 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
     @Override
     public boolean resetPassword(int userId, String newPasswordPlain) {
         try (PreparedStatement st = getConnection().prepareStatement("UPDATE [User] SET PasswordHash=?, MustChangePassword=1 WHERE UserId=?")) {
-            st.setString(1, newPasswordPlain); st.setInt(2, userId);
+            st.setString(1, PasswordUtil.hash(newPasswordPlain));
+            st.setInt(2, userId);
+            
             return st.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); return false; }
     }
