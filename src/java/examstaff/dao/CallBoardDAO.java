@@ -4,14 +4,13 @@ import examstaff.dto.CallBoardState;
 
 /**
  * Truy cập trạng thái bảng gọi thí sinh runtime (Call Board).
- * Triển khai thường lưu trên {@code ServletContext} (in-memory) theo khóa
- * {@link CallBoardAttributeKeys}, không nhất thiết ghi SQL.
+ * Triển khai mặc định: {@link examstaff.dao.impl.InMemoryCallBoardDAO} (in-memory JVM, không ghi SQL).
  */
 public interface CallBoardDAO {
 
     /**
      * Lấy trạng thái bảng gọi theo kỳ thi.
-     * Đọc map boards từ storage runtime (ví dụ attribute ServletContext),
+     * Đọc map boards từ storage runtime in-memory,
      * trả về bản copy an toàn của {@link CallBoardState}.
      *
      * @param examId mã kỳ thi cần lấy trạng thái bảng gọi
@@ -31,7 +30,7 @@ public interface CallBoardDAO {
 
     /**
      * Đặt kỳ thi đang active trên bảng gọi công khai (Public Call).
-     * Ghi attribute {@link CallBoardAttributeKeys#ACTIVE_EXAM_ID} trên storage runtime.
+     * Ghi kỳ thi đang active trên storage runtime.
      *
      * @param examId mã kỳ thi đang chiếu / gọi thí sinh công khai
      */
@@ -39,7 +38,7 @@ public interface CallBoardDAO {
 
     /**
      * Đọc kỳ thi đang active cho màn hình Public Call.
-     * Đọc attribute {@link CallBoardAttributeKeys#ACTIVE_EXAM_ID} từ storage runtime.
+     * Đọc kỳ thi đang active từ storage runtime.
      *
      * @return {@code examId} &gt; 0 nếu đã set; {@code null} nếu chưa đặt kỳ active
      */
