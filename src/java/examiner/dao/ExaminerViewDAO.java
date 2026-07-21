@@ -4,6 +4,7 @@ import java.util.Map;
 public interface ExaminerViewDAO {
     String findLicenceClassByExamId(int examId);
     Integer findPrimaryExamAreaId(int examId);
+    List<Integer> findExamAreaIds(int examId);
     Map<Integer, int[]> loadTheoryStatsByExam(int examId);
     Map<Integer, Double> loadSectionScoresByExam(int examId, String sectionName);
     Map<Integer, Boolean> loadPassFlagsByExam(int examId);
