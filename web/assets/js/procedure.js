@@ -48,9 +48,6 @@
         document.querySelectorAll('#procedure-desk form').forEach(function (form) {
             form.addEventListener('submit', markProcedureDeskScroll);
         });
-        document.querySelectorAll('#procedure-desk select[data-auto-submit]').forEach(function (sel) {
-            sel.addEventListener('change', markProcedureDeskScroll);
-        });
     }
 
     /**
@@ -81,12 +78,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('select[data-auto-submit]').forEach(function (sel) {
-            sel.addEventListener('change', function () {
-                markProcedureDeskScroll();
-                this.form.submit();
-            });
-        });
         bindProcedureNavigation();
         bindPaymentPrintPreopen();
         bindSePayCheckout();
@@ -118,7 +109,6 @@
         var btnPay = document.getElementById('btnSePayCheckout');
         var btnCheck = document.getElementById('btnSePayCheck');
         var statusMsg = document.getElementById('sePayStatusMsg');
-        var pollTimer = null;
 
         function setMsg(text, tone) {
             if (!statusMsg) {
@@ -146,10 +136,6 @@
             }).then(function (result) {
                 if (result.data && result.data.paid) {
                     setMsg('Đã nhận thanh toán SePay.', 'ok');
-                    if (pollTimer) {
-                        clearInterval(pollTimer);
-                        pollTimer = null;
-                    }
                     if (reloadOnPaid) {
                         markProcedureDeskScroll();
                         window.location.href = (ctx || '') + '/examstaff/procedure?sbd='
@@ -165,17 +151,6 @@
             });
         }
 
-        /** Poll 3s sau khi mở cổng — IPN về sẽ tự finalize mà không cần bấm Kiểm tra. */
-        function startPoll() {
-            if (pollTimer) {
-                return;
-            }
-            setMsg('Đang chờ xác nhận IPN từ SePay…', 'wait');
-            pollTimer = setInterval(function () {
-                checkPaid(true);
-            }, 3000);
-        }
-
         if (btnPay) {
             btnPay.addEventListener('click', function () {
                 if (!configured || !sbd) {
@@ -185,7 +160,12 @@
                 markProcedureDeskScroll();
                 // Popup nhận HTML auto-submit; tab gốc giữ desk và bắt đầu poll
                 window.open(procedureUrl('createSePayCheckout'), 'sePayCheckout');
-                startPoll();
+                // Reload để server-side có thể finalize theo session (không còn poll fetch interval).
+                // Delay nhẹ để phiên (session) được set "awaiting" từ popup trước khi render meta refresh.
+                window.setTimeout(function () {
+                    window.location.href = (ctx || '') + '/examstaff/procedure?sbd='
+                        + encodeURIComponent(sbd) + '&step=3#procedure-desk';
+                }, 600);
             });
         }
 
@@ -199,10 +179,6 @@
             });
         }
 
-        // Reload desk khi còn cờ awaiting (vd. quay lại sau hủy) → tiếp tục poll
-        if (awaiting && configured && sbd) {
-            startPoll();
-        }
     }
 
     function dossierPrintUrl(ctx, sbd) {

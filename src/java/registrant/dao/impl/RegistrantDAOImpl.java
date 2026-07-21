@@ -172,7 +172,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
      * Ghi nhận ngày thi mong muốn của thí sinh (portal).
      * <p>
      * Đọc: ExamDates khớp Licence + còn mở; ExamRegistration Approved theo profile+licence.
-     * Ghi: deactivate RegistrationDates cũ (IsActive=0) → MERGE dòng mới IsActive=1.
+     * Ghi: INSERT/MERGE {@code RegistrationDates} IsActive=1.
+     * Mỗi profile+hạng chỉ một nguyện vọng active — không deactivate/đổi ngày đã chọn.
      * Không tạo Candidate / ExamEnrollment / Payment.
      *
      * @return {@code null} nếu OK; ngược lại message lỗi tiếng Việt
@@ -196,7 +197,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             if (hasActiveSameExamDate(examRegistrationId, examDateId)) {
                 return "Bạn đã chọn ngày thi này rồi.";
             }
-            deactivateOtherPreferredDates(profileId, licenceId);
+            if (hasActivePreferredExamDate(profileId, licenceId)) {
+                return "Bạn đã đăng ký ngày thi dự kiến cho hạng này. "
+                        + "Không thể đổi sang ngày khác — vui lòng theo dõi tại Lịch thi & kết quả.";
+            }
             if (!insertRegistrationDate(examRegistrationId, examDateId)) {
                 return "Không thể ghi nhận lựa chọn ngày thi. Vui lòng thử lại sau.";
             }
@@ -205,6 +209,33 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             LOG.log(Level.WARNING, "Đăng ký ngày dự kiến thất bại profile {0} date {1}: {2}",
                     new Object[] { profileId, examDateId, e.getMessage() });
             return "Không thể ghi nhận lựa chọn ngày thi. Vui lòng thử lại sau.";
+        }
+    }
+
+    /** True nếu hồ sơ đã có RegistrationDates IsActive=1 cho hạng này. */
+    @Override
+    public boolean hasActivePreferredExamDate(int profileId, int licenceId) {
+        if (profileId <= 0 || licenceId <= 0 || getConnection() == null) {
+            return false;
+        }
+        String sql = """
+                SELECT TOP 1 1
+                FROM RegistrationDates rd
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+                WHERE er.ProfileId = ?
+                  AND er.LicenceId = ?
+                  AND rd.IsActive = 1
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            ps.setInt(2, licenceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Kiểm tra nguyện vọng ngày thi thất bại profile {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+            return false;
         }
     }
 
@@ -311,26 +342,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
     }
 
-    private void deactivateOtherPreferredDates(int profileId, int licenceId) throws SQLException {
-        String sql = """
-                UPDATE rd
-                SET IsActive = 0
-                FROM RegistrationDates rd
-                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
-                WHERE er.ProfileId = ?
-                  AND er.LicenceId = ?
-                  AND rd.IsActive = 1
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, profileId);
-            ps.setInt(2, licenceId);
-            ps.executeUpdate();
-        }
-    }
-
     /**
      * MERGE RegistrationDates: khóa (ExamRegistrationId, ExamDateId).
      * MATCHED → IsActive=1; NOT MATCHED → INSERT IsActive=1.
+     * (Chỉ gọi khi chưa có nguyện vọng active khác cho cùng hạng.)
      */
     private boolean insertRegistrationDate(int examRegistrationId, int examDateId) throws SQLException {
         String sql = """

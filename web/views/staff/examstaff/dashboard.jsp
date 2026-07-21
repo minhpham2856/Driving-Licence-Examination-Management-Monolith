@@ -210,7 +210,7 @@
                         <tbody>
                             <c:set var="waitRenderCount" value="0" />
                             <c:forEach var="c" items="${candidateQueue}">
-                                <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent and waitRenderCount lt 6}">
+                                <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent}">
                                     <c:set var="waitRenderCount" value="${waitRenderCount + 1}" />
                                     <tr>
                                         <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
@@ -261,7 +261,7 @@
                         <tbody>
                             <c:set var="activeCalledCount" value="0" />
                             <c:forEach var="c" items="${candidateQueue}">
-                                <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete and activeCalledCount lt 3}">
+                                <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete}">
                                     <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
                                     <tr>
                                         <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
@@ -355,4 +355,3 @@
 
         </div>
 
-<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

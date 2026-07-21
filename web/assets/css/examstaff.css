@@ -1046,23 +1046,41 @@ body.examstaff-portal .examstaff-main--scroll .examstaff-audit-panel {
     color: #64748b;
 }
 
-.allocation-overview-search__link {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #2563eb;
-    text-decoration: none;
+.allocation-overview-search .allocation-stage-status--waiting {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: rgba(180, 83, 9, 0.2);
 }
 
-.allocation-overview-search__link:hover {
-    text-decoration: underline;
+.allocation-overview-search .allocation-stage-status--theory {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: rgba(29, 78, 216, 0.2);
 }
 
-.allocation-stage-status--waiting { color: #b45309; }
-.allocation-stage-status--theory { color: #1d4ed8; }
-.allocation-stage-status--practical { color: #7c3aed; }
-.allocation-stage-status--results-pass { color: #047857; }
-.allocation-stage-status--results-fail { color: #b91c1c; }
-.allocation-stage-status--unknown { color: #64748b; }
+.allocation-overview-search .allocation-stage-status--practical {
+    background: #f5f3ff;
+    color: #7c3aed;
+    border-color: rgba(124, 58, 237, 0.2);
+}
+
+.allocation-overview-search .allocation-stage-status--results-pass {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: rgba(4, 120, 87, 0.2);
+}
+
+.allocation-overview-search .allocation-stage-status--results-fail {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: rgba(185, 28, 28, 0.2);
+}
+
+.allocation-overview-search .allocation-stage-status--unknown {
+    background: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+}
 
 .allocation-pagination {
     display: flex;
@@ -2942,8 +2960,17 @@ a.procedure-step-item--link:hover {
     margin-bottom: 0.75rem;
 }
 
+.procedure-done-search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
 .procedure-done-search {
-    width: 100%;
+    flex: 1 1 200px;
+    width: auto;
     max-width: 320px;
     height: 34px;
     padding: 0 10px;
@@ -2954,6 +2981,48 @@ a.procedure-step-item--link:hover {
     color: #1e293b;
     outline: none;
     background: #ffffff;
+}
+
+.procedure-done-search-submit {
+    flex-shrink: 0;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+    background: #475569;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.procedure-done-search-submit:hover {
+    background: #334155;
+    border-color: #334155;
+}
+
+.procedure-done-search-clear {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.procedure-done-search-clear:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+    text-decoration: none;
 }
 
 .procedure-done-scroll {

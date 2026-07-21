@@ -87,7 +87,7 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="${stageUrl}" class="allocation-overview-search__link">Mở phần</a>
+                                <a href="${stageUrl}" class="allocation-table-action">Mở phần</a>
                             </td>
                         </tr>
                     </c:forEach>
