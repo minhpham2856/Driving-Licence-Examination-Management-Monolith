@@ -46,7 +46,8 @@
                                     <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
                                     <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
                                     <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
-                                    <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi sân thi">
+                                    <select name="areaId" class="allocation-area-select allocation-area-select--table"
+                                            onchange="this.form.submit()" title="Đổi sân thi">
                                         <c:if test="${empty c.practicalAllocatedAreaId}">
                                             <option value="" disabled selected>-</option>
                                         </c:if>

@@ -333,6 +333,12 @@
                                      data-ctx="${pageContext.request.contextPath}"
                                      data-configured="${sePayConfigured}"
                                      data-awaiting="${not empty sessionScope.sePayAwaitingSbd and sessionScope.sePayAwaitingSbd eq currentSbd}">
+                                    <c:if test="${sePayConfigured and not profile.paymentCompleted
+                                        and not empty sessionScope.sePayAwaitingSbd
+                                        and sessionScope.sePayAwaitingSbd eq currentSbd}">
+                                        <meta http-equiv="refresh"
+                                              content="3;url=${pageContext.request.contextPath}/examstaff/procedure?sbd=${currentSbd}&step=3">
+                                    </c:if>
                                     <c:choose>
                                         <c:when test="${profile.paymentCompleted}">
                                             <div class="sepay-pay-card__paid">
@@ -441,7 +447,9 @@
                                 CHỌN THÍ SINH ĐÃ ĐƯỢC GỌI VÀO PHÒNG LÀM THỦ TỤC:
                             </label>
                             <div style="position: relative; display: flex; width: 100%;">
-                                <select id="emptySbdInput" name="sbd" data-auto-submit class="procedure-empty-sbd-select">
+                                <select id="emptySbdInput" name="sbd"
+                                        onchange="this.form.submit()"
+                                        class="procedure-empty-sbd-select">
                                     <option value="">-- Click để chọn học viên đã được gọi --</option>
                                     <c:forEach var="c" items="${activeCallQueue}">
                                         <option value="${c.sbd}">

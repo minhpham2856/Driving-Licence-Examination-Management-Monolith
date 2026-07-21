@@ -75,12 +75,8 @@ public class CandidateCallPageServiceImpl {
         }
 
         boolean shiftPaused = command.isShiftPaused();
+        boolean resumeCallBoard = shiftPaused && "startCall".equals(action);
         List<ExamRegistrationDTO> fullQueue = loadFullQueue(command, examId, shiftEnded, shiftPaused);
-
-        // Khi ca paused: bỏ qua startCall (không promote)
-        if (action != null && shiftPaused && "startCall".equals(action)) {
-            action = null;
-        }
 
         // Mutate qua workflow nếu có action
         if (action != null) {
@@ -95,7 +91,11 @@ public class CandidateCallPageServiceImpl {
 
             applyActionResult(view, actionResult);
             shiftEnded = actionResult.isShiftEnded() || shiftEnded;
-            shiftPaused = actionResult.isShiftPaused() || shiftPaused;
+            if (actionResult.isShiftPaused()) {
+                shiftPaused = true;
+            } else if ("startCall".equals(action)) {
+                shiftPaused = false;
+            }
             if (actionResult.isClearCallingSbd()) {
                 callingSbd = null;
             } else if (actionResult.getCallingSbd() != null) {
@@ -149,7 +149,8 @@ public class CandidateCallPageServiceImpl {
                 releaseDeskCallingSbd = advancedSbd;
                 view.setClearProcedureJustPaidSbd(true);
             }
-        } else if (!shiftPaused && callingSbd != null) {
+        } else if (!shiftPaused && callingSbd != null
+                && (advancedSbd == null || advancedSbd.isBlank())) {
             callingSbd = null;
             view.setClearCallingSbd(true);
         } else {
@@ -205,6 +206,9 @@ public class CandidateCallPageServiceImpl {
         }
         view.setShiftEnded(shiftEnded);
         view.setShiftPaused(shiftPaused);
+        if (resumeCallBoard && !shiftPaused) {
+            view.setResumeBoard(true);
+        }
         if (shiftPaused && "pauseShift".equals(action)) {
             view.setPauseBoard(true);
         }

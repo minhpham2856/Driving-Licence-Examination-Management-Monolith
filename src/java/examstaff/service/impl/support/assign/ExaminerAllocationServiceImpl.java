@@ -144,13 +144,18 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Tự động phân phòng lý thuyết cho một thí sinh cụ thể.
+     * Tự động phân phòng cho một thí sinh sau thủ tục:
+     * bảo lưu LT → sân thực hành; còn lại → phòng lý thuyết.
      *
      * @param examId         mã kỳ thi
      * @param registrationId mã đăng ký thí sinh
      * @return kết quả phân bổ
      */
     public AllocationActionResultDTO autoAllocateCandidate(int examId, int registrationId) {
+        ExamRegistrationDTO target = findCandidate(examId, registrationId);
+        if (target != null && target.skipsTheory() && !target.skipsPractical()) {
+            return autoAllocatePractical(examId, registrationId);
+        }
         return autoAllocate(examId, registrationId);
     }
 
@@ -161,7 +166,7 @@ public class ExaminerAllocationServiceImpl {
      * @return kết quả phân bổ sân TH
      */
     public AllocationActionResultDTO autoAllocatePracticalExam(int examId) {
-        return autoAllocatePractical(examId);
+        return autoAllocatePractical(examId, null);
     }
 
     /**
@@ -270,15 +275,17 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Phân bổ tự động sân thực hành cho thí sinh đã đậu lý thuyết.
+     * Phân bổ tự động sân thực hành cho thí sinh đã đậu lý thuyết
+     * (hoặc bảo lưu LT / {@code TakeTheory = 0}).
      *
-     * @param examId mã kỳ thi
+     * @param examId      mã kỳ thi
+     * @param targetRegId {@code null} = toàn kỳ; khác null = chỉ thí sinh đó
      * @return kết quả phân bổ
      */
-    private AllocationActionResultDTO autoAllocatePractical(int examId) {
+    private AllocationActionResultDTO autoAllocatePractical(int examId, Integer targetRegId) {
         AllocationActionResultDTO result = new AllocationActionResultDTO();
         // validate
-        if (examId <= 0) {
+        if (examId <= 0 && targetRegId == null) {
             result.setErrorMsg("Chưa chọn kỳ thi để phân bổ sân thực hành.");
             return result;
         }
@@ -320,7 +327,11 @@ public class ExaminerAllocationServiceImpl {
             if (!isReadyForPracticalAllocation(c)) {
                 continue;
             }
-            if (!isAlreadyPracticalAllocated(c)) {
+            if (targetRegId != null) {
+                if (c.getId() == targetRegId) {
+                    readyCandidates.add(c);
+                }
+            } else if (!isAlreadyPracticalAllocated(c)) {
                 readyCandidates.add(c);
             }
         }
@@ -442,14 +453,14 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Thí sinh sẵn sàng phân phòng LT (đã thu phí, có ảnh, chưa thi LT).
+     * Thí sinh sẵn sàng phân phòng LT (đã thu phí, có ảnh, chưa thi LT, không bảo lưu LT).
      *
      * @param c hồ sơ
      * @return {@code true} nếu sẵn sàng
      */
     private boolean isReadyForAllocation(ExamRegistrationDTO c) {
         // validate cơ bản
-        if (c == null || c.isAbsent()) {
+        if (c == null || c.isAbsent() || c.skipsTheory()) {
             return false;
         }
         boolean hasCapturedPhoto = c.isValidCapturedPhoto()
@@ -480,7 +491,7 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Thí sinh sẵn sàng phân sân TH (đã đậu LT, không miễn TH).
+     * Thí sinh sẵn sàng phân sân TH: đã đậu LT, hoặc bảo lưu LT sau thủ tục; không miễn TH.
      *
      * @param c hồ sơ
      * @return {@code true} nếu sẵn sàng
@@ -490,9 +501,33 @@ public class ExaminerAllocationServiceImpl {
         if (c == null || c.isAbsent() || c.skipsPractical()) {
             return false;
         }
+        if (c.skipsTheory()) {
+            boolean hasCapturedPhoto = c.isValidCapturedPhoto()
+                    || (c.getPhotoUrl() != null && !c.getPhotoUrl().isBlank());
+            return c.isPaymentCompleted() && hasCapturedPhoto && !c.isSuspended();
+        }
         // result: phải đạt LT
         String theory = c.getTheoryPassed();
         return theory != null && "passed".equalsIgnoreCase(theory.trim());
+    }
+
+    /**
+     * Tìm thí sinh theo mã đăng ký trong kỳ (phục vụ auto-allocate sau thủ tục).
+     */
+    private ExamRegistrationDTO findCandidate(int examId, int registrationId) {
+        if (registrationId <= 0) {
+            return null;
+        }
+        int resolvedExamId = resolveExamId(examId);
+        List<ExamRegistrationDTO> all = resolvedExamId > 0
+                ? registrationDAO.getCandidatesByExam(resolvedExamId)
+                : (examId > 0 ? registrationDAO.getCandidatesByExam(examId) : List.of());
+        for (ExamRegistrationDTO c : all) {
+            if (c.getId() == registrationId) {
+                return c;
+            }
+        }
+        return null;
     }
 
     /**

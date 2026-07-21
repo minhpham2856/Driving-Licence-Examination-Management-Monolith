@@ -75,8 +75,8 @@ public class CandidateCallWorkflowServiceImpl {
         // Mutate: dispatch theo mã action
         switch (action) {
             case "startCall" -> handleStartCall(result, fullQueue, activeQueue, calledByStaffId);
-            case "moveToBottom", "absent", "autoAbsent" -> handleAbsentAction(
-                    result, action, sbd, fullQueue, boardExamId, calledByStaffId);
+            case "moveToBottom", "absent" -> handleAbsentAction(
+                    result, sbd, fullQueue, boardExamId, calledByStaffId);
             case "permanentAbsent" -> handlePermanentAbsent(
                     result, sbd, fullQueue, permanentAbsents, calledByStaffId);
             case "undoAbsent" -> handleUndoAbsent(
@@ -105,22 +105,22 @@ public class CandidateCallWorkflowServiceImpl {
      */
     private void handleStartCall(CandidateCallActionResultDTO result, List<ExamRegistrationDTO> fullQueue,
             List<ExamRegistrationDTO> activeQueue, int calledByStaffId) {
+        result.setShiftPaused(false);
         String startSbd = queueService.resolveNextCallingSbd(fullQueue, null);
         promoteCaller(result, activeQueue, startSbd, calledByStaffId);
     }
 
     /**
-     * Vắng / đẩy xuống cuối hàng ({@code absent}, {@code autoAbsent}, {@code moveToBottom}).
+     * Vắng / đẩy xuống cuối hàng ({@code absent}, {@code moveToBottom}).
      * Ghi audit Absent rồi yêu cầu promote người kế.
      *
      * @param result          kết quả action
-     * @param action          mã action gốc (phân biệt autoAbsent)
      * @param sbd             SBD bị vắng
      * @param fullQueue       hàng đợi (sửa thứ tự in-place)
      * @param boardExamId     kỳ thi board (giữ chữ ký API)
      * @param calledByStaffId userId staff
      */
-    private void handleAbsentAction(CandidateCallActionResultDTO result, String action, String sbd,
+    private void handleAbsentAction(CandidateCallActionResultDTO result, String sbd,
             List<ExamRegistrationDTO> fullQueue, int boardExamId, int calledByStaffId) {
         // Validate
         if (sbd == null || sbd.isBlank()) {
@@ -135,9 +135,7 @@ public class CandidateCallWorkflowServiceImpl {
         recordCall(moved, "Absent", calledByStaffId);
         result.setSyncQueueOrder(true);
         result.setPromoteAfterSbd(sbd);
-        result.setAlertType("autoAbsent".equals(action)
-                ? CandidateCallActionResultDTO.AlertType.AUTO_ABSENT
-                : CandidateCallActionResultDTO.AlertType.ABSENT);
+        result.setAlertType(CandidateCallActionResultDTO.AlertType.ABSENT);
         result.setAlertSbd(sbd);
     }
 
