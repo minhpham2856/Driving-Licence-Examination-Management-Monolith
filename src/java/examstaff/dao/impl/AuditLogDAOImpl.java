@@ -41,6 +41,85 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             """;
 
     /**
+     * KPI thủ tục: đếm thí sinh đã thu lệ phí và tổng tiền (mọi ngày).
+     * Tham số: {@code userId}.
+     */
+    private static final String STAFF_PROCEDURE_KPI_SQL = """
+            SELECT COUNT(DISTINCT x.candidateId) AS completedCount,
+                   ISNULL(SUM(x.TotalAmount), 0) AS totalFees
+            FROM (
+                SELECT DISTINCT
+                    c.CandidateId AS candidateId,
+                    p.PaymentId,
+                    p.TotalAmount
+                FROM Audit a
+                INNER JOIN Candidate c ON (
+                    c.CandidateId = TRY_CAST(NULLIF(NULLIF(LTRIM(RTRIM(a.EntityId)), ''), '0') AS INT)
+                    OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
+                )
+                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
+                INNER JOIN Payment p ON p.ExamEnrollmentId = ee.ExamEnrollmentId
+                    AND p.PaymentStatus IN ("""
+            + examstaff.enums.PaymentStatus.sqlInClause()
+            + """
+                    )
+                WHERE a.UserId = ?
+                  AND (
+                        a.EntityName IN (N'Thanh toán', N'Payment')
+                        OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                        OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU PHI%'
+                      )
+                  AND (
+                        UPPER(ISNULL(a.Action, N'')) IN (
+                            N'INSERT', N'UPDATE', N'THÊM', N'NHẬP', N'CẬP NHẬT'
+                        )
+                        OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                      )
+            ) x
+            WHERE x.candidateId IS NOT NULL
+            """;
+
+    /**
+     * KPI thủ tục lọc theo ngày ({@code yyyy-MM-dd}).
+     * Tham số: {@code userId}, {@code filterDate}.
+     */
+    private static final String STAFF_PROCEDURE_KPI_BY_DATE_SQL = """
+            SELECT COUNT(DISTINCT x.candidateId) AS completedCount,
+                   ISNULL(SUM(x.TotalAmount), 0) AS totalFees
+            FROM (
+                SELECT DISTINCT
+                    c.CandidateId AS candidateId,
+                    p.PaymentId,
+                    p.TotalAmount
+                FROM Audit a
+                INNER JOIN Candidate c ON (
+                    c.CandidateId = TRY_CAST(NULLIF(NULLIF(LTRIM(RTRIM(a.EntityId)), ''), '0') AS INT)
+                    OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
+                )
+                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
+                INNER JOIN Payment p ON p.ExamEnrollmentId = ee.ExamEnrollmentId
+                    AND p.PaymentStatus IN ("""
+            + examstaff.enums.PaymentStatus.sqlInClause()
+            + """
+                    )
+                WHERE a.UserId = ?
+                  AND (
+                        a.EntityName IN (N'Thanh toán', N'Payment')
+                        OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                        OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU PHI%'
+                      )
+                  AND (
+                        UPPER(ISNULL(a.Action, N'')) IN (
+                            N'INSERT', N'UPDATE', N'THÊM', N'NHẬP', N'CẬP NHẬT'
+                        )
+                        OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
+                      )
+                  AND CAST(a.CreatedAt AS DATE) = ?
+            ) x
+            WHERE x.candidateId IS NOT NULL
+            """;
+
+    /**
      * Ghi một bản ghi nhật ký kiểm tra mới vào bảng {@code Audit}.
      * INSERT các trường: {@code UserId}, {@code Action}, {@code Reason}, {@code EntityName},
      * {@code EntityId}, {@code OldValue}, {@code NewValue}, {@code Details}, {@code CreatedAt}.
@@ -275,56 +354,14 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
     @Override
     public StaffProcedureKpiDTO getStaffProcedureKpi(int userId, String filterDate) {
         boolean hasDate = filterDate != null && !filterDate.trim().isEmpty();
-        String paymentStatusIn = examstaff.enums.PaymentStatus.sqlInClause();
-        String sql = """
-                SELECT COUNT(DISTINCT x.candidateId) AS completedCount,
-                       ISNULL(SUM(x.TotalAmount), 0) AS totalFees
-                FROM (
-                    SELECT DISTINCT
-                        c.CandidateId AS candidateId,
-                        p.PaymentId,
-                        p.TotalAmount
-                    FROM Audit a
-                    INNER JOIN Candidate c ON (
-                        c.CandidateId = TRY_CAST(NULLIF(NULLIF(LTRIM(RTRIM(a.EntityId)), ''), '0') AS INT)
-                        OR a.Reason LIKE N'%' + c.CandidateNumber + N'%'
-                    )
-                    INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                    INNER JOIN Payment p ON p.ExamEnrollmentId = ee.ExamEnrollmentId
-                        AND p.PaymentStatus IN ("""
-                + paymentStatusIn + """
-                        )
-                    WHERE a.UserId = ?
-                      AND (
-                            a.EntityName IN (N'Thanh toán', N'Payment')
-                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
-                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU PHI%'
-                          )
-                      AND (
-                            UPPER(ISNULL(a.Action, N'')) IN (
-                                N'INSERT', N'UPDATE', N'THÊM', N'NHẬP', N'CẬP NHẬT'
-                            )
-                            OR UPPER(ISNULL(a.Reason, N'')) LIKE N'%THU LỆ PHÍ%'
-                          )
-                """;
-        if (hasDate) {
-            sql += "                      AND CAST(a.CreatedAt AS DATE) = ?\n";
-        }
-        sql += """
-                ) x
-                WHERE x.candidateId IS NOT NULL
-                """;
-        // Chuẩn bị PreparedStatement với SQL SELECT KPI thủ tục
+        String sql = hasDate ? STAFF_PROCEDURE_KPI_BY_DATE_SQL : STAFF_PROCEDURE_KPI_SQL;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            // Gán tham số truy vấn
             ps.setInt(1, userId);
             if (hasDate) {
                 ps.setString(2, filterDate);
             }
-            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // Ánh xạ ResultSet → DTO KPI
                     return new StaffProcedureKpiDTO(rs.getInt("completedCount"), rs.getDouble("totalFees"));
                 }
             }

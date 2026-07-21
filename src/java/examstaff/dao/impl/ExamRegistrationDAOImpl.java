@@ -816,8 +816,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (examId <= 0) {
             return null;
         }
-        return ExamEnrollmentSectionSupport.findSectionId(
-                getConnection(), examId, examstaff.dao.Db2ExamSchemaSql.THEORY_SECTION_TYPES);
+        return ExamEnrollmentSectionSupport.findTheorySectionId(getConnection(), examId);
     }
 
     /**
@@ -832,8 +831,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (examId <= 0) {
             return null;
         }
-        return ExamEnrollmentSectionSupport.findSectionId(
-                getConnection(), examId, examstaff.dao.Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES);
+        return ExamEnrollmentSectionSupport.findPracticalSectionId(getConnection(), examId);
     }
 
     /**
@@ -938,15 +936,16 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (examId == null || examId <= 0) {
             return null;
         }
-        String types = "Theory".equalsIgnoreCase(keyword)
-                ? examstaff.dao.Db2ExamSchemaSql.THEORY_SECTION_TYPES
-                : examstaff.dao.Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES;
-        Integer fromEnrollment = ExamEnrollmentSectionSupport.findSectionIdForEnrollment(
-                getConnection(), examEnrollmentId, types);
+        boolean theory = "Theory".equalsIgnoreCase(keyword);
+        Integer fromEnrollment = theory
+                ? ExamEnrollmentSectionSupport.findTheorySectionIdForEnrollment(getConnection(), examEnrollmentId)
+                : ExamEnrollmentSectionSupport.findPracticalSectionIdForEnrollment(getConnection(), examEnrollmentId);
         if (fromEnrollment != null) {
             return fromEnrollment;
         }
-        return ExamEnrollmentSectionSupport.findSectionId(getConnection(), examId, types);
+        return theory
+                ? ExamEnrollmentSectionSupport.findTheorySectionId(getConnection(), examId)
+                : ExamEnrollmentSectionSupport.findPracticalSectionId(getConnection(), examId);
     }
 
     /**
@@ -961,10 +960,9 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
         if (examId <= 0) {
             return null;
         }
-        String types = "Theory".equalsIgnoreCase(keyword)
-                ? examstaff.dao.Db2ExamSchemaSql.THEORY_SECTION_TYPES
-                : examstaff.dao.Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES;
-        return ExamEnrollmentSectionSupport.findSectionId(getConnection(), examId, types);
+        return "Theory".equalsIgnoreCase(keyword)
+                ? ExamEnrollmentSectionSupport.findTheorySectionId(getConnection(), examId)
+                : ExamEnrollmentSectionSupport.findPracticalSectionId(getConnection(), examId);
     }
 
     /**
