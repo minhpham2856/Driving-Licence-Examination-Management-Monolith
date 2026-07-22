@@ -18,6 +18,19 @@ import java.io.IOException;
 
 /**
  * Chọn / đổi kỳ thi trên sidebar: processSelection → clear state → refresh queue → redirect PRG.
+ *
+ * Vai trò:
+ * Xử lý picker kỳ thi trên sidebar: persist {@code selectedExamId}, xóa state bàn thủ tục khi đổi kỳ,
+ * refresh queue session và flash thông báo. Pattern PRG — không render JSP trực tiếp.
+ *
+ * Luồng GET/POST:
+ * - UTF-8 + no-cache → {@code viewService.processSelection}
+ * - Lỗi → flash {@code examSelectError} → redirect dashboard
+ * - Thành công: {@code applyExamIdFromRequest} → clear procedure (nếu đổi kỳ) → refresh queue
+ * - Flash {@code examSelectMsg} → redirect Referer/dashboard kèm {@code examId} + cache-buster
+ *
+ * Ai gọi:
+ * Form GET/POST trên sidebar mọi trang exam staff (picker {@code select-exam}).
  */
 @WebServlet("/examstaff/select-exam")
 public class ExamSelectServlet extends HttpServlet {
@@ -39,7 +52,6 @@ public class ExamSelectServlet extends HttpServlet {
     /**
      * Luồng chọn kỳ: UTF-8 → processSelection → apply examId → clear procedure (nếu đổi) →
      * refresh queue → flash success → redirect Referer/dashboard kèm examId.
-     *
      * @throws IOException lỗi redirect
      */
     private void handleSelect(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -107,7 +119,6 @@ public class ExamSelectServlet extends HttpServlet {
 
     /**
      * Refresh queue từ DB rồi publish snapshot vào session (không bind request).
-     *
      * @param examId   kỳ cần nạp
      * @param webRoot  real path web
      * @param allExams danh sách kỳ

@@ -13,6 +13,18 @@ import java.util.Locale;
 /**
  * Bind / serialize snapshot Public Call cho JSP và JSON API (Presentation).
  * Chuẩn hóa hạng GPLX trước khi đưa ra UI/JSON.
+ *
+ * Vai trò:
+ * Chuyển {@link PublicCallSnapshotDTO} sang request attributes (JSP) hoặc JSON
+ * (poll API). Chuẩn hóa {@code licenseCode} trên kỳ và thí sinh trước khi render.
+ *
+ * Luồng sử dụng:
+ * - {@link PublicCallServlet}: {@code bindRequest} → forward {@code public-call.jsp}
+ * - {@link PublicCallStateServlet}: {@code toStateJson} → response poll (~1–2s)
+ * - Cả hai dùng cùng snapshot từ {@link examstaff.service.StaffCallService#loadPublicSnapshot}
+ *
+ * Ai gọi:
+ * {@link PublicCallServlet}, {@link PublicCallStateServlet}.
  */
 public final class PublicCallSnapshotSupport {
 
@@ -48,7 +60,6 @@ public final class PublicCallSnapshotSupport {
 
     /**
      * Chuẩn hóa hạng GPLX trên toàn snapshot (kỳ, đang gọi, kế tiếp, waiting).
-     *
      * @param snapshot snapshot public call
      */
     private static void normalizeSnapshot(PublicCallSnapshotDTO snapshot) {
@@ -67,7 +78,6 @@ public final class PublicCallSnapshotSupport {
 
     /**
      * Bind thuộc tính JSP public-call từ snapshot (sau normalize).
-     *
      * @param request  request JSP
      * @param snapshot dữ liệu trạng thái gọi công khai
      */
@@ -92,7 +102,6 @@ public final class PublicCallSnapshotSupport {
      * Serialize snapshot thành JSON state (poll API {@code /api/public-call/state}).
      * <p>
      * Luồng: normalize → append meta flags → examDate/deskSbd → calling/next/waitingQueue.
-     *
      * @param snapshot snapshot; null → {@code "{}"}
      * @return chuỗi JSON
      */

@@ -28,6 +28,21 @@ import java.util.List;
 /**
  * Trang gọi thí sinh: prepare → StaffCall.preparePage → side-effects/board → bind → JSP
  * (candidatecall hoặc candidate-suspended). Hỗ trợ view=desk → redirect procedure.
+ *
+ * Vai trò:
+ * Điều phối gọi số thí sinh trong ca: gọi tiếp, tạm dừng, vắng, resume ca,
+ * đồng bộ {@link examstaff.dao.CallBoardDAO} in-memory và session {@code callingSbd}.
+ * Shortcut {@code view=desk} mở bàn thủ tục ({@link ProcedureServlet}).
+ *
+ * Luồng GET:
+ * - {@code view=desk} → redirect {@code procedure?sbd=…}
+ * - {@code ExamStaffPageSupport.prepareExamStaffPage} → build {@code CandidateCallPageCommand}
+ * - {@code StaffCallService.preparePage}: resume/redirect hoặc side-effects + board op
+ * - Bind queue/alert → forward {@code candidatecall.jsp} hoặc {@code candidate-suspended.jsp}
+ *
+ * Ai gọi:
+ * Sidebar exam staff; nút gọi số trên dashboard; redirect từ {@link ProcedureServlet}
+ * sau {@code startShift}; TV/desk mở thủ tục qua {@code view=desk}.
  */
 @WebServlet("/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
@@ -38,7 +53,6 @@ public class CandidateCallServlet extends HttpServlet {
     /**
      * GET: (desk → procedure) hoặc prepare page → preparePage service →
      * resume/redirect nếu cần → apply side-effects → bind → forward JSP.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi redirect
      */
@@ -101,7 +115,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Build command gọi số từ request/session/pageCtx + board state.
-     *
      * @return command cho {@link StaffCallService#preparePage}
      */
     private CandidateCallPageCommand buildCommand(HttpServletRequest request, HttpSession session,
@@ -146,7 +159,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Xác định ca đang paused: board → status kỳ DB → cờ session.
-     *
      * @return true nếu ca tạm dừng
      */
     private boolean resolveShiftPaused(HttpSession session, int examId, CallBoardState board) {
@@ -168,7 +180,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Áp side-effect session từ view: callingSbd, cờ ca, procedureJustPaid, queue order.
-     *
      * @param view kết quả preparePage
      */
     private void applyCallSideEffects(HttpSession session, CandidateCallPageViewDTO view) {
@@ -197,7 +208,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Thực thi thao tác CallBoard theo cờ view (pause / release desk / sync).
-     *
      * @param boardExamId kỳ gắn board
      * @param view        cờ thao tác board
      */
@@ -222,7 +232,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Bind callingCandidate / suspendedCount / currentExam cho trang gọi.
-     *
      * @param examId kỳ publish
      * @param queue  queue đầy đủ
      */
@@ -243,7 +252,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Resolve thí sinh đang gọi từ callingSbd + queue; đồng bộ lại session nếu lệch.
-     *
      * @return DTO đang gọi hoặc null
      */
     private ExamRegistrationDTO resolveCallingCandidate(HttpSession session, List<ExamRegistrationDTO> queue) {
@@ -262,7 +270,6 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Publish snapshot queue lên request + session.
-     *
      * @param queue  full queue
      * @param examId kỳ
      */

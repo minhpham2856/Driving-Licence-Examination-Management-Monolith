@@ -25,6 +25,19 @@ import java.util.List;
 
 /**
  * Phân công sát hạch viên theo khu vực/kỳ: prepare → (assign/remove) → build view → JSP.
+ *
+ * Vai trò:
+ * Trang phân công sát hạch viên vào khu lý thuyết/thực hành theo kỳ đang chọn.
+ * Xử lý action gán/gỡ examiner, ghi audit; không cần load queue thí sinh (prepare {@code loadCandidates=false}).
+ *
+ * Luồng GET:
+ * - No-cache + consume flash exam-control / exam-select
+ * - {@code prepareExamStaffPage} (sidebar, không queue) → resolve kỳ từ URL/session
+ * - Nếu có {@code action}: {@code handleAction} (assign/remove) + audit
+ * - Build {@code ExaminerAllocationViewDTO} → bind → forward {@code examiner-allocation.jsp}
+ *
+ * Ai gọi:
+ * Menu exam staff; sidebar sau khi chọn kỳ ({@link ExamSelectServlet}).
  */
 @WebServlet("/examstaff/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
@@ -36,7 +49,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
     /**
      * GET: no-cache → flash exam-control → prepare (không load candidates) → resolve kỳ →
      * xử lý action nếu có → bind allocation view → forward JSP.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi I/O
      */
@@ -114,7 +126,6 @@ public class ExaminerAllocationServlet extends HttpServlet {
 
     /**
      * Xử lý assign / remove sát hạch viên rồi {@link #applyActionResult}.
-     *
      * @param action {@code assign} hoặc {@code remove}
      */
     private void handleAction(HttpServletRequest request, HttpSession session, String action) {
