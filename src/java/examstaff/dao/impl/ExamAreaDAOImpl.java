@@ -15,12 +15,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Triển khai JDBC của {@link ExamAreaDAO} — đọc bảng {@code ExamArea} và liên kết {@code Exam_ExamArea}. */
+/**
+ * Triển khai JDBC của {@link ExamAreaDAO} — đọc bảng {@code ExamArea} và {@code Exam_ExamArea}.
+ *
+ * Cách hoạt động:
+ * Mỗi method mở {@link Connection} riêng qua {@code DBContext}, SELECT đơn giản,
+ * map {@link ResultSet} → {@link ExamArea} qua {@code map(rs)}. Không cache — luôn đọc DB.
+ *
+ * Phòng lý thuyết — hai schema AreaType:
+ * {@link #getActiveTheoryRooms} gộp {@code ExamSection.LY_THUYET} và {@code ExamAreaType.EXAM_ROOM}
+ * vào {@code LinkedHashMap} theo {@code ExamAreaId} để loại trùng khi DB có cả hai tên loại
+ * (schema Clean vs SWP/DLEM).
+ *
+ * Ai gọi?:
+ * Allocation, examiner-allocation, UI chọn phòng — cần {@link #getAreasByExamId} theo kỳ
+ * hoặc {@link #getAvailableAreasByType} theo loại sân/phòng.
+ */
 public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     /**
      * Ánh xạ một dòng ResultSet (bảng {@code ExamArea}) sang {@link ExamArea}.
-     *
      * @param rs ResultSet đang trỏ tại dòng cần đọc
      * @return entity khu vực thi
      * @throws SQLException nếu đọc cột thất bại
@@ -43,7 +57,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     /**
      * Lấy một khu vực thi theo mã từ bảng {@code ExamArea}.
-     *
      * @param examAreaId mã khu vực ({@code ExamAreaId})
      * @return entity {@link ExamArea} hoặc {@code null} nếu không tìm thấy
      */
@@ -72,7 +85,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
     /**
      * Lấy danh sách phòng lý thuyết đang dùng được, gộp theo hai schema
      * ({@code Lý thuyết} và {@code Phòng thi}), loại trùng theo {@code ExamAreaId}.
-     *
      * @return danh sách phòng lý thuyết không trùng lặp
      */
     @Override
@@ -90,7 +102,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     /**
      * Lấy danh sách khu vực theo loại ({@code AreaType}) từ bảng {@code ExamArea}.
-     *
      * @param areaType loại khu vực (ví dụ: {@code Lý thuyết}, {@code Phòng thi})
      * @return danh sách khu vực sắp theo tên; rỗng nếu {@code areaType} trống
      */
@@ -121,7 +132,6 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     /**
      * Lấy các khu vực được gán cho một kỳ thi qua bảng liên kết {@code Exam_ExamArea}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách khu vực của kỳ thi, sắp theo tên
      */

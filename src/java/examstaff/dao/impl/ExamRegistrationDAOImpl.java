@@ -15,13 +15,25 @@ import java.util.List;
  * Triển khai JDBC của {@link ExamRegistrationDAO} — đọc/ghi thí sinh, ghi danh,
  * phân phòng, điểm số trên các bảng {@code Candidate}, {@code ExamEnrollment},
  * {@code ExamEnrollmentSection}, {@code Payment}, {@code ExamScore}, ...
+ *
+ * Đọc danh sách / một thí sinh:
+ * SELECT chuẩn từ {@link examstaff.dao.Db2CandidateSql#CANDIDATE_SELECT}
+ * (+ {@code WHERE} theo CandidateId / ExamId / SBD). Map → {@code ExamRegistrationDTO}
+ * cho dashboard, allocation, candidate-call, procedure.
+ *
+ * Phân phòng LT / TH:
+ * Ủy quyền {@link ExamEnrollmentSectionSupport#updateTheoryAllocation} /
+ * {@link ExamEnrollmentSectionSupport#updatePracticalAllocation}
+ * (SQL Theory/Practical tường minh, không CSV splice).
+ *
+ * Điểm đạt / rớt:
+ * Quy tắc điểm dùng {@code AllocationPassRules} khi cập nhật kết quả / lọc stage results.
  */
 public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrationDAO {
 
     /**
      * Lấy đăng ký thí sinh theo mã từ view SQL {@link Db2CandidateSql#CANDIDATE_SELECT}
      * lọc {@code Candidate.CandidateId = ?}.
-     *
      * @param id mã thí sinh ({@code CandidateId})
      * @return {@link ExamRegistrationDTO} hoặc {@code null} nếu không tìm thấy
      */
@@ -49,7 +61,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Lấy thí sinh theo kỳ thi và số báo danh (SBD).
      * Ưu tiên tra cứu SQL theo số thứ tự; fallback duyệt danh sách kỳ thi nếu SBD không parse được.
-     *
      * @param examId mã kỳ thi ({@code ExamId})
      * @param sbd    số báo danh (chuỗi, có thể dạng {@code 001} hoặc {@code EXAM-001})
      * @return {@link ExamRegistrationDTO} hoặc {@code null} nếu không khớp
@@ -99,7 +110,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Danh sách thí sinh theo kỳ thi từ {@link Db2CandidateSql}.
      * Fallback {@code CANDIDATE_SELECT_MINIMAL} nếu SELECT đầy đủ rỗng; loại trùng qua {@code ExamEnrollmentMerge}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách {@link ExamRegistrationDTO}; rỗng nếu {@code examId <= 0}
      */
@@ -122,7 +132,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Chạy SELECT thí sinh ({@code selectSql} + {@code whereSql}) với bind tối đa 2 tham số int.
-     *
      * @param selectSql phần SELECT từ {@link Db2CandidateSql}
      * @param whereSql  mệnh đề WHERE + ORDER BY
      * @param bindInt   giá trị bind placeholder thứ nhất
@@ -161,7 +170,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Cập nhật cờ có mặt trên bảng {@code Candidate}: xóa đánh dấu vắng ({@code IsAbsent = 0})
      * khi {@code isPresent=true}. Không ghi gì nếu {@code isPresent=false}.
-     *
      * @param id        mã thí sinh
      * @param isPresent {@code true} để đánh dấu có mặt (xóa vắng)
      * @return {@code true} nếu thao tác thành công hoặc không cần ghi
@@ -194,7 +202,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Cập nhật / tạo thanh toán hoàn tất cho thí sinh trên bảng {@code Payment}.
      * Kiểm tra payment Completed/Paid trước; nếu chưa có thì INSERT bản ghi mới.
-     *
      * @param id                 mã thí sinh
      * @param isPaymentCompleted {@code true} để đảm bảo có payment hoàn tất
      * @return {@code true} nếu đã có hoặc tạo thành công; {@code false} nếu thiếu enrollment
@@ -244,7 +251,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Xóa các giao dịch thanh toán đã hoàn tất của thí sinh từ bảng {@code Payment}
      * (JOIN {@code ExamEnrollment} theo {@code CandidateId}).
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu DELETE thực thi (kể cả 0 dòng); {@code false} nếu lỗi
      */
@@ -275,7 +281,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Cập nhật phòng phân bổ lý thuyết qua {@link ExamEnrollmentSectionSupport#updateTheoryAllocation}.
      * Ghi {@code ExamAreaId} trên {@code ExamEnrollmentSection} và {@code ExamEnrollment}.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @param areaId      mã khu vực/phòng lý thuyết
@@ -299,7 +304,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Cập nhật sân/phòng phân bổ thực hành qua {@link ExamEnrollmentSectionSupport#updatePracticalAllocation}.
      * Ghi {@code ExamAreaId} trên {@code ExamEnrollmentSection} phần TH.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @param areaId      mã khu vực/sân thực hành
@@ -324,7 +328,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
      * Kiểm tra thí sinh đã có phòng lý thuyết trong kỳ thi chưa.
      * SELECT từ {@code ExamEnrollmentSection} JOIN {@code ExamSection}, {@code ExamArea}
      * lọc section lý thuyết có {@code ExamAreaId IS NOT NULL}.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @return thông báo lỗi tiếng Việt nếu đã phân phòng; {@code null} nếu được phép phân
@@ -370,7 +373,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Cập nhật điểm lý thuyết và/hoặc thực hành (ủy quyền cho overload với {@code examId=0}).
      * Ghi vào {@code ExamScore} qua {@link #upsertSectionScore}.
-     *
      * @param id              mã thí sinh
      * @param theoryScore     điểm lý thuyết ({@code null} = bỏ qua)
      * @param theoryPassed    kết quả LT ({@code passed}/{@code failed}/{@code null})
@@ -387,7 +389,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Ghi điểm LT/TH cho thí sinh; {@code examId=0} → tự resolve {@code ExamEnrollment}.
      * Tính passed the {@link AllocationPassRules} nếu tham số passed null.
-     *
      * @param id              mã thí sinh
      * @param examId          mã kỳ thi (0 = enrollment mới nhất)
      * @param theoryScore     điểm LT hoặc null
@@ -427,7 +428,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Cập nhật hồ sơ cơ bản thí sinh trên {@code Candidate}, {@code Profile}, {@code User}
      * trong một transaction (autoCommit=false).
-     *
      * @param id       mã thí sinh
      * @param fullName họ tên
      * @param dob      ngày sinh
@@ -515,7 +515,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Cập nhật đường dẫn ảnh thí sinh trên bảng {@code Candidate.PhotoImageUrl}.
-     *
      * @param id       mã thí sinh
      * @param photoUrl URL ảnh; {@code null} ghi SQL NULL
      * @return {@code true} nếu UPDATE ảnh hưởng ít nhất một dòng
@@ -542,7 +541,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Đánh dấu vắng mặt: set {@code Candidate.IsAbsent = 1}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu UPDATE thành công
      */
@@ -563,7 +561,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Đánh dấu đình chỉ thi: set {@code Candidate.IsSuspended = 1}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu UPDATE thành công
      */
@@ -584,7 +581,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Hủy đình chỉ thi: set {@code Candidate.IsSuspended = 0}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu UPDATE thành công
      */
@@ -606,7 +602,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Hủy đánh dấu vắng: xóa kết quả thi liên quan, reset section LT, set {@code IsAbsent=0}
      * trong transaction.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu hủy vắng thành công
      */
@@ -652,7 +647,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Xóa {@code DeductionRecord}, {@code ExamScore}, {@code ExamResult} khi hủy đánh dấu vắng.
      * DELETE theo {@code ExamEnrollmentId} của thí sinh.
-     *
      * @param candidateId mã thí sinh
      * @throws SQLException nếu DELETE thất bại
      */
@@ -692,7 +686,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Reset {@code Status} phần lý thuyết về Pending sau khi hủy vắng.
-     *
      * @param candidateId mã thí sinh
      * @throws SQLException nếu UPDATE thất bại
      */
@@ -703,7 +696,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Upsert điểm một phần thi (Theory/Practical) cho thí sinh vào {@code ExamScore}.
      * Resolve {@code ExamEnrollmentId}, {@code ExamSectionId} qua nhiều fallback.
-     *
      * @param candidateId    mã thí sinh
      * @param examId         mã kỳ thi (0 = tự resolve)
      * @param sectionKeyword {@code Theory} hoặc {@code Practical}
@@ -760,7 +752,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Insert hoặc cập nhật {@code ExamScore} theo {@code ExamResultId} + {@code ExamSectionId}.
-     *
      * @param examCandidateId mã ghi danh ({@code ExamEnrollmentId})
      * @param sectionId       mã phần thi
      * @param score           điểm số
@@ -806,7 +797,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Tìm {@code ExamSectionId} phần lý thuyết theo thí sinh (resolve ExamId mới nhất).
-     *
      * @param candidateId mã thí sinh
      * @return {@code ExamSectionId} hoặc {@code null}
      * @throws SQLException nếu truy vấn thất bại
@@ -821,7 +811,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Tìm {@code ExamSectionId} phần thực hành theo thí sinh (resolve ExamId mới nhất).
-     *
      * @param candidateId mã thí sinh
      * @return {@code ExamSectionId} hoặc {@code null}
      * @throws SQLException nếu truy vấn thất bại
@@ -836,7 +825,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Lấy {@code ExamId} mới nhất của thí sinh từ bảng {@code ExamEnrollment}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code ExamId} hoặc {@code -1} nếu không có
      * @throws SQLException nếu truy vấn thất bại
@@ -865,7 +853,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Ưu tiên ghi danh đúng ca ({@code examId}); nếu không khớp thì fallback
      * sang {@code ExamEnrollment} mới nhất của thí sinh.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi (0 = chỉ dùng enrollment mới nhất)
      * @return {@code ExamEnrollmentId} hoặc {@code null}
@@ -883,7 +870,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Tìm hoặc tạo {@code ExamResult} theo {@code ExamEnrollmentId}; cập nhật {@code IsPassed} nếu đã có.
-     *
      * @param examCandidateId mã ghi danh
      * @param passed          cờ đạt/không đạt
      * @return {@code ExamResultId}
@@ -925,7 +911,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Tìm {@code ExamSectionId} theo enrollment + keyword Theory/Practical.
-     *
      * @param examEnrollmentId mã ghi danh
      * @param keyword          {@code Theory} hoặc {@code Practical}
      * @return {@code ExamSectionId} hoặc {@code null}
@@ -950,7 +935,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Tìm {@code ExamSectionId} theo {@code ExamId} + keyword Theory/Practical.
-     *
      * @param examId  mã kỳ thi
      * @param keyword {@code Theory} hoặc {@code Practical}
      * @return {@code ExamSectionId} hoặc {@code null}
@@ -967,7 +951,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Lấy {@code ExamId} từ {@code ExamEnrollmentId} trên bảng {@code ExamEnrollment}.
-     *
      * @param examEnrollmentId mã ghi danh
      * @return {@code ExamId} hoặc {@code null}
      * @throws SQLException nếu truy vấn thất bại
@@ -988,7 +971,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Lấy {@code ExamEnrollmentId} mới nhất theo {@code CandidateId}.
-     *
      * @param candidateId mã thí sinh
      * @return mã ghi danh hoặc {@code null}
      * @throws SQLException nếu truy vấn thất bại
@@ -1014,7 +996,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Lấy {@code ExamEnrollmentId} theo cặp {@code CandidateId} + {@code ExamId}.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @return mã ghi danh hoặc {@code null}
@@ -1041,7 +1022,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Lấy hạng GPLX ({@code LicenceClass}) gắn với thí sinh qua {@code ExamEnrollment} mới nhất.
-     *
      * @param candidateId mã thí sinh
      * @return mã hạng bằng hoặc {@code null}
      * @throws SQLException nếu truy vấn thất bại
@@ -1129,7 +1109,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Đọc cột BIT; giá trị SQL NULL được coi là {@code false}.
-     *
      * @param rs     ResultSet nguồn
      * @param column tên cột BIT
      * @return giá trị boolean
@@ -1145,7 +1124,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
 
     /**
      * Đọc cột BIT nullable, trả {@code null} nếu SQL NULL.
-     *
      * @param rs     ResultSet nguồn
      * @param column tên cột BIT
      * @return {@link Boolean} hoặc {@code null}
@@ -1162,7 +1140,6 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
     /**
      * Ánh xạ một dòng ResultSet (alias từ {@link Db2CandidateSql}) sang {@link ExamRegistrationDTO}.
      * Tính toán trạng thái đạt/không đạt LT/TH qua {@link AllocationPassRules}.
-     *
      * @param rs ResultSet đang trỏ tại dòng cần đọc
      * @return DTO đăng ký thí sinh đầy đủ trường hiển thị
      * @throws SQLException nếu đọc cột bắt buộc thất bại

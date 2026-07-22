@@ -12,7 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Triển khai JDBC của {@link ReportInfractionViewDAO} — thống kê lỗi trừ điểm thực hành. */
+/** Triển khai JDBC của {@link ReportInfractionViewDAO} — thống kê lỗi trừ điểm thực hành.
+ *
+ * Luồng query:
+ * {@code DeductionRecord} → {@code ScoreDeduction} (lý do) → {@code ExamScore} → {@code ExamSection}
+ * → chỉ section <b>thực hành</b> ({@link Db2ExamSchemaSql#PRACTICAL_SECTION_TYPES}) → enrollment theo {@code examId}.
+ * Gom {@code SUM(OccurrenceCount)} theo lý do, {@code TOP (?)} cho biểu đồ report.
+ */
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
     /**
@@ -41,7 +47,6 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
      * Lấy top lỗi trừ điểm của phần thực hành trong kỳ thi.
      * Truy vấn {@code DeductionRecord} JOIN {@code ScoreDeduction}, {@code ExamScore},
      * {@code ExamSection}, {@code ExamResult}, {@code ExamEnrollment} theo {@code examId}.
-     *
      * @param examId mã kỳ thi
      * @param limit  số dòng tối đa (mặc định 3 nếu &le; 0)
      * @return danh sách map gồm {@code reason}, {@code count}, {@code percentage}

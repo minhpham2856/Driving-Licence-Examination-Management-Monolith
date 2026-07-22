@@ -21,6 +21,13 @@ import java.util.List;
 /**
  * Triển khai JDBC của {@link ExaminerAssignmentDAO} — phân công giám thị
  * trên bảng {@code ExaminerSchedule} và ghi nhật ký trên {@code Audit}.
+ *
+ * Hai SELECT chính:
+ * - {@code EXAMINER_SELECT} — danh sách user role Examiner đang active (+ Profile)
+ * - {@code SLOT_SELECT} — ca phân công theo kỳ: ExaminerSchedule JOIN ExamArea
+ *       (text block đầy đủ, không ghép runtime) → map {@code ExaminerSlotDTO}
+ * Dùng cho màn {@code /examstaff/examiner-allocation} và điều kiện auto-allocate
+ * (chỉ phân thí sinh vào phòng/sân đã có giám khảo).
  */
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
 
@@ -50,7 +57,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             ORDER BY p.FullName, u.Username
             """;
 
-    /** SELECT ca phân công giám thị JOIN Exam, Licence, User, Profile, ExamArea, ExamSection. */
+    /**
+     * SELECT ca phân công giám thị theo kỳ (text block đầy đủ).
+     * JOIN ExaminerSchedule → Exam/Licence → User/Profile → ExamArea → ExamSection.
+     * Caller gắn {@code WHERE esch.ExamId = ?}. Alias map sang {@link ExaminerSlotDTO}.
+     */
     private static final String SLOT_SELECT = """
             SELECT esch.ExaminerScheduleId AS ExamExaminerId,
                    esch.ExamId AS examId,
@@ -84,7 +95,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Lấy danh sách giám thị đang hoạt động từ {@code User} JOIN {@code Role}, {@code Profile}.
-     *
      * @return danh sách {@link UserDTO} kèm profile giám thị
      */
     @Override
@@ -110,7 +120,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
     /**
      * Phân công giám thị vào khu vực/kỳ thi: INSERT {@code ExaminerSchedule}
      * và ghi/xóa bản ghi {@code Audit} trong một transaction.
-     *
      * @param slot thông tin ca phân công ({@code examId}, {@code examinerUserId}, {@code areaId}, ...)
      * @return {@code true} nếu phân công thành công; {@code false} nếu trùng hoặc lỗi
      */
@@ -223,7 +232,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Hủy phân công giám thị: DELETE {@code ExaminerSchedule} và bản ghi {@code Audit} tương ứng.
-     *
      * @param slotKey khóa composite {@code examId:areaId:examinerId}
      * @return {@code true} nếu xóa thành công; {@code false} nếu khóa không hợp lệ hoặc lỗi
      */
@@ -273,7 +281,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Lấy tất cả ca phân công giám thị của một kỳ thi từ {@code ExaminerSchedule}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách {@link ExaminerSlotDTO} sắp theo tên khu vực
      */
@@ -285,7 +292,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Chạy SELECT ca phân công với binder tùy chỉnh và ánh xạ danh sách slot.
-     *
      * @param sql    câu SELECT (từ {@link #SLOT_SELECT} + WHERE)
      * @param binder lambda gán tham số PreparedStatement
      * @return danh sách {@link ExaminerSlotDTO}
@@ -311,7 +317,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Ánh xạ một dòng ResultSet (alias từ {@link #SLOT_SELECT}) sang {@link ExaminerSlotDTO}.
-     *
      * @param rs ResultSet đang trỏ tại dòng cần đọc
      * @return DTO ca phân công giám thị
      * @throws SQLException nếu đọc cột thất bại
@@ -352,7 +357,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Tạo entity ID cho Audit dạng {@code examId:areaId:examinerId}.
-     *
      * @param examId     mã kỳ thi
      * @param areaId     mã khu vực
      * @param examinerId mã giám thị
@@ -364,7 +368,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Phân tích entity ID audit; ủy quyền cho {@link #parseSlotKey}.
-     *
      * @param entityId chuỗi {@code examId:areaId:examinerId}
      * @return mảng 3 phần tử hoặc {@code null}
      */
@@ -374,7 +377,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Chuyển mã loại kỳ thi sang tên hiển thị tiếng Việt.
-     *
      * @param examTypeId 1=Lý thuyết, 2=Thực hành, 4=Đường trường
      * @return tên loại phần thi
      */
@@ -391,7 +393,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Phân tích khóa slot dạng {@code examId:areaId:examinerId}.
-     *
      * @param slotKey chuỗi khóa composite
      * @return mảng {@code [examId, areaId, examinerId]} hoặc {@code null} nếu không hợp lệ
      */
@@ -416,7 +417,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
     /**
      * Ánh xạ một dòng ResultSet giám thị sang {@link UserDTO} kèm {@link Profile}.
-     *
      * @param rs ResultSet từ {@link #EXAMINER_SELECT}
      * @return DTO người dùng giám thị
      * @throws SQLException nếu đọc cột thất bại
@@ -450,7 +450,6 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
 
         /**
          * Gán các placeholder {@code ?} trên PreparedStatement.
-         *
          * @param ps PreparedStatement cần bind
          * @throws SQLException nếu set tham số thất bại
          */
