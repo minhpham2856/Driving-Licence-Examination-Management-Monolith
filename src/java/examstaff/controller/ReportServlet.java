@@ -29,6 +29,20 @@ import java.util.Locale;
 
 /**
  * Báo cáo kỳ thi: thống kê + trạng thái thủ tục; xuất Excel/PDF hoặc forward {@code report.jsp}.
+ *
+ * Vai trò:
+ * Trang báo cáo tổng hợp kỳ: KPI đậu/rớt/vắng, thống kê theo hạng GPLX, vi phạm,
+ * trạng thái thủ tục (thiếu ảnh, chưa hoàn tất). Hỗ trợ export Excel/PDF qua {@link DocumentService}
+ * (chặn export khi còn thiếu ảnh thủ tục).
+ *
+ * Luồng GET:
+ * - {@code prepareExamStaffPage} → consume flash exam-control
+ * - {@code analyzeProcedureStatus} + {@code computeReportStats} → bind KPI
+ * - Nếu {@code exportExcel/Pdf} và không bị chặn → stream document
+ * - Ngược lại → forward {@code report.jsp} (kèm cờ exportBlocked nếu thiếu ảnh)
+ *
+ * Ai gọi:
+ * Menu exam staff; sidebar sau chọn kỳ; link export từ {@code report.jsp}.
  */
 @WebServlet("/examstaff/report")
 public class ReportServlet extends HttpServlet {
@@ -40,7 +54,6 @@ public class ReportServlet extends HttpServlet {
      * GET: prepare page → analyze procedure + stats → (exportExcel/Pdf nếu không bị chặn) hoặc JSP.
      * <p>
      * Export bị chặn khi còn thiếu ảnh thủ tục ({@code missingPhotoCount &gt; 0}).
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi stream/export
      */
@@ -115,7 +128,6 @@ public class ReportServlet extends HttpServlet {
 
     /**
      * Stream file Excel báo cáo kỳ thi (Content-Disposition attachment).
-     *
      * @throws IOException lỗi ghi output stream
      */
     private void streamExcel(HttpServletResponse response, HttpServletRequest request,
@@ -142,7 +154,6 @@ public class ReportServlet extends HttpServlet {
 
     /**
      * Tên người xuất báo cáo: profile.fullName → user.profile → username.
-     *
      * @return tên hiển thị
      */
     private String resolveExporterName(HttpSession session) {

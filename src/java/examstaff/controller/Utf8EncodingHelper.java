@@ -5,6 +5,19 @@ import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Gán encoding UTF-8 cho request/response và Content-Type JSON (Presentation).
+ *
+ * Vai trò:
+ * Đảm bảo request/response exam staff dùng UTF-8 thống nhất
+ * (form tiếng Việt, JSON API). Tránh lỗi mojibake trên param POST và body JSON.
+ *
+ * Luồng sử dụng:
+ * - Đầu servlet/JSP động: {@code apply(request, response)} hoặc {@code applyRequest}
+ * - API JSON: {@code applyJson(response)} trước ghi body
+ * - {@link ExamStaffPageSupport} gọi {@code applyRequest} khi prepare page
+ *
+ * Ai gọi:
+ * {@link ExamSelectServlet}, {@link PublicCallServlet}, {@link PublicCallStateServlet},
+ * {@link ExamStaffPageSupport} và servlet xử lý form tiếng Việt.
  */
 public final class Utf8EncodingHelper {
 
@@ -17,7 +30,6 @@ public final class Utf8EncodingHelper {
 
     /**
      * Set {@code CharacterEncoding} UTF-8 trên request (bỏ qua nếu container từ chối).
-     *
      * @param request request HTTP
      */
     public static void applyRequest(HttpServletRequest request) {
@@ -33,7 +45,6 @@ public final class Utf8EncodingHelper {
 
     /**
      * Set {@code CharacterEncoding} UTF-8 trên response.
-     *
      * @param response response HTTP
      */
     public static void applyResponse(HttpServletResponse response) {
@@ -45,7 +56,6 @@ public final class Utf8EncodingHelper {
 
     /**
      * Áp UTF-8 cho cả request và response.
-     *
      * @param request  request HTTP
      * @param response response HTTP
      */
@@ -56,7 +66,6 @@ public final class Utf8EncodingHelper {
 
     /**
      * UTF-8 response + {@code Content-Type: application/json;charset=UTF-8}.
-     *
      * @param response response HTTP
      */
     public static void applyJson(HttpServletResponse response) {

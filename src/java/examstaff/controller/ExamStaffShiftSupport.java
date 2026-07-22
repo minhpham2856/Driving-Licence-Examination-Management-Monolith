@@ -7,6 +7,12 @@ import jakarta.servlet.http.HttpSession;
 /**
  * Orchestration ca gọi số ở Presentation: clear session flags + resume CallBoard.
  * Không chứa SQL/CRUD; không thay đổi trạng thái kỳ thi trên DB.
+ *
+ * Phân biệt “ca gọi” vs “kỳ thi”:
+ * - <b>Ca gọi (Call Board):</b> {@code resumeBoard} — xóa {@code shiftEnded}/{@code examPaused}
+ *       trên board in-memory + xóa flag session {@code shiftEnded}/{@code shiftPaused}
+ * - <b>Kỳ thi (DB):</b> start/pause/end exam qua {@code ExamControlServlet} — cập nhật Status trên SQL
+ * Method này chỉ làm nhánh Call Board + session UI.
  */
 public final class ExamStaffShiftSupport {
 
@@ -19,7 +25,6 @@ public final class ExamStaffShiftSupport {
      * <p>
      * Luồng: xóa {@code shiftEnded}/{@code shiftPaused} → {@code resumeBoard}.
      * Pause/resume toàn kỳ thi (DB) thực hiện qua {@code ExamControlServlet}.
-     *
      * @param session   session staff
      * @param ctx       ServletContext để lấy CallBoard DAO
      * @param examId    mã kỳ thi

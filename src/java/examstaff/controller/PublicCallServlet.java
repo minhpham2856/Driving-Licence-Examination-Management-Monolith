@@ -18,6 +18,14 @@ import java.io.IOException;
 
 /**
  * Màn hình gọi số công khai (TV): resolve kỳ active → load snapshot → bind → forward JSP.
+ *
+ * Khác với {@link PublicCallStateServlet}:
+ * Servlet này render HTML lần đầu ({@code public-call.jsp}); JS trên trang sau đó
+ * poll {@code /api/public-call/state} để cập nhật calling/next/queue mà không reload cả trang.
+ * Cả hai đều đọc cùng {@link CallBoardDAO} in-memory + cùng {@link StaffCallService#loadPublicSnapshot}.
+ *
+ * Luồng GET:
+ * UTF-8 → resolve examId (URL / session / board active) → getBoardState → snapshot → bind request → JSP.
  */
 @WebServlet("/examstaff/public-call")
 public class PublicCallServlet extends HttpServlet {
@@ -27,7 +35,6 @@ public class PublicCallServlet extends HttpServlet {
 
     /**
      * GET: UTF-8 → resolve examId → board state → public snapshot → bind → {@code public-call.jsp}.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi I/O
      */

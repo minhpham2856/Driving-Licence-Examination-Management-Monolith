@@ -20,6 +20,19 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Trang nhật ký audit cá nhân của staff: lọc ngày + paging + KPI thủ tục; export chuyển sang audit-export.
+ *
+ * Vai trò:
+ * Hiển thị lịch sử hành động của staff hiện tại (lọc theo ngày, phân trang),
+ * kèm KPI thủ tục đã xử lý trong ngày/lịch sử. Export Excel ủy quyền sang {@link AuditExportServlet}.
+ *
+ * Luồng GET:
+ * - Nếu {@code exportExcel=true} → redirect {@code /examstaff/audit-export} (kèm filterDate)
+ * - Resolve userId + filterDate; reset paging khi đổi user hoặc ngày lọc
+ * - {@code AuditService.buildPage} → {@code ExamStaffPageSupport.prepareExamStaffPage} (sidebar)
+ * - Bind personalLogs / paging / KPI → forward {@code audit.jsp}
+ *
+ * Ai gọi:
+ * Menu exam staff; sidebar navigation; redirect lỗi từ {@link AuditExportServlet}.
  */
 @WebServlet("/examstaff/audit")
 public class AuditServlet extends HttpServlet {
@@ -29,7 +42,6 @@ public class AuditServlet extends HttpServlet {
 
     /**
      * GET: (exportExcel → redirect audit-export) hoặc buildPage → prepare sidebar → bind → JSP.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi redirect
      */
@@ -77,7 +89,6 @@ public class AuditServlet extends HttpServlet {
 
     /**
      * Đọc {@code filterDate} (ưu tiên) hoặc {@code date} từ request.
-     *
      * @return chuỗi ngày lọc hoặc null
      */
     private static String resolveFilterDate(HttpServletRequest request) {
@@ -93,7 +104,6 @@ public class AuditServlet extends HttpServlet {
 
     /**
      * Bind personalLogs / paging / KPI lên request cho JSP audit.
-     *
      * @param view DTO trang audit đã build
      */
     private static void bindAuditPage(HttpServletRequest request, StaffAuditPageViewDTO view) {

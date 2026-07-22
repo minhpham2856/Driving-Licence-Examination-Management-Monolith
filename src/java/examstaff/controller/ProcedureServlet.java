@@ -34,6 +34,21 @@ import java.util.List;
 
 /**
  * Bàn thủ tục thí sinh (wizard lý lịch / ảnh / phí): prepare → actions → bind desk → candidatecall.jsp (deskMode).
+ *
+ * Vai trò:
+ * Wizard 3 bước tại bàn tiếp nhận: xác nhận lý lịch, chụp/lưu ảnh, thu phí (SePay/cash).
+ * Đồng bộ {@link examstaff.dao.CallBoardDAO}, session {@code callingSbd}, queue và audit.
+ * Render {@code candidatecall.jsp} ở chế độ desk (không phải trang gọi số riêng).
+ *
+ * Luồng GET:
+ * - {@code action=startShift} → {@link ExamStaffShiftSupport} → redirect candidatecall
+ * - Prepare page + resolve SBD → {@code findProfile} / {@code prepareProfileForDesk}
+ * - Phân nhánh action: next/reset/save/photo/payment/SePay finalize
+ * - Bind step/fees/board → {@code forwardDeskView} (candidatecall.jsp deskMode)
+ *
+ * Ai gọi:
+ * Redirect từ {@link CandidateCallServlet} ({@code view=desk}); sidebar exam staff;
+ * link sau gọi số với {@code ?sbd=}.
  */
 @WebServlet("/examstaff/procedure")
 public class ProcedureServlet extends HttpServlet {
@@ -48,7 +63,6 @@ public class ProcedureServlet extends HttpServlet {
      * GET: startShift | prepare desk | xử lý action (next/reset/save/photo/payment) | forward desk view.
      * <p>
      * Luồng: resolve SBD → find/prepare profile → phân nhánh action → bind step/fees → {@link #forwardDeskView}.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi redirect / JSON
      */
@@ -267,7 +281,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * POST: saveCapturedPhoto (JSON nhanh) / confirmPayment / còn lại ủy quyền GET.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi I/O
      */
@@ -375,7 +388,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Lưu lý lịch từ form → reload profile → audit.
-     *
      * @return profile sau khi lưu (hoặc gốc nếu lỗi)
      */
     private ExamRegistrationDTO handleSaveProfile(HttpServletRequest request, HttpSession session,
@@ -405,7 +417,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Parse ngày sinh từ {@code dd/MM/yyyy} hoặc {@code yyyy-MM-dd}.
-     *
      * @return java.sql.Date hoặc null nếu trống
      */
     private static Date parseDateOfBirth(String dobStr) {
@@ -421,7 +432,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Thu phí: confirmPayment → xử lý từng PaymentStatus → desk sau thanh toán hoặc lỗi.
-     *
      * @throws IOException lỗi redirect / forward
      */
     private void processPayment(HttpServletRequest request, HttpServletResponse response,
@@ -495,7 +505,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Hiển thị bàn bước 3 sau khi thu phí (cờ just-paid + optional mở in).
-     *
      * @param openPrint true → set openDossierPrint
      * @throws IOException lỗi forward
      */
@@ -523,7 +532,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Lưu ảnh webcam (JSON response): service saveCapturedPhoto → status code + body.
-     *
      * @throws IOException lỗi ghi JSON
      */
     private void handleSaveCapturedPhoto(HttpServletRequest request, HttpServletResponse response,
@@ -565,7 +573,6 @@ public class ProcedureServlet extends HttpServlet {
      * Forward desk view: refresh queue → bind calling → occupyDesk → candidatecall.jsp (deskMode).
      * <p>
      * Luồng: fees nếu thiếu → ensureExamId → refresh DB → publish → sync calling → occupy → sidebar → JSP.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi I/O
      */
@@ -607,7 +614,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Sync selection + refresh queue từ DB; cập nhật lastLoadedExamId.
-     *
      * @return queue sau refresh
      */
     private List<ExamRegistrationDTO> refreshQueueFromDb(HttpSession session, String webRoot, int examId,
@@ -621,7 +627,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * SBD từ param {@code sbd}; fallback {@code callingSbd} session.
-     *
      * @return SBD hoặc null
      */
     private String resolveSbdParam(HttpServletRequest request, HttpSession session) {
@@ -634,7 +639,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Theo dõi đổi SBD: cập nhật lastSelectedSbd/callingSbd; trả true nếu đổi thí sinh.
-     *
      * @return true nếu SBD khác lần trước (reset bước wizard)
      */
     private boolean trackSbdChange(HttpSession session, String sbdParam) {
@@ -659,7 +663,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Kết thúc bàn hiện tại: reset procedure step → refresh queue → gọi SBD kế → releaseDeskAndCall.
-     *
      * @param finishedSbd SBD vừa xong thủ tục
      */
     private void advanceToNextCandidate(HttpSession session, List<ExamRegistrationDTO> qList,
@@ -688,7 +691,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Ghi audit UI feed session + AuditService (userId từ session).
-     *
      * @param recordId id bản ghi liên quan (0 nếu không có)
      */
     private void addAuditLog(HttpSession session, String action, String details, int recordId) {
@@ -698,7 +700,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Refresh queue theo selectedExamId session (fallback examId).
-     *
      * @return full queue
      */
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId, String webRoot,
@@ -718,7 +719,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Refresh queue theo queueExamId cụ thể rồi publish vào session.
-     *
      * @param queueExamId mã kỳ nạp queue
      * @return full queue (có thể null từ snapshot)
      */
@@ -776,7 +776,6 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Resolve thí sinh đang gọi; đồng bộ callingSbd session nếu lệch/null.
-     *
      * @return DTO hoặc null
      */
     private ExamRegistrationDTO resolveCallingCandidate(HttpSession session, List<ExamRegistrationDTO> qList) {

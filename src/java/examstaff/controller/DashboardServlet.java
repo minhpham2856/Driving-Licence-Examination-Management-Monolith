@@ -21,6 +21,20 @@ import java.util.List;
 
 /**
  * Dashboard exam staff: tổng quan kỳ + KPI sát hạch viên + đồng bộ callingSbd với CallBoard.
+ *
+ * Vai trò:
+ * Trang landing sau đăng nhập exam staff: tổng quan kỳ đang chọn, KPI phân công sát hạch viên,
+ * đồng bộ {@code callingSbd} giữa session HTTP và {@link examstaff.dao.CallBoardDAO}.
+ * Tiêu thụ flash từ {@link ExamControlServlet} và {@link ExamSelectServlet}.
+ *
+ * Luồng GET:
+ * - No-cache headers → {@code prepareExamStaffPage} (kỳ + queue sidebar)
+ * - {@code syncCallingSbd}: session ↔ board → {@code staffCall.syncBoard}
+ * - {@code buildDashboardView} → bind KPI examiner
+ * - Consume flash exam-control / select-exam → forward {@code dashboard.jsp}
+ *
+ * Ai gọi:
+ * Redirect mặc định sau {@link ExamSelectServlet}; menu sidebar; fallback redirect an toàn từ nhiều servlet.
  */
 @WebServlet("/examstaff/dashboard")
 public class DashboardServlet extends HttpServlet {
@@ -30,7 +44,6 @@ public class DashboardServlet extends HttpServlet {
 
     /**
      * GET: prepare page → sync calling → bind dashboard KPI → consume flash → forward JSP.
-     *
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi I/O / 500
      */
@@ -79,7 +92,6 @@ public class DashboardServlet extends HttpServlet {
 
     /**
      * Đồng bộ callingSbd session ↔ CallBoard rồi syncBoard.
-     *
      * @param boardExamId kỳ gắn board
      * @param queue       hàng đợi hiện tại
      * @param shiftEnded  ca đã kết thúc?
