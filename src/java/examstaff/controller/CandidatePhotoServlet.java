@@ -15,6 +15,19 @@ import java.nio.file.Files;
 
 /**
  * Stream ảnh thí sinh đã chụp: resolve file theo SBD/kỳ → ghi binary response.
+ *
+ * Vai trò:
+ * Endpoint binary phục vụ ảnh chụp thí sinh (JSP {@code &lt;img src="…/candidate-photo?sbd=…"&gt;}).
+ * Không forward HTML; trả 404 khi thiếu SBD hoặc file không tồn tại.
+ *
+ * Luồng GET:
+ * - Validate {@code sbd} → 404 nếu rỗng
+ * - {@code resolveExamId} + {@code resolvePhoto} qua {@link ExamStaffViewService}
+ * - FOUND → Content-Type + Cache-Control private → {@code Files.copy} stream
+ *
+ * Ai gọi:
+ * JSP {@code candidatecall.jsp}, {@code procedure.jsp}, {@code candidate-dossier.jsp},
+ * {@code public-call.jsp} (thumbnail thí sinh đang gọi).
  */
 @WebServlet("/examstaff/candidate-photo")
 public class CandidatePhotoServlet extends HttpServlet {
@@ -23,7 +36,6 @@ public class CandidatePhotoServlet extends HttpServlet {
 
     /**
      * GET: {@code sbd} bắt buộc → resolvePhoto → 404 nếu thiếu → stream Content-Type + file.
-     *
      * @throws ServletException không dùng
      * @throws IOException      lỗi đọc/ghi file
      */

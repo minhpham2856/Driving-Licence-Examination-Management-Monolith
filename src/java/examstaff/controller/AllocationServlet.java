@@ -33,6 +33,20 @@ import java.util.List;
 /**
  * Các trang phân bổ thí sinh theo giai đoạn (waiting/theory/practical/results):
  * điều phối HTTP ↔ AllocationAction/StageView ↔ redirect/forward JSP theo servlet path.
+ *
+ * Cách URL map sang stage:
+ *
+ * {@link AllocationStageHelper#resolveStageFromServletPath} đọc {@code request.getServletPath()}:
+ * ví dụ {@code /examstaff/allocation-theory} → stage {@code theory} + JSP tương ứng.
+ * Một servlet, nhiều {@code @WebServlet} patterns — tránh nhân đôi code controller.
+ *
+ * Luồng GET (và POST ủy quyền GET):
+ * - Chuẩn bị kỳ thi + queue thí sinh ({@code ExamStaffPageSupport})
+ * - Nếu có {@code action} (allocateRoom / allocatePracticalRoom):
+ *       {@code AllocationService.executeCandidateAction} → flash → redirect PRG
+ * - Overview không action: có thể {@code autoAllocateOnOverview}
+ * - Không action: bind danh sách stage → forward JSP
+ * <p>Ghi DB phân phòng nằm ở DAO ({@code ExamEnrollmentSectionSupport}); servlet chỉ HTTP.
  */
 @WebServlet(urlPatterns = {
         "/examstaff/allocation",
@@ -52,14 +66,12 @@ public class AllocationServlet extends HttpServlet {
     /**
      * GET: resolve stage từ path → prepare page → (action → PRG redirect) hoặc bind danh sách → forward JSP.
      * <p>
+ *
      * Luồng chính:
-     * <ol>
-     *   <li>Resolve stage/resultFilter/jsp từ servlet path</li>
-     *   <li>Chuẩn bị kỳ + queue; xử lý đổi kỳ / auto-allocate overview</li>
-     *   <li>Nếu có action: execute → flash → redirect PRG</li>
-     *   <li>Không action: consume flash → publish stage → forward JSP</li>
-     * </ol>
-     *
+     * - Resolve stage/resultFilter/jsp từ servlet path
+     * - Chuẩn bị kỳ + queue; xử lý đổi kỳ / auto-allocate overview
+     * - Nếu có action: execute → flash → redirect PRG
+     * - Không action: consume flash → publish stage → forward JSP
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi redirect / 500
      */
@@ -239,7 +251,6 @@ public class AllocationServlet extends HttpServlet {
 
     /**
      * Bind dữ liệu stage (counts/list/paging) lên request.
-     *
      * @param qList        queue đầy đủ
      * @param stage        waiting/theory/practical/results
      * @param resultFilter lọc kết quả (pass/fail/…) nếu có
@@ -259,7 +270,6 @@ public class AllocationServlet extends HttpServlet {
 
     /**
      * Refresh queue từ DB/service rồi publish snapshot vào session.
-     *
      * @return full queue sau refresh (không null)
      */
     private List<ExamRegistrationDTO> refreshCandidateQueue(HttpSession session, int examId,
@@ -284,7 +294,6 @@ public class AllocationServlet extends HttpServlet {
 
     /**
      * Publish full/active/procedure-done queue lên request + session cho JSP.
-     *
      * @param qList  queue đầy đủ
      * @param examId kỳ hiện tại
      */
@@ -301,7 +310,6 @@ public class AllocationServlet extends HttpServlet {
 
     /**
      * Set alert/error request và ghi audit nếu actionResult có log.
-     *
      * @param result kết quả thao tác phân bổ
      */
     private void applyActionResult(HttpServletRequest request, HttpSession session,
@@ -351,7 +359,6 @@ public class AllocationServlet extends HttpServlet {
 
     /**
      * Xây URL redirect sau action (giữ paging/search/sort/area + cache-buster).
-     *
      * @return URL tuyệt đối trong context
      */
     private static String buildRedirectUrl(HttpServletRequest request, String servletPath, int examId,

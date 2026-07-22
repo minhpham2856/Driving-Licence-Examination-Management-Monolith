@@ -22,6 +22,21 @@ import java.util.Locale;
 
 /**
  * Xuất Excel nhật ký audit cá nhân (stream attachment); lỗi → redirect audit kèm exportError.
+ *
+ * Vai trò:
+ * Endpoint tải file {@code .xlsx} nhật ký hành động của staff đang đăng nhập,
+ * kèm KPI thủ tục (số hoàn tất, tổng phí). Tách riêng khỏi {@link AuditServlet}
+ * để stream binary không lẫn HTML forward.
+ *
+ * Luồng GET:
+ * - Kiểm tra session đăng nhập → redirect {@code /staff/login} nếu thiếu
+ * - Resolve {@code filterDate} → {@code loadLogs} + {@code getStaffProcedureKpi} theo userId
+ * - {@code streamExcel}: header no-store + Content-Disposition attachment
+ * - Lỗi stream → redirect {@code /examstaff/audit?exportError=1} (giữ filterDate nếu có)
+ *
+ * Ai gọi:
+ * Redirect từ {@link AuditServlet} khi {@code exportExcel=true};
+ * link trực tiếp từ JSP {@code audit.jsp} (nút xuất Excel).
  */
 @WebServlet("/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
@@ -30,7 +45,6 @@ public class AuditExportServlet extends HttpServlet {
 
     /**
      * GET: kiểm tra đăng nhập → load logs + KPI → streamExcel (hoặc redirect lỗi).
-     *
      * @throws ServletException không dùng
      * @throws IOException      lỗi stream/redirect
      */
@@ -66,7 +80,6 @@ public class AuditExportServlet extends HttpServlet {
 
     /**
      * Ghi file Excel nhật ký (header no-store + Content-Disposition).
-     *
      * @param logs                danh sách log
      * @param completedProcedures KPI số thủ tục hoàn tất
      * @param totalFees           KPI tổng phí
@@ -104,7 +117,6 @@ public class AuditExportServlet extends HttpServlet {
 
     /**
      * Tên staff trên file: profile.fullName → username.
-     *
      * @return tên hiển thị
      */
     private static String resolveStaffName(HttpSession session) {
@@ -117,7 +129,6 @@ public class AuditExportServlet extends HttpServlet {
 
     /**
      * Load log theo user + ngày; lỗi → list rỗng.
-     *
      * @return danh sách AuditDTO (không null)
      */
     private List<AuditDTO> loadLogs(int userId, String filterDate) {
@@ -131,7 +142,6 @@ public class AuditExportServlet extends HttpServlet {
 
     /**
      * Đọc {@code filterDate} (ưu tiên) hoặc {@code date} từ request.
-     *
      * @return chuỗi ngày hoặc null
      */
     private static String resolveFilterDate(HttpServletRequest request) {

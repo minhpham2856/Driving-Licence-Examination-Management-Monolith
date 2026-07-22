@@ -10,6 +10,20 @@ import jakarta.servlet.http.HttpSession;
 /**
  * Helper HTTP Presentation cho exam staff: header cache, param examId, flash, redirect URL.
  * Không chứa nghiệp vụ.
+ *
+ * Vai trò:
+ * Tập tiện ích HTTP dùng chung: singleton {@link CallBoardDAO}, header no-cache,
+ * parse {@code examId}, flash PRG, redirect an toàn (Referer trong {@code /examstaff/}),
+ * thao tác query string. Tách khỏi servlet để tránh nhân đôi code.
+ *
+ * Luồng sử dụng:
+ * - Servlet gọi {@code applyNoCacheHeaders} trước forward/redirect trang động
+ * - Resolve examId: {@code parseExamIdParam} → {@code readSelectedExamId} → board active
+ * - Sau POST: {@code consumeFlash} trên GET tiếp theo; {@code resolveSafeRedirect} cho PRG
+ *
+ * Ai gọi:
+ * Hầu hết servlet exam staff ({@link DashboardServlet}, {@link CandidateCallServlet},
+ * {@link PublicCallStateServlet}, {@link AllocationServlet}, …) và {@link ExamStaffPageSupport}.
  */
 public final class ExamStaffHttpSupport {
 
@@ -18,21 +32,32 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Repository CallBoard in-memory dùng chung (singleton JVM).
-     * Tham số {@code ctx} giữ để tương thích caller cũ; không còn đọc/ghi ServletContext.
+     * Lấy repository Call Board dùng chung toàn JVM.
+     * <p>
+     * <b>Cách hoạt động:</b> luôn trả {@link InMemoryCallBoardDAO#getInstance()} —
+     * cùng một map {@code examId → CallBoardState} cho mọi request (staff + Public Call).
+     * Không đọc/ghi attribute trên {@code ServletContext} nữa (Approach 1).
+     * <p>
+     * <b>Tham số {@code ctx}:</b> giữ chữ ký cũ để servlet hiện có
+     * ({@code callBoardDao(getServletContext())}) không phải sửa; giá trị {@code ctx}
+     * bị bỏ qua (kể cả {@code null}).
+     * @param ctx ServletContext (không dùng; giữ tương thích)
+     * @return singleton {@link CallBoardDAO}
      */
     public static CallBoardDAO callBoardDao(ServletContext ctx) {
         return InMemoryCallBoardDAO.getInstance();
     }
 
-    /** Repository CallBoard in-memory dùng chung (singleton JVM). */
+    /**
+     * Overload không cần ServletContext — cùng instance với {@link #callBoardDao(ServletContext)}.
+     * @return singleton {@link CallBoardDAO}
+     */
     public static CallBoardDAO callBoardDao() {
         return InMemoryCallBoardDAO.getInstance();
     }
 
     /**
      * Gắn header no-cache / no-store / must-revalidate cho response.
-     *
      * @param response response HTTP
      */
     public static void applyNoCacheHeaders(HttpServletResponse response) {
@@ -46,7 +71,6 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Đọc mã kỳ thi từ query/form param {@code examId}.
-     *
      * @param request request HTTP
      * @return examId dương hoặc 0
      */
@@ -59,7 +83,6 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Đọc {@code selectedExamId} dương từ session request (không tạo session mới).
-     *
      * @param request request HTTP
      * @return Integer dương hoặc null
      */
@@ -80,7 +103,6 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Chuyển flash session → request attribute rồi xóa key flash (one-shot PRG).
-     *
      * @param session       session chứa flash
      * @param flashKey      key trên session
      * @param request       request đích
@@ -100,7 +122,6 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Redirect an toàn: ưu tiên Referer trong {@code /examstaff/}; không thì context + fallbackPath.
-     *
      * @param request      request hiện tại
      * @param fallbackPath đường dẫn tương đối (ví dụ {@code /examstaff/dashboard})
      * @return URL tuyệt đối tương đối context hoặc Referer
@@ -122,7 +143,6 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Cắt phần query string sau {@code ?}.
-     *
      * @param url URL gốc
      * @return phần trước {@code ?}, hoặc null nếu url null
      */
@@ -138,7 +158,6 @@ public final class ExamStaffHttpSupport {
      * Thêm hoặc thay thế một query param trên URL (giữ các param khác).
      * <p>
      * Luồng: tách base/query → duyệt param → thay key hoặc append → ghép lại.
-     *
      * @param url   URL gốc
      * @param key   tên param
      * @param value giá trị mới
@@ -186,7 +205,6 @@ public final class ExamStaffHttpSupport {
 
     /**
      * Parse param số nguyên dương (lấy value hợp lệ cuối cùng nếu multi-value).
-     *
      * @param request request HTTP
      * @param name    tên param
      * @return số dương hoặc 0

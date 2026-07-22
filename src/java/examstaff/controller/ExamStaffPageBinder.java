@@ -21,6 +21,20 @@ import examstaff.service.impl.support.shared.LicenseClassRules;
 /**
  * Chỉ bind request/session attributes. Không tạo *Impl và không chứa nghiệp vụ.
  * Dữ liệu đã được service/helper chuẩn bị sẵn.
+ *
+ * Vai trò:
+ * Lớp bind thuần Presentation: gán DTO đã chuẩn bị lên {@code HttpServletRequest} /
+ * {@code HttpSession} (picker kỳ, queue, bàn thủ tục, shift context, audit feed UI).
+ * Chuẩn hóa mã hạng GPLX trước khi bind JSP.
+ *
+ * Luồng sử dụng:
+ * - {@link ExamStaffPageSupport#prepareExamStaffPage}: {@code bindPickerView} + {@code publishQueue}
+ * - Servlet procedure/allocation: bind desk, fees, step wizard
+ * - Đổi kỳ: {@code clearProcedureStateOnExamChange}, {@code persistExamSelection}
+ *
+ * Ai gọi:
+ * {@link ExamStaffPageSupport}, {@link ProcedureServlet}, {@link AllocationServlet},
+ * {@link CandidateCallServlet}, {@link ExamSelectServlet} và các servlet bind UI khác.
  */
 public final class ExamStaffPageBinder {
 
@@ -30,7 +44,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Thêm entry time/action/details vào đầu list {@code examAuditLogs} trên session (UI feed).
-     *
      * @param session session staff
      * @param action  nhãn hành động
      * @param details mô tả ngắn
@@ -55,7 +68,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Chuẩn hóa mã hạng GPLX theo quy tắc managed; fallback trim+upper.
-     *
      * @param raw mã gốc
      * @return mã chuẩn hóa hoặc null
      */
@@ -87,7 +99,6 @@ public final class ExamStaffPageBinder {
      * {@code selectedExamId}, {@code pickerCommittedExamId} (+ shift context).
      * <p>
      * Luồng: normalize hạng → bind shift UI → set attributes picker.
-     *
      * @param request request JSP
      * @param picker  DTO picker đã chuẩn bị sẵn
      */
@@ -124,7 +135,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Publish queue từ snapshot DTO (ủy quyền overload đầy đủ, không kèm currentExam).
-     *
      * @param snapshot snapshot queue; null → no-op
      */
     public static void publishQueue(HttpServletRequest request, HttpSession session,
@@ -139,7 +149,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Publish queue không kèm {@code currentExam}.
-     *
      * @see #publishQueue(HttpServletRequest, HttpSession, List, List, List, int, int, ExamSummaryDTO)
      */
     public static void publishQueue(HttpServletRequest request, HttpSession session,
@@ -153,7 +162,6 @@ public final class ExamStaffPageBinder {
      * loaded/selected examId và {@code currentExam}.
      * <p>
      * Luồng: null-safe lists → normalize hạng → ghi session → ghi request (+ shift nếu có exam).
-     *
      * @param examId         mã kỳ load
      * @param fallbackExamId dùng khi examId ≤ 0
      * @param currentExam    kỳ hiện tại (có thể null)
@@ -209,7 +217,6 @@ public final class ExamStaffPageBinder {
      * Phần ghi session tách rõ trong {@link #syncShiftFlagsFromExamStatus}.
      * <p>
      * Luồng: canStartNow/label → mutationsLocked → sync shift session.
-     *
      * @param request     request JSP
      * @param sessionExam kỳ đang hiển thị
      */
@@ -234,7 +241,6 @@ public final class ExamStaffPageBinder {
     /**
      * Ghi cờ ca ({@code shiftPaused}/{@code shiftEnded}) theo trạng thái kỳ trên DB.
      * Tách khỏi bind UI để hội đồng thấy: bind request ≠ ghi ca.
-     *
      * @param httpSession session staff
      * @param sessionExam kỳ tham chiếu status
      */
@@ -257,7 +263,6 @@ public final class ExamStaffPageBinder {
     /**
      * Bind thuộc tính trang gọi: {@code callingCandidate}, {@code suspendedCount},
      * {@code currentExam}/{@code selectedExamId} (+ shift context).
-     *
      * @param examId            mã kỳ publish
      * @param callingCandidate  thí sinh đang gọi (có thể null)
      * @param selectedExamId    fallback selected khi examId ≤ 0
@@ -283,7 +288,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Bind phí thủ tục: {@code feeLines}, {@code feeTotal}, {@code feesFromPayment}.
-     *
      * @param fees kết quả tính phí; null → no-op
      */
     public static void bindProcedureFees(HttpServletRequest request, ProcedureFeeResultDTO fees) {
@@ -297,7 +301,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Đọc {@code selectedExamId} &gt; 0 từ session; null nếu không có.
-     *
      * @return Integer dương hoặc null
      */
     public static Integer readSelectedExamId(HttpSession session) {
@@ -313,7 +316,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Đọc {@code callQueueOrderExamId} &gt; 0 từ session.
-     *
      * @return Integer dương hoặc null
      */
     public static Integer readCallQueueOrderExamId(HttpSession session) {
@@ -329,7 +331,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Đọc {@code examStaffLoadedExamId} &gt; 0 từ session.
-     *
      * @return Integer dương hoặc null
      */
     public static Integer readLoadedExamId(HttpSession session) {
@@ -345,7 +346,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Ghi {@code selectedExamId} (ưu tiên examId, fallback fallbackExamId).
-     *
      * @param fallbackExamId dùng khi examId ≤ 0
      * @param examId         mã kỳ ưu tiên
      */
@@ -361,7 +361,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Xóa cache queue thí sinh trên session (candidate/active/done/order…).
-     *
      * @param session session staff
      */
     public static void clearCandidateCache(HttpSession session) {
@@ -380,7 +379,6 @@ public final class ExamStaffPageBinder {
      * Khi đổi kỳ: xóa procedure/calling/shift state + cache queue, rồi persist selection mới.
      * <p>
      * Luồng: clear calling/procedure/shift → clearCandidateCache → persistExamSelection.
-     *
      * @param newExamId         kỳ mới
      * @param newFallbackExamId fallback khi newExamId ≤ 0
      */
@@ -405,7 +403,6 @@ public final class ExamStaffPageBinder {
 
     /**
      * Đồng bộ thứ tự gọi số: set {@code callQueueOrder} (list SBD) và {@code callQueueOrderExamId}.
-     *
      * @param examId kỳ gắn với order
      * @param queue  hàng đợi nguồn SBD
      */

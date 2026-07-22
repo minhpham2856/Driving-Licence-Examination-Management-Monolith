@@ -16,6 +16,20 @@ import java.util.List;
 /**
  * Thin Presentation: chuẩn bị trang exam staff + chọn kỳ (HTTP ↔ ViewService ↔ binder).
  * Thay {@code ExamStaffPageFacade} / {@code ExamStaffSelectionFacade}.
+ *
+ * Vai trò:
+ * Điểm vào chuẩn bị ngữ cảnh trang exam staff: xử lý transition đổi kỳ từ URL,
+ * gọi {@link ExamStaffViewService#preparePageContext}, persist selection, bind picker và publish queue.
+ * Cung cấp helper {@code ensureExamId}, {@code resolveExamId}, {@code applyExamIdFromRequest}.
+ *
+ * Luồng sử dụng:
+ * - Servlet gọi {@code prepareExamStaffPage(request, session, webRoot, loadCandidates, view)}
+ * - Nếu URL có examId → transition + clear cache/procedure theo cờ service
+ * - Trả {@link ExamStaffPageContext} (examId, candidates, picker) cho servlet tiếp tục bind/action
+ *
+ * Ai gọi:
+ * Hầu hết trang exam staff: {@link DashboardServlet}, {@link CandidateCallServlet},
+ * {@link ProcedureServlet}, {@link ReportServlet}, {@link AllocationServlet}, {@link ExaminerAllocationServlet}.
  */
 public final class ExamStaffPageSupport {
 
@@ -27,7 +41,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Chuẩn bị trang exam staff (load candidates mặc định, view mặc định).
-     *
      * @see #prepareExamStaffPage(HttpServletRequest, HttpSession, String, boolean, ExamStaffViewService)
      */
     public static ExamStaffPageContext prepareExamStaffPage(HttpServletRequest request, HttpSession session,
@@ -37,7 +50,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Chuẩn bị trang exam staff với cờ load candidates (view mặc định).
-     *
      * @see #prepareExamStaffPage(HttpServletRequest, HttpSession, String, boolean, ExamStaffViewService)
      */
     public static ExamStaffPageContext prepareExamStaffPage(HttpServletRequest request, HttpSession session,
@@ -50,7 +62,6 @@ public final class ExamStaffPageSupport {
      * <p>
      * Luồng: UTF-8 → (nếu có examId URL) xử lý transition đổi kỳ → build command →
      * {@code preparePageContext} → persist selection → bind picker → publish queue.
-     *
      * @param request        request HTTP
      * @param session        session staff
      * @param webRoot        real path web root (ảnh/hồ sơ)
@@ -113,7 +124,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Liệt kê mọi kỳ thi (có inject view).
-     *
      * @param view ViewService; null → mặc định
      * @return danh sách kỳ
      */
@@ -128,7 +138,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Xóa cache queue thí sinh trên session.
-     *
      * @param session session staff
      */
     public static void clearCandidateCache(HttpSession session) {
@@ -138,7 +147,6 @@ public final class ExamStaffPageSupport {
     /**
      * Áp examId từ URL: resolve trong allExams rồi remember vào session.
      * Nếu không có examId URL → ủy quyền {@link #resolveExamId}.
-     *
      * @return examId đã resolve; 0 nếu không hợp lệ
      */
     public static int applyExamIdFromRequest(HttpServletRequest request, HttpSession session,
@@ -164,7 +172,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Resolve examId từ URL/session/danh sách kỳ (ủy quyền ViewService).
-     *
      * @param defaultId examId mặc định khi không có nguồn nào
      * @return examId đã chọn
      */
@@ -189,7 +196,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Đảm bảo có examId hợp lệ: resolve + persist selected/primary.
-     *
      * @return examId &gt; 0 hoặc 0
      */
     public static int ensureExamId(HttpServletRequest request, HttpSession session,
@@ -260,7 +266,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Tìm kỳ theo id trong danh sách (ủy quyền ViewService).
-     *
      * @return DTO hoặc null
      */
     public static ExamSummaryDTO findExamById(List<ExamSummaryDTO> allExams, int examId,
@@ -275,7 +280,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Kỳ đại diện cho examId (khi danh sách nhóm nhiều slot cùng ngày).
-     *
      * @return DTO đại diện hoặc null
      */
     public static ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId,
@@ -290,7 +294,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Resolve mã kỳ “chính” (primary) từ examId có thể là slot phụ.
-     *
      * @return primary examId
      */
     public static int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId,
@@ -305,7 +308,6 @@ public final class ExamStaffPageSupport {
 
     /**
      * Resolve kỳ từ param examId URL; nếu tìm thấy thì remember vào session.
-     *
      * @return ExamSummaryDTO hoặc null nếu không có/không khớp
      */
     public static ExamSummaryDTO resolveExamFromRequest(HttpServletRequest request, HttpSession httpSession,

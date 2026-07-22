@@ -5,21 +5,28 @@ import shared.Attributes;
 /**
  * Alias session keys exam staff — giá trị khớp {@link Attributes.ExamStaff} / JSP.
  * <p>
+ *
  * Nhóm key (không có method nghiệp vụ; chỉ hằng số):
- * <ul>
- *   <li><b>Kỳ thi đã chọn/load:</b> {@link #SELECTED_EXAM_ID}, {@link #LOADED_EXAM_ID},
- *       {@link #LAST_LOADED_EXAM_ID}</li>
- *   <li><b>Hàng đợi thí sinh:</b> {@link #CANDIDATE_QUEUE}, {@link #ACTIVE_CALL_QUEUE},
+ * - <b>Kỳ thi đã chọn/load:</b> {@link #SELECTED_EXAM_ID}, {@link #LOADED_EXAM_ID},
+ *       {@link #LAST_LOADED_EXAM_ID}
+ * - <b>Hàng đợi thí sinh:</b> {@link #CANDIDATE_QUEUE}, {@link #ACTIVE_CALL_QUEUE},
  *       {@link #PROCEDURE_DONE_CANDIDATES}, {@link #CALL_QUEUE_ORDER},
- *       {@link #CALL_QUEUE_ORDER_EXAM_ID}</li>
- *   <li><b>Gọi số / vắng:</b> {@link #CALLING_SBD}, {@link #LAST_SELECTED_SBD},
- *       {@link #PERMANENT_ABSENTS}</li>
- *   <li><b>Bàn thủ tục:</b> {@link #PROCEDURE_STEP}, {@link #PROCEDURE_JUST_PAID},
- *       {@link #PROCEDURE_JUST_PAID_SBD}</li>
- *   <li><b>Ca thi:</b> {@link #SHIFT_PAUSED}, {@link #SHIFT_ENDED}</li>
- *   <li><b>Flash exam-control:</b> {@link #EXAM_CONTROL_MSG}, {@link #EXAM_CONTROL_ERROR}</li>
- *   <li><b>Cờ boolean dạng chuỗi:</b> {@link #FLAG_TRUE} ({@code "true"})</li>
- * </ul>
+ *       {@link #CALL_QUEUE_ORDER_EXAM_ID}
+ * - <b>Gọi số / vắng:</b> {@link #CALLING_SBD}, {@link #LAST_SELECTED_SBD},
+ *       {@link #PERMANENT_ABSENTS}
+ * - <b>Bàn thủ tục:</b> {@link #PROCEDURE_STEP}, {@link #PROCEDURE_JUST_PAID},
+ *       {@link #PROCEDURE_JUST_PAID_SBD}
+ * - <b>Ca thi:</b> {@link #SHIFT_PAUSED}, {@link #SHIFT_ENDED}
+ * - <b>Flash exam-control:</b> {@link #EXAM_CONTROL_MSG}, {@link #EXAM_CONTROL_ERROR}
+ * - <b>Cờ boolean dạng chuỗi:</b> {@link #FLAG_TRUE} ({@code "true"})
+ *
+ * Vai trò:
+ * Tránh magic string khi đọc/ghi session exam staff; đồng bộ tên key với
+ * {@link shared.Attributes.ExamStaff} và EL trên JSP.
+ *
+ * Ai gọi:
+ * {@link ExamStaffHttpSupport}, {@link ExamStaffPageBinder}, {@link ExamStaffPageSupport},
+ * servlet gọi số/thủ tục và JSP exam staff (qua cùng tên attribute).
  */
 public final class ExamStaffSessionKeys {
 
