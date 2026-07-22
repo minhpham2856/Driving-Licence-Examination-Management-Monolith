@@ -6,9 +6,9 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Nhập điểm" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/score-entry" scope="request" />
-<c:set var="callUrl" value="${ctx}/views/examiner/candidate-call" />
-<c:set var="confirmUrl" value="${ctx}/views/examiner/confirmation" />
+<c:set var="pageUrl" value="${ctx}/examiner/score-entry" scope="request" />
+<c:set var="callUrl" value="${ctx}/examiner/candidate-call" />
+<c:set var="confirmUrl" value="${ctx}/examiner/confirmation" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/results" />
 <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 <c:set var="baseScore" value="100" />
