@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -261,17 +261,6 @@
                             </span>
                         </c:if>
                     </div>
-
-                    <c:if test="${sessionScope.shiftEnded ne 'true'}">
-                        <div style="display: flex; gap: 6px; align-items: center;">
-                            <span style="font-size: 0.68rem; font-weight: 700; color: #94a3b8; animation: pulse-green 2s infinite;">Tự refresh (10s)</span>
-                            <a href="candidatecall?action=reloadQueue" class="btn-batch btn-batch--alt" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" title="Làm mới hàng đợi (thứ tự mặc định từ DB)">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </c:if>
                 </div>
 
                 <c:choose>
