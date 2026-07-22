@@ -26,16 +26,16 @@
 
 .side-nav-bar--examiner .side-nav-bar__logo-link {
     width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #ffffff;
+    height: 48px;
+    border-radius: 0;
+    overflow: visible;
+    background-color: transparent;
 }
 
 .side-nav-bar--examiner .side-nav-bar__logo-img {
     width: 40px;
-    height: 40px;
-    object-fit: cover;
+    height: 48px;
+    object-fit: contain;
 }
 
 .side-nav-bar--examiner .side-nav-bar__brand-title {
@@ -106,6 +106,16 @@
     padding: 8px 12px;
     border-radius: 8px;
     color: #434654 !important;
+}
+
+.side-nav-bar--examiner a.side-nav-bar__logout:hover:not(.is-active) {
+    background-color: rgba(0, 82, 204, 0.06);
+    color: #434654 !important;
+}
+
+.side-nav-bar--examiner a.side-nav-bar__logout.is-active {
+    background-color: #0052cc !important;
+    color: #c4d2ff !important;
 }
 
 .side-nav-bar--examiner .side-nav-bar__logout-label {
