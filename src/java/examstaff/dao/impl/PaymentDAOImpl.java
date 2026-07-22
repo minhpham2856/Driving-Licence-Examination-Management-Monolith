@@ -13,7 +13,24 @@ import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Triển khai JDBC của {@link PaymentDAO} — ghi/đọc bảng {@code Payment}. */
+/**
+ * Triển khai JDBC của {@link PaymentDAO} — INSERT/SELECT trên bảng {@code Payment}.
+ *
+ * INSERT payment:
+ * {@link #insert} ghi {@code PaymentStatus} (mặc định {@code HOAN_TAT}), {@code PaymentMethod},
+ * {@code TransactionReference}, {@code TotalAmount}, {@code PaidAt = GETDATE()},
+ * {@code ExamEnrollmentId}. Trả {@code true} khi lấy được {@code PaymentId} sinh ra
+ * ({@code RETURN_GENERATED_KEYS}).
+ *
+ * Đọc theo thí sinh:
+ * {@link #getByCandidateId} — TOP 1 qua JOIN {@code ExamEnrollment}.
+ * {@link #resolveEnrollmentId} — helper tra enrollment mới nhất trước INSERT;
+ * trả {@code -1} nếu thí sinh chưa ghi danh.
+ *
+ * Quan hệ ExamRegistrationDAO:
+ * {@code ExamRegistrationDAOImpl#updatePayment} có thể tự INSERT/DELETE payment;
+ * class này dùng khi cần thao tác trực tiếp trên entity {@link Payment}.
+ */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
@@ -22,7 +39,6 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
      * Thêm bản ghi thanh toán mới vào bảng {@code Payment}.
      * Ghi {@code PaymentStatus}, {@code PaymentMethod}, {@code TransactionReference},
      * {@code TotalAmount}, {@code PaidAt} (GETDATE), {@code ExamEnrollmentId}.
-     *
      * @param payment entity thanh toán (bắt buộc có {@code ExamEnrollmentId} hợp lệ)
      * @return {@code true} nếu INSERT thành công và lấy được {@code PaymentId} sinh ra
      */
@@ -67,7 +83,6 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     /**
      * Lấy thanh toán mới nhất của thí sinh từ {@code Payment} JOIN {@code ExamEnrollment}.
-     *
      * @param candidateId mã thí sinh ({@code CandidateId})
      * @return entity {@link Payment} hoặc {@code null} nếu không có bản ghi
      */
@@ -109,7 +124,6 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     /**
      * Tra {@code ExamEnrollmentId} mới nhất của thí sinh từ bảng {@code ExamEnrollment}.
-     *
      * @param candidateId mã thí sinh
      * @return mã ghi danh mới nhất, hoặc {@code -1} nếu không có
      */

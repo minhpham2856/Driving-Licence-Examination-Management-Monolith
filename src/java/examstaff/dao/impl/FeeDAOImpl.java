@@ -10,14 +10,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Triển khai JDBC của {@link FeeDAO} — đọc bảng {@code Fee}, {@code Licence_Fee}, {@code Payment_Fee}. */
+/**
+ * Triển khai JDBC của {@link FeeDAO} — đọc {@code Fee}, {@code Licence_Fee}, {@code Payment_Fee}.
+ *
+ * Biểu phí thủ tục:
+ * {@link #getProcedureFees} dùng OUTER APPLY chọn mức phí theo hạng {@code LicenceClass},
+ * lọc {@code FeeType} thủ tục (không học phí), tách logic xe máy ({@code isMotorcycleGroup})
+ * vs ô tô khi {@code requiresRoadTest}.
+ *
+ * Phí theo payment:
+ * {@link #getFeesByPaymentId} JOIN {@code Payment_Fee} → {@code Fee} → {@code Licence_Fee}
+ * để suy ra {@code Amount} đúng hạng của kỳ thi gắn payment đó.
+ *
+ * Ai gọi?:
+ * Luồng thu lệ phí trên {@code /examstaff/procedure} — hiển thị checklist phí trước khi ghi {@code Payment}.
+ */
 public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     /**
      * Lấy danh sách lệ phí thủ tục áp dụng theo hạng GPLX.
      * Truy vấn {@code Fee} OUTER APPLY {@code Licence_Fee} để lấy mức phí theo hạng,
      * sau đó lọc theo loại phí thủ tục (không gồm học phí).
-     *
      * @param licenseCode      mã hạng bằng (ví dụ: B1, A1)
      * @param requiresRoadTest có phần thi đường trường hay không (ảnh hưởng lọc phí TH)
      * @return danh sách {@link Fee} phù hợp thủ tục
@@ -73,7 +86,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
     /**
      * Lấy các khoản phí gắn với một thanh toán từ {@code Payment_Fee}
      * JOIN {@code Fee}, {@code Payment}, {@code ExamEnrollment}, {@code Exam}, {@code Licence}.
-     *
      * @param paymentId mã thanh toán ({@code PaymentId})
      * @return danh sách {@link Fee} kèm số tiền theo hạng GPLX của kỳ thi
      */
@@ -115,7 +127,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     /**
      * Lọc phí thủ tục theo loại/tên (loại trừ học phí, áp dụng quy tắc xe máy/TH).
-     *
      * @param fee               entity phí cần kiểm tra
      * @param motorcycle        {@code true} nếu hạng thuộc nhóm xe máy (A/A1)
      * @param requiresRoadTest  có phần thi đường trường hay không
@@ -148,7 +159,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     /**
      * Chuẩn hóa chuỗi (bỏ dấu Unicode, chuyển lower-case) để so khớp loại/tên phí.
-     *
      * @param value chuỗi gốc
      * @return chuỗi đã chuẩn hóa, hoặc rỗng nếu {@code null}
      */
@@ -164,7 +174,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     /**
      * Kiểm tra haystack có chứa bất kỳ needle nào trong danh sách.
-     *
      * @param haystack chuỗi cần tìm
      * @param needles  các mẫu con
      * @return {@code true} nếu khớp ít nhất một needle
@@ -180,7 +189,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     /**
      * Xác định hạng GPLX thuộc nhóm xe máy (A hoặc A1).
-     *
      * @param licenseCode mã hạng bằng
      * @return {@code true} nếu là A hoặc A1
      */
@@ -194,7 +202,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
 
     /**
      * Ánh xạ một dòng ResultSet sang {@link Fee}.
-     *
      * @param rs ResultSet đang trỏ tại dòng cần đọc
      * @return entity phí đã điền đủ trường
      * @throws SQLException nếu đọc cột thất bại

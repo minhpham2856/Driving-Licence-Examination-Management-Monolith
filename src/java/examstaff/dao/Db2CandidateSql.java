@@ -2,10 +2,29 @@ package examstaff.dao;
 
 /**
  * Hằng SQL SELECT thí sinh ({@code Candidate} + {@code ExamEnrollment}) cho schema DLEM_DB_2.
- * Mỗi hằng là một câu SELECT đầy đủ (chưa có {@code WHERE}); caller gắn điều kiện khi chạy.
- * <p>
- * Lớp tiện ích — không thể khởi tạo; dùng {@link #CANDIDATE_SELECT}
- * hoặc {@link #CANDIDATE_SELECT_MINIMAL}.
+ *
+ * Approach B — vì sao SELECT “full text”?:
+ * Trước đây có thể ghép SQL bằng splice/CSV helper khó đọc. Mỗi hằng ở đây là
+ * <b>một câu SELECT đầy đủ</b> (chưa có {@code WHERE}); caller chỉ nối điều kiện khi chạy.
+ * Đoạn JOIN section LT/TH lấy từ {@link Db2ExamSchemaSql} để không lặp alias.
+ *
+ * Hai biến thể:
+ * - {@link #CANDIDATE_SELECT} — đủ cột + subquery điểm LT/TH ({@code theoryScore}/{@code practicalScore})
+ * - {@link #CANDIDATE_SELECT_MINIMAL} — bỏ JOIN điểm (score = NULL); fallback khi query đầy đủ lỗi
+ *
+ * Ai dùng?:
+ * Chủ yếu {@code ExamRegistrationDAOImpl} ({@code getById}, {@code getCandidatesByExam},
+ * {@code getByExamAndSbd}, …) → map {@code ExamRegistrationDTO} cho dashboard / allocation / call / procedure.
+ *
+ * Luồng đọc một thí sinh:
+ * <pre>
+ *   CANDIDATE_SELECT + " WHERE c.CandidateId = ?"
+ *     → JOIN ExamEnrollment / Exam / Licence
+ *     → LEFT JOIN theoryEes / practicalEes (phòng, status thủ tục)
+ *     → LEFT JOIN payment + điểm LT/TH
+ *     → ResultSet → ExamRegistrationDTO
+ * </pre>
+ * <p>Lớp tiện ích — không khởi tạo.
  */
 public final class Db2CandidateSql {
 

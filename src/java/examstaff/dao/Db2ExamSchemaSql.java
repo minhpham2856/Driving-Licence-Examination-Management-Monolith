@@ -2,11 +2,22 @@ package examstaff.dao;
 
 /**
  * Đoạn SQL tái sử dụng cho schema DLEM_DB_2 (Exam-centric).
- * Cung cấp hằng {@code SectionType}, biểu thức SELECT và cụm LEFT JOIN
- * gắn section lý thuyết / thực hành với {@code ExamEnrollmentSection} và {@code ExamArea}.
- * Tham số {@code examId} ở tầng BLL/UI map tới cột {@code ExamId}.
- * <p>
- * Lớp tiện ích — không thể khởi tạo; chỉ dùng các hằng public static.
+ *
+ * Vấn đề schema giải quyết:
+ * Một kỳ thi có nhiều {@code ExamSection} (LT / TH / sa hình…); tên {@code SectionType}
+ * trong DB có thể là tiếng Anh hoặc tiếng Việt. Thay vì hard-code một literal,
+ * mọi filter LT/TH dùng {@link #THEORY_SECTION_TYPES} / {@link #PRACTICAL_SECTION_TYPES}.
+ *
+ * Ba nhóm hằng:
+ * - <b>IN-list SectionType</b> — nhúng vào {@code WHERE ... IN (...)} hoặc JOIN
+ * - <b>JOIN blocks</b> — {@link #JOIN_THEORY_SECTION}, {@link #JOIN_PRACTICAL_SECTION},
+ *       {@link #JOIN_ALLOCATED_AREA} gắn alias {@code theoryEes}/{@code practicalEes}/{@code theoryArea}
+ * - <b>Column expressions</b> — status thủ tục, chữ ký in, mã/tên phòng đã phân
+ *
+ * Ai dùng?:
+ * {@link Db2CandidateSql}, {@code ExamEnrollmentSectionSupport},
+ * {@code ReportInfractionViewDAOImpl}, và mọi UPDATE phân phòng theo LT/TH.
+ * <p>Tham số {@code examId} ở BLL/UI map tới cột {@code ExamId}. Lớp tiện ích — không khởi tạo.
  */
 public final class Db2ExamSchemaSql {
 

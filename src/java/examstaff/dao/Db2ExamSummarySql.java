@@ -1,8 +1,19 @@
 package examstaff.dao;
 
 /**
- * Hằng SQL SELECT tóm tắt kỳ thi ({@code Exam} JOIN {@code Licence}) dùng chung
- * cho {@code ExamDAOImpl} và {@code ExamViewDAOImpl}.
+ * Hằng SQL SELECT tóm tắt kỳ thi ({@code Exam} JOIN {@code Licence}) dùng chung.
+ *
+ * Ai dùng?:
+ * - {@code ExamDAOImpl#getById} — {@code EXAM_SUMMARY_SELECT + " WHERE e.ExamId = ?"}
+ * - {@code ExamViewDAOImpl} — list / picker kỳ thi (thêm {@code ORDER BY} / filter status)
+ * Một chỗ định nghĩa cột → map {@code ExamSummaryDTO} không lệch giữa “đọc 1 kỳ” và “list kỳ”.
+ *
+ * Cột quan trọng:
+ * - {@code id} / {@code examId} — cùng {@code Exam.ExamId} (alias kép cho mapper cũ)
+ * - {@code examName} — ưu tiên {@code ExamCode}; trống thì ghép {@code Hạng + LicenceClass + ngày}
+ * - {@code status} — {@code Exam.Status} (DB), khác pause runtime trên Call Board
+ * - {@code licenseCode} — hạng GPLX từ {@code Licence}
+ * <p>Caller <b>phải</b> gắn {@code WHERE} / {@code ORDER BY} khi chạy — hằng này chỉ là phần SELECT…FROM…JOIN.
  */
 public final class Db2ExamSummarySql {
 

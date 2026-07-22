@@ -13,8 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Read model kỳ thi (một hàng / Exam).
+ * Read model kỳ thi (một hàng / Exam) cho sidebar picker và list kỳ.
  * {@code examId} trên view = {@code ExamId} để tương thích UI cũ.
+ *
+ * Cách hoạt động:
+ * Mọi query bắt đầu từ {@link examstaff.dao.Db2ExamSummarySql#EXAM_SUMMARY_SELECT},
+ * rồi gắn {@code ORDER BY} / {@code WHERE} tùy method ({@link #findAllOrdered}, {@link #findByExamId}, …).
+ * Khác {@code ExamDAOImpl}: class này thiên về <b>đọc danh sách / view</b>; ghi Status vẫn qua ExamDAO.
  */
 public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
 
