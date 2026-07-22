@@ -3,8 +3,28 @@ package examstaff.dao;
 import shared.model.Payment;
 
 /**
- * DAO thanh toán lệ phí ({@link Payment}).
- * Thao tác trên bảng {@code Payment} và liên kết {@code ExamEnrollment} theo thí sinh.
+ * Cổng truy cập thanh toán lệ phí ({@link Payment}).
+ *
+ * Vai trò trong kiến trúc:
+ * Ghi và đọc giao dịch thanh toán gắn {@code ExamEnrollment}. Thường được gọi
+ * từ luồng thủ tục ({@link ExamRegistrationDAO#updatePayment} có thể ủy quyền impl riêng).
+ * <pre>
+ *   ProcedureServlet / ExamRegistrationDAOImpl
+ *            │  insert / getByCandidateId
+ *            ▼
+ *      PaymentDAO  ◄── PaymentDAOImpl
+ *            │
+ *            ▼  Payment (ExamEnrollmentId, PaymentStatus, TotalAmount…)
+ *         DLEM_DB_2
+ * </pre>
+ *
+ * Hợp đồng:
+ * - {@link #insert} — bắt buộc {@code ExamEnrollmentId} hợp lệ; trả {@code PaymentId} sinh ra
+ * - {@link #getByCandidateId} — TOP 1 payment mới nhất của thí sinh
+ * - {@link #resolveEnrollmentId} — tra {@code ExamEnrollmentId} mới nhất (helper trước INSERT)
+ *
+ * Triển khai mặc định:
+ * {@link examstaff.dao.impl.PaymentDAOImpl}.
  */
 public interface PaymentDAO {
 
@@ -12,7 +32,6 @@ public interface PaymentDAO {
      * Thêm bản ghi thanh toán mới.
      * Thực thi INSERT vào bảng {@code Payment} với PaymentStatus, PaymentMethod,
      * TransactionReference, TotalAmount, PaidAt, ExamEnrollmentId.
-     *
      * @param payment entity thanh toán; cần có {@code ExamEnrollmentId} hợp lệ
      * @return {@code true} nếu INSERT thành công; {@code false} nếu thất bại
      */
@@ -22,7 +41,6 @@ public interface PaymentDAO {
      * Lấy thanh toán mới nhất theo mã thí sinh.
      * Thực thi SELECT TOP 1 trên {@code Payment} INNER JOIN {@code ExamEnrollment}
      * theo {@code CandidateId}, ưu tiên bản ghi mới nhất.
-     *
      * @param candidateId mã thí sinh ({@code Candidate.CandidateId})
      * @return entity {@link Payment} nếu tìm thấy; {@code null} nếu thí sinh chưa có thanh toán
      */
@@ -32,7 +50,6 @@ public interface PaymentDAO {
      * Tra mã ghi danh ({@code ExamEnrollmentId}) mới nhất của thí sinh.
      * Thực thi SELECT TOP 1 {@code ExamEnrollmentId} FROM {@code ExamEnrollment}
      * WHERE {@code CandidateId = ?}.
-     *
      * @param candidateId mã thí sinh cần tra ghi danh
      * @return mã {@code ExamEnrollmentId} mới nhất; {@code -1} nếu không có ghi danh
      */

@@ -12,6 +12,14 @@ import java.sql.Timestamp;
 
 /**
  * Triển khai JDBC của {@link ExamDAO} — đọc và cập nhật trạng thái kỳ thi trên bảng {@code Exam}.
+ *
+ * SQL tóm tắt kỳ:
+ * Dùng chung {@link examstaff.dao.Db2ExamSummarySql#EXAM_SUMMARY_SELECT} với {@code ExamViewDAOImpl}
+ * để cột map {@code ExamSummaryDTO} không lệch. {@link #getById} chỉ thêm {@code WHERE e.ExamId = ?}.
+ *
+ * Status trên DB vs Call Board:
+ * {@link #updateStatus} ghi {@code Exam.Status} (Chưa diễn ra / Đang diễn ra / …).
+ * Pause gọi số runtime nằm trên {@code CallBoardState.examPaused} — không qua class này.
  */
 public class ExamDAOImpl extends DBContext implements ExamDAO {
 
