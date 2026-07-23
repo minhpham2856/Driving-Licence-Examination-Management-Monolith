@@ -25,15 +25,18 @@ IF COL_LENGTH('dbo.ExamDates', 'CancelledRegistrationCount') IS NULL
 
 GO
 
-IF NOT EXISTS (
+IF EXISTS (
     SELECT 1 FROM sys.check_constraints
     WHERE parent_object_id = OBJECT_ID('dbo.ExamDates')
       AND name = 'CK_ExamDates_Status'
 )
 BEGIN
-    ALTER TABLE dbo.ExamDates WITH CHECK
-        ADD CONSTRAINT CK_ExamDates_Status CHECK (Status IN (N'Open', N'Cancelled'));
+    ALTER TABLE dbo.ExamDates DROP CONSTRAINT CK_ExamDates_Status;
 END;
+
+ALTER TABLE dbo.ExamDates WITH CHECK
+    ADD CONSTRAINT CK_ExamDates_Status
+        CHECK (Status IN (N'Open', N'Locked', N'Cancelled'));
 
 COMMIT TRANSACTION;
 
