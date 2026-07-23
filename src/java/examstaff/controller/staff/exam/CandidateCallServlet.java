@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/candidatecall")
+@WebServlet("/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
@@ -87,7 +87,7 @@ public class CandidateCallServlet extends HttpServlet {
                 ExamControlService.ResumeResult resume = examControlService.resumeExam(pageCtx.getExamId());
                 if (!resume.isSuccess()) {
                     session.setAttribute("examControlError", resume.getMessage());
-                    response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+                    response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
                     return;
                 }
                 session.setAttribute("examControlMsg", resume.getMessage());
@@ -95,7 +95,7 @@ public class CandidateCallServlet extends HttpServlet {
             session.removeAttribute("shiftEnded");
             session.removeAttribute("shiftPaused");
             callBoardHttp.resumeShift(getServletContext(), pageCtx.getExamId());
-            response.sendRedirect(request.getContextPath() + "/views/staff/examstaff/candidatecall");
+            response.sendRedirect(request.getContextPath() + "/examstaff/candidatecall");
             return;
         }
         if (view.getRedirectPath() != null) {

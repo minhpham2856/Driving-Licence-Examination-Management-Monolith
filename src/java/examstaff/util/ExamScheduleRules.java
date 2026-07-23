@@ -6,7 +6,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-/** Quy tắc thời gian kỳ thi (so sánh giờ bắt đầu/kết thúc) — helper thuần, không HTTP. */
+/** Quy tắc thời gian kỳ thi (so sánh giờ bắt đầu/kết thúc) - helper thuần, không HTTP. */
 public final class ExamScheduleRules {
 
     private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");

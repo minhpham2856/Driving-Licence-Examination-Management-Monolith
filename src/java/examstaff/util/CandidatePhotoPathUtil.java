@@ -5,7 +5,7 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import java.io.File;
 import java.util.List;
 
-/** Chuẩn hóa đường dẫn ảnh nội bộ — controller dùng {@link examstaff.service.CandidatePhotoService#normalizePhotoPaths}. */
+/** Chuẩn hóa đường dẫn ảnh nội bộ - controller dùng {@link examstaff.service.CandidatePhotoService#normalizePhotoPaths}. */
 public final class CandidatePhotoPathUtil {
 
     private CandidatePhotoPathUtil() {

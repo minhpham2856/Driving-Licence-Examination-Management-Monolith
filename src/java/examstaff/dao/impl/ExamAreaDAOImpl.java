@@ -48,7 +48,7 @@ public class ExamAreaDAOImpl implements ExamAreaDAO {
 
     @Override
     public List<ExamArea> getActiveTheoryRooms() {
-        // Schema Clean: "Lý thuyết" — schema SWP/DLEM: "Phòng thi"
+        // Schema Clean: "Lý thuyết" - schema SWP/DLEM: "Phòng thi"
         Map<Integer, ExamArea> byId = new LinkedHashMap<>();
         for (ExamArea a : getAvailableAreasByType(ExamSection.LY_THUYET.getDisplayName())) {
             byId.put(a.getExamAreaId(), a);

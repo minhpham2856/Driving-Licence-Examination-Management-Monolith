@@ -13,9 +13,9 @@ public final class DossierLabelUtil {
 
     public static String resolveSubtitle(String licenseCode) {
         if (LicenseClassRules.isMotorcycle(licenseCode)) {
-            return "(Thí sinh hạng mô tô — sau khi hoàn tất thủ tục tại bàn quầy)";
+            return "(Thí sinh hạng mô tô - sau khi hoàn tất thủ tục tại bàn quầy)";
         }
         return "(Thí sinh hạng " + (licenseCode != null ? licenseCode.trim() : "")
-                + " — sau khi hoàn tất thủ tục tại bàn quầy)";
+                + " - sau khi hoàn tất thủ tục tại bàn quầy)";
     }
 }

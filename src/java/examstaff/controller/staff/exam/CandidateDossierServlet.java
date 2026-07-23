@@ -14,7 +14,7 @@ import examstaff.service.CandidateDossierService;
 
 import java.io.IOException;
 
-@WebServlet("/views/staff/examstaff/candidate-dossier")
+@WebServlet("/examstaff/candidate-dossier")
 public class CandidateDossierServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();

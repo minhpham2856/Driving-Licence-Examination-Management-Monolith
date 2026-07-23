@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/views/staff/examstaff/exam-control")
+@WebServlet("/examstaff/exam-control")
 public class ExamControlServlet extends HttpServlet {
 
     private static final ExamStaffWebModule MODULE = new ExamStaffWebModule();
@@ -109,12 +109,12 @@ public class ExamControlServlet extends HttpServlet {
         String from = request.getParameter("redirect");
         String ctx = request.getContextPath();
         if ("examiner-allocation".equals(from)) {
-            return ctx + "/views/staff/examstaff/examiner-allocation?examId=" + examId;
+            return ctx + "/examstaff/examiner-allocation?examId=" + examId;
         }
         if ("report".equals(from)) {
-            return ctx + "/views/staff/examstaff/report?examId=" + examId;
+            return ctx + "/examstaff/report?examId=" + examId;
         }
-        return ctx + "/views/staff/examstaff/dashboard?examId=" + examId;
+        return ctx + "/examstaff/dashboard?examId=" + examId;
     }
 
     private void applyRuntimeStart(ServletContext ctx, HttpSession session, int examId) {

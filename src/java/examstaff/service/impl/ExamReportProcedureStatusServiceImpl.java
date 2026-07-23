@@ -37,7 +37,7 @@ public class ExamReportProcedureStatusServiceImpl implements ExamReportProcedure
                 procedurePendingCandidates.add(reg);
                 if (!valid) {
                     missingPhotoCount++;
-                    missingPhotoSbds.add(reg.getSbd() + " — " + reg.getName());
+                    missingPhotoSbds.add(reg.getSbd() + " - " + reg.getName());
                     missingPhotoCandidates.add(reg);
                 }
             }

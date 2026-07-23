@@ -4,7 +4,7 @@ import examstaff.dto.view.ExamSummaryRow;
 
 import java.util.List;
 
-/** SELECT JOIN — ca thi / kỳ thi cho exam staff. */
+/** SELECT JOIN - ca thi / kỳ thi cho exam staff. */
 public interface ExamViewDAO {
 
     List<ExamSummaryRow> findAllOrdered();
