@@ -1,8 +1,9 @@
 package examstaff.dao.impl;
 
-import shared.dbconnection.DBContext;
+import examstaff.dao.Db2ExamSummarySql;
 import examstaff.dao.ExamDAO;
 import examstaff.dto.ExamSummaryDTO;
+import shared.dbconnection.DBContext;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,37 +11,28 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * JDBC implementation của {@link ExamDAO} — đọc/cập nhật trạng thái kỳ thi.
+ * Triển khai JDBC của {@link ExamDAO} — đọc và cập nhật trạng thái kỳ thi trên bảng {@code Exam}.
+ *
+ * SQL tóm tắt kỳ:
+ * Dùng chung {@link examstaff.dao.Db2ExamSummarySql#EXAM_SUMMARY_SELECT} với {@code ExamViewDAOImpl}
+ * để cột map {@code ExamSummaryDTO} không lệch. {@link #getById} chỉ thêm {@code WHERE e.ExamId = ?}.
+ *
+ * Status trên DB vs Call Board:
+ * {@link #updateStatus} ghi {@code Exam.Status} (Chưa diễn ra / Đang diễn ra / …).
+ * Pause gọi số runtime nằm trên {@code CallBoardState.examPaused} — không qua class này.
  */
 public class ExamDAOImpl extends DBContext implements ExamDAO {
 
-    /** SELECT tóm tắt kỳ thi. */
-    private static final String EXAM_SELECT =
-            "SELECT e.ExamId AS id, "
-            + "e.ExamId AS examId, "
-            + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
-            + "1 AS examTypeId, "
-            + "CAST(e.ExamDate AS DATE) AS examDate, "
-            + "CAST(e.StartTime AS TIME) AS shiftStartTime, "
-            + "CAST(e.EndTime AS TIME) AS shiftEndTime, "
-            + "e.StartTime AS scheduledStartAt, "
-            + "e.EndTime AS scheduledEndAt, "
-            + "e.[Status] AS status, "
-            + "e.StartTime AS createdAt, "
-            + "l.LicenceClass AS licenseCode, "
-            + "e.ExamCode AS examCode, "
-            + "N'Lý thuyết + Thực hành' AS examTypeName "
-            + "FROM Exam e "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId";
-
-    /** {@inheritDoc} */
+    /**
+     * Lấy một kỳ thi theo mã từ bảng {@code Exam} (JOIN {@code Licence} để lấy hạng GPLX).
+     */
     @Override
     public ExamSummaryDTO getById(int id) {
         if (id <= 0) {
             return null;
         }
-        try (PreparedStatement ps = getConnection().prepareStatement(EXAM_SELECT + " WHERE e.ExamId = ?")) {
+        String sql = Db2ExamSummarySql.EXAM_SUMMARY_SELECT + " WHERE e.ExamId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -53,7 +45,9 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Cập nhật trường {@code Status} của kỳ thi trên bảng {@code Exam}.
+     */
     @Override
     public boolean updateStatus(int examId, String status) {
         String sql = "UPDATE Exam SET [Status] = ? WHERE ExamId = ?";
@@ -67,7 +61,9 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Kết thúc kỳ thi: ghi {@code Status} và {@code EndTime} vào bảng {@code Exam}.
+     */
     @Override
     public boolean finishExam(int examId, String status, Timestamp endTime) {
         String sql = "UPDATE Exam SET [Status] = ?, EndTime = ? WHERE ExamId = ?";
@@ -82,7 +78,6 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return false;
     }
 
-    /** Ánh xạ ResultSet → {@link ExamSummaryDTO}. */
     private ExamSummaryDTO mapResultSetToExam(ResultSet rs) throws SQLException {
         ExamSummaryDTO es = new ExamSummaryDTO();
         es.setId(rs.getInt("id"));

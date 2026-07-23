@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -32,6 +32,9 @@
                 <c:set var="cName" value="${profile.name}" />
                 <c:set var="cDob">
                     <fmt:formatDate value="${profile.dob}" pattern="dd/MM/yyyy"/>
+                </c:set>
+                <c:set var="cDobIso">
+                    <fmt:formatDate value="${profile.dob}" pattern="dd-MM-yyyy"/>
                 </c:set>
                 <c:set var="cCccd" value="${profile.cccd}" />
                 <c:set var="cClass" value="${profile.clazz}" />
@@ -105,10 +108,10 @@
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                     <div class="input-group">
                                         <label class="input-label">Ngày tháng năm sinh:</label>
-                                        <input type="text" name="dateOfBirth" class="input-field" value="${cDob}">
+                                        <input type="date" name="dateOfBirth" class="input-field" value="${cDobIso}">
                                     </div>
                                     <div class="input-group">
-                                        <label class="input-label">Số định danh CCCD:</label>
+                                        <label class="input-label">Số định danh / căn cước:</label>
                                         <input type="text" name="govIdNo" class="input-field" value="${cCccd}" style="font-family: monospace;">
                                     </div>
                                 </div>
@@ -140,7 +143,7 @@
                         <c:if test="${currentStep eq '2'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
                                 <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 2: Chụp ảnh chân dung xác minh danh tính</h3>
-                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh — chụp tại bàn thủ tục khi đến làm hồ sơ. Ảnh lưu vào hệ thống để bộ phận khác in hồ sơ sau khi thi xong.</p>
+                                <p style="margin: 6px 0 0; font-size: 0.8rem; color: #64748b;">Thí sinh import từ CSV không có ảnh - chụp tại bàn thủ tục khi đến làm hồ sơ. Ảnh lưu vào hệ thống để bộ phận khác in hồ sơ sau khi thi xong.</p>
                             </div>
 
                             <c:if test="${not empty requestScope.photoStaleMsg}">
@@ -162,7 +165,7 @@
                                         <c:choose>
                                             <c:when test="${not empty profile.photoUrl}">
                                                 <img class="camera-captured-img"
-                                                     src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
+                                                     src="${pageContext.request.contextPath}/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                                                      alt="Ảnh chân dung ${cName}">
                                             </c:when>
                                             <c:otherwise>
@@ -243,7 +246,7 @@
                             <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; align-items: start;">
                                 <div>
                                     <p style="margin: 0 0 0.75rem; font-size: 0.78rem; color: #64748b;">
-                                        Bảng giá theo quy định — Hạng <strong style="color: #0f172a;">${cClass}</strong>
+                                        Bảng giá theo quy định - Hạng <strong style="color: #0f172a;">${cClass}</strong>
                                     </p>
                                     <table class="report-table" style="font-size: 0.85rem; width: 100%;">
                                         <thead>
@@ -322,22 +325,59 @@
                                     </div>
                                 </div>
 
-                                <div class="qr-card">
-                                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; width: 110px; height: 110px;">
-                                        <div style="width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 2px solid #000000; padding: 4px; box-sizing: border-box; background-color: #ffffff;">
-                                            <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
-                                            <div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div>
-                                            <div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div><div style="background-color: #000000;"></div>
-                                            <div style="background-color: #000000;"></div><div style="background-color: #000000;"></div><div style="background-color: #ffffff;"></div><div style="background-color: #000000;"></div>
-                                        </div>
-                                    </div>
-                                    <span style="font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase;">VIETQR Chuyển Khoản</span>
-                                    <c:if test="${not empty requestScope.feeTotal and requestScope.feeTotal > 0}">
-                                        <span style="font-size: 0.95rem; font-weight: 800; color: #0052cc;">
-                                            <fmt:formatNumber value="${requestScope.feeTotal}" pattern="#,##0"/> đ
-                                        </span>
+                                <%-- SePay (bước 3): JS bindSePayCheckout đọc data-* —
+                                    createSePayCheckout mở popup; IPN ghi Payment; Kiểm tra/poll finalize.
+                                    Hủy trên cổng → /payment/sepay/cancel → quay lại bước thu phí. --%>
+                                <div class="qr-card sepay-pay-card" id="sePayQrCard"
+                                     data-sbd="${currentSbd}"
+                                     data-ctx="${pageContext.request.contextPath}"
+                                     data-configured="${sePayConfigured}"
+                                     data-awaiting="${not empty sessionScope.sePayAwaitingSbd and sessionScope.sePayAwaitingSbd eq currentSbd}">
+                                    <c:if test="${sePayConfigured and not profile.paymentCompleted
+                                        and not empty sessionScope.sePayAwaitingSbd
+                                        and sessionScope.sePayAwaitingSbd eq currentSbd}">
+                                        <meta http-equiv="refresh"
+                                              content="3;url=${pageContext.request.contextPath}/examstaff/procedure?sbd=${currentSbd}&step=3">
                                     </c:if>
-                                    <span style="font-size: 0.65rem; color: #64748b; text-align: center;">Tự động xác nhận khi nhận tiền</span>
+                                    <c:choose>
+                                        <c:when test="${profile.paymentCompleted}">
+                                            <div class="sepay-pay-card__paid">
+                                                <span class="sepay-pay-card__paid-badge">Đã thanh toán</span>
+                                                <span class="sepay-pay-card__paid-hint">SePay / Tiền mặt</span>
+                                            </div>
+                                        </c:when>
+                                        <c:when test="${requestScope.hasValidPhoto and not empty requestScope.feeLines and not requestScope.examMutationsLocked}">
+                                            <c:if test="${not empty requestScope.feeTotal and requestScope.feeTotal > 0}">
+                                                <div class="sepay-pay-card__amount">
+                                                    <span class="sepay-pay-card__amount-label">Tổng lệ phí</span>
+                                                    <span class="sepay-pay-card__amount-value">
+                                                        <fmt:formatNumber value="${requestScope.feeTotal}" pattern="#,##0"/> đ
+                                                    </span>
+                                                </div>
+                                            </c:if>
+                                            <div class="sepay-pay-card__actions">
+                                                <button type="button" id="btnSePayCheckout"
+                                                        class="procedure-btn procedure-btn--pay sepay-pay-card__btn-primary"
+                                                        ${sePayConfigured ? '' : 'disabled'}
+                                                        title="${sePayConfigured ? 'Mở cổng SePay (QR)' : 'Chưa cấu hình SePay (.env)'}">
+                                                    Thu qua SePay (QR)
+                                                </button>
+                                                <button type="button" id="btnSePayCheck"
+                                                        class="sepay-pay-card__btn-check"
+                                                        ${sePayConfigured ? '' : 'disabled'}>
+                                                    Kiểm tra đã thanh toán
+                                                </button>
+                                            </div>
+                                            <p id="sePayStatusMsg" class="sepay-pay-card__status" role="status">
+                                                <c:if test="${not sePayConfigured}">SePay chưa cấu hình — dùng tiền mặt</c:if>
+                                            </p>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="sepay-pay-card__waiting">
+                                                <span>Chờ đủ điều kiện thu phí</span>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
                         </c:if>
@@ -352,7 +392,7 @@
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 1rem 0;">
                             <c:choose>
                                 <c:when test="${requestScope.hasValidPhoto}">
-                                    <img src="${pageContext.request.contextPath}/views/staff/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
+                                    <img src="${pageContext.request.contextPath}/examstaff/candidate-photo?sbd=${profile.sbd}&amp;t=${profile.id}"
                                          alt="Ảnh ${cName}"
                                          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
                                 </c:when>
@@ -372,7 +412,7 @@
                                     <span style="font-weight: 700; color: #0f172a;">Hạng ${cClass}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #64748b;">CCCD:</span>
+                                    <span style="color: #64748b;">Căn cước:</span>
                                     <span style="font-weight: 600; color: #0f172a; font-family: monospace;">${cCccd}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
@@ -407,7 +447,9 @@
                                 CHỌN THÍ SINH ĐÃ ĐƯỢC GỌI VÀO PHÒNG LÀM THỦ TỤC:
                             </label>
                             <div style="position: relative; display: flex; width: 100%;">
-                                <select id="emptySbdInput" name="sbd" data-auto-submit class="procedure-empty-sbd-select">
+                                <select id="emptySbdInput" name="sbd"
+                                        onchange="this.form.submit()"
+                                        class="procedure-empty-sbd-select">
                                     <option value="">-- Click để chọn học viên đã được gọi --</option>
                                     <c:forEach var="c" items="${activeCallQueue}">
                                         <option value="${c.sbd}">

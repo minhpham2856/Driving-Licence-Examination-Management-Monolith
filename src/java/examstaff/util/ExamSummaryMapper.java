@@ -1,57 +1,74 @@
 package examstaff.util;
 
 import examstaff.dto.ExamSummaryDTO;
-import examstaff.dto.view.ExamSummaryRow;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Map {@link ExamSummaryRow} → {@link ExamSummaryDTO}. */
+/**
+ * Utility identity / copy danh sách cho {@link ExamSummaryDTO} — đồng bộ cặp {@code id}/{@code examId}
+ * sau khi DAO map JDBC (một số query chỉ populate một phía).
+ *
+ * Vai trò trong luồng examstaff:
+ * Sidebar, chọn ca và dashboard làm việc với {@code ExamSummaryDTO}; code downstream so sánh
+ * cả {@code getId()} và {@code getExamId()}. Mapper đảm bảo hai field luôn khớp trước khi
+ * bind session hoặc truyền sang {@code ExamStaffExamRules}.
+ *
+ * Cách hoạt động:
+ * - {@link #toDto} — null → null; {@code id ≤ 0 && examId > 0} → setId; ngược lại setExamId;
+ *       mutate tại chỗ, trả cùng instance.
+ * - {@link #toDtoList} — map từng phần tử; null list → list rỗng.
+ *
+ * Ai gọi:
+ * {@code ExamStaffViewServiceImpl}, {@code ExamStaffPageBinder}, {@code ExamStaffExamQueryServiceImpl},
+ * {@code DashboardServlet}, {@code ExamSelectServlet} — nạp danh sách kỳ thi cho sidebar/UI.
+ */
 public final class ExamSummaryMapper {
 
+    /** Không cho khởi tạo — chỉ dùng static. */
     private ExamSummaryMapper() {
     }
 
     /**
-     * Map một dòng read-model sang DTO tóm tắt kỳ thi.
-     *
-     * @param row dòng nguồn (null → null)
-     * @return DTO hoặc {@code null}
+     * Pass-through DTO: đồng bộ {@code id} ↔ {@code examId} khi một phía thiếu.
+     * <p>
+ *
+     * Luồng:
+     * - null → null
+     * - id ≤ 0 và examId &gt; 0 → setId(examId)
+     * - examId ≤ 0 và id &gt; 0 → setExamId(id)
+     * - trả cùng instance (mutate tại chỗ)
+     * @param dto nguồn (có thể null)
+     * @return cùng DTO hoặc null
      */
-    public static ExamSummaryDTO toDto(ExamSummaryRow row) {
-        if (row == null) {
+    public static ExamSummaryDTO toDto(ExamSummaryDTO dto) {
+        // Bước 1: null-safe
+        if (dto == null) {
             return null;
         }
-        ExamSummaryDTO dto = new ExamSummaryDTO();
-        dto.setId(row.getExamId());
-        dto.setExamId(row.getExamId());
-        dto.setExamName(row.getExamName());
-        dto.setExamTypeId(row.getExamTypeId());
-        dto.setExamDate(row.getExamDate());
-        dto.setShiftStartTime(row.getShiftStartTime());
-        dto.setShiftEndTime(row.getShiftEndTime());
-        dto.setScheduledStartAt(row.getScheduledStartAt());
-        dto.setScheduledEndAt(row.getScheduledEndAt());
-        dto.setStatus(row.getStatus());
-        dto.setCreatedAt(row.getCreatedAt() != null ? row.getCreatedAt() : row.getScheduledStartAt());
-        dto.setLicenseCode(row.getLicenseCode());
-        dto.setExamCode(row.getExamCode());
-        dto.setExamTypeName(row.getExamTypeName());
+        // Bước 2: đồng bộ id từ examId nếu thiếu
+        if (dto.getId() <= 0 && dto.getExamId() > 0) {
+            dto.setId(dto.getExamId());
+        }
+        // Bước 3: đồng bộ examId từ id nếu thiếu
+        if (dto.getExamId() <= 0 && dto.getId() > 0) {
+            dto.setExamId(dto.getId());
+        }
         return dto;
     }
 
     /**
-     * Map danh sách row → danh sách DTO (bỏ qua null list → rỗng).
-     *
-     * @param rows danh sách nguồn
+     * Copy danh sách DTO qua {@link #toDto} từng phần tử.
+     * @param rows danh sách nguồn (null → rỗng)
      * @return danh sách DTO (không null)
      */
-    public static List<ExamSummaryDTO> toDtoList(List<ExamSummaryRow> rows) {
+    public static List<ExamSummaryDTO> toDtoList(List<ExamSummaryDTO> rows) {
         List<ExamSummaryDTO> list = new ArrayList<>();
         if (rows == null) {
             return list;
         }
-        for (ExamSummaryRow row : rows) {
+        // Duyệt và map từng dòng (toDto xử lý null phần tử)
+        for (ExamSummaryDTO row : rows) {
             list.add(toDto(row));
         }
         return list;

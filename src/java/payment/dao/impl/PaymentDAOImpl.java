@@ -1,58 +1,95 @@
 package payment.dao.impl;
 
-import shared.dbconnection.DBContext;
+import examstaff.enums.PaymentStatus;
 import payment.dao.PaymentDAO;
 import payment.dto.PaymentRecord;
-import java.sql.*;
+import shared.dbconnection.DBContext;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * DAO bảng {@code Payment} (ngày thi) — dùng chung Cash desk + SePay IPN + Dashboard Registrant.
+ * <p>
+ * Bắt buộc có {@code ExamEnrollmentId} (staff tạo Candidate + Enrollment trước).
+ * Không có cột “đã trả” trên Candidate; portal/desk suy từ tồn tại Payment hoàn tất.
+ */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
+    private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
+
+    /**
+     * INSERT Payment (Cash hoặc SePay IPN).
+     * Cột: PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt=GETDATE(), ExamEnrollmentId.
+     * Nếu enrollment thiếu / không thuộc candidate → resolve TOP 1 ExamEnrollment theo CandidateId.
+     */
     @Override
     public boolean insert(PaymentRecord payment) {
+        int enrollmentId = payment.getExamEnrollmentId();
+        if (enrollmentId > 0 && payment.getCandidateId() > 0
+                && !enrollmentBelongsToCandidate(enrollmentId, payment.getCandidateId())) {
+            enrollmentId = resolveEnrollmentId(payment.getCandidateId());
+        } else if (enrollmentId <= 0 && payment.getCandidateId() > 0) {
+            enrollmentId = resolveEnrollmentId(payment.getCandidateId());
+        }
+        if (enrollmentId <= 0) {
+            return false;
+        }
+
         String sql = """
-                INSERT INTO RegistrantPayment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, CandidateId, ExamId)
-                VALUES (?, ?, ?, ?, GETDATE(), ?, ?)
+                INSERT INTO Payment (PaymentStatus, PaymentMethod, TransactionReference, TotalAmount, PaidAt, ExamEnrollmentId)
+                VALUES (?, ?, ?, ?, GETDATE(), ?)
                 """;
-        try {
-            int examId = resolveExamId(payment.getCandidateId());
-            if (examId <= 0) {
-                return false;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, payment.getPaymentStatus() != null
+                    ? payment.getPaymentStatus()
+                    : PaymentStatus.HOAN_TAT.getDisplayName());
+            ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "SePay");
+            if (payment.getTransactionReference() == null) {
+                ps.setNull(3, Types.NVARCHAR);
+            } else {
+                ps.setString(3, payment.getTransactionReference());
             }
-            try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, payment.getPaymentStatus() != null ? payment.getPaymentStatus() : "Completed");
-                ps.setString(2, payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "Cash");
-                if (payment.getTransactionReference() == null) {
-                    ps.setNull(3, Types.NVARCHAR);
-                } else {
-                    ps.setString(3, payment.getTransactionReference());
-                }
-                ps.setDouble(4, payment.getAmount());
-                ps.setInt(5, payment.getCandidateId());
-                ps.setInt(6, examId);
-                int affected = ps.executeUpdate();
-                if (affected > 0) {
-                    try (ResultSet gk = ps.getGeneratedKeys()) {
-                        if (gk.next()) {
-                            payment.setId(gk.getInt(1));
-                            return true;
-                        }
+            ps.setDouble(4, payment.getAmount());
+            ps.setInt(5, enrollmentId);
+
+            if (ps.executeUpdate() > 0) {
+                try (ResultSet gk = ps.getGeneratedKeys()) {
+                    if (gk.next()) {
+                        payment.setId(gk.getInt(1));
+                        payment.setExamEnrollmentId(enrollmentId);
+                        return true;
                     }
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Failed to insert payment", e);
         }
         return false;
     }
 
+    /**
+     * Dashboard Registrant {@code totalFee}: SUM TotalAmount các Payment hoàn tất
+     * của user — cầu nối Profile.GovernmentIdNumber = Candidate.GovernmentIdNumber.
+     * Gồm cả Cash và SePay đã thu tại bàn thủ tục.
+     */
     @Override
     public double sumCompletedPaymentsByUserId(int userId) {
+        // Profile ↔ Candidate qua CCCD (không có Candidate.UserId)
         String sql = """
                 SELECT ISNULL(SUM(p.TotalAmount), 0) AS totalPaid
-                FROM RegistrantPayment p
-                INNER JOIN Candidate c ON c.CandidateId = p.CandidateId
-                WHERE c.UserId = ?
-                  AND p.PaymentStatus IN (N'Completed', N'Paid')
+                FROM Payment p
+                INNER JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = p.ExamEnrollmentId
+                INNER JOIN Candidate c ON c.CandidateId = ee.CandidateId
+                INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
+                WHERE prof.UserId = ?
+                  AND p.PaymentStatus IN (""" + PaymentStatus.sqlInClause() + """
+                )
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -62,11 +99,14 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Failed to sum payments for user " + userId, e);
         }
         return 0;
     }
 
+    /**
+     * Idempotent IPN: cùng TransactionReference đã Paid → không insert trùng.
+     */
     @Override
     public boolean existsCompletedByTransactionReference(String transactionReference) {
         if (transactionReference == null || transactionReference.isBlank()) {
@@ -74,9 +114,10 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         }
         String sql = """
                 SELECT TOP 1 1
-                FROM RegistrantPayment
+                FROM Payment
                 WHERE TransactionReference = ?
-                  AND PaymentStatus IN (N'Completed', N'Paid')
+                  AND PaymentStatus IN (""" + PaymentStatus.sqlInClause() + """
+                )
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, transactionReference.trim());
@@ -84,21 +125,46 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Failed to check payment reference", e);
         }
         return false;
     }
 
-    private int resolveExamId(int candidateId) throws SQLException {
-        String sql = "SELECT TOP 1 ExamId FROM Exam_Candidate WHERE CandidateId = ?";
+    /** Enrollment mới nhất của candidate (fallback khi invoice thiếu enrollmentId). */
+    private int resolveEnrollmentId(int candidateId) {
+        String sql = """
+                SELECT TOP 1 ExamEnrollmentId
+                FROM ExamEnrollment
+                WHERE CandidateId = ?
+                ORDER BY ExamEnrollmentId DESC
+                """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("ExamId");
+                    return rs.getInt("ExamEnrollmentId");
                 }
             }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Failed to resolve enrollment for candidate " + candidateId, e);
         }
         return -1;
+    }
+
+    private boolean enrollmentBelongsToCandidate(int enrollmentId, int candidateId) {
+        String sql = """
+                SELECT TOP 1 1 FROM ExamEnrollment
+                WHERE ExamEnrollmentId = ? AND CandidateId = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, enrollmentId);
+            ps.setInt(2, candidateId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Failed to verify enrollment " + enrollmentId, e);
+        }
+        return false;
     }
 }

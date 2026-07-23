@@ -17,6 +17,7 @@ public final class RegistrantDashboardActionItemsBuilder {
     private RegistrantDashboardActionItemsBuilder() {
     }
 
+    /** Sinh danh sách Việc cần làm tối đa 4 mục theo trạng thái hồ sơ/thi. */
     public static List<RegistrantDashboardActionItem> build(
             Profile profile,
             String registrationStatus,
@@ -68,14 +69,21 @@ public final class RegistrantDashboardActionItemsBuilder {
 
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status) && registeredExams <= 0) {
             add(items, item(
-                    "Chưa đăng ký đợt thi",
-                    "Hồ sơ đã duyệt — bạn có thể chọn kỳ thi và ca phù hợp với hạng GPLX.",
-                    "Đăng ký thi",
+                    "Chưa gửi nguyện vọng ngày thi",
+                    "Hồ sơ đã duyệt — chọn ngày thi dự kiến và chờ thông báo lịch chính thức từ trung tâm.",
+                    "Đăng ký nguyện vọng",
                     "/registrant/register-exam",
                     "info"));
         }
 
-        if (upcoming != null && !upcoming.isSessionTimePublished()) {
+        if (upcoming != null && upcoming.isPreferredDate()) {
+            add(items, item(
+                    "Đã gửi nguyện vọng ngày thi",
+                    "Trạng thái: chờ thông báo từ phía trung tâm về lịch thi chính thức và số báo danh.",
+                    "Xem lịch thi",
+                    "/registrant/my-exams",
+                    "neutral"));
+        } else if (upcoming != null && !upcoming.isSessionTimePublished()) {
             add(items, item(
                     "Chờ cập nhật giờ ca thi",
                     "Ngày thi đã có; giờ ca sẽ hiển thị khi Ban sát hạch mở ca.",
@@ -116,7 +124,7 @@ public final class RegistrantDashboardActionItemsBuilder {
         if (cccdComplete && !portraitUploaded) {
             add(items, item(
                     "Tải ảnh chân dung",
-                    "Ảnh 3×4 chuẩn hồ sơ thi — bắt buộc trước khi gửi duyệt.",
+                    "Ảnh 3×4 chuẩn hồ sơ thi - bắt buộc trước khi gửi duyệt.",
                     "Upload ảnh",
                     "/registrant/upload-documents",
                     "warning"));
@@ -132,7 +140,7 @@ public final class RegistrantDashboardActionItemsBuilder {
         if (cccdComplete && portraitUploaded && healthUploaded) {
             add(items, item(
                     "Gửi hồ sơ chờ duyệt",
-                    "Tài liệu đã đủ — gửi yêu cầu duyệt từ trang upload hồ sơ.",
+                    "Tài liệu đã đủ - gửi yêu cầu duyệt từ trang upload hồ sơ.",
                     "Quản lý tài liệu",
                     "/registrant/upload-documents",
                     "info"));

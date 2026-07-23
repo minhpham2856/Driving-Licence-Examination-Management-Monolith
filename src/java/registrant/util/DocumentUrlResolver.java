@@ -1,7 +1,5 @@
 package registrant.util;
 
-import shared.storage.CloudinaryDocumentStorage;
-
 import registrant.dto.RegistrantDocumentView;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +16,7 @@ public final class DocumentUrlResolver {
     private DocumentUrlResolver() {
     }
 
+    /** Resolve DocumentUrl của cả list sang URL xem được trên browser. */
     public static void resolveViewUrls(List<RegistrantDocumentView> docs, HttpServletRequest request) {
         if (docs == null) {
             return;
@@ -29,6 +28,7 @@ public final class DocumentUrlResolver {
         }
     }
 
+    /** Đổi ref Cloudinary/local thành URL signed hoặc /uploads/…. */
     public static String resolveViewUrl(String storedRef, HttpServletRequest request) {
         if (storedRef == null || storedRef.isBlank()) {
             return storedRef;
@@ -50,6 +50,7 @@ public final class DocumentUrlResolver {
         return storedRef;
     }
 
+    /** Xóa tệp trên Cloudinary hoặc local theo tham chiếu đã lưu. */
     public static void deleteStoredRef(ServletContext ctx, String storedRef) {
         if (storedRef == null || storedRef.isBlank()) {
             return;

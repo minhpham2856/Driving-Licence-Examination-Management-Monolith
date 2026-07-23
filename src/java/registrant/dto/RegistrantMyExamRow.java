@@ -36,17 +36,18 @@ public class RegistrantMyExamRow {
     private String roadScoreDisplay;
     private String roadScoreDetail;
     private String roadPassBadgeClass;
-    /** Giờ ca thi đã định dạng (vd. "08:30 — 10:00"). */
+    /** Giờ ca thi đã định dạng (vd. "08:30 - 10:00"). */
     private String sessionTimeDisplay;
 
     /** Trạng thái ExamRegistration (luồng ca thi). */
     private String registrationStatus;
     private String examSectionName;
-    private boolean cancelRequested;
-    private boolean canRequestCancellation;
     private Date sessionStart;
     private Date sessionEnd;
     private boolean sessionTimePublished;
+
+    /** True = nguyện vọng ngày thi (RegistrationDates), chưa phải kỳ chính thức. */
+    private boolean preferredDate;
 
     public int getCandidateId() {
         return candidateId;
@@ -200,22 +201,6 @@ public class RegistrantMyExamRow {
         this.examSectionName = examSectionName;
     }
 
-    public boolean isCancelRequested() {
-        return cancelRequested;
-    }
-
-    public void setCancelRequested(boolean cancelRequested) {
-        this.cancelRequested = cancelRequested;
-    }
-
-    public boolean isCanRequestCancellation() {
-        return canRequestCancellation;
-    }
-
-    public void setCanRequestCancellation(boolean canRequestCancellation) {
-        this.canRequestCancellation = canRequestCancellation;
-    }
-
     public Date getSessionStart() {
         return sessionStart;
     }
@@ -334,5 +319,13 @@ public class RegistrantMyExamRow {
 
     public void setSessionTimeDisplay(String sessionTimeDisplay) {
         this.sessionTimeDisplay = sessionTimeDisplay;
+    }
+
+    public boolean isPreferredDate() {
+        return preferredDate;
+    }
+
+    public void setPreferredDate(boolean preferredDate) {
+        this.preferredDate = preferredDate;
     }
 }

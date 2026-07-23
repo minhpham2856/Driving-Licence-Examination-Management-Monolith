@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
@@ -24,7 +24,7 @@
 
 <c:set var="layoutListPath" value="${not empty requestScope.allocationListPath ? requestScope.allocationListPath : pageContext.request.servletPath}" />
 
-<c:url var="allocOverviewUrl" value="/views/staff/examstaff/allocation">
+<c:url var="allocOverviewUrl" value="/examstaff/allocation">
     <c:if test="${not empty layoutExamId}"><c:param name="examId" value="${layoutExamId}" /></c:if>
 </c:url>
 
@@ -68,7 +68,8 @@
                             </c:choose>
                         </span>
                         <select name="areaFilter" id="allocationAreaFilter" class="allocation-room-filter__select"
-                                data-auto-submit title="Lọc theo ${param.showRoomFilter eq 'practical' ? 'sân thi' : 'phòng thi'}">
+                                onchange="this.form.submit()"
+                                title="Lọc theo ${param.showRoomFilter eq 'practical' ? 'sân thi' : 'phòng thi'}">
                             <option value="0" ${empty allocationAreaFilter ? 'selected' : ''}>Tất cả</option>
                             <c:choose>
                                 <c:when test="${param.showRoomFilter eq 'practical'}">
@@ -89,7 +90,7 @@
                 </c:if>
                 <div class="es-search-box">
                     <input type="text" name="q" id="candidateSearch" class="es-search-box__input"
-                           value="${allocationSearchQuery}" placeholder="Tìm SBD, họ tên, CCCD…">
+                           value="${allocationSearchQuery}" placeholder="Tìm SBD, họ tên, căn cước…">
                 </div>
                 <button type="submit" class="allocation-search-btn" aria-label="Tìm kiếm">
                     <span class="material-symbols-outlined" aria-hidden="true">search</span>
@@ -97,10 +98,11 @@
             </div>
         </form>
         </c:if>
-        <button type="button" id="allocationRefreshBtn" class="allocation-search-btn allocation-refresh-btn"
-                title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">
+        <a href="${ctx}${layoutListPath}${allocationExtraQuery}"
+           class="allocation-search-btn allocation-refresh-btn"
+           title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">
             <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
-        </button>
+        </a>
     </div>
 </header>
 

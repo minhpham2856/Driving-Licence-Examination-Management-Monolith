@@ -93,15 +93,15 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-number" style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem;">
-                        Kỳ thi hạng ${not empty currentExam ? currentExam.licenseCode : '—'}
+                        Kỳ thi hạng ${not empty currentExam ? currentExam.licenseCode : '-'}
                     </span>
                     <span class="stat-label">
                         <c:if test="${not empty currentExam and not empty currentExam.examDate}">
                             <fmt:formatDate value="${currentExam.examDate}" pattern="dd/MM/yyyy"/>
                         </c:if>
-                        <c:if test="${empty currentExam or empty currentExam.examDate}">—</c:if>
+                        <c:if test="${empty currentExam or empty currentExam.examDate}">-</c:if>
                         <c:if test="${not empty currentExam}">
-                            — ${currentExam.status}
+                            - ${currentExam.status}
                         </c:if>
                     </span>
                 </div>
@@ -210,7 +210,7 @@
                         <tbody>
                             <c:set var="waitRenderCount" value="0" />
                             <c:forEach var="c" items="${candidateQueue}">
-                                <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent and waitRenderCount lt 6}">
+                                <c:if test="${not c.procedureComplete and not c.suspended and sessionScope.callingSbd ne c.sbd and not c.examFinished and not c.absent}">
                                     <c:set var="waitRenderCount" value="${waitRenderCount + 1}" />
                                     <tr>
                                         <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
@@ -261,7 +261,7 @@
                         <tbody>
                             <c:set var="activeCalledCount" value="0" />
                             <c:forEach var="c" items="${candidateQueue}">
-                                <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete and activeCalledCount lt 3}">
+                                <c:if test="${sessionScope.callingSbd eq c.sbd and not c.procedureComplete}">
                                     <c:set var="activeCalledCount" value="${activeCalledCount + 1}" />
                                     <tr>
                                         <td style="font-weight: 800; color: #0052cc; font-family: monospace;">${c.sbd}</td>
@@ -348,11 +348,10 @@
                     </table>
                 </div>
 
-                <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" class="room-monitor-card__action hover-elevate">
+                <a href="${pageContext.request.contextPath}/examstaff/report" class="room-monitor-card__action hover-elevate">
                     Xem báo cáo chi tiết &rarr;
                 </a>
             </div>
 
         </div>
 
-<jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

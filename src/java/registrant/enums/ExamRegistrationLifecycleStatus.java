@@ -1,8 +1,6 @@
 package registrant.enums;
 
-/**
- * Trạng thái {@code ExamRegistration} cho luồng đăng ký ca thi (tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected).
- */
+/** Trạng thái ER đăng ký đợt thi (portal) — tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected. */
 public final class ExamRegistrationLifecycleStatus {
 
     public static final String PRE_REGISTERED = "PreRegistered";
@@ -14,49 +12,44 @@ public final class ExamRegistrationLifecycleStatus {
     public static final String COMPLETED = "Completed";
     public static final String WALK_IN = "WalkIn";
 
+    /** SQL: chỉ lấy ER lifecycle (không lấy hồ sơ duyệt tài liệu). */
+    public static final String SQL_LIFECYCLE_ONLY = """
+            er.RegistrationStatus NOT IN (
+                N'Draft', N'Pending', N'Approved', N'Rejected',
+                N'Chờ duyệt', N'Duyệt', N'Loại',
+                N'RegistrationRejected', N'Cancelled'
+            )
+            """;
+
+    /** SQL: bỏ dòng ER hồ sơ gốc / xin duyệt hạng tài liệu. */
+    public static final String SQL_EXCLUDE_PROFILE_DOC =
+            "(er.Notes IS NULL OR ("
+                    + "er.Notes NOT LIKE N'%#PROFILE_DOC#%'"
+                    + " AND er.Notes NOT LIKE N'%#LICENCE_DOC#%'"
+                    + "))";
+
+    /** Nối an toàn sau WHERE/AND — tránh lỗi text-block dính `ANDer` / `WHEREprof`. */
+    public static final String SQL_AND_LIFECYCLE_ONLY =
+            " AND " + SQL_LIFECYCLE_ONLY.stripLeading();
+
+    public static final String SQL_AND_EXCLUDE_PROFILE_DOC =
+            " AND " + SQL_EXCLUDE_PROFILE_DOC;
+
+    public static final String SQL_ACTIVE_EXAM_REGISTRATION_FILTER =
+            SQL_AND_LIFECYCLE_ONLY + SQL_AND_EXCLUDE_PROFILE_DOC;
+
     private ExamRegistrationLifecycleStatus() {
     }
 
-    public static boolean isDocumentWorkflowStatus(String status) {
-        if (status == null || status.isBlank()) {
-            return false;
-        }
-        return ProfileRegistrationStatus.DRAFT.equalsIgnoreCase(status)
-                || ProfileRegistrationStatus.PENDING.equalsIgnoreCase(status)
-                || ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status)
-                || ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(status);
-    }
-
-    /** Cho phép đăng ký lại cùng phần thi + hạng khi đăng ký trước đã bị từ chối hoặc đã hủy. */
-    public static boolean allowsRepeatRegistration(String status) {
-        if (status == null || status.isBlank()) {
-            return true;
-        }
-        return REGISTRATION_REJECTED.equalsIgnoreCase(status)
-                || CANCELLED.equalsIgnoreCase(status);
-    }
-
-    public static boolean blocksNewRegistrationForSection(String status) {
-        if (status == null || status.isBlank() || isDocumentWorkflowStatus(status)) {
-            return false;
-        }
-        return !allowsRepeatRegistration(status);
-    }
-
-    public static boolean canRequestCancellation(String status, boolean sbdPending) {
-        if (!sbdPending || status == null) {
-            return false;
-        }
-        return PRE_REGISTERED.equalsIgnoreCase(status);
-    }
-
+    /** True nếu ER đang ở trạng thái CancelRequested (chỉ đọc/hiển thị). */
     public static boolean isCancellationPending(String status) {
         return CANCEL_REQUESTED.equalsIgnoreCase(status);
     }
 
+    /** Đổi mã lifecycle DB sang nhãn tiếng Việt cho UI. */
     public static String toDisplayLabel(String status) {
         if (status == null || status.isBlank()) {
-            return "—";
+            return "-";
         }
         return switch (status.trim()) {
             case PRE_REGISTERED -> "Chờ xét duyệt";

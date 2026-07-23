@@ -2,10 +2,20 @@ package payment.dto;
 
 import java.sql.Timestamp;
 
+/**
+ * DTO map bảng {@code Payment}.
+ * <ul>
+ *   <li>{@code candidateId} — resolve ExamEnrollment khi IPN/cash insert</li>
+ *   <li>{@code examEnrollmentId} — FK thật trên DB</li>
+ *   <li>{@code amount} → TotalAmount; {@code transactionReference} UNIQUE (idempotent IPN)</li>
+ * </ul>
+ */
 public class PaymentRecord {
     private int id;
-    /** CandidateId trong bảng Candidate (cột RegistrantPayment.CandidateId). */
+    /** CandidateId — dùng resolve ExamEnrollmentId khi insert. */
     private int candidateId;
+    /** FK Payment.ExamEnrollmentId (DLEM_DB_2). */
+    private int examEnrollmentId;
     private double amount;
     private String paymentStatus;
     private String paymentMethod;
@@ -42,6 +52,14 @@ public class PaymentRecord {
 
     public void setCandidateId(int candidateId) {
         this.candidateId = candidateId;
+    }
+
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
+    }
+
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 
     public double getAmount() {

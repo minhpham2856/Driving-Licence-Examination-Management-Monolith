@@ -10,10 +10,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** JDBC implementation của {@link FeeDAO}. */
+/**
+ * Triển khai JDBC của {@link FeeDAO} — đọc {@code Fee}, {@code Licence_Fee}, {@code Payment_Fee}.
+ *
+ * Biểu phí thủ tục:
+ * {@link #getProcedureFees} dùng OUTER APPLY chọn mức phí theo hạng {@code LicenceClass},
+ * lọc {@code FeeType} thủ tục (không học phí), tách logic xe máy ({@code isMotorcycleGroup})
+ * vs ô tô khi {@code requiresRoadTest}.
+ *
+ * Phí theo payment:
+ * {@link #getFeesByPaymentId} JOIN {@code Payment_Fee} → {@code Fee} → {@code Licence_Fee}
+ * để suy ra {@code Amount} đúng hạng của kỳ thi gắn payment đó.
+ *
+ * Ai gọi?:
+ * Luồng thu lệ phí trên {@code /examstaff/procedure} — hiển thị checklist phí trước khi ghi {@code Payment}.
+ */
 public class FeeDAOImpl extends DBContext implements FeeDAO {
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy danh sách lệ phí thủ tục áp dụng theo hạng GPLX.
+     * Truy vấn {@code Fee} OUTER APPLY {@code Licence_Fee} để lấy mức phí theo hạng,
+     * sau đó lọc theo loại phí thủ tục (không gồm học phí).
+     * @param licenseCode      mã hạng bằng (ví dụ: B1, A1)
+     * @param requiresRoadTest có phần thi đường trường hay không (ảnh hưởng lọc phí TH)
+     * @return danh sách {@link Fee} phù hợp thủ tục
+     */
     @Override
     public List<Fee> getProcedureFees(String licenseCode, boolean requiresRoadTest) {
         if (licenseCode == null || licenseCode.isBlank()) {
@@ -41,11 +62,15 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 WHERE f.IsActive = 1
                 ORDER BY f.FeeType, f.FeeName
                 """;
+        // Chuẩn bị PreparedStatement với SQL SELECT lệ phí theo hạng GPLX
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            // Gán tham số truy vấn (hạng GPLX dùng hai lần trong OUTER APPLY)
             ps.setString(1, licenceClass);
             ps.setString(2, licenceClass);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → Fee và lọc theo quy tắc thủ tục
                     Fee fee = mapRow(rs);
                     if (appliesToProcedure(fee, motorcycle, requiresRoadTest)) {
                         applicable.add(fee);
@@ -58,7 +83,12 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return applicable;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy các khoản phí gắn với một thanh toán từ {@code Payment_Fee}
+     * JOIN {@code Fee}, {@code Payment}, {@code ExamEnrollment}, {@code Exam}, {@code Licence}.
+     * @param paymentId mã thanh toán ({@code PaymentId})
+     * @return danh sách {@link Fee} kèm số tiền theo hạng GPLX của kỳ thi
+     */
     @Override
     public List<Fee> getFeesByPaymentId(int paymentId) {
         List<Fee> fees = new ArrayList<>();
@@ -78,10 +108,14 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 WHERE pf.PaymentId = ?
                 ORDER BY f.FeeType, f.FeeName
                 """;
+        // Chuẩn bị PreparedStatement với SQL SELECT phí theo PaymentId
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            // Gán tham số truy vấn
             ps.setInt(1, paymentId);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng Fee
                     fees.add(mapRow(rs));
                 }
             }
@@ -91,7 +125,13 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return fees;
     }
 
-    /** Lọc phí thủ tục theo loại/tên (không gồm học phí). */
+    /**
+     * Lọc phí thủ tục theo loại/tên (loại trừ học phí, áp dụng quy tắc xe máy/TH).
+     * @param fee               entity phí cần kiểm tra
+     * @param motorcycle        {@code true} nếu hạng thuộc nhóm xe máy (A/A1)
+     * @param requiresRoadTest  có phần thi đường trường hay không
+     * @return {@code true} nếu phí thuộc nhóm lệ phí thủ tục áp dụng
+     */
     private boolean appliesToProcedure(Fee fee, boolean motorcycle, boolean requiresRoadTest) {
         String name = normalize(fee.getFeeName());
         String type = normalize(fee.getFeeType());
@@ -117,7 +157,11 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return "admin".equals(type) || "license".equals(type);
     }
 
-    /** Chuẩn hóa chuỗi (bỏ dấu, lower-case) để so khớp loại phí. */
+    /**
+     * Chuẩn hóa chuỗi (bỏ dấu Unicode, chuyển lower-case) để so khớp loại/tên phí.
+     * @param value chuỗi gốc
+     * @return chuỗi đã chuẩn hóa, hoặc rỗng nếu {@code null}
+     */
     private static String normalize(String value) {
         if (value == null) {
             return "";
@@ -128,7 +172,12 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 .trim();
     }
 
-    /** Kiểm tra haystack chứa bất kỳ needle nào. */
+    /**
+     * Kiểm tra haystack có chứa bất kỳ needle nào trong danh sách.
+     * @param haystack chuỗi cần tìm
+     * @param needles  các mẫu con
+     * @return {@code true} nếu khớp ít nhất một needle
+     */
     private static boolean containsAny(String haystack, String... needles) {
         for (String needle : needles) {
             if (haystack.contains(needle)) {
@@ -138,7 +187,11 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return false;
     }
 
-    /** Nhóm hạng xe máy (A / A1). */
+    /**
+     * Xác định hạng GPLX thuộc nhóm xe máy (A hoặc A1).
+     * @param licenseCode mã hạng bằng
+     * @return {@code true} nếu là A hoặc A1
+     */
     static boolean isMotorcycleGroup(String licenseCode) {
         if (licenseCode == null || licenseCode.isBlank()) {
             return false;
@@ -147,7 +200,12 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
         return lc.equals("A1") || lc.equals("A");
     }
 
-    /** Ánh xạ ResultSet → {@link Fee}. */
+    /**
+     * Ánh xạ một dòng ResultSet sang {@link Fee}.
+     * @param rs ResultSet đang trỏ tại dòng cần đọc
+     * @return entity phí đã điền đủ trường
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private Fee mapRow(ResultSet rs) throws SQLException {
         Fee fee = new Fee();
         fee.setFeeId(rs.getInt("FeeId"));

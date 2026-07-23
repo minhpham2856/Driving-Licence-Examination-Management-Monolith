@@ -60,6 +60,18 @@
     <c:if test="${param.error eq 'saveFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không lưu được biên bản vi phạm.</p>
     </c:if>
+    <c:if test="${param.error eq 'evidenceInvalid'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Ảnh minh chứng không hợp lệ. Chỉ nhận JPEG, PNG hoặc WebP, dung lượng tối đa 5 MB.</p>
+    </c:if>
+    <c:if test="${param.error eq 'evidenceTooLarge'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Ảnh minh chứng vượt quá dung lượng tối đa 5 MB.</p>
+    </c:if>
+    <c:if test="${param.error eq 'evidenceCloudinaryMissing'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Cloudinary chưa được cấu hình. Kiểm tra CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY và CLOUDINARY_API_SECRET.</p>
+    </c:if>
+    <c:if test="${param.error eq 'evidenceUploadFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không upload được ảnh minh chứng<c:if test="${not empty param.uploadMessage}">: <c:out value="${param.uploadMessage}"/></c:if>.</p>
+    </c:if>
     <c:if test="${param.error eq 'undoFailed' or param.error eq 'unsuspendFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không gỡ được đình chỉ<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
     </c:if>

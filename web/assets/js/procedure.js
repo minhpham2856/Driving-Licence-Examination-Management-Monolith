@@ -48,9 +48,6 @@
         document.querySelectorAll('#procedure-desk form').forEach(function (form) {
             form.addEventListener('submit', markProcedureDeskScroll);
         });
-        document.querySelectorAll('#procedure-desk select[data-auto-submit]').forEach(function (sel) {
-            sel.addEventListener('change', markProcedureDeskScroll);
-        });
     }
 
     /**
@@ -81,22 +78,111 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('select[data-auto-submit]').forEach(function (sel) {
-            sel.addEventListener('change', function () {
-                markProcedureDeskScroll();
-                this.form.submit();
-            });
-        });
         bindProcedureNavigation();
         bindPaymentPrintPreopen();
+        bindSePayCheckout();
         initFormChangeChecking();
         initWebcamCapture();
         scrollToProcedureDeskIfNeeded();
         maybeOpenDossierPrint();
     });
 
+    /**
+     * SePay trên bàn thủ tục (bước 3).
+     *
+     * Luồng:
+     * 1) Thu qua SePay → mở tab createSePayCheckout (HTML form → cổng SePay QR)
+     * 2) Poll / nút Kiểm tra → checkSePayPayment (xem IPN đã ghi Payment chưa)
+     * 3) Khách hủy trên SePay → return cancel → refresh bước thu phí (chọn lại tiền mặt/SePay)
+     *
+     * Nguồn sự thật thanh toán = IPN webhook, không phải trang success.
+     */
+    function bindSePayCheckout() {
+        var card = document.getElementById('sePayQrCard');
+        if (!card) {
+            return;
+        }
+        var sbd = card.getAttribute('data-sbd') || '';
+        var ctx = card.getAttribute('data-ctx') || '';
+        var configured = card.getAttribute('data-configured') === 'true';
+        var awaiting = card.getAttribute('data-awaiting') === 'true';
+        var btnPay = document.getElementById('btnSePayCheckout');
+        var btnCheck = document.getElementById('btnSePayCheck');
+        var statusMsg = document.getElementById('sePayStatusMsg');
+
+        function setMsg(text, tone) {
+            if (!statusMsg) {
+                return;
+            }
+            statusMsg.textContent = text || '';
+            statusMsg.style.color = tone === 'ok' ? '#047857' : (tone === 'err' ? '#b91c1c' : '#64748b');
+        }
+
+        function procedureUrl(action) {
+            return (ctx || '') + '/examstaff/procedure?action=' + encodeURIComponent(action)
+                + '&sbd=' + encodeURIComponent(sbd) + '&step=3';
+        }
+
+        /** Gọi servlet kiểm tra: paid=true → reload desk; false → hiện message chờ IPN. */
+        function checkPaid(reloadOnPaid) {
+            return fetch(procedureUrl('checkSePayPayment'), {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            }).then(function (res) {
+                return res.json().then(function (data) {
+                    return { ok: res.ok, data: data };
+                });
+            }).then(function (result) {
+                if (result.data && result.data.paid) {
+                    setMsg('Đã nhận thanh toán SePay.', 'ok');
+                    if (reloadOnPaid) {
+                        markProcedureDeskScroll();
+                        window.location.href = (ctx || '') + '/examstaff/procedure?sbd='
+                            + encodeURIComponent(sbd) + '&step=3';
+                    }
+                    return true;
+                }
+                setMsg((result.data && result.data.message) || 'Đang chờ IPN SePay…', 'wait');
+                return false;
+            }).catch(function () {
+                setMsg('Không kiểm tra được trạng thái. Thử lại.', 'err');
+                return false;
+            });
+        }
+
+        if (btnPay) {
+            btnPay.addEventListener('click', function () {
+                if (!configured || !sbd) {
+                    setMsg('SePay chưa cấu hình hoặc thiếu SBD.', 'err');
+                    return;
+                }
+                markProcedureDeskScroll();
+                // Popup nhận HTML auto-submit; tab gốc giữ desk và bắt đầu poll
+                window.open(procedureUrl('createSePayCheckout'), 'sePayCheckout');
+                // Reload để server-side có thể finalize theo session (không còn poll fetch interval).
+                // Delay nhẹ để phiên (session) được set "awaiting" từ popup trước khi render meta refresh.
+                window.setTimeout(function () {
+                    window.location.href = (ctx || '') + '/examstaff/procedure?sbd='
+                        + encodeURIComponent(sbd) + '&step=3#procedure-desk';
+                }, 600);
+            });
+        }
+
+        if (btnCheck) {
+            btnCheck.addEventListener('click', function () {
+                if (!sbd) {
+                    return;
+                }
+                setMsg('Đang kiểm tra…', 'wait');
+                checkPaid(true);
+            });
+        }
+
+    }
+
     function dossierPrintUrl(ctx, sbd) {
-        return (ctx || '') + '/views/staff/examstaff/candidate-dossier?sbd='
+        return (ctx || '') + '/examstaff/candidate-dossier?sbd='
             + encodeURIComponent(sbd) + '&print=true';
     }
 
@@ -124,7 +210,7 @@
             var printLink = document.querySelector('#procedure-desk a.procedure-btn--print');
             if (printLink) {
                 printLink.focus();
-                printLink.setAttribute('title', 'Trình duyệt chặn popup — bấm để in hồ sơ');
+                printLink.setAttribute('title', 'Trình duyệt chặn popup - bấm để in hồ sơ');
             }
         }
     }
@@ -313,7 +399,7 @@
             body.append('photoBase64', dataUrl);
 
             try {
-                var resp = await fetch(ctxPath + '/views/staff/examstaff/procedure', {
+                var resp = await fetch(ctxPath + '/examstaff/procedure', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
                     body: body.toString(),
@@ -325,7 +411,7 @@
                 }
                 stopCamera();
                 markProcedureDeskScroll();
-                window.location.href = ctxPath + '/views/staff/examstaff/procedure?sbd='
+                window.location.href = ctxPath + '/examstaff/procedure?sbd='
                     + encodeURIComponent(sbd) + '&step=2#procedure-desk';
             } catch (err) {
                 console.error(err);

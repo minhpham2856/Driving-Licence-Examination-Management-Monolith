@@ -16,6 +16,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Upload giấy tờ — {@code GET/POST /registrant/upload-documents} (multipart, tối đa 5MB/file).
+ * <p>
+ * <b>GET:</b> load Document + ExamRegistration status → JSP (4 loại bắt buộc + Other).
+ * <p>
+ * <b>POST actions:</b>
+ * <ul>
+ *   <li>Upload file → ghi {@code Document} (DocumentTypeId, DocumentUrl, Notes, ProfileId)</li>
+ *   <li>{@code action=requestApproval} → ER {@code Pending} + Notes {@code #PROFILE_DOC#} / Document {@code #PENDING#}</li>
+ *   <li>{@code action=deleteDocument} → xóa khi status cho phép (Draft/Rejected)</li>
+ * </ul>
+ * Không tạo Payment / Candidate — chỉ hồ sơ trước ngày thi.
+ */
 @WebServlet("/registrant/upload-documents")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 30)
 public class UploadDocumentsServlet extends HttpServlet {
@@ -57,7 +70,6 @@ public class UploadDocumentsServlet extends HttpServlet {
         if ("Other".equals(documentType)) {
             error = uploadService.handleOtherUpload(
                     user, request.getParameter("reasonNote"),
-                    request.getParameter("supplementLicenceCode"),
                     collectFileParts(request), request);
         } else {
             error = uploadService.handleUpload(
@@ -74,7 +86,11 @@ public class UploadDocumentsServlet extends HttpServlet {
 
     private void handleRequestApproval(UserDTO user, HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String error = uploadService.requestApproval(user, request.getParameter("requestNote"), request.getSession());
+        String error = uploadService.requestApproval(
+                user,
+                request.getParameter("requestNote"),
+                request.getParameter("approvalLicenceCode"),
+                request.getSession());
         if (error != null) {
             renderPage(user, request, response, error);
             return;

@@ -7,6 +7,7 @@ import registrant.dto.RegistrantDocumentSummary;
 import registrant.dto.RegistrantDocumentView;
 import registrant.dto.RegistrantTrackingLog;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,22 +15,21 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Hiển thị tài liệu theo {@code ExamRegistration.RegistrationStatus}.
- * Document.Notes chỉ dùng cho lý do từ chối từng tệp (nếu có).
- */
+/** Hiển thị tài liệu theo ExamRegistration.RegistrationStatus (nguồn chân lý); Notes chỉ marker tệp. A1/A/B1: 4 giấy bắt buộc. */
 public final class RegistrantDocumentStatusHelper {
 
     public static final String[] REQUIRED_TYPES = {
             "Portrait", "IdFront", "IdBack", "HealthCertificate"
     };
 
-    /** Chỉ cần 4 giấy tờ bắt buộc (đã duyệt) là đủ để đăng ký các hạng này. */
-    public static final Set<String> BASIC_DOCS_ONLY_LICENCE_CODES = Set.of("A1", "A2");
+    /** Chỉ cần 4 giấy tờ bắt buộc — khớp seed DB hạng A, A1 (alias A2 giữ để URL cũ không lỗi). */
+    /** Hạng chỉ cần 4 giấy tờ bắt buộc đã duyệt (seed hiện tại: A1, A, B1). */
+    public static final Set<String> BASIC_DOCS_ONLY_LICENCE_CODES = Set.of("A1", "A", "B1");
 
     private RegistrantDocumentStatusHelper() {
     }
 
+    /** Tóm tắt tiến độ tài liệu (đã tải/chờ duyệt/overall) theo RegistrationStatus. */
     public static RegistrantDocumentSummary summarize(List<RegistrantDocumentView> allDocs,
             Map<String, String> typeLabels, String registrationStatus) {
         applyDocumentLabelsFromRegistrationStatus(allDocs, registrationStatus);
@@ -100,7 +100,7 @@ public final class RegistrantDocumentStatusHelper {
         return true;
     }
 
-    /** Thông báo lý do chưa được đăng ký thi — null nếu đủ điều kiện. */
+    /** Thông báo lý do chưa được đăng ký thi - null nếu đủ điều kiện. */
     public static String examRegistrationBlockMessage(String registrationStatus,
             List<RegistrantDocumentView> allDocs, RegistrantDocumentSummary summary) {
         if (isEligibleForExamRegistration(registrationStatus, allDocs)) {
@@ -124,6 +124,7 @@ public final class RegistrantDocumentStatusHelper {
         return "Tài liệu chưa được phê duyệt. Hoàn tất duyệt hồ sơ trước khi đăng ký thi.";
     }
 
+    /** True nếu có ít nhất một tệp Hồ sơ khác đã upload. */
     public static boolean hasUploadedOtherDocuments(List<RegistrantDocumentView> allDocs) {
         if (allDocs == null) {
             return false;
@@ -160,6 +161,7 @@ public final class RegistrantDocumentStatusHelper {
         return false;
     }
 
+    /** True nếu Other đã tải nhưng chưa gửi duyệt (#PENDING#). */
     public static boolean hasSupplementAwaitingSubmit(List<RegistrantDocumentView> allDocs) {
         if (allDocs == null) {
             return false;
@@ -176,108 +178,81 @@ public final class RegistrantDocumentStatusHelper {
         return false;
     }
 
-    public static boolean hasApprovedOtherDocumentForLicence(String uiLicenceCode,
-            List<RegistrantDocumentView> allDocs) {
-        if (uiLicenceCode == null || uiLicenceCode.isBlank() || allDocs == null) {
-            return false;
-        }
-        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
-        for (RegistrantDocumentView doc : allDocs) {
-            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
-                continue;
-            }
-            if (!DocumentDAOImpl.isApproved(doc.getNotes())) {
-                continue;
-            }
-            String docLicence = doc.getSupplementLicenceCode();
-            if (docLicence == null || docLicence.isBlank()) {
-                docLicence = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
-            }
-            if (docLicence != null && !docLicence.isBlank()
-                    && target.equals(docLicence.trim().toUpperCase(Locale.ROOT))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasUploadedOtherDocumentForLicence(String uiLicenceCode,
-            List<RegistrantDocumentView> allDocs) {
-        if (uiLicenceCode == null || uiLicenceCode.isBlank() || allDocs == null) {
-            return false;
-        }
-        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
-        for (RegistrantDocumentView doc : allDocs) {
-            if (!DocumentDAOImpl.isOtherType(doc.getDocumentType()) || !hasUploadedFile(doc)) {
-                continue;
-            }
-            String docLicence = doc.getSupplementLicenceCode();
-            if (docLicence == null || docLicence.isBlank()) {
-                docLicence = DocumentDAOImpl.parseLicenceCode(doc.getNotes());
-            }
-            if (docLicence != null && !docLicence.isBlank()
-                    && target.equals(docLicence.trim().toUpperCase(Locale.ROOT))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean isBasicDocsOnlyLicence(String uiLicenceCode) {
-        if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
-            return false;
-        }
-        return BASIC_DOCS_ONLY_LICENCE_CODES.contains(uiLicenceCode.trim().toUpperCase(Locale.ROOT));
-    }
-
     /**
-     * Hạng A1/A2: chỉ cần 4 giấy tờ bắt buộc. Hạng khác: cần hồ sơ khác đã được staff duyệt đúng hạng.
+     * Chỉ enable hạng đã có bản duyệt hồ sơ kèm đúng hạng đó
+     * ({@code approvedLicenceCodes} từ ExamRegistration Approved).
      */
     public static boolean isLicenceAllowedWithDocuments(String uiLicenceCode,
-            List<RegistrantDocumentView> allDocs) {
+            List<RegistrantDocumentView> allDocs, Collection<String> approvedLicenceCodes) {
         if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
             return false;
         }
-        if (isBasicDocsOnlyLicence(uiLicenceCode)) {
-            return true;
+        if (approvedLicenceCodes == null || approvedLicenceCodes.isEmpty()) {
+            return false;
         }
-        return hasApprovedOtherDocumentForLicence(uiLicenceCode, allDocs);
+        String target = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
+        for (String code : approvedLicenceCodes) {
+            if (code != null && target.equals(code.trim().toUpperCase(Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public static String licenceClassBlockMessage(String uiLicenceCode, List<RegistrantDocumentView> allDocs) {
-        if (isLicenceAllowedWithDocuments(uiLicenceCode, allDocs)) {
+    /** Tương thích cũ: không có danh sách hạng duyệt → không mở hạng. */
+    public static boolean isLicenceAllowedWithDocuments(String uiLicenceCode,
+            List<RegistrantDocumentView> allDocs) {
+        return isLicenceAllowedWithDocuments(uiLicenceCode, allDocs, List.of());
+    }
+
+    /** Message chặn chọn hạng khi chưa được duyệt kèm hồ sơ. */
+    public static String licenceClassBlockMessage(String uiLicenceCode,
+            List<RegistrantDocumentView> allDocs, Collection<String> approvedLicenceCodes) {
+        if (isLicenceAllowedWithDocuments(uiLicenceCode, allDocs, approvedLicenceCodes)) {
             return null;
         }
-        String code = uiLicenceCode.trim().toUpperCase(Locale.ROOT);
-        if (hasUploadedOtherDocumentForLicence(code, allDocs)
-                && !hasApprovedOtherDocumentForLicence(code, allDocs)) {
-            return "Hồ sơ bổ sung cho hạng " + code
-                    + " đang chờ ban quản lý duyệt. Bạn có thể đăng ký thi sau khi được phê duyệt.";
-        }
-        return "Hồ sơ của bạn mới có 4 giấy tờ bắt buộc nên chỉ được đăng ký thi hạng A1 hoặc A2. "
-                + "Để đăng ký hạng " + code + ", vui lòng bổ sung hồ sơ khác cho hạng này tại trang Quản lý tài liệu.";
+        String code = uiLicenceCode != null ? uiLicenceCode.trim().toUpperCase(Locale.ROOT) : "";
+        return "Hạng " + code + " chưa được ban quản lý duyệt kèm hồ sơ. "
+                + "Vào Quản lý tài liệu → chọn hạng " + code
+                + " khi Gửi yêu cầu duyệt (có thể tái sử dụng 4 giấy đã có nếu không cần đổi).";
     }
 
+    /** Overload không có danh sách hạng duyệt (fallback). */
+    public static String licenceClassBlockMessage(String uiLicenceCode, List<RegistrantDocumentView> allDocs) {
+        return licenceClassBlockMessage(uiLicenceCode, allDocs, List.of());
+    }
+
+    /** Map mã hạng → có được phép đăng ký theo hồ sơ đã duyệt. */
     public static Map<String, Boolean> buildLicenceDocumentAllowedMap(
-            List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
+            List<String> licenceCodes, List<RegistrantDocumentView> allDocs,
+            Collection<String> approvedLicenceCodes) {
         Map<String, Boolean> allowed = new LinkedHashMap<>();
         if (licenceCodes != null) {
             for (String code : licenceCodes) {
                 if (code != null && !code.isBlank()) {
-                    allowed.put(code.trim(), isLicenceAllowedWithDocuments(code, allDocs));
+                    allowed.put(code.trim(),
+                            isLicenceAllowedWithDocuments(code, allDocs, approvedLicenceCodes));
                 }
             }
         }
         return allowed;
     }
 
-    public static Map<String, String> buildLicenceDocumentBlockMessageMap(
+    /** Overload map hạng được phép (không truyền approved codes). */
+    public static Map<String, Boolean> buildLicenceDocumentAllowedMap(
             List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
+        return buildLicenceDocumentAllowedMap(licenceCodes, allDocs, List.of());
+    }
+
+    /** Map mã hạng → thông báo chặn nếu chưa đủ điều kiện. */
+    public static Map<String, String> buildLicenceDocumentBlockMessageMap(
+            List<String> licenceCodes, List<RegistrantDocumentView> allDocs,
+            Collection<String> approvedLicenceCodes) {
         Map<String, String> messages = new LinkedHashMap<>();
         if (licenceCodes != null) {
             for (String code : licenceCodes) {
                 if (code != null && !code.isBlank()) {
-                    String block = licenceClassBlockMessage(code, allDocs);
+                    String block = licenceClassBlockMessage(code, allDocs, approvedLicenceCodes);
                     if (block != null) {
                         messages.put(code.trim(), block);
                     }
@@ -287,6 +262,13 @@ public final class RegistrantDocumentStatusHelper {
         return messages;
     }
 
+    /** Overload map thông báo chặn hạng. */
+    public static Map<String, String> buildLicenceDocumentBlockMessageMap(
+            List<String> licenceCodes, List<RegistrantDocumentView> allDocs) {
+        return buildLicenceDocumentBlockMessageMap(licenceCodes, allDocs, List.of());
+    }
+
+    /** Sinh dòng tracking giả lập từ trạng thái từng tài liệu. */
     public static List<RegistrantTrackingLog> buildDocumentTrackingLogs(List<RegistrantDocumentView> docs,
             Map<String, String> typeLabels, Date profileCreatedAt, String registrationStatus) {
         List<RegistrantTrackingLog> logs = new ArrayList<>();
@@ -391,7 +373,7 @@ public final class RegistrantDocumentStatusHelper {
             summary.setOverallStatusClass("incomplete");
             summary.setOverallStatusLabel("Chưa đủ giấy tờ");
             summary.setOverallMessage(String.format(
-                    "Đã tải %d/%d giấy tờ bắt buộc — còn thiếu %d mục.",
+                    "Đã tải %d/%d giấy tờ bắt buộc - còn thiếu %d mục.",
                     summary.getRequiredUploaded(), summary.getRequiredTotal(), missing));
             return;
         }
@@ -401,9 +383,9 @@ public final class RegistrantDocumentStatusHelper {
                     ? "Giấy tờ bắt buộc đã được phê duyệt. Hồ sơ bổ sung đang chờ ban quản lý xem xét."
                     : "Tất cả giấy tờ bắt buộc đã được ban quản lý phê duyệt.";
             case ProfileRegistrationStatus.PENDING ->
-                    "Hồ sơ đã gửi ban quản lý — đang chờ phê duyệt.";
+                    "Hồ sơ đã gửi ban quản lý - đang chờ phê duyệt.";
             case ProfileRegistrationStatus.REJECTED ->
-                    "Hồ sơ bị từ chối — vui lòng bổ sung và gửi duyệt lại.";
+                    "Hồ sơ bị từ chối - vui lòng bổ sung và gửi duyệt lại.";
             default -> String.format(
                     "Đã tải đủ %d giấy tờ bắt buộc%s. Hãy gửi yêu cầu duyệt trên trang tải hồ sơ.",
                     summary.getRequiredTotal(),
@@ -458,7 +440,7 @@ public final class RegistrantDocumentStatusHelper {
             }
             sb.append(doc.getFileSizeLabel());
         }
-        return sb.length() > 0 ? sb.toString() : "—";
+        return sb.length() > 0 ? sb.toString() : "-";
     }
 
     private static String extractRejectReason(String notes) {

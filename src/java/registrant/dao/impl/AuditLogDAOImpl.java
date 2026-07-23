@@ -46,6 +46,7 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             )
             """;
 
+    /** Insert AuditLogEntry vào bảng Audit. */
     @Override
     public boolean insert(AuditLogEntry log) {
         String sql = """
@@ -101,13 +102,14 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         return false;
     }
 
+    /** Lấy log gần nhất theo profile (không lọc). */
     @Override
     public List<AuditLogEntry> getLogsByProfileId(int profileId, int limit) {
-        return getLogsByProfileIdFiltered(profileId, 1, limit, null, null, null, null);
+        return listLogsByProfileIdFiltered(profileId, 1, limit, null, null, null, null);
     }
 
-    @Override
-    public List<AuditLogEntry> getLogsByProfileIdFiltered(int profileId, int page, int pageSize,
+    /** Query audit có lọc + phân trang (nội bộ). */
+    private List<AuditLogEntry> listLogsByProfileIdFiltered(int profileId, int page, int pageSize,
             String searchQuery, String actionFilter, String fromDate, String toDate) {
         int safePage = Math.max(page, 1);
         int safeSize = Math.max(1, Math.min(pageSize, 100));
@@ -127,57 +129,6 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             e.printStackTrace();
         }
         return list;
-    }
-
-    @Override
-    public List<String> listDistinctActionsByProfileId(int profileId) {
-        String sql = """
-                SELECT DISTINCT UPPER(a.Action) AS Action
-                FROM Audit a
-                LEFT JOIN [User] u ON u.UserId = a.UserId
-                LEFT JOIN Profile p ON p.UserId = u.UserId
-                """ + PROFILE_AUDIT_WHERE + """
-                 AND a.Action IS NOT NULL AND LTRIM(RTRIM(a.Action)) <> ''
-                 ORDER BY UPPER(a.Action)
-                """;
-        List<String> actions = new ArrayList<>();
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, profileId);
-            ps.setInt(2, profileId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    String action = rs.getString("Action");
-                    if (action != null && !action.isBlank()) {
-                        actions.add(action.trim().toUpperCase());
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return actions;
-    }
-
-    @Override
-    public int getLogsCountByProfileIdFiltered(int profileId, String searchQuery,
-            String actionFilter, String fromDate, String toDate) {
-        String filterClause = buildProfileFilterClause(searchQuery, actionFilter, fromDate, toDate);
-        String sql = """
-                SELECT COUNT(*) FROM Audit a
-                LEFT JOIN [User] u ON u.UserId = a.UserId
-                LEFT JOIN Profile p ON p.UserId = u.UserId
-                """ + PROFILE_AUDIT_WHERE + filterClause;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            bindProfileFilterCountParams(ps, profileId, searchQuery, actionFilter, fromDate, toDate);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
     }
 
     private static AuditLogEntry mapResultSet(ResultSet rs) throws SQLException {
@@ -238,13 +189,6 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
         idx = bindProfileFilterValues(ps, idx, searchQuery, actionFilter, fromDate, toDate);
         ps.setInt(idx++, offset);
         ps.setInt(idx, pageSize);
-    }
-
-    private static void bindProfileFilterCountParams(PreparedStatement ps, int profileId,
-            String searchQuery, String actionFilter, String fromDate, String toDate) throws SQLException {
-        ps.setInt(1, profileId);
-        ps.setInt(2, profileId);
-        bindProfileFilterValues(ps, 3, searchQuery, actionFilter, fromDate, toDate);
     }
 
     private static int bindProfileFilterValues(PreparedStatement ps, int startIdx,

@@ -26,6 +26,7 @@ public final class RegistrantProfileSupport {
     private RegistrantProfileSupport() {
     }
 
+    /** Lấy Profile theo user và gắn lại vào session DTO. */
     public static Profile resolveProfile(ProfileDAO profiledao, UserDTO user) {
         if (user == null) {
             return null;
@@ -40,6 +41,7 @@ public final class RegistrantProfileSupport {
         return profile;
     }
 
+    /** Nạp Profile + documents + sync RegistrationStatus. */
     public static RegistrantProfileContext loadContext(ProfileDAO profiledao, DocumentDAO documentdao,
             RegistrantDAO registrantdao, UserDTO user) {
         Profile profile = resolveProfile(profiledao, user);
@@ -56,6 +58,7 @@ public final class RegistrantProfileSupport {
         return new RegistrantProfileContext(profile, docs, sync);
     }
 
+    /** Như loadContext nhưng bỏ qua danh sách tài liệu. */
     public static RegistrantProfileContext loadContextWithoutDocuments(ProfileDAO profiledao,
             RegistrantDAO registrantdao, UserDTO user) {
         Profile profile = resolveProfile(profiledao, user);
@@ -66,6 +69,7 @@ public final class RegistrantProfileSupport {
         return new RegistrantProfileContext(profile, List.of(), sync);
     }
 
+    /** Gắn nhãn/class trạng thái hồ sơ lên request. */
     public static void applyRegistrationStatus(HttpServletRequest request, String registrationStatus) {
         request.setAttribute("profileRegistrationStatus", registrationStatus);
         request.setAttribute("profileRegistrationStatusLabel",
@@ -74,6 +78,7 @@ public final class RegistrantProfileSupport {
                 ProfileRegistrationStatus.toBadgeClass(registrationStatus));
     }
 
+    /** Gắn nhãn/class trạng thái hồ sơ vào map model. */
     public static void applyRegistrationStatus(Map<String, Object> model, String registrationStatus) {
         model.put("profileRegistrationStatus", registrationStatus);
         model.put("profileRegistrationStatusLabel",
@@ -82,6 +87,7 @@ public final class RegistrantProfileSupport {
                 ProfileRegistrationStatus.toBadgeClass(registrationStatus));
     }
 
+    /** Đẩy kết quả sync RegistrationStatus lên request. */
     public static void applySyncToRequest(HttpServletRequest request, ProfileRegistrationSyncResult sync) {
         if (sync == null) {
             applyRegistrationStatus(request, ProfileRegistrationStatus.DRAFT);
@@ -92,6 +98,7 @@ public final class RegistrantProfileSupport {
         request.setAttribute("registrationUserNotice", sync.getUserNotice());
     }
 
+    /** Đẩy kết quả sync RegistrationStatus vào model. */
     public static void applySyncToMap(Map<String, Object> model, ProfileRegistrationSyncResult sync) {
         if (sync == null) {
             applyRegistrationStatus(model, ProfileRegistrationStatus.DRAFT);
@@ -102,6 +109,7 @@ public final class RegistrantProfileSupport {
         model.put("registrationUserNotice", sync.getUserNotice());
     }
 
+    /** True nếu đã có URL upload cho DocumentType. */
     public static boolean hasUploadedDocument(List<RegistrantDocumentView> docs, String documentType) {
         if (docs == null || documentType == null) {
             return false;
@@ -115,10 +123,12 @@ public final class RegistrantProfileSupport {
         return false;
     }
 
+    /** True nếu đã tải đủ mặt trước và mặt sau CCCD. */
     public static boolean isCccdComplete(List<RegistrantDocumentView> docs) {
         return hasUploadedDocument(docs, "IdFront") && hasUploadedDocument(docs, "IdBack");
     }
 
+    /** True nếu thiếu họ tên/SĐT/địa chỉ/CCCD trên Profile. */
     public static boolean isProfileIncomplete(Profile profile) {
         if (profile == null) {
             return true;
@@ -130,6 +140,7 @@ public final class RegistrantProfileSupport {
                 || isBlank(profile.getGovernmentIdNumber());
     }
 
+    /** Ghép danh sách hạng đang đăng ký thành chuỗi hiển thị. */
     public static String buildActiveLicenceClassesLabel(List<RegistrantRegisteredExamRow> rows) {
         if (rows == null || rows.isEmpty()) {
             return null;
@@ -146,6 +157,7 @@ public final class RegistrantProfileSupport {
         return String.join(", ", codes);
     }
 
+    /** Tên hiển thị thân thiện (họ tên / username / "bạn"). */
     public static String displayName(UserDTO user, Profile profile) {
         if (profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()) {
             return profile.getFullName().trim();
@@ -156,6 +168,7 @@ public final class RegistrantProfileSupport {
         return "bạn";
     }
 
+    /** Tìm DocumentUrl đã lưu theo DocumentType. */
     public static String findStoredUrlForType(List<RegistrantDocumentView> docs, String documentType) {
         if (docs == null || documentType == null || registrant.dao.impl.DocumentDAOImpl.isOtherType(documentType)) {
             return null;
@@ -168,11 +181,12 @@ public final class RegistrantProfileSupport {
         return null;
     }
 
+    /** True nếu chuỗi null hoặc blank. */
     public static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 
-    /** Đọc RegistrationStatus hồ sơ gốc — không ghi đè DB. */
+    /** Đọc RegistrationStatus hồ sơ gốc - không ghi đè DB. */
     public static ProfileRegistrationSyncResult loadRegistrationSync(int profileId,
             RegistrantDAO registrantdao) {
         String status = registrantdao.findProfileDocumentRegistrationStatus(profileId);
@@ -187,11 +201,19 @@ public final class RegistrantProfileSupport {
     /** Ghi RegistrationStatus + Notes mô tả lên dòng hồ sơ gốc ({@code #PROFILE_DOC#}). */
     public static boolean updateRegistrationStatus(int profileId, String status,
             List<RegistrantDocumentView> docs, RegistrantDAO registrantdao) {
+        return updateRegistrationStatus(profileId, status, docs, registrantdao, 0);
+    }
+
+    /** Như trên, kèm hạng GPLX thí sinh chọn khi gửi duyệt. */
+    public static boolean updateRegistrationStatus(int profileId, String status,
+            List<RegistrantDocumentView> docs, RegistrantDAO registrantdao, int licenceId) {
         if (profileId <= 0 || status == null || status.isBlank()) {
             return false;
         }
         String notes = deriveRegistrationNotes(docs, status.trim());
-        boolean written = registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes);
+        boolean written = licenceId > 0
+                ? registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes, licenceId)
+                : registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes);
         if (!written) {
             LOG.log(Level.WARNING, "Không cập nhật RegistrationStatus profile {0} → {1}",
                     new Object[] { profileId, status });
@@ -199,6 +221,7 @@ public final class RegistrantProfileSupport {
         return written;
     }
 
+    /** Sinh Notes mô tả theo status và số giấy tờ đã tải. */
     public static String deriveRegistrationNotes(List<RegistrantDocumentView> allDocs, String status) {
         Map<String, RegistrantDocumentView> slots = RegistrantDocumentHelper.buildRequiredSlots(allDocs);
         int uploaded = RegistrantDocumentHelper.countUploadedRequired(slots);
@@ -209,7 +232,7 @@ public final class RegistrantProfileSupport {
                     "Ban quản lý đã duyệt hồ sơ (%d/%d giấy tờ bắt buộc đã tải).", uploaded, requiredTotal);
             case ProfileRegistrationStatus.PENDING -> String.format(
                     "Thí sinh đã gửi yêu cầu duyệt (%d/%d giấy tờ bắt buộc đã tải).", uploaded, requiredTotal);
-            case ProfileRegistrationStatus.REJECTED -> "Có giấy tờ bị từ chối — vui lòng bổ sung và gửi duyệt lại.";
+            case ProfileRegistrationStatus.REJECTED -> "Có giấy tờ bị từ chối - vui lòng bổ sung và gửi duyệt lại.";
             case ProfileRegistrationStatus.DRAFT -> uploaded > 0
                     ? String.format("Đang bổ sung hồ sơ (%d/%d giấy tờ bắt buộc).", uploaded, requiredTotal)
                     : "Chưa tải giấy tờ bắt buộc.";

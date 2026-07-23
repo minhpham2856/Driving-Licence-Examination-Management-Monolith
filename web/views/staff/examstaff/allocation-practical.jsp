@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
-    <jsp:param name="pageTitle" value="Thực hành / Sa hình" />
+    <jsp:param name="pageTitle" value="Thực hành" />
     <jsp:param name="breadcrumbLabel" value="Thực hành" />
     <jsp:param name="showSearch" value="true" />
     <jsp:param name="showRoomFilter" value="practical" />
@@ -18,7 +18,7 @@
 </jsp:include>
 <div class="allocation-stage-panel allocation-stage-panel--practical">
     <div class="allocation-stage-panel__head">
-        <h4 class="allocation-stage-panel__title">Thực hành / Sa hình</h4>
+        <h4 class="allocation-stage-panel__title">Thực hành</h4>
         <span class="allocation-stage-panel__count">${pg.totalItems} thí sinh</span>
     </div>
     <div class="examiner-table-wrap">
@@ -46,9 +46,10 @@
                                     <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
                                     <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
                                     <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
-                                    <select name="areaId" data-auto-submit class="allocation-area-select allocation-area-select--table" title="Đổi sân thi">
+                                    <select name="areaId" class="allocation-area-select allocation-area-select--table"
+                                            onchange="this.form.submit()" title="Đổi sân thi">
                                         <c:if test="${empty c.practicalAllocatedAreaId}">
-                                            <option value="" disabled selected>—</option>
+                                            <option value="" disabled selected>-</option>
                                         </c:if>
                                         <c:forEach var="yard" items="${activePracticalAreas}">
                                             <c:set var="yardLabel" value="${fn:replace(yard.areaName, 'Sân thi ', '')}" />
@@ -58,7 +59,7 @@
                                 </form>
                             </c:if>
                             <c:if test="${empty activePracticalAreas}">
-                                <span class="allocation-room-pending" title="Phân giám khảo vào sân thực hành trước">—</span>
+                                <span class="allocation-room-pending" title="Phân sát hạch viên vào sân thực hành trước">-</span>
                             </c:if>
                         </td>
                         <td>
@@ -74,7 +75,7 @@
                                     </span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="es-text-muted-sm">Chờ giám khảo chấm</span>
+                                    <span class="es-text-muted-sm">Chờ sát hạch viên chấm</span>
                                 </c:otherwise>
                             </c:choose>
                         </td>

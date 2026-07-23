@@ -25,12 +25,18 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import shared.storage.CloudinaryDocumentStorage;
 
 @WebServlet(urlPatterns = {"/examiner/violations"})
 @MultipartConfig(maxFileSize = 5 * 1024 * 1024, maxRequestSize = 6 * 1024 * 1024)
 // Violations page: lists candidates and supports one-click suspend or undo-suspend actions.
 public class ViolationsServlet extends HttpServlet {
+
+    private static final Logger LOGGER = Logger.getLogger(ViolationsServlet.class.getName());
+    private static final long MAX_EVIDENCE_BYTES = 5L * 1024L * 1024L;
 
     private final ExamViewService viewService = new ExamViewServiceImpl();
     private final ActionService actionService = new ActionServiceImpl();
@@ -98,10 +104,19 @@ public class ViolationsServlet extends HttpServlet {
                     ? "/examiner/violations?sbd=" + urlEncode(sbd) + "&unsuspended=1"
                     : "/examiner/violations?sbd=" + urlEncode(sbd) + "&error=unsuspendFailed";
         } else if ("createViolation".equals(action)) {
-            Part evidence = request.getPart("evidenceFile");
+            Part evidence;
+            try {
+                evidence = request.getPart("evidenceFile");
+            } catch (IllegalStateException ex) {
+                redirectCreate(request, response, sbd, "evidenceTooLarge", null);
+                return;
+            }
             if (!isValidEvidence(evidence)) {
-                response.sendRedirect(request.getContextPath()
-                        + "/examiner/violations?sbd=" + urlEncode(sbd) + "&mode=create&error=evidenceInvalid");
+                redirectCreate(request, response, sbd, "evidenceInvalid", null);
+                return;
+            }
+            if (!CloudinaryDocumentStorage.isConfigured()) {
+                redirectCreate(request, response, sbd, "evidenceCloudinaryMissing", null);
                 return;
             }
             String storedRef;
@@ -109,8 +124,8 @@ public class ViolationsServlet extends HttpServlet {
                 storedRef = CloudinaryDocumentStorage.upload(
                         evidence, sbd, "exam-violation", extensionOf(evidence.getSubmittedFileName()));
             } catch (IOException ex) {
-                response.sendRedirect(request.getContextPath()
-                        + "/examiner/violations?sbd=" + urlEncode(sbd) + "&mode=create&error=evidenceUploadFailed");
+                LOGGER.log(Level.WARNING, "Could not upload violation evidence for SBD " + sbd, ex);
+                redirectCreate(request, response, sbd, "evidenceUploadFailed", safeUploadMessage(ex));
                 return;
             }
             ServiceResult<Void> result = actionService.recordViolation(activeExamId, sbd, userId,
@@ -137,16 +152,43 @@ public class ViolationsServlet extends HttpServlet {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
     }
 
+    private String urlEncode(String value) {
+        return URLEncoder.encode(value != null ? value : "", StandardCharsets.UTF_8);
+    }
+
+    private void redirectCreate(HttpServletRequest request, HttpServletResponse response, int sbd,
+            String error, String uploadMessage) throws IOException {
+        String redirect = request.getContextPath()
+                + "/examiner/violations?sbd=" + urlEncode(sbd)
+                + "&mode=create&error=" + urlEncode(error);
+        if (uploadMessage != null && !uploadMessage.isBlank()) {
+            redirect += "&uploadMessage=" + urlEncode(uploadMessage);
+        }
+        response.sendRedirect(redirect);
+    }
+
     private boolean isValidEvidence(Part part) {
-        if (part == null || part.getSize() <= 0 || part.getSize() > 5 * 1024 * 1024) {
+        if (part == null || part.getSize() <= 0 || part.getSize() > MAX_EVIDENCE_BYTES) {
             return false;
         }
         String type = part.getContentType();
-        return "image/jpeg".equals(type) || "image/png".equals(type) || "image/webp".equals(type);
+        String ext = extensionOf(part.getSubmittedFileName());
+        boolean allowedType = "image/jpeg".equals(type) || "image/png".equals(type) || "image/webp".equals(type);
+        boolean allowedExtension = "jpg".equals(ext) || "jpeg".equals(ext) || "png".equals(ext) || "webp".equals(ext);
+        return allowedType && allowedExtension;
     }
 
     private String extensionOf(String fileName) {
         int dot = fileName != null ? fileName.lastIndexOf('.') : -1;
-        return dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : "jpg";
+        return dot >= 0 ? fileName.substring(dot + 1).toLowerCase(Locale.ROOT) : "jpg";
+    }
+
+    private String safeUploadMessage(IOException ex) {
+        String message = ex != null ? ex.getMessage() : null;
+        if (message == null || message.isBlank()) {
+            return "Không nhận được phản hồi từ Cloudinary.";
+        }
+        String cleaned = message.replaceAll("[\\r\\n\\t]+", " ").trim();
+        return cleaned.length() > 180 ? cleaned.substring(0, 180) + "..." : cleaned;
     }
 }

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-head.jsp">
@@ -18,32 +18,32 @@
 </div>
 
 <div class="allocation-overview-grid">
-    <a href="${ctx}/views/staff/examstaff/allocation-waiting${examIdQuery}" class="allocation-overview-card allocation-overview-card--waiting">
+    <a href="${ctx}/examstaff/allocation-waiting${examIdQuery}" class="allocation-overview-card allocation-overview-card--waiting">
         <span class="allocation-overview-card__label">Phòng chờ chính</span>
         <span class="allocation-overview-card__count">${counts.waiting}</span>
         <span class="allocation-overview-card__hint">Chờ thủ tục / thu lệ phí</span>
     </a>
-    <a href="${ctx}/views/staff/examstaff/allocation-theory${examIdQuery}" class="allocation-overview-card allocation-overview-card--theory">
+    <a href="${ctx}/examstaff/allocation-theory${examIdQuery}" class="allocation-overview-card allocation-overview-card--theory">
         <span class="allocation-overview-card__label">Phòng thi lý thuyết</span>
         <span class="allocation-overview-card__count">${counts.theory}</span>
         <span class="allocation-overview-card__hint">Hoàn tất hồ sơ, chờ thi LT</span>
     </a>
-    <a href="${ctx}/views/staff/examstaff/allocation-practical${examIdQuery}" class="allocation-overview-card allocation-overview-card--practical">
+    <a href="${ctx}/examstaff/allocation-practical${examIdQuery}" class="allocation-overview-card allocation-overview-card--practical">
         <span class="allocation-overview-card__label">Thực hành / Sa hình</span>
         <span class="allocation-overview-card__count">${counts.practical}</span>
         <span class="allocation-overview-card__hint">Đạt LT, chờ TH/SH</span>
     </a>
-    <a href="${ctx}/views/staff/examstaff/allocation-results-pass${examIdQuery}" class="allocation-overview-card allocation-overview-card--pass">
+    <a href="${ctx}/examstaff/allocation-results-pass${examIdQuery}" class="allocation-overview-card allocation-overview-card--pass">
         <span class="allocation-overview-card__label">Đỗ sát hạch</span>
         <span class="allocation-overview-card__count">${counts.passCount}</span>
         <span class="allocation-overview-card__hint">Hoàn thành ca · cấp GPLX</span>
     </a>
-    <a href="${ctx}/views/staff/examstaff/allocation-results-fail${examIdQuery}" class="allocation-overview-card allocation-overview-card--fail">
+    <a href="${ctx}/examstaff/allocation-results-fail${examIdQuery}" class="allocation-overview-card allocation-overview-card--fail">
         <span class="allocation-overview-card__label">Trượt / vắng</span>
         <span class="allocation-overview-card__count">${counts.failCount}</span>
         <span class="allocation-overview-card__hint">Kết thúc ca</span>
     </a>
-    <a href="${ctx}/views/staff/examstaff/allocation-results-suspended${examIdQuery}" class="allocation-overview-card allocation-overview-card--fail">
+    <a href="${ctx}/examstaff/allocation-results-suspended${examIdQuery}" class="allocation-overview-card allocation-overview-card--fail">
         <span class="allocation-overview-card__label">Đình chỉ</span>
         <span class="allocation-overview-card__count">${counts.suspendedCount}</span>
         <span class="allocation-overview-card__hint">Bị loại khỏi kỳ thi</span>
@@ -87,7 +87,7 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="${stageUrl}" class="allocation-overview-search__link">Mở phần</a>
+                                <a href="${stageUrl}" class="allocation-table-action">Mở phần</a>
                             </td>
                         </tr>
                     </c:forEach>
@@ -106,7 +106,7 @@
 
 <p class="allocation-overview-footnote">
     Chọn thẻ hoặc mục <strong>Phân bổ thí sinh</strong> trên sidebar để mở từng trang chi tiết.
-    Dùng ô tìm kiếm phía trên để tra SBD / họ tên / CCCD và xem thí sinh đang ở phần nào.
+    Dùng ô tìm kiếm phía trên để tra SBD / họ tên / căn cước và xem thí sinh đang ở phần nào.
 </p>
 
 <jsp:include page="/views/staff/examstaff/includes/allocation-layout-foot.jsp" />

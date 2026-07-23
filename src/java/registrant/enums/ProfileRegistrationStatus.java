@@ -14,10 +14,11 @@ public final class ProfileRegistrationStatus {
     private ProfileRegistrationStatus() {
     }
 
-    /** Mệnh đề SQL IN cho các trạng thái workflow tài liệu trên ExamRegistration. */
+    /** Mệnh đề SQL IN — hỗ trợ cả mã EN (portal) và VN (DML seed). */
     public static final String SQL_IN_WORKFLOW =
-            "N'Draft', N'Pending', N'Approved', N'Rejected'";
+            "N'Draft', N'Pending', N'Approved', N'Rejected', N'Chờ duyệt', N'Duyệt', N'Loại'";
 
+    /** True nếu status thuộc workflow hồ sơ tài liệu (Draft/Pending/…). */
     public static boolean isDocumentWorkflowStatus(String status) {
         if (status == null || status.isBlank()) {
             return false;
@@ -26,9 +27,13 @@ public final class ProfileRegistrationStatus {
         return DRAFT.equalsIgnoreCase(s)
                 || PENDING.equalsIgnoreCase(s)
                 || APPROVED.equalsIgnoreCase(s)
-                || REJECTED.equalsIgnoreCase(s);
+                || REJECTED.equalsIgnoreCase(s)
+                || "Chờ duyệt".equalsIgnoreCase(s)
+                || "Duyệt".equalsIgnoreCase(s)
+                || "Loại".equalsIgnoreCase(s);
     }
 
+    /** Đổi mã RegistrationStatus sang nhãn tiếng Việt trên UI. */
     public static String toDisplayLabel(String status) {
         if (status == null || status.isBlank()) {
             return "Chưa có hồ sơ";
@@ -37,11 +42,12 @@ public final class ProfileRegistrationStatus {
             case DRAFT -> "Đang bổ sung hồ sơ";
             case PENDING -> "Chờ ban quản lý duyệt";
             case APPROVED -> "Đã duyệt hồ sơ";
-            case REJECTED -> "Bị từ chối — cần bổ sung";
+            case REJECTED -> "Bị từ chối - cần bổ sung";
             default -> status.trim();
         };
     }
 
+    /** CSS class badge theo trạng thái duyệt hồ sơ. */
     public static String toBadgeClass(String status) {
         if (status == null || status.isBlank()) {
             return "gray";
