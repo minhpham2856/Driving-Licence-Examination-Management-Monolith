@@ -10,7 +10,25 @@ import shared.enums.ExamStaffMessage;
 
 import java.util.List;
 
-/** Implementation: resolve / đồng bộ lựa chọn kỳ thi cho trang Exam Staff. */
+/**
+ * Resolve và đồng bộ lựa chọn kỳ thi cho mọi trang Exam Staff.
+ * <p>
+ * Wrap {@link ExamStaffPageServiceImpl}; xử lý ưu tiên URL → session selected → default,
+ * cờ clear cache/procedure khi đổi kỳ. Trả {@link examstaff.dto.ExamTransitionResultDTO}
+ * hoặc {@link examstaff.dto.ServiceResult} cho endpoint select-exam.
+ *
+ * Thứ tự ưu tiên examId:
+ * - {@code urlExamId} từ request
+ * - {@code selectedExamId} từ session
+ * - {@code defaultExamId} / tham số chuỗi {@code examIdParam}
+ * - Kỳ đầu tiên trong {@code allExams} ({@link ExamStaffPageServiceImpl#resolveDefaultExamId})
+ *
+ * Chuyển trang / đổi kỳ:
+ * - {@link #preparePageTransition} — set {@code persistSelection}, clear candidate cache
+ *       khi {@code loadedExamId} ≠ URL; clear procedure state khi đổi kỳ thật
+ * - {@link #processSelection} — endpoint POST select-exam; validate URL khớp list kỳ
+ * - {@link #syncExamSelection} — giữ {@code currentExamId} nếu còn hợp lệ trong ngữ cảnh ngày
+ */
 public class ExamStaffSelectionServiceImpl {
 
     private final ExamStaffPageServiceImpl pageService;
@@ -27,7 +45,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Giải mã kỳ thi cần chọn từ dữ liệu đầu vào (URL, session, danh sách).
-     *
      * @param input dữ liệu resolve lựa chọn kỳ thi
      * @return mã kỳ thi đã chọn, hoặc 0/sentinel nếu không hợp lệ
      */
@@ -68,7 +85,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Đảm bảo có mã kỳ thi hợp lệ; chọn mặc định nếu đầu vào thiếu/không khớp.
-     *
      * @param input dữ liệu resolve lựa chọn kỳ thi
      * @return mã kỳ thi chắc chắn dùng được trong ngữ cảnh hiện tại
      */
@@ -88,7 +104,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Chọn kỳ thi từ tham số URL trong danh sách kỳ có sẵn.
-     *
      * @param urlExamId mã kỳ trên URL
      * @param allExams  danh sách kỳ thi hiện có
      * @return mã kỳ hợp lệ, hoặc mặc định nếu URL không khớp
@@ -106,7 +121,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Đồng bộ trạng thái chọn kỳ thi (đổi kỳ / giữ kỳ hiện tại).
-     *
      * @param examId        mã kỳ muốn chọn
      * @param currentExamId mã kỳ đang chọn (có thể null)
      * @param allExams      danh sách kỳ thi
@@ -137,7 +151,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Chuẩn bị chuyển trang theo ngữ cảnh chọn kỳ và hàng đợi.
-     *
      * @param input dữ liệu chuyển trang
      * @return trạng thái trang sau khi chuẩn bị chuyển
      */
@@ -176,7 +189,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Xác định kỳ thi đang active giữa URL, lựa chọn session và runtime.
-     *
      * @param urlExamId            mã kỳ trên URL
      * @param selectedExamId       mã kỳ đã chọn (có thể null)
      * @param runtimeActiveExamId  mã kỳ active runtime (có thể null)
@@ -198,7 +210,6 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Xử lý yêu cầu chọn kỳ thi (endpoint select-exam).
-     *
      * @param request thông tin chọn kỳ từ URL/session ({@link ExamStaffPageCommand})
      * @return kết quả chọn kỳ và cờ clear cache khi đổi kỳ
      */

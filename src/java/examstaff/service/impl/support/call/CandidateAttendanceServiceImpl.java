@@ -7,14 +7,28 @@ import examstaff.dto.ExamRegistrationDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Implementation: đánh dấu / khôi phục vắng mặt thí sinh. */
+/**
+ * Xử lý điểm danh thí sinh: đánh vắng, đình chỉ, khôi phục và đóng ca.
+ * <p>
+ * Ghi DB qua {@link examstaff.service.RegistrationService}; được gọi từ
+ * {@link CandidateCallWorkflowServiceImpl} (action vắng / undo / đóng ca).
+ * Không gọi trực tiếp từ servlet.
+ *
+ * Các thao tác:
+ * - {@link #markPermanentAbsent} — fail điểm → đình chỉ → đánh vắng cố định
+ * - {@link #restoreAbsentCandidate} — undo suspension + clear absent, reset điểm in-memory
+ * - {@link #markIncompleteAsAbsentAtEndShift} — khi đóng ca: vắng thí sinh chưa xong thủ tục
+ *
+ * Luồng gọi:
+ * {@code permanentAbsent} / {@code endShift} trên trang gọi → workflow → attendance service →
+ * {@code RegistrationService} mutate DB + cập nhật DTO trong hàng đợi session.
+ */
 public class CandidateAttendanceServiceImpl {
 
     private final RegistrationService registrationService = new RegistrationServiceImpl();
 
     /**
      * Đánh dấu vắng mặt cố định (permanent absent) cho thí sinh.
-     *
      * @param candidateId mã đăng ký thí sinh
      * @return true nếu đánh dấu thành công
      */
@@ -27,7 +41,6 @@ public class CandidateAttendanceServiceImpl {
 
     /**
      * Khôi phục thí sinh đã bị đánh vắng về trạng thái có thể gọi lại.
-     *
      * @param profile hồ sơ thí sinh
      * @return true nếu khôi phục thành công
      */
@@ -50,7 +63,6 @@ public class CandidateAttendanceServiceImpl {
 
     /**
      * Khi kết thúc ca: đánh vắng các thí sinh còn dở trong hàng đợi active.
-     *
      * @param activeQueue hàng đợi còn pending khi đóng ca
      * @return danh sách đã được đánh vắng
      */

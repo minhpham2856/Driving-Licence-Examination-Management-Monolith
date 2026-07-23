@@ -5,7 +5,30 @@ import examstaff.dto.ExamRegistrationDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Quy tắc hàng đợi gọi thí sinh - không phụ thuộc HTTP. */
+/**
+ * Luật nghiệp vụ thuần (pure) cho hàng đợi gọi thí sinh.
+ * <p>
+ * <b>Không</b> gọi DAO / SQL / HTTP — chỉ nhận {@link ExamRegistrationDTO} list + tham số,
+ * trả kết quả lọc / resolve SBD / reorder. {@link CallBoardRules} và
+ * {@link CandidateQueueServiceImpl} ủy quyền các thao tác hàng đợi xuống đây.
+ *
+ * Điều kiện "còn gọi được" ({@link #isCallablePending}):
+ * - Chưa đánh vắng ({@code absent})
+ * - Chưa bị đình chỉ ({@code suspended})
+ * - Chưa hoàn tất thủ tục ({@code procedureComplete})
+ *
+ * Các thao tác chính:
+ * - {@link #resolveNextCallingSbd} — SBD pending kế sau mốc (không wrap nếu đã hết hàng)
+ * - {@link #applyQueueOrder} — sắp lại hàng theo thứ tự SBD lưu trên CallBoard/session
+ * - {@link #listWaitingTop} — top N chờ cho Public Call waiting list
+ * - {@link #extractSbdOrder} — trích thứ tự SBD để sync lên {@link examstaff.dto.CallBoardState}
+ * - {@link #listSuspendedInExam} — lọc đình chỉ trong kỳ
+ *
+ * Quan hệ với CallBoard:
+ * {@link CallBoardRules#syncBoard} dùng {@link #resolveNextCallingSbd} và {@link #extractSbdOrder}
+ * để cache {@code nextSbd} + {@code queueOrderSbds}; nguồn thật vẫn là DB qua
+ * {@link CandidateQueueQueryServiceImpl}.
+ */
 public final class CallQueueRules {
 
     /** Utility class — không khởi tạo. */
@@ -14,7 +37,6 @@ public final class CallQueueRules {
 
     /**
      * Thí sinh còn trong hàng đợi gọi được: chưa vắng, chưa đình chỉ, chưa xong thủ tục.
-     *
      * @param c thí sinh đăng ký
      * @return true nếu còn gọi được
      */
@@ -27,7 +49,6 @@ public final class CallQueueRules {
 
     /**
      * Tìm thí sinh theo SBD trong hàng đợi.
-     *
      * @param queue hàng đợi
      * @param sbd   số báo danh
      * @return DTO khớp hoặc null
@@ -47,7 +68,6 @@ public final class CallQueueRules {
 
     /**
      * Lấy SBD pending tiếp theo sau {@code afterSbd} (không wrap về đầu nếu đã hết hàng).
-     *
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD mốc (null = lấy người đầu pending)
      * @return SBD kế tiếp hoặc null
@@ -90,7 +110,6 @@ public final class CallQueueRules {
 
     /**
      * Sắp lại hàng đợi theo danh sách thứ tự SBD (SBD không có trong order nằm cuối).
-     *
      * @param queue     hàng đợi gốc
      * @param orderSbds thứ tự SBD mong muốn
      * @return hàng đợi đã reorder
@@ -121,7 +140,6 @@ public final class CallQueueRules {
 
     /**
      * Lấy tối đa {@code limit} thí sinh pending đầu hàng (dùng Public Call waiting list).
-     *
      * @param queue hàng đợi
      * @param limit số phần tử tối đa
      * @return danh sách chờ (có thể rỗng)
@@ -144,7 +162,6 @@ public final class CallQueueRules {
 
     /**
      * Trích thứ tự SBD hiện tại của hàng đợi để lưu lên CallBoard.
-     *
      * @param queue hàng đợi
      * @return danh sách SBD theo thứ tự
      */
@@ -163,7 +180,6 @@ public final class CallQueueRules {
 
     /**
      * Lọc thí sinh bị đình chỉ trong hàng đợi kỳ thi.
-     *
      * @param queue hàng đợi
      * @return danh sách suspended
      */

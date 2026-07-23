@@ -10,12 +10,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Implementation: dựng view phân bổ theo giai đoạn (LT / TH / tổng quan). */
+/**
+ * Dựng view phân bổ theo giai đoạn (LT / TH / tổng quan / results).
+ *
+ * Cách hoạt động:
+ * Nhận list {@link ExamRegistrationDTO} đã load từ DB →
+ * {@link AllocationStageHelper} lọc theo stage/result → search/sort/paging →
+ * {@link AllocationStageViewDTO} (kèm {@link AllocationStageHelper.StageCounts} cho tab).
+ * Không gọi JDBC; chỉ biến đổi in-memory cho JSP.
+ */
 public class AllocationStageViewServiceImpl {
 
     /**
      * Ghép danh sách thí sinh phân phòng theo stage, bộ lọc và sắp xếp.
-     *
      * @param candidates   danh sách nguồn
      * @param stage        giai đoạn (ví dụ lý thuyết / thực hành / overview)
      * @param resultFilter lọc kết quả đỗ/trượt (có thể rỗng; dùng khi stage = results)
@@ -76,7 +83,6 @@ public class AllocationStageViewServiceImpl {
 
     /**
      * Kết quả tìm kiếm nhanh trên stage tổng quan (gắn nhãn stage hiện tại của từng thí sinh).
-     *
      * @param candidates        danh sách nguồn
      * @param practicalStageIds id thí sinh đang stage thực hành
      * @param stage             stage hiện tại (chỉ xử lý khi overview)

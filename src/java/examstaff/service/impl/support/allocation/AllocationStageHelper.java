@@ -9,7 +9,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/** Stage / filter / phân trang danh sách phân bổ thí sinh. */
+/**
+ * Stage / filter / phân trang danh sách phân bổ thí sinh — logic thuần, không JDBC.
+ *
+ * Vai trò:
+ * Biết “thí sinh đang ở stage nào” (waiting / theory / practical / results) và
+ *
+ * đếm số lượng từng bucket cho tab UI. Servlet/service gọi helper này để:
+ * - Map servlet path → stage + resultFilter + đường dẫn JSP
+ * - Lọc list {@link ExamRegistrationDTO} theo stage
+ * - Phân trang / encode query khi redirect PRG
+ *
+ * Hằng stage:
+ * {@link #STAGE_OVERVIEW}, {@link #STAGE_WAITING}, {@link #STAGE_THEORY},
+ * {@link #STAGE_PRACTICAL}, {@link #STAGE_RESULTS}; kết quả
+ * {@link #RESULT_PASS} / {@link #RESULT_FAIL} / {@link #RESULT_SUSPENDED}.
+ * <p>Quy tắc “đã phân phòng LT chưa?” dựa field allocation trên DTO
+ * (từ {@code Db2CandidateSql} + section LT/TH), không query SQL tại đây.
+ */
 public final class AllocationStageHelper {
 
     public static final String STAGE_OVERVIEW = "overview";
@@ -125,7 +142,6 @@ public final class AllocationStageHelper {
 
     /**
      * Suy stage từ đuôi servlet path.
-     *
      * @param servletPath đường dẫn request
      * @return hằng STAGE_*
      */
@@ -152,7 +168,6 @@ public final class AllocationStageHelper {
 
     /**
      * Suy filter kết quả (pass/fail/suspended) từ path trang kết quả.
-     *
      * @param servletPath đường dẫn request
      * @return hằng RESULT_* (mặc định pass)
      */
@@ -171,7 +186,6 @@ public final class AllocationStageHelper {
 
     /**
      * Map servlet path → đường dẫn JSP tương ứng.
-     *
      * @param servletPath đường dẫn request
      * @return path JSP dưới {@code /views/staff/examstaff/}
      */
@@ -202,7 +216,6 @@ public final class AllocationStageHelper {
 
     /**
      * Xây chuỗi query phụ (page/size/q/examId/sort/dir/areaFilter) — bắt đầu bằng {@code &}.
-     *
      * @param page         trang hiện tại
      * @param pageSize     kích thước trang
      * @param searchQuery  từ khóa tìm
@@ -243,7 +256,6 @@ public final class AllocationStageHelper {
 
     /**
      * Parse filter phòng: {@code null}/0 = tất cả; âm = chưa phân phòng/sân; dương = ExamAreaId.
-     *
      * @param raw giá trị thô ({@code none}/{@code unassigned}/số)
      * @return Integer filter hoặc {@code null}
      */
@@ -265,7 +277,6 @@ public final class AllocationStageHelper {
 
     /**
      * Lọc theo phòng đã phân (LT hoặc TH tùy {@code practical}).
-     *
      * @param list         danh sách nguồn
      * @param areaFilterId filter (null/0 = giữ nguyên; &lt;0 = chưa gán; &gt;0 = đúng areaId)
      * @param practical    {@code true} dùng practicalAllocatedAreaId
@@ -299,7 +310,6 @@ public final class AllocationStageHelper {
 
     /**
      * Suy servlet path từ action form (allocateRoom / allocatePracticalRoom).
-     *
      * @param action tên action
      * @return path tương ứng
      */
@@ -316,7 +326,6 @@ public final class AllocationStageHelper {
 
     /**
      * Parse số trang (≥ 1); lỗi → 1.
-     *
      * @param raw chuỗi trang
      * @return số trang
      */
@@ -333,7 +342,6 @@ public final class AllocationStageHelper {
 
     /**
      * Parse page size (10…{@link #MAX_PAGE_SIZE}); lỗi → {@link #DEFAULT_PAGE_SIZE}.
-     *
      * @param raw chuỗi size
      * @return kích thước trang
      */
@@ -354,7 +362,6 @@ public final class AllocationStageHelper {
 
     /**
      * Đếm thí sinh theo từng stage trên toàn danh sách.
-     *
      * @param all               danh sách đầy đủ
      * @param practicalStageIds id thí sinh đang stage thực hành
      * @return {@link StageCounts}
@@ -393,7 +400,6 @@ public final class AllocationStageHelper {
 
     /**
      * Thí sinh có thuộc stage (+ optional resultFilter) hay không.
-     *
      * @param c                 hồ sơ
      * @param stage             STAGE_*
      * @param practicalStageIds id đang TH
@@ -434,7 +440,6 @@ public final class AllocationStageHelper {
 
     /**
      * Lọc danh sách theo stage.
-     *
      * @param all               nguồn
      * @param stage             STAGE_*
      * @param practicalStageIds id đang TH
@@ -457,7 +462,6 @@ public final class AllocationStageHelper {
 
     /**
      * Lọc theo từ khóa (SBD / tên / CCCD / SĐT / hạng).
-     *
      * @param list  nguồn
      * @param query từ khóa (blank → giữ nguyên)
      * @return danh sách khớp
@@ -484,7 +488,6 @@ public final class AllocationStageHelper {
     /**
      * Xác định phần hiện tại của thí sinh (ưu tiên kết quả -&gt; sa hình -&gt; LT -&gt; chờ).
      * Trả về key: waiting | theory | practical | results-pass | results-fail | results-suspended | unknown.
-     *
      * @param c                 hồ sơ
      * @param practicalStageIds id đang TH
      * @return stage key
@@ -518,7 +521,6 @@ public final class AllocationStageHelper {
 
     /**
      * Nhãn tiếng Việt cho stage key.
-     *
      * @param stageKey key stage
      * @return nhãn hiển thị
      */
@@ -539,7 +541,6 @@ public final class AllocationStageHelper {
 
     /**
      * Servlet path tương ứng stage key.
-     *
      * @param stageKey key stage
      * @return path
      */
@@ -560,7 +561,6 @@ public final class AllocationStageHelper {
 
     /**
      * Cắt danh sách thành một trang; chỉnh page nếu vượt quá.
-     *
      * @param list     nguồn
      * @param page     trang yêu cầu
      * @param pageSize kích thước
@@ -586,7 +586,6 @@ public final class AllocationStageHelper {
 
     /**
      * Khớp từ khóa với các trường tìm kiếm của thí sinh.
-     *
      * @param c hồ sơ
      * @param q từ khóa đã lower-case
      * @return {@code true} nếu khớp
@@ -621,7 +620,6 @@ public final class AllocationStageHelper {
 
     /**
      * Trả về chuỗi nếu toàn chữ số; ngược lại {@code ""}.
-     *
      * @param q chuỗi nguồn
      * @return chỉ chữ số hoặc rỗng
      */
@@ -639,7 +637,6 @@ public final class AllocationStageHelper {
 
     /**
      * So khớp SBD dạng số (bằng / prefix / suffix).
-     *
      * @param sbd     số báo danh
      * @param qDigits từ khóa toàn số
      * @return {@code true} nếu khớp
@@ -666,7 +663,6 @@ public final class AllocationStageHelper {
 
     /**
      * Kiểm tra {@code value} chứa {@code q} (không phân biệt hoa thường).
-     *
      * @param value chuỗi nguồn
      * @param q     từ khóa đã lower-case
      * @return {@code true} nếu chứa
@@ -677,7 +673,6 @@ public final class AllocationStageHelper {
 
     /**
      * Chuẩn hóa cờ đạt: null/blank → {@code none}.
-     *
      * @param v giá trị thô
      * @return chuỗi đã trim hoặc {@code none}
      */
@@ -687,7 +682,6 @@ public final class AllocationStageHelper {
 
     /**
      * URL-encode UTF-8.
-     *
      * @param value chuỗi cần encode
      * @return chuỗi đã encode
      */

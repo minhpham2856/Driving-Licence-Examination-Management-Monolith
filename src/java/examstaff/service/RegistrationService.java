@@ -5,12 +5,22 @@ import examstaff.dto.ExamRegistrationDTO;
 import java.sql.Date;
 import java.util.List;
 
-/** Alias/wrap đăng ký thí sinh kỳ thi. */
+/**
+ * Facade CRUD đăng ký thí sinh kỳ thi — lớp service mỏng trên {@code ExamRegistrationDAO}.
+ *
+ * Phân tách với hàng đợi UI:
+ * - <b>Workflow / mutate</b> — {@code getById}, {@code getCandidatesByExam},
+ *       {@code updatePresent}, {@code updatePayment}, {@code updateAllocatedRoom},
+ *       điểm, ảnh, vắng mặt, đình chỉ…
+ * - <b>UI hàng đợi staff</b> — dùng {@link StaffCallService#listQueueByExamId}
+ *       (View DAO, tối ưu cho màn gọi số); <b>không</b> dùng {@code getCandidatesByExam}
+ * Các facade khác ({@link ProcedureService}, {@link AllocationService}) inject service này
+ * khi cần ghi entity đầy đủ xuống DB.
+ */
 public interface RegistrationService {
 
     /**
      * Lấy đăng ký theo mã thí sinh.
-     *
      * @param id mã thí sinh
      * @return DTO hoặc {@code null}
      */
@@ -18,7 +28,6 @@ public interface RegistrationService {
 
     /**
      * Lấy thí sinh theo kỳ thi và số báo danh.
-     *
      * @param examId mã kỳ thi
      * @param sbd    số báo danh
      * @return DTO hoặc {@code null}
@@ -27,7 +36,6 @@ public interface RegistrationService {
 
     /**
      * Danh sách thí sinh theo kỳ thi (entity đầy đủ cho workflow).
-     *
      * @param examId mã kỳ thi
      * @return danh sách đăng ký
      */
@@ -35,7 +43,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật cờ có mặt.
-     *
      * @param id        mã thí sinh
      * @param isPresent có mặt hay không
      * @return {@code true} nếu thành công
@@ -44,7 +51,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật / ghi nhận thanh toán hoàn tất.
-     *
      * @param id                 mã thí sinh
      * @param isPaymentCompleted đã thanh toán hay không
      * @return {@code true} nếu thành công
@@ -53,7 +59,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật phòng phân bổ lý thuyết.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @param areaId      mã khu vực
@@ -64,7 +69,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật sân/phòng phân bổ thực hành.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @param areaId      mã khu vực
@@ -75,7 +79,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật điểm lý thuyết và/hoặc thực hành.
-     *
      * @param id              mã thí sinh
      * @param theoryScore     điểm LT ({@code null} = bỏ qua)
      * @param theoryPassed    cờ kết quả LT
@@ -88,7 +91,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật hồ sơ cơ bản thí sinh.
-     *
      * @param id       mã thí sinh
      * @param fullName họ tên
      * @param dob      ngày sinh
@@ -101,7 +103,6 @@ public interface RegistrationService {
 
     /**
      * Cập nhật đường dẫn ảnh thí sinh.
-     *
      * @param id       mã thí sinh
      * @param photoUrl URL/đường dẫn ảnh
      * @return {@code true} nếu thành công
@@ -110,7 +111,6 @@ public interface RegistrationService {
 
     /**
      * Xóa các giao dịch thanh toán đã hoàn tất.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -118,7 +118,6 @@ public interface RegistrationService {
 
     /**
      * Đánh dấu vắng mặt.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -126,7 +125,6 @@ public interface RegistrationService {
 
     /**
      * Hủy đánh dấu vắng mặt.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -134,7 +132,6 @@ public interface RegistrationService {
 
     /**
      * Đánh dấu đình chỉ thi.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -142,7 +139,6 @@ public interface RegistrationService {
 
     /**
      * Hủy đình chỉ thi.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */

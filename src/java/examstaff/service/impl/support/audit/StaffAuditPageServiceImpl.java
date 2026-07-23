@@ -10,7 +10,22 @@ import examstaff.util.AuditFilterHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Implementation: dựng view trang nhật ký audit (phân trang + KPI). */
+/**
+ * Dựng view trang nhật ký audit cá nhân — phân trang, KPI thủ tục và nhãn tiếng Việt.
+ * <p>
+ * Orchestrate {@link StaffAuditQueryServiceImpl}; không gọi DAO trực tiếp.
+ * Trả {@link examstaff.dto.StaffAuditPageViewDTO} cho {@code AuditServlet}.
+ *
+ * Luồng buildPage:
+ * - Chuẩn hóa {@code filterKey} qua {@code AuditFilterHelper}; reset page=1 nếu filter đổi
+ * - Đếm tổng dòng → tính {@code totalPages}, clamp page hiện tại
+ * - Tải slice audit phân trang; gắn nhãn VI ({@code ExamStaffLabels})
+ * - Tải {@link examstaff.dto.StaffProcedureKpiDTO} (hoàn tất thủ tục, tổng phí)
+ * - Đóng gói {@code PageSlice} qua {@code AllocationStageHelper}
+ *
+ * Phụ thuộc:
+ * Inject {@link StaffAuditQueryServiceImpl} từ composition root; constructor mặc định tạo instance mới.
+ */
 public class StaffAuditPageServiceImpl {
 
     private final StaffAuditQueryServiceImpl auditQueryService;
@@ -27,7 +42,6 @@ public class StaffAuditPageServiceImpl {
 
     /**
      * Xây dựng view trang audit theo lọc ngày và phân trang.
-     *
      * @param userId               mã nhân viên
      * @param filterDate           ngày lọc (chuỗi nghiệp vụ; có thể rỗng)
      * @param page                 trang hiện tại (1-based)
@@ -70,7 +84,6 @@ public class StaffAuditPageServiceImpl {
 
     /**
      * Tải logs theo user/ngày; lỗi thì list rỗng.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @param page       trang 1-based
@@ -88,7 +101,6 @@ public class StaffAuditPageServiceImpl {
 
     /**
      * Gắn nhãn tiếng Việt cho từng {@link AuditDTO}.
-     *
      * @param logs danh sách audit (có thể null)
      */
     private static void applyVietnameseLabels(List<AuditDTO> logs) {

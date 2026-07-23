@@ -15,7 +15,16 @@ import java.util.Map;
 import examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl;
 import examstaff.service.impl.support.assign.ExaminerAllocationDeskServiceImpl;
 
-/** Facade phân công SHV: ủy quyền allocation + desk. */
+/**
+ * Implementation {@link ExaminerAssignService}: facade phân công SHV vào khu vực thi.
+ *
+ * Ủy quyền support services:
+ * - {@link ExaminerAllocationServiceImpl} — truy vấn kỳ/khu vực/SHV,
+ *       persistence slot ({@code assignExaminer(ExaminerSlotDTO)}, {@code removeAssignment})
+ * - {@link ExaminerAllocationDeskServiceImpl} — desk API validate + {@link ServiceResult}
+ *       ({@code buildAllocationView}, {@code assignExaminer(...)}, {@code removeExaminer})
+ * Desk service nhận reference allocation service để tái sử dụng query sau khi ghi.
+ */
 public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     private final ExaminerAllocationServiceImpl allocation;
@@ -29,7 +38,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Inject dependencies (test / composition).
-     *
      * @param allocation persistence / query phân công
      * @param desk       luồng desk API
      */
@@ -41,7 +49,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getExamById}.
-     *
      * @param examId mã kỳ thi
      * @return tóm tắt kỳ thi
      */
@@ -52,7 +59,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getAreaById}.
-     *
      * @param id mã khu vực
      * @return khu vực
      */
@@ -63,7 +69,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getActiveExaminers}.
-     *
      * @return danh sách SHV active
      */
     @Override
@@ -73,7 +78,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getAvailableAreasForExam}.
-     *
      * @param examId mã kỳ thi
      * @return khu vực khả dụng
      */
@@ -84,7 +88,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getAssignmentsByExamId}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách slot
      */
@@ -95,7 +98,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#assignExaminer}.
-     *
      * @param slot thông tin slot
      * @return {@code true} nếu thành công
      */
@@ -106,7 +108,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationServiceImpl#removeAssignment}.
-     *
      * @param slotKey khóa slot
      * @return {@code true} nếu thành công
      */
@@ -117,7 +118,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationDeskServiceImpl#buildAllocationView}.
-     *
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param allExams       danh sách kỳ
@@ -131,7 +131,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Ủy quyền sang {@link ExaminerAllocationDeskServiceImpl#buildExaminerMap}.
-     *
      * @return map userId → SHV
      */
     @Override
@@ -141,7 +140,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Phân công SHV qua desk rồi map kết quả → {@link ServiceResult}.
-     *
      * @param targetExamId   mã kỳ đích
      * @param areaId         mã khu vực
      * @param examinerUserId mã user SHV
@@ -164,7 +162,6 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
 
     /**
      * Gỡ SHV qua desk rồi map kết quả → {@link ServiceResult}.
-     *
      * @param slotKey khóa slot
      * @return kết quả gỡ phân công
      */

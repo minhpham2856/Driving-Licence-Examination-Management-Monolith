@@ -27,7 +27,24 @@ import payment.service.impl.SePayPaymentServiceImpl;
 import java.sql.Date;
 import java.util.List;
 
-/** Implementation: điều phối luồng thủ tục thí sinh (hồ sơ, ảnh, thu phí, reset). */
+/**
+ * Điều phối luồng thủ tục thí sinh tại bàn: hồ sơ → ảnh → thu phí → auto-allocate.
+ * <p>
+ * Consolidator {@code ProcedureService} ủy quyền xuống đây; không render JSP.
+ * Đồng bộ hàng đợi gọi qua {@link CandidateQueueServiceImpl} sau mỗi mutate hồ sơ.
+ *
+ * Bước nghiệp vụ:
+ * - {@link #findProfile} / {@link #prepareProfileForDesk} — mở bàn, đánh present, validate ảnh
+ * - {@link #saveProfile} / {@link #saveCapturedPhoto} — cập nhật hồ sơ và lưu ảnh base64
+ * - {@link #confirmPayment} — tiền mặt: preview phí → ghi Payment → complete procedure
+ * - {@link #startSePayCheckout} / {@link #finalizeAfterSePayPayment} — luồng SePay (IPN ghi Payment)
+ * - {@link #resetProcedure} — xóa tiến độ thủ tục để làm lại
+ *
+ * Phụ thuộc chéo subdomain:
+ * - {@link ProcedurePaymentServiceImpl} — preview + ghi Payment CASH
+ * - {@link examstaff.service.impl.support.view.CandidatePhotoServiceImpl} — resolve / ghi file ảnh
+ * - {@link examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl} — auto-allocate sau trả phí
+ */
 public class ProcedureWorkflowServiceImpl {
 
     private final RegistrationService regService;
@@ -76,7 +93,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Tìm hồ sơ thí sinh theo SBD trong kỳ thi / hàng đợi.
-     *
      * @param webRoot        thư mục gốc web để chuẩn hóa ảnh nếu cần
      * @param examId         mã kỳ thi ưu tiên
      * @param fallbackExamId mã kỳ thi dự phòng
@@ -106,7 +122,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Chuẩn bị hồ sơ để mở bàn thủ tục (làm giàu dữ liệu, kiểm tra điều kiện).
-     *
      * @param webRoot        thư mục gốc web
      * @param examId         mã kỳ thi ưu tiên
      * @param fallbackExamId mã kỳ thi dự phòng
@@ -153,7 +168,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Tải lại hồ sơ sau thao tác, đồng bộ với hàng đợi.
-     *
      * @param webRoot     thư mục gốc web
      * @param examId      mã kỳ thi
      * @param candidateId mã đăng ký thí sinh
@@ -182,7 +196,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Lưu thông tin hồ sơ cơ bản của thí sinh.
-     *
      * @param candidateId mã đăng ký thí sinh
      * @param fullName    họ tên
      * @param dob         ngày sinh
@@ -198,7 +211,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Chuẩn bị/đánh dấu chụp lại ảnh và trả hồ sơ cập nhật.
-     *
      * @param candidateId mã đăng ký thí sinh
      * @param webRoot     thư mục gốc web
      * @param examId      mã kỳ thi
@@ -215,7 +227,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Lưu ảnh vừa chụp (base64) vào hồ sơ / hàng đợi.
-     *
      * @param webRoot    thư mục gốc web
      * @param sbd        số báo danh
      * @param examId     mã kỳ thi
@@ -285,7 +296,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Xác nhận thanh toán thủ tục và cập nhật trạng thái liên quan.
-     *
      * @param profile  hồ sơ thí sinh
      * @param sbd      số báo danh
      * @param examId   mã kỳ thi
@@ -337,11 +347,9 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Luồng bàn thủ tục → payment module (không ghi Payment tại đây).
-     * <ol>
-     *   <li>Validate: hồ sơ, ảnh đã chụp, chưa trả phí, SePay đã cấu hình, có enrollment, có số tiền</li>
-     *   <li>Sinh invoice {@code DLEM-CHK-{candidateId}-{enrollmentId}-{ts}}</li>
-     *   <li>{@link SePayPaymentService#createCheckout} ký form + build HTML auto-submit</li>
-     * </ol>
+     * - Validate: hồ sơ, ảnh đã chụp, chưa trả phí, SePay đã cấu hình, có enrollment, có số tiền
+     * - Sinh invoice {@code DLEM-CHK-{candidateId}-{enrollmentId}-{ts}}
+     * - {@link SePayPaymentService#createCheckout} ký form + build HTML auto-submit
      * IPN ({@code /payment/sepay/ipn}) mới insert bảng Payment.
      */
     public SePayProcedureCheckoutDTO startSePayCheckout(ExamRegistrationDTO profile, String sbd,
@@ -501,7 +509,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Reset trạng thái thủ tục của thí sinh về bước đầu phù hợp nghiệp vụ.
-     *
      * @param sbd     số báo danh
      * @param examId  mã kỳ thi
      * @param webRoot thư mục gốc web
@@ -542,7 +549,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Xóa đánh dấu vắng sau khi thu phí thành công.
-     *
      * @param profile hồ sơ vừa thanh toán (sửa in-memory)
      */
     private void clearAbsentAfterPayment(ExamRegistrationDTO profile) {
@@ -556,7 +562,6 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Đồng bộ profile đã refresh vào list hàng đợi (thay phần tử cùng id).
-     *
      * @param qList     hàng đợi (có thể null)
      * @param refreshed hồ sơ mới
      */

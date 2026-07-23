@@ -7,14 +7,28 @@ import shared.model.Audit;
 
 import java.sql.Timestamp;
 
-/** Implementation: ghi audit log hành động cán bộ qua {@link AuditLogDAO}. */
+/**
+ * Ghi một dòng nhật ký audit khi cán bộ thực hiện hành động nghiệp vụ.
+ * <p>
+ * Wrap {@link AuditLogDAO#insert}; map action/details → entity và action chuẩn qua
+ * {@code AuditLogHelper}. Lỗi insert được nuốt (log stderr) — không làm fail luồng chính.
+ *
+ * Luồng ghi log:
+ * - {@link #resolveEntityName} — suy entity từ action/details; Payment → {@code Thanh toán}
+ * - {@link #normalizeAction} — chuẩn hóa mã hành động trước khi lưu
+ * - Dựng {@link shared.model.Audit}: entity, recordId, reason, userId (fallback 3), timestamp
+ * - Insert qua {@link AuditLogDAO}
+ *
+ * Điểm gọi điển hình:
+ * {@code ExaminerAllocationDeskServiceImpl} (ASSIGN/REMOVE Examiner), thủ tục, phân bổ, gọi số —
+ * consolidator hoặc desk truyền {@code userId}, {@code action}, {@code details}, {@code recordId}.
+ */
 public class StaffAuditLogServiceImpl {
 
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
 
     /**
      * Ghi một dòng audit cho thao tác của người dùng.
-     *
      * @param userId   mã người dùng thực hiện
      * @param action   mã/loại hành động
      * @param details  mô tả chi tiết
@@ -39,7 +53,6 @@ public class StaffAuditLogServiceImpl {
 
     /**
      * Map action/details thành tên entity audit hiển thị.
-     *
      * @param action  mã hành động
      * @param details mô tả chi tiết
      * @return nhãn entity (Payment → Thanh toán nếu khớp)
@@ -54,7 +67,6 @@ public class StaffAuditLogServiceImpl {
 
     /**
      * Chuẩn hóa chuỗi action trước khi lưu.
-     *
      * @param rawAct action thô
      * @return action đã chuẩn hoá
      */

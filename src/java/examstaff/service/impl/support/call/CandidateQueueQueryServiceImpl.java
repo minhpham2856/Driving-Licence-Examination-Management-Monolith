@@ -9,7 +9,20 @@ import examstaff.util.ExamStaffCandidateMapper;
 import java.util.List;
 
 /**
- * Đường chuẩn list thí sinh cho staff UI / CallBoard / Public Call (ExamStaffCandidateViewDAO).
+ * Đường đọc danh sách thí sinh kỳ thi cho UI gọi số / CallBoard / Public Call.
+ * <p>
+ * Wrap {@link ExamStaffCandidateViewDAO} + mapper; chuẩn hóa đường ảnh qua
+ * {@link examstaff.service.impl.support.view.CandidatePhotoServiceImpl}.
+ * Presentation không gọi DAO trực tiếp.
+ *
+ * API đọc:
+ * - {@link #listByExamId} — toàn bộ đăng ký một kỳ
+ * - {@link #findByExamIdAndSbd} — tra cứu theo SBD
+ * - {@link #normalizePhotoPaths} — chuẩn hóa {@code photoUrl} trên hàng đợi
+ *
+ * Luồng dữ liệu:
+ * DB view → {@link examstaff.util.ExamStaffCandidateMapper} → {@link ExamRegistrationDTO} →
+ * {@link CandidateQueueServiceImpl#refreshQueue} / Public Call poll.
  */
 public class CandidateQueueQueryServiceImpl {
 
@@ -18,7 +31,6 @@ public class CandidateQueueQueryServiceImpl {
 
     /**
      * Lấy danh sách đăng ký thí sinh của một kỳ thi.
-     *
      * @param examId mã kỳ thi
      * @return danh sách thí sinh trong hàng đợi kỳ
      */
@@ -28,7 +40,6 @@ public class CandidateQueueQueryServiceImpl {
 
     /**
      * Tìm thí sinh theo kỳ thi và số báo danh.
-     *
      * @param examId mã kỳ thi
      * @param sbd    số báo danh
      * @return hồ sơ khớp, hoặc null
@@ -39,7 +50,6 @@ public class CandidateQueueQueryServiceImpl {
 
     /**
      * Chuẩn hóa tham chiếu ảnh trên hàng đợi (đĩa data runtime).
-     *
      * @param queue hàng đợi thí sinh
      */
     public void normalizePhotoPaths(List<ExamRegistrationDTO> queue) {

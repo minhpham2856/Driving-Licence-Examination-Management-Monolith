@@ -13,7 +13,17 @@ import shared.model.ExamArea;
 import java.util.List;
 import java.util.Set;
 
-/** Implementation: điều phối auto-allocate và thao tác đổi phòng/sân cho thí sinh. */
+/**
+ * Điều phối auto-allocate và thao tác đổi phòng/sân cho một thí sinh.
+ *
+ * Hai lối vào:
+ * - {@link #autoAllocateOnOverview} — batch: overview/theory → auto LT;
+ *       overview/practical → auto TH (qua {@code ExaminerAllocationServiceImpl})
+ * - {@link #executeCandidateAction} — một thí sinh: {@code allocateRoom} (LT)
+ *       hoặc {@code allocatePracticalRoom} (TH) theo {@code areaId} form
+ * <p>Trước khi gán, kiểm tra phòng/sân đã có sát hạch viên ({@code ExaminerAssignmentRules}).
+ * Persist qua {@code RegistrationService} → {@code ExamEnrollmentSectionSupport}.
+ */
 public class AllocationActionServiceImpl {
 
     private final RegistrationService regService = new RegistrationServiceImpl();
@@ -22,7 +32,6 @@ public class AllocationActionServiceImpl {
 
     /**
      * Tự động phân phòng trên màn overview theo giai đoạn.
-     *
      * @param examId mã kỳ thi
      * @param stage  giai đoạn phân phòng (overview / theory / practical, …)
      * @return kết quả thao tác auto-allocate (tổng số đã phân)
@@ -54,7 +63,6 @@ public class AllocationActionServiceImpl {
 
     /**
      * Thực hiện một thao tác phân phòng trên một thí sinh (gán/đổi phòng LT hoặc sân TH).
-     *
      * @param request yêu cầu thao tác kèm ngữ cảnh (profile, action, areaId, …)
      * @return kết quả thao tác (alert / error / audit / redirect)
      */
@@ -86,7 +94,6 @@ public class AllocationActionServiceImpl {
 
     /**
      * Tìm thí sinh trong hàng đợi theo mã đăng ký và kỳ thi.
-     *
      * @param regId  mã đăng ký
      * @param examId mã kỳ thi (dùng khi queue không có)
      * @param queue  hàng đợi nguồn (ưu tiên tra trước)
@@ -114,7 +121,6 @@ public class AllocationActionServiceImpl {
 
     /**
      * Đổi / gán phòng lý thuyết cho thí sinh sau khi kiểm tra giám khảo đã phân công.
-     *
      * @param result  DTO kết quả (mutate)
      * @param request request gốc (areaId, …)
      * @param profile hồ sơ thí sinh (mutate khi thành công)
@@ -169,7 +175,6 @@ public class AllocationActionServiceImpl {
 
     /**
      * Đổi / gán sân thực hành cho thí sinh sau khi kiểm tra giám khảo đã phân công.
-     *
      * @param result  DTO kết quả (mutate)
      * @param request request gốc (areaId, …)
      * @param profile hồ sơ thí sinh (mutate khi thành công)

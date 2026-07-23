@@ -10,7 +10,21 @@ import shared.model.ExamArea;
 import java.util.List;
 import java.util.Set;
 
-/** Implementation: truy vấn khu vực thi đã có giám khảo phân công. */
+/**
+ * Truy vấn khu vực thi đã có sát hạch viên phân công — phục vụ dropdown phân phòng thí sinh.
+ * <p>
+ * Gọi {@link ExamAreaDAO} lấy phòng gắn kỳ; {@link ExaminerAssignmentDAO} lấy slot staffed;
+ * lọc qua {@link ExaminerAssignmentRules}. Được {@code AllocationServiceImpl} ủy quyền.
+ *
+ * API:
+ * - {@link #listStaffedTheoryRoomsForExam} — phòng LT gắn kỳ ∩ tập areaId đã có SHV
+ * - {@link #listStaffedPracticalAreasForExam} — sân TH tương tự
+ * - {@link #findById} — tra cứu một {@link shared.model.ExamArea}
+ *
+ * Quan hệ với assign:
+ * Chỉ trả khu vực đã staffed — cùng quy tắc {@code ExaminerAllocationServiceImpl} dùng
+ * trước auto-allocate; staff phải vào “Phân bổ sát hạch viên” trước khi phân phòng thí sinh.
+ */
 public class ExamAreaQueryServiceImpl {
 
     private final ExamAreaDAO examAreaDAO;
@@ -25,7 +39,6 @@ public class ExamAreaQueryServiceImpl {
 
     /**
      * Inject dependencies cho unit test / composition root.
-     *
      * @param examAreaDAO    DAO khu vực thi
      * @param assignmentDAO  DAO phân công sát hạch viên
      */
@@ -36,7 +49,6 @@ public class ExamAreaQueryServiceImpl {
 
     /**
      * Phòng LT gắn kỳ và đã có sát hạch viên — dùng dropdown phân phòng thí sinh.
-     *
      * @param examId mã kỳ thi
      * @return danh sách phòng LT đủ điều kiện (rỗng nếu examId không hợp lệ)
      */
@@ -55,7 +67,6 @@ public class ExamAreaQueryServiceImpl {
 
     /**
      * Sân/phòng TH gắn kỳ và đã có sát hạch viên.
-     *
      * @param examId mã kỳ thi
      * @return danh sách sân TH đủ điều kiện (rỗng nếu examId không hợp lệ)
      */
@@ -74,7 +85,6 @@ public class ExamAreaQueryServiceImpl {
 
     /**
      * Tìm khu vực thi theo mã.
-     *
      * @param examAreaId mã khu vực
      * @return khu vực, hoặc {@code null} nếu không có
      */

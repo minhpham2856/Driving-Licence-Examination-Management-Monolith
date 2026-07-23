@@ -17,8 +17,21 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Đọc phí/thanh toán dùng chung Procedure + Document report.
- * Presentation không gọi DAO trực tiếp.
+ * Đọc phí và thanh toán dùng chung bàn thủ tục + báo cáo tài liệu.
+ * <p>
+ * Wrap {@link examstaff.dao.FeeDAO} và {@link examstaff.dao.PaymentDAO};
+ * presentation không gọi DAO trực tiếp. Dùng bởi
+ * {@link ProcedurePaymentServiceImpl} và report consolidator.
+ *
+ * Resolve phí thủ tục ({@link #resolveProcedureFees}):
+ * - Ưu tiên dòng phí gắn {@link shared.model.Payment} hiện có
+ * - Fallback catalog theo mã hạng bằng ({@code licenseCode} / {@code clazz})
+ * - Lọc khoản phí theo cờ bỏ qua lý thuyết / thực hành trên hồ sơ
+ * - Tính tổng qua {@link examstaff.util.ProcedureFeeTotals}
+ *
+ * Báo cáo:
+ * {@link #findPaymentSummary} trả {@link examstaff.dto.ReportPaymentSummaryDTO}
+ * khi Payment đã hoàn tất — dùng cho dossier / document report.
  */
 public class ProcedureFeeQueryServiceImpl {
 
@@ -27,7 +40,6 @@ public class ProcedureFeeQueryServiceImpl {
 
     /**
      * Xác định các khoản phí thủ tục áp dụng cho hồ sơ.
-     *
      * @param profile hồ sơ đăng ký thí sinh
      * @return kết quả phí (khoản mục, tổng, …)
      */
@@ -72,7 +84,6 @@ public class ProcedureFeeQueryServiceImpl {
 
     /**
      * Tóm tắt thanh toán đã hoàn tất cho báo cáo kỳ thi.
-     *
      * @param candidateId mã đăng ký thí sinh
      * @return summary (có thể rỗng nếu chưa thanh toán)
      */
@@ -97,7 +108,6 @@ public class ProcedureFeeQueryServiceImpl {
 
     /**
      * Lọc khoản phí theo phần thi thí sinh bỏ qua (lý thuyết / thực hành).
-     *
      * @param profile  hồ sơ (cờ skipsTheory / skipsPractical)
      * @param feeLines danh sách phí gốc
      * @return danh sách đã lọc (không null)
@@ -127,7 +137,6 @@ public class ProcedureFeeQueryServiceImpl {
 
     /**
      * Bỏ dấu, chữ thường để so khớp tên phí.
-     *
      * @param value chuỗi gốc (có thể null)
      * @return chuỗi đã normalize
      */
@@ -143,7 +152,6 @@ public class ProcedureFeeQueryServiceImpl {
 
     /**
      * Kiểm tra haystack chứa bất kỳ needle nào.
-     *
      * @param haystack chuỗi đã normalize
      * @param needles  các mẫu cần tìm
      * @return true nếu chứa ít nhất một needle

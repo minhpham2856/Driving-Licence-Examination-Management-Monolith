@@ -8,7 +8,22 @@ import examstaff.dao.impl.AuditLogDAOImpl;
 import java.util.List;
 
 /**
- * Dispatch action gọi thí sinh (startCall, absent, pause, đóng ca…) sang handler tương ứng.
+ * Dispatch action gọi thí sinh sang handler nội bộ và trả {@link CandidateCallActionResultDTO}.
+ * <p>
+ * Không render view — chỉ mutate hàng đợi in-place, ghi audit CALL, set cờ cho
+ * {@link CandidateCallPageServiceImpl} (promote, reload, sync order, alert).
+ *
+ * Action được hỗ trợ:
+ * - {@code startCall} — bắt đầu ca, promote SBD pending đầu
+ * - {@code absent} / {@code moveToBottom} — đẩy cuối hàng + audit Absent
+ * - {@code permanentAbsent} — đình chỉ qua {@link CandidateAttendanceServiceImpl}
+ * - {@code undoAbsent} — khôi phục + đưa lên đầu hàng
+ * - {@code endShift} / {@code closeExam} — đóng ca, đánh vắng dở
+ * - {@code pauseShift} / {@code startShift} — tạm dừng / resume gọi
+ *
+ * Side-effect trả về:
+ * {@code callingSbd}, {@code promoteAfterSbd}, {@code reloadQueue}, {@code syncQueueOrder},
+ * {@code alertType/alertSbd}, {@code shiftPaused/shiftEnded} — page service đọc để sync board + session.
  */
 public class CandidateCallWorkflowServiceImpl {
 
@@ -26,7 +41,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Inject dependencies cho unit test / composition root.
-     *
      * @param queueService      thao tác hàng đợi
      * @param auditLogDAO       ghi audit CALL
      * @param attendanceService đánh vắng / đình chỉ / restore
@@ -41,7 +55,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Chạy một action gọi thí sinh và trả kết quả side-effect cho orchestrator trang.
-     *
      * @param action           mã action ({@code startCall}, {@code absent}, {@code pauseShift}…)
      * @param sbd              SBD liên quan (nếu có)
      * @param fullQueue        hàng đợi đầy đủ (có thể bị sửa thứ tự in-place)
@@ -97,7 +110,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Bắt đầu ca gọi: lấy SBD pending đầu hàng và promote.
-     *
      * @param result          kết quả action đang dựng
      * @param fullQueue       hàng đợi đầy đủ
      * @param activeQueue    hàng pending
@@ -113,7 +125,6 @@ public class CandidateCallWorkflowServiceImpl {
     /**
      * Vắng / đẩy xuống cuối hàng ({@code absent}, {@code moveToBottom}).
      * Ghi audit Absent rồi yêu cầu promote người kế.
-     *
      * @param result          kết quả action
      * @param sbd             SBD bị vắng
      * @param fullQueue       hàng đợi (sửa thứ tự in-place)
@@ -141,7 +152,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Đình chỉ thí sinh (permanent absent) và yêu cầu reload queue + promote.
-     *
      * @param result           kết quả action
      * @param sbd              SBD bị đình chỉ
      * @param fullQueue        hàng đợi
@@ -172,7 +182,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Hoàn tác vắng/đình chỉ, đưa SBD về đầu hàng đợi gọi.
-     *
      * @param result           kết quả action
      * @param sbd              SBD cần restore
      * @param fullQueue        hàng đợi
@@ -208,7 +217,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Đóng ca gọi: đánh vắng các pending còn lại, clear số đang gọi.
-     *
      * @param result           kết quả action
      * @param fullQueue        hàng đợi đầy đủ
      * @param permanentAbsents list nhận các thí sinh vừa đánh vắng
@@ -233,7 +241,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Tạm dừng ca gọi: clear calling, giữ queue, đánh dấu paused.
-     *
      * @param result    kết quả action
      * @param fullQueue hàng đợi đầy đủ
      */
@@ -248,7 +255,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Gắn callingSbd mới vào result và ghi audit Calling.
-     *
      * @param result          kết quả action
      * @param activeQueue     hàng pending
      * @param nextSbd         SBD promote (blank → clear)
@@ -266,7 +272,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Ghi nhận lượt gọi thí sinh (audit CALL) khi promote SBD lên số đang gọi.
-     *
      * @param activeQueue     hàng đợi còn pending
      * @param nextSbd         SBD được gọi
      * @param calledByStaffId userId staff
@@ -284,7 +289,6 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Map sang {@link CandidateCallDTO} rồi ghi qua {@link AuditLogDAO#insertCall}.
-     *
      * @param candidate       hồ sơ thí sinh
      * @param callResult      kết quả gọi ({@code Calling}, {@code Absent}, …)
      * @param calledByStaffId userId staff

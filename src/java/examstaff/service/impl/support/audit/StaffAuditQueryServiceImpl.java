@@ -8,14 +8,26 @@ import examstaff.dto.AuditDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Implementation: truy vấn audit log và KPI thủ tục qua {@link AuditLogDAO}. */
+/**
+ * Truy vấn nhật ký audit và KPI thủ tục qua {@link AuditLogDAO}.
+ * <p>
+ * Lớp đọc thuần — không format UI, không ghi log. Lỗi DAO trả list rỗng (stderr).
+ *
+ * API truy vấn:
+ * - {@link #countLogsByUserAndDate} — tổng dòng theo nhân viên + ngày lọc
+ * - {@link #listLogsByUserAndDatePaginated} — slice cho trang audit
+ * - {@link #listLogsByUserAndDate} — toàn bộ (dùng export Excel; blank date → null DAO)
+ * - {@link #getStaffProcedureKpi} — số thí sinh hoàn tất thủ tục, tổng lệ phí trong ngày
+ *
+ * Điểm gọi:
+ * {@link StaffAuditPageServiceImpl} (trang web) và {@code AuditExportServlet} (tải full list trước export).
+ */
 public class StaffAuditQueryServiceImpl {
 
     private final AuditLogDAO auditLogDAO = new AuditLogDAOImpl();
 
     /**
      * Đếm số dòng audit theo nhân viên và ngày.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return tổng số bản ghi
@@ -26,7 +38,6 @@ public class StaffAuditQueryServiceImpl {
 
     /**
      * Lấy audit theo nhân viên/ngày có phân trang.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @param page       trang hiện tại
@@ -45,7 +56,6 @@ public class StaffAuditQueryServiceImpl {
 
     /**
      * Lấy toàn bộ audit theo nhân viên và ngày (không phân trang).
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return danh sách audit
@@ -65,7 +75,6 @@ public class StaffAuditQueryServiceImpl {
 
     /**
      * Tính KPI thủ tục (số hoàn thành, tổng phí, …) của nhân viên trong ngày.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return KPI thủ tục
