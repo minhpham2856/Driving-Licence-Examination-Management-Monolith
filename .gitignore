@@ -26,3 +26,5 @@ priv
 
 !web/WEB-INF/others/sql/MIGRATE_EXAM_DATES_CANCELLATION.sql
 doc/
+/.codex-artifacts
+tools/_lines_out.txt
