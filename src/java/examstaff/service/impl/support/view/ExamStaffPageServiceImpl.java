@@ -14,7 +14,23 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-/** Implementation: dựng context / picker trang Exam Staff. */
+/**
+ * Dựng context trang Exam Staff — picker kỳ thi, resolve examId và refresh hàng đợi thí sinh.
+ * <p>
+ * Không xử lý HTTP/session trực tiếp; nhận {@link examstaff.dto.ExamStaffPageCommand}
+ * từ servlet binder. Orchestrate {@link ExamStaffExamQueryServiceImpl} và
+ * {@link CandidateQueueServiceImpl}.
+ *
+ * API chính:
+ * - {@link #listAllExams} / {@link #findExamById} / {@link #representativeExam} — tra cứu kỳ
+ * - {@link #buildPickerView} — sidebar option, kỳ hiện tại, {@code pickerCommittedExamId}
+ * - {@link #preparePageContext} — ghép examId + picker + candidates (cache hoặc refresh queue)
+ * - {@link #resolvePrimaryExamId} / {@link #resolveDefaultExamId} — fallback khi URL/session thiếu
+ *
+ * Refresh hàng đợi:
+ * Khi {@code input.isLoadCandidates()}, gọi {@code CandidateQueueService#refreshQueue};
+ * nếu không tải, trả cache session khi {@code loadedExamId} khớp {@code examId}.
+ */
 public class ExamStaffPageServiceImpl {
 
     private final ExamStaffExamQueryServiceImpl examQuery;
@@ -34,7 +50,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Lấy toàn bộ kỳ thi cho trang staff.
-     *
      * @return danh sách kỳ thi
      */
     public List<ExamSummaryDTO> listAllExams() {
@@ -43,7 +58,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Tìm kỳ thi trong danh sách đã tải.
-     *
      * @param examId   mã kỳ thi
      * @param allExams danh sách nguồn
      * @return kỳ thi khớp, hoặc null
@@ -69,7 +83,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Chọn kỳ đại diện (representative) trong nhóm cùng ngày / ngữ cảnh.
-     *
      * @param allExams danh sách kỳ
      * @param examId   mã kỳ tham chiếu
      * @return kỳ đại diện
@@ -94,7 +107,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Xác định mã kỳ chính để hiển thị / thao tác.
-     *
      * @param allExams danh sách kỳ
      * @param examId   mã kỳ tham chiếu
      * @return mã kỳ chính
@@ -105,7 +117,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Chọn mã kỳ mặc định khi chưa có lựa chọn.
-     *
      * @param allExams danh sách kỳ
      * @return mã kỳ mặc định, hoặc 0 nếu danh sách rỗng
      */
@@ -119,7 +130,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Xây dựng dữ liệu UI chọn kỳ thi (picker).
-     *
      * @param allExams  danh sách kỳ
      * @param examId    mã kỳ đang chọn
      * @param urlExamId mã kỳ từ URL
@@ -174,7 +184,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Chuẩn bị toàn bộ ngữ cảnh trang staff từ input.
-     *
      * @param input dữ liệu chuẩn bị trang
      * @return ngữ cảnh trang (kỳ thi, hàng đợi, …)
      */
@@ -222,7 +231,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Tải hoặc lấy cache hàng đợi thí sinh theo input trang.
-     *
      * @param input    lệnh trang (cờ load + cache)
      * @param examId   mã kỳ đang xem
      * @param allExams danh sách kỳ nguồn
@@ -253,7 +261,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Chọn examId từ URL / selected / tham số chuỗi / mặc định.
-     *
      * @param input    lệnh trang
      * @param allExams danh sách kỳ
      * @return mã kỳ hợp lệ, hoặc 0
@@ -279,7 +286,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Parse tham số examId dạng chuỗi.
-     *
      * @param examIdParam chuỗi từ request (có thể blank)
      * @return số dương, hoặc 0 nếu không hợp lệ
      */
@@ -297,7 +303,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Gom option kỳ thi (unique theo id) cho picker.
-     *
      * @param allExams danh sách nguồn
      * @return danh sách option không trùng key
      */
@@ -317,7 +322,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Khớp examId với option picker.
-     *
      * @param options danh sách option
      * @param examId  mã cần khớp
      * @return id option khớp, hoặc 0
@@ -336,7 +340,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Sắp xếp danh sách kỳ thi hiển thị sidebar.
-     *
      * @param options danh sách gốc
      * @return bản đã sắp theo quy tắc sidebar
      */
@@ -346,7 +349,6 @@ public class ExamStaffPageServiceImpl {
 
     /**
      * Option đầu tiên sau khi sort (để chọn kỳ mặc định).
-     *
      * @param allExams danh sách kỳ nguồn
      * @return option đầu, hoặc null nếu rỗng
      */

@@ -12,7 +12,16 @@ import java.util.List;
 import examstaff.service.impl.support.allocation.AllocationActionServiceImpl;
 import examstaff.service.impl.support.allocation.ExamAreaQueryServiceImpl;
 
-/** Facade phân phòng: ủy quyền action + query khu vực. */
+/**
+ * Implementation {@link AllocationService}: ủy quyền action phân phòng và truy vấn khu vực.
+ *
+ * Ủy quyền support services:
+ * - {@link AllocationActionServiceImpl} — {@code autoAllocateOnOverview},
+ *       {@code executeCandidateAction}, {@code findCandidate}
+ * - {@link ExamAreaQueryServiceImpl} — {@code listStaffedTheoryRoomsForExam},
+ *       {@code listStaffedPracticalAreasForExam}, {@code findAreaById}
+ * Action thành công bọc {@link ServiceResult#ok}; lỗi validation trả {@code ServiceResult.fail}.
+ */
 public class AllocationServiceImpl implements AllocationService {
 
     private final AllocationActionServiceImpl actions;
@@ -25,7 +34,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Inject dependencies (test / composition).
-     *
      * @param actions dịch vụ thao tác phân phòng
      * @param areas   truy vấn khu vực
      */
@@ -36,7 +44,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Ủy quyền auto-allocate rồi bọc {@link ServiceResult#ok}.
-     *
      * @param examId mã kỳ thi
      * @param stage  giai đoạn
      * @return kết quả phân bổ
@@ -51,7 +58,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Thực hiện thao tác thí sinh; lỗi trong DTO → {@link ServiceResult#fail}.
-     *
      * @param request yêu cầu thao tác
      * @return kết quả / lỗi validation
      */
@@ -70,7 +76,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Ủy quyền sang {@link AllocationActionServiceImpl#findCandidate}.
-     *
      * @param regId  mã đăng ký / thí sinh
      * @param examId mã kỳ thi
      * @param queue  hàng đợi
@@ -83,7 +88,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Ủy quyền sang {@link ExamAreaQueryServiceImpl#listStaffedTheoryRoomsForExam}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách phòng LT có SHV
      */
@@ -94,7 +98,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Ủy quyền sang {@link ExamAreaQueryServiceImpl#listStaffedPracticalAreasForExam}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách sân TH có SHV
      */
@@ -105,7 +108,6 @@ public class AllocationServiceImpl implements AllocationService {
 
     /**
      * Ủy quyền sang {@link ExamAreaQueryServiceImpl#findById}.
-     *
      * @param examAreaId mã khu vực
      * @return khu vực hoặc {@code null}
      */

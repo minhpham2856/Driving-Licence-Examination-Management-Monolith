@@ -8,7 +8,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
-/** Gộp nhiều dòng enrollment cùng thí sinh thành một bản ghi hiển thị. */
+/**
+ * Utility gộp nhiều dòng enrollment cùng thí sinh ({@code candidateId}) thành một
+ * {@link ExamRegistrationDTO} hiển thị — xử lý trùng lặp từ JOIN nhiều ca/phần thi.
+ *
+ * Vai trò trong luồng examstaff:
+ * Query JDBC đôi khi trả nhiều row/enrollment cho cùng thí sinh (nhiều ExamEnrollment, điểm LT/TH riêng).
+ * Trước khi bind dashboard, hàng đợi gọi hoặc public snapshot, BLL gọi {@link #deduplicateByCandidate}
+ * để staff chỉ thấy một hàng hợp nhất với cờ/điểm/ảnh/khu vực “đầy đủ” nhất.
+ *
+ * Cách hoạt động:
+ * - {@link #deduplicateByCandidate} — {@code LinkedHashMap} theo {@code id}; merge trùng;
+ *       sort theo {@code candidateNo}.
+ * - {@code merge} — chọn primary theo {@code rowPriority} (thanh toán, ảnh, điểm, phòng, trừ vắng/đình chỉ);
+ *       OR cờ trạng thái; gộp điểm với ưu tiên failed &gt; passed &gt; none.
+ *
+ * Ai gọi:
+ * {@code ExamRegistrationDAOImpl}, {@code CandidateQueueServiceImpl}, {@code StaffCallServiceImpl},
+ * {@code PublicCallSnapshotSupport}, {@code ExamStaffDashboardServiceImpl} — mọi list thí sinh từ DAO view.
+ */
 public final class ExamEnrollmentMerge {
 
     private ExamEnrollmentMerge() {
@@ -16,7 +34,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * Gộp theo candidate id, giữ giá trị “đầy đủ” hơn; sắp theo candidateNo.
-     *
      * @param raw danh sách gốc (có thể trùng id)
      * @return danh sách đã dedupe (không null)
      */
@@ -46,7 +63,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * Gộp hai dòng cùng thí sinh vào bản primary (mutate primary).
-     *
      * @param a dòng thứ nhất
      * @param b dòng thứ hai
      * @return bản ghi primary sau khi gộp cờ/điểm/ảnh/khu vực
@@ -100,7 +116,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * Chọn dòng ưu tiên theo điểm độ đầy đủ / trạng thái.
-     *
      * @param a dòng A
      * @param b dòng B
      * @return dòng có priority cao hơn (hòa → examId nhỏ hơn)
@@ -119,7 +134,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * Điểm ưu tiên để chọn bản ghi “tốt” hơn khi merge.
-     *
      * @param c hồ sơ đăng ký
      * @return điểm cộng/trừ theo thanh toán, ảnh, điểm, khu vực, vắng/đình chỉ
      */
@@ -151,7 +165,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * Gộp điểm + cờ đạt của một phần (LT hoặc TH).
-     *
      * @param primary   bản ghi đích (mutate)
      * @param secondary bản ghi nguồn
      * @param theory    {@code true} = lý thuyết, {@code false} = thực hành
@@ -175,7 +188,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * Ưu tiên failed &gt; passed &gt; none khi gộp cờ đạt.
-     *
      * @param a trạng thái A
      * @param b trạng thái B
      * @return trạng thái đã gộp
@@ -194,7 +206,6 @@ public final class ExamEnrollmentMerge {
 
     /**
      * null/blank → {@code none}, còn lại lower-case.
-     *
      * @param v chuỗi gốc
      * @return {@code none} hoặc chuỗi đã trim/lower
      */

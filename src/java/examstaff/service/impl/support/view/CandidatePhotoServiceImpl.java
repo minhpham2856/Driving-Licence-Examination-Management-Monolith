@@ -9,7 +9,23 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/** Implementation: chuẩn hoá / lưu / đọc ảnh chân dung (thư mục data runtime, không webRoot). */
+/**
+ * Chuẩn hoá, lưu và phát stream ảnh chân dung thí sinh (thư mục data runtime, không webRoot).
+ * <p>
+ * Dùng {@code CandidatePhotoFiles} cho path tuyệt đối / kiểm tra file tồn tại.
+ * Optional inject {@link CandidateQueueServiceImpl} để {@link #resolvePhoto} theo SBD.
+ *
+ * Thao tác chính:
+ * - {@link #normalizeQueue} / {@link #normalizePhotoPaths} — cập nhật cờ {@code validCapturedPhoto}
+ *       và path trên hàng đợi
+ * - {@link #resolveCapturedPhoto} — kiểm tra file ảnh thực tế trên disk
+ * - {@link #writePhotoFile} — ghi bytes ảnh mới sau chụp thủ tục
+ * - {@link #resolvePhoto} — trả {@link examstaff.dto.CandidatePhotoStreamDTO} để servlet stream HTTP
+ *
+ * Tránh vòng phụ thuộc:
+ * Constructor mặc định để {@code queueService = null} — composition root inject queue khi cần
+ * resolve theo SBD; dossier/report gọi normalize mà không cần queue.
+ */
 public class CandidatePhotoServiceImpl {
 
     private final CandidateQueueServiceImpl queueService;
@@ -28,7 +44,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Chuẩn hóa thông tin ảnh trên hàng đợi (đường dẫn + cờ còn file).
-     *
      * @param queue hàng đợi thí sinh
      */
     public void normalizeQueue(List<ExamRegistrationDTO> queue) {
@@ -42,7 +57,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Chuẩn hóa tham chiếu ảnh trên hàng đợi (resolve absolute path nếu có file).
-     *
      * @param queue hàng đợi thí sinh
      */
     public void normalizePhotoPaths(List<ExamRegistrationDTO> queue) {
@@ -51,7 +65,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Đã có bản ghi ảnh (photoUrl) hay chưa.
-     *
      * @param reg hồ sơ đăng ký
      * @return true nếu đã có photoUrl
      */
@@ -65,7 +78,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Gắn cờ ảnh đã chụp có file vật lý trên đĩa data.
-     *
      * @param reg hồ sơ đăng ký
      * @return true nếu tìm thấy file hợp lệ
      */
@@ -84,7 +96,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * File ảnh tồn tại trên đĩa data theo tham chiếu DB.
-     *
      * @param photoUrl {@code candidate-photos/...} / basename / legacy
      * @return true nếu file tồn tại
      */
@@ -94,7 +105,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Tìm file ảnh theo basename của tham chiếu DB.
-     *
      * @param photoUrl tham chiếu trên hồ sơ
      * @return file hoặc null
      */
@@ -104,7 +114,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Ghi bytes ảnh vào thư mục data runtime (Tomcat {@code dlem-data} / JVM).
-     *
      * @param fileName   basename
      * @param imageBytes dữ liệu ảnh
      * @throws IOException nếu ghi thất bại
@@ -115,7 +124,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Tham chiếu lưu DB: {@code candidate-photos/{fileName}}.
-     *
      * @param fileName tên file
      * @return tham chiếu logic
      */
@@ -125,7 +133,6 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * Tra cứu file ảnh để stream theo kỳ thi và SBD.
-     *
      * @param examId         mã kỳ ưu tiên
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh

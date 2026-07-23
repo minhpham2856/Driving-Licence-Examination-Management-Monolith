@@ -9,7 +9,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Implementation: dựng view dashboard Exam Staff (số giám khảo đã phân công). */
+/**
+ * Dựng view dashboard Exam Staff — tổng hợp số giám khảo đã phân công trong ngày.
+ * <p>
+ * Gom các phiên cùng ngày qua {@link ExamStaffExamQueryServiceImpl#listExamsForDay};
+ * đếm SHV unique từ slot {@link ExaminerAllocationServiceImpl#getAssignmentsByExamId}.
+ *
+ * Luồng buildView:
+ * - Lấy {@code dayExams} — mọi phiên thi cùng ngày với kỳ đang chọn
+ * - Duyệt slot từng phiên; gom {@code examinerUserId} vào {@code HashSet}
+ * - Ghi {@code assignedExaminerCount} vào {@link examstaff.dto.ExamStaffDashboardViewDTO}
+ *
+ * Điểm gọi:
+ * {@code DashboardServlet} qua {@code ExamStaffViewServiceImpl}.
+ */
 public class ExamStaffDashboardServiceImpl {
 
     private final ExamStaffExamQueryServiceImpl examQuery;
@@ -29,7 +42,6 @@ public class ExamStaffDashboardServiceImpl {
 
     /**
      * Ghép view dashboard theo kỳ thi đang chọn.
-     *
      * @param allExams danh sách kỳ thi
      * @param examId   mã kỳ đang xem
      * @return DTO dashboard

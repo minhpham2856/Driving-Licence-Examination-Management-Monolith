@@ -17,7 +17,16 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import shared.enums.ErrorType;
 
-/** Implementation: điều khiển bắt đầu / tạm dừng / kết thúc kỳ thi qua {@link ExamDAO}. */
+/**
+ * Implementation {@link ExamControlService}: điều khiển vòng đời kỳ thi qua {@link ExamDAO}.
+ *
+ * Luồng start / pause / resume / end:
+ * - <b>startExam</b> — validate lịch ({@link ExamScheduleRules}), đếm SHV phân công
+ *       ({@link ExaminerAssignmentRules}), cập nhật trạng thái kỳ qua {@link ExamDAO}
+ * - <b>pauseExam / resumeExam</b> — toggle cờ tạm dừng; giữ nguyên hàng đợi gọi số
+ * - <b>endExam</b> — đóng kỳ; SHV không thể đăng nhập kỳ này nữa
+ * Hằng {@link #CTX_ACTIVE_EXAM_ID} dùng để đồng bộ session servlet với kỳ đang active.
+ */
 public class ExamControlServiceImpl implements ExamControlService {
 
     public static final String CTX_ACTIVE_EXAM_ID = "examActiveExamId";
@@ -32,7 +41,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Inject dependencies cho unit test / composition root.
-     *
      * @param examDAO        DAO kỳ thi
      * @param assignmentDAO  DAO phân công SHV
      */
@@ -43,7 +51,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Ghép nhãn hiển thị kỳ thi (tên + ngày).
-     *
      * @param exam tóm tắt kỳ thi
      * @return nhãn hiển thị
      */
@@ -64,7 +71,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Tạo {@link ServiceResult} thất bại validation với message.
-     *
      * @param message thông báo lỗi
      * @param <T>     kiểu data
      * @return kết quả fail
@@ -75,7 +81,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Bắt đầu kỳ thi và cho phép sát hạch viên đăng nhập theo phân công.
-     *
      * @param examId      mã kỳ thi
      * @param staffUserId mã nhân viên thực hiện
      * @return kết quả thành công/thất bại kèm thông báo
@@ -126,7 +131,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Kết thúc kỳ thi; sát hạch viên không còn đăng nhập được kỳ này.
-     *
      * @param examId mã kỳ thi
      * @return kết quả thành công/thất bại kèm thông báo
      */
@@ -156,7 +160,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Tạm dừng kỳ thi; giữ hàng đợi gọi số, khóa đăng nhập sát hạch viên.
-     *
      * @param examId mã kỳ thi
      * @return kết quả thành công/thất bại kèm thông báo
      */
@@ -188,7 +191,6 @@ public class ExamControlServiceImpl implements ExamControlService {
 
     /**
      * Tiếp tục kỳ thi sau khi tạm dừng.
-     *
      * @param examId mã kỳ thi
      * @return kết quả thành công/thất bại kèm thông báo
      */

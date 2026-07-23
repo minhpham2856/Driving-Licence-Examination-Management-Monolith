@@ -10,12 +10,22 @@ import examstaff.dto.ServiceResult;
 import java.sql.Date;
 import java.util.List;
 
-/** Luồng bàn thủ tục: hồ sơ, ảnh, phí, thanh toán, reset. */
+/**
+ * Facade bàn thủ tục: hồ sơ thí sinh, ảnh, phí, thanh toán và reset trạng thái.
+ *
+ * Luồng chính trên desk:
+ * - <b>Hồ sơ</b> — {@code findProfile}, {@code prepareProfileForDesk},
+ *       {@code reloadProfile}, {@code saveProfile}
+ * - <b>Ảnh</b> — {@code saveCapturedPhoto}, {@code recapturePhoto}
+ * - <b>Phí / thanh toán</b> — {@code resolveProcedureFees}, {@code previewFees},
+ *       {@code confirmPayment}, SePay ({@code startSePayCheckout}, {@code finalizeAfterSePayPayment})
+ * - <b>Reset</b> — {@code resetProcedure} gỡ ảnh / thanh toán theo SBD
+ * Thao tác trả {@link ServiceResult} kèm {@link ProcedureActionOutcome} khi cần cập nhật UI desk.
+ */
 public interface ProcedureService {
 
     /**
      * Tìm hồ sơ thí sinh theo SBD (ưu tiên hàng đợi, fallback DB / kỳ dự phòng).
-     *
      * @param webRoot        thư mục gốc web (ảnh)
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
@@ -28,7 +38,6 @@ public interface ProcedureService {
 
     /**
      * Chuẩn bị hồ sơ trên bàn thủ tục (validate, gắn ảnh, trạng thái).
-     *
      * @param webRoot        thư mục gốc web
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
@@ -41,7 +50,6 @@ public interface ProcedureService {
 
     /**
      * Tải lại hồ sơ sau khi lưu / thao tác (theo candidateId hoặc SBD).
-     *
      * @param webRoot     thư mục gốc web
      * @param examId      mã kỳ thi
      * @param candidateId mã thí sinh
@@ -54,7 +62,6 @@ public interface ProcedureService {
 
     /**
      * Lưu thông tin hồ sơ cơ bản (họ tên, ngày sinh, CCCD, liên hệ).
-     *
      * @param candidateId mã thí sinh
      * @param fullName    họ và tên
      * @param dob         ngày sinh
@@ -68,7 +75,6 @@ public interface ProcedureService {
 
     /**
      * Xóa ảnh đã chụp để cho phép chụp lại; trả hồ sơ cập nhật.
-     *
      * @param candidateId mã thí sinh
      * @param webRoot     thư mục gốc web
      * @param examId      mã kỳ thi
@@ -81,7 +87,6 @@ public interface ProcedureService {
 
     /**
      * Lưu ảnh thủ tục từ dữ liệu base64.
-     *
      * @param webRoot    thư mục gốc web
      * @param sbd        số báo danh
      * @param examId     mã kỳ thi
@@ -94,7 +99,6 @@ public interface ProcedureService {
 
     /**
      * Xác nhận thu phí / thanh toán thủ tục cho thí sinh.
-     *
      * @param profile  hồ sơ thí sinh
      * @param sbd      số báo danh
      * @param examId   mã kỳ thi
@@ -122,7 +126,6 @@ public interface ProcedureService {
 
     /**
      * Reset trạng thái thủ tục (ảnh / thanh toán) theo SBD.
-     *
      * @param sbd     số báo danh
      * @param examId  mã kỳ thi
      * @param webRoot thư mục gốc web
@@ -132,7 +135,6 @@ public interface ProcedureService {
 
     /**
      * Tính / lấy bảng phí thủ tục theo hồ sơ đã load.
-     *
      * @param profile hồ sơ thí sinh
      * @return kết quả phí
      */
@@ -140,7 +142,6 @@ public interface ProcedureService {
 
     /**
      * Xem trước phí theo hạng bằng và có cần thi đường hay không.
-     *
      * @param candidateId      mã thí sinh
      * @param licenseCode      mã hạng GPLX
      * @param requiresRoadTest có thi đường

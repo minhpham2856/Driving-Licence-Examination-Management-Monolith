@@ -11,13 +11,17 @@ import examstaff.dto.PublicCallSnapshotDTO;
 import java.util.List;
 
 /**
- * Lệnh gọi thí sinh + CallBoard + snapshot Public Call (gộp call/workflow/board/public).
+ * Facade gọi thí sinh: trang candidate-call + CallBoard runtime + snapshot Public Call.
+ *
+ * Hai nguồn dữ liệu:
+ * - <b>DB</b> — danh sách thí sinh / trạng thái đăng ký (qua queue services)
+ * - <b>CallBoardDAO</b> — trạng thái runtime (calling, desk, pause) trong JVM
+ * Pattern board: {@code getState} → {@code CallBoardRules} → {@code saveState} (+ {@code setActiveExamId}).
  */
 public interface StaffCallService {
 
     /**
      * Chuẩn bị view trang gọi thí sinh từ command.
-     *
      * @param command lệnh trang gọi
      * @return DTO trang gọi
      */
@@ -25,7 +29,6 @@ public interface StaffCallService {
 
     /**
      * Đọc trạng thái CallBoard theo kỳ thi.
-     *
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @return trạng thái hoặc {@code null}
@@ -34,7 +37,6 @@ public interface StaffCallService {
 
     /**
      * Mã kỳ đang active trên CallBoard.
-     *
      * @param callBoardDAO DAO bảng gọi
      * @return mã kỳ hoặc {@code null}
      */
@@ -42,7 +44,6 @@ public interface StaffCallService {
 
     /**
      * Đồng bộ trạng thái bảng gọi (SBD đang gọi, hàng đợi, kết ca…).
-     *
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @param callingSbd   SBD đang gọi
@@ -54,7 +55,6 @@ public interface StaffCallService {
 
     /**
      * Đánh dấu bàn đang bận với thí sinh {@code deskSbd}.
-     *
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @param deskSbd      SBD tại bàn
@@ -66,7 +66,6 @@ public interface StaffCallService {
 
     /**
      * Giải phóng bàn và chuyển sang gọi SBD tiếp theo.
-     *
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @param callingSbd   SBD đang / sẽ gọi
@@ -78,7 +77,6 @@ public interface StaffCallService {
 
     /**
      * Tạm dừng bảng gọi (giữ hàng đợi).
-     *
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @param queue        hàng đợi
@@ -87,7 +85,6 @@ public interface StaffCallService {
 
     /**
      * Tiếp tục bảng gọi sau tạm dừng / kết ca.
-     *
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      */
@@ -95,7 +92,6 @@ public interface StaffCallService {
 
     /**
      * Load snapshot Public Call (màn hình chờ công khai).
-     *
      * @param examId mã kỳ thi
      * @param board  trạng thái CallBoard
      * @return snapshot public
@@ -104,7 +100,6 @@ public interface StaffCallService {
 
     /**
      * Xây snapshot hàng đợi nội bộ staff.
-     *
      * @param queue          hàng đợi
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
@@ -114,7 +109,6 @@ public interface StaffCallService {
 
     /**
      * Làm mới snapshot hàng đợi theo command trang staff.
-     *
      * @param input lệnh trang
      * @return snapshot
      */
@@ -122,7 +116,6 @@ public interface StaffCallService {
 
     /**
      * Danh sách thí sinh UI hàng đợi (View DAO) — đường chuẩn cho staff UI.
-     *
      * @param examId mã kỳ thi
      * @return danh sách đăng ký theo kỳ
      */
@@ -130,7 +123,6 @@ public interface StaffCallService {
 
     /**
      * Đồng bộ SBD đang gọi giữa HTTP và CallBoard.
-     *
      * @param httpCallingSbd SBD từ request
      * @param callBoard      trạng thái bảng gọi
      * @param queue          hàng đợi
@@ -141,7 +133,6 @@ public interface StaffCallService {
 
     /**
      * Resolve thí sinh đang được gọi theo SBD.
-     *
      * @param callingSbd số báo danh đang gọi
      * @param queue      hàng đợi
      * @return hồ sơ hoặc {@code null}
@@ -150,7 +141,6 @@ public interface StaffCallService {
 
     /**
      * Danh sách thí sinh bị đình chỉ trong hàng đợi.
-     *
      * @param queue hàng đợi
      * @return danh sách đình chỉ
      */
@@ -158,7 +148,6 @@ public interface StaffCallService {
 
     /**
      * SBD tiếp theo có thể gọi sau {@code afterSbd}.
-     *
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD vừa xử lý
      * @return SBD tiếp theo hoặc {@code null}
@@ -167,7 +156,6 @@ public interface StaffCallService {
 
     /**
      * Tìm thí sinh trong hàng đợi theo SBD.
-     *
      * @param queue hàng đợi
      * @param sbd   số báo danh
      * @return hồ sơ hoặc {@code null}
@@ -176,7 +164,6 @@ public interface StaffCallService {
 
     /**
      * Đưa thí sinh có thể gọi lên đầu hàng đợi (mutate list).
-     *
      * @param queue hàng đợi (mutate)
      * @param sbd   số báo danh
      * @return {@code true} nếu đã chuyển

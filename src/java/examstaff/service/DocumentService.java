@@ -8,12 +8,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-/** Xuất báo cáo / tài liệu exam staff. */
+/**
+ * Facade xuất tài liệu / báo cáo kỳ thi ra file cho nhân viên kỳ thi.
+ *
+ * Phạm vi hiện tại:
+ * - <b>Excel</b> — {@code exportExamReport} xuất báo cáo tổng hợp kỳ thi
+ *       (thí sinh, thống kê, vi phạm, phí) ra {@link OutputStream}
+ * Dữ liệu đầu vào ({@link ExamSummaryDTO}, {@link ExamRegistrationDTO},
+ * {@link ExamReportStatsDTO}) do {@link ExamStaffViewService} / servlet chuẩn bị sẵn.
+ */
 public interface DocumentService {
 
     /**
      * Xuất báo cáo tổng hợp kỳ thi ra luồng (Excel).
-     *
      * @param out          luồng ghi file
      * @param exam         tóm tắt kỳ thi
      * @param candidates   danh sách thí sinh

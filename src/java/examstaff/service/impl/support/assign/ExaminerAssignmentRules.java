@@ -9,15 +9,35 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Quy tắc phân công sát hạch viên / phòng thi — helper thuần, không HTTP. */
+/**
+ * Luật nghiệp vụ thuần (pure) cho phân công sát hạch viên và lọc phòng/sân đủ điều kiện.
+ * <p>
+ * <b>Không</b> gọi DAO / SQL / Servlet — chỉ nhận {@link ExamArea}, {@link ExaminerSlotDTO}
+ * và trả boolean / tập id / thông báo lỗi tiếng Việt.
+ *
+ * Nhận diện loại khu vực:
+ * - {@link #isTheoryAreaType} / {@link #isTheoryRoom} — LT (schema Clean “Lý thuyết”, SWP “Phòng thi”, alias EN)
+ * - {@link #isPracticalAreaType} / {@link #isPracticalRoom} — TH (Clean “Thực hành”, SWP “Sân thi”)
+ * - {@link #isAssignableExamArea} — chỉ LT hoặc TH (bỏ khu hỗn hợp / thủ tục)
+ *
+ * Slot đã có sát hạch viên (staffed):
+ * - {@link #isStaffedSlot} — có {@code examinerUserId} và {@code areaId} dương
+ * - {@link #isTheorySlot} / {@link #isPracticalSlot} — staffed + khớp areaType hoặc examTypeId
+ * - {@link #staffedTheoryAreaIds} / {@link #staffedPracticalAreaIds} — tập areaId đã gán SHV
+ * - {@link #filterTheoryRoomsWithStaff} / {@link #filterPracticalRoomsWithStaff} — lọc dropdown phân phòng
+ *
+ * Kiểm tra trước khi bắt đầu kỳ:
+ * {@link #validateStartCoverage} — kỳ phải có ít nhất một phòng LT và một sân TH đã staffed;
+ * trả thông báo lỗi hoặc {@code null} nếu đủ.
+ */
 public final class ExaminerAssignmentRules {
 
+    /** Utility class — không khởi tạo. */
     private ExaminerAssignmentRules() {
     }
 
     /**
      * Slot đã gán sát hạch viên hợp lệ (có userId và areaId dương).
-     *
      * @param slot slot phân công
      * @return {@code true} nếu đã staffed
      */
@@ -27,7 +47,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Nhận diện loại khu vực lý thuyết (schema Clean / SWP alias / tiếng Anh).
-     *
      * @param areaType chuỗi loại khu vực
      * @return {@code true} nếu là phòng LT
      */
@@ -50,7 +69,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Nhận diện loại khu vực thực hành / sân thi (schema Clean / SWP alias).
-     *
      * @param areaType chuỗi loại khu vực
      * @return {@code true} nếu là sân/phòng TH
      */
@@ -74,7 +92,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Slot lý thuyết đã có sát hạch viên (theo areaType hoặc examTypeId).
-     *
      * @param slot slot phân công
      * @return {@code true} nếu là slot LT đã staffed
      */
@@ -92,7 +109,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Slot thực hành đã có sát hạch viên (theo areaType hoặc examTypeId trong hình/đường).
-     *
      * @param slot slot phân công
      * @return {@code true} nếu là slot TH đã staffed
      */
@@ -112,7 +128,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Kiểm tra coverage tối thiểu trước khi bắt đầu kỳ (cần cả LT và TH có SHV).
-     *
      * @param assignments danh sách slot hiện có của kỳ
      * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ phòng lý thuyết + thực hành có sát hạch viên
      */
@@ -150,7 +165,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Các phòng lý thuyết đã có ít nhất một sát hạch viên trong kỳ.
-     *
      * @param assignments danh sách slot
      * @return tập ExamAreaId LT đã staffed
      */
@@ -169,7 +183,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Kiểm tra {@link ExamArea} có phải phòng lý thuyết không.
-     *
      * @param room khu vực thi
      * @return {@code true} nếu là phòng LT
      */
@@ -179,7 +192,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Các sân/phòng thực hành đã có ít nhất một sát hạch viên trong kỳ.
-     *
      * @param assignments danh sách slot
      * @return tập ExamAreaId TH đã staffed
      */
@@ -198,7 +210,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Kiểm tra {@link ExamArea} có phải sân/phòng thực hành không.
-     *
      * @param room khu vực thi
      * @return {@code true} nếu là sân TH
      */
@@ -208,7 +219,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Phòng dùng để phân sát hạch viên / phân thí sinh (bỏ khu hỗn hợp / thủ tục).
-     *
      * @param area khu vực thi
      * @return {@code true} nếu là LT hoặc TH
      */
@@ -218,7 +228,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Lọc phòng lý thuyết đã có sát hạch viên.
-     *
      * @param rooms          danh sách phòng nguồn
      * @param staffedAreaIds tập areaId đã staffed LT
      * @return phòng LT nằm trong tập staffed (rỗng nếu thiếu đầu vào)
@@ -238,7 +247,6 @@ public final class ExaminerAssignmentRules {
 
     /**
      * Lọc sân/phòng thực hành đã có sát hạch viên.
-     *
      * @param rooms          danh sách phòng nguồn
      * @param staffedAreaIds tập areaId đã staffed TH
      * @return sân TH nằm trong tập staffed (rỗng nếu thiếu đầu vào)
