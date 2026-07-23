@@ -39,7 +39,12 @@ public final class FormatUtil {
         if (type == null || sbd <= 0) {
             return false;
         }
-        return "result".equals(formatDocumentType(type));
+        String normalized = formatDocumentType(type);
+        return "result".equals(normalized)
+                || "bb1".equals(normalized)
+                || "bb1-ly-thuyet".equals(normalized)
+                || "bb2".equals(normalized)
+                || "bb2-thuc-hanh-trong-hinh".equals(normalized);
     }
 
     // Parse optional positive SBD filter from a raw query parameter.

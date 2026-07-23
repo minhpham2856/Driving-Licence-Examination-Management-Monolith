@@ -252,6 +252,9 @@ public class ActionServiceImpl implements ActionService {
         if (!dataService.isScoreQueueEligible(examId, enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện nhập điểm.");
         }
+        if (!isPracticalSectionAllowed(examId, enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa đủ điều kiện thi thực hành.");
+        }
         boolean logged = insertScoreEntryActionLog(examId, enrollment, user, actionUserId, actionDestination);
         if (!logged) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể ghi nhận thao tác nhập điểm.");
@@ -502,6 +505,9 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điều chỉnh điểm.");
         }
+        if (!isPracticalSectionAllowed(examId, enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa đủ điều kiện thi thực hành.");
+        }
         boolean updated = adjustScoreDeductionOccurrence(enrollment.getCandidateId(), examId, deductionId, delta);
         if (!updated) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể điều chỉnh điểm trừ.");
@@ -524,6 +530,9 @@ public class ActionServiceImpl implements ActionService {
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tất nhập điểm.");
+        }
+        if (!isPracticalSectionAllowed(examId, enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa đủ điều kiện thi thực hành.");
         }
         ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
         if (enrollmentRecord == null) {
@@ -555,7 +564,13 @@ public class ActionServiceImpl implements ActionService {
         if (dbUser == null || dbUser.getPasswordHash() == null) {
             return false;
         }
-        return PasswordUtil.matches(password.trim(), dbUser.getPasswordHash());
+        String raw = password.trim();
+        String stored = dbUser.getPasswordHash().trim();
+        if (PasswordUtil.matches(raw, stored)) {
+            return true;
+        }
+        // Backward compatibility: some seeded accounts may still store plaintext passwords.
+        return raw.equals(stored);
     }
 
     // Generates printable result form for one candidate.
@@ -596,16 +611,12 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
         }
-        if (enrollment.getSectionStatus() != CandidateStatus.AWAITING_SIGNATURE) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "notAwaiting");
+        if (enrollment.getSectionStatus() == CandidateStatus.COMPLETED) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "alreadyCompleted");
         }
         ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
         if (enrollmentRecord == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "completeFailed");
-        }
-        if (!sectionProgressService.isResultPrinted(enrollmentRecord.getExamEnrollmentId(), completedSection)
-                && !enrollment.isResultPrinted()) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "needResultPrint");
         }
         if (!sectionProgressService.update(
                 enrollmentRecord.getExamEnrollmentId(), completedSection, CandidateStatus.COMPLETED)) {
@@ -728,6 +739,22 @@ public class ActionServiceImpl implements ActionService {
 
     private static String trimParam(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    // Layout actions are blocked until theory section is completed (when required).
+    private boolean isPracticalSectionAllowed(int examId, EnrollmentDTO enrollment, SectionType sectionType) {
+        SectionType sessionSection = sectionType != null ? sectionType : SectionType.LAYOUT;
+        if (sessionSection != SectionType.LAYOUT || enrollment == null) {
+            return true;
+        }
+        ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
+        if (enrollmentRecord == null) {
+            return false;
+        }
+        return sectionProgressService.isPracticalEntryAllowed(
+                enrollmentRecord.getExamEnrollmentId(),
+                enrollment.isTakeTheory(),
+                enrollment.isTakeLayout());
     }
 
     // Private helper: compute section passed.

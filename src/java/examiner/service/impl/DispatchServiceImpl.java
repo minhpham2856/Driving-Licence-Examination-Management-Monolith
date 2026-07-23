@@ -99,7 +99,8 @@ public class DispatchServiceImpl implements DispatchService {
         Integer promoted = ExamRoomQueueRegistry.completeTesting(examId, examAreaId, sectionType, sbd);
         if (promoted != null && promoted > 0) {
             EnrollmentDTO enrollment = enrollmentService.getByExamAndSbd(examId, promoted, sectionType);
-            if (enrollment != null && enrollment.getExamEnrollmentId() > 0) {
+            if (sectionType == SectionType.THEORY
+                    && enrollment != null && enrollment.getExamEnrollmentId() > 0) {
                 sectionProgressService.update(
                         enrollment.getExamEnrollmentId(),
                         sectionType,
@@ -137,7 +138,8 @@ public class DispatchServiceImpl implements DispatchService {
             }
         }
 
-        if (promoted != null && promoted == handoff.getSbd()) {
+        if (targetSection == SectionType.THEORY
+                && promoted != null && promoted == handoff.getSbd()) {
             sectionProgressService.update(
                     handoff.getEnrollmentId(), targetSection, CandidateStatus.IN_PROGRESS);
             // TBD: ExamStaffPublicCallNotifier.notify(handoff.getExamId(), areaId, promoted);

@@ -4,6 +4,7 @@
 
 <c:set var="faultSbd" value="${not empty requestScope.candidate ? requestScope.candidate.candidateNumber : param.sbd}" />
 <c:set var="faultPageUrl" value="${not empty requestScope.pageUrl ? requestScope.pageUrl : pageContext.request.contextPath.concat('/examiner/score-entry')}" />
+<c:set var="deferredAdjust" value="${param.deferredAdjust == 'true'}" />
 
 <section class="score-entry-card score-entry-card--penalties">
     <!--header-->
@@ -35,7 +36,11 @@
                     </c:when>
                     <c:otherwise>
                         <c:forEach var="deduction" items="${requestScope.scoreDeductions}">
-                            <tr class="${deduction.critical ? 'score-entry-penalty-row--critical' : ''}">
+                            <tr class="${deduction.critical ? 'score-entry-penalty-row--critical' : ''}"
+                                data-deduction-id="${deduction.id}"
+                                data-critical="${deduction.critical}"
+                                data-points="${deduction.points}"
+                                data-base-count="${deduction.occurrenceCount}">
                                 <td>
                                     <span class="score-entry-penalty-reason">${deduction.reason}</span>
                                 </td>
@@ -48,7 +53,9 @@
                                     </c:choose>
                                 </td>
                                 <td class="score-entry-penalty-count">
-                                    ${deduction.occurrenceCount > 0 ? deduction.occurrenceCount : ''}
+                                    <span class="js-deduction-count" data-deduction-id="${deduction.id}">
+                                        ${deduction.occurrenceCount > 0 ? deduction.occurrenceCount : ''}
+                                    </span>
                                 </td>
                                 <td class="score-entry-penalty-time">
                                     <c:choose>
@@ -60,6 +67,14 @@
                                 </td>
                                 <td class="score-entry-penalty-actions">
                                     <c:choose>
+                                        <c:when test="${not empty faultSbd and deferredAdjust}">
+                                            <button type="button"
+                                                    class="score-entry-penalty-btn score-entry-penalty-btn--minus js-deduction-adjust"
+                                                    data-deduction-id="${deduction.id}" data-delta="-1" title="Giảm">−</button>
+                                            <button type="button"
+                                                    class="score-entry-penalty-btn score-entry-penalty-btn--plus js-deduction-adjust"
+                                                    data-deduction-id="${deduction.id}" data-delta="1" title="Tăng">+</button>
+                                        </c:when>
                                         <c:when test="${not empty faultSbd}">
                                             <form method="post" action="${faultPageUrl}" class="score-entry-penalty-form">
                                                 <input type="hidden" name="action" value="adjustDeduction">

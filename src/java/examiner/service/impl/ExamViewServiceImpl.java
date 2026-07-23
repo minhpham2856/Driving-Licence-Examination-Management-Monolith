@@ -630,7 +630,13 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setSexLabel(resolveSexLabel(sex));
         row.setAwaitingSignature(sectionStatus == CandidateStatus.AWAITING_SIGNATURE);
         row.setAbsent(enrollment.isAbsent());
-        row.setResultPrinted(enrollment.isResultPrinted());
+        boolean resultPrinted = enrollment.isResultPrinted();
+        // Fallback for stale/missing batch flag: re-check persisted print stamp on awaiting rows.
+        if (!resultPrinted && sectionStatus == CandidateStatus.AWAITING_SIGNATURE
+                && enrollmentId > 0 && sectionType != null) {
+            resultPrinted = sectionProgressService.isResultPrinted(enrollmentId, sectionType);
+        }
+        row.setResultPrinted(resultPrinted);
         boolean isTheory = sectionType == SectionType.THEORY;
         boolean practicalSection = sectionType == null || sectionType == SectionType.LAYOUT;
         boolean practicalEntryAllowed = true;
@@ -639,6 +645,15 @@ public class ExamViewServiceImpl implements ExamViewService {
                     enrollmentId,
                     enrollment.isTakeTheory(),
                     enrollment.isTakeLayout());
+        }
+        // Practical section must stay "NOT_STARTED" until theory is completed.
+        if (practicalSection && !enrollment.isSuspended() && !practicalEntryAllowed) {
+            sectionStatus = CandidateStatus.NOT_STARTED;
+            row.setSectionStatus(sectionStatus);
+            row.setStatus(resolveStatusKey(sectionStatus, false));
+            row.setStatusLabel(resolveStatusLabel(sectionStatus, false));
+            row.setAwaitingSignature(false);
+            row.setResultPrinted(false);
         }
         row.setPracticalEntryAllowed(practicalEntryAllowed);
         // Action eligibility for examiner table buttons.
@@ -651,8 +666,8 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setUndoPresentEligible(!enrollment.isSuspended()
                 && sectionStatus == CandidateStatus.IN_PROGRESS);
         row.setWrongInfoEligible(!enrollment.isSuspended() && notDone);
-        row.setCompleteEligible(sectionStatus == CandidateStatus.AWAITING_SIGNATURE
-                && enrollment.isResultPrinted());
+        // Complete button is disabled only after the section is already completed.
+        row.setCompleteEligible(sectionStatus != CandidateStatus.COMPLETED);
         // Theory stats: [correct, wrong, unanswered]
         int[] stats = theoryStats.getOrDefault(enrollmentId, new int[]{0, 0, 0});
         row.setCorrect(stats[0]);
@@ -663,16 +678,36 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setExamScore(examScore != null ? examScore.intValue() : null);
         row.setScoreTheory(stats[0] > 0 ? stats[0] : null);
         row.setScorePractical(null);
-        // Pass/fail: practical uses score >= 80; theory uses ExamResult.IsPassed / correct count.
-        if (practicalSection && examScore != null) {
-            boolean passed = examScore >= 80;
+        // Hide score/result until section is fully completed.
+        boolean revealOutcome = sectionStatus == CandidateStatus.COMPLETED;
+        if (!revealOutcome) {
+            row.setExamScore(null);
+            row.setPassed(false);
+            row.setResultLabel("-");
+        } else if (practicalSection) {
+            if (examScore != null) {
+                boolean passed = examScore >= 80;
+                row.setPassed(passed);
+                row.setResultLabel(passed ? "Đạt" : "Trượt");
+            } else {
+                Boolean passed = passFlags.get(enrollmentId);
+                if (passed == null) {
+                    row.setPassed(false);
+                    row.setResultLabel("-");
+                } else {
+                    row.setPassed(passed);
+                    row.setResultLabel(passed ? "Đạt" : "Trượt");
+                }
+            }
+        } else if (Boolean.TRUE.equals(isTheory)) {
+            int answeredCount = stats[0] + stats[1] + stats[2];
+            boolean passed = answeredCount > 0
+                    ? stats[0] >= THEORY_PASS_CORRECT
+                    : Boolean.TRUE.equals(passFlags.get(enrollmentId));
             row.setPassed(passed);
             row.setResultLabel(passed ? "Đạt" : "Trượt");
         } else {
             Boolean passed = passFlags.get(enrollmentId);
-            if (passed == null && Boolean.TRUE.equals(isTheory) && stats[0] > 0) {
-                passed = stats[0] >= THEORY_PASS_CORRECT;
-            }
             if (passed == null) {
                 row.setPassed(false);
                 row.setResultLabel("-");

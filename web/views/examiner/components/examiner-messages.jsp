@@ -102,6 +102,9 @@
     <c:if test="${param.error eq 'invalidDeduction'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Thông tin lỗi trừ điểm không hợp lệ.</p>
     </c:if>
+    <c:if test="${param.error eq 'needConfirmSave'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Chỉ lưu thay đổi điểm sau khi nhập mật khẩu và bấm xác nhận.</p>
+    </c:if>
     <c:if test="${param.error eq 'suspendFailed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không đình chỉ được thí sinh<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
     </c:if>
@@ -137,5 +140,8 @@
     </c:if>
     <c:if test="${not empty undoError}">
         <p class="examiner-flash-bar examiner-flash-bar--error">${undoError}</p>
+    </c:if>
+    <c:if test="${not empty editError}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">${editError}</p>
     </c:if>
 </div>

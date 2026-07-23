@@ -53,6 +53,7 @@
                     <jsp:param name="rightClass" value="score-entry-toolbar__right" />
                     <jsp:param name="btnVehicle" value="left" />
                     <jsp:param name="btnViolation" value="left" />
+                    <jsp:param name="btnStart" value="left" />
                     <jsp:param name="btnPrintSignature" value="left" />
                     <jsp:param name="btnComplete" value="left" />
                     <jsp:param name="btnPrintDocs" value="right" />
@@ -105,7 +106,7 @@
                             </div>
                             <div class="score-entry-timer__actions">
                                 <button type="button" class="examiner-btn examiner-btn--success score-entry-timer__btn" id="timerStartBtn">
-                                    <span class="material-symbols-outlined">play_arrow</span>Bắt đầu
+                                    <span class="material-symbols-outlined">timer</span>Tính giờ
                                 </button>
                                 <button type="button" class="examiner-btn examiner-btn--white score-entry-timer__btn" id="timerResetBtn">
                                     <span class="material-symbols-outlined">restart_alt</span>Đặt lại
@@ -208,7 +209,7 @@
                         intervalId = null;
                     }
                     if (startBtn) {
-                        startBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>Bắt đầu';
+                        startBtn.innerHTML = '<span class="material-symbols-outlined">timer</span>Tính giờ';
                     }
                 }
 

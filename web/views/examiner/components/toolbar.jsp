@@ -139,6 +139,25 @@
             </c:choose>
         </c:if>
 
+        <c:if test="${param.btnStart eq 'left'}">
+            <c:choose>
+                <c:when test="${not empty requestScope.candidate and requestScope.candidate.markPresentEligible}">
+                    <form method="post" action="${requestScope.pageUrl}" style="display:inline">
+                        <input type="hidden" name="action" value="markPresent">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--success">
+                            <span class="material-symbols-outlined">play_arrow</span>Bắt đầu
+                        </button>
+                    </form>
+                </c:when>
+                <c:otherwise>
+                    <span class="examiner-btn examiner-btn--success examiner-btn--disabled">
+                        <span class="material-symbols-outlined">play_arrow</span>Bắt đầu
+                    </span>
+                </c:otherwise>
+            </c:choose>
+        </c:if>
+
         <c:if test="${param.btnSave eq 'left'}">
             <button type="submit" form="${param.saveFormId}" class="examiner-btn examiner-btn--primary">Lưu thay đổi</button>
         </c:if>
@@ -352,6 +371,25 @@
                 </c:when>
                 <c:otherwise>
                     <span class="examiner-btn examiner-btn--primary examiner-btn--disabled"><span class="material-symbols-outlined">check_circle</span>Hoàn tất</span>
+                </c:otherwise>
+            </c:choose>
+        </c:if>
+
+        <c:if test="${param.btnStart eq 'right'}">
+            <c:choose>
+                <c:when test="${not empty requestScope.candidate and requestScope.candidate.markPresentEligible}">
+                    <form method="post" action="${requestScope.pageUrl}" style="display:inline">
+                        <input type="hidden" name="action" value="markPresent">
+                        <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
+                        <button type="submit" class="examiner-btn examiner-btn--success">
+                            <span class="material-symbols-outlined">play_arrow</span>Bắt đầu
+                        </button>
+                    </form>
+                </c:when>
+                <c:otherwise>
+                    <span class="examiner-btn examiner-btn--success examiner-btn--disabled">
+                        <span class="material-symbols-outlined">play_arrow</span>Bắt đầu
+                    </span>
                 </c:otherwise>
             </c:choose>
         </c:if>

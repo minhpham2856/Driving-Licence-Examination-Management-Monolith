@@ -125,6 +125,24 @@ public class ScoreServlet extends HttpServlet {
         SectionType sectionType = ExaminerFilter.resolveSectionType(session);
         String action = request.getParameter("action");
         // POST handles form submissions that change score state or device assignment.
+        if ("markPresent".equals(action) || "startCandidate".equals(action)) {
+            Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
+            if (sbd == null) {
+                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noSbd");
+                return;
+            }
+            UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
+            Integer userId = userDto != null ? userDto.getUserId() : null;
+            if (!actionService.markPresent(activeExamId, sbd, userId, sectionType).isSuccess()) {
+                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
+                        + urlEncode(sbd) + "&error=presentFailed");
+                return;
+            }
+            response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
+                    + urlEncode(sbd) + "&presentDone=" + urlEncode(sbd));
+            return;
+        }
+
         if ("adjustDeduction".equals(action)) {
             Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
             if (sbd == null) {
