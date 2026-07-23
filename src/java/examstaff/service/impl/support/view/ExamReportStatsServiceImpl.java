@@ -12,14 +12,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** Implementation: tính thống kê kết quả kỳ thi cho báo cáo. */
+/**
+ * Tính thống kê kết quả kỳ thi cho báo cáo — đỗ/trượt, vắng, đình chỉ, theo hạng GPLX.
+ * <p>
+ * Duyệt danh sách {@link ExamRegistrationDTO} đã lọc; bổ sung vi phạm qua
+ * {@link ReportInfractionViewDAO} khi cần. Trả {@link examstaff.dto.ExamReportStatsDTO}.
+ *
+ * Chỉ số tổng hợp:
+ * - Tổng thí sinh, đỗ/trượt tổng, vắng, đình chỉ, đã hoàn thành kỳ
+ * - LT — số thi / đậu / trượt ({@code theoryPassed} passed|failed|none)
+ * - TH — số thi / đậu / trượt ({@code practicalPassed})
+ * - Theo hạng — {@code LicenseAgg}: đăng ký, đậu, trượt, vắng từng mã GPLX
+ *
+ * Điểm gọi:
+ * {@code ReportServlet} qua consolidator view; {@code examId} dùng load vi phạm infraction nếu có.
+ */
 public class ExamReportStatsServiceImpl {
 
     private final ReportInfractionViewDAO infractionViewDAO = new ReportInfractionViewDAOImpl();
 
     /**
      * Tổng hợp chỉ số báo cáo (số thí sinh, đỗ/trượt, …) theo danh sách đã lọc.
-     *
      * @param candidates danh sách thí sinh trong báo cáo
      * @param examId     mã kỳ thi
      * @return DTO thống kê báo cáo
@@ -121,7 +134,6 @@ public class ExamReportStatsServiceImpl {
 
     /**
      * Chuẩn hoá mã hạng bằng; blank thành N/A.
-     *
      * @param licenseCode mã hạng thô
      * @return mã UPPER hoặc {@code N/A}
      */

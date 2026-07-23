@@ -15,7 +15,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Implementation: view và thao tác phân công giám khảo tại bàn làm việc. */
+/**
+ * Lớp bàn làm việc phân công sát hạch viên — dựng view và xử lý gán/gỡ từ servlet.
+ * <p>
+ * <b>Không</b> gọi DAO trực tiếp; ủy quyền {@link ExaminerAllocationServiceImpl} cho load/lưu slot.
+ * Trả {@link examstaff.dto.ExaminerAllocationActionResultDTO} kèm thông báo UI và chuỗi audit.
+ *
+ * Luồng build view:
+ * - Gom các phiên cùng ngày qua {@code ExamStaffExamRules.examsForExam}
+ * - Tải slot phân công từng phiên → {@code dayAssignments} + tập {@code busyIds}
+ * - Tách {@code allExaminers} thành available / busy theo {@code busyIds}
+ * - Dựng {@code areaAssignOptions}: khu LT/TH gắn kỳ, lọc {@link ExaminerAssignmentRules#isAssignableExamArea}
+ *
+ * Thao tác gán / gỡ:
+ * - {@link #assignExaminer} — validate kỳ + khu + SHV; chỉ LT/TH; lưu slot; audit {@code ASSIGN Examiner}
+ * - {@link #removeExaminer} — parse khóa {@code examId:areaId:examinerUserId}; audit {@code REMOVE Examiner}
+ */
 public class ExaminerAllocationDeskServiceImpl {
 
     private final ExaminerAllocationServiceImpl allocationService;
@@ -29,7 +44,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Inject allocation service từ composition root.
-     *
      * @param allocationService dịch vụ phân công nền
      */
     public ExaminerAllocationDeskServiceImpl(ExaminerAllocationServiceImpl allocationService) {
@@ -38,7 +52,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Xây dựng view phân công sát hạch viên cho kỳ thi.
-     *
      * @param examId         mã kỳ thi ưu tiên
      * @param fallbackExamId mã kỳ dự phòng
      * @param allExams       danh sách kỳ thi ngữ cảnh
@@ -100,7 +113,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Lập map mã người dùng → thông tin sát hạch viên đang active.
-     *
      * @return map sát hạch viên theo userId
      */
     public Map<Integer, UserDTO> buildExaminerMap() {
@@ -113,7 +125,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Gán sát hạch viên vào khu vực của kỳ thi.
-     *
      * @param targetExamId   mã kỳ thi đích
      * @param areaId         mã khu vực/phòng
      * @param examinerUserId mã người dùng sát hạch viên
@@ -173,7 +184,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Gỡ phân công sát hạch viên khỏi slot.
-     *
      * @param slotKey khóa slot phân công
      * @return kết quả thao tác gỡ
      */
@@ -204,7 +214,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Tìm slot theo khóa {@code examId:areaId:examinerUserId}.
-     *
      * @param slotKey khóa slot
      * @return slot khớp, hoặc {@code null}
      */
@@ -235,7 +244,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Chi tiết audit khi phân công.
-     *
      * @param examinerName tên sát hạch viên
      * @param areaName     tên khu vực
      * @param examName     tên kỳ thi
@@ -251,7 +259,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Chi tiết audit khi gỡ phân công.
-     *
      * @param slot slot đã gỡ (có thể null)
      * @return chuỗi mô tả audit
      */
@@ -268,7 +275,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Thêm hậu tố tên kỳ thi vào chuỗi audit.
-     *
      * @param details  builder đang dựng
      * @param examName tên kỳ (bỏ qua nếu blank)
      */
@@ -280,7 +286,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Nhãn hiển thị giám khảo từ slot (tên → username → userId).
-     *
      * @param slot slot phân công
      * @return nhãn hiển thị
      */
@@ -296,7 +301,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Chuỗi trống thành dấu gạch ngang.
-     *
      * @param value chuỗi nguồn
      * @return giá trị trim hoặc {@code "-"}
      */
@@ -306,7 +310,6 @@ public class ExaminerAllocationDeskServiceImpl {
 
     /**
      * Tên đầy đủ hoặc username của giám khảo.
-     *
      * @param examiner UserDTO giám khảo
      * @return tên hiển thị
      */

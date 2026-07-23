@@ -8,12 +8,20 @@ import shared.model.ExamArea;
 
 import java.util.List;
 
-/** Phân phòng thí sinh: action + truy vấn phòng/sân có SHV. */
+/**
+ * Facade phân phòng thí sinh: thao tác gán/đổi/gỡ phòng LT/TH và truy vấn khu vực đã có SHV.
+ *
+ * Hai nhóm nghiệp vụ:
+ * - <b>Action</b> — {@code autoAllocateOnOverview}, {@code executeCandidateAction}
+ *       (mutate phân bổ theo giai đoạn {@code theory}/{@code practical})
+ * - <b>Query</b> — {@code findCandidate}, {@code listStaffedTheoryRoomsForExam},
+ *       {@code listStaffedPracticalAreasForExam}, {@code findAreaById}
+ * Kết quả thao tác bọc {@link ServiceResult} kèm {@link AllocationActionResultDTO}.
+ */
 public interface AllocationService {
 
     /**
      * Tự động phân phòng trên màn overview theo giai đoạn LT/TH.
-     *
      * @param examId mã kỳ thi
      * @param stage  giai đoạn ({@code theory}/{@code practical}, …)
      * @return {@link ServiceResult} kèm kết quả phân bổ
@@ -22,7 +30,6 @@ public interface AllocationService {
 
     /**
      * Thực hiện một thao tác phân phòng trên thí sinh (gán/đổi/gỡ…).
-     *
      * @param request yêu cầu thao tác
      * @return {@link ServiceResult} kèm kết quả / lỗi validation
      */
@@ -30,7 +37,6 @@ public interface AllocationService {
 
     /**
      * Tìm thí sinh trong hàng đợi hoặc theo mã đăng ký / kỳ thi.
-     *
      * @param regId  mã đăng ký / thí sinh
      * @param examId mã kỳ thi
      * @param queue  hàng đợi (có thể null)
@@ -40,7 +46,6 @@ public interface AllocationService {
 
     /**
      * Danh sách phòng lý thuyết đã có sát hạch viên trong kỳ.
-     *
      * @param examId mã kỳ thi
      * @return danh sách khu vực
      */
@@ -48,7 +53,6 @@ public interface AllocationService {
 
     /**
      * Danh sách sân/phòng thực hành đã có sát hạch viên trong kỳ.
-     *
      * @param examId mã kỳ thi
      * @return danh sách khu vực
      */
@@ -56,7 +60,6 @@ public interface AllocationService {
 
     /**
      * Lấy khu vực thi theo mã.
-     *
      * @param examAreaId mã khu vực
      * @return khu vực hoặc {@code null}
      */

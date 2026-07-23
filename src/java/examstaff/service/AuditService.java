@@ -8,12 +8,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-/** Audit trang / query / export / ghi log. */
+/**
+ * Facade nhật ký audit nhân viên kỳ thi: trang lọc, truy vấn, xuất file và ghi log hành động.
+ *
+ * Bốn nhóm chức năng:
+ * - <b>Page</b> — {@code buildPage} ghép view lọc ngày + phân trang + KPI thủ tục
+ * - <b>Query</b> — {@code countLogsByUserAndDate}, {@code listLogsByUserAndDatePaginated},
+ *       {@code listLogsByUserAndDate}, {@code getStaffProcedureKpi}
+ * - <b>Export</b> — {@code exportAuditLog} ghi nhật ký ra luồng (Excel/CSV)
+ * - <b>Log</b> — {@code logAction} ghi hành động staff (có hoặc không {@code recordId})
+ * Presentation gọi facade này thay vì truy cập trực tiếp {@code AuditLogDAO}.
+ */
 public interface AuditService {
 
     /**
      * Ghép view trang nhật ký audit (lọc ngày, phân trang, KPI).
-     *
      * @param userId               mã nhân viên
      * @param filterDate           ngày lọc ({@code yyyy-MM-dd} hoặc rỗng)
      * @param page                 trang (1-based)
@@ -26,7 +35,6 @@ public interface AuditService {
 
     /**
      * Đếm số bản ghi audit theo user và ngày.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return số bản ghi
@@ -35,7 +43,6 @@ public interface AuditService {
 
     /**
      * Danh sách audit phân trang theo user và ngày.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @param page       trang
@@ -46,7 +53,6 @@ public interface AuditService {
 
     /**
      * Toàn bộ log theo user và ngày (không phân trang).
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return danh sách log
@@ -55,7 +61,6 @@ public interface AuditService {
 
     /**
      * KPI thủ tục hoàn tất / tổng phí của nhân viên trong ngày.
-     *
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return KPI
@@ -64,7 +69,6 @@ public interface AuditService {
 
     /**
      * Xuất file nhật ký audit ra luồng.
-     *
      * @param out                 luồng ghi
      * @param logs                danh sách log
      * @param completedProcedures số thủ tục hoàn tất
@@ -78,7 +82,6 @@ public interface AuditService {
 
     /**
      * Ghi một action audit gắn recordId.
-     *
      * @param userId   mã nhân viên
      * @param action   mã / tên hành động
      * @param details  mô tả chi tiết
@@ -88,7 +91,6 @@ public interface AuditService {
 
     /**
      * Ghi action audit không gắn record (recordId = 0).
-     *
      * @param userId  mã nhân viên
      * @param action  mã / tên hành động
      * @param details mô tả chi tiết

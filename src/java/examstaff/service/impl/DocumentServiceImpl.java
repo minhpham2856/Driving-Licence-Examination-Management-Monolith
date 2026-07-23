@@ -25,14 +25,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** Implementation: xuất báo cáo kỳ thi ra file Excel (Apache POI). */
+/**
+ * Implementation {@link DocumentService}: xuất báo cáo kỳ thi ra Excel (Apache POI).
+ *
+ * Cách xuất báo cáo:
+ * - <b>Input</b> — {@link ExamSummaryDTO}, danh sách {@link ExamRegistrationDTO},
+ *       {@link ExamReportStatsDTO} đã tính sẵn từ view layer
+ * - <b>Output</b> — workbook {@code .xlsx} ghi trực tiếp xuống {@link OutputStream}
+ *       (servlet set header download)
+ * - <b>Phí</b> — tra cứu bổ sung qua {@link ProcedureFeeQueryServiceImpl} khi cần
+ *       chi tiết thanh toán trên sheet
+ */
 public class DocumentServiceImpl implements DocumentService {
 
     private final ProcedureFeeQueryServiceImpl feeLookup = new ProcedureFeeQueryServiceImpl();
 
     /**
      * Xuất báo cáo kỳ thi ra Excel (Apache POI) rồi ghi xuống luồng.
-     *
      * @param out          luồng ghi file
      * @param exam         thông tin tóm tắt kỳ thi
      * @param candidates   danh sách thí sinh trong báo cáo

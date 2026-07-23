@@ -12,8 +12,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Dựng ViewModel trang gọi thí sinh: load hàng đợi, chạy action workflow,
- * advance/sync callingSbd với CallBoard, chuẩn bị alert và danh sách suspended.
+ * Orchestrator trang gọi thí sinh: dựng {@link CandidateCallPageViewDTO} từ
+ * {@link CandidateCallPageCommand}.
+ * <p>
+ * Consolidator/servlet bind session + JSP; không chứa quy tắc thuần — ủy quyền workflow,
+ * queue và exam query.
+ *
+ * Luồng {@link #preparePage}:
+ * - Validate command; nhánh {@code startShift} → redirect resume ca
+ * - Load {@code fullQueue} (refresh DB hoặc session)
+ * - Chạy action qua {@link CandidateCallWorkflowServiceImpl#executeAction}
+ * - Apply kết quả: reload queue, persist order, promote SBD kế
+ * - {@link CandidateQueueServiceImpl#advanceCallingIfDone} + sync {@link CallBoardState}
+ * - Bind view: alert, suspended list, board flags
+ *
+ * Phụ thuộc:
+ * - {@link CandidateCallWorkflowServiceImpl} — dispatch gọi / vắng / pause / đóng ca
+ * - {@link CandidateQueueServiceImpl} — refresh, filter, resolve/advance calling SBD
+ * - {@link ExamStaffExamQueryServiceImpl} — danh sách kỳ thi cho refresh queue
  */
 public class CandidateCallPageServiceImpl {
 
@@ -29,7 +45,6 @@ public class CandidateCallPageServiceImpl {
 
     /**
      * Inject dependencies cho unit test / composition root.
-     *
      * @param callWorkflow workflow action gọi / vắng / đóng ca
      * @param queueService thao tác hàng đợi và resolve SBD
      * @param examQuery    danh sách kỳ thi phục vụ refresh queue
@@ -45,7 +60,6 @@ public class CandidateCallPageServiceImpl {
     /**
      * Chuẩn bị view trang gọi từ command (session + request).
      * Luồng: validate → load queue → chạy action → advance/sync board → bind view.
-     *
      * @param command ngữ cảnh trang (examId, action, callingSbd, board, …)
      * @return DTO view cho consolidator/servlet bind session + JSP
      */
@@ -232,7 +246,6 @@ public class CandidateCallPageServiceImpl {
 
     /**
      * Tải hàng đợi đầy đủ: dùng cache session khi ca paused/ended, ngược lại refresh từ DB.
-     *
      * @param command    command trang (cache + callQueueOrder)
      * @param examId     mã kỳ đang chọn
      * @param shiftEnded ca đã đóng
@@ -268,7 +281,6 @@ public class CandidateCallPageServiceImpl {
 
     /**
      * Áp side-effect calling/shift từ kết quả workflow lên view.
-     *
      * @param view   view đang dựng
      * @param result kết quả action
      */
@@ -289,7 +301,6 @@ public class CandidateCallPageServiceImpl {
 
     /**
      * Promote SBD lên số đang gọi: ghi audit Calling và cập nhật view.
-     *
      * @param view              view đang dựng
      * @param activeQueue       hàng pending
      * @param nextSbd           SBD promote (có thể blank → clear)
@@ -313,7 +324,6 @@ public class CandidateCallPageServiceImpl {
 
     /**
      * Nếu bàn đang bận và thí sinh tại bàn đã xong thủ tục → đề xuất giải phóng & gọi tiếp.
-     *
      * @param board      trạng thái CallBoard (có thể null)
      * @param fullQueue  hàng đợi đầy đủ
      * @param callingSbd SBD đang gọi HTTP (có thể null)

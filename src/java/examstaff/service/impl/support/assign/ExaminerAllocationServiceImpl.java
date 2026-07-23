@@ -36,7 +36,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-/** Implementation: phân công giám khảo và tự động phân bổ phòng/sân thí sinh. */
+/**
+ * Dịch vụ nền phân công sát hạch viên và tự động phân bổ phòng/sân cho thí sinh.
+ * <p>
+ * Gọi trực tiếp {@code ExamAreaDAO}, {@code ExaminerAssignmentDAO}, {@code ExamRegistrationDAO}.
+ * Được {@link ExaminerAllocationDeskServiceImpl} (gán thủ công) và
+ * {@code AllocationActionServiceImpl} (auto sau thủ tục) sử dụng.
+ *
+ * Phân công giám khảo (CRUD):
+ * - {@link #getActiveExaminers} / {@link #getAssignmentsByExamId} — đọc danh sách
+ * - {@link #assignExaminer} / {@link #removeAssignment} — ghi slot qua DAO
+ * - {@link #getAvailableAreasForExam} — khu gắn kỳ; fallback theo loại LT+TH nếu chưa gắn
+ *
+ * Auto-allocate thí sinh:
+ * - Phòng LT — {@link #autoAllocateExam} / {@link #autoAllocateCandidate}: chỉ phòng đã staffed
+ *       ({@link ExaminerAssignmentRules#filterTheoryRoomsWithStaff}); chọn phòng ít tải nhất
+ * - Sân TH — {@link #autoAllocatePracticalExam}: thí sinh đậu LT hoặc bảo lưu LT;
+ *       chỉ sân đã staffed; cân bằng tải tương tự
+ * - Sau thủ tục — {@link #autoAllocateCandidate}: bảo lưu LT → sân TH; còn lại → phòng LT
+ *
+ * Điều kiện sẵn sàng phân bổ:
+ * Thí sinh cần đã thu phí, có ảnh, không vắng/đình chỉ; LT yêu cầu chưa có kết quả LT;
+ * TH yêu cầu đậu LT (hoặc miễn LT sau thủ tục) và chưa gán sân.
+ */
 public class ExaminerAllocationServiceImpl {
 
     private final ExamStaffExamQueryServiceImpl examQuery = new ExamStaffExamQueryServiceImpl();
@@ -46,7 +68,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Lấy tóm tắt kỳ thi theo mã.
-     *
      * @param examId mã kỳ thi
      * @return DTO kỳ thi hoặc {@code null}
      */
@@ -56,7 +77,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Lấy khu vực thi theo mã.
-     *
      * @param id mã ExamArea
      * @return khu vực hoặc {@code null}
      */
@@ -66,7 +86,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Danh sách giám khảo đang active để chọn phân công.
-     *
      * @return danh sách UserDTO giám khảo
      */
     public List<UserDTO> getActiveExaminers() {
@@ -75,7 +94,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Các khu vực được phép dùng cho kỳ thi (gắn Exam_ExamArea; fallback theo loại nếu chưa gắn).
-     *
      * @param examId mã kỳ thi
      * @return danh sách ExamArea
      */
@@ -105,7 +123,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Các slot phân công giám khảo hiện có của kỳ thi.
-     *
      * @param examId mã kỳ thi
      * @return danh sách slot
      */
@@ -115,7 +132,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Gán giám khảo vào một slot (kỳ + khu vực + phần thi).
-     *
      * @param slot thông tin phân công
      * @return {@code true} nếu lưu thành công
      */
@@ -125,7 +141,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Gỡ phân công giám khảo theo khóa slot.
-     *
      * @param slotKey khóa slot
      * @return {@code true} nếu gỡ thành công
      */
@@ -135,7 +150,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Tự động phân phòng lý thuyết cho toàn bộ thí sinh của kỳ.
-     *
      * @param examId mã kỳ thi
      * @return kết quả phân bổ (số thành công / lỗi)
      */
@@ -146,7 +160,6 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Tự động phân phòng cho một thí sinh sau thủ tục:
      * bảo lưu LT → sân thực hành; còn lại → phòng lý thuyết.
-     *
      * @param examId         mã kỳ thi
      * @param registrationId mã đăng ký thí sinh
      * @return kết quả phân bổ
@@ -161,7 +174,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có sát hạch viên).
-     *
      * @param examId mã kỳ thi
      * @return kết quả phân bổ sân TH
      */
@@ -171,7 +183,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Phân bổ tự động phòng lý thuyết cho toàn kỳ hoặc một thí sinh.
-     *
      * @param examId      mã kỳ thi
      * @param targetRegId {@code null} = toàn kỳ; khác null = chỉ thí sinh đó
      * @return kết quả phân bổ
@@ -277,7 +288,6 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Phân bổ tự động sân thực hành cho thí sinh đã đậu lý thuyết
      * (hoặc bảo lưu LT / {@code TakeTheory = 0}).
-     *
      * @param examId      mã kỳ thi
      * @param targetRegId {@code null} = toàn kỳ; khác null = chỉ thí sinh đó
      * @return kết quả phân bổ
@@ -374,7 +384,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Resolve examId thực tế từ exam query.
-     *
      * @param examId mã kỳ đầu vào
      * @return examId đã resolve, hoặc 0 nếu không hợp lệ
      */
@@ -391,7 +400,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Đếm số thí sinh đang chiếm mỗi phòng lý thuyết.
-     *
      * @param allCandidates danh sách thí sinh kỳ
      * @param rooms         phòng LT đủ điều kiện
      * @return map areaId → số người
@@ -411,7 +419,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Đếm số thí sinh đang chiếm mỗi sân thực hành.
-     *
      * @param allCandidates danh sách thí sinh kỳ
      * @param yards         sân TH đủ điều kiện
      * @return map areaId → số người
@@ -433,7 +440,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Chọn phòng/sân ít thí sinh nhất.
-     *
      * @param rooms         danh sách phòng/sân
      * @param roomOccupancy map occupancy hiện tại
      * @return phòng/sân tối ưu, hoặc {@code null}
@@ -454,7 +460,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Thí sinh sẵn sàng phân phòng LT (đã thu phí, có ảnh, chưa thi LT, không bảo lưu LT).
-     *
      * @param c hồ sơ
      * @return {@code true} nếu sẵn sàng
      */
@@ -478,7 +483,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Đã có phòng lý thuyết được phân.
-     *
      * @param c hồ sơ
      * @return {@code true} nếu đã gán phòng LT
      */
@@ -492,7 +496,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Thí sinh sẵn sàng phân sân TH: đã đậu LT, hoặc bảo lưu LT sau thủ tục; không miễn TH.
-     *
      * @param c hồ sơ
      * @return {@code true} nếu sẵn sàng
      */
@@ -532,7 +535,6 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Đã có sân thực hành được phân.
-     *
      * @param c hồ sơ
      * @return {@code true} nếu đã gán sân TH
      */

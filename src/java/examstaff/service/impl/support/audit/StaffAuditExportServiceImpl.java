@@ -17,12 +17,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/** Implementation: xuất nhật ký audit cá nhân ra Excel. */
+/**
+ * Xuất nhật ký audit cá nhân của cán bộ ra file Excel (.xlsx).
+ * <p>
+ * Dùng Apache POI ({@code XSSFWorkbook}). Được {@code AuditExportServlet} gọi qua
+ * {@code AuditServiceImpl}; không đọc DAO — nhận list {@link AuditDTO} đã tải sẵn.
+ *
+ * Cấu trúc workbook:
+ * - Sheet <b>Tổng quan</b> — KPI: tên cán bộ, phạm vi ngày, tổng thao tác,
+ *       số thí sinh hoàn tất thủ tục, tổng lệ phí, thời điểm xuất
+ * - Sheet <b>Chi tiết nhật ký</b> — từng dòng: STT, Ngày, Giờ, Thời gian đầy đủ,
+ *       Kiểu thao tác, Nghiệp vụ, Thao tác chi tiết (nhãn qua {@code ExamStaffLabels})
+ *
+ * Định dạng:
+ * Style ngày {@code dd/MM/yyyy}, giờ {@code HH:mm:ss}, datetime đầy đủ; header bold;
+ * freeze pane hàng tiêu đề; auto-size cột.
+ */
 public class StaffAuditExportServiceImpl {
 
     /**
      * Xuất workbook Excel (sheet Tổng quan + Chi tiết nhật ký) ra stream.
-     *
      * @param out                  luồng ghi file
      * @param logs                 danh sách audit (có thể null)
      * @param completedProcedures  số thí sinh đã hoàn tất thủ tục
@@ -121,7 +135,6 @@ public class StaffAuditExportServiceImpl {
 
     /**
      * Ghi một dòng khóa–giá trị trên sheet tổng quan.
-     *
      * @param sheet sheet đích
      * @param row   chỉ số hàng hiện tại
      * @param key   nhãn cột A
@@ -141,7 +154,6 @@ public class StaffAuditExportServiceImpl {
 
     /**
      * Tạo style chữ đậm cho tiêu đề.
-     *
      * @param wb workbook nguồn
      * @return CellStyle bold
      */
@@ -155,7 +167,6 @@ public class StaffAuditExportServiceImpl {
 
     /**
      * Tạo style định dạng ngày/giờ theo pattern.
-     *
      * @param wb      workbook nguồn
      * @param pattern pattern Excel (ví dụ {@code dd/MM/yyyy})
      * @return CellStyle ngày/giờ

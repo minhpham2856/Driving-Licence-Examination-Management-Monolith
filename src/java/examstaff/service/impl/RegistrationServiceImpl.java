@@ -9,9 +9,15 @@ import java.sql.Date;
 import java.util.List;
 
 /**
- * CRUD đăng ký: ủy quyền sang {@link ExamRegistrationDAO}.
- * Danh sách thí sinh cho UI hàng đợi/staff pages: dùng {@code StaffCallService#listQueueByExamId}
- * (View DAO). {@link #getCandidatesByExam} dành cho workflow phân bổ/thủ tục cần reload entity đầy đủ.
+ * Implementation {@link RegistrationService}: CRUD đăng ký thí sinh qua {@link ExamRegistrationDAO}.
+ *
+ * Phân tách với hàng đợi UI:
+ * - <b>Entity đầy đủ</b> — {@code getCandidatesByExam} cho workflow phân bổ / thủ tục
+ *       cần reload toàn bộ trường từ DB
+ * - <b>UI hàng đợi staff</b> — dùng {@link StaffCallService#listQueueByExamId}
+ *       (View DAO); <b>không</b> dùng {@code getCandidatesByExam} trên màn gọi số
+ * Mọi method mutate ({@code updatePresent}, {@code updatePayment}, phòng, điểm, ảnh,
+ * vắng mặt, đình chỉ) ủy quyền trực tiếp sang {@link ExamRegistrationDAO}.
  */
 public class RegistrationServiceImpl implements RegistrationService {
 
@@ -19,7 +25,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#getById}.
-     *
      * @param id mã thí sinh
      * @return DTO hoặc {@code null}
      */
@@ -30,7 +35,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#getByExamAndSbd}.
-     *
      * @param examId mã kỳ thi
      * @param sbd    số báo danh
      * @return DTO hoặc {@code null}
@@ -42,7 +46,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#getCandidatesByExam}.
-     *
      * @param examId mã kỳ thi
      * @return danh sách đăng ký
      */
@@ -53,7 +56,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updatePresent}.
-     *
      * @param id        mã thí sinh
      * @param isPresent có mặt hay không
      * @return {@code true} nếu thành công
@@ -65,7 +67,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updatePayment}.
-     *
      * @param id                 mã thí sinh
      * @param isPaymentCompleted đã thanh toán hay không
      * @return {@code true} nếu thành công
@@ -77,7 +78,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updateAllocatedRoom}.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @param areaId      mã khu vực
@@ -91,7 +91,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updatePracticalAllocatedRoom}.
-     *
      * @param candidateId mã thí sinh
      * @param examId      mã kỳ thi
      * @param areaId      mã khu vực
@@ -105,7 +104,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updateScores}.
-     *
      * @param id              mã thí sinh
      * @param theoryScore     điểm LT ({@code null} = bỏ qua)
      * @param theoryPassed    cờ kết quả LT
@@ -120,7 +118,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updateProfile}.
-     *
      * @param id       mã thí sinh
      * @param fullName họ tên
      * @param dob      ngày sinh
@@ -136,7 +133,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#updatePhoto}.
-     *
      * @param id       mã thí sinh
      * @param photoUrl đường dẫn ảnh
      * @return {@code true} nếu thành công
@@ -148,7 +144,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#clearCompletedPayments}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -159,7 +154,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#markAbsent}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -170,7 +164,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#clearAbsentMarking}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -181,7 +174,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#markSuspended}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */
@@ -192,7 +184,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     /**
      * Ủy quyền sang {@link ExamRegistrationDAO#undoSuspension}.
-     *
      * @param candidateId mã thí sinh
      * @return {@code true} nếu thành công
      */

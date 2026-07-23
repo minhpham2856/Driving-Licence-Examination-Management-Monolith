@@ -3,13 +3,20 @@ package examstaff.service;
 import examstaff.dto.ServiceResult;
 
 /**
- * Điều khiển vòng đời kỳ thi (bắt đầu, tạm dừng, tiếp tục, kết thúc) từ phía nhân viên kỳ thi.
+ * Facade điều khiển vòng đời kỳ thi từ phía nhân viên kỳ thi.
+ *
+ * Chuyển trạng thái kỳ thi:
+ * - <b>startExam</b> — bắt đầu kỳ, mở đăng nhập SHV theo phân công;
+ *       trả {@link StartExamData} (nhãn kỳ + số SHV)
+ * - <b>pauseExam / resumeExam</b> — tạm dừng / tiếp tục; giữ hàng đợi gọi số,
+ *       khóa/mở đăng nhập SHV
+ * - <b>endExam</b> — kết thúc kỳ; SHV không còn đăng nhập được
+ * Mọi thao tác trả {@link ServiceResult}; lỗi nghiệp vụ dùng {@code ErrorType} tương ứng.
  */
 public interface ExamControlService {
 
     /**
      * Bắt đầu kỳ thi và cho phép sát hạch viên đăng nhập theo phân công.
-     *
      * @param examId      mã kỳ thi
      * @param staffUserId mã nhân viên thực hiện
      * @return {@link ServiceResult} kèm {@link StartExamData} khi thành công
@@ -18,7 +25,6 @@ public interface ExamControlService {
 
     /**
      * Kết thúc kỳ thi; sát hạch viên không còn đăng nhập được kỳ này.
-     *
      * @param examId mã kỳ thi
      * @return {@link ServiceResult} với data = nhãn kỳ thi khi thành công
      */
@@ -26,7 +32,6 @@ public interface ExamControlService {
 
     /**
      * Tạm dừng kỳ thi; giữ hàng đợi gọi số, khóa đăng nhập sát hạch viên.
-     *
      * @param examId mã kỳ thi
      * @return {@link ServiceResult} với data = nhãn kỳ thi khi thành công
      */
@@ -34,7 +39,6 @@ public interface ExamControlService {
 
     /**
      * Tiếp tục kỳ thi sau khi tạm dừng.
-     *
      * @param examId mã kỳ thi
      * @return {@link ServiceResult} với data = nhãn kỳ thi khi thành công
      */
@@ -49,7 +53,6 @@ public interface ExamControlService {
 
         /**
          * Tạo payload bắt đầu kỳ thi.
-         *
          * @param examName      nhãn kỳ thi (tên + ngày)
          * @param examinerCount số sát hạch viên được phân công
          */
@@ -60,7 +63,6 @@ public interface ExamControlService {
 
         /**
          * Nhãn hiển thị kỳ thi đã bắt đầu.
-         *
          * @return tên / nhãn kỳ thi
          */
         public String getExamName() {
@@ -69,7 +71,6 @@ public interface ExamControlService {
 
         /**
          * Số sát hạch viên được phép đăng nhập theo phân công.
-         *
          * @return số SHV
          */
         public int getExaminerCount() {

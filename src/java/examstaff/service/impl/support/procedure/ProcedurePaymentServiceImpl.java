@@ -11,7 +11,21 @@ import examstaff.enums.PaymentMethod;
 import examstaff.enums.PaymentStatus;
 import shared.model.Payment;
 
-/** Implementation: preview phí và ghi nhận thanh toán tiền mặt thủ tục. */
+/**
+ * Preview phí và ghi nhận thanh toán tiền mặt tại bàn thủ tục.
+ * <p>
+ * Gọi {@link ProcedureFeeQueryServiceImpl} để tính phí; insert {@link shared.model.Payment}
+ * qua {@link examstaff.dao.PaymentDAO}. SePay do {@link ProcedureWorkflowServiceImpl} xử lý riêng.
+ *
+ * Luồng tiền mặt ({@link #recordProcedureCashPayment}):
+ * - {@link #previewFees} — load hồ sơ, resolve catalog phí theo hạng bằng
+ * - Tính {@code totalAmount} (fallback 200_000 nếu catalog trống)
+ * - Insert Payment CASH hoàn tất; fallback {@code updatePayment} trên đăng ký
+ *
+ * Quan hệ workflow:
+ * {@link ProcedureWorkflowServiceImpl#confirmPayment} gọi preview + record rồi
+ * {@code completeProcedureAfterPaid} (present, clear absent, auto-allocate).
+ */
 public class ProcedurePaymentServiceImpl {
 
     private final PaymentDAO paymentDAO = new PaymentDAOImpl();
@@ -20,7 +34,6 @@ public class ProcedurePaymentServiceImpl {
 
     /**
      * Xem trước phí thủ tục trước khi xác nhận thanh toán.
-     *
      * @param candidateId      mã đăng ký thí sinh
      * @param licenseCode      mã hạng bằng
      * @param requiresRoadTest true nếu cần sát hạch đường trường
@@ -39,7 +52,6 @@ public class ProcedurePaymentServiceImpl {
 
     /**
      * Ghi nhận thanh toán tiền mặt thủ tục cho hồ sơ.
-     *
      * @param profile hồ sơ đăng ký thí sinh
      * @return true nếu ghi nhận thành công
      */
@@ -63,7 +75,6 @@ public class ProcedurePaymentServiceImpl {
 
     /**
      * Insert Payment tiền mặt; fallback cập nhật cờ payment trên đăng ký.
-     *
      * @param candidateId  mã đăng ký
      * @param enrollmentId mã enrollment kỳ thi
      * @param totalAmount  số tiền

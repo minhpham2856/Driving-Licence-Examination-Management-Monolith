@@ -15,7 +15,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Implementation: làm mới / lọc hàng đợi gọi thí sinh. */
+/**
+ * Làm mới, lọc, sắp xếp và resolve SBD đang gọi trên hàng đợi thí sinh.
+ * <p>
+ * Kết hợp {@link CandidateQueueQueryServiceImpl} (đọc DB) với
+ * {@link CallQueueRules} (quy tắc thuần). Dùng bởi trang gọi, workflow và thủ tục.
+ *
+ * Refresh và snapshot:
+ * - {@link #refreshQueue} — resolve examId, load DB, normalize ảnh, apply pass rules, reorder session
+ * - {@link #buildSnapshot} — {@code fullQueue}, {@code activeQueue}, {@code procedureDone}
+ *
+ * Thao tác hàng đợi gọi:
+ * - {@link #filterPendingForCall} / {@link #resolveNextCallingSbd} — pending và SBD kế
+ * - {@link #moveCallableCandidateToBottom} / {@link #moveCallableCandidateToFront} — reorder in-place
+ * - {@link #advanceCallingIfDone} — tự promote khi thí sinh đang gọi xong thủ tục
+ *
+ * Quan hệ CallBoard:
+ * Thứ tự {@code callQueueOrder} từ session được áp trước khi sync
+ * {@link CallBoardRules}; {@code activeQueue} là nguồn promote calling.
+ */
 public class CandidateQueueServiceImpl {
 
     private final CandidateQueueQueryServiceImpl queueQuery;
@@ -28,7 +46,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Inject dependencies cho unit test / composition root.
-     *
      * @param queueQuery truy vấn danh sách thí sinh kỳ thi
      * @param examQuery  danh sách / tìm kỳ thi
      */
@@ -40,7 +57,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Làm mới hàng đợi theo ngữ cảnh kỳ thi / bộ lọc đầu vào.
-     *
      * @param input ngữ cảnh refresh hàng đợi
      * @return snapshot hàng đợi sau khi làm mới
      */
@@ -92,7 +108,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Dựng snapshot hàng đợi từ danh sách đã có.
-     *
      * @param queue          hàng đợi nguồn
      * @param examId         mã kỳ ưu tiên
      * @param fallbackExamId mã kỳ dự phòng
@@ -110,7 +125,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Lọc thí sinh còn chờ gọi (chưa hoàn tất thủ tục gọi theo quy tắc).
-     *
      * @param queue hàng đợi đầy đủ
      * @return danh sách còn pending để gọi
      */
@@ -129,7 +143,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Thí sinh còn trong hàng đợi gọi được (ủy quyền {@link CallQueueRules}).
-     *
      * @param candidate hồ sơ đăng ký
      * @return true nếu còn gọi được
      */
@@ -139,7 +152,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Tìm thí sinh trong hàng đợi theo số báo danh.
-     *
      * @param queue hàng đợi
      * @param sbd   số báo danh
      * @return hồ sơ khớp, hoặc null
@@ -150,7 +162,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * SBD tiếp theo sau {@code afterSbd} trong hàng chờ gọi (wrap về đầu nếu cần).
-     *
      * @param queue    hàng đợi nguồn
      * @param afterSbd SBD mốc (null/blank = lấy pending đầu)
      * @return SBD kế tiếp hoặc null
@@ -196,7 +207,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Xác định SBD kế tiếp cần gọi sau một SBD cho trước.
-     *
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD tham chiếu (có thể null = lấy đầu danh sách gọi được)
      * @return SBD kế tiếp, hoặc null nếu hết
@@ -215,7 +225,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Đưa thí sinh còn gọi được lên đầu hàng đợi.
-     *
      * @param queue hàng đợi (sửa tại chỗ)
      * @param sbd   số báo danh
      * @return true nếu đã chuyển vị trí
@@ -243,7 +252,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Đưa thí sinh còn gọi được xuống cuối hàng đợi.
-     *
      * @param queue hàng đợi (sửa tại chỗ)
      * @param sbd   số báo danh
      * @return true nếu đã chuyển vị trí
@@ -268,7 +276,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Liệt kê thí sinh đang bị đình chỉ trong hàng đợi kỳ thi.
-     *
      * @param queue hàng đợi
      * @return danh sách thí sinh suspended
      */
@@ -278,7 +285,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Thí sinh đã xong thủ tục, mới nhất trước (theo presentMarkedAt rồi SBD).
-     *
      * @param queue hàng đợi đầy đủ
      * @return danh sách đã lọc và sắp
      */
@@ -301,7 +307,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Tìm thí sinh theo kỳ thi và SBD (ưu tiên examId, fallback nếu cần).
-     *
      * @param examId         mã kỳ ưu tiên
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh
@@ -337,7 +342,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Tải danh sách thí sinh theo examId (fallback nếu examId ≤ 0).
-     *
      * @param examId         mã kỳ ưu tiên
      * @param fallbackExamId mã kỳ dự phòng
      * @param allExams       danh sách kỳ (giữ chữ ký API; không dùng trực tiếp)
@@ -359,7 +363,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Tìm {@link ExamSummaryDTO} theo id trong list hoặc DAO.
-     *
      * @param examId   mã kỳ thi
      * @param allExams danh sách đã load sẵn (có thể null)
      * @return kỳ thi khớp, hoặc null
@@ -379,7 +382,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Áp thứ tự gọi tùy chỉnh theo SBD (chỉ khi orderExamId khớp examId hiện tại).
-     *
      * @param order       thứ tự SBD mong muốn
      * @param orderExamId kỳ thi của order đã lưu
      * @param examId      kỳ thi đang resolve
@@ -413,7 +415,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Xác định thí sinh đang gọi từ SBD (có thể nhảy sang SBD kế nếu đã hoàn tất thủ tục).
-     *
      * @param callingSbd SBD đang gọi
      * @param queue      hàng đợi
      * @return hồ sơ đang gọi, hoặc null
@@ -439,7 +440,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Đồng bộ SBD đang gọi giữa HTTP session và CallBoard (bỏ SBD đã xong/vắng/đình chỉ).
-     *
      * @param httpCallingSbd SBD từ HTTP (ưu tiên)
      * @param callBoard      trạng thái bảng gọi (có thể null)
      * @param queue          hàng đợi
@@ -464,7 +464,6 @@ public class CandidateQueueServiceImpl {
 
     /**
      * Nếu SBD hiện tại đã xong/đình chỉ thì chuyển sang SBD kế tiếp còn gọi được.
-     *
      * @param callingSbd     SBD đang gọi
      * @param candidateQueue hàng đợi
      * @return SBD sau khi advance (có thể null)
