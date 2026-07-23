@@ -1,14 +1,14 @@
 :root {
     --exam-primary: #0052cc;
     --exam-accent: #fe6b00;
-    --exam-bg: #f5f7fb;
+    --exam-bg: #ffffff;
     --exam-card: #ffffff;
     --exam-border: #dbe3f0;
     --exam-text: #131b2e;
     --exam-muted: #64748b;
     --exam-danger: #dc2626;
-    --exam-success: #047857;
-    --exam-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    --exam-header-height: 88px;
+    --exam-footer-height: 118px;
 }
 
 * {
@@ -19,37 +19,31 @@ html,
 body {
     margin: 0;
     min-height: 100%;
+    background: #ffffff;
 }
 
 .exam-paper-body {
     min-height: 100vh;
-    background: var(--exam-bg);
+    background: #ffffff;
     color: var(--exam-text);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 
-.exam-paper-shell {
-    width: min(1180px, calc(100% - 32px));
-    margin: 0 auto;
-    padding: 24px 0 32px;
-}
-
 .exam-paper-header {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 20;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    min-height: var(--exam-header-height);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 20px;
-    padding: 18px 22px;
-    border: 1px solid var(--exam-border);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: var(--exam-shadow);
-    backdrop-filter: blur(16px);
+    gap: 20px;
+    padding: 14px 32px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--exam-border);
 }
 
 .exam-paper-title {
@@ -57,7 +51,7 @@ body {
 }
 
 .exam-paper-eyebrow {
-    margin: 0 0 4px;
+    margin: 0 0 8px;
     color: var(--exam-primary);
     font-size: 0.76rem;
     font-weight: 800;
@@ -65,10 +59,26 @@ body {
     text-transform: uppercase;
 }
 
-.exam-paper-header h1 {
-    margin: 0;
-    font-size: 1.55rem;
-    letter-spacing: -0.04em;
+.exam-paper-candidate {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
+.exam-paper-candidate strong {
+    font: 800 1.28rem/1 "JetBrains Mono", monospace;
+    color: var(--exam-text);
+}
+
+.exam-paper-candidate span {
+    color: var(--exam-text);
+    font-weight: 800;
+}
+
+.exam-paper-candidate span:last-child {
+    color: var(--exam-muted);
+    font-weight: 700;
 }
 
 .exam-paper-timer {
@@ -77,27 +87,32 @@ body {
     gap: 10px;
     min-width: 128px;
     justify-content: center;
-    border-radius: 16px;
-    background: rgba(0, 82, 204, 0.1);
     color: var(--exam-primary);
-    padding: 12px 16px;
+    padding: 10px 0;
 }
 
 .exam-paper-timer strong {
-    font: 800 1.4rem/1 "JetBrains Mono", monospace;
+    font: 800 1.45rem/1 "JetBrains Mono", monospace;
+}
+
+.exam-paper-shell {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: calc(var(--exam-header-height) + 24px) 0 calc(var(--exam-footer-height) + 28px);
 }
 
 .exam-paper-form {
     display: grid;
-    gap: 16px;
+    gap: 18px;
 }
 
 .exam-question-card {
-    border: 1px solid var(--exam-border);
-    border-radius: 22px;
-    background: var(--exam-card);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-    padding: 20px;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+    padding: 0 0 22px;
+    border-bottom: 1px solid var(--exam-border);
 }
 
 .exam-question-card__head {
@@ -105,7 +120,7 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .exam-question-card__head span {
@@ -114,12 +129,12 @@ body {
 }
 
 .exam-question-card__head em {
-    border-radius: 999px;
-    background: rgba(220, 38, 38, 0.09);
+    border-radius: 0;
+    background: transparent;
     color: var(--exam-danger);
-    padding: 6px 10px;
+    padding: 0;
     font-style: normal;
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     font-weight: 800;
 }
 
@@ -129,9 +144,9 @@ body {
     max-height: 460px;
     object-fit: contain;
     margin: 0 auto 18px;
-    border-radius: 16px;
-    border: 1px solid var(--exam-border);
-    background: #f8fafc;
+    border-radius: 0;
+    border: 0;
+    background: #ffffff;
 }
 
 .exam-choice-grid {
@@ -146,15 +161,15 @@ body {
     justify-content: center;
     min-height: 54px;
     border: 1px solid var(--exam-border);
-    border-radius: 16px;
-    background: #f8fafc;
+    border-radius: 0;
+    background: #ffffff;
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .exam-choice:has(input:checked) {
     border-color: var(--exam-primary);
-    background: rgba(0, 82, 204, 0.1);
+    background: rgba(0, 82, 204, 0.08);
     color: var(--exam-primary);
 }
 
@@ -171,15 +186,15 @@ body {
 .exam-submit-bar {
     display: flex;
     justify-content: center;
-    padding: 4px 0 0;
+    padding: 8px 0 0;
 }
 
 .exam-submit-button {
     width: min(100%, 360px);
     min-height: 56px;
     border: 0;
-    border-radius: 16px;
-    background: linear-gradient(135deg, var(--exam-accent), #f97316);
+    border-radius: 0;
+    background: var(--exam-accent);
     color: #ffffff;
     display: inline-flex;
     align-items: center;
@@ -187,49 +202,48 @@ body {
     gap: 10px;
     font-weight: 800;
     font-size: 1rem;
-    box-shadow: 0 14px 30px rgba(249, 115, 22, 0.24);
+    box-shadow: none;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.exam-submit-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 36px rgba(249, 115, 22, 0.3);
 }
 
 .exam-paper-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    min-height: var(--exam-footer-height);
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-    gap: 16px;
-    margin: 8px 0 14px;
-    padding: 18px;
-    border: 1px solid var(--exam-border);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: var(--exam-shadow);
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    padding: 16px 32px;
+    border: 0;
+    border-top: 1px solid var(--exam-border);
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
 }
 
 .exam-paper-footer__meta {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 6px 22px;
+    align-content: center;
 }
 
 .exam-paper-footer__meta div {
-    border: 1px solid var(--exam-border);
-    border-radius: 16px;
-    background: #f8fafc;
-    padding: 12px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
 }
 
 .exam-paper-footer__meta span {
-    display: block;
-    margin-bottom: 5px;
+    display: inline-block;
+    min-width: 90px;
     color: var(--exam-muted);
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
 }
 
 .exam-paper-footer__meta strong {
@@ -239,19 +253,23 @@ body {
 
 .exam-paper-footer__agency {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 88px;
+    grid-template-columns: minmax(0, 1fr) 86px;
     align-items: center;
     gap: 16px;
-    border: 1px solid rgba(0, 82, 204, 0.14);
-    border-radius: 18px;
-    background: linear-gradient(135deg, rgba(0, 82, 204, 0.08), rgba(255, 255, 255, 0.92));
-    padding: 14px 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.exam-paper-footer__agency-text {
+    text-align: right;
 }
 
 .exam-paper-footer__agency-text span {
     display: block;
     color: var(--exam-text);
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 900;
     letter-spacing: 0.08em;
 }
@@ -260,7 +278,7 @@ body {
     display: block;
     margin-top: 6px;
     color: var(--exam-danger);
-    font-size: 1.05rem;
+    font-size: 1.08rem;
     font-weight: 900;
 }
 
@@ -268,16 +286,28 @@ body {
     width: 82px;
     height: 82px;
     object-fit: contain;
+    border: 0;
 }
 
 @media (max-width: 760px) {
+    :root {
+        --exam-header-height: 142px;
+        --exam-footer-height: 210px;
+    }
+
     .exam-paper-header {
         align-items: flex-start;
         flex-direction: column;
+        padding: 14px 18px;
     }
 
     .exam-paper-timer {
+        justify-content: flex-start;
         width: 100%;
+    }
+
+    .exam-paper-shell {
+        width: min(100% - 28px, 1180px);
     }
 
     .exam-choice-grid {
@@ -286,6 +316,7 @@ body {
 
     .exam-paper-footer {
         grid-template-columns: 1fr;
+        padding: 14px 18px;
     }
 
     .exam-paper-footer__meta {

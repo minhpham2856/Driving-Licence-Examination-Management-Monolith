@@ -6,6 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="10;url=${ctx}/exam/entrance">
     <title>Kết quả thi | Lái Vui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,11 +25,13 @@
             <div><span>Sai</span><strong>${result.wrong}</strong></div>
             <div><span>Không trả lời</span><strong>${result.unanswered}</strong></div>
         </div>
-        <c:if test="${result.criticalFailed}">
-            <p class="exam-result-warning">Không đạt do trả lời sai câu điểm liệt.</p>
-        </c:if>
-        <p class="exam-result-note">Vui lòng chờ sát hạch viên in biên bản và hoàn tất phần thi.</p>
+        <p class="exam-result-note">Màn hình sẽ tự quay về nhập SBD sau 10 giây.</p>
     </section>
 </main>
+<script>
+window.setTimeout(function () {
+    window.location.href = '${ctx}/exam/entrance';
+}, 10000);
+</script>
 </body>
 </html>

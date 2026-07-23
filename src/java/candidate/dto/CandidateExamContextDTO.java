@@ -8,6 +8,7 @@ public class CandidateExamContextDTO {
     private int candidateId;
     private String candidateNumber;
     private String fullName;
+    private String governmentIdNumber;
     private int examId;
     private int examEnrollmentId;
     private int examEnrollmentSectionId;
@@ -29,6 +30,8 @@ public class CandidateExamContextDTO {
     public void setCandidateNumber(String value) { candidateNumber = value; }
     public String getFullName() { return fullName; }
     public void setFullName(String value) { fullName = value; }
+    public String getGovernmentIdNumber() { return governmentIdNumber; }
+    public void setGovernmentIdNumber(String value) { governmentIdNumber = value; }
     public int getExamId() { return examId; }
     public void setExamId(int value) { examId = value; }
     public int getExamEnrollmentId() { return examEnrollmentId; }

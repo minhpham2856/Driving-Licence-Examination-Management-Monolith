@@ -2,13 +2,12 @@
     --exam-primary: #0052cc;
     --exam-primary-dark: #003d9b;
     --exam-accent: #fe6b00;
-    --exam-bg: #f5f7fb;
+    --exam-bg: #ffffff;
     --exam-card: #ffffff;
     --exam-border: #dbe3f0;
     --exam-text: #131b2e;
     --exam-muted: #64748b;
     --exam-danger: #dc2626;
-    --exam-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -19,13 +18,12 @@ html,
 body {
     margin: 0;
     min-height: 100%;
+    background: #ffffff;
 }
 
 .exam-kiosk-body {
     min-height: 100vh;
-    background:
-        radial-gradient(circle at top left, rgba(0, 82, 204, 0.14), transparent 32rem),
-        linear-gradient(135deg, #f8fbff 0%, var(--exam-bg) 100%);
+    background: #ffffff;
     color: var(--exam-text);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -38,17 +36,14 @@ body {
     padding: 32px;
 }
 
-.exam-kiosk-card {
-    width: min(100%, 520px);
-    background: var(--exam-card);
-    border: 1px solid var(--exam-border);
-    border-radius: 24px;
-    box-shadow: var(--exam-shadow);
-    padding: 32px;
-}
-
+.exam-kiosk-card,
 .exam-kiosk-card--compact {
-    width: min(100%, 500px);
+    width: min(100%, 520px);
+    background: #ffffff;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 32px;
 }
 
 .exam-kiosk-brand {
@@ -58,26 +53,19 @@ body {
     margin-bottom: 18px;
 }
 
-.exam-kiosk-brand > .material-symbols-outlined {
-    width: 54px;
-    height: 54px;
-    display: inline-grid;
-    place-items: center;
-    border-radius: 18px;
-    background: rgba(0, 82, 204, 0.1);
-    color: var(--exam-primary);
-    font-size: 30px;
-}
-
+.exam-kiosk-brand > .material-symbols-outlined,
 .exam-kiosk-logo {
     width: 58px;
     height: 58px;
-    display: block;
+    display: inline-grid;
+    place-items: center;
     object-fit: contain;
-    border-radius: 18px;
-    background: rgba(0, 82, 204, 0.08);
-    padding: 8px;
-    border: 1px solid rgba(0, 82, 204, 0.12);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--exam-primary);
+    font-size: 34px;
+    padding: 0;
 }
 
 .exam-kiosk-eyebrow {
@@ -105,7 +93,7 @@ body {
     margin: 0 0 18px;
     padding: 12px 14px;
     border: 1px solid rgba(220, 38, 38, 0.22);
-    border-radius: 14px;
+    border-radius: 0;
     background: rgba(220, 38, 38, 0.08);
     color: var(--exam-danger);
     font-weight: 700;
@@ -128,15 +116,14 @@ body {
     gap: 12px;
     min-height: 56px;
     border: 1px solid var(--exam-border);
-    border-radius: 16px;
-    background: #f8fafc;
+    border-radius: 0;
+    background: #ffffff;
     padding: 0 16px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .exam-kiosk-input:focus-within {
     border-color: rgba(0, 82, 204, 0.65);
-    box-shadow: 0 0 0 4px rgba(0, 82, 204, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
 }
 
 .exam-kiosk-input .material-symbols-outlined {
@@ -167,10 +154,10 @@ body {
     margin-top: 10px;
     min-height: 54px;
     border: 0;
-    border-radius: 16px;
-    background: linear-gradient(135deg, var(--exam-accent), #f97316);
+    border-radius: 0;
+    background: var(--exam-accent);
     color: #ffffff;
-    box-shadow: 0 14px 30px rgba(249, 115, 22, 0.25);
+    box-shadow: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -178,12 +165,6 @@ body {
     font-weight: 800;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.exam-kiosk-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 36px rgba(249, 115, 22, 0.3);
 }
 
 .exam-info-grid {
@@ -194,8 +175,8 @@ body {
 
 .exam-info-grid div {
     border: 1px solid var(--exam-border);
-    border-radius: 16px;
-    background: #f8fafc;
+    border-radius: 0;
+    background: #ffffff;
     padding: 16px;
 }
 
@@ -222,8 +203,8 @@ body {
         padding: 18px;
     }
 
-    .exam-kiosk-card {
+    .exam-kiosk-card,
+    .exam-kiosk-card--compact {
         padding: 24px;
-        border-radius: 20px;
     }
 }
