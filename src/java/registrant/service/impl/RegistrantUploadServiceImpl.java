@@ -29,10 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Upload tài liệu hồ sơ thí sinh - đẩy lên Cloudinary (folder pending) để staff xem khi duyệt.
- * RegistrationStatus chỉ đổi khi thí sinh bấm «Gửi yêu cầu duyệt».
- */
+/** Upload hồ sơ lên Cloudinary: chính (4 giấy→#PENDING#) hoặc bổ sung (Other+#LICENCE#→ER #SUPPLEMENT_DOC#); RegistrationStatus chỉ đổi khi Gửi duyệt. */
 public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();
@@ -166,6 +163,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         }
     }
 
+    /** Gửi duyệt: Pending→từ chối; Approved→requestSupplementApproval; Draft/Rejected→duyệt 4 giấy chính. */
     @Override
     public String requestApproval(UserDTO user, String requestNote, HttpSession session) {
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
@@ -205,9 +203,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         return null;
     }
 
-    /**
-     * Tạo dòng ExamRegistration bổ sung + gắn tệp Other - không đổi hồ sơ gốc, không upload lại Cloudinary.
-     */
+    /** Tạo ER bổ sung + gắn Other: lọc awaiting → hạng #LICENCE# → insertSupplement → #SUPPLEMENT_ER#id# + #PENDING#. */
     private boolean requestSupplementApproval(int profileId, String requestNote,
             List<RegistrantDocumentView> docs) {
         List<RegistrantDocumentView> awaiting = new ArrayList<>();
@@ -365,7 +361,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         }
         String code = supplementLicenceCode.trim();
         if (RegistrantDocumentStatusHelper.isBasicDocsOnlyLicence(code)) {
-            return "Hạng A1 và A2 không cần hồ sơ bổ sung - vui lòng chọn hạng từ B1 trở lên.";
+            return "Hạng A1 và A2 không cần hồ sơ bổ sung — vui lòng chọn hạng từ B1 trở lên.";
         }
         if (registrantdao.resolveLicenceIdByUiCode(code) <= 0) {
             return "Hạng GPLX không hợp lệ.";
@@ -386,7 +382,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                     + "sau đó bấm «Gửi yêu cầu duyệt» khi cần ban quản lý xem xét.";
         }
         if (ProfileRegistrationStatus.PENDING.equalsIgnoreCase(registrationStatus)) {
-            return "Hồ sơ đang chờ duyệt - không thể thay đổi giấy tờ bắt buộc lúc này.";
+            return "Hồ sơ đang chờ duyệt — không thể thay đổi giấy tờ bắt buộc lúc này.";
         }
         return null;
     }
@@ -394,14 +390,14 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
     private String validateDeleteAllowed(int profileId, RegistrantDocumentView doc) {
         String registrationStatus = registrantdao.findProfileDocumentRegistrationStatus(profileId);
         if (ProfileRegistrationStatus.PENDING.equalsIgnoreCase(registrationStatus)) {
-            return "Hồ sơ đang chờ duyệt - không thể xóa tài liệu.";
+            return "Hồ sơ đang chờ duyệt — không thể xóa tài liệu.";
         }
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(registrationStatus)) {
             if (!DocumentDAOImpl.isOtherType(doc.getDocumentType())) {
                 return "Không thể xóa giấy tờ bắt buộc đã được duyệt. Chỉ xóa được hồ sơ bổ sung tại mục «Hồ sơ khác».";
             }
             if (DocumentDAOImpl.isPendingReview(doc.getNotes())) {
-                return "Hồ sơ bổ sung đang chờ duyệt - không thể xóa.";
+                return "Hồ sơ bổ sung đang chờ duyệt — không thể xóa.";
             }
         }
         return null;
@@ -428,6 +424,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                 doc.getDocumentUrl() != null && !doc.getDocumentUrl().isBlank());
     }
 
+    /** Nút Gửi duyệt: Draft cần ≥1 tệp; Approved cần Other awaiting và không còn ER bổ sung Pending. */
     private static boolean canRequestApproval(String registrationStatus, List<RegistrantDocumentView> docs,
             boolean supplementErPending) {
         String status = registrationStatus != null ? registrationStatus.trim() : ProfileRegistrationStatus.DRAFT;

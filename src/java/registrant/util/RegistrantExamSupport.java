@@ -17,10 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Tiện ích dùng chung cho luồng thí sinh: ánh xạ mã GPLX UI ↔ DB,
- * gán nhãn trạng thái, định dạng thời gian hiển thị.
- */
+/** Tiện ích thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch đăng ký. */
 public final class RegistrantExamSupport {
 
     public static final String SBD_PENDING_MESSAGE = "SBD sẽ được cập nhật sau";
@@ -46,6 +43,19 @@ public final class RegistrantExamSupport {
             return SBD_PENDING_MESSAGE;
         }
         return candidateNumber.trim();
+    }
+
+    /** UI dùng B2/A2; DB có thể lưu B/A hoặc đã là B2/A2 — trả cả hai để JOIN không miss. */
+    public static String[] licenceClassLookupCodes(String uiCode) {
+        if (uiCode == null || uiCode.isBlank()) {
+            return new String[] { "B" };
+        }
+        String ui = uiCode.trim().toUpperCase(Locale.ROOT);
+        String db = toDbLicenceCode(ui);
+        if (db.equalsIgnoreCase(ui)) {
+            return new String[] { ui };
+        }
+        return new String[] { ui, db };
     }
 
     /** UI dùng B2/A2 trong khi DB seed dùng B/A. */
@@ -118,7 +128,7 @@ public final class RegistrantExamSupport {
         };
     }
 
-    /** CCCD 12 số hoặc CMND 9 số - dùng validate hồ sơ thí sinh. */
+    /** CCCD 12 số hoặc CMND 9 số — dùng validate hồ sơ thí sinh. */
     public static boolean isValidGovIdNumber(String raw) {
         if (raw == null || raw.isBlank()) {
             return false;
@@ -134,10 +144,7 @@ public final class RegistrantExamSupport {
         return raw.trim().replaceAll("\\s+", "");
     }
 
-    /**
-     * Gán badge trạng thái cho bảng dashboard: chờ xét duyệt (chưa có SBD import)
-     * hoặc lịch thi chính thức (đã có SBD từ danh sách import). Thanh toán thực hiện khi sát hạch.
-     */
+    /** Badge dashboard: chờ xét duyệt (chưa SBD import) hoặc lịch chính thức (đã SBD); thanh toán khi sát hạch. */
     public static void applyExamStatusBadge(RegistrantRegisteredExamRow row,
             String candidateNumber, String regStatus, String sectionStatus) {
         if ("Completed".equalsIgnoreCase(sectionStatus) || "Passed".equalsIgnoreCase(sectionStatus)) {
@@ -160,9 +167,7 @@ public final class RegistrantExamSupport {
         row.setStatusLabel("Được xét duyệt");
     }
 
-    /**
-     * Gán badge cho trang my-exams: chờ xét duyệt (chưa có SBD) → được xét duyệt (có SBD, chờ ngày thi).
-     */
+    /** Badge my-exams: chờ xét duyệt (chưa SBD) → được xét duyệt (có SBD, chờ ngày thi). */
     public static void applyMyExamStatus(RegistrantMyExamRow row, String candidateNumber,
             String regStatus, String sectionStatus, Integer overallPassed) {
         if (overallPassed != null && overallPassed == 1) {
@@ -177,7 +182,7 @@ public final class RegistrantExamSupport {
                 || ExamRegistrationLifecycleStatus.CANCELLED.equalsIgnoreCase(regStatus)) {
             row.setStatusClass("rejected");
             row.setStatusLabel(ExamRegistrationLifecycleStatus.toDisplayLabel(regStatus));
-            row.setOverallResultLabel("-");
+            row.setOverallResultLabel("—");
         } else if (ExamRegistrationLifecycleStatus.isCancellationPending(regStatus)) {
             row.setStatusClass("pending");
             row.setStatusLabel("Chờ hủy đăng ký");
@@ -295,10 +300,7 @@ public final class RegistrantExamSupport {
         }
     }
 
-    /**
-     * Công bố giờ ca thi sau khi đã có điểm hoặc ca đã diễn ra - phòng trường hợp thi xong
-     * nhưng trạng thái Session chưa đồng bộ.
-     */
+    /** Công bố giờ ca thi sau khi có điểm hoặc ca đã diễn ra — phòng Session status chưa đồng bộ. */
     public static void finalizeSessionTimeDisplay(RegistrantMyExamRow row, String sessionStatus,
             java.util.Date sessionStart, java.util.Date sessionEnd, String sectionStatus) {
         if (!row.isSessionTimePublished() && shouldRevealSessionTime(row, sessionStatus, sectionStatus)) {
@@ -380,19 +382,19 @@ public final class RegistrantExamSupport {
         row.setSessionTimeDisplay(formatSessionTimeRange(sessionStart, sessionEnd));
     }
 
-    /** Định dạng khoảng giờ ca thi cho dashboard (vd: "08:00 - 10:00"). */
+    /** Định dạng khoảng giờ ca thi cho dashboard (vd: "08:00 — 10:00"). */
     public static String formatSessionTimeRange(java.util.Date start, java.util.Date end) {
         if (start == null && end == null) {
             return null;
         }
         SimpleDateFormat hm = new SimpleDateFormat("HH:mm", Locale.ROOT);
         if (start != null && end != null) {
-            return hm.format(start) + " - " + hm.format(end);
+            return hm.format(start) + " — " + hm.format(end);
         }
         return start != null ? hm.format(start) : hm.format(end);
     }
 
-    /** Đọc cột INT/BIT an toàn - tương thích mọi JDBC driver (tránh pattern matching gây lỗi compile NB). */
+    /** Đọc cột INT/BIT an toàn — tương thích mọi JDBC driver (tránh pattern matching gây lỗi compile NB). */
     public static Integer toInteger(Object value) {
         if (value == null) {
             return null;
@@ -416,6 +418,7 @@ public final class RegistrantExamSupport {
 
     // --- Quy tắc đăng ký ca thi ---
 
+    /** Validate insert ca mới: xác định section, không trùng licence+section, không cùng ngày hạng khác — null nếu OK. */
     public static String validateNewSessionRegistration(ExamRegistrationDAO examRegistrationdao,
             int profileId, int sessionId, int licenceId, String uiLicenceCode) {
         SessionExamSectionInfo section = examRegistrationdao.findPrimarySectionForSession(sessionId);
@@ -428,11 +431,11 @@ public final class RegistrantExamSupport {
         if (block != null) {
             String statusLabel = ExamRegistrationLifecycleStatus.toDisplayLabel(block.getRegistrationStatus());
             return String.format(
-                    "Bạn đã có đăng ký phần thi %s (Hạng %s) tại %s - trạng thái: %s. "
+                    "Bạn đã có đăng ký phần thi %s (Hạng %s) tại %s — trạng thái: %s. "
                             + "Chỉ được đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.",
                     section.getSectionName(),
-                    uiLicenceCode != null ? uiLicenceCode : "-",
-                    block.getSessionName() != null ? block.getSessionName() : "-",
+                    uiLicenceCode != null ? uiLicenceCode : "—",
+                    block.getSessionName() != null ? block.getSessionName() : "—",
                     statusLabel);
         }
 
@@ -469,11 +472,11 @@ public final class RegistrantExamSupport {
         }
 
         String dateLabel = formatExamDate(existing.getExamDate());
-        String licenceLabel = existing.getUiLicenceCode() != null ? existing.getUiLicenceCode() : "-";
-        String sessionLabel = existing.getSessionName() != null ? existing.getSessionName() : "-";
+        String licenceLabel = existing.getUiLicenceCode() != null ? existing.getUiLicenceCode() : "—";
+        String sessionLabel = existing.getSessionName() != null ? existing.getSessionName() : "—";
         return String.format(
                 "Bạn đã có ca thi Hạng %s (%s) vào ngày %s. "
-                        + "Giữa các hạng GPLX khác nhau chỉ được thi vào ngày khác nhau - vui lòng chọn ca khác ngày.",
+                        + "Giữa các hạng GPLX khác nhau chỉ được thi vào ngày khác nhau — vui lòng chọn ca khác ngày.",
                 licenceLabel, sessionLabel, dateLabel);
     }
 

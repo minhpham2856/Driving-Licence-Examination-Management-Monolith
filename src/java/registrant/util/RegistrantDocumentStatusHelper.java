@@ -14,10 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Hiển thị tài liệu theo {@code ExamRegistration.RegistrationStatus}.
- * Document.Notes chỉ dùng cho lý do từ chối từng tệp (nếu có).
- */
+/** Hiển thị tài liệu theo ExamRegistration.RegistrationStatus (nguồn chân lý); Notes chỉ marker tệp. A1/A2: 4 giấy; B1+: thêm Other #LICENCE#. */
 public final class RegistrantDocumentStatusHelper {
 
     public static final String[] REQUIRED_TYPES = {
@@ -230,9 +227,7 @@ public final class RegistrantDocumentStatusHelper {
         return BASIC_DOCS_ONLY_LICENCE_CODES.contains(uiLicenceCode.trim().toUpperCase(Locale.ROOT));
     }
 
-    /**
-     * Hạng A1/A2: chỉ cần 4 giấy tờ bắt buộc. Hạng khác: cần hồ sơ khác đã được staff duyệt đúng hạng.
-     */
+    /** Hạng A1/A2: chỉ 4 giấy bắt buộc; hạng khác: cần Other đã duyệt đúng hạng. */
     public static boolean isLicenceAllowedWithDocuments(String uiLicenceCode,
             List<RegistrantDocumentView> allDocs) {
         if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
