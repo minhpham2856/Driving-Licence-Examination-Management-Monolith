@@ -1,8 +1,24 @@
 package examstaff.enums;
 
 /**
- * Nhãn entity nghiệp vụ dùng trong nhật ký audit ExamStaff.
- * {@link #resolveLabel} đổi tên entity thô sang nhãn tiếng Việt nếu khớp một hằng.
+ * Enum nhãn thực thể nghiệp vụ cho nhật ký audit ExamStaff — chuẩn hóa tên bảng/entity
+ * kỹ thuật sang tiếng Việt hiển thị trên màn audit và export CSV.
+ *
+ * Vai trò trong luồng examstaff:
+ * Mỗi hằng gắn {@code displayName} tiếng Việt (Thí sinh, Ca thi, Thu phí, …).
+ * {@link #resolveLabel} nhận chuỗi entity từ log thô và trả nhãn đã biết; không khớp → giữ nguyên.
+ * Lớp util {@code ExamStaffLabels#formatEntityLabel} gọi {@link #resolveLabel} sau bước map tên bảng SQL.
+ *
+ * Giá trị hằng số:
+ * - {@link #THI_SINH} — hồ sơ / enrollment thí sinh trên ca.
+ * - {@link #KET_QUA_THI}, {@link #DIEM_THI}, {@link #HANG_DOI_NHAP_DIEM} — điểm và hàng đợi nhập điểm.
+ * - {@link #PHONG_THI}, {@link #THIET_BI_THI} — khu vực và thiết bị thi.
+ * - {@link #CA_THI}, {@link #PHAN_CONG_SAT_HACH_VIEN}, {@link #GOI_THI_SINH} — điều hành ca, phân công, gọi thí sinh.
+ * - {@link #HO_SO}, {@link #THANH_TOAN} — thủ tục hành chính và thu lệ phí.
+ *
+ * Ai sử dụng:
+ * {@code ExamStaffLabels}, {@code StaffAuditPageServiceImpl}, {@code StaffAuditExportServiceImpl},
+ * {@code AuditServlet}, {@code AuditExportServlet} — mọi nơi cần nhãn entity tiếng Việt trên UI audit.
  */
 public enum AuditEntity {
     /** Thí sinh / hồ sơ thí sinh trên ca. */
@@ -33,7 +49,6 @@ public enum AuditEntity {
 
     /**
      * Gán nhãn entity audit.
-     *
      * @param displayName nhãn VI
      */
     AuditEntity(String displayName) {
@@ -42,7 +57,6 @@ public enum AuditEntity {
 
     /**
      * Lấy nhãn tiếng Việt của entity.
-     *
      * @return display name
      */
     public String getDisplayName() {
@@ -52,7 +66,6 @@ public enum AuditEntity {
     /**
      * Đổi tên entity thô sang nhãn tiếng Việt nếu khớp một hằng (ignore case);
      * blank → {@code "-"}; không khớp → giữ nguyên chuỗi đã trim.
-     *
      * @param entityName tên entity từ log
      * @return nhãn hiển thị
      */

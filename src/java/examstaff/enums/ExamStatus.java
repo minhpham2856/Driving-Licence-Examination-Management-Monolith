@@ -3,8 +3,26 @@ package examstaff.enums;
 import java.util.Locale;
 
 /**
- * Trạng thái kỳ thi ({@code Exam}) — đồng bộ chuỗi VI trên UI/DB và alias EN legacy.
- * Dùng để khóa thao tác staff và kiểm tra điều kiện bắt đầu / kết thúc ca.
+ * Enum trạng thái vòng đời kỳ thi ({@code Exam}) — chuẩn hóa chuỗi tiếng Việt trên UI/CSDL
+ * và alias tiếng Anh legacy ({@code scheduled}, {@code inProgress}, …).
+ *
+ * Vai trò trong luồng examstaff:
+ * Quyết định staff được phép start/pause/end ca, đổi hồ sơ thí sinh hay không.
+ * {@link #normalize} là điểm vào duy nhất: blank → {@link #CHUA_DIEN_RA}; khớp displayName;
+ * rồi map alias EN; không khớp → mặc định an toàn.
+ * {@link #isLockedForStaffMutation} khóa mutation khi kỳ {@link #HOAN_TAT} hoặc {@link #DA_HUY}.
+ *
+ * Chuỗi trạng thái:
+ * - {@link #CHUA_DIEN_RA} — chưa tới giờ / chưa mở ca.
+ * - {@link #MO} — đã mở, chưa bắt đầu (alias: scheduled, open).
+ * - {@link #DANG_DIEN_RA} — ca đang chạy (alias: inProgress).
+ * - {@link #TAM_DUNG} — tạm dừng (alias: paused).
+ * - {@link #HOAN_TAT}, {@link #DA_HUY} — kết thúc hoặc hủy; khóa thao tác staff.
+ *
+ * Ai sử dụng:
+ * {@code ExamControlServiceImpl}, {@code ExamStaffPageBinder}, {@code ProcedureWorkflowServiceImpl},
+ * {@code CandidateCallServlet}, {@code AllocationPassRules}, {@code DocumentServiceImpl} —
+ * kiểm tra {@link #canStart}, {@link #canEnd}, {@link #isInProgress}, {@link #isLockedForStaffMutation}.
  */
 public enum ExamStatus {
     /** Kỳ thi chưa tới giờ / chưa mở. */
@@ -25,7 +43,6 @@ public enum ExamStatus {
 
     /**
      * Gán nhãn hiển thị cho trạng thái kỳ thi.
-     *
      * @param displayName chuỗi VI
      */
     ExamStatus(String displayName) {
@@ -34,7 +51,6 @@ public enum ExamStatus {
 
     /**
      * Lấy nhãn tiếng Việt của trạng thái.
-     *
      * @return display name
      */
     public String getDisplayName() {
@@ -43,7 +59,6 @@ public enum ExamStatus {
 
     /**
      * So khớp chuỗi trạng thái với {@link #displayName} (không phân biệt hoa thường).
-     *
      * @param value chuỗi từ DB/UI
      * @return {@code true} nếu khớp hằng này
      */
@@ -59,7 +74,6 @@ public enum ExamStatus {
      * <p>
      * Luồng: blank → CHUA_DIEN_RA; khớp displayName; rồi map alias EN/VI không dấu;
      * không khớp → CHUA_DIEN_RA.
-     *
      * @param value chuỗi trạng thái
      * @return enum tương ứng
      */
@@ -88,7 +102,6 @@ public enum ExamStatus {
 
     /**
      * Có thể bắt đầu ca khi trạng thái là {@link #CHUA_DIEN_RA} hoặc {@link #MO}.
-     *
      * @param status chuỗi trạng thái kỳ thi
      * @return {@code true} nếu được phép start
      */
@@ -99,7 +112,6 @@ public enum ExamStatus {
 
     /**
      * Kiểm tra kỳ đang diễn ra.
-     *
      * @param status chuỗi trạng thái
      * @return {@code true} nếu {@link #DANG_DIEN_RA}
      */
@@ -109,7 +121,6 @@ public enum ExamStatus {
 
     /**
      * Kiểm tra kỳ đang tạm dừng.
-     *
      * @param status chuỗi trạng thái
      * @return {@code true} nếu {@link #TAM_DUNG}
      */
@@ -119,7 +130,6 @@ public enum ExamStatus {
 
     /**
      * Có thể kết thúc ca khi đang diễn ra hoặc đang tạm dừng.
-     *
      * @param status chuỗi trạng thái
      * @return {@code true} nếu được phép end
      */
@@ -130,7 +140,6 @@ public enum ExamStatus {
 
     /**
      * Kỳ đã hoàn tất ({@link #HOAN_TAT}).
-     *
      * @param status chuỗi trạng thái
      * @return {@code true} nếu đã hoàn tất
      */
@@ -141,7 +150,6 @@ public enum ExamStatus {
     /**
      * Khóa thao tác staff đổi hồ sơ / đình chỉ / hoàn tác khi kỳ đã đóng
      * ({@link #HOAN_TAT} hoặc {@link #DA_HUY}).
-     *
      * @param status chuỗi trạng thái
      * @return {@code true} nếu không cho staff mutation
      */
