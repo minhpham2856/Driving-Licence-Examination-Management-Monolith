@@ -1,8 +1,23 @@
 package examstaff.util;
 
 /**
- * Suy tên entity / chuẩn hóa mã action cho audit log exam staff.
- * Dùng trước khi ghi nhật ký để gom các cụm action/details khác nhau về entity & mã chuẩn.
+ * Utility suy tên entity và chuẩn hóa mã action trước khi ghi nhật ký audit ExamStaff.
+ * Gom các cụm action/details khác nhau về entity kỹ thuật và mã CRUD chuẩn.
+ *
+ * Vai trò trong luồng examstaff:
+ * Khi staff thao tác (phân bổ, thu phí, gọi thí sinh, nhập điểm, …), BLL ghi audit với
+ * action/details thô. Helper map sang tên bảng/entity ({@code Candidate}, {@code Payment},
+ * {@code ExamScore}, …) và action chuẩn ({@code INSERT}/{@code UPDATE}/{@code ASSIGN}/…)
+ * trước khi persist qua {@code AuditLogDAO}.
+ *
+ * Cách hoạt động:
+ * - {@link #resolveEntityName} — ưu tiên từ khóa trong action/details (ScoreEntry → ScoreEntryQueue,
+ *       Payment → Payment, ALLOCATE → Candidate, …); mặc định {@code Candidate}.
+ * - {@link #normalizeAction} — null → UPDATE; chứa IMPORT/INSERT/DELETE/EXPORT/ASSIGN → mã tương ứng.
+ *
+ * Ai gọi:
+ * {@code StaffAuditLogServiceImpl}, {@code AuditLogDAOImpl} — mọi điểm ghi audit từ allocation,
+ * procedure, call board, examiner assignment, exam control.
  */
 public final class AuditLogHelper {
 
@@ -13,20 +28,18 @@ public final class AuditLogHelper {
     /**
      * Suy tên entity kỹ thuật từ action + details (ScoreEntryQueue, Payment, …).
      * <p>
+ *
      * Luồng ưu tiên (return ngay khi khớp):
-     * <ol>
-     *   <li>ScoreEntry / hàng đợi → {@code ScoreEntryQueue}</li>
-     *   <li>ExamDevice / thiết bị → {@code ExamDevice}</li>
-     *   <li>IMPORT → {@code ExamRegistration}</li>
-     *   <li>PAYMENT → {@code Payment}</li>
-     *   <li>PERSON / PROFILE → {@code Profile}</li>
-     *   <li>EXAMINER / ASSIGN / REMOVE → {@code ExaminerSchedule}</li>
-     *   <li>Điểm / lý thuyết / thực hành / ExamScore → {@code ExamScore}</li>
-     *   <li>ExamRegistration / ALLOCATE → {@code Candidate}</li>
-     *   <li>EXAM (không dính các nhánh trên) → {@code Exam}</li>
-     *   <li>Mặc định → {@code Candidate}</li>
-     * </ol>
-     *
+     * - ScoreEntry / hàng đợi → {@code ScoreEntryQueue}
+     * - ExamDevice / thiết bị → {@code ExamDevice}
+     * - IMPORT → {@code ExamRegistration}
+     * - PAYMENT → {@code Payment}
+     * - PERSON / PROFILE → {@code Profile}
+     * - EXAMINER / ASSIGN / REMOVE → {@code ExaminerSchedule}
+     * - Điểm / lý thuyết / thực hành / ExamScore → {@code ExamScore}
+     * - ExamRegistration / ALLOCATE → {@code Candidate}
+     * - EXAM (không dính các nhánh trên) → {@code Exam}
+     * - Mặc định → {@code Candidate}
      * @param action  mã/cụm action
      * @param details mô tả chi tiết
      * @return tên entity (mặc định {@code Candidate})
@@ -76,7 +89,6 @@ public final class AuditLogHelper {
      * <p>
      * Luồng: null → UPDATE; rồi kiểm tra chứa IMPORT → INSERT → DELETE|REMOVE → EXPORT → ASSIGN;
      * mọi trường hợp còn lại → UPDATE.
-     *
      * @param rawAct action gốc (null → UPDATE)
      * @return mã action chuẩn
      */
