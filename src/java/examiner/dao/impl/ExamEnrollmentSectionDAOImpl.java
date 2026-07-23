@@ -287,14 +287,16 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
             return printed;
         }
         StringBuilder sql = new StringBuilder(
-                "SELECT ees.ExamEnrollmentId, ees.ResultPrintedAt "
+                "SELECT ees.ExamEnrollmentId, "
+                + "CASE WHEN MAX(CASE WHEN ees.ResultPrintedAt IS NOT NULL THEN 1 ELSE 0 END) = 1 "
+                + "THEN 1 ELSE 0 END AS IsPrinted "
                 + "FROM ExamEnrollmentSection ees "
                 + "JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
                 + "WHERE es.SectionType = ? AND ees.ExamEnrollmentId IN (");
         for (int i = 0; i < enrollmentIds.size(); i++) {
             sql.append(i == 0 ? "?" : ",?");
         }
-        sql.append(")");
+        sql.append(") GROUP BY ees.ExamEnrollmentId");
         try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
             ps.setString(1, sectionType.trim());
             for (int i = 0; i < enrollmentIds.size(); i++) {
@@ -302,7 +304,7 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    printed.put(rs.getInt("ExamEnrollmentId"), rs.getTimestamp("ResultPrintedAt") != null);
+                    printed.put(rs.getInt("ExamEnrollmentId"), rs.getInt("IsPrinted") == 1);
                 }
             }
         } catch (SQLException e) {
@@ -317,7 +319,8 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
         if (examEnrollmentId <= 0 || sectionType == null || sectionType.isBlank()) {
             return false;
         }
-        String sql = "SELECT ees.ResultPrintedAt "
+        String sql = "SELECT CASE WHEN MAX(CASE WHEN ees.ResultPrintedAt IS NOT NULL THEN 1 ELSE 0 END) = 1 "
+                + "THEN 1 ELSE 0 END AS IsPrinted "
                 + "FROM ExamEnrollmentSection ees "
                 + "INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
                 + "WHERE ees.ExamEnrollmentId = ? AND es.SectionType = ?";
@@ -326,7 +329,7 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
             ps.setString(2, sectionType.trim());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getTimestamp("ResultPrintedAt") != null;
+                    return rs.getInt("IsPrinted") == 1;
                 }
             }
         } catch (SQLException e) {

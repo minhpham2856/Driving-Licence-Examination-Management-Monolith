@@ -96,6 +96,7 @@
                         <!-- Reason Form -->
                         <form action="${ctx}/examiner/result-details-edit" method="post">
                             <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
+                            <input type="hidden" name="pendingAdjustments" id="pendingAdjustmentsInput" value="">
                             <section class="score-entry-card exr-card--mt">
                                 <div class="score-entry-card__head">
                                     <div class="score-entry-card__title">
@@ -135,7 +136,9 @@
                     </div>
 
                     <aside class="score-entry-col score-entry-col--penalties">
-                        <jsp:include page="/views/examiner/components/faults.jsp" />
+                        <jsp:include page="/views/examiner/components/faults.jsp">
+                            <jsp:param name="deferredAdjust" value="true" />
+                        </jsp:include>
                         <div class="exr-warning exr-warning--mt">
                             <span class="exr-warning__icon material-symbols-outlined">warning</span>
                             <div class="exr-warning__body">
@@ -148,5 +151,127 @@
             </main>
         </div>
 
+        <script>
+            (function () {
+                var hiddenInput = document.getElementById('pendingAdjustmentsInput');
+                if (!hiddenInput) {
+                    return;
+                }
+                var adjustButtons = document.querySelectorAll('.js-deduction-adjust');
+                if (!adjustButtons.length) {
+                    return;
+                }
+
+                var scoreEl = document.getElementById('currentScore');
+                var scoreMaxEl = document.getElementById('scoreMaxLabel');
+                var scoreCard = scoreEl ? scoreEl.parentElement : null;
+                var baseScore = 0;
+                if (scoreEl) {
+                    var rawScore = (scoreEl.textContent || '').replace(/[^\d.-]/g, '');
+                    baseScore = parseFloat(rawScore);
+                    if (isNaN(baseScore)) {
+                        baseScore = 0;
+                    }
+                }
+
+                var rows = {};
+                document.querySelectorAll('tr[data-deduction-id]').forEach(function (row) {
+                    var id = parseInt(row.getAttribute('data-deduction-id'), 10);
+                    var baseCount = parseInt(row.getAttribute('data-base-count'), 10);
+                    var points = parseFloat(row.getAttribute('data-points'));
+                    var critical = row.getAttribute('data-critical') === 'true';
+                    if (isNaN(id)) {
+                        return;
+                    }
+                    rows[id] = {
+                        baseCount: isNaN(baseCount) ? 0 : baseCount,
+                        currentCount: isNaN(baseCount) ? 0 : baseCount,
+                        points: isNaN(points) ? 0 : points,
+                        critical: critical
+                    };
+                });
+
+                function updateCountDisplay(id) {
+                    var cell = document.querySelector('.js-deduction-count[data-deduction-id="' + id + '"]');
+                    if (!cell || !rows[id]) {
+                        return;
+                    }
+                    var value = rows[id].currentCount;
+                    cell.textContent = value > 0 ? String(value) : '';
+                }
+
+                function serializePending() {
+                    var tokens = [];
+                    Object.keys(rows).forEach(function (key) {
+                        var id = parseInt(key, 10);
+                        var delta = rows[id].currentCount - rows[id].baseCount;
+                        if (delta !== 0) {
+                            tokens.push(id + ':' + delta);
+                        }
+                    });
+                    hiddenInput.value = tokens.join(',');
+                }
+
+                function refreshScorePreview() {
+                    if (!scoreEl) {
+                        serializePending();
+                        return;
+                    }
+                    var hasCritical = false;
+                    var deltaScore = 0;
+                    Object.keys(rows).forEach(function (key) {
+                        var id = parseInt(key, 10);
+                        var row = rows[id];
+                        var delta = row.currentCount - row.baseCount;
+                        if (row.critical && row.currentCount > 0) {
+                            hasCritical = true;
+                        }
+                        if (!row.critical && delta !== 0) {
+                            deltaScore += row.points * delta;
+                        }
+                    });
+                    var preview = Math.round(baseScore - deltaScore);
+                    if (preview < 0) {
+                        preview = 0;
+                    }
+                    if (hasCritical) {
+                        scoreEl.textContent = 'TRƯỢT';
+                        scoreEl.classList.add('score-entry-score-value--fail');
+                        if (scoreMaxEl) {
+                            scoreMaxEl.style.display = 'none';
+                        }
+                    } else {
+                        scoreEl.textContent = String(preview);
+                        scoreEl.classList.remove('score-entry-score-value--fail');
+                        if (scoreMaxEl) {
+                            scoreMaxEl.style.display = '';
+                        }
+                    }
+                    if (scoreCard) {
+                        scoreCard.setAttribute('data-preview-updated', '1');
+                    }
+                    serializePending();
+                }
+
+                adjustButtons.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = parseInt(btn.getAttribute('data-deduction-id'), 10);
+                        var delta = parseInt(btn.getAttribute('data-delta'), 10);
+                        if (!rows[id] || isNaN(delta)) {
+                            return;
+                        }
+                        var next = rows[id].currentCount + delta;
+                        if (next < 0) {
+                            next = 0;
+                        }
+                        rows[id].currentCount = next;
+                        updateCountDisplay(id);
+                        refreshScorePreview();
+                    });
+                });
+
+                refreshScorePreview();
+            })();
+        </script>
     </body>
 </html>

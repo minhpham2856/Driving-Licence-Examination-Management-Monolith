@@ -137,5 +137,27 @@ WHERE NOT EXISTS (
 );
 GO
 
+-- 7. Quy tắc nghiệp vụ: chưa hoàn tất LT thì TH luôn ở trạng thái "Chưa thi"
+DECLARE @SeedExamId INT = (SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-1000');
+
+UPDATE eesLayout
+SET eesLayout.Status = N'Chưa thi',
+    eesLayout.StartedAt = NULL,
+    eesLayout.CompletedAt = NULL,
+    eesLayout.ResultPrintedAt = NULL
+FROM ExamEnrollmentSection eesLayout
+JOIN ExamSection secLayout ON secLayout.ExamSectionId = eesLayout.ExamSectionId
+JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = eesLayout.ExamEnrollmentId
+JOIN Candidate c ON c.CandidateId = ee.CandidateId
+JOIN ExamSection secTheory ON secTheory.ExamId = ee.ExamId AND secTheory.SectionType = N'Lý thuyết'
+JOIN ExamEnrollmentSection eesTheory
+    ON eesTheory.ExamEnrollmentId = ee.ExamEnrollmentId
+   AND eesTheory.ExamSectionId = secTheory.ExamSectionId
+WHERE ee.ExamId = @SeedExamId
+  AND secLayout.SectionType = N'Thực hành trong hình'
+  AND c.TakeTheory = 1
+  AND ISNULL(eesTheory.Status, N'Chưa thi') <> N'Đã thi';
+GO
+
 PRINT N'seed_a1_exam_500.sql hoàn tất.';
 GO

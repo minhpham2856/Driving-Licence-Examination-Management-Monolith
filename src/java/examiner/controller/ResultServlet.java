@@ -61,26 +61,8 @@ public class ResultServlet extends HttpServlet {
             }
 
             if ("/examiner/result-details-edit".equals(path) && "adjustDeduction".equals(action)) {
-                // Inline deduction change from edit page without full POST round-trip form.
-                if (sbd == null) {
-                    response.sendRedirect(request.getContextPath() + path + "?error=noSbd");
-                    return;
-                }
-                int deductionId;
-                int delta;
-                try {
-                    deductionId = Integer.parseInt(request.getParameter("deductionId"));
-                    delta = Integer.parseInt(request.getParameter("delta"));
-                } catch (NumberFormatException e) {
-                    response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=invalidDeduction");
-                    return;
-                }
-                if (!actionService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta,
-                        ((UserDTO) session.getAttribute(Attributes.Session.USER)).getUserId(), sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=deductionFailed");
-                    return;
-                }
-                response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd));
+                // Edit page only supports staged changes; database updates require password-confirm submit.
+                response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd) + "&error=needConfirmSave");
                 return;
             }
 
@@ -147,37 +129,30 @@ public class ResultServlet extends HttpServlet {
 
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
 
-            if ("adjustDeduction".equals(request.getParameter("action"))) {
-                int deductionId;
-                int delta;
-                try {
-                    deductionId = Integer.parseInt(request.getParameter("deductionId"));
-                    delta = Integer.parseInt(request.getParameter("delta"));
-                } catch (NumberFormatException e) {
-                    response.sendRedirect(request.getContextPath() + path + "?sbd="
-                            + urlEncode(sbd) + "&error=invalidDeduction");
-                    return;
-                }
-                UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
-                Integer userId = userDto != null ? userDto.getUserId() : null;
-                if (!actionService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + path + "?sbd="
-                            + urlEncode(sbd) + "&error=deductionFailed");
-                    return;
-                }
-                response.sendRedirect(request.getContextPath() + path + "?sbd=" + urlEncode(sbd));
-                return;
-            }
-
             String reason = request.getParameter("reasonCode");
             String reasonDetail = request.getParameter("reasonDetail");
             String password = request.getParameter("confirmPassword");
+            String pendingAdjustments = request.getParameter("pendingAdjustments");
             UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
+            if (userDto == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
             User user = userDto.toUser();
             // Password confirms the examiner before persisting an audit reason for score edits.
             if (!actionService.logPracticalScoreEditReason(activeExamId, sbd, user, password, reason, reasonDetail,
                     user.getUserId(), sectionType).isSuccess()) {
                 request.setAttribute("editError", "Lưu lý do thất bại. Vui lòng kiểm tra lại mật khẩu xác nhận.");
+                request.setAttribute("formReason", reason);
+                request.setAttribute("formReasonDetail", reasonDetail);
+                doGet(request, response);
+                return;
+            }
+
+            if (!applyPendingAdjustments(activeExamId, sbd, pendingAdjustments, user.getUserId(), sectionType)) {
+                request.setAttribute("editError", "Không lưu được thay đổi điểm. Vui lòng thử lại.");
+                request.setAttribute("formReason", reason);
+                request.setAttribute("formReasonDetail", reasonDetail);
                 doGet(request, response);
                 return;
             }
@@ -202,5 +177,38 @@ public class ResultServlet extends HttpServlet {
 
     private String urlEncode(int value) {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+    }
+
+    // Parses pending delta list "deductionId:delta,..." and persists each change.
+    private boolean applyPendingAdjustments(int examId, int sbd, String pendingAdjustments,
+            Integer userId, SectionType sectionType) {
+        if (pendingAdjustments == null || pendingAdjustments.isBlank()) {
+            return true;
+        }
+        String[] tokens = pendingAdjustments.split(",");
+        for (String token : tokens) {
+            if (token == null || token.isBlank()) {
+                continue;
+            }
+            String[] pair = token.trim().split(":");
+            if (pair.length != 2) {
+                return false;
+            }
+            int deductionId;
+            int delta;
+            try {
+                deductionId = Integer.parseInt(pair[0].trim());
+                delta = Integer.parseInt(pair[1].trim());
+            } catch (NumberFormatException ex) {
+                return false;
+            }
+            if (delta == 0) {
+                continue;
+            }
+            if (!actionService.adjustScoreDeduction(examId, sbd, deductionId, delta, userId, sectionType).isSuccess()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

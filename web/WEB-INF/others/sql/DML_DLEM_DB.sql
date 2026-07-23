@@ -1062,3 +1062,22 @@ WHERE l.LicenceClass = N'B1'
     567,568,583,592,600
 );
 GO
+
+-- Quy tắc nghiệp vụ mặc định: LT chưa hoàn tất thì TH phải "Chưa thi"
+UPDATE eesLayout
+SET eesLayout.Status = N'Chưa thi',
+    eesLayout.StartedAt = NULL,
+    eesLayout.CompletedAt = NULL,
+    eesLayout.ResultPrintedAt = NULL
+FROM ExamEnrollmentSection eesLayout
+JOIN ExamSection secLayout ON secLayout.ExamSectionId = eesLayout.ExamSectionId
+JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = eesLayout.ExamEnrollmentId
+JOIN Candidate c ON c.CandidateId = ee.CandidateId
+JOIN ExamSection secTheory ON secTheory.ExamId = ee.ExamId AND secTheory.SectionType = N'Lý thuyết'
+JOIN ExamEnrollmentSection eesTheory
+    ON eesTheory.ExamEnrollmentId = ee.ExamEnrollmentId
+   AND eesTheory.ExamSectionId = secTheory.ExamSectionId
+WHERE secLayout.SectionType = N'Thực hành trong hình'
+  AND c.TakeTheory = 1
+  AND ISNULL(eesTheory.Status, N'Chưa thi') <> N'Đã thi';
+GO

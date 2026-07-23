@@ -33,6 +33,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import examiner.service.EnrollmentService;
+import examiner.service.ProgressService;
+import examiner.service.impl.ProgressServiceImpl;
 
 @WebServlet(urlPatterns = {
     "/examiner/print",
@@ -45,6 +47,7 @@ public class PrintServlet extends HttpServlet {
     private final FileService docxService = new DocxServiceImpl();
     private final AuditService auditService = new AuditServiceImpl();
     private final EnrollmentService enrollmentService = new EnrollmentServiceImpl();
+    private final ProgressService progressService = new ProgressServiceImpl();
 
     // Build print preview model for session tables or per-candidate forms and forward to the print JSP.
     @Override
@@ -89,6 +92,8 @@ public class PrintServlet extends HttpServlet {
                 request.setAttribute("marksA", model.get("marksA"));
                 request.setAttribute("marksB", model.get("marksB"));
             }
+            // Any per-candidate result minutes print (result/bb1/bb2) should unlock completion flow.
+            syncResultPrintedFlag(ctx, normalizedType, sbd);
             request.setAttribute("docTitle", preview.docTitle());
             request.setAttribute("autoPrint", Boolean.TRUE);
             request.getRequestDispatcher(preview.jspPath()).forward(request, response);
@@ -107,6 +112,18 @@ public class PrintServlet extends HttpServlet {
             return false;
         }
         return isSessionDocumentType(type);
+    }
+
+    // Marks ResultPrintedAt for candidate result documents so "Hoàn tất" can pass server validation.
+    private void syncResultPrintedFlag(ExportContextDTO ctx, String type, int sbd) {
+        if (!isCandidateResultDocument(type, sbd) || sbd <= 0 || ctx == null || ctx.section() == null) {
+            return;
+        }
+        EnrollmentDTO enrollment = enrollmentService.getByExamAndSbd(ctx.examId(), sbd, ctx.section());
+        if (enrollment == null || enrollment.getExamEnrollmentId() <= 0) {
+            return;
+        }
+        progressService.markResultPrinted(enrollment.getExamEnrollmentId(), ctx.section());
     }
 
     // Record an audit log entry for the print action against the candidate or exam session.
