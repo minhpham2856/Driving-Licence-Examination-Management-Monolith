@@ -224,6 +224,17 @@ CREATE TABLE ExamEnrollmentSection (
 );
 GO
 
+CREATE TABLE CandidateViolation (
+    CandidateViolationId INT PRIMARY KEY IDENTITY(1,1),
+    ExamEnrollmentSectionId INT NOT NULL REFERENCES ExamEnrollmentSection(ExamEnrollmentSectionId),
+    Reason NVARCHAR(100) NOT NULL,
+    Details NVARCHAR(2000),
+    EvidenceUrl NVARCHAR(500) NOT NULL,
+    CreatedBy INT NOT NULL REFERENCES [User](UserId),
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+GO
+
 -- ============================== PAYMENT ==============================
 CREATE TABLE Fee (
     FeeId INT PRIMARY KEY IDENTITY(1,1),

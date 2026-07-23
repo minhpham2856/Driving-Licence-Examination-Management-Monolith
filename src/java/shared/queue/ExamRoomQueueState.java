@@ -67,6 +67,13 @@ final class ExamRoomQueueState {
         return removed;
     }
 
+    boolean moveToTail(int sbd) {
+        if (sbd <= 0 || testing.contains(sbd) || !waiting.remove(sbd)) {
+            return false;
+        }
+        return waiting.offer(sbd);
+    }
+
     List<Integer> displayOrder() {
         List<Integer> order = new ArrayList<>();
         order.addAll(testing);

@@ -75,6 +75,16 @@ public final class ExamRoomQueueRegistry {
         }
     }
 
+    public static boolean moveToTail(int examId, int examAreaId, SectionType sectionType, int sbd) {
+        ExamRoomQueueState state = stateOf(examId, examAreaId, sectionType);
+        if (state == null) {
+            return false;
+        }
+        synchronized (lockOf(examId, examAreaId, sectionType)) {
+            return state.moveToTail(sbd);
+        }
+    }
+
     public static void removeCandidate(int examId, int sbd) {
         if (examId <= 0 || sbd <= 0) {
             return;

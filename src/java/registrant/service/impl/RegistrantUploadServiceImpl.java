@@ -13,7 +13,7 @@ import registrant.dto.RegistrantDocumentView;
 import registrant.dto.RegistrantProfileContext;
 import auth.dto.UserDTO;
 import registrant.service.RegistrantUploadService;
-import registrant.util.CloudinaryDocumentStorage;
+import shared.storage.CloudinaryDocumentStorage;
 import registrant.util.DocumentUrlResolver;
 import registrant.util.RegistrantAuditHelper;
 import registrant.util.RegistrantDocumentHelper;
