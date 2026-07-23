@@ -1,0 +1,32 @@
+.examiner-action-card .examiner-table-link {
+    color: #003d9b;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.examiner-action-card .examiner-table-link:hover {
+    color: #0052cc;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.examiner-action-card .examiner-tag {
+    min-width: 72px;
+    text-align: center;
+}
+
+.examiner-action-card .examiner-table td,
+.examiner-action-card .examiner-table th {
+    text-align: center;
+}
+
+.examiner-action-card .examiner-table td:nth-child(1),
+.examiner-action-card .examiner-table th:nth-child(1),
+.examiner-action-card .examiner-table td:nth-child(2),
+.examiner-action-card .examiner-table th:nth-child(2) {
+    text-align: left;
+}
+
+.examiner-action-card form {
+    margin: 0;
+}

@@ -116,12 +116,16 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Map<Integer, Boolean> resultPrinted = sectionTypeValue != null
                 ? enrollmentSectionDAO.getResultPrintedByEnrollmentIds(enrollmentIds, sectionTypeValue)
                 : new HashMap<>();
+        Map<Integer, Boolean> checkedIn = sectionTypeValue != null
+                ? enrollmentSectionDAO.getCheckedInByEnrollmentIds(enrollmentIds, sectionTypeValue)
+                : new HashMap<>();
 
         List<EnrollmentDTO> list = new ArrayList<>();
         for (ExamEnrollment enrollment : enrollments) {
             Candidate candidate = candidates.get(enrollment.getCandidateId());
             if (candidate != null) {
-                list.add(toEnrollmentDto(candidate, enrollment, sectionStatuses, resultPrinted, sectionTypeValue));
+                list.add(toEnrollmentDto(candidate, enrollment, sectionStatuses, resultPrinted,
+                        checkedIn, sectionTypeValue));
             }
         }
         list.sort(Comparator.comparingInt(EnrollmentDTO::getCandidateNumber));
@@ -131,7 +135,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     // Private helper: build flat enrollment dto from candidate and enrollment rows.
     private EnrollmentDTO toEnrollmentDto(Candidate candidate, ExamEnrollment enrollment,
             Map<Integer, String> sectionStatuses, Map<Integer, Boolean> resultPrinted,
-            String sectionTypeValue) {
+            Map<Integer, Boolean> checkedIn, String sectionTypeValue) {
         EnrollmentDTO dto = new EnrollmentDTO();
         dto.setCandidateId(candidate.getCandidateId());
         dto.setCandidateNumber(parseCandidateNumber(candidate.getCandidateNumber()));
@@ -148,7 +152,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         dto.setTakeLayout(candidate.getTakeLayout());
         dto.setAbsent(candidate.isAbsent());
         dto.setSuspended(candidate.isSuspended());
-        dto.setPresent(!candidate.isAbsent());
+        dto.setPresent(false);
         String photoUrl = candidate.getPhotoImageUrl();
         dto.setValidCapturedPhoto(photoUrl != null && !photoUrl.isBlank());
         if (enrollment != null) {
@@ -162,9 +166,13 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             Boolean printed = resultPrinted != null
                     ? resultPrinted.get(enrollment.getExamEnrollmentId()) : null;
             dto.setResultPrinted(Boolean.TRUE.equals(printed));
+            Boolean present = checkedIn != null
+                    ? checkedIn.get(enrollment.getExamEnrollmentId()) : null;
+            dto.setPresent(Boolean.TRUE.equals(present));
         } else {
             dto.setSectionStatus(CandidateStatus.NOT_STARTED);
             dto.setResultPrinted(false);
+            dto.setPresent(false);
         }
         return dto;
     }
@@ -369,7 +377,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
         ExamEnrollment enrollment = enrollmentDAO.getLatestByCandidateId(candidateId);
         if (enrollment == null) {
-            return toEnrollmentDto(candidate, null, null, null, null);
+            return toEnrollmentDto(candidate, null, null, null, null, null);
         }
         // get has no section context — default to theory status for profile views.
         String sectionType = SectionType.THEORY.getValue();
@@ -377,7 +385,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 List.of(enrollment.getExamEnrollmentId()), sectionType);
         Map<Integer, Boolean> resultPrinted = enrollmentSectionDAO.getResultPrintedByEnrollmentIds(
                 List.of(enrollment.getExamEnrollmentId()), sectionType);
-        return toEnrollmentDto(candidate, enrollment, statuses, resultPrinted, sectionType);
+        Map<Integer, Boolean> checkedIn = enrollmentSectionDAO.getCheckedInByEnrollmentIds(
+                List.of(enrollment.getExamEnrollmentId()), sectionType);
+        return toEnrollmentDto(candidate, enrollment, statuses, resultPrinted, checkedIn, sectionType);
     }
 
     // Finds candidate id by gov id and exam for examiner workflow.

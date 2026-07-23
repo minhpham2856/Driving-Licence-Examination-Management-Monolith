@@ -10,6 +10,7 @@ import examiner.service.ActionService;
 import examiner.service.ExamViewService;
 import examiner.service.impl.ActionServiceImpl;
 import examiner.service.impl.ExamViewServiceImpl;
+import examiner.dto.CandidateRowDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -21,7 +22,10 @@ import static examiner.util.FormatUtil.formatSbdFromRequest;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import shared.model.ExaminerSchedule;
 
 @WebServlet("/examiner/score-entry")
 // Practical score entry: load fault lists, adjust deductions, change vehicle, finalize scores, and complete section.
@@ -56,34 +60,7 @@ public class ScoreServlet extends HttpServlet {
             }
 
             if (action != null) {
-                // GET actions (invoke, deduction tweak) redirect before rendering the page.
-                if ("adjustDeduction".equals(action)) {
-                    if (sbd == null) {
-                        response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noSbd");
-                        return;
-                    }
-                    int deductionId;
-                    int delta;
-                    try {
-                        deductionId = Integer.parseInt(request.getParameter("deductionId"));
-                        delta = Integer.parseInt(request.getParameter("delta"));
-                    } catch (NumberFormatException e) {
-                        response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                                + urlEncode(sbd) + "&error=invalidDeduction");
-                        return;
-                    }
-
-                    if (!actionService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, user.getUserId(),
-                            sectionType).isSuccess()) {
-                        response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                                + urlEncode(sbd) + "&error=deductionFailed");
-                        return;
-                    }
-                    response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                            + urlEncode(sbd));
-                    return;
-                }
-
+                // Score-entry fault changes are local-only; GET actions are limited to page-level actions.
                 if (handleScoreEntryAction(request, response, session, activeExamId, action, sbd, user, sectionType)) {
                     return;
                 }
@@ -100,6 +77,20 @@ public class ScoreServlet extends HttpServlet {
                         && request.getAttribute("examVehicles") != null) {
                     request.setAttribute("sessionVehicles", request.getAttribute("examVehicles"));
                 }
+                Object selectedCandidate = request.getAttribute("candidate");
+                if (selectedCandidate instanceof CandidateRowDTO candidate
+                        && !candidate.isPracticalEntryAllowed()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=practicalNotAllowed");
+                    return;
+                }
+            }
+            request.setAttribute("activeExamId", activeExamId);
+            request.setAttribute("examAreaId", resolveExamAreaId(session));
+            request.setAttribute("scoreFromAction", "action".equals(request.getParameter("from")));
+            if (sectionType != THEORY && sbd != null && sbd > 0) {
+                String scoreToken = UUID.randomUUID().toString();
+                session.setAttribute("scoreSubmissionToken", scoreToken);
+                request.setAttribute("scoreSubmissionToken", scoreToken);
             }
         }
 
@@ -143,30 +134,27 @@ public class ScoreServlet extends HttpServlet {
             return;
         }
 
-        if ("adjustDeduction".equals(action)) {
+        if ("savePracticalScore".equals(action)) {
             Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
-            if (sbd == null) {
-                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noSbd");
+            if (sbd == null || sectionType == THEORY
+                    || !consumeScoreToken(session, request.getParameter("submissionToken"))) {
+                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=scorePayloadInvalid");
                 return;
             }
-            int deductionId;
-            int delta;
-            try {
-                deductionId = Integer.parseInt(request.getParameter("deductionId"));
-                delta = Integer.parseInt(request.getParameter("delta"));
-            } catch (NumberFormatException e) {
-                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                        + urlEncode(sbd) + "&error=invalidDeduction");
-                return;
-            }
+            Integer deviceId = formatPositiveInteger(request.getParameter("deviceId"));
+            Integer elapsedSeconds = formatPositiveInteger(request.getParameter("elapsedSeconds"));
             UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
             Integer userId = userDto != null ? userDto.getUserId() : null;
-            if (!actionService.adjustScoreDeduction(activeExamId, sbd, deductionId, delta, userId, sectionType).isSuccess()) {
+            Map<Integer, Integer> occurrences = parseOccurrences(request);
+            if (deviceId == null || elapsedSeconds == null
+                    || !actionService.savePracticalScore(activeExamId, resolveExamAreaId(session), sbd, deviceId,
+                            elapsedSeconds, occurrences, userId).isSuccess()) {
                 response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                        + urlEncode(sbd) + "&error=deductionFailed");
+                        + urlEncode(sbd) + "&from=action&error=scoreFailed");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd=" + urlEncode(sbd));
+            response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
+                    + urlEncode(sbd) + "&from=action&scoreSaved=1");
             return;
         }
 
@@ -248,7 +236,7 @@ public class ScoreServlet extends HttpServlet {
                 response.sendRedirect(buildScoreEntryUrl(request, sbd, "error=completeFailed"));
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/examiner/score-entry?completeDone="
+            response.sendRedirect(request.getContextPath() + "/examiner/action?completeDone="
                     + urlEncode(sbd));
             return;
         }
@@ -359,7 +347,7 @@ public class ScoreServlet extends HttpServlet {
                     response.sendRedirect(buildScoreEntryUrl(request, sbd, "error=completeFailed"));
                     return true;
                 }
-                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?completeDone="
+                response.sendRedirect(request.getContextPath() + "/examiner/action?completeDone="
                         + urlEncode(sbd));
                 return true;
             }
@@ -385,6 +373,36 @@ public class ScoreServlet extends HttpServlet {
 
     private String urlEncode(int value) {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+    }
+
+    private int resolveExamAreaId(HttpSession session) {
+        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+        return schedule != null && schedule.getExamAreaId() != null ? schedule.getExamAreaId() : 0;
+    }
+
+    private boolean consumeScoreToken(HttpSession session, String submitted) {
+        Object stored = session.getAttribute("scoreSubmissionToken");
+        if (submitted == null || stored == null || !submitted.equals(stored.toString())) {
+            return false;
+        }
+        session.removeAttribute("scoreSubmissionToken");
+        return true;
+    }
+
+    private Map<Integer, Integer> parseOccurrences(HttpServletRequest request) {
+        Map<Integer, Integer> occurrences = new HashMap<>();
+        for (Map.Entry<String, String[]> item : request.getParameterMap().entrySet()) {
+            if (!item.getKey().startsWith("deduction_")) {
+                continue;
+            }
+            try {
+                int deductionId = Integer.parseInt(item.getKey().substring("deduction_".length()));
+                int count = Integer.parseInt(item.getValue()[0]);
+                occurrences.put(deductionId, count);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return occurrences;
     }
 
     // Resolve the Vietnamese section label used in audit messages for call-board actions.

@@ -24,6 +24,7 @@ import static shared.util.FormatUtil.formatPositiveInteger;
 import examiner.util.ListUtil;
 import java.util.List;
 import java.util.Map;
+import shared.enums.CandidateStatus;
 
 @WebServlet(urlPatterns = {
     "/examiner/result-details",
@@ -81,6 +82,12 @@ public class ResultServlet extends HttpServlet {
                 }
             } else if (sbd != null && "/examiner/result-details-edit".equals(path)) {
                 // Edit view loads fault list, deductions, and password-gated save form.
+                CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
+                if (candidate == null || candidate.getSectionStatus() != CandidateStatus.COMPLETED) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/result-details?sbd="
+                            + urlEncode(sbd) + "&error=scoreEditNotAllowed");
+                    return;
+                }
                 Map<String, Object> data = viewService.getResultDetailsViewByExam(
                         activeExamId, sbd, sectionType);
                 if (data != null) {
@@ -128,6 +135,12 @@ public class ResultServlet extends HttpServlet {
             }
 
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
+            CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
+            if (candidate == null || candidate.getSectionStatus() != CandidateStatus.COMPLETED) {
+                response.sendRedirect(request.getContextPath() + "/examiner/result-details?sbd="
+                        + urlEncode(sbd) + "&error=scoreEditNotAllowed");
+                return;
+            }
 
             String reason = request.getParameter("reasonCode");
             String reasonDetail = request.getParameter("reasonDetail");

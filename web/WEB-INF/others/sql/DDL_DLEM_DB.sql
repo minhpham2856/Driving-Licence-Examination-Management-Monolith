@@ -111,6 +111,7 @@ CREATE TABLE Exam (
     StartTime DATETIME NOT NULL,
     EndTime DATETIME NULL,
     [Status] NVARCHAR(50) NOT NULL,
+    ExamPassword NVARCHAR(255) NULL,
     CentreName NVARCHAR(255) NOT NULL,
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
     CHECK (EndTime IS NULL OR EndTime > StartTime)
@@ -217,6 +218,8 @@ CREATE TABLE ExamEnrollmentSection (
     Status NVARCHAR(50) NOT NULL DEFAULT N'Pending',
     AllocatedAt DATETIME NULL,
     AllocatedBy INT NULL REFERENCES [User](UserId),
+    CheckedInAt DATETIME NULL,
+    CheckedInBy INT NULL REFERENCES [User](UserId),
     StartedAt DATETIME NULL,
     CompletedAt DATETIME NULL,
     ResultPrintedAt DATETIME NULL,

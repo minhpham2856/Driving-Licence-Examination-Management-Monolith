@@ -20,42 +20,133 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import shared.model.Question;
+import shared.util.PasswordUtil;
 
 public class CandidateExamAccessDAOImpl extends DBContext implements CandidateExamAccessDAO {
 
     @Override
-    public CandidateExamContextDTO getEligibleTheoryContext(String candidateNumber) {
+    public int findActiveExamIdForLogin(String examCodeOrId, String examPassword) {
+        if (examCodeOrId == null || examCodeOrId.isBlank()
+                || examPassword == null || examPassword.isBlank()) {
+            return 0;
+        }
+        String loginCode = examCodeOrId.trim();
+        Integer numericExamId = parseNumericSbd(loginCode);
+        String sql = """
+                SELECT TOP 1 ExamId, ExamPassword
+                FROM Exam
+                WHERE [Status] = ?
+                  AND (ExamCode = ? OR (? IS NOT NULL AND ExamId = ?))
+                ORDER BY ExamDate DESC, ExamId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, ExamStatus.IN_PROGRESS.getValue());
+            ps.setString(2, loginCode);
+            if (numericExamId == null) {
+                ps.setNull(3, Types.INTEGER);
+                ps.setNull(4, Types.INTEGER);
+            } else {
+                ps.setInt(3, numericExamId);
+                ps.setInt(4, numericExamId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return 0;
+                }
+                return passwordMatches(examPassword.trim(), rs.getString("ExamPassword"))
+                        ? rs.getInt("ExamId")
+                        : 0;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return 0;
+        }
+    }
+
+    @Override
+    public CandidateExamContextDTO getEligibleTheoryContext(int examId, String candidateNumber) {
+        if (examId <= 0) {
+            return null;
+        }
         if (candidateNumber == null || candidateNumber.isBlank()) {
             return null;
         }
+        String normalizedSbd = candidateNumber.trim();
+        Integer numericSbd = parseNumericSbd(normalizedSbd);
         String sql = """
                 SELECT TOP 1 c.CandidateId, c.CandidateNumber, c.FullName,
                        ee.ExamId, ee.ExamEnrollmentId,
-                       ees.ExamEnrollmentSectionId, ees.ExamSectionId, ees.ExamAreaId,
+                       ees.ExamEnrollmentSectionId, ees.ExamSectionId,
+                       COALESCE(ees.ExamAreaId, scheduleArea.ExamAreaId) AS ExamAreaId,
                        es.LicenceId, es.DurationMinutes
                 FROM Candidate c
                 INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
                 INNER JOIN Exam e ON e.ExamId = ee.ExamId
                 INNER JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentId = ee.ExamEnrollmentId
                 INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId
-                WHERE c.CandidateNumber = ?
+                OUTER APPLY (
+                    SELECT TOP 1 x.ExamAreaId
+                    FROM ExaminerSchedule x
+                    WHERE x.ExamId = ee.ExamId
+                      AND x.ExamSectionId = ees.ExamSectionId
+                      AND x.ExamAreaId IS NOT NULL
+                    ORDER BY x.ExaminerScheduleId
+                ) scheduleArea
+                WHERE ee.ExamId = ?
+                  AND (c.CandidateNumber = ? OR (? IS NOT NULL AND TRY_CAST(c.CandidateNumber AS INT) = ?))
                   AND c.IsAbsent = 0 AND c.IsSuspended = 0
                   AND e.Status = ?
                   AND es.SectionType = ?
-                  AND ees.ExamAreaId IS NOT NULL
-                  AND ees.Status = ?
+                  AND COALESCE(ees.ExamAreaId, scheduleArea.ExamAreaId) IS NOT NULL
+                  AND ees.CheckedInAt IS NOT NULL
+                  AND ees.Status IN (?, ?)
                 ORDER BY e.ExamDate DESC, ees.ExamEnrollmentSectionId DESC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, candidateNumber.trim());
-            ps.setString(2, ExamStatus.IN_PROGRESS.getValue());
-            ps.setString(3, SectionType.THEORY.getValue());
-            ps.setString(4, CandidateStatus.IN_PROGRESS.getValue());
+            ps.setInt(1, examId);
+            ps.setString(2, normalizedSbd);
+            if (numericSbd == null) {
+                ps.setNull(3, Types.INTEGER);
+                ps.setNull(4, Types.INTEGER);
+            } else {
+                ps.setInt(3, numericSbd);
+                ps.setInt(4, numericSbd);
+            }
+            ps.setString(5, ExamStatus.IN_PROGRESS.getValue());
+            ps.setString(6, SectionType.THEORY.getValue());
+            ps.setString(7, CandidateStatus.NOT_STARTED.getValue());
+            ps.setString(8, CandidateStatus.IN_PROGRESS.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? map(rs) : null;
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
+            return null;
+        }
+    }
+
+    private boolean passwordMatches(String rawPassword, String storedPassword) {
+        if (rawPassword == null || storedPassword == null || storedPassword.isBlank()) {
+            return false;
+        }
+        String stored = storedPassword.trim();
+        try {
+            if (PasswordUtil.matches(rawPassword, stored)) {
+                return true;
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Plain text seed values are allowed for the exam kiosk password.
+        }
+        return rawPassword.equals(stored);
+    }
+
+    private Integer parseNumericSbd(String value) {
+        if (value == null || !value.matches("\\d+")) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException ex) {
             return null;
         }
     }
@@ -77,57 +168,112 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
     }
 
     @Override
-    public int startTheoryPaper(int examEnrollmentSectionId) {
-        String find = "SELECT TOP 1 TheoryPaperId FROM TheoryPaper "
-                + "WHERE ExamEnrollmentSectionId = ? AND SubmittedAt IS NULL ORDER BY TheoryPaperId DESC";
-        try (PreparedStatement ps = getConnection().prepareStatement(find)) {
-            ps.setInt(1, examEnrollmentSectionId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
+    public boolean startTheoryAttempt(CandidateExamContextDTO context, int questionLimit) {
+        if (context == null || context.getExamEnrollmentSectionId() <= 0 || questionLimit <= 0) {
+            return false;
+        }
+        Connection connection = getConnection();
+        try {
+            connection.setAutoCommit(false);
+            int paperId = findOpenTheoryPaper(connection, context.getExamEnrollmentSectionId());
+            if (paperId <= 0) {
+                paperId = insertTheoryPaper(connection, context.getExamEnrollmentSectionId());
+            }
+            if (paperId <= 0) {
+                connection.rollback();
+                return false;
+            }
+            markSectionStarted(connection, context.getExamEnrollmentSectionId());
+            List<Question> questions = getQuestionsByPaper(connection, paperId);
+            if (questions.isEmpty()) {
+                questions = chooseRandomQuestions(connection, context.getLicenceId(), questionLimit);
+                if (questions.isEmpty() || !insertQuestionPlaceholders(connection, paperId, questions)) {
+                    connection.rollback();
+                    return false;
                 }
             }
+            connection.commit();
+            context.setTheoryPaperId(paperId);
+            context.setQuestions(questions);
+            context.setStartedAtMillis(System.currentTimeMillis());
+            return true;
         } catch (SQLException ex) {
+            try { connection.rollback(); } catch (SQLException ignored) {}
             ex.printStackTrace();
-            return 0;
+            return false;
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException ignored) {}
         }
-        try (PreparedStatement ps = getConnection().prepareStatement(
+    }
+
+    private int findOpenTheoryPaper(Connection connection, int examEnrollmentSectionId) throws SQLException {
+        String sql = "SELECT TOP 1 TheoryPaperId FROM TheoryPaper "
+                + "WHERE ExamEnrollmentSectionId = ? AND SubmittedAt IS NULL ORDER BY TheoryPaperId DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, examEnrollmentSectionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    private int insertTheoryPaper(Connection connection, int examEnrollmentSectionId) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO TheoryPaper (ExamEnrollmentSectionId, StartedAt) VALUES (?, GETDATE())",
                 Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, examEnrollmentSectionId);
-            if (ps.executeUpdate() == 1) {
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    return keys.next() ? keys.getInt(1) : 0;
-                }
+            if (ps.executeUpdate() != 1) {
+                return 0;
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : 0;
+            }
         }
-        return 0;
     }
 
-    @Override
-    public List<Question> getRandomQuestions(int licenceId, int limit) {
+    private void markSectionStarted(Connection connection, int examEnrollmentSectionId) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "UPDATE ExamEnrollmentSection SET Status = ?, StartedAt = COALESCE(StartedAt, GETDATE()) "
+                + "WHERE ExamEnrollmentSectionId = ? AND Status IN (?, ?)")) {
+            ps.setString(1, CandidateStatus.IN_PROGRESS.getValue());
+            ps.setInt(2, examEnrollmentSectionId);
+            ps.setString(3, CandidateStatus.NOT_STARTED.getValue());
+            ps.setString(4, CandidateStatus.IN_PROGRESS.getValue());
+            ps.executeUpdate();
+        }
+    }
+
+    private List<Question> getQuestionsByPaper(Connection connection, int paperId) throws SQLException {
+        List<Question> questions = new ArrayList<>();
+        String sql = "SELECT q.QuestionId, q.QuestionNumber, q.ImageUrl, q.CorrectAnswer, "
+                + "q.IsCritical, q.QuestionCategoryId "
+                + "FROM CandidateAnswer ca "
+                + "JOIN Question q ON q.QuestionId = ca.QuestionId "
+                + "WHERE ca.TheoryPaperId = ? ORDER BY ca.CandidateAnswerId";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, paperId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    questions.add(mapQuestion(rs));
+                }
+            }
+        }
+        return questions;
+    }
+
+    private List<Question> chooseRandomQuestions(Connection connection, int licenceId, int limit)
+            throws SQLException {
         List<Question> pool = new ArrayList<>();
         String sql = "SELECT q.QuestionId, q.QuestionNumber, q.ImageUrl, q.CorrectAnswer, "
                 + "q.IsCritical, q.QuestionCategoryId FROM Question q "
                 + "INNER JOIN Licence_Question lq ON lq.QuestionId = q.QuestionId WHERE lq.LicenceId = ?";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, licenceId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Question q = new Question();
-                    q.setQuestionId(rs.getInt("QuestionId"));
-                    q.setQuestionNumber(rs.getInt("QuestionNumber"));
-                    q.setImageUrl(rs.getString("ImageUrl"));
-                    q.setCorrectAnswer(rs.getString("CorrectAnswer"));
-                    q.setCritical(rs.getBoolean("IsCritical"));
-                    q.setQuestionCategoryId(rs.getInt("QuestionCategoryId"));
-                    pool.add(q);
+                    pool.add(mapQuestion(rs));
                 }
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
         Collections.shuffle(pool);
         List<Question> selected = new ArrayList<>();
@@ -146,6 +292,31 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
         return selected;
     }
 
+    private boolean insertQuestionPlaceholders(Connection connection, int paperId, List<Question> questions)
+            throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "INSERT INTO CandidateAnswer (TheoryPaperId, QuestionId, Answer) VALUES (?, ?, NULL)")) {
+            for (Question question : questions) {
+                ps.setInt(1, paperId);
+                ps.setInt(2, question.getQuestionId());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            return true;
+        }
+    }
+
+    private Question mapQuestion(ResultSet rs) throws SQLException {
+        Question q = new Question();
+        q.setQuestionId(rs.getInt("QuestionId"));
+        q.setQuestionNumber(rs.getInt("QuestionNumber"));
+        q.setImageUrl(rs.getString("ImageUrl"));
+        q.setCorrectAnswer(rs.getString("CorrectAnswer"));
+        q.setCritical(rs.getBoolean("IsCritical"));
+        q.setQuestionCategoryId(rs.getInt("QuestionCategoryId"));
+        return q;
+    }
+
     @Override
     public CandidateExamResultDTO submit(int theoryPaperId, CandidateExamContextDTO context,
             Map<Integer, String> answers) {
@@ -160,9 +331,11 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 ps.executeUpdate();
             }
             int examResultId = upsertResult(connection, context.getExamEnrollmentId(), result.isPassed());
+            double finalScore = result.isCriticalFailed() || context.getQuestions().isEmpty()
+                    ? 0
+                    : result.getCorrect() * 100.0 / context.getQuestions().size();
             upsertScore(connection, examResultId, context.getExamSectionId(),
-                    context.getQuestions().isEmpty() ? 0
-                            : result.getCorrect() * 100.0 / context.getQuestions().size());
+                    finalScore);
             try (PreparedStatement ps = connection.prepareStatement(
                     "UPDATE ExamEnrollmentSection SET Status = ? WHERE ExamEnrollmentSectionId = ?")) {
                 ps.setString(1, CandidateStatus.AWAITING_SIGNATURE.getValue());

@@ -163,14 +163,14 @@ GO
 -- ============================================
 -- 7. KỲ THI (StartTime bắt buộc; EndTime NULL nếu chưa kết thúc)
 -- ============================================
-INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], LicenceId, StartTime, EndTime) VALUES
-(N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
-(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
-(N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  '2026-06-10 07:30:00', NULL),
-(N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
-(N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
-(N'B1-20260601-1300', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 13:00:00', '2026-06-01 16:00:00'),
-(N'B1-20260608-0730', '2026-06-08', N'Trung tâm Sát hạch Lái Vui – Đà Nẵng', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-08 07:30:00', '2026-06-08 09:00:00');
+INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], ExamPassword, LicenceId, StartTime, EndTime) VALUES
+(N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
+(N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  '2026-06-10 07:30:00', NULL),
+(N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
+(N'B1-20260601-1300', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 13:00:00', '2026-06-01 16:00:00'),
+(N'B1-20260608-0730', '2026-06-08', N'Trung tâm Sát hạch Lái Vui – Đà Nẵng', N'Chưa diễn ra', N'exam123', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-08 07:30:00', '2026-06-08 09:00:00');
 GO
 
 -- ============================================
@@ -1066,6 +1066,8 @@ GO
 -- Quy tắc nghiệp vụ mặc định: LT chưa hoàn tất thì TH phải "Chưa thi"
 UPDATE eesLayout
 SET eesLayout.Status = N'Chưa thi',
+    eesLayout.CheckedInAt = NULL,
+    eesLayout.CheckedInBy = NULL,
     eesLayout.StartedAt = NULL,
     eesLayout.CompletedAt = NULL,
     eesLayout.ResultPrintedAt = NULL

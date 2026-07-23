@@ -126,6 +126,47 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
         return list;
     }
 
+    // Lists enrollments and candidate display fields with one simple query.
+    @Override
+    public List<ExamEnrollment> getWithCandidateByExam(int examId, String keyword) {
+        List<ExamEnrollment> list = new ArrayList<>();
+        if (examId <= 0) {
+            return list;
+        }
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT ee.ExamEnrollmentId, ee.CandidateId, ee.ExamId, ")
+                .append("ee.AllocatedExamAreaId, ee.ExamDeviceId, ")
+                .append("c.CandidateNumber, c.FullName, c.DateOfBirth, c.PhoneNumber, c.Email, c.Sex, ")
+                .append("c.GovernmentIdNumber, c.Address, c.TakeTheory, c.TakeLayout, c.TakeNo, ")
+                .append("c.ReasonForTaking, c.PhotoImageUrl, c.IsAbsent, c.IsSuspended ")
+                .append("FROM ExamEnrollment ee ")
+                .append("JOIN Candidate c ON c.CandidateId = ee.CandidateId ")
+                .append("WHERE ee.ExamId = ? ");
+        boolean hasSearch = keyword != null && !keyword.isBlank();
+        if (hasSearch) {
+            sql.append("AND (c.CandidateNumber LIKE ? OR c.FullName LIKE ? OR c.GovernmentIdNumber LIKE ?) ");
+        }
+        sql.append("ORDER BY TRY_CONVERT(int, c.CandidateNumber), c.CandidateNumber");
+
+        try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
+            ps.setInt(1, examId);
+            if (hasSearch) {
+                String like = "%" + keyword.trim() + "%";
+                ps.setString(2, like);
+                ps.setString(3, like);
+                ps.setString(4, like);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapEnrollmentWithCandidate(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // Loads the enrollment row for one exam and candidate pair.
     @Override
     public ExamEnrollment getByExamAndCandidate(int examId, int candidateId) {
@@ -226,5 +267,33 @@ public class ExamEnrollmentDAOImpl extends DBContext implements ExamEnrollmentDA
             enrollment.setExamDeviceId(deviceId);
         }
         return enrollment;
+    }
+
+    private ExamEnrollment mapEnrollmentWithCandidate(ResultSet rs) throws SQLException {
+        ExamEnrollment enrollment = mapEnrollment(rs);
+        shared.model.Candidate candidate = new shared.model.Candidate();
+        candidate.setCandidateId(rs.getInt("CandidateId"));
+        candidate.setCandidateNumber(rs.getString("CandidateNumber"));
+        candidate.setFullName(rs.getString("FullName"));
+        candidate.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
+        candidate.setPhoneNumber(rs.getString("PhoneNumber"));
+        candidate.setEmail(rs.getString("Email"));
+        candidate.setSex(rs.getBoolean("Sex"));
+        candidate.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
+        candidate.setAddress(rs.getString("Address"));
+        candidate.setTakeTheory(readBooleanObject(rs, "TakeTheory"));
+        candidate.setTakeLayout(readBooleanObject(rs, "TakeLayout"));
+        candidate.setTakeNo(rs.getInt("TakeNo"));
+        candidate.setReasonForTaking(rs.getString("ReasonForTaking"));
+        candidate.setPhotoImageUrl(rs.getString("PhotoImageUrl"));
+        candidate.setAbsent(rs.getBoolean("IsAbsent"));
+        candidate.setSuspended(rs.getBoolean("IsSuspended"));
+        enrollment.setCandidate(candidate);
+        return enrollment;
+    }
+
+    private Boolean readBooleanObject(ResultSet rs, String column) throws SQLException {
+        boolean value = rs.getBoolean(column);
+        return rs.wasNull() ? null : value;
     }
 }

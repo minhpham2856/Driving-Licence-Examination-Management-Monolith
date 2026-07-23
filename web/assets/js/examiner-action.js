@@ -1,86 +1,105 @@
 (function () {
     'use strict';
-    var otpCode = document.getElementById('examOtpCode');
-    var otpCountdown = document.getElementById('examOtpCountdown');
-    var otpExpiry = 0;
-    var contextPath = document.body.dataset.contextPath || '/examiner/';
 
-    function loadOtp() {
-        if (!otpCode) return;
-        fetch(contextPath + 'otp', {credentials: 'same-origin', cache: 'no-store'})
-            .then(function (response) {
-                if (!response.ok) throw new Error();
-                return response.json();
-            })
-            .then(function (payload) {
-                otpCode.textContent = payload.code;
-                otpExpiry = payload.expiresAt;
-            })
-            .catch(function () { otpCode.textContent = 'Không khả dụng'; });
-    }
-    if (otpCode) {
-        loadOtp();
-        window.setInterval(function () {
-            var remaining = Math.max(0, otpExpiry - Math.floor(Date.now() / 1000));
-            otpCountdown.textContent = remaining + 's';
-            if (remaining === 0) loadOtp();
-        }, 1000);
-    }
-
-    document.querySelectorAll('.js-call-candidate').forEach(function (form) {
-        form.addEventListener('submit', function () {
-            if (!window.speechSynthesis) return;
-            window.speechSynthesis.cancel();
-            var speech = new SpeechSynthesisUtterance(
-                'Mời thí sinh số báo danh ' + form.dataset.sbd + ', ' + form.dataset.name + ', vào khu vực thi.');
-            speech.lang = 'vi-VN';
-            window.speechSynthesis.speak(speech);
-        });
-    });
-
-    var modal = document.getElementById('scoreModal');
-    if (!modal) return;
-    var form = document.getElementById('practicalScoreForm');
-    var elapsedInput = document.getElementById('elapsedSeconds');
-    var timerDisplay = document.getElementById('examTimer');
-    var scoreDisplay = document.getElementById('currentScore');
-    var counts = new Map();
-    var elapsed = 0;
-    var running = false;
-    var draftKey = modal.dataset.draftKey;
-    if (new URLSearchParams(window.location.search).get('scoreSaved') === '1') {
-        sessionStorage.removeItem(draftKey);
-    }
-
-    try {
-        var draft = JSON.parse(sessionStorage.getItem(draftKey));
-        if (draft) {
-            elapsed = draft.elapsed || 0;
-            Object.keys(draft.counts || {}).forEach(function (key) {
-                counts.set(Number(key), Number(draft.counts[key]));
+    function initCallButtons() {
+        document.querySelectorAll('.js-call-candidate').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                if (!window.speechSynthesis) {
+                    return;
+                }
+                window.speechSynthesis.cancel();
+                var speech = new SpeechSynthesisUtterance(
+                    'Mời thí sinh số báo danh ' + form.dataset.sbd + ', ' + form.dataset.name + ', vào khu vực thi.');
+                speech.lang = 'vi-VN';
+                window.speechSynthesis.speak(speech);
             });
-            if (draft.deviceId) document.getElementById('deviceId').value = draft.deviceId;
-        }
-    } catch (ignored) {}
-
-    function persist() {
-        var plain = {};
-        counts.forEach(function (value, key) { plain[key] = value; });
-        sessionStorage.setItem(draftKey, JSON.stringify({
-            elapsed: elapsed, counts: plain, deviceId: document.getElementById('deviceId').value
-        }));
+        });
     }
-    function render() {
-        var score = 100;
-        var failed = false;
-        document.querySelectorAll('tr[data-deduction-id]').forEach(function (row) {
-            var id = Number(row.dataset.deductionId);
-            var count = counts.has(id) ? counts.get(id) : Number(row.dataset.baseCount || 0);
-            counts.set(id, count);
-            var label = row.querySelector('.js-deduction-count');
-            if (label) label.textContent = count || '';
-            if (row.dataset.critical === 'true' && count > 0) failed = true;
-            score -= Number(row.dataset.points || 0) * count;
+
+    function initPracticalScoreDraft() {
+        var workspace = document.getElementById('scoreEntryWorkspace');
+        var form = document.getElementById('practicalScoreForm');
+        if (!workspace || !form) {
+            return;
+        }
+
+        var elapsedInput = document.getElementById('elapsedSeconds');
+        var timerDisplay = document.getElementById('examTimer');
+        var minutesInput = document.getElementById('timerMinutesInput');
+        var scoreDisplay = document.getElementById('currentScore');
+        var deviceSelect = document.getElementById('deviceId');
+        var counts = new Map();
+        var times = new Map();
+        var remainingSeconds = 0;
+        var elapsedSeconds = 0;
+        var running = false;
+        var draftKey = workspace.dataset.draftKey;
+
+        if (new URLSearchParams(window.location.search).get('scoreSaved') === '1') {
+            sessionStorage.removeItem(draftKey);
+        }
+
+        function readInitialSeconds() {
+            var minutes = minutesInput ? parseInt(minutesInput.value, 10) : 20;
+            if (isNaN(minutes) || minutes < 1) {
+                minutes = 20;
+            }
+            return minutes * 60;
+        }
+
+        function restoreDraft() {
+            try {
+                var draft = JSON.parse(sessionStorage.getItem(draftKey));
+                if (!draft) {
+                    remainingSeconds = readInitialSeconds();
+                    elapsedSeconds = 0;
+                    return;
+                }
+                remainingSeconds = Number(draft.remainingSeconds || readInitialSeconds());
+                elapsedSeconds = Number(draft.elapsedSeconds || 0);
+                Object.keys(draft.counts || {}).forEach(function (key) {
+                    counts.set(Number(key), Number(draft.counts[key]));
+                });
+                Object.keys(draft.times || {}).forEach(function (key) {
+                    times.set(Number(key), String(draft.times[key] || ''));
+                });
+                if (draft.deviceId && deviceSelect) {
+                    deviceSelect.value = draft.deviceId;
+                }
+            } catch (ignored) {
+                remainingSeconds = readInitialSeconds();
+                elapsedSeconds = 0;
+            }
+        }
+
+        function persist() {
+            var plain = {};
+            var timePlain = {};
+            counts.forEach(function (value, key) {
+                plain[key] = value;
+            });
+            times.forEach(function (value, key) {
+                timePlain[key] = value;
+            });
+            sessionStorage.setItem(draftKey, JSON.stringify({
+                remainingSeconds: remainingSeconds,
+                elapsedSeconds: elapsedSeconds,
+                counts: plain,
+                times: timePlain,
+                deviceId: deviceSelect ? deviceSelect.value : ''
+            }));
+        }
+
+        function formatTime(seconds) {
+            var h = Math.floor(seconds / 3600);
+            var m = Math.floor((seconds % 3600) / 60);
+            var s = seconds % 60;
+            return String(h).padStart(2, '0') + ':'
+                + String(m).padStart(2, '0') + ':'
+                + String(s).padStart(2, '0');
+        }
+
+        function ensureHiddenInput(id) {
             var input = form.querySelector('input[name="deduction_' + id + '"]');
             if (!input) {
                 input = document.createElement('input');
@@ -88,33 +107,135 @@
                 input.name = 'deduction_' + id;
                 form.appendChild(input);
             }
-            input.value = count;
-        });
-        scoreDisplay.textContent = failed ? 'TRƯỢT' : Math.max(0, score);
-        elapsedInput.value = elapsed;
-        timerDisplay.textContent = String(Math.floor(elapsed / 3600)).padStart(2, '0') + ':'
-            + String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0') + ':'
-            + String(elapsed % 60).padStart(2, '0');
-    }
-    render();
-    window.setInterval(function () {
-        if (!running) return;
-        elapsed += 1;
+            return input;
+        }
+
+        function render() {
+            var score = 100;
+            var failed = false;
+            document.querySelectorAll('tr[data-deduction-id]').forEach(function (row) {
+                var id = Number(row.dataset.deductionId);
+                if (!counts.has(id)) {
+                    counts.set(id, Number(row.dataset.baseCount || 0));
+                }
+                var count = counts.get(id);
+                var label = row.querySelector('.js-deduction-count');
+                if (label) {
+                    label.textContent = count || '';
+                }
+
+                var timeLabel = row.querySelector('.js-deduction-time');
+                if (timeLabel) {
+                    if (!times.has(id)) {
+                        times.set(id, count > 0 ? String(timeLabel.dataset.baseTime || '') : '');
+                    }
+                    timeLabel.textContent = count > 0 ? (times.get(id) || '') : '';
+                }
+
+                if (row.dataset.critical === 'true' && count > 0) {
+                    failed = true;
+                }
+                score -= Number(row.dataset.points || 0) * count;
+                ensureHiddenInput(id).value = count;
+            });
+
+            if (scoreDisplay) {
+                scoreDisplay.textContent = failed ? '0 - TRƯỢT' : Math.max(0, score);
+            }
+            if (elapsedInput) {
+                elapsedInput.value = elapsedSeconds;
+            }
+            if (timerDisplay) {
+                timerDisplay.textContent = formatTime(remainingSeconds);
+            }
+        }
+
+        restoreDraft();
         render();
-        persist();
-    }, 1000);
-    document.getElementById('timerStartBtn').addEventListener('click', function () { running = !running; });
-    document.getElementById('timerResetBtn').addEventListener('click', function () {
-        running = false; elapsed = 0; render(); persist();
-    });
-    document.getElementById('deviceId').addEventListener('change', persist);
-    document.querySelectorAll('.js-deduction-adjust').forEach(function (button) {
-        button.addEventListener('click', function () {
-            var id = Number(button.dataset.deductionId);
-            counts.set(id, Math.max(0, (counts.get(id) || 0) + Number(button.dataset.delta)));
+
+        window.setInterval(function () {
+            if (!running) {
+                return;
+            }
+            remainingSeconds = Math.max(0, remainingSeconds - 1);
+            elapsedSeconds += 1;
+            if (remainingSeconds === 0) {
+                running = false;
+            }
             render();
             persist();
+        }, 1000);
+
+        var startBtn = document.getElementById('timerStartBtn');
+        if (startBtn) {
+            startBtn.addEventListener('click', function () {
+                running = !running;
+            });
+        }
+
+        var resetBtn = document.getElementById('timerResetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                running = false;
+                remainingSeconds = readInitialSeconds();
+                elapsedSeconds = 0;
+                render();
+                persist();
+            });
+        }
+
+        if (minutesInput) {
+            minutesInput.addEventListener('change', function () {
+                running = false;
+                remainingSeconds = readInitialSeconds();
+                elapsedSeconds = 0;
+                render();
+                persist();
+            });
+        }
+
+        document.querySelectorAll('.score-entry-timer__preset').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!minutesInput) {
+                    return;
+                }
+                minutesInput.value = button.dataset.minutes;
+                running = false;
+                remainingSeconds = readInitialSeconds();
+                elapsedSeconds = 0;
+                render();
+                persist();
+            });
         });
-    });
-    form.addEventListener('submit', function () { elapsedInput.value = elapsed; });
+
+        if (deviceSelect) {
+            deviceSelect.addEventListener('change', persist);
+        }
+
+        document.querySelectorAll('.js-deduction-adjust').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var id = Number(button.dataset.deductionId);
+                var previous = counts.get(id) || 0;
+                var next = Math.max(0, previous + Number(button.dataset.delta));
+                counts.set(id, next);
+                if (next > 0 && previous === 0) {
+                    times.set(id, formatTime(elapsedSeconds));
+                } else if (next === 0) {
+                    times.delete(id);
+                }
+                render();
+                persist();
+            });
+        });
+
+        form.addEventListener('submit', function () {
+            running = false;
+            if (elapsedInput) {
+                elapsedInput.value = elapsedSeconds;
+            }
+        });
+    }
+
+    initCallButtons();
+    initPracticalScoreDraft();
 }());

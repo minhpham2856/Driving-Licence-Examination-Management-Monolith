@@ -15,18 +15,22 @@ public final class FormatUtil {
             return "";
         }
         String normalized = type.trim().toLowerCase();
-        if ("minutes".equals(normalized)) {
-            return "result";
-        }
-        return normalized;
+        return switch (normalized) {
+            case "minutes" ->
+                "result";
+            case "paper", "exam-paper", "de-thi" ->
+                "bb1";
+            case "violation", "violation-minutes", "bien-ban-vi-pham" ->
+                "violations";
+            default ->
+                normalized;
+        };
     }
 
     // Return true when the document type is a session-wide table export or print.
     public static boolean isSessionDocumentType(String type) {
-        if (type == null) {
-            return false;
-        }
-        return switch (type.trim().toLowerCase()) {
+        String normalized = formatDocumentType(type);
+        return switch (normalized) {
             case "candidates", "result", "violations", "audit" ->
                 true;
             default ->
@@ -36,7 +40,7 @@ public final class FormatUtil {
 
     // Return true when the document type is a per-candidate result form requiring a valid SBD.
     public static boolean isCandidateResultDocument(String type, int sbd) {
-        if (type == null || sbd <= 0) {
+        if (sbd <= 0) {
             return false;
         }
         String normalized = formatDocumentType(type);
@@ -76,11 +80,11 @@ public final class FormatUtil {
             case "result", "results" ->
                 sbd > 0 ? "biên bản kết quả thi" : "tổng hợp kết quả thi";
             case "violations" ->
-                "danh sách thí sinh vi phạm";
+                sbd > 0 ? "biên bản vi phạm" : "danh sách thí sinh vi phạm";
             case "audit" ->
                 "nhật ký";
             case "bb1", "bb1-ly-thuyet" ->
-                "BB1";
+                "đề thi";
             case "bb2", "bb2-thuc-hanh-trong-hinh" ->
                 "BB2";
             default ->
@@ -101,7 +105,7 @@ public final class FormatUtil {
             case "result", "results" ->
                 sbd > 0 ? "Biên bản kết quả thi" : "Tổng hợp kết quả thi";
             case "violations" ->
-                "Danh sách thí sinh vi phạm";
+                sbd > 0 ? "Biên bản vi phạm" : "Danh sách thí sinh vi phạm";
             case "audit" ->
                 "Nhật ký";
             default ->
@@ -120,7 +124,7 @@ public final class FormatUtil {
             case "result", "results" ->
                 "Biên bản kết quả thi";
             case "bb1", "bb1-ly-thuyet" ->
-                "BB1";
+                "Đề thi";
             case "bb2", "bb2-thuc-hanh-trong-hinh" ->
                 "BB2";
             default ->

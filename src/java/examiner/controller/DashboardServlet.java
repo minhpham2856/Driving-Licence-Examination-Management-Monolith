@@ -47,17 +47,15 @@ public class DashboardServlet extends HttpServlet {
         Integer candidateNumber = getCandidateNumber(request);
         String search = request.getParameter("q");
 
-        // Load candidate rows for the current session, filtered at the database when searching
-        List<CandidateRowDTO> candidates = examViewService.getAllFilteredByExam(
-                examId,
-                sectionType,
-                formatString(search));
+        // Dashboard must stay fast: one simple candidate-by-exam query only.
+        List<CandidateRowDTO> candidates = examViewService.getDashboardCandidateListByExam(
+                examId, sectionType, formatString(search));
         ListUtil.applySortAndSearch(request, candidates);
 
         // Provide candidate list and summary for the dashboard
         request.setAttribute("candidates", candidates);
         request.setAttribute("candidateQueue", candidates);
-        request.setAttribute("examSummary", examViewService.getStatsByExam(examId, sectionType));
+        request.setAttribute("examSummary", examViewService.getStatsByCandidateRows(examId, sectionType, candidates));
 
         // Load detailed information for the selected candidate
         if (candidateNumber != null && candidateNumber > 0) {

@@ -193,16 +193,7 @@
             </a>
         </c:if>
 
-        <c:if test="${param.btnExportDocx eq 'left'}">
-            <a href="${requestScope.exportDocxUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất Docx
-            </a>
-        </c:if>
-
         <c:if test="${param.btnPrintViolation eq 'left'}">
-            <a href="${requestScope.exportDocxUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất Docx
-            </a>
             <a href="${ctx}/examiner/print?type=violations" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In danh sách vi phạm
             </a>
@@ -419,16 +410,7 @@
             </a>
         </c:if>
 
-        <c:if test="${param.btnExportDocx eq 'right'}">
-            <a href="${requestScope.exportDocxUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất Docx
-            </a>
-        </c:if>
-
         <c:if test="${param.btnPrintViolation eq 'right'}">
-            <a href="${requestScope.exportDocxUrl}" class="examiner-btn examiner-btn--white">
-                <span class="material-symbols-outlined">download</span>Xuất Docx
-            </a>
             <a href="${ctx}/examiner/print?type=violations" target="_blank" rel="noopener" class="examiner-btn examiner-btn--white">
                 <span class="material-symbols-outlined">print</span>In danh sách vi phạm
             </a>

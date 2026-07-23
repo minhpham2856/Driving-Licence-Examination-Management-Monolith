@@ -42,9 +42,6 @@
     <c:if test="${param.scoreInvoked eq '1' and not empty param.sbd}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã thao tác thí sinh SBD ${param.sbd} vào nhập điểm.</p> 
     </c:if>
-    <c:if test="${not empty param.deferred}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã đẩy SBD ${param.deferred} xuống cuối hàng đợi.</p>
-    </c:if>
     <c:if test="${not empty param.completeDone}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tất phần thi SBD ${param.completeDone}.</p>
     </c:if>
@@ -134,6 +131,12 @@
     </c:if>
     <c:if test="${param.error eq 'invalidDevice'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Thiết bị không hợp lệ.</p>
+    </c:if>
+    <c:if test="${param.error eq 'practicalNotAllowed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Thí sinh chưa đủ điều kiện thi thực hành hoặc đã trượt lý thuyết.</p>
+    </c:if>
+    <c:if test="${param.error eq 'scoreEditNotAllowed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Chỉ có thể sửa kết quả sau khi thí sinh đã hoàn tất phần thi thực hành.</p>
     </c:if>
     <c:if test="${not empty violationError}">
         <p class="examiner-flash-bar examiner-flash-bar--error">${violationError}</p>

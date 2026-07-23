@@ -6,6 +6,7 @@
 <c:set var="headerTitle" value="Thông tin thí sinh" />
 <c:set var="pageUrl" value="${ctx}/examiner/candidates" scope="request" />
 <c:set var="detailUrl" value="${ctx}/examiner/candidate-details" scope="request" />
+<c:set var="resultUrl" value="${ctx}/examiner/result-details-edit" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -50,7 +51,9 @@
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
                     <jsp:param name="showCheckbox" value="true" />
-                    <jsp:param name="showExamDate" value="true" />
+                    <jsp:param name="showDob" value="false" />
+                    <jsp:param name="showAddress" value="false" />
+                    <jsp:param name="showExamDate" value="false" />
                     <jsp:param name="actionDetail" value="true" />
                 </jsp:include>
             </main>

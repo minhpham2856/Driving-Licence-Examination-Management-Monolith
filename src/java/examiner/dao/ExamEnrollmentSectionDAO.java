@@ -34,6 +34,15 @@ public interface ExamEnrollmentSectionDAO {
     // Batch-loads whether result forms were printed for each enrollment in a section.
     Map<Integer, Boolean> getResultPrintedByEnrollmentIds(List<Integer> enrollmentIds, String sectionType);
 
+    // Batch-loads whether candidates have checked in for each enrollment in a section.
+    Map<Integer, Boolean> getCheckedInByEnrollmentIds(List<Integer> enrollmentIds, String sectionType);
+
+    // Marks attendance without changing the exam lifecycle status.
+    boolean markCheckedIn(int examEnrollmentId, String sectionType, Integer checkedInBy);
+
+    // Clears attendance only if the section has not actually started.
+    boolean clearCheckedInIfNotStarted(int examEnrollmentId, String sectionType);
+
     // Returns true when ResultPrintedAt is set for the enrollment section row.
     boolean isResultPrinted(int examEnrollmentId, String sectionType);
 

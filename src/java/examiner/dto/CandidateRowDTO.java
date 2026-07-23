@@ -32,6 +32,8 @@ public class CandidateRowDTO {
     private boolean passed;
     private String resultLabel;
     private String vehicleName;
+    private int examAreaId;
+    private String examAreaName;
     private String avatarClass;
     private String photoImageUrl;
     private String dobRaw;
@@ -46,6 +48,7 @@ public class CandidateRowDTO {
     private boolean wrongInfoEligible;
     private boolean completeEligible;
     private boolean practicalEntryAllowed = true;
+    private boolean sectionRequired = true;
     private boolean active;
     private boolean invoked;
 
@@ -257,6 +260,22 @@ public class CandidateRowDTO {
         this.vehicleName = vehicleName;
     }
 
+    public int getExamAreaId() {
+        return examAreaId;
+    }
+
+    public void setExamAreaId(int examAreaId) {
+        this.examAreaId = examAreaId;
+    }
+
+    public String getExamAreaName() {
+        return examAreaName;
+    }
+
+    public void setExamAreaName(String examAreaName) {
+        this.examAreaName = examAreaName;
+    }
+
     public String getAvatarClass() {
         return avatarClass;
     }
@@ -367,6 +386,14 @@ public class CandidateRowDTO {
 
     public void setPracticalEntryAllowed(boolean practicalEntryAllowed) {
         this.practicalEntryAllowed = practicalEntryAllowed;
+    }
+
+    public boolean isSectionRequired() {
+        return sectionRequired;
+    }
+
+    public void setSectionRequired(boolean sectionRequired) {
+        this.sectionRequired = sectionRequired;
     }
 
     public boolean isActive() {

@@ -5,23 +5,20 @@ import candidate.dao.impl.CandidateExamAccessDAOImpl;
 import candidate.dto.CandidateExamContextDTO;
 import candidate.dto.CandidateExamResultDTO;
 import candidate.service.CandidateExamAccessService;
-import shared.service.ExamAccessOtpService;
-import shared.service.impl.ExamAccessOtpServiceImpl;
 import java.util.Map;
 
 public class CandidateExamAccessServiceImpl implements CandidateExamAccessService {
 
     private final CandidateExamAccessDAO accessDAO = new CandidateExamAccessDAOImpl();
-    private final ExamAccessOtpService otpService = new ExamAccessOtpServiceImpl();
 
     @Override
-    public CandidateExamContextDTO authenticate(String candidateNumber, String otp) {
-        CandidateExamContextDTO context = accessDAO.getEligibleTheoryContext(candidateNumber);
-        if (context == null || !otpService.verify(
-                context.getExamId(), context.getExamSectionId(), context.getExamAreaId(), otp)) {
-            return null;
-        }
-        return context;
+    public int loginExam(String examCodeOrId, String examPassword) {
+        return accessDAO.findActiveExamIdForLogin(examCodeOrId, examPassword);
+    }
+
+    @Override
+    public CandidateExamContextDTO authenticate(int examId, String candidateNumber) {
+        return accessDAO.getEligibleTheoryContext(examId, candidateNumber);
     }
 
     @Override
@@ -29,11 +26,7 @@ public class CandidateExamAccessServiceImpl implements CandidateExamAccessServic
         if (context == null) {
             return false;
         }
-        int paperId = accessDAO.startTheoryPaper(context.getExamEnrollmentSectionId());
-        context.setTheoryPaperId(paperId);
-        context.setQuestions(accessDAO.getRandomQuestions(context.getLicenceId(), 25));
-        context.setStartedAtMillis(System.currentTimeMillis());
-        return paperId > 0 && context.getQuestions() != null && !context.getQuestions().isEmpty();
+        return accessDAO.startTheoryAttempt(context, 25);
     }
 
     @Override

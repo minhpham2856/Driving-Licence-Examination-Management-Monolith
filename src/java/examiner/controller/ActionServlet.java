@@ -12,7 +12,6 @@ import examiner.service.impl.ExamViewServiceImpl;
 import examiner.service.ActionService;
 import examiner.service.impl.ActionServiceImpl;
 import examiner.util.ListUtil;
-import shared.model.ExaminerSchedule;
 import shared.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,19 +23,16 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @WebServlet("/examiner/action")
 
-// Actions controller: displays the candidate queue and handles workflow actions (present, suspend, print, complete section).
+// Actions controller: displays the section candidate list and handles workflow actions.
 public class ActionServlet extends HttpServlet {
 
     private final ExamViewService viewService = new ExamViewServiceImpl();
     protected final ActionService actionService = new ActionServiceImpl();
 
-    // Serve the call-board page with queue-ordered candidate rows and exam summary stats.
+    // Serve the action page with candidates from the active exam and section.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -47,43 +43,21 @@ public class ActionServlet extends HttpServlet {
             return;
         }
 
-        // Load queue data only when the examiner has selected an active exam session.
+        // Load action data only when the examiner has selected an active exam session.
         Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         if (activeExamId != null && activeExamId > 0) {
-            // Section type (theory vs layout) drives eligibility rules and queue lane.
+            // Section type (theory vs layout) drives eligibility rules.
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
 
-            // Optional search narrows rows before queue ordering is applied.
+            // Optional search narrows rows at enrollment query level.
             String search = ListUtil.normalizeSearch(request.getParameter("q"));
-            List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
+            List<CandidateRowDTO> candidates = viewService.getActionCandidateListByExam(
                     activeExamId, sectionType, formatString(search));
-            // Re-order rows to match ExamRoomQueueRegistry display order for this exam area.
-            int examAreaId = 0;
-            ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
-            if (schedule != null && schedule.getExamAreaId() != null) {
-                examAreaId = schedule.getExamAreaId();
-            }
-            candidates = viewService.orderCandidateRowsByQueue(
-                    candidates, activeExamId, examAreaId, sectionType);
             ListUtil.applySortAndSearch(request, candidates);
 
-            // Attributes consumed by action.jsp for the table and summary header.
+            // Keep candidateQueue name for existing JSP compatibility; content is no longer a queue.
             request.setAttribute("candidates", candidates);
             request.setAttribute("candidateQueue", candidates);
-            request.setAttribute("examSummary", viewService.getStatsByExam(activeExamId, sectionType));
-            request.setAttribute("examAreaId", examAreaId);
-            Integer selectedSbd = formatPositiveInteger(request.getParameter("sbd"));
-            if (sectionType != SectionType.THEORY && selectedSbd != null) {
-                Map<String, Object> scoreModel = viewService.getScoreEntryViewByExam(
-                        activeExamId, selectedSbd, sectionType);
-                for (Map.Entry<String, Object> item : scoreModel.entrySet()) {
-                    request.setAttribute(item.getKey(), item.getValue());
-                }
-                String scoreToken = UUID.randomUUID().toString();
-                session.setAttribute("scoreSubmissionToken", scoreToken);
-                request.setAttribute("scoreSubmissionToken", scoreToken);
-                request.setAttribute("scoreModalOpen", Boolean.TRUE);
-            }
         }
         request.getRequestDispatcher("/views/examiner/action.jsp").forward(request, response);
     }
@@ -103,7 +77,6 @@ public class ActionServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing active exam");
             return;
         }
-
         String action = request.getParameter("action");
         if (action == null || action.isBlank()) {
             response.sendRedirect(request.getContextPath() + "/examiner/action?error=noAction");
@@ -120,14 +93,13 @@ public class ActionServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    // Dispatch a named call-board action to ActionService and redirect with success or error query params.
+    // Dispatch a named row action to ActionService and redirect with success or error query params.
     private boolean handleAction(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, int activeExamId, String action, Integer sbd) throws IOException {
         UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
         int userId = userDto.getUserId();
         User user = userDto.toUser();
         SectionType sectionType = ExaminerFilter.resolveSectionType(session);
-        int examAreaId = resolveExamAreaId(session);
 
         // Each branch delegates to ActionService then redirects with flash query params for action.jsp.
         switch (action) {
@@ -138,35 +110,6 @@ public class ActionServlet extends HttpServlet {
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?called=" + urlEncode(sbd));
-                return true;
-            }
-            case "savePracticalScore" -> {
-                if (sbd == null || sectionType == SectionType.THEORY
-                        || !consumeScoreToken(session, request.getParameter("submissionToken"))) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=scorePayloadInvalid");
-                    return true;
-                }
-                Integer deviceId = formatPositiveInteger(request.getParameter("deviceId"));
-                Integer elapsedSeconds = formatPositiveInteger(request.getParameter("elapsedSeconds"));
-                Map<Integer, Integer> occurrences = parseOccurrences(request);
-                if (deviceId == null || elapsedSeconds == null
-                        || !actionService.savePracticalScore(activeExamId, examAreaId, sbd, deviceId,
-                                elapsedSeconds, occurrences, userId).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
-                            + urlEncode(sbd) + "&error=scoreFailed");
-                    return true;
-                }
-                response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
-                        + urlEncode(sbd) + "&scoreSaved=1");
-                return true;
-            }
-            case "defer" -> {
-                if (sbd == null || !actionService.deferCandidate(
-                        activeExamId, examAreaId, sbd, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=deferFailed");
-                    return true;
-                }
-                response.sendRedirect(request.getContextPath() + "/examiner/action?deferred=" + urlEncode(sbd));
                 return true;
             }
             case "undoPresent" -> {
@@ -284,33 +227,4 @@ public class ActionServlet extends HttpServlet {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
     }
 
-    private int resolveExamAreaId(HttpSession session) {
-        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
-        return schedule != null && schedule.getExamAreaId() != null ? schedule.getExamAreaId() : 0;
-    }
-
-    private boolean consumeScoreToken(HttpSession session, String submitted) {
-        Object stored = session.getAttribute("scoreSubmissionToken");
-        if (submitted == null || stored == null || !submitted.equals(stored.toString())) {
-            return false;
-        }
-        session.removeAttribute("scoreSubmissionToken");
-        return true;
-    }
-
-    private Map<Integer, Integer> parseOccurrences(HttpServletRequest request) {
-        Map<Integer, Integer> occurrences = new HashMap<>();
-        for (Map.Entry<String, String[]> item : request.getParameterMap().entrySet()) {
-            if (!item.getKey().startsWith("deduction_")) {
-                continue;
-            }
-            try {
-                int deductionId = Integer.parseInt(item.getKey().substring("deduction_".length()));
-                int count = Integer.parseInt(item.getValue()[0]);
-                occurrences.put(deductionId, count);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return occurrences;
-    }
 }
