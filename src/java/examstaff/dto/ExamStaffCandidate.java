@@ -7,19 +7,19 @@ import java.sql.Timestamp;
  * Read-model Persistence cho thí sinh ExamStaff: một hàng SELECT JOIN
  * Candidate + Enrollment (+ kết quả / phân bổ / Person) trước khi map sang UI DTO.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Nằm ở biên Persistence → BLL. DAO view đổ dữ liệu thô vào class này;
  * {@code ExamStaffCandidateMapper} chuyển sang {@link ExamRegistrationDTO} để Presentation/JSP dùng.
  * Không bind trực tiếp lên JSP; không chứa logic nghiệp vụ (vắng, đậu, thủ tục…).
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code ExamStaffCandidateViewDAOImpl#mapRow} (và các query list theo kỳ thi).
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code ExamStaffCandidateMapper} → sản phẩm là {@link ExamRegistrationDTO};
  * {@code CandidateQueueQueryServiceImpl} gọi DAO rồi map sang danh sách đăng ký cho queue.
  *
- * <h2>Trang / servlet</h2>
+ * Trang / servlet:
  * Không gắn attribute request trực tiếp. Dữ liệu sau map xuất hiện trên
  * {@code dashboard.jsp}, {@code candidatecall.jsp}, allocation, dossier, … qua {@link ExamRegistrationDTO}.
  */

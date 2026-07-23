@@ -6,11 +6,11 @@ import java.util.Map;
 /**
  * Thống kê kết quả kỳ thi cho màn báo cáo ExamStaff ({@code report.jsp} / bản in).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Tổng hợp số liệu đậu/trượt/vắng/đình chỉ, theo phần lý thuyết–thực hành,
  * thống kê theo hạng bằng và danh sách lỗi / infractions.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExamReportStatsServiceImpl} → {@code ReportServlet} (và luồng in báo cáo).
  */
 public class ExamReportStatsDTO {

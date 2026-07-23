@@ -7,11 +7,11 @@ import java.sql.Timestamp;
 /**
  * DTO tóm tắt kỳ thi mang qua layer ExamStaff (picker, dashboard, public call, report…).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Ánh xạ thông tin Exam + loại thi / hạng bằng để hiển thị danh sách chọn kỳ và header trang,
  * không chứa nghiệp vụ gọi / thủ tục.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExamViewDAOImpl}, {@code ExamDAOImpl} → binders, {@link ExamStaffPickerViewDTO},
  * {@link PublicCallSnapshotDTO}, hầu hết servlet staff.
  */

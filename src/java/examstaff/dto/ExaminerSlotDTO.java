@@ -3,10 +3,10 @@ package examstaff.dto;
 /**
  * Slot phân công sát hạch viên trong một kỳ thi (khu vực + loại thi + SHV).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Một dòng assignment trên {@code examiner-allocation.jsp}: ai coi thi ở khu nào, loại lý thuyết/thực hành/đường.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExaminerAssignmentDAOImpl}, {@code ExaminerAllocationDeskServiceImpl}
  * → {@link ExaminerAllocationViewDTO} → {@code ExaminerAllocationServlet}.
  */
@@ -28,7 +28,6 @@ public class ExaminerSlotDTO {
 
     /**
      * Khóa ổn định của slot: {@code examId:areaId:examinerUserId} (đối chiếu UI / remove).
-     *
      * @return chuỗi khóa ghép
      */
     public String getSlotKey() {

@@ -3,11 +3,11 @@ package examstaff.dto;
 /**
  * Kết quả thao tác phân bổ thí sinh (BLL → Presentation).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Mang alert/error, thông tin audit, số lượng đã phân và đường redirect sau xử lý
  * (allocate một / hàng loạt).
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code AllocationActionServiceImpl}, {@code ExaminerAllocationServiceImpl}
  * → thường bọc {@link ServiceResult} → {@code AllocationServlet} flash + PRG.
  */
@@ -93,7 +93,6 @@ public class AllocationActionResultDTO {
 
     /**
      * Có đủ action + details để servlet ghi nhật ký audit.
-     *
      * @return true khi cả {@code auditAction} và {@code auditDetails} khác null
      */
     public boolean hasAuditLog() {

@@ -6,23 +6,21 @@ import java.util.List;
  * Command đầu vào khi chuẩn bị / chuyển / resolve / refresh trang ExamStaff
  * (Presentation → BLL, không phụ thuộc Servlet API trực tiếp trong chữ ký service).
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Gom tham số từ URL, session và cache: examId đang chọn, kỳ trước, có load danh sách thí sinh không,
  * danh sách kỳ để picker, cache hàng chờ và thứ tự gọi. BLL dùng command này để resolve kỳ thi hiện tại
  * và (tuỳ cờ) nạp candidates trước khi trả {@link ExamStaffPageContext}.
  *
- * <h2>Ai tạo</h2>
- * <ul>
- *   <li>{@code ExamStaffPageSupport} — {@code buildPagePrepareInput} / transition / selection.</li>
- *   <li>Servlet hỗ trợ: {@code ProcedureServlet}, {@code AllocationServlet}, {@code ExamSelectServlet}.</li>
- *   <li>Service refresh: {@code ExamStaffPageServiceImpl}, {@code CandidateCallPageServiceImpl}.</li>
- * </ul>
+ * Ai tạo:
+ * - {@code ExamStaffPageSupport} — {@code buildPagePrepareInput} / transition / selection.
+ * - Servlet hỗ trợ: {@code ProcedureServlet}, {@code AllocationServlet}, {@code ExamSelectServlet}.
+ * - Service refresh: {@code ExamStaffPageServiceImpl}, {@code CandidateCallPageServiceImpl}.
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code ExamStaffViewServiceImpl}, {@code ExamStaffPageServiceImpl}, {@code ExamStaffSelectionServiceImpl};
  * {@code CandidateQueueServiceImpl#refreshQueue}; facade {@code StaffCallService} / {@code ExamStaffViewService}.
  *
- * <h2>Trang / servlet</h2>
+ * Trang / servlet:
  * Không bind object này lên JSP. Kết quả sau xử lý phục vụ
  * Dashboard, Candidate Call, Procedure, Allocation, Report, Audit, Examiner Allocation, Exam Select
  * (thường qua {@link ExamStaffPageContext} + attributes).
