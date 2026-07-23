@@ -20,6 +20,7 @@ public class SessionDTO {
     private int areaId;
     private String centreName;
     private boolean editable;
+    private int sourceExamDateId;
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -51,4 +52,6 @@ public class SessionDTO {
     public void setCentreName(String centreName) { this.centreName = centreName; }
     public boolean isEditable() { return editable; }
     public void setEditable(boolean editable) { this.editable = editable; }
+    public int getSourceExamDateId() { return sourceExamDateId; }
+    public void setSourceExamDateId(int value) { sourceExamDateId = value; }
 }
