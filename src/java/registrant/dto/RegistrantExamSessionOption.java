@@ -3,8 +3,8 @@ package registrant.dto;
 import java.util.Date;
 
 /**
- * Một đợt thi khả dụng trên wizard đăng ký thi.
- * Thuộc tính {@code id} dùng mã đợt thi (ExamCode) để khớp tham số sessionSelect trên JSP.
+ * Một ngày thi dự kiến (ExamDates) trên wizard đăng ký.
+ * {@code id}/{@code sessionId} = ExamDateId; UI vẫn dùng tham số sessionSelect.
  */
 public class RegistrantExamSessionOption {
 
@@ -15,7 +15,7 @@ public class RegistrantExamSessionOption {
     private Date examDate;
     private String location;
     private int slotsRemaining;
-    /** SessionId thực tế trong DB — dùng nội bộ khi đăng ký. */
+    /** SessionId thực tế trong DB - dùng nội bộ khi đăng ký. */
     private int sessionId;
 
     public String getId() {

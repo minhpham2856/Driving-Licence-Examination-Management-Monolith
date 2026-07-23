@@ -5,7 +5,7 @@ package registrant.dto;
  */
 public class RegistrantLicenceOption {
 
-    /** Mã hiển thị trên UI (A1, A2, B2, C1, …). */
+    /** Mã hạng GPLX hiển thị (khớp DB seed: A, A1, B1, …). */
     private String code;
     private String name;
     private long examFee;

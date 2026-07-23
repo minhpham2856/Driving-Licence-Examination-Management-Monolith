@@ -44,8 +44,8 @@
         <%-- Page Header --%>
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Đăng ký đợt thi mới</h1>
-                <p class="page-subtitle">Chọn hạng bằng lái đăng ký dự thi và lựa chọn lịch thi phù hợp</p>
+                <h1 class="page-title">Đăng ký ngày thi dự kiến</h1>
+                <p class="page-subtitle">Chọn hạng bằng đã được duyệt và ngày thi dự kiến do trung tâm công bố</p>
             </div>
         </header>
 
@@ -104,12 +104,14 @@
                     (<c:out value="${profileRegistrationStatusLabel}"/>).
                     <c:choose>
                         <c:when test="${not hasOtherDocuments}">
-                            Với 4 giấy tờ bắt buộc, bạn chỉ có thể đăng ký thi hạng A1 hoặc A2.
-                            Để đăng ký hạng khác, vui lòng bổ sung hồ sơ khác đúng hạng tại
-                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Quản lý tài liệu</a>.
+                            Hồ sơ đã duyệt chỉ mở đăng ký cho <strong>hạng đã chọn khi gửi yêu cầu duyệt</strong>.
+                            Muốn thi hạng khác: vào
+                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Quản lý tài liệu</a>,
+                            chọn hạng mới khi gửi duyệt (có thể tái sử dụng 4 giấy đã có nếu không cần đổi).
                         </c:when>
                         <c:otherwise>
-                            Vui lòng chọn hạng GPLX và đợt thi, sau đó xác nhận đăng ký bên dưới.
+                            Chỉ các hạng đã được ban quản lý duyệt kèm hồ sơ mới chọn được.
+                            Chọn hạng đã duyệt và ngày thi dự kiến, rồi xác nhận đăng ký bên dưới.
                         </c:otherwise>
                     </c:choose>
                 </span>
@@ -156,6 +158,8 @@
                                 <c:if test="${not empty licenceClassesList}">
                                     <c:forEach var="licence" items="${licenceClassesList}">
                                         <c:set var="licenceDocsAllowed" value="${licenceDocumentAllowed[licence.code]}" />
+                                        <%-- Hiện card luôn; khóa + hint nếu chưa duyệt hồ sơ kèm hạng này --%>
+                                        <c:set var="licencePickBlocked" value="${licenceDocsAllowed ne true}" />
                                         <c:url var="licencePickUrl" value="/registrant/register-exam">
                                             <c:param name="licenceSelect" value="${licence.code}"/>
                                             <c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if>
@@ -163,11 +167,14 @@
                                             <c:if test="${not empty fromDateIso}"><c:param name="fromDate" value="${fromDateIso}"/></c:if>
                                             <c:if test="${not empty toDateIso}"><c:param name="toDate" value="${toDateIso}"/></c:if>
                                         </c:url>
-                                        <c:set var="licencePickFragment" value="${canRegisterExam and licenceDocsAllowed eq false ? '#register-exam-licence-notice' : '#register-exam-session'}" />
-                                        <c:set var="licenceCardClasses" value="licence-card ${selectedClassCode eq licence.code ? 'licence-card--active' : ''}${canRegisterExam and licenceDocsAllowed eq false ? ' licence-card--restricted' : ''}" />
-                                        <a href="${licencePickUrl}${licencePickFragment}"
-                                           class="licence-card-link${canRegisterExam and licenceDocsAllowed eq false ? ' licence-card-link--blocked' : ''}"
-                                           <c:if test="${canRegisterExam and licenceDocsAllowed eq false}">title="${licenceDocumentBlockMessages[licence.code]}"</c:if>>
+                                        <c:set var="licencePickFragment" value="${licencePickBlocked ? '#register-exam-licence-notice' : '#register-exam-session'}" />
+                                        <%-- Không gắn --active khi bị khóa: 3 thẻ restricted phải cùng style (không highlight vàng) --%>
+                                        <c:set var="licenceCardClasses" value="licence-card ${selectedClassCode eq licence.code and not licencePickBlocked ? 'licence-card--active' : ''}${licencePickBlocked ? ' licence-card--restricted' : ''}" />
+                                        <c:choose>
+                                        <c:when test="${licencePickBlocked}">
+                                        <div class="licence-card-link licence-card-link--blocked"
+                                             title="${not empty licenceDocumentBlockMessages[licence.code] ? licenceDocumentBlockMessages[licence.code] : documentGateMessage}"
+                                             aria-disabled="true">
                                             <div class="${licenceCardClasses}">
                                                 <div class="licence-card__icon">
                                                     <c:choose>
@@ -200,16 +207,60 @@
                                                 <span class="licence-card__fee">
                                                     <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
                                                 </span>
-                                                <c:if test="${canRegisterExam and licenceDocsAllowed eq false}">
-                                                <span class="licence-card__hint">Chưa có hồ sơ bổ sung cho hạng này</span>
-                                                </c:if>
+                                                <span class="licence-card__hint">
+                                                    <c:choose>
+                                                        <c:when test="${not canRegisterExam}">Chưa đủ giấy tờ / chưa được duyệt</c:when>
+                                                        <c:otherwise>Chưa được duyệt hồ sơ cho hạng này</c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                        <a href="${licencePickUrl}${licencePickFragment}" class="licence-card-link">
+                                            <div class="${licenceCardClasses}">
+                                                <div class="licence-card__icon">
+                                                    <c:choose>
+                                                        <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'moto')}">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <circle cx="6" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
+                                                                <circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="2"></circle>
+                                                                <path d="M8.5 10.5 12 6h4l2.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                                <path d="M12 6v11" stroke="currentColor" stroke-width="2"></path>
+                                                            </svg>
+                                                        </c:when>
+                                                        <c:when test="${fn:contains(fn:toLowerCase(licence.vehicleType), 'bus')}">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <rect x="3" y="5" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2"></rect>
+                                                                <path d="M3 12h18M7 18v2M17 18v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                                                            </svg>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect>
+                                                                <circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="2"></circle>
+                                                                <circle cx="18" cy="12" r="2.5" stroke="currentColor" stroke-width="2"></circle>
+                                                                <path d="M10 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                                                            </svg>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                                <span class="licence-card__code">Hạng ${licence.code}</span>
+                                                <span class="licence-card__name">${licence.name}</span>
+                                                <span class="licence-card__fee">
+                                                    <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
+                                                </span>
                                             </div>
                                         </a>
+                                        </c:otherwise>
+                                        </c:choose>
                                     </c:forEach>
                                 </c:if>
                                 
                                 <c:if test="${empty licenceClassesList}">
-                                    <p style="color:#64748b;margin:0;">Không có hạng GPLX khả dụng trong hệ thống.</p>
+                                    <p style="color:#64748b;margin:0;">
+                                        Hiện chưa có hạng bằng để đăng ký. Vui lòng thử lại sau hoặc liên hệ trung tâm hỗ trợ.
+                                    </p>
                                 </c:if>
 
                             </div>
@@ -217,13 +268,14 @@
                     </section>
 
                     <%-- Section 2: Select Exam Session --%>
-                    <section class="p-form-card" id="register-exam-session" aria-label="Chọn đợt thi">                        <div class="p-form-header">
+                    <section class="p-form-card" id="register-exam-session" aria-label="Chọn ngày thi dự kiến">
+                        <div class="p-form-header">
                             <h2 class="p-form-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
                                     <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
                                 </svg>
-                                2. Lịch thi khả dụng
+                                2. Ngày thi dự kiến
                             </h2>
                         </div>
                         <jsp:include page="/views/registrant/partials/session-list-filter-form.jsp"/>
@@ -244,7 +296,7 @@
                                         <a href="${sessionPickUrl}#register-exam-summary" class="licence-card-link">
                                             <div class="session-card ${sessionChosen and selectedSessionCode eq session.id ? 'session-card--active' : ''}">                                                <div class="session-card__title-wrap">
                                                     <span class="session-card__title">${session.examName}</span>
-                                                    <span class="session-card__subtitle">Mã: ${session.examCode} — Hạng ${session.licenceClass}</span>
+                                                    <span class="session-card__subtitle">Hạng ${session.licenceClass}</span>
                                                 </div>
                                                 <div class="session-card__info-item session-card__hide-sm">
                                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -261,7 +313,7 @@
                                                     <span>${session.location}</span>
                                                 </div>
                                                 <div class="session-card__info-item">
-                                                    <span class="r-stat-card__badge r-stat-card__badge--success">Còn ${session.slotsRemaining} chỗ</span>
+                                                    <span class="r-stat-card__badge r-stat-card__badge--success">Nguyện vọng đăng ký</span>
                                                 </div>
                                                 <div class="session-card__radio-indicator"></div>
                                             </div>
@@ -270,14 +322,17 @@
                                 </c:if>
                                 
                                 <c:if test="${empty examSessionsList or (canRegisterExam and not selectedLicenceDocumentAllowed and not empty selectedClassCode)}">
-                                    <p style="color:#64748b;margin:0;">
+                                    <p class="session-selector-list__empty">
                                         <c:choose>
                                             <c:when test="${canRegisterExam and not selectedLicenceDocumentAllowed and not empty selectedClassCode}">
-                                                Không thể chọn đợt thi — vui lòng bổ sung hồ sơ khác cho hạng ${selectedClassCode} hoặc chọn hạng A1/A2.
+                                                Hạng ${selectedClassCode} chưa được duyệt kèm hồ sơ.
+                                                Vào Quản lý tài liệu → chọn hạng này khi Gửi yêu cầu duyệt
+                                                (có thể tái sử dụng 4 giấy đã có nếu không cần đổi).
                                             </c:when>
-                                            <c:when test="${searchActive}">Không có đợt thi phù hợp với bộ lọc.</c:when>
+                                            <c:when test="${searchActive}">Không có ngày thi phù hợp với bộ lọc.</c:when>
                                             <c:otherwise>
-                                                Không có đợt thi mở cho hạng ${not empty selectedClassCode ? selectedClassCode : 'đã chọn'}.
+                                                Chưa có ngày thi dự kiến cho hạng ${not empty selectedClassCode ? selectedClassCode : 'đã chọn'}.
+                                                Vui lòng quay lại sau khi trung tâm công bố lịch, hoặc thử bỏ bộ lọc ngày/địa điểm.
                                             </c:otherwise>
                                         </c:choose>
                                     </p>
@@ -289,7 +344,7 @@
 
                 </div>
 
-                <%-- Right Column: Registration Summary + POST xác nhận --%>
+                <%-- Right: tóm tắt + POST confirmRegistration=1 → MERGE RegistrationDates (không thu SePay) --%>
                 <div class="dashboard-sidebar-column" id="register-exam-summary">
 
                     <form action="${ctx}/registrant/register-exam" method="post" id="registrationForm" class="register-exam-confirm-form">
@@ -315,18 +370,20 @@
                                 </span>
                             </div>
                             <div class="payment-summary-item">
-                                <span>Đợt thi</span>
+                                <span>Ngày dự kiến</span>
                                 <span>
                                     <c:choose>
-                                        <c:when test="${sessionChosen and not empty selectedSession}">${selectedSession.examName}</c:when>
-                                        <c:otherwise>Chưa chọn — bấm một ca thi bên trái</c:otherwise>
+                                        <c:when test="${sessionChosen and not empty selectedSession}">
+                                            <fmt:formatDate value="${selectedSession.examDate}" pattern="dd/MM/yyyy"/>
+                                        </c:when>
+                                        <c:otherwise>Chưa chọn — bấm một ngày bên trái</c:otherwise>
                                     </c:choose>
                                 </span>
                             </div>
                             <c:if test="${sessionChosen and not empty selectedSession}">
                             <div class="payment-summary-item">
-                                <span>Ngày thi</span>
-                                <span><fmt:formatDate value="${selectedSession.examDate}" pattern="dd/MM/yyyy"/></span>
+                                <span>Ghi chú</span>
+                                <span>${selectedSession.examName}</span>
                             </div>
                             <div class="payment-summary-item">
                                 <span>Địa điểm</span>
@@ -347,14 +404,14 @@
                             </c:if>
                         </div>
 
-                        <div class="payment-footer-text register-exam-sbd-hint" style="margin-top:12px;">
-                            Số báo danh (SBD) được cấp sau khi bạn xác nhận đăng ký đợt thi.
-                            Ban sát hạch sẽ cập nhật SBD chính thức khi nhập danh sách thí sinh — bạn có thể theo dõi tại
-                            <a href="${pageContext.request.contextPath}/registrant/my-exams" class="profile-checklist-link">Lịch thi &amp; kết quả</a>.
+                        <div class="payment-footer-text register-exam-date-hint" style="margin-top:12px;">
+                            Bước này chỉ ghi <strong>nguyện vọng ngày thi</strong>.
+                            Lịch thi chính thức, giờ ca và kết quả do trung tâm cập nhật sau — vui lòng chờ thông báo từ phía trung tâm.
                         </div>
 
-                        <div class="payment-footer-text register-exam-date-hint" style="margin-top:12px;">
-                            Khi đăng ký chỉ xác định <strong>ngày thi</strong>. Giờ ca thi do Ban sát hạch mở và bố trí vào đúng ngày thi.
+                        <div class="payment-footer-text register-exam-sbd-hint" style="margin-top:12px;">
+                            Khi có lịch chính thức, bạn theo dõi tại
+                            <a href="${pageContext.request.contextPath}/registrant/my-exams" class="profile-checklist-link">Lịch thi &amp; kết quả</a>.
                         </div>
 
                         <div class="payment-footer-text" style="margin-top:12px;">
@@ -362,8 +419,9 @@
                         </div>
 
                         <div class="payment-footer-text" style="margin-top:12px;">
-                            Mỗi hạng GPLX chỉ được một đăng ký đang xử lý cho từng phần thi (Lý thuyết, Sa hình, …).
-                            Chỉ đăng ký lại khi đăng ký trước bị từ chối hoặc đã được hủy.
+                            Mỗi hạng GPLX chỉ được đăng ký <strong>một lần</strong> ngày thi dự kiến.
+                            Sau khi xác nhận, không thể đổi sang ngày khác — vui lòng theo dõi lịch chính thức tại
+                            <a href="${pageContext.request.contextPath}/registrant/my-exams" class="profile-checklist-link">Lịch thi &amp; kết quả</a>.
                         </div>
 
                         <c:if test="${not empty licenceGateMessage}">

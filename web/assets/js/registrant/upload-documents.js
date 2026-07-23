@@ -1,5 +1,5 @@
 /**
- * Upload hồ sơ thí sinh — một slot một trạng thái, preview dung lượng tệp đã chọn.
+ * Upload hồ sơ thí sinh - một slot một trạng thái, preview dung lượng tệp đã chọn.
  */
 (function () {
     var MAX_BYTES = 5 * 1024 * 1024;

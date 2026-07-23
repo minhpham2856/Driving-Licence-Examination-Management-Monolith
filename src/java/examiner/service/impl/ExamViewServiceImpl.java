@@ -444,7 +444,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         }
         model.put("scoreQueue", allRows);
         model.put("candidates", allRows);
-        model.put("examVehicles", loadExamVehicles(examId));
+        model.put("examVehicles", loadAvailableExamVehicles(examId));
         String licenceClass = loadLicenceClass(examId);
         model.put("licenceClass", licenceClass);
         model.put("defaultTimerMinutes", defaultTimerMinutesForLicence(licenceClass));
@@ -1191,12 +1191,23 @@ public class ExamViewServiceImpl implements ExamViewService {
             return vehicles;
         }
         for (ExamDevice device : deviceDAO.getAllByAreaIds(areaIds)) {
-            if (!device.isActive() || !isVehicleDevice(device.getDeviceType())) {
+            if (!isVehicleDevice(device.getDeviceType())) {
                 continue;
             }
             vehicles.add(toDeviceRow(device, loadAreaName(device.getExamAreaId())));
         }
         return vehicles;
+    }
+
+    // Score-entry must only offer vehicles that are not in maintenance.
+    private List<Map<String, Object>> loadAvailableExamVehicles(int examId) {
+        List<Map<String, Object>> available = new ArrayList<>();
+        for (Map<String, Object> vehicle : loadExamVehicles(examId)) {
+            if (DeviceStatus.ACTIVE.getValue().equals(vehicle.get("status"))) {
+                available.add(vehicle);
+            }
+        }
+        return available;
     }
 
     // True for motorcycle / tricycle device types used in practical scoring.

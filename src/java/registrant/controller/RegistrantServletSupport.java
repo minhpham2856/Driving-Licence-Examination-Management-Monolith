@@ -15,6 +15,7 @@ public final class RegistrantServletSupport {
     private RegistrantServletSupport() {
     }
 
+    /** Sao chép toàn bộ entry của model sang request attribute. */
     public static void copyModelToRequest(Map<String, Object> model, HttpServletRequest request) {
         if (model == null) {
             return;
@@ -24,11 +25,13 @@ public final class RegistrantServletSupport {
         }
     }
 
+    /** Forward request tới JSP/viewPath chỉ định. */
     public static void forwardView(HttpServletRequest request, HttpServletResponse response, String viewPath)
             throws ServletException, IOException {
         request.getRequestDispatcher(viewPath).forward(request, response);
     }
 
+    /** Đọc flash từ session sang request rồi xóa attribute session. */
     public static void consumeFlash(HttpServletRequest request, String sessionAttr, String requestAttr) {
         HttpSession session = request.getSession(false);
         if (session == null) {
@@ -41,12 +44,14 @@ public final class RegistrantServletSupport {
         }
     }
 
+    /** Ghi thông báo flash vào session để hiển thị sau redirect. */
     public static void setFlash(HttpSession session, String sessionAttr, String message) {
         if (session != null && message != null) {
             session.setAttribute(sessionAttr, message);
         }
     }
 
+    /** Nối một query param đã URL-encode vào StringBuilder URL. */
     public static void appendQueryParam(StringBuilder url, String name, String value) {
         if (value == null || value.isBlank()) {
             return;
@@ -57,6 +62,7 @@ public final class RegistrantServletSupport {
                 .append('&');
     }
 
+    /** Cắt ký tự & thừa ở cuối chuỗi URL đang dựng. */
     public static void trimTrailingAmpersand(StringBuilder url) {
         int len = url.length();
         if (len > 0 && url.charAt(len - 1) == '&') {
@@ -64,6 +70,7 @@ public final class RegistrantServletSupport {
         }
     }
 
+    /** Parse chuỗi thành int dương; lỗi hoặc rỗng thì trả 0. */
     public static int parsePositiveInt(String raw) {
         if (raw == null || raw.isBlank()) {
             return 0;

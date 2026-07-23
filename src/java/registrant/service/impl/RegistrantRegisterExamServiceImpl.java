@@ -1,14 +1,11 @@
 package registrant.service.impl;
 
 import registrant.dao.DocumentDAO;
-import registrant.dao.ExamRegistrationDAO;
 import auth.dao.ProfileDAO;
 import registrant.dao.RegistrantDAO;
 import registrant.dao.impl.DocumentDAOImpl;
-import registrant.dao.impl.ExamRegistrationDAOImpl;
 import auth.dao.impl.ProfileDAOImpl;
 import registrant.dao.impl.RegistrantDAOImpl;
-import registrant.dto.exam.ExamRegistration;
 import shared.model.Profile;
 import registrant.dto.RegistrantDocumentSummary;
 import registrant.dto.RegistrantDocumentView;
@@ -26,11 +23,18 @@ import registrant.util.RegistrantListFilter;
 import registrant.util.RegistrantProfileSupport;
 import registrant.controller.RegistrantServletSupport;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Luồng đăng ký đợt thi: load hạng/ca từ DB và tạo Candidate khi POST.
- * Yêu cầu tài liệu bắt buộc đã được phê duyệt; thanh toán xử lý ở module khác.
+ * Đăng ký ngày thi dự kiến sau khi hồ sơ + hạng được duyệt.
+ * <p>
+ * Luồng:
+ * <ol>
+ *   <li>{@link #loadRegisterExamPage} — đọc ExamDates / Licence / Document Approved → request attrs</li>
+ *   <li>{@link #submitRegistration} — validate → {@code RegistrantDAO.registerPreferredExamDate}
+ *       → MERGE {@code RegistrationDates} (không ghi Payment)</li>
+ * </ol>
  */
 public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExamService {
 
@@ -38,9 +42,9 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
 
     private final RegistrantDAO registrantdao = new RegistrantDAOImpl();
     private final ProfileDAO profiledao = new ProfileDAOImpl();
-    private final ExamRegistrationDAO examRegistrationdao = new ExamRegistrationDAOImpl();
     private final DocumentDAO documentdao = new DocumentDAOImpl();
 
+    /** Chuẩn bị form đăng ký: hạng được duyệt, danh sách ExamDates, bộ lọc địa điểm/ngày. */
     @Override
     public void loadRegisterExamPage(UserDTO user, HttpServletRequest request) {
         RegistrantServletSupport.consumeFlash(request, FLASH_ERROR_ATTR, "error");
@@ -49,11 +53,15 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         RegistrantProfileContext ctx = RegistrantProfileSupport.loadContext(
                 profiledao, documentdao, registrantdao, user);
         var docs = ctx.hasProfile() ? ctx.getDocuments() : List.<RegistrantDocumentView>of();
+        List<String> approvedLicences = ctx.hasProfile()
+                ? registrantdao.listApprovedDocumentLicenceCodes(ctx.getProfileId())
+                : List.of();
+        request.setAttribute("approvedDocumentLicenceCodes", approvedLicences);
 
-        List<RegistrantLicenceOption> licences = registrantdao.listOpenLicenceOptions();
+        List<RegistrantLicenceOption> licences = listLicenceOptionsWithFallback();
         request.setAttribute("licenceClassesList", licences);
 
-        String licenceSelect = resolveLicenceSelect(request, licences, docs);
+        String licenceSelect = resolveLicenceSelect(request, licences, docs, approvedLicences);
         request.setAttribute("selectedLicenceCode", licenceSelect);
         licences.stream()
                 .filter(l -> licenceSelect.equals(l.getCode()))
@@ -61,7 +69,8 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
                 .ifPresent(l -> request.setAttribute("selectedLicence", l));
 
         boolean selectedLicenceAllowed = licenceSelect != null && !licenceSelect.isBlank()
-                && RegistrantDocumentStatusHelper.isLicenceAllowedWithDocuments(licenceSelect, docs);
+                && RegistrantDocumentStatusHelper.isLicenceAllowedWithDocuments(
+                        licenceSelect, docs, approvedLicences);
         request.setAttribute("selectedLicenceDocumentAllowed", selectedLicenceAllowed);
 
         List<RegistrantExamSessionOption> allSessions = selectedLicenceAllowed
@@ -92,6 +101,7 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         attachRegistrationRules(user, request, licenceSelect, selectedSession, sessionChosen, docs);
     }
 
+    /** Dựng URL PRG giữ licence/session và tham số lọc hiện tại. */
     @Override
     public String buildRegisterExamPageUrl(HttpServletRequest request, String fragment) {
         StringBuilder url = new StringBuilder(request.getContextPath())
@@ -109,6 +119,7 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         return url.toString();
     }
 
+    /** Submit nguyện vọng ngày thi (ExamDates → RegistrationDates); null nếu OK. */
     @Override
     public String submitRegistration(UserDTO user, HttpServletRequest request) {
         String licenceSelect = request.getParameter("licenceSelect");
@@ -118,7 +129,7 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
             return "Vui lòng chọn hạng bằng lái.";
         }
         if (RegistrantProfileSupport.isBlank(sessionSelect)) {
-            return "Vui lòng chọn đợt thi.";
+            return "Vui lòng chọn ngày thi dự kiến.";
         }
 
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
@@ -132,65 +143,78 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         }
 
         var docs = documentdao.listByProfileId(profile.getProfileId());
-        String licenceBlock = RegistrantDocumentStatusHelper.licenceClassBlockMessage(licenceSelect.trim(), docs);
+        List<String> approvedLicences = registrantdao.listApprovedDocumentLicenceCodes(profile.getProfileId());
+        String licenceBlock = RegistrantDocumentStatusHelper.licenceClassBlockMessage(
+                licenceSelect.trim(), docs, approvedLicences);
         if (licenceBlock != null) {
             return licenceBlock;
         }
 
         RegistrantExamSessionOption sessionOpt = registrantdao.findExamSessionByCode(sessionSelect);
         if (sessionOpt == null) {
-            return "Đợt thi không tồn tại hoặc đã đóng đăng ký.";
+            return "Ngày thi không tồn tại hoặc không còn mở đăng ký.";
         }
-
-        Integer existing = examRegistrationdao.findCandidateIdByProfileAndSession(
-                profile.getProfileId(), sessionOpt.getSessionId());
-        if (existing != null) {
-            return "Bạn đã đăng ký đợt thi này rồi.";
+        if (sessionOpt.getLicenceClass() != null
+                && !sessionOpt.getLicenceClass().equalsIgnoreCase(licenceSelect.trim())) {
+            return "Ngày thi không khớp hạng bằng đã chọn.";
         }
 
         int licenceId = registrantdao.resolveLicenceIdByUiCode(licenceSelect.trim());
         if (licenceId <= 0) {
             return "Hạng GPLX không hợp lệ.";
         }
-        String sectionConflict = RegistrantExamSupport.validateNewSessionRegistration(
-                examRegistrationdao, profile.getProfileId(), sessionOpt.getSessionId(), licenceId, licenceSelect.trim());
-        if (sectionConflict != null) {
-            return sectionConflict;
+
+        String registerError = registrantdao.registerPreferredExamDate(
+                profile.getProfileId(), sessionOpt.getSessionId(), licenceId);
+        if (registerError != null) {
+            return registerError;
         }
 
-        ExamRegistration reg = new ExamRegistration();
-        reg.setExamSessionId(sessionOpt.getSessionId());
-        reg.setPersonId(profile.getProfileId());
-        reg.setCandidateNo(0);
-        reg.setRegistrationType("PreRegistered");
-        reg.setIsPaymentCompleted(false);
-
-        if (!examRegistrationdao.insert(reg)) {
-            String detail = examRegistrationdao.getLastInsertError();
-            if (detail != null && !detail.isBlank()) {
-                return detail;
-            }
-            return "Không thể ghi nhận đăng ký. Vui lòng thử lại sau.";
-        }
-
-        String examLabel = sessionOpt.getExamName() + " (" + sessionOpt.getExamCode() + ")";
+        String examLabel = sessionOpt.getExamName() + " — "
+                + (sessionOpt.getExamDate() != null ? sessionOpt.getExamDate() : sessionOpt.getExamCode());
         RegistrantAuditHelper.logExamRegistration(request.getSession(), profile.getProfileId(), examLabel);
         return null;
     }
 
+    /** Luôn có hạng để hiển thị card (kèm hint khóa); fallback A1/A/B1 nếu bảng Licence trống. */
+    private List<RegistrantLicenceOption> listLicenceOptionsWithFallback() {
+        List<RegistrantLicenceOption> fromDb = registrantdao.listOpenLicenceOptions();
+        if (fromDb != null && !fromDb.isEmpty()) {
+            return fromDb;
+        }
+        List<RegistrantLicenceOption> fallback = new ArrayList<>();
+        for (String code : List.of("A1", "A", "B1")) {
+            RegistrantLicenceOption opt = new RegistrantLicenceOption();
+            opt.setCode(code);
+            opt.setName(switch (code) {
+                case "A1" -> "Xe mô tô hai bánh có dung tích xi-lanh đến 125 cm³";
+                case "A" -> "Xe mô tô hai bánh có dung tích xi-lanh trên 125 cm³";
+                default -> "Xe mô tô ba bánh";
+            });
+            opt.setExamFee(RegistrantExamSupport.defaultExamFee(code));
+            opt.setVehicleType(RegistrantExamSupport.inferVehicleType(code));
+            fallback.add(opt);
+        }
+        return fallback;
+    }
+
     private static String resolveLicenceSelect(HttpServletRequest request,
-            List<RegistrantLicenceOption> licences, List<RegistrantDocumentView> docs) {
+            List<RegistrantLicenceOption> licences, List<RegistrantDocumentView> docs,
+            List<String> approvedLicences) {
         String paramLicence = request.getParameter("licenceSelect");
         if (paramLicence != null && !paramLicence.isBlank()) {
             return paramLicence.trim();
         }
         for (RegistrantLicenceOption option : licences) {
             if (option.getCode() != null
-                    && RegistrantDocumentStatusHelper.isLicenceAllowedWithDocuments(option.getCode(), docs)) {
+                    && RegistrantDocumentStatusHelper.isLicenceAllowedWithDocuments(
+                            option.getCode(), docs, approvedLicences)) {
                 return option.getCode().trim();
             }
         }
-        return licences.isEmpty() ? "" : licences.get(0).getCode();
+        return licences.isEmpty() || licences.get(0).getCode() == null
+                ? ""
+                : licences.get(0).getCode();
     }
 
     private RegistrantExamSessionOption resolveSelectedSession(HttpServletRequest request,
@@ -211,33 +235,44 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
             RegistrantExamSessionOption selectedSession, boolean sessionChosen,
             List<RegistrantDocumentView> docs) {
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
-        if (profile == null || !sessionChosen || selectedSession == null) {
+        if (profile == null) {
             request.setAttribute("canConfirmRegistration", false);
             return;
         }
 
-        String licenceBlock = RegistrantDocumentStatusHelper.licenceClassBlockMessage(licenceSelect, docs);
+        int licenceId = licenceSelect != null && !licenceSelect.isBlank()
+                ? registrantdao.resolveLicenceIdByUiCode(licenceSelect)
+                : -1;
+        if (licenceId > 0 && registrantdao.hasActivePreferredExamDate(profile.getProfileId(), licenceId)) {
+            request.setAttribute("registrationConflictMessage",
+                    "Bạn đã đăng ký ngày thi dự kiến cho hạng này. "
+                            + "Không thể đổi sang ngày khác — xem tại Lịch thi & kết quả.");
+            request.setAttribute("canConfirmRegistration", false);
+            return;
+        }
+
+        if (!sessionChosen || selectedSession == null) {
+            request.setAttribute("canConfirmRegistration", false);
+            return;
+        }
+
+        List<String> approvedLicences = registrantdao.listApprovedDocumentLicenceCodes(profile.getProfileId());
+        String licenceBlock = RegistrantDocumentStatusHelper.licenceClassBlockMessage(
+                licenceSelect, docs, approvedLicences);
         if (licenceBlock != null) {
             request.setAttribute("licenceGateMessage", licenceBlock);
             request.setAttribute("canConfirmRegistration", false);
             return;
         }
 
-        int licenceId = registrantdao.resolveLicenceIdByUiCode(licenceSelect);
         if (licenceId <= 0) {
             request.setAttribute("canConfirmRegistration", false);
             return;
         }
-        String conflict = RegistrantExamSupport.validateNewSessionRegistration(
-                examRegistrationdao, profile.getProfileId(), selectedSession.getSessionId(), licenceId, licenceSelect);
-        if (conflict != null) {
-            request.setAttribute("registrationConflictMessage", conflict);
-            request.setAttribute("canConfirmRegistration", false);
-        } else {
-            request.setAttribute("canConfirmRegistration", true);
-        }
+        request.setAttribute("canConfirmRegistration", true);
     }
 
+    /** Cổng tài liệu: Eligible = RegistrationStatus Approved + đủ 4 giấy + có ≥1 hạng đã duyệt kèm hồ sơ. */
     private void attachDocumentGate(UserDTO user, HttpServletRequest request) {
         RegistrantProfileContext ctx = RegistrantProfileSupport.loadContext(
                 profiledao, documentdao, registrantdao, user);
@@ -251,16 +286,27 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         String registrationStatus = ctx.getRegistrationStatus();
         RegistrantDocumentSummary summary = RegistrantDocumentStatusHelper.summarize(
                 ctx.getDocuments(), documentdao.typeLabels(), registrationStatus);
+        List<String> approvedLicences = registrantdao.listApprovedDocumentLicenceCodes(ctx.getProfileId());
         boolean eligible = RegistrantDocumentStatusHelper.isEligibleForExamRegistration(
-                registrationStatus, ctx.getDocuments());
+                registrationStatus, ctx.getDocuments())
+                && approvedLicences != null && !approvedLicences.isEmpty();
 
         request.setAttribute("documentSummary", summary);
         request.setAttribute("canRegisterExam", eligible);
         RegistrantProfileSupport.applyRegistrationStatus(request, registrationStatus);
         request.setAttribute("showProfileApprovedNotice", eligible);
 
-        String blockMsg = RegistrantDocumentStatusHelper.examRegistrationBlockMessage(
-                registrationStatus, ctx.getDocuments(), summary);
+        String blockMsg = null;
+        if (!eligible) {
+            blockMsg = RegistrantDocumentStatusHelper.examRegistrationBlockMessage(
+                    registrationStatus, ctx.getDocuments(), summary);
+            if (blockMsg == null
+                    && RegistrantDocumentStatusHelper.isEligibleForExamRegistration(
+                            registrationStatus, ctx.getDocuments())) {
+                blockMsg = "Hồ sơ đã đủ giấy tờ nhưng chưa có hạng nào được ban quản lý duyệt kèm yêu cầu. "
+                        + "Vào Quản lý tài liệu → chọn hạng khi Gửi yêu cầu duyệt.";
+            }
+        }
         if (blockMsg != null) {
             request.setAttribute("documentGateMessage", blockMsg);
         }
@@ -273,28 +319,32 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
         }
 
         List<RegistrantDocumentView> docs = ctx.getDocuments();
+        List<String> approvedLicences = registrantdao.listApprovedDocumentLicenceCodes(ctx.getProfileId());
         List<String> codes = licences.stream()
                 .map(RegistrantLicenceOption::getCode)
                 .filter(code -> code != null && !code.isBlank())
                 .toList();
         request.setAttribute("licenceDocumentAllowed",
-                RegistrantDocumentStatusHelper.buildLicenceDocumentAllowedMap(codes, docs));
+                RegistrantDocumentStatusHelper.buildLicenceDocumentAllowedMap(
+                        codes, docs, approvedLicences));
         request.setAttribute("licenceDocumentBlockMessages",
-                RegistrantDocumentStatusHelper.buildLicenceDocumentBlockMessageMap(codes, docs));
+                RegistrantDocumentStatusHelper.buildLicenceDocumentBlockMessageMap(
+                        codes, docs, approvedLicences));
         request.setAttribute("hasOtherDocuments",
                 RegistrantDocumentStatusHelper.hasUploadedOtherDocuments(docs));
         request.setAttribute("basicDocsOnlyLicenceCodes",
                 RegistrantDocumentStatusHelper.BASIC_DOCS_ONLY_LICENCE_CODES);
 
-        if (!RegistrantDocumentStatusHelper.isEligibleForExamRegistration(
-                ctx.getRegistrationStatus(), docs)) {
+        boolean profileDocsOk = RegistrantDocumentStatusHelper.isEligibleForExamRegistration(
+                ctx.getRegistrationStatus(), docs);
+        if (!profileDocsOk || approvedLicences == null || approvedLicences.isEmpty()) {
             return;
         }
 
         String selectedLicence = (String) request.getAttribute("selectedLicenceCode");
         if (selectedLicence != null && !selectedLicence.isBlank()) {
             String licenceBlock = RegistrantDocumentStatusHelper.licenceClassBlockMessage(
-                    selectedLicence, docs);
+                    selectedLicence, docs, approvedLicences);
             if (licenceBlock != null) {
                 request.setAttribute("licenceGateMessage", licenceBlock);
             }
@@ -304,12 +354,18 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
     private String checkDocumentEligibility(int profileId) {
         var docs = documentdao.listByProfileId(profileId);
         String registrationStatus = registrantdao.findProfileDocumentRegistrationStatus(profileId);
-        if (RegistrantDocumentStatusHelper.isEligibleForExamRegistration(registrationStatus, docs)) {
+        List<String> approvedLicences = registrantdao.listApprovedDocumentLicenceCodes(profileId);
+        if (RegistrantDocumentStatusHelper.isEligibleForExamRegistration(registrationStatus, docs)
+                && approvedLicences != null && !approvedLicences.isEmpty()) {
             return null;
         }
         RegistrantDocumentSummary summary = RegistrantDocumentStatusHelper.summarize(
                 docs, documentdao.typeLabels(), registrationStatus);
-        return RegistrantDocumentStatusHelper.examRegistrationBlockMessage(
+        String block = RegistrantDocumentStatusHelper.examRegistrationBlockMessage(
                 registrationStatus, docs, summary);
+        if (block != null) {
+            return block;
+        }
+        return "Chưa có hạng bằng nào được duyệt kèm hồ sơ. Vui lòng gửi yêu cầu duyệt và chọn hạng tại Quản lý tài liệu.";
     }
 }

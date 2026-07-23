@@ -18,8 +18,8 @@ public final class AuditEntityLabels {
             Map.entry("EXAMSCORE", "Điểm thi"),
             Map.entry("EXAMDEVICE", "Thiết bị thi"),
             Map.entry("SESSION", "Ca thi"),
-            Map.entry("SESSION_EXAMINER", "Phân công giám khảo"),
-            Map.entry("SESSION_EXAMINERAREA", "Phân công phòng giám khảo"),
+            Map.entry("SESSION_EXAMINER", "Phân công sát hạch viên"),
+            Map.entry("SESSION_EXAMINERAREA", "Phân công phòng sát hạch viên"),
             Map.entry("CANDIDATECALL", "Gọi thí sinh"),
             Map.entry("KẾT QUẢ THI", "Kết quả thi"),
             Map.entry("PHÒNG THI", "Phòng thi"),
@@ -31,9 +31,10 @@ public final class AuditEntityLabels {
     private AuditEntityLabels() {
     }
 
+    /** Đổi EntityName audit sang nhãn tiếng Việt; giữ nguyên nếu không map. */
     public static String toVietnamese(String entityName) {
         if (entityName == null || entityName.isBlank()) {
-            return "—";
+            return "-";
         }
         String trimmed = entityName.trim();
         String key = trimmed.toUpperCase(Locale.ROOT);

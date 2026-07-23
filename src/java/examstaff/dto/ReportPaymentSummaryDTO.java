@@ -6,7 +6,13 @@ import shared.model.Payment;
 import java.util.List;
 
 /**
- * Tóm tắt thanh toán + dòng lệ phí cho báo cáo / dossier (Payment + Fee).
+ * Tóm tắt thanh toán + dòng lệ phí cho báo cáo / hồ sơ (gói {@link Payment} + {@link Fee}).
+ *
+ * Vai trò:
+ * Hiển thị chi tiết một khoản thanh toán kèm các dòng phí và tổng dòng trên report/dossier.
+ *
+ * Ai tạo / tiêu thụ:
+ * {@code ProcedureFeeQueryServiceImpl} → báo cáo thanh toán / view liên quan report.
  */
 public class ReportPaymentSummaryDTO {
 
@@ -14,26 +20,32 @@ public class ReportPaymentSummaryDTO {
     private List<Fee> feeLines;
     private double lineTotal;
 
+    /** Bản ghi Payment (số tiền, trạng thái, thời điểm…). */
     public Payment getPayment() {
         return payment;
     }
 
+    /** Gán bản ghi thanh toán. */
     public void setPayment(Payment payment) {
         this.payment = payment;
     }
 
+    /** Các dòng Fee gắn payment / báo cáo. */
     public List<Fee> getFeeLines() {
         return feeLines;
     }
 
+    /** Gán danh sách dòng phí. */
     public void setFeeLines(List<Fee> feeLines) {
         this.feeLines = feeLines;
     }
 
+    /** Tổng các dòng phí trong summary. */
     public double getLineTotal() {
         return lineTotal;
     }
 
+    /** Gán tổng tiền các dòng. */
     public void setLineTotal(double lineTotal) {
         this.lineTotal = lineTotal;
     }

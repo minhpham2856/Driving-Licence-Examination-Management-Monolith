@@ -5,6 +5,7 @@ import registrant.enums.ProfileRegistrationStatus;
 import registrant.dao.DocumentDAO;
 import shared.dbconnection.DBContext;
 import registrant.dto.RegistrantDocumentView;
+import registrant.util.RegistrantDocumentTypeMapping;
 import registrant.util.RegistrantExamSupport;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -19,19 +20,20 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Triển khai truy cập bảng Document cho thí sinh và ban quản lý.
- */
+/** Document: lưu DocumentTypeId; trạng thái duyệt trong Notes (#PENDING#/#APPROVED#/#LICENCE#). */
 public class DocumentDAOImpl extends DBContext implements DocumentDAO {
 
     private static final Logger LOG = Logger.getLogger(DocumentDAOImpl.class.getName());
 
-    /** Marker ASCII — tránh lỗi LIKE/SQL và encoding khi lưu Notes. */
     public static final String MARK_PENDING = "#PENDING#";
     public static final String MARK_APPROVED = "#APPROVED#";
-    public static final String MARK_LICENCE_PREFIX = "#LICENCE#";
+    public static final String MARK_LICENCE_PREFIX = "#LICENCE#"; // #LICENCE#B2#
 
-    private static final Map<String, String> TYPE_LABELS = buildTypeLabels();
+    private static final String DOCUMENT_SELECT = """
+                SELECT d.DocumentId, dt.Type AS DocumentType, d.DocumentUrl, d.Notes
+                FROM Document d
+                INNER JOIN DocumentType dt ON dt.DocumentTypeId = d.DocumentTypeId
+                """;
 
     private static Map<String, String> buildTypeLabels() {
         Map<String, String> labels = new LinkedHashMap<>();
@@ -43,11 +45,32 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return labels;
     }
 
+    private static final Map<String, String> TYPE_LABELS = buildTypeLabels();
+
+    private Integer resolveDocumentTypeId(String uiDocumentType) throws SQLException {
+        String dbType = RegistrantDocumentTypeMapping.toDbType(uiDocumentType);
+        if (dbType == null) {
+            return null;
+        }
+        String sql = "SELECT DocumentTypeId FROM DocumentType WHERE Type = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, dbType);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DocumentTypeId");
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Map DocumentType UI → nhãn tiếng Việt cho UI. */
     @Override
     public Map<String, String> typeLabels() {
         return TYPE_LABELS;
     }
 
+    /** Tạo slot trống 4 giấy bắt buộc cho form upload. */
     @Override
     public Map<String, RegistrantDocumentView> defaultDocumentSlots() {
         Map<String, RegistrantDocumentView> slots = new HashMap<>();
@@ -64,13 +87,12 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return slots;
     }
 
+    /** Liệt kê Document của profile (map sang view UI). */
     @Override
     public List<RegistrantDocumentView> listByProfileId(int profileId) {
-        String sql = """
-                SELECT DocumentId, DocumentType, DocumentUrl, Notes
-                FROM Document
-                WHERE ProfileId = ?
-                ORDER BY DocumentId
+        String sql = DOCUMENT_SELECT + """
+                WHERE d.ProfileId = ?
+                ORDER BY d.DocumentId
                 """;
         List<RegistrantDocumentView> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -87,13 +109,12 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return list;
     }
 
+    /** Như listByProfileId nhưng luôn có DocumentId. */
     @Override
     public List<RegistrantDocumentView> listByProfileIdWithDocumentId(int profileId) {
-        String sql = """
-                SELECT DocumentId, DocumentType, DocumentUrl, Notes
-                FROM Document
-                WHERE ProfileId = ?
-                ORDER BY DocumentId
+        String sql = DOCUMENT_SELECT + """
+                WHERE d.ProfileId = ?
+                ORDER BY d.DocumentId
                 """;
         List<RegistrantDocumentView> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -112,6 +133,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return list;
     }
 
+    /** Insert hoặc cập nhật tài liệu theo DocumentType. */
     @Override
     public boolean upsertDocument(int profileId, String documentType, String documentUrl, String notes) {
         Integer existingId = findDocumentId(profileId, documentType);
@@ -133,11 +155,15 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         }
 
         String insertSql = """
-                INSERT INTO Document (DocumentType, DocumentUrl, Notes, ProfileId)
+                INSERT INTO Document (DocumentTypeId, DocumentUrl, Notes, ProfileId)
                 VALUES (?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, documentType);
+            Integer typeId = resolveDocumentTypeId(documentType);
+            if (typeId == null) {
+                return false;
+            }
+            ps.setInt(1, typeId);
             ps.setString(2, documentUrl);
             ps.setString(3, notes);
             ps.setInt(4, profileId);
@@ -148,15 +174,14 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Tìm Document thuộc profile theo DocumentId. */
     @Override
     public RegistrantDocumentView findById(int profileId, int documentId) {
         if (documentId <= 0 || profileId <= 0) {
             return null;
         }
-        String sql = """
-                SELECT DocumentId, DocumentType, DocumentUrl, Notes
-                FROM Document
-                WHERE DocumentId = ? AND ProfileId = ?
+        String sql = DOCUMENT_SELECT + """
+                WHERE d.DocumentId = ? AND d.ProfileId = ?
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, documentId);
@@ -175,6 +200,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return null;
     }
 
+    /** Xóa Document nếu thuộc đúng profile. */
     @Override
     public boolean deleteDocument(int profileId, int documentId) {
         if (documentId <= 0 || profileId <= 0) {
@@ -192,14 +218,19 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Insert Document mới (thường dùng cho Other_*). */
     @Override
     public boolean insertDocument(int profileId, String documentType, String documentUrl, String notes) {
         String insertSql = """
-                INSERT INTO Document (DocumentType, DocumentUrl, Notes, ProfileId)
+                INSERT INTO Document (DocumentTypeId, DocumentUrl, Notes, ProfileId)
                 VALUES (?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, documentType);
+            Integer typeId = resolveDocumentTypeId(documentType);
+            if (typeId == null) {
+                return false;
+            }
+            ps.setInt(1, typeId);
             ps.setString(2, documentUrl);
             ps.setString(3, notes);
             ps.setInt(4, profileId);
@@ -210,17 +241,20 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Cập nhật Notes/trạng thái duyệt theo loại tài liệu. */
     @Override
     public boolean updateDocumentNotes(int profileId, String documentType, String notes) {
         String sql = """
                 UPDATE Document
                 SET Notes = ?
-                WHERE ProfileId = ? AND DocumentType = ?
+                WHERE ProfileId = ? AND DocumentTypeId = (
+                    SELECT DocumentTypeId FROM DocumentType WHERE Type = ?
+                )
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, truncateNotes(notes));
             ps.setInt(2, profileId);
-            ps.setString(3, documentType);
+            ps.setString(3, RegistrantDocumentTypeMapping.toDbType(documentType));
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Cập nhật ghi chú tài liệu thất bại: {0}", e.getMessage());
@@ -228,6 +262,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return false;
     }
 
+    /** Gửi duyệt hồ sơ chính: gắn #PENDING# lên mọi tệp đã upload chưa #APPROVED# (RegistrationStatus cập nhật ở service). */
     @Override
     public boolean requestApproval(int profileId, String requestNote) {
         List<RegistrantDocumentView> docs = listByProfileId(profileId);
@@ -247,53 +282,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return updated;
     }
 
-    @Override
-    public boolean reviewProfileDocuments(int profileId, boolean approved, String staffNote) {
-        List<RegistrantDocumentView> docs = listByProfileId(profileId);
-        boolean updated = false;
-        for (RegistrantDocumentView doc : docs) {
-            if (!hasUploadedFile(doc) || !isPendingReview(doc.getNotes())) {
-                continue;
-            }
-            String newNotes = approved
-                    ? mergeApprovedNote(doc.getNotes())
-                    : buildRejectNote(staffNote);
-            if (updateDocumentNotes(profileId, doc.getDocumentType(), newNotes)) {
-                updated = true;
-            }
-        }
-        return updated;
-    }
-
-    @Override
-    public boolean reviewSupplementDocuments(int profileId, int supplementExamRegistrationId,
-            boolean approved, String staffNote) {
-        if (profileId <= 0 || supplementExamRegistrationId <= 0) {
-            return false;
-        }
-        List<RegistrantDocumentView> docs = listByProfileId(profileId);
-        List<RegistrantDocumentView> targets = RegistrantDocumentHelper.collectSupplementReviewTargets(
-                docs, supplementExamRegistrationId);
-        if (targets.isEmpty()) {
-            return true;
-        }
-        boolean updated = false;
-        boolean hadPending = false;
-        for (RegistrantDocumentView doc : targets) {
-            if (!isPendingReview(doc.getNotes())) {
-                continue;
-            }
-            hadPending = true;
-            String newNotes = approved
-                    ? mergeApprovedNote(doc.getNotes())
-                    : buildRejectNote(staffNote);
-            if (updateDocumentNotes(profileId, doc.getDocumentType(), newNotes)) {
-                updated = true;
-            }
-        }
-        return updated || !hadPending;
-    }
-
+    /** Đồng bộ Notes Other theo ER bổ sung đã đóng; legacy #PENDING# chưa gắn ER thì lấy ER đóng gần nhất — trả số doc cập nhật. */
     @Override
     public int reconcileOtherDocumentsWithSupplementEr(int profileId,
             Map<Integer, String> supplementErStatuses) {
@@ -321,6 +310,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
                 }
                 continue;
             }
+            // Legacy: chưa gắn marker → suy từ ER bổ sung đã đóng gần nhất
             if (linkedEr == null && !hasOpenPendingSupplement && latestClosedErId != null) {
                 String closedStatus = supplementErStatuses.get(latestClosedErId);
                 if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(closedStatus)
@@ -362,18 +352,22 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return latest;
     }
 
+    /** Sinh DocumentType unique Other_uuid8 cho upload bổ sung. */
     public static String newOtherDocumentType() {
         return "Other_" + java.util.UUID.randomUUID().toString().substring(0, 8);
     }
 
+    /** Other hoặc Other_xxxxxxxx đều là hồ sơ bổ sung. */
     public static boolean isOtherType(String documentType) {
         return documentType != null && (documentType.equals("Other") || documentType.startsWith("Other_"));
     }
 
+    /** Dựng Notes mặc định khi thí sinh upload. */
     public static String buildUploadNote(String documentType, String reason, long sizeBytes, String originalName) {
         return buildUploadNote(documentType, reason, sizeBytes, originalName, null);
     }
 
+    /** Dựng Notes upload; gắn #LICENCE# nếu Other kèm hạng. */
     public static String buildUploadNote(String documentType, String reason, long sizeBytes, String originalName,
             String supplementLicenceCode) {
         String meta = formatFileMeta(sizeBytes, originalName);
@@ -389,6 +383,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return body;
     }
 
+    /** Mã hóa #LICENCE#<mã hạng># để gắn Notes. */
     public static String encodeLicenceMarker(String uiLicenceCode) {
         if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
             return "";
@@ -396,7 +391,8 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return MARK_LICENCE_PREFIX + uiLicenceCode.trim().toUpperCase(java.util.Locale.ROOT) + "#";
     }
 
-    public static String parseLicenceCode(String notes) {
+    /** Giải mã mã hạng UI từ marker #LICENCE# trong Notes. */
+    private static String parseLicenceCode(String notes) {
         if (notes == null || !notes.contains(MARK_LICENCE_PREFIX)) {
             return null;
         }
@@ -408,6 +404,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return notes.substring(start, end).trim();
     }
 
+    /** Gỡ marker #LICENCE#…# khỏi chuỗi Notes. */
     public static String stripLicenceMarker(String notes) {
         if (notes == null || notes.isBlank()) {
             return notes;
@@ -419,7 +416,8 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return notes.replace(encodeLicenceMarker(code), "").trim();
     }
 
-    public static String formatFileMeta(long sizeBytes, String originalName) {
+    /** Chuỗi meta dung lượng + tên tệp gốc cho Notes. */
+    private static String formatFileMeta(long sizeBytes, String originalName) {
         StringBuilder meta = new StringBuilder(" · ");
         meta.append(formatSize(sizeBytes));
         if (originalName != null && !originalName.isBlank()) {
@@ -428,7 +426,8 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return meta.toString();
     }
 
-    public static String formatSize(long bytes) {
+    /** Định dạng byte thành B/KB/MB dễ đọc. */
+    private static String formatSize(long bytes) {
         if (bytes < 1024) {
             return bytes + " B";
         }
@@ -444,7 +443,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
             view.setDocumentId(rs.getInt("DocumentId"));
         } catch (SQLException ignored) {
         }
-        view.setDocumentType(rs.getString("DocumentType"));
+        view.setDocumentType(RegistrantDocumentTypeMapping.toUiType(rs.getString("DocumentType")));
         view.setDocumentUrl(rs.getString("DocumentUrl"));
         view.setNotes(rs.getString("Notes"));
         enrichFileMeta(view);
@@ -561,12 +560,14 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return view.getDocumentUrl() != null && !view.getDocumentUrl().isBlank();
     }
 
+    /** Approved = có #APPROVED# và không còn #PENDING# (đã qua vòng review). */
     public static boolean isApproved(String notes) {
         return notes != null
                 && notes.contains(MARK_APPROVED)
                 && !notes.contains(MARK_PENDING);
     }
 
+    /** Pending review = Notes còn chứa #PENDING#. */
     public static boolean isPendingReview(String notes) {
         return notes != null && notes.contains(MARK_PENDING);
     }
@@ -634,10 +635,15 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
     }
 
     private Integer findDocumentId(int profileId, String documentType) {
-        String sql = "SELECT TOP 1 DocumentId FROM Document WHERE ProfileId = ? AND DocumentType = ?";
+        String sql = """
+                SELECT TOP 1 d.DocumentId
+                FROM Document d
+                INNER JOIN DocumentType dt ON dt.DocumentTypeId = d.DocumentTypeId
+                WHERE d.ProfileId = ? AND dt.Type = ?
+                """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, profileId);
-            ps.setString(2, documentType);
+            ps.setString(2, RegistrantDocumentTypeMapping.toDbType(documentType));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("DocumentId");

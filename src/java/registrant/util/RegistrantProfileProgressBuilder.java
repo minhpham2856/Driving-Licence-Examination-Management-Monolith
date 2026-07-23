@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/** Xây dựng timeline tiến trình hồ sơ cho trang track-profile. */
+/** Timeline track-profile 5 bước (Tiếp nhận→Duyệt→Bổ sung→Dã duyệt→SBD); resolveProgressIndex từ RegistrationStatus + docs + SBD. */
 public final class RegistrantProfileProgressBuilder {
 
     private static final String[] STEP_KEYS = {
@@ -33,6 +33,7 @@ public final class RegistrantProfileProgressBuilder {
     private RegistrantProfileProgressBuilder() {
     }
 
+    /** Dựng timeline 5 bước track-profile từ status/docs/SBD. */
     public static List<RegistrantProfileProgressStep> build(
             String registrationStatus,
             RegistrantDocumentSummary documentSummary,
@@ -56,6 +57,7 @@ public final class RegistrantProfileProgressBuilder {
         return steps;
     }
 
+    /** Chỉ số bước active 0..4 (≥length = có SBD); ưu tiên SBD→Approved→Rejected→Pending→Draft. */
     private static int resolveProgressIndex(String status, RegistrantDocumentSummary summary,
             boolean wasRejected, boolean docsApproved, boolean hasOfficialSbd) {
         if (hasOfficialSbd) {

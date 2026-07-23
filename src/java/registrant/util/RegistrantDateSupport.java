@@ -21,10 +21,12 @@ public final class RegistrantDateSupport {
     private RegistrantDateSupport() {
     }
 
+    /** Trim tham số ngày (ủy quyền RegistrantListFilter). */
     public static String trimParam(String raw) {
         return RegistrantListFilter.trimParam(raw);
     }
 
+    /** Format LocalDate thành dd/MM/yyyy. */
     public static String format(LocalDate date) {
         return date == null ? "" : date.format(VI_DATE);
     }
@@ -48,6 +50,7 @@ public final class RegistrantDateSupport {
         return LocalDate.parse(trimmed, VI_DATE);
     }
 
+    /** Validate một trường ngày; trả message lỗi hoặc null. */
     public static String validateDateField(String label, String raw) {
         String trimmed = trimParam(raw);
         if (trimmed.isEmpty()) {
@@ -61,6 +64,7 @@ public final class RegistrantDateSupport {
         }
     }
 
+    /** Validate from/to và đảm bảo from ≤ to. */
     public static String validateDateRange(String fromRaw, String toRaw) {
         String fromError = validateDateField("Từ ngày", fromRaw);
         if (fromError != null) {
@@ -79,6 +83,7 @@ public final class RegistrantDateSupport {
         return null;
     }
 
+    /** Chuẩn hóa chuỗi ngày về dạng hiển thị dd/MM/yyyy. */
     public static String displayValue(String raw) {
         String trimmed = trimParam(raw);
         if (trimmed.isEmpty()) {

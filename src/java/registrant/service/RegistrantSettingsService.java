@@ -5,11 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public interface RegistrantSettingsService {
+    /** Gắn thông tin tài khoản/tóm tắt hồ sơ lên request cho trang settings. */
     void applySettingsView(UserDTO user, HttpServletRequest request);
-
-    /** @return null nếu thành công. */
-    String saveNotificationPrefs(HttpServletRequest request, boolean notifyExamResults,
-            boolean notifyPasswordChange);
 
     /** @return null nếu thành công. */
     String changePassword(UserDTO user, String currentPassword, String newPassword,

@@ -59,19 +59,37 @@ public final class Attributes {
         public static final String SELECTED_EXAM_ID = "selectedExamId";
         public static final String CURRENT_EXAM = "currentExam";
         public static final String CANDIDATE_QUEUE = "candidateQueue";
+        public static final String ACTIVE_CALL_QUEUE = "activeCallQueue";
+        public static final String PROCEDURE_DONE_CANDIDATES = "procedureDoneCandidates";
         public static final String ALL_EXAMS = "allExams";
         public static final String EXAM_OPTIONS = "examOptions";
         public static final String LOADED_EXAM_ID = "examStaffLoadedExamId";
         public static final String LAST_LOADED_EXAM_ID = "lastLoadedExamId";
 
-        /** Dropdown phân công giám khảo (list map areaId/areaName/...). */
+        public static final String CALL_QUEUE_ORDER = "callQueueOrder";
+        public static final String CALL_QUEUE_ORDER_EXAM_ID = "callQueueOrderExamId";
+        public static final String CALLING_SBD = "callingSbd";
+        public static final String LAST_SELECTED_SBD = "lastSelectedSbd";
+        public static final String PERMANENT_ABSENTS = "permanentAbsents";
+
+        public static final String PROCEDURE_STEP = "procedureStep";
+        public static final String PROCEDURE_JUST_PAID = "procedureJustPaid";
+        public static final String PROCEDURE_JUST_PAID_SBD = "procedureJustPaidSbd";
+
+        public static final String SHIFT_PAUSED = "shiftPaused";
+        public static final String SHIFT_ENDED = "shiftEnded";
+        public static final String EXAM_CONTROL_MSG = "examControlMsg";
+        public static final String EXAM_CONTROL_ERROR = "examControlError";
+        public static final String FLAG_TRUE = "true";
+
+        /** Dropdown phân công sát hạch viên (list map areaId/areaName/...). */
         public static final String AREA_ASSIGN_OPTIONS = "areaAssignOptions";
         public static final String EXAM_ASSIGNMENTS = "examAssignments";
         public static final String ALL_EXAMINERS = "allExaminers";
         public static final String AVAILABLE_EXAMINERS = "availableExaminers";
         public static final String BUSY_EXAMINERS = "busyExaminers";
 
-        /** Phòng LT / sân TH đã có giám khảo — trang phân bổ thí sinh. */
+        /** Phòng LT / sân TH đã có sát hạch viên - trang phân bổ thí sinh. */
         public static final String ACTIVE_THEORY_ROOMS = "activeTheoryRooms";
         public static final String ACTIVE_PRACTICAL_AREAS = "activePracticalAreas";
         public static final String ALLOCATION_AREA_FILTER = "allocationAreaFilter";

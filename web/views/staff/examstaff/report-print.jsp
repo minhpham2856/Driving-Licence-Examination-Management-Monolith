@@ -10,11 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/report-print.css">
 </head>
-<body class="report-print-page" data-auto-print="${autoPrint ? 'true' : 'false'}">
+<body class="report-print-page"<c:if test="${autoPrint}"> onload="window.print()"</c:if>>
 
 <div class="report-print-toolbar no-print">
-    <a href="${pageContext.request.contextPath}/views/staff/examstaff/report" class="report-print-btn report-print-btn--ghost">&larr; Quay lại báo cáo</a>
-    <button type="button" class="report-print-btn report-print-btn--primary">In / Lưu PDF</button>
+    <a href="${pageContext.request.contextPath}/examstaff/report" class="report-print-btn report-print-btn--ghost">&larr; Quay lại báo cáo</a>
+    <button type="button" class="report-print-btn report-print-btn--primary" onclick="window.print()">In / Lưu PDF</button>
 </div>
 
 <article class="report-print-sheet">
@@ -162,6 +162,5 @@
     </section>
 </article>
 
-<script src="${pageContext.request.contextPath}/assets/js/report-print.js" charset="UTF-8"></script>
 </body>
 </html>

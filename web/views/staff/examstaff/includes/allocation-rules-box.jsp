@@ -6,20 +6,20 @@
     <c:when test="${variant eq 'practical'}">
         <c:set var="boxClass" value="examstaff-rules-box--practical" />
         <c:set var="boxIcon" value="precision_manufacturing" />
-        <c:set var="boxLabel" value="Quy định điểm đạt thi thực hành / sa hình" />
-        <c:set var="boxTitle" value="Quy định điểm đạt — Thực hành / Sa hình" />
+        <c:set var="boxLabel" value="Quy định điểm đạt thi thực hành" />
+        <c:set var="boxTitle" value="Quy định điểm đạt - Thực hành" />
     </c:when>
     <c:when test="${variant eq 'results'}">
         <c:set var="boxClass" value="examstaff-rules-box--results" />
         <c:set var="boxIcon" value="fact_check" />
         <c:set var="boxLabel" value="Tổng hợp quy định điểm đạt các phần thi" />
-        <c:set var="boxTitle" value="Quy định điểm đạt — Tổng hợp kết quả" />
+        <c:set var="boxTitle" value="Quy định điểm đạt - Tổng hợp kết quả" />
     </c:when>
     <c:otherwise>
         <c:set var="boxClass" value="examstaff-rules-box--theory" />
         <c:set var="boxIcon" value="menu_book" />
         <c:set var="boxLabel" value="Quy định điểm đạt thi lý thuyết" />
-        <c:set var="boxTitle" value="Quy định điểm đạt — Thi lý thuyết" />
+        <c:set var="boxTitle" value="Quy định điểm đạt - Thi lý thuyết" />
     </c:otherwise>
 </c:choose>
 
@@ -32,11 +32,11 @@
     <div class="examstaff-rules-doc">
         <c:choose>
             <c:when test="${variant eq 'practical'}">
-                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi thực hành / sa hình khi đáp ứng các điều kiện sau:</p>
+                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi thực hành khi đáp ứng các điều kiện sau:</p>
                 <ol class="examstaff-rules-doc__list">
                     <li>Đạt tối thiểu <strong>80 điểm trên tổng 100 điểm</strong>.</li>
                     <li>Không mắc <strong>lỗi liệt</strong> trong quá trình thi.</li>
-                    <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại sa hình</strong>.</li>
+                    <li>Chỉ được vào thi khi đã <strong>đỗ lý thuyết</strong>, hoặc thuộc trường hợp <strong>thi lại thực hành</strong>.</li>
                 </ol>
             </c:when>
 
@@ -46,12 +46,12 @@
                     <div class="examstaff-rules-doc__card">
                         <p class="examstaff-rules-doc__card-title">1. Thi lý thuyết</p>
                         <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
-                            <li>Hạng <strong>A / A1</strong>: ≥ <strong>36 / 40</strong></li>
-                            <li>Hạng <strong>B1</strong>: ≥ <strong>45 / 50</strong></li>
+                            <li>Hạng <strong>A / A1 / B1</strong>: ≥ <strong>21 / 25</strong> câu đúng</li>
+                            <li>Không sai <strong>câu điểm liệt</strong></li>
                         </ul>
                     </div>
                     <div class="examstaff-rules-doc__card">
-                        <p class="examstaff-rules-doc__card-title">2. Thực hành / Sa hình</p>
+                        <p class="examstaff-rules-doc__card-title">2. Thực hành</p>
                         <p class="examstaff-rules-doc__card-text">Đạt tối thiểu <strong>80 điểm</strong>, không mắc lỗi liệt.</p>
                     </div>
                 </div>
@@ -59,12 +59,12 @@
             </c:when>
 
             <c:otherwise>
-                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi lý thuyết khi đáp ứng ngưỡng số câu đúng theo hạng GPLX:</p>
+                <p class="examstaff-rules-doc__lead">Thí sinh được coi là đạt phần thi lý thuyết khi đáp ứng đồng thời:</p>
                 <ul class="examstaff-rules-doc__list examstaff-rules-doc__list--bullet">
-                    <li>Hạng <strong>A / A1</strong>: tối thiểu <strong>36 / 40</strong> câu đúng.</li>
-                    <li>Hạng <strong>B1</strong>: tối thiểu <strong>45 / 50</strong> câu đúng.</li>
+                    <li>Hạng <strong>A / A1 / B1</strong>: tối thiểu <strong>21 / 25</strong> câu đúng.</li>
+                    <li>Không sai <strong>câu điểm liệt</strong>.</li>
                 </ul>
-                <p class="examstaff-rules-doc__note">Lưu ý: Thí sinh không được sai câu điểm liệt.</p>
+                <p class="examstaff-rules-doc__note">Lưu ý: Sai một câu điểm liệt → trượt lý thuyết dù đủ số câu đúng.</p>
             </c:otherwise>
         </c:choose>
     </div>

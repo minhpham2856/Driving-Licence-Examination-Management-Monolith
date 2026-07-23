@@ -18,13 +18,23 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** JDBC implementation của {@link ExaminerAssignmentDAO}. */
+/**
+ * Triển khai JDBC của {@link ExaminerAssignmentDAO} — phân công giám thị
+ * trên bảng {@code ExaminerSchedule} và ghi nhật ký trên {@code Audit}.
+ *
+ * Hai SELECT chính:
+ * - {@code EXAMINER_SELECT} — danh sách user role Examiner đang active (+ Profile)
+ * - {@code SLOT_SELECT} — ca phân công theo kỳ: ExaminerSchedule JOIN ExamArea
+ *       (text block đầy đủ, không ghép runtime) → map {@code ExaminerSlotDTO}
+ * Dùng cho màn {@code /examstaff/examiner-allocation} và điều kiện auto-allocate
+ * (chỉ phân thí sinh vào phòng/sân đã có giám khảo).
+ */
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
 
-    /** EntityName trong bảng Audit cho mapping giám khảo–khu vực. */
+    /** Tên entity dùng trong bảng Audit cho ánh xạ giám thị–khu vực. */
     private static final String ROOM_MAPPING_ENTITY = "ExaminerSchedule";
 
-    /** SELECT giám khảo đang active kèm Profile/Role. */
+    /** SELECT danh sách giám thị đang hoạt động kèm Profile và Role. */
     private static final String EXAMINER_SELECT = """
             SELECT u.UserId,
                    u.Username,
@@ -47,45 +57,57 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             ORDER BY p.FullName, u.Username
             """;
 
-    /** SELECT slot phân công (ExaminerSchedule + ExamArea). */
-    private static final String SLOT_SELECT =
-            "SELECT esch.ExaminerScheduleId AS ExamExaminerId, "
-            + "esch.ExamId AS examId, "
-            + "esch.ExaminerId AS examinerUserId, "
-            + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
-            + "eu.Username AS examinerUsername, "
-            + "ep.FullName AS examinerName, "
-            + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
-            + "ea.ExamAreaId AS areaId, "
-            + "ea.AreaName AS areaName, "
-            + "ea.AreaType AS areaType, "
-            + "CASE "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sân thi%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2 "
-            + "    WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%' "
-            + "      OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4 "
-            + "    ELSE 1 "
-            + "END AS examTypeId, "
-            + "COALESCE(esect.SectionType, ea.AreaType) AS examTypeName "
-            + "FROM ExaminerSchedule esch "
-            + "JOIN Exam e ON e.ExamId = esch.ExamId "
-            + "JOIN Licence l ON l.LicenceId = e.LicenceId "
-            + "JOIN [User] eu ON eu.UserId = esch.ExaminerId "
-            + "LEFT JOIN Profile ep ON ep.UserId = eu.UserId "
-            + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId "
-            + "LEFT JOIN ExamSection esect ON esect.ExamSectionId = esch.ExamSectionId";
+    /**
+     * SELECT ca phân công giám thị theo kỳ (text block đầy đủ).
+     * JOIN ExaminerSchedule → Exam/Licence → User/Profile → ExamArea → ExamSection.
+     * Caller gắn {@code WHERE esch.ExamId = ?}. Alias map sang {@link ExaminerSlotDTO}.
+     */
+    private static final String SLOT_SELECT = """
+            SELECT esch.ExaminerScheduleId AS ExamExaminerId,
+                   esch.ExamId AS examId,
+                   esch.ExaminerId AS examinerUserId,
+                   COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''),
+                     N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName,
+                   eu.Username AS examinerUsername,
+                   ep.FullName AS examinerName,
+                   CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId,
+                   ea.ExamAreaId AS areaId,
+                   ea.AreaName AS areaName,
+                   ea.AreaType AS areaType,
+                   CASE
+                       WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Thực hành%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sa hình%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Sân thi%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Practical%' THEN 2
+                       WHEN COALESCE(esect.SectionType, ea.AreaType) LIKE N'%Đường%'
+                         OR COALESCE(esect.SectionType, ea.AreaType) LIKE '%Road%' THEN 4
+                       ELSE 1
+                   END AS examTypeId,
+                   COALESCE(esect.SectionType, ea.AreaType) AS examTypeName
+            FROM ExaminerSchedule esch
+            JOIN Exam e ON e.ExamId = esch.ExamId
+            JOIN Licence l ON l.LicenceId = e.LicenceId
+            JOIN [User] eu ON eu.UserId = esch.ExaminerId
+            LEFT JOIN Profile ep ON ep.UserId = eu.UserId
+            LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId
+            LEFT JOIN ExamSection esect ON esect.ExamSectionId = esch.ExamSectionId
+            """;
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy danh sách giám thị đang hoạt động từ {@code User} JOIN {@code Role}, {@code Profile}.
+     * @return danh sách {@link UserDTO} kèm profile giám thị
+     */
     @Override
     public List<UserDTO> getActiveExaminers() {
         List<UserDTO> list = new ArrayList<>();
+        // Chuẩn bị PreparedStatement với SQL SELECT giám thị active
         try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT)) {
+            // Gán tham số truy vấn (tên role Sát hạch viên)
             ps.setString(1, UserRole.SAT_HACH_VIEN.getDisplayName());
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
                     list.add(mapExaminer(rs));
                 }
             }
@@ -95,13 +117,17 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return list;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Phân công giám thị vào khu vực/kỳ thi: INSERT {@code ExaminerSchedule}
+     * và ghi/xóa bản ghi {@code Audit} trong một transaction.
+     * @param slot thông tin ca phân công ({@code examId}, {@code examinerUserId}, {@code areaId}, ...)
+     * @return {@code true} nếu phân công thành công; {@code false} nếu trùng hoặc lỗi
+     */
     @Override
     public boolean assign(ExaminerSlotDTO slot) {
         if (slot == null || slot.getExamId() <= 0 || slot.getExaminerUserId() <= 0) {
             return false;
         }
-        // Build the composite entity ID for the audit mapping (examId:areaId:examinerId)
         String entityId = buildMappingEntityId(slot.getExamId(), slot.getAreaId(), slot.getExaminerUserId());
         String existingAssignmentSql = """
                 SELECT TOP 1 esch.ExaminerScheduleId
@@ -132,19 +158,18 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                     ORDER BY es.ExamSectionId
                 )), ?, GETDATE())
                 """;
-        // SQL: delete any existing audit mapping for this entity (idempotent cleanup)
         String deleteMapping = """
                 DELETE FROM Audit
                 WHERE EntityName = ? AND EntityId = ?
                 """;
-        // SQL: insert the new audit mapping to track the area assignment
         String insertMapping = """
                 INSERT INTO Audit (UserId, Action, EntityName, EntityId, NewValue, CreatedAt)
                 VALUES (?, 'ASSIGN', ?, ?, ?, GETDATE())
                 """;
         try {
-            // Begin transaction — both assignment and audit mapping must succeed together
+            // Bắt đầu transaction — phân công và audit phải cùng thành công
             getConnection().setAutoCommit(false);
+            // Kiểm tra giám thị đã được phân khu vực khác trong cùng kỳ thi
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
                 ps.setInt(1, slot.getExaminerUserId());
                 ps.setInt(2, slot.getExamId());
@@ -156,7 +181,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                     }
                 }
             }
-            // Step 1: insert the ExaminerSchedule row
+            // Bước 1: INSERT ExaminerSchedule
             try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
                 String areaType = slot.getAreaType() != null ? slot.getAreaType().trim() : "";
@@ -170,40 +195,33 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setInt(8, assignedBy);
                 ps.executeUpdate();
             }
-            // Step 2: delete any stale audit mapping for this entity ID
+            // Bước 2: xóa audit mapping cũ (idempotent)
             try (PreparedStatement ps = getConnection().prepareStatement(deleteMapping)) {
                 ps.setString(1, ROOM_MAPPING_ENTITY);
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            // Step 3: insert the new audit mapping with the assigner's user ID
+            // Bước 3: INSERT audit mapping mới
             try (PreparedStatement ps = getConnection().prepareStatement(insertMapping)) {
-                // Use the assigner's user ID, defaulting to system user 3 if not provided
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
                 ps.setInt(1, assignedBy);
                 ps.setString(2, ROOM_MAPPING_ENTITY);
                 ps.setString(3, entityId);
-                // Store the area name as the new value (fallback to area ID)
                 ps.setString(4, slot.getAreaName() != null ? slot.getAreaName() : String.valueOf(slot.getAreaId()));
                 ps.executeUpdate();
             }
-            // Commit the transaction — all three operations succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
-            // Rollback the transaction on any error
             try {
                 getConnection().rollback();
             } catch (SQLException ignored) {
             }
-            // Error codes 2627 and 2601 indicate unique constraint violations (duplicate assignment)
             if (e.getErrorCode() == 2627 || e.getErrorCode() == 2601) {
                 return false;
             }
-            // Log unexpected SQL errors
             e.printStackTrace();
         } finally {
-            // Restore auto-commit mode regardless of outcome
             try {
                 getConnection().setAutoCommit(true);
             } catch (SQLException ignored) {
@@ -212,7 +230,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Hủy phân công giám thị: DELETE {@code ExaminerSchedule} và bản ghi {@code Audit} tương ứng.
+     * @param slotKey khóa composite {@code examId:areaId:examinerId}
+     * @return {@code true} nếu xóa thành công; {@code false} nếu khóa không hợp lệ hoặc lỗi
+     */
     @Override
     public boolean remove(String slotKey) {
         int[] parts = parseSlotKey(slotKey);
@@ -226,12 +248,15 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         String deleteAssignment = "DELETE FROM ExaminerSchedule WHERE ExamId = ? AND ExaminerId = ?";
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
+            // Bắt đầu transaction — xóa phân công và audit cùng lúc
             getConnection().setAutoCommit(false);
+            // Bước 1: DELETE ExaminerSchedule
             try (PreparedStatement ps = getConnection().prepareStatement(deleteAssignment)) {
                 ps.setInt(1, examId);
                 ps.setInt(2, examinerId);
                 ps.executeUpdate();
             }
+            // Bước 2: DELETE Audit mapping
             try (PreparedStatement ps = getConnection().prepareStatement(deleteMapping)) {
                 ps.setString(1, ROOM_MAPPING_ENTITY);
                 ps.setString(2, entityId);
@@ -254,20 +279,33 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return false;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Lấy tất cả ca phân công giám thị của một kỳ thi từ {@code ExaminerSchedule}.
+     * @param examId mã kỳ thi
+     * @return danh sách {@link ExaminerSlotDTO} sắp theo tên khu vực
+     */
     @Override
     public List<ExaminerSlotDTO> getByExamId(int examId) {
         String sql = SLOT_SELECT + " WHERE esch.ExamId = ? ORDER BY ea.AreaName, esch.ExaminerScheduleId";
         return querySlots(sql, ps -> ps.setInt(1, examId));
     }
 
-    /** Chạy câu SELECT slot và map sang {@link ExaminerSlotDTO}. */
+    /**
+     * Chạy SELECT ca phân công với binder tùy chỉnh và ánh xạ danh sách slot.
+     * @param sql    câu SELECT (từ {@link #SLOT_SELECT} + WHERE)
+     * @param binder lambda gán tham số PreparedStatement
+     * @return danh sách {@link ExaminerSlotDTO}
+     */
     private List<ExaminerSlotDTO> querySlots(String sql, SqlBinder binder) {
         List<ExaminerSlotDTO> list = new ArrayList<>();
+        // Chuẩn bị PreparedStatement với SQL SELECT ca phân công
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            // Gán tham số truy vấn qua binder
             binder.bind(ps);
+            // Thực thi và lấy ResultSet
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    // Ánh xạ ResultSet → đối tượng domain
                     list.add(mapSlot(rs));
                 }
             }
@@ -277,12 +315,16 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return list;
     }
 
-    /** Ánh xạ ResultSet → {@link ExaminerSlotDTO}. */
+    /**
+     * Ánh xạ một dòng ResultSet (alias từ {@link #SLOT_SELECT}) sang {@link ExaminerSlotDTO}.
+     * @param rs ResultSet đang trỏ tại dòng cần đọc
+     * @return DTO ca phân công giám thị
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private ExaminerSlotDTO mapSlot(ResultSet rs) throws SQLException {
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
         slot.setExamId(rs.getInt("examId"));
         slot.setExaminerUserId(rs.getInt("examinerUserId"));
-        // Map the session and examiner display fields
         slot.setExamName(rs.getString("examName"));
         slot.setExaminerUsername(rs.getString("examinerUsername"));
         String examinerName = rs.getString("examinerName");
@@ -291,27 +333,21 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         }
         slot.setExaminerName(examinerName);
 
-        // Attempt to read the area ID from the ExamArea LEFT JOIN
         int areaId = rs.getInt("areaId");
         if (!rs.wasNull()) {
-            // Area was found via the join — use the direct values
             slot.setAreaId(areaId);
             slot.setAreaName(rs.getString("areaName"));
             slot.setAreaType(rs.getString("areaType"));
         } else {
-            // Area join returned null — fall back to parsing the audit mapping entity ID
             String mappingEntityId = rs.getString("mappingEntityId");
             int[] parsed = parseMappingEntityId(mappingEntityId);
             if (parsed != null) {
-                // Extract the area ID from the middle component of the entity ID
                 slot.setAreaId(parsed[1]);
             }
         }
 
-        // Map the exam type ID (1=Theory, 2=Practical, 4=Road)
         int examTypeId = rs.getInt("examTypeId");
         slot.setExamTypeId(examTypeId);
-        // Resolve the exam type name from the query or fall back to a Vietnamese constant
         String examTypeName = rs.getString("examTypeName");
         slot.setExamTypeName(examTypeName != null && !examTypeName.isBlank()
                 ? examTypeName
@@ -319,17 +355,31 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return slot;
     }
 
-    /** Ghép EntityId audit dạng {@code examId:areaId:examinerId}. */
+    /**
+     * Tạo entity ID cho Audit dạng {@code examId:areaId:examinerId}.
+     * @param examId     mã kỳ thi
+     * @param areaId     mã khu vực
+     * @param examinerId mã giám thị
+     * @return chuỗi khóa composite
+     */
     static String buildMappingEntityId(int examId, int areaId, int examinerId) {
         return examId + ":" + areaId + ":" + examinerId;
     }
 
-    /** Parse EntityId mapping — ủy quyền {@link #parseSlotKey}. */
+    /**
+     * Phân tích entity ID audit; ủy quyền cho {@link #parseSlotKey}.
+     * @param entityId chuỗi {@code examId:areaId:examinerId}
+     * @return mảng 3 phần tử hoặc {@code null}
+     */
     static int[] parseMappingEntityId(String entityId) {
         return parseSlotKey(entityId);
     }
 
-    /** Đổi exam-type id sang tên section hiển thị. */
+    /**
+     * Chuyển mã loại kỳ thi sang tên hiển thị tiếng Việt.
+     * @param examTypeId 1=Lý thuyết, 2=Thực hành, 4=Đường trường
+     * @return tên loại phần thi
+     */
     static String examTypeFromId(int examTypeId) {
         return switch (examTypeId) {
             case 2 ->
@@ -341,7 +391,11 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         };
     }
 
-    /** Parse khóa slot {@code examId:areaId:examinerId} → mảng int. */
+    /**
+     * Phân tích khóa slot dạng {@code examId:areaId:examinerId}.
+     * @param slotKey chuỗi khóa composite
+     * @return mảng {@code [examId, areaId, examinerId]} hoặc {@code null} nếu không hợp lệ
+     */
     static int[] parseSlotKey(String slotKey) {
         if (slotKey == null) {
             return null;
@@ -352,16 +406,21 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         }
         try {
             return new int[]{
-                Integer.parseInt(parts[0]), // examId
-                Integer.parseInt(parts[1]), // areaId
-                Integer.parseInt(parts[2]) // examinerId
+                Integer.parseInt(parts[0]),
+                Integer.parseInt(parts[1]),
+                Integer.parseInt(parts[2])
             };
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    /** Ánh xạ ResultSet → {@link UserDTO} kèm {@link Profile}. */
+    /**
+     * Ánh xạ một dòng ResultSet giám thị sang {@link UserDTO} kèm {@link Profile}.
+     * @param rs ResultSet từ {@link #EXAMINER_SELECT}
+     * @return DTO người dùng giám thị
+     * @throws SQLException nếu đọc cột thất bại
+     */
     private UserDTO mapExaminer(ResultSet rs) throws SQLException {
         UserDTO user = new UserDTO();
         user.setUserId(rs.getInt("UserId"));
@@ -385,12 +444,16 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return user;
     }
 
-    /** Binder tham số cho PreparedStatement. */
+    /** Giao diện functional gán tham số cho {@link PreparedStatement}. */
     @FunctionalInterface
     private interface SqlBinder {
 
+        /**
+         * Gán các placeholder {@code ?} trên PreparedStatement.
+         * @param ps PreparedStatement cần bind
+         * @throws SQLException nếu set tham số thất bại
+         */
         void bind(PreparedStatement ps) throws SQLException;
     }
 }
-
 

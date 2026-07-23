@@ -10,6 +10,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Danh sách ca thi của tôi — {@code GET /registrant/my-exams}.
+ * <p>
+ * Join Profile → Candidate (CCCD) → ExamEnrollment → Exam + Payment
+ * → list {@code myExamList}, điểm/SBD (khi staff đã tạo ngày thi).
+ * Flash {@code success=registered} = vừa chọn RegistrationDates (chưa có SBD chính thức).
+ * <p>
+ * Registrant không gửi yêu cầu hủy lịch thi từ portal.
+ */
 @WebServlet("/registrant/my-exams")
 public class MyExamsServlet extends HttpServlet {
 
@@ -28,7 +37,7 @@ public class MyExamsServlet extends HttpServlet {
 
         if ("registered".equals(request.getParameter("success"))) {
             request.setAttribute("successMessage",
-                    "Đăng ký đợt thi thành công. Trạng thái hiện là Chờ xét duyệt — SBD sẽ được cập nhật sau khi Ban sát hạch duyệt và nhập danh sách chính thức.");
+                    "Đã ghi nhận nguyện vọng ngày thi. Trạng thái: nguyện vọng — chờ lịch chính thức. Số báo danh và giờ ca sẽ cập nhật tại đây khi trung tâm công bố.");
         }
 
         RegistrantServletSupport.forwardView(request, response, VIEW);
@@ -37,24 +46,6 @@ public class MyExamsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        UserDTO user = RegistrantAuth.requireRegistrant(request, response);
-        if (user == null) {
-            return;
-        }
-        if (!"1".equals(request.getParameter("requestCancel"))) {
-            response.sendRedirect(request.getContextPath() + "/registrant/my-exams");
-            return;
-        }
-
-        String error = myExamsService.requestCancellation(user, request);
-        if (error != null) {
-            RegistrantServletSupport.setFlash(request.getSession(),
-                    RegistrantMyExamsServiceImpl.FLASH_CANCEL_ERROR_ATTR, error);
-        } else {
-            RegistrantServletSupport.setFlash(request.getSession(),
-                    RegistrantMyExamsServiceImpl.FLASH_CANCEL_SUCCESS_ATTR,
-                    "Đã gửi yêu cầu hủy đăng ký. Ban quản lý sẽ xử lý — bạn có thể theo dõi trạng thái tại đây.");
-        }
-        response.sendRedirect(RegistrantMyExamsServiceImpl.buildMyExamsRedirect(request));
+        response.sendRedirect(request.getContextPath() + "/registrant/my-exams");
     }
 }

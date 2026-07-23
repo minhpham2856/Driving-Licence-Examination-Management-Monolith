@@ -1,4 +1,4 @@
-/* Exam staff portal — bridge style.css components with examiner shell */
+/* Exam staff portal - bridge style.css components with examiner shell */
 
 /* Shell: đẩy nội dung ra khỏi sidebar fixed (260px) */
 body.examstaff-portal.has-side-nav-bar .examstaff-shell {
@@ -66,7 +66,7 @@ body.examstaff-portal .page-actions {
     flex-shrink: 0;
 }
 
-/* Cards & panes — đồng bộ examiner */
+/* Cards & panes - đồng bộ examiner */
 body.examstaff-portal .stat-card {
     border-color: #c3c6d6;
     border-radius: 8px;
@@ -249,7 +249,7 @@ body.examstaff-portal .call-exam-chip__label {
     color: #64748b;
 }
 
-/* Dashboard — các ca trong ngày thi (không dùng examiner-card: overflow:hidden làm co panel trong flex) */
+/* Dashboard - các ca trong ngày thi (không dùng examiner-card: overflow:hidden làm co panel trong flex) */
 body.examstaff-portal .dashboard-exam-panel {
     flex-shrink: 0;
     overflow: visible;
@@ -362,8 +362,15 @@ body.examstaff-portal .exam-shift-chip__btn--pause {
 }
 
 body.examstaff-portal .exam-shift-chip__btn--resume {
-    color: #047857;
-    border-color: #a7f3d0;
+    background-color: #059669;
+    border-color: #059669;
+    color: #ffffff;
+}
+
+body.examstaff-portal .exam-shift-chip__btn--resume:hover:not(:disabled) {
+    background-color: #047857;
+    border-color: #047857;
+    color: #ffffff;
 }
 
 body.examstaff-portal .exam-shift-chip__btn:disabled {
@@ -372,7 +379,7 @@ body.examstaff-portal .exam-shift-chip__btn:disabled {
     pointer-events: none;
 }
 
-/* Header examstaff — breadcrumb + kỳ thi đang chọn */
+/* Header examstaff - breadcrumb + kỳ thi đang chọn */
 body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-current {
     font-weight: 600;
     color: #0f172a;

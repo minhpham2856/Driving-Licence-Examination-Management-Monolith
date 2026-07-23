@@ -19,7 +19,6 @@ import registrant.util.RegistrantProfileSupport;
 import registrant.util.RegistrantSessionSupport;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import java.time.ZoneId;
 import java.util.List;
 
 /** Nạp và cập nhật hồ sơ cá nhân thí sinh từ bảng Profile + User. */
@@ -29,6 +28,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
     private final DocumentDAO documentdao = new DocumentDAOImpl();
     private final RegistrantDAO registrantdao = new RegistrantDAOImpl();
 
+    /** Đẩy thông tin Profile, trạng thái hồ sơ và tóm tắt tài liệu lên request. */
     @Override
     public void copyProfileToRequest(UserDTO user, HttpServletRequest request) {
         request.setAttribute("email", user.getEmail());
@@ -45,8 +45,9 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         request.setAttribute("hasProfile", true);
         request.setAttribute("registrantName", profile.getFullName());
         if (profile.getDateOfBirth() != null) {
-            request.setAttribute("birthday", profile.getDateOfBirth().toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalDate().toString());
+            // <input type="date"> cần yyyy-MM-dd; Timestamp.toString() có giờ nên trình duyệt bỏ trống
+            request.setAttribute("birthday",
+                    profile.getDateOfBirth().toLocalDateTime().toLocalDate().toString());
         }
         request.setAttribute("gender", profile.isSex() ? "Nữ" : "Nam");
         request.setAttribute("phone", profile.getPhoneNumber());
@@ -82,6 +83,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         RegistrantProfileSupport.applyRegistrationStatus(request, registrationStatus);
     }
 
+    /** Validate họ tên/CCCD trước khi lưu hồ sơ; null nếu hợp lệ. */
     @Override
     public String validateProfileUpdate(UserDTO user, Profile updated) {
         if (updated == null || RegistrantProfileSupport.isBlank(updated.getFullName())) {
@@ -98,6 +100,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         return null;
     }
 
+    /** Insert hoặc update Profile và đồng bộ session/audit. */
     @Override
     public boolean updateProfile(UserDTO user, Profile updated, HttpSession session) {
         if (updated == null || RegistrantProfileSupport.isBlank(updated.getFullName())) {
@@ -111,6 +114,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
         return updateExistingProfile(user, existing, updated, session);
     }
 
+    /** Kiểm tra Notes giấy khám sức khỏe có dấu hiệu bị từ chối. */
     @Override
     public boolean hasRejectedHealthDocument(int profileId) {
         return documentdao.listByProfileId(profileId).stream()
