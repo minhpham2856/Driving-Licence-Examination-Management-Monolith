@@ -17,6 +17,9 @@ public class ExamRegistrationDTO {
     private String phoneNo;
     private String email;
     private String licenseCode;
+    private String sourceUnitCode;
+    private String sourceUnitName;
+    private Integer examRegistrationId;
     private boolean invalid;
     private String validationMessage;
     private boolean duplicate;
@@ -104,6 +107,14 @@ public class ExamRegistrationDTO {
     public void setLicenseCode(String licenseCode) {
         this.licenseCode = licenseCode;
     }
+
+    public String getSourceUnitCode() { return sourceUnitCode; }
+    public void setSourceUnitCode(String value) { sourceUnitCode = value; }
+    public String getSourceUnitName() { return sourceUnitName; }
+    public void setSourceUnitName(String value) { sourceUnitName = value; }
+    public Integer getExamRegistrationId() { return examRegistrationId; }
+    public void setExamRegistrationId(Integer value) { examRegistrationId = value; }
+    public boolean isInternalCandidate() { return examRegistrationId != null; }
 
     public boolean isInvalid() {
         return invalid;

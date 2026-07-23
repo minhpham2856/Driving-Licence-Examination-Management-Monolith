@@ -19,6 +19,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
 import managingstaff.dao.impl.LicenceDAOImpl;
+import managingstaff.dao.impl.TentativeExamDateDAOImpl;
 import shared.model.Licence;
 import managingstaff.service.EmailService;
 import managingstaff.service.impl.EmailServiceImpl;
@@ -92,6 +93,7 @@ public class ExamScheduleServlet extends HttpServlet {
             dto.setId(parseInt(request.getParameter("sessionId"), 0));
             dto.setCentreName(trim(request.getParameter("centreName")));
             dto.setLicenceId(parseInt(request.getParameter("licenceId"), 0));
+            dto.setSourceExamDateId(parseInt(request.getParameter("sourceExamDateId"), 0));
             LocalDate date = LocalDate.parse(trim(request.getParameter("examDate")));
             dto.setExamDate(Date.valueOf(date));
             dto.setShiftStartTime(Time.valueOf(trim(request.getParameter("startTime")) + ":00"));
@@ -104,8 +106,11 @@ public class ExamScheduleServlet extends HttpServlet {
             int id = dto.getId() > 0 ? (sessionDAO.update(dto) ? dto.getId() : 0) : sessionDAO.create(dto);
             int rescheduleEmails=previous!=null&&!previous.getExamDate().equals(dto.getExamDate())
                     ? sendRescheduleEmails(previous,dto) : 0;
+            int officialCandidateCount = dto.getId() > 0 ? 0 : sessionDAO.getCandidates(id).size();
             httpSession.setAttribute("scheduleSuccess", dto.getId() > 0
-                    ? "Đã cập nhật phiên thi"+(rescheduleEmails>0?" và gửi "+rescheduleEmails+" email lịch mới.":".") : "Đã tạo phiên thi. Registrant có thể nhìn thấy phiên này.");
+                    ? "Đã cập nhật phiên thi"+(rescheduleEmails>0?" và gửi "+rescheduleEmails+" email lịch mới.":".")
+                    : "Đã tạo phiên thi và tự động tiếp nhận " + officialCandidateCount
+                    + " thí sinh từ danh sách chính thức của CSGT.");
             AuditLogHelper.persist(httpSession, dto.getId() > 0 ? "UPDATE SESSION" : "CREATE SESSION",
                     (dto.getId() > 0 ? "Cập nhật" : "Tạo") + " phiên thi " + licence.getLicenceClass(), id);
         } catch (Exception ex) {
@@ -144,6 +149,7 @@ public class ExamScheduleServlet extends HttpServlet {
         List<SessionDTO> sessions=sessionDAO.findPage(tab,years,page,PAGE_SIZE);
         request.setAttribute("sessions", sessions);
         request.setAttribute("licences", new LicenceDAOImpl().findAll());
+        request.setAttribute("policeCompletedDates", new TentativeExamDateDAOImpl().findPoliceCompletedUnlinked());
         request.setAttribute("today", LocalDate.now().toString());
         request.setAttribute("activeTab",tab);request.setAttribute("selectedYears",years);
         request.setAttribute("availableYears",sessionDAO.findAvailableYears());
