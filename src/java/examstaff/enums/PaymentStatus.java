@@ -1,8 +1,24 @@
 package examstaff.enums;
 
 /**
- * Trạng thái thanh toán lệ phí (giá trị hiển thị / khớp chuỗi CSDL).
- * Hỗ trợ cả nhãn VI và alias EN legacy ({@link #COMPLETED}, {@link #PAID}).
+ * Enum trạng thái thanh toán lệ phí thủ tục — khớp chuỗi VI trên UI và alias EN legacy
+ * trên CSDL cũ ({@link #COMPLETED}, {@link #PAID}).
+ *
+ * Vai trò trong luồng examstaff:
+ * Xác định thí sinh đã thu phí hay còn chờ trước khi vào hàng đợi gọi / phân bổ phòng.
+ * {@link #normalize} mặc định {@link #CHO_THANH_TOAN} khi chuỗi không khớp.
+ * {@link #isCompleted} coi {@link #HOAN_TAT}, {@link #COMPLETED}, {@link #PAID} là đã thanh toán.
+ * {@link #sqlInClause} cung cấp đoạn IN cho query JDBC lọc payment hoàn tất.
+ *
+ * Giá trị trạng thái:
+ * - {@link #HOAN_TAT} — nhãn VI chính thức “Hoàn tất”.
+ * - {@link #CHO_THANH_TOAN} — mặc định khi chưa thu / không nhận diện được.
+ * - {@link #COMPLETED}, {@link #PAID} — đồng nghĩa hoàn tất (EN legacy).
+ *
+ * Ai sử dụng:
+ * {@code ProcedurePaymentServiceImpl}, {@code ProcedureFeeQueryServiceImpl},
+ * {@code PaymentDAOImpl}, {@code ExamStaffCandidateViewDAOImpl}, {@code ExamRegistrationDAOImpl},
+ * {@code CandidateCallServlet} — cờ {@code isPaymentCompleted} trên {@code ExamRegistrationDTO}.
  */
 public enum PaymentStatus {
     /** Đã hoàn tất thanh toán (nhãn VI chính). */
@@ -19,7 +35,6 @@ public enum PaymentStatus {
 
     /**
      * Gán chuỗi hiển thị / so khớp cho hằng trạng thái.
-     *
      * @param displayName nhãn VI hoặc EN legacy
      */
     PaymentStatus(String displayName) {
@@ -28,7 +43,6 @@ public enum PaymentStatus {
 
     /**
      * Lấy chuỗi trạng thái dùng để hiển thị hoặc so khớp.
-     *
      * @return display name
      */
     public String getDisplayName() {
@@ -37,7 +51,6 @@ public enum PaymentStatus {
 
     /**
      * So khớp chuỗi trạng thái thanh toán với {@link #displayName} (ignore case).
-     *
      * @param value chuỗi từ DB/UI
      * @return {@code true} nếu khớp hằng này
      */
@@ -52,7 +65,6 @@ public enum PaymentStatus {
      * Chuẩn hóa chuỗi về enum; không khớp → {@link #CHO_THANH_TOAN}.
      * <p>
      * Duyệt toàn bộ {@link #values()} và gọi {@link #matches}.
-     *
      * @param value chuỗi trạng thái (null/blank → chờ thanh toán)
      * @return enum tương ứng
      */
@@ -74,7 +86,6 @@ public enum PaymentStatus {
 
     /**
      * Đã thanh toán xong nếu normalize ra {@link #HOAN_TAT}, {@link #COMPLETED} hoặc {@link #PAID}.
-     *
      * @param value chuỗi trạng thái
      * @return {@code true} nếu đã hoàn tất
      */
@@ -86,7 +97,6 @@ public enum PaymentStatus {
     /**
      * Danh sách giá trị PaymentStatus hợp lệ khi ghi/đọc CSDL (đoạn IN clause).
      * Chỉ gồm các trạng thái “đã hoàn tất” (không gồm chờ thanh toán).
-     *
      * @return chuỗi {@code N'…', N'…', N'…'}
      */
     public static String sqlInClause() {
