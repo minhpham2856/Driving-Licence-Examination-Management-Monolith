@@ -5,11 +5,11 @@ import java.sql.Timestamp;
 /**
  * DTO nhật ký audit cho trang staff (BLL → JSP {@code audit.jsp}).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Giữ giá trị thô từ DB (table/action/old/new/details) và nhãn tiếng Việt đã chuẩn hóa
  * ({@code entityLabelVi}, {@code actionLabelVi}, {@code displayDetails}) cho hiển thị.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code AuditLogDAOImpl} → {@link StaffAuditPageViewDTO} / {@code StaffAuditPageServiceImpl}
  * → {@code AuditServlet}.
  */

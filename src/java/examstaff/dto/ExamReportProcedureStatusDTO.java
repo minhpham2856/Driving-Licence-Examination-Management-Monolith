@@ -7,10 +7,10 @@ import java.util.List;
 /**
  * Thống kê trạng thái thủ tục cho báo cáo kỳ thi.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Đếm thiếu ảnh / đã xong / đang chờ thủ tục và liệt kê thí sinh tương ứng trên {@code report.jsp}.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExamReportProcedureStatusServiceImpl} → {@code ReportServlet}.
  */
 public class ExamReportProcedureStatusDTO {

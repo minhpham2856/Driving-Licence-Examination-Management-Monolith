@@ -5,10 +5,10 @@ import java.io.File;
 /**
  * Kết quả tìm ảnh thí sinh để stream HTTP (BLL → servlet tải ảnh).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Báo FOUND/NOT_FOUND kèm {@link File} và content-type; {@code CandidatePhotoServlet} ghi bytes response.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code CandidatePhotoServiceImpl} → {@code CandidatePhotoServlet} (không JSP).
  */
 public class CandidatePhotoStreamDTO {

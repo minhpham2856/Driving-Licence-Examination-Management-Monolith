@@ -8,10 +8,10 @@ import java.util.List;
 /**
  * View-model trang phân bổ thí sinh theo stage (BLL → JSP allocation).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Mang số đếm từng stage, danh sách thí sinh stage hiện tại, phân trang và hit tìm kiếm tổng quan.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code AllocationStageViewServiceImpl} → {@code AllocationServlet} → các JSP allocation.
  */
 public class AllocationStageViewDTO {

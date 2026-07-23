@@ -9,10 +9,10 @@ import java.util.Map;
 /**
  * View-model trang phân công sát hạch viên.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Mang danh sách slot trong ngày, SHV all / available / busy và options khu vực để form assign.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExaminerAllocationDeskServiceImpl} → {@code ExaminerAllocationServlet} → {@code examiner-allocation.jsp}.
  */
 public class ExaminerAllocationViewDTO {

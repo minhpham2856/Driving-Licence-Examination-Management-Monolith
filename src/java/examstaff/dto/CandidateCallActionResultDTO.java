@@ -7,11 +7,11 @@ import java.util.List;
 /**
  * Kết quả một hành động gọi thí sinh từ BLL workflow về Presentation / page orchestrator.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Cập nhật hàng chờ, SBD đang gọi, cờ ca và loại cảnh báo UI sau call/absent/undo…
  * Thường được merge vào {@link CandidateCallPageViewDTO} bởi {@code CandidateCallPageServiceImpl}.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code CandidateCallWorkflowServiceImpl} → page service → alert trên {@code candidatecall.jsp}.
  */
 public class CandidateCallActionResultDTO {

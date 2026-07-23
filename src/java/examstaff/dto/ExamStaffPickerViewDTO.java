@@ -7,11 +7,11 @@ import java.util.List;
 /**
  * View-model bộ chọn kỳ thi (exam picker) trên các trang ExamStaff.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Cung cấp options, allExams, currentExam và id đã commit để binder đổ vào JSP
  * (dropdown / sidebar chọn kỳ).
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExamStaffPageServiceImpl} gắn vào {@link ExamStaffPageContext#getPickerView()};
  * {@code ExamStaffPageBinder} bind attribute trên hầu hết trang staff.
  */

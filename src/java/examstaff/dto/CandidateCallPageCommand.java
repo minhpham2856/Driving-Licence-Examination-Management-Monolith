@@ -10,18 +10,18 @@ import java.util.List;
  * Input command cho orchestrator trang gọi thí sinh (Candidate Call) — Presentation → BLL,
  * không phụ thuộc Servlet API trong chữ ký service.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Mang action gọi (gọi tiếp, vắng, đình chỉ, undo…), SBD mục tiêu, cờ ca (pause/end),
  * khóa mutation khi kỳ đã hoàn tất/hủy, snapshot board và cache hàng chờ.
  * {@code CandidateCallPageServiceImpl} xử lý rồi trả {@link CandidateCallPageViewDTO}.
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code CandidateCallServlet#buildCommand} (đọc request + session + board).
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code StaffCallServiceImpl#preparePage} → {@code CandidateCallPageServiceImpl}.
  *
- * <h2>Trang / JSP</h2>
+ * Trang / JSP:
  * Không bind object command lên JSP; servlet forward kết quả sang
  * {@code candidatecall.jsp} hoặc {@code candidate-suspended.jsp}.
  */

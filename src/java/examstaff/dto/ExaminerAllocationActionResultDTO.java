@@ -3,10 +3,10 @@ package examstaff.dto;
 /**
  * Kết quả thao tác phân công sát hạch viên (assign / unassign / …) từ BLL về Presentation.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Mang success, alert/error và cặp action/details để servlet ghi audit nếu cần.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExaminerAllocationDeskServiceImpl} (và service liên quan) → bọc {@link ServiceResult} →
  * {@code ExaminerAllocationServlet} → flash trên {@code examiner-allocation.jsp}.
  */

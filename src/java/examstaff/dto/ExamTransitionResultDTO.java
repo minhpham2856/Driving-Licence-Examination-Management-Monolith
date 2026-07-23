@@ -3,19 +3,19 @@ package examstaff.dto;
 /**
  * Kết quả bước chuyển / chọn kỳ thi (select-exam / sync selection) trong luồng ExamStaff.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Báo cho Presentation biết kỳ mới là gì, có cần xóa cache thí sinh / state thủ tục trên session không,
  * và có persist lựa chọn vào session hay không. Thường được bọc trong {@link ServiceResult}{@code ExamSelectServlet}.
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code ExamStaffSelectionServiceImpl} — {@code syncExamSelection}, {@code preparePageTransition},
  * {@code processSelection}.
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code ExamStaffPageSupport} (áp dụng cờ clear cache/procedure khi đổi kỳ);
  * {@code ExamSelectServlet} qua {@code ServiceResult<ExamTransitionResultDTO>}.
  *
- * <h2>Trang / JSP</h2>
+ * Trang / JSP:
  * Không bind DTO lên JSP; điều khiển session rồi PRG redirect tới {@code /examstaff/select-exam}
  * hoặc trang staff đích.
  */
