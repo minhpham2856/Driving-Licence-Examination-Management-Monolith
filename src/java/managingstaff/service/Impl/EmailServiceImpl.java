@@ -67,7 +67,7 @@ public class EmailServiceImpl implements EmailService {
     public boolean sendHtmlEmailWithAttachment(String to, String subject, String htmlContent,
             byte[] attachment, String attachmentName, String attachmentContentType) {
         loadConfiguration();
-        if (!isConfigured() || to == null || to.isBlank()) {
+        if (!isConfigured() || !isDeliverableRecipient(to)) {
             LOG.warning("Email with attachment skipped: SMTP or recipient is not configured.");
             return false;
         }
@@ -110,8 +110,8 @@ public class EmailServiceImpl implements EmailService {
             return false;
         }
 
-        if (to == null || to.isBlank()) {
-            LOG.warning("Email skipped: recipient address is empty.");
+        if (!isDeliverableRecipient(to)) {
+            LOG.warning("Email skipped: recipient address is empty, invalid or belongs to a demo domain.");
             return false;
         }
 
@@ -149,6 +149,28 @@ public class EmailServiceImpl implements EmailService {
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to.trim()));
         msg.setSubject(subject, "UTF-8");
         return msg;
+    }
+
+    private static boolean isDeliverableRecipient(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String addressValue = value.trim();
+        int separator = addressValue.lastIndexOf('@');
+        if (separator < 1) {
+            return false;
+        }
+        String domain = addressValue.substring(separator + 1).toLowerCase(java.util.Locale.ROOT);
+        if (domain.endsWith(".local") || domain.endsWith(".invalid")) {
+            return false;
+        }
+        try {
+            InternetAddress address = new InternetAddress(addressValue, true);
+            address.validate();
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private static String normalize(String value) {
