@@ -3,6 +3,7 @@ package managingstaff.dto;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import shared.util.TentativeExamDatePolicy;
 
 public class TentativeExamDateDTO {
     private int id;
@@ -15,6 +16,8 @@ public class TentativeExamDateDTO {
     private Timestamp cancelledAt;
     private int cancelledBy;
     private int cancelledRegistrationCount;
+    private String policeStatus;
+    private int officialCandidateCount;
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -36,14 +39,32 @@ public class TentativeExamDateDTO {
     public void setCancelledBy(int cancelledBy) { this.cancelledBy = cancelledBy; }
     public int getCancelledRegistrationCount() { return cancelledRegistrationCount; }
     public void setCancelledRegistrationCount(int value) { this.cancelledRegistrationCount = value; }
+    public String getPoliceStatus() { return policeStatus; }
+    public void setPoliceStatus(String policeStatus) { this.policeStatus = policeStatus; }
+    public int getOfficialCandidateCount() { return officialCandidateCount; }
+    public void setOfficialCandidateCount(int officialCandidateCount) {
+        this.officialCandidateCount = officialCandidateCount;
+    }
     public int getRemainingSlots() { return Math.max(0, 50 - registeredCount); }
     public boolean isFull() { return registeredCount >= 50; }
     public boolean isCancelled() { return "Cancelled".equalsIgnoreCase(status); }
+    public boolean isLocked() { return "Locked".equalsIgnoreCase(status); }
+    public boolean isOpen() { return status == null || "Open".equalsIgnoreCase(status); }
+    public boolean isNotSentToPolice() { return policeStatus == null || "NOT_SENT".equalsIgnoreCase(policeStatus); }
+    public boolean isPendingPolice() { return "PENDING".equalsIgnoreCase(policeStatus); }
+    public boolean isPoliceCompleted() { return "COMPLETED".equalsIgnoreCase(policeStatus); }
+    public boolean isSendableToPolice() {
+        return !isCancelled() && (isOpen() || isLocked()) && isNotSentToPolice()
+                && registeredCount > 0 && examDate != null
+                && !examDate.toLocalDate().isBefore(LocalDate.now());
+    }
     public boolean isCancellable() {
-        return !isCancelled() && examDate != null
-                && !LocalDate.now().isAfter(examDate.toLocalDate().minusDays(7));
+        return isOpen() && examDate != null
+                && !TentativeExamDatePolicy.shouldBeLocked(
+                        examDate.toLocalDate(), LocalDate.now());
     }
     public Date getCancellationDeadline() {
-        return examDate == null ? null : Date.valueOf(examDate.toLocalDate().minusDays(7));
+        return examDate == null ? null
+                : Date.valueOf(TentativeExamDatePolicy.lockDate(examDate.toLocalDate()));
     }
 }
