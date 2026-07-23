@@ -17,7 +17,7 @@
 <main class="exam-kiosk-shell">
     <section class="exam-kiosk-card" aria-label="Thông tin thí sinh">
         <div class="exam-kiosk-brand">
-            <span class="material-symbols-outlined">person_check</span>
+            <img class="exam-kiosk-logo" src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
             <div>
                 <p class="exam-kiosk-eyebrow">Xác nhận thí sinh</p>
                 <h1>Thông tin vào thi</h1>
@@ -31,6 +31,14 @@
             <div>
                 <span>Họ tên</span>
                 <strong><c:out value="${candidateExam.fullName}"/></strong>
+            </div>
+            <div>
+                <span>Kỳ thi</span>
+                <strong><c:out value="${empty candidateExam.examCode ? '-' : candidateExam.examCode}"/></strong>
+            </div>
+            <div>
+                <span>Hạng GPLX</span>
+                <strong><c:out value="${empty candidateExam.licenceClass ? '-' : candidateExam.licenceClass}"/></strong>
             </div>
         </div>
         <form method="get" action="${ctx}/exam/questions" class="exam-kiosk-form">

@@ -78,12 +78,17 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                        ee.ExamId, ee.ExamEnrollmentId,
                        ees.ExamEnrollmentSectionId, ees.ExamSectionId,
                        COALESCE(ees.ExamAreaId, scheduleArea.ExamAreaId) AS ExamAreaId,
-                       es.LicenceId, es.DurationMinutes
+                       es.LicenceId, es.DurationMinutes,
+                       e.ExamCode,
+                       CONVERT(VARCHAR(10), e.ExamDate, 103) AS ExamDateDisplay,
+                       l.LicenceClass,
+                       es.SectionType
                 FROM Candidate c
                 INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
                 INNER JOIN Exam e ON e.ExamId = ee.ExamId
                 INNER JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentId = ee.ExamEnrollmentId
                 INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId
+                LEFT JOIN Licence l ON l.LicenceId = es.LicenceId
                 OUTER APPLY (
                     SELECT TOP 1 x.ExamAreaId
                     FROM ExaminerSchedule x
@@ -162,6 +167,10 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
         context.setExamSectionId(rs.getInt("ExamSectionId"));
         context.setExamAreaId(rs.getInt("ExamAreaId"));
         context.setLicenceId(rs.getInt("LicenceId"));
+        context.setExamCode(rs.getString("ExamCode"));
+        context.setLicenceClass(rs.getString("LicenceClass"));
+        context.setExamDateDisplay(rs.getString("ExamDateDisplay"));
+        context.setSectionName(rs.getString("SectionType"));
         int duration = rs.getInt("DurationMinutes");
         context.setDurationMinutes(rs.wasNull() || duration <= 0 ? 20 : duration);
         return context;
