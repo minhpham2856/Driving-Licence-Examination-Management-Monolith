@@ -4,6 +4,7 @@ public enum RoleType {
     ADMIN("Quản trị viên"),
     EXAMINER("Sát hạch viên"),
     MANAGING_STAFF("Cán bộ quản lý"),
+    POLICE_STAFF("Cán bộ CSGT"),
     EXAM_STAFF("Cán bộ kỳ thi"),
     CANDIDATE("Thí sinh"),
     REGISTRANT("Người đăng ký thi");
