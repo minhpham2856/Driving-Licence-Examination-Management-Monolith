@@ -1,34 +1,44 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vào thi</title>
-    <link href="${pageContext.request.contextPath}/assets/css/exam/exam-entrance.css" rel="stylesheet">
+    <title>Vào thi lý thuyết | Lái Vui</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+    <link href="${ctx}/assets/css/exam/exam-entrance.css" rel="stylesheet">
 </head>
-<body>
-<main class="entrance-shell">
-    <section class="entrance-panel" aria-label="Xác thực vào thi">
-        <form class="sbd-card" action="${pageContext.request.contextPath}/exam/entrance" method="post">
-            <h1>VÀO THI LÝ THUYẾT</h1>
-            <c:if test="${not empty error}">
-                <p class="exam-entrance-error"><c:out value="${error}"/></p>
-            </c:if>
-            <label class="sbd-label" for="sbdInput">SỐ BÁO DANH (SBD)</label>
-            <div class="sbd-input-wrap">
-                <input id="sbdInput" name="sbd" class="sbd-input" type="text"
-                       autocomplete="username" maxlength="50" required value="<c:out value='${param.sbd}'/>">
+<body class="exam-kiosk-body">
+<main class="exam-kiosk-shell">
+    <section class="exam-kiosk-card exam-kiosk-card--compact" aria-label="Nhập số báo danh">
+        <div class="exam-kiosk-brand">
+            <span class="material-symbols-outlined">assignment_ind</span>
+            <div>
+                <p class="exam-kiosk-eyebrow">Vào thi lý thuyết</p>
+                <h1>Nhập số báo danh</h1>
             </div>
-            <label class="sbd-label" for="otpInput">MÃ OTP</label>
-            <div class="sbd-input-wrap">
-                <input id="otpInput" name="otp" class="sbd-input" type="text"
-                       inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}"
-                       maxlength="6" required aria-describedby="otpHelp">
+        </div>
+        <p class="exam-kiosk-subtitle">Thí sinh chỉ vào được khi đã được sát hạch viên điểm danh.</p>
+        <c:if test="${not empty error}">
+            <p class="exam-kiosk-alert" role="alert"><c:out value="${error}"/></p>
+        </c:if>
+        <form class="exam-kiosk-form" action="${ctx}/exam/entrance" method="post">
+            <label for="sbdInput">Số báo danh</label>
+            <div class="exam-kiosk-input exam-kiosk-input--large">
+                <span class="material-symbols-outlined">pin</span>
+                <input id="sbdInput" name="sbd" type="text"
+                       autocomplete="off" maxlength="50" required autofocus
+                       value="<c:out value='${param.sbd}'/>">
             </div>
-            <small id="otpHelp">Nhập mã 6 số do sát hạch viên cung cấp.</small>
-            <button type="submit" class="check-button">KIỂM TRA THÔNG TIN</button>
+            <button type="submit" class="exam-kiosk-button">
+                <span class="material-symbols-outlined">how_to_reg</span>
+                Kiểm tra thông tin
+            </button>
         </form>
     </section>
 </main>

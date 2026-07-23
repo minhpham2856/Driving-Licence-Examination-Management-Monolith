@@ -13,8 +13,17 @@ public interface ExamViewService {
     // Load candidate rows for the active section; searchQuery nullable when unused.
     List<CandidateRowDTO> getAllFilteredByExam(int examId, SectionType sectionType, String searchQuery);
 
+    // Load lightweight candidate rows for row-level actions without queue/area ordering.
+    List<CandidateRowDTO> getActionCandidateListByExam(int examId, SectionType sectionType, String searchQuery);
+
+    // Load simple dashboard rows with only candidates belonging to the exam.
+    List<CandidateRowDTO> getDashboardCandidateListByExam(int examId, SectionType sectionType, String searchQuery);
+
     // Builds aggregate counts (total, done, testing, pending, passed, failed) for the exam section.
     ExamStatsDTO getStatsByExam(int examId, SectionType sectionType);
+
+    // Builds aggregate counts from rows already loaded for a page.
+    ExamStatsDTO getStatsByCandidateRows(int examId, SectionType sectionType, List<CandidateRowDTO> rows);
 
     // Loads paginated audit log rows for the exam (page 1 when search is unused).
     Map<String, Object> getAuditViewByExam(int examId, String pageParam);
@@ -71,7 +80,4 @@ public interface ExamViewService {
     // Returns whether a candidate is eligible for call-board invoke actions.
     boolean isActionEligible(int examId, EnrollmentDTO enrollment, SectionType sectionType);
 
-    // Reorders candidate rows to match room/yard queue display order.
-    List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows, int examId,
-            int examAreaId, SectionType sectionType);
 }

@@ -48,9 +48,9 @@ public class CandidateServlet extends HttpServlet {
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
 
             if ("/examiner/candidates".equals(path)) {
-                // Full candidate list with optional search for candidates.jsp.
+                // Candidate details list only needs lightweight row data plus action buttons.
                 String normalizedSearch = ListUtil.normalizeSearch(search);
-                List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
+                List<CandidateRowDTO> candidates = viewService.getActionCandidateListByExam(
                         activeExamId, sectionType, formatString(normalizedSearch));
                 ListUtil.applySortAndSearch(request, candidates);
                 request.setAttribute("candidates", candidates);

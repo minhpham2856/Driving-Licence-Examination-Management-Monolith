@@ -7,7 +7,6 @@
 <c:set var="deferredAdjust" value="${param.deferredAdjust == 'true'}" />
 
 <section class="score-entry-card score-entry-card--penalties">
-    <!--header-->
     <div class="score-entry-card__head">
         <div class="score-entry-card__title">
             <span class="material-symbols-outlined">warning</span>
@@ -15,7 +14,6 @@
         </div>
     </div>
 
-    <!--fault list-->
     <div class="score-entry-penalty-wrap">
         <table class="score-entry-penalty-table">
             <thead>
@@ -31,11 +29,15 @@
                 <c:choose>
                     <c:when test="${empty requestScope.scoreDeductions}">
                         <tr>
-                            <td colspan="5" class="score-entry-table__empty">Chưa có dữ liệu.</td>
+                            <td colspan="5" class="score-entry-table__empty">Chưa có dữ liệu lỗi.</td>
                         </tr>
                     </c:when>
                     <c:otherwise>
                         <c:forEach var="deduction" items="${requestScope.scoreDeductions}">
+                            <c:set var="recordedTime" value="" />
+                            <c:if test="${not empty deduction.recordedAt}">
+                                <fmt:formatDate var="recordedTime" value="${deduction.recordedAt}" pattern="HH:mm:ss"/>
+                            </c:if>
                             <tr class="${deduction.critical ? 'score-entry-penalty-row--critical' : ''}"
                                 data-deduction-id="${deduction.id}"
                                 data-critical="${deduction.critical}"
@@ -59,10 +61,19 @@
                                 </td>
                                 <td class="score-entry-penalty-time">
                                     <c:choose>
+                                        <c:when test="${deferredAdjust}">
+                                            <span class="js-deduction-time"
+                                                  data-deduction-id="${deduction.id}"
+                                                  data-base-time="${recordedTime}">
+                                                <c:if test="${not empty deduction.recordedAt}">
+                                                    ${recordedTime}
+                                                </c:if>
+                                            </span>
+                                        </c:when>
                                         <c:when test="${not empty deduction.recordedAt}">
                                             <fmt:formatDate value="${deduction.recordedAt}" pattern="HH:mm:ss"/>
                                         </c:when>
-                                        <c:otherwise/>
+                                        <c:otherwise>-</c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td class="score-entry-penalty-actions">
@@ -70,10 +81,14 @@
                                         <c:when test="${not empty faultSbd and deferredAdjust}">
                                             <button type="button"
                                                     class="score-entry-penalty-btn score-entry-penalty-btn--minus js-deduction-adjust"
-                                                    data-deduction-id="${deduction.id}" data-delta="-1" title="Giảm">−</button>
+                                                    data-deduction-id="${deduction.id}"
+                                                    data-delta="-1"
+                                                    title="Giảm">−</button>
                                             <button type="button"
                                                     class="score-entry-penalty-btn score-entry-penalty-btn--plus js-deduction-adjust"
-                                                    data-deduction-id="${deduction.id}" data-delta="1" title="Tăng">+</button>
+                                                    data-deduction-id="${deduction.id}"
+                                                    data-delta="1"
+                                                    title="Tăng">+</button>
                                         </c:when>
                                         <c:when test="${not empty faultSbd}">
                                             <form method="post" action="${faultPageUrl}" class="score-entry-penalty-form">

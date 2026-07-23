@@ -14,6 +14,7 @@ public final class Attributes {
         public static final String ERROR_MESSAGE = "errorMessage";
         public static final String REGISTRATION_USERNAME = "registrationUsername";
         public static final String REGISTRATION_PASSWORD = "registrationPassword";
+        public static final String ACTIVE_CANDIDATE_EXAM_ID = "activeCandidateExamId";
     }
 
     // Request attributes for page data and one-hop flash

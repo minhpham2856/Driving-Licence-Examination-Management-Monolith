@@ -2,7 +2,7 @@ package examiner.dto;
 
 import java.util.Map;
 
-// Print preview data for JSP forward from PrintServlet.
+// Print preview data for JSP forward from the examiner file controller.
 public record PrintPreviewDTO(
         String jspPath,
         ExportPayloadDTO tablePayload,

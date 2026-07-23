@@ -19,7 +19,8 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
 
     private static final String BASE_SELECT =
             "SELECT ExamEnrollmentSectionId, ExamEnrollmentId, ExamSectionId, ExamAreaId, ExamDeviceId, "
-            + "Status, AllocatedAt, AllocatedBy, StartedAt, CompletedAt, ResultPrintedAt FROM ExamEnrollmentSection";
+            + "Status, AllocatedAt, AllocatedBy, CheckedInAt, CheckedInBy, StartedAt, CompletedAt, ResultPrintedAt "
+            + "FROM ExamEnrollmentSection";
 
     // Loads all section rows for one exam enrollment.
     @Override
@@ -313,6 +314,90 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
         return printed;
     }
 
+    @Override
+    public Map<Integer, Boolean> getCheckedInByEnrollmentIds(List<Integer> enrollmentIds, String sectionType) {
+        Map<Integer, Boolean> checkedIn = new HashMap<>();
+        if (enrollmentIds == null || enrollmentIds.isEmpty()
+                || sectionType == null || sectionType.isBlank()) {
+            return checkedIn;
+        }
+        StringBuilder sql = new StringBuilder(
+                "SELECT ees.ExamEnrollmentId, "
+                + "CASE WHEN MAX(CASE WHEN ees.CheckedInAt IS NOT NULL THEN 1 ELSE 0 END) = 1 "
+                + "THEN 1 ELSE 0 END AS IsCheckedIn "
+                + "FROM ExamEnrollmentSection ees "
+                + "JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
+                + "WHERE es.SectionType = ? AND ees.ExamEnrollmentId IN (");
+        for (int i = 0; i < enrollmentIds.size(); i++) {
+            sql.append(i == 0 ? "?" : ",?");
+        }
+        sql.append(") GROUP BY ees.ExamEnrollmentId");
+        try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
+            ps.setString(1, sectionType.trim());
+            for (int i = 0; i < enrollmentIds.size(); i++) {
+                ps.setInt(i + 2, enrollmentIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    checkedIn.put(rs.getInt("ExamEnrollmentId"), rs.getInt("IsCheckedIn") == 1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return checkedIn;
+    }
+
+    @Override
+    public boolean markCheckedIn(int examEnrollmentId, String sectionType, Integer checkedInBy) {
+        if (examEnrollmentId <= 0 || sectionType == null || sectionType.isBlank()) {
+            return false;
+        }
+        if (!ensureSectionRow(examEnrollmentId, sectionType)) {
+            return false;
+        }
+        String sql = "UPDATE ees SET ees.CheckedInAt = COALESCE(ees.CheckedInAt, GETDATE()), "
+                + "ees.CheckedInBy = COALESCE(ees.CheckedInBy, ?) "
+                + "FROM ExamEnrollmentSection ees "
+                + "INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
+                + "WHERE ees.ExamEnrollmentId = ? AND es.SectionType = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            if (checkedInBy == null) {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(1, checkedInBy);
+            }
+            ps.setInt(2, examEnrollmentId);
+            ps.setString(3, sectionType.trim());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean clearCheckedInIfNotStarted(int examEnrollmentId, String sectionType) {
+        if (examEnrollmentId <= 0 || sectionType == null || sectionType.isBlank()) {
+            return false;
+        }
+        String sql = "UPDATE ees SET ees.CheckedInAt = NULL, ees.CheckedInBy = NULL "
+                + "FROM ExamEnrollmentSection ees "
+                + "INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
+                + "WHERE ees.ExamEnrollmentId = ? AND es.SectionType = ? "
+                + "AND ISNULL(ees.Status, ?) = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examEnrollmentId);
+            ps.setString(2, sectionType.trim());
+            ps.setString(3, CandidateStatus.NOT_STARTED.getValue());
+            ps.setString(4, CandidateStatus.NOT_STARTED.getValue());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     // Returns true when ResultPrintedAt is set for the enrollment section row.
     @Override
     public boolean isResultPrinted(int examEnrollmentId, String sectionType) {
@@ -421,6 +506,11 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
         int allocatedBy = rs.getInt("AllocatedBy");
         if (!rs.wasNull()) {
             row.setAllocatedBy(allocatedBy);
+        }
+        row.setCheckedInAt(rs.getTimestamp("CheckedInAt"));
+        int checkedInBy = rs.getInt("CheckedInBy");
+        if (!rs.wasNull()) {
+            row.setCheckedInBy(checkedInBy);
         }
         row.setStartedAt(rs.getTimestamp("StartedAt"));
         row.setCompletedAt(rs.getTimestamp("CompletedAt"));

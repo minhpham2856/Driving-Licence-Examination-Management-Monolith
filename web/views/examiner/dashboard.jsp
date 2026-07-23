@@ -51,10 +51,11 @@
                 <!--candidate list-->
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
-                    <jsp:param name="showTheoryScores" value="${examinerSectionTheory ? 'true' : 'false'}" />
-                    <jsp:param name="showPracticalScore" value="${examinerSectionTheory ? 'false' : 'true'}" />
+                    <jsp:param name="showTheoryScores" value="false" />
+                    <jsp:param name="showExamScore" value="true" />
                     <jsp:param name="showResult" value="true" />
                     <jsp:param name="showStatus" value="true" />
+                    <jsp:param name="showAddress" value="false" />
                 </jsp:include>
 
                 <!--statistics-->

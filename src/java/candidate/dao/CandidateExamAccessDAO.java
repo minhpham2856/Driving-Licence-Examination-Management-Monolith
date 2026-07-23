@@ -2,17 +2,15 @@ package candidate.dao;
 
 import candidate.dto.CandidateExamContextDTO;
 import candidate.dto.CandidateExamResultDTO;
-import java.util.List;
 import java.util.Map;
-import shared.model.Question;
 
 public interface CandidateExamAccessDAO {
 
-    CandidateExamContextDTO getEligibleTheoryContext(String candidateNumber);
+    int findActiveExamIdForLogin(String examCodeOrId, String examPassword);
 
-    int startTheoryPaper(int examEnrollmentSectionId);
+    CandidateExamContextDTO getEligibleTheoryContext(int examId, String candidateNumber);
 
-    List<Question> getRandomQuestions(int licenceId, int limit);
+    boolean startTheoryAttempt(CandidateExamContextDTO context, int questionLimit);
 
     CandidateExamResultDTO submit(int theoryPaperId, CandidateExamContextDTO context,
             Map<Integer, String> answers);

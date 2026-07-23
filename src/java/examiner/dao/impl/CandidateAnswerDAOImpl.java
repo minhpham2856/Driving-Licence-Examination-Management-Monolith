@@ -13,7 +13,7 @@ public class CandidateAnswerDAOImpl extends DBContext implements CandidateAnswer
     @Override
     public List<CandidateAnswer> getAllByTheoryPaperId(int theoryPaperId) {
         List<CandidateAnswer> list = new ArrayList<>();
-        String sql = "SELECT * FROM CandidateAnswer WHERE TheoryPaperId = ?";
+        String sql = "SELECT * FROM CandidateAnswer WHERE TheoryPaperId = ? ORDER BY CandidateAnswerId";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, theoryPaperId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -32,4 +32,3 @@ public class CandidateAnswerDAOImpl extends DBContext implements CandidateAnswer
         return list;
     }
 }
-

@@ -3,7 +3,7 @@
 
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="In văn bản" />
+<c:set var="headerTitle" value="Biên bản" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>SÁT HẠCH</title>
+        <title>Biên bản sát hạch</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -31,10 +31,7 @@
             <main class="examiner-main examiner-main--scroll">
                 <jsp:include page="/views/examiner/components/examiner-messages.jsp" />
                 <div class="export-card">
-                    <jsp:include page="/views/examiner/components/document-rows.jsp">
-                        <jsp:param name="mode" value="print" />
-                        <jsp:param name="btnClass" value="print-btn" />
-                    </jsp:include>
+                    <jsp:include page="/views/examiner/components/document-rows.jsp" />
                 </div>
             </main>
         </div>

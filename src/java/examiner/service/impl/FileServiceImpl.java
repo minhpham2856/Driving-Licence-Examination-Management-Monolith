@@ -1,20 +1,5 @@
 package examiner.service.impl;
 
-import com.deepoove.poi.XWPFTemplate;
-import com.deepoove.poi.config.Configure;
-import com.deepoove.poi.data.Pictures;
-import examiner.dao.CandidateAnswerDAO;
-import examiner.dao.DeductionRecordViewDAO;
-import examiner.dao.ExamDAO;
-import examiner.dao.ExamResultDAO;
-import examiner.dao.QuestionDAO;
-import examiner.dao.TheoryPaperDAO;
-import examiner.dao.impl.CandidateAnswerDAOImpl;
-import examiner.dao.impl.DeductionRecordViewDAOImpl;
-import examiner.dao.impl.ExamDAOImpl;
-import examiner.dao.impl.ExamResultDAOImpl;
-import examiner.dao.impl.QuestionDAOImpl;
-import examiner.dao.impl.TheoryPaperDAOImpl;
 import examiner.dto.CandidateRowDTO;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.ExamStatsDTO;
@@ -22,11 +7,7 @@ import examiner.dto.ExportContextDTO;
 import examiner.dto.ExportPayloadDTO;
 import examiner.dto.PrintPreviewDTO;
 import examiner.dto.XmlExportTable;
-import static examiner.util.FormatUtil.formatBbPrintTitle;
-import static examiner.util.FormatUtil.formatDocumentType;
-import static examiner.util.FormatUtil.formatSbdFilter;
-import static examiner.util.FormatUtil.isCandidateResultDocument;
-import static examiner.util.FormatUtil.isSessionDocumentType;
+import examiner.dao.CandidateAnswerDAO;
 import shared.enums.FileType;
 import shared.enums.SectionType;
 import shared.model.Audit;
@@ -34,18 +15,25 @@ import shared.model.CandidateAnswer;
 import shared.model.Exam;
 import shared.model.ExamResult;
 import shared.model.ExaminerSchedule;
-import shared.model.Question;
 import shared.model.TheoryPaper;
-import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import examiner.dao.DeductionRecordViewDAO;
+import examiner.dao.ExamDAO;
+import examiner.dao.ExamResultDAO;
+import examiner.dao.TheoryPaperDAO;
+import examiner.dao.impl.CandidateAnswerDAOImpl;
+import examiner.dao.impl.DeductionRecordViewDAOImpl;
+import examiner.dao.impl.ExamDAOImpl;
+import examiner.dao.impl.ExamResultDAOImpl;
+import examiner.dao.impl.TheoryPaperDAOImpl;
 import examiner.service.AuditService;
 import examiner.service.ExamViewService;
+import static examiner.util.FormatUtil.formatBbPrintTitle;
+import static examiner.util.FormatUtil.formatDocumentType;
+import static examiner.util.FormatUtil.formatPrintTitle;
+import static examiner.util.FormatUtil.formatSbdFilter;
+import static examiner.util.FormatUtil.isCandidateResultDocument;
+import static examiner.util.FormatUtil.isSessionDocumentType;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
@@ -58,28 +46,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import examiner.service.FileService;
 import examiner.service.EnrollmentService;
 
-// Builds and renders examiner export/print documents (DOCX templates, BB1/BB2 forms, table exports).
-public class DocxServiceImpl implements FileService {
-
-    private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
-    private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("HH:mm");
-    private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-    private static final int AUDIT_LIMIT = 5000;
-    private static final List<String> CANDIDATE_FIELDS = List.of(
-            "sbd", "hoVaTen", "ngaySinh", "gioiTinh", "cccd", "email", "soDienThoai",
-            "diaChi", "hangGplx", "lyDoThi", "ngayThi", "vangThi", "tinhTrangThi");
-    private static final List<String> CANDIDATE_HEADERS = List.of(
-            "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
-            "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi");
-    // BB1(A1-A-B1) template answer grids: questions 1-12 and 13-25.
-    private static final int BLOCK_A_FROM = 1;
-    private static final int BLOCK_A_TO = 12;
-    private static final int BLOCK_B_FROM = 13;
-    private static final int BLOCK_B_TO = 25;
-    private static final String TEMPLATE_DIR = "/docx-template/examiner/";
+// Builds examiner file exports and JSP print preview models.
+public class FileServiceImpl implements FileService {
 
     private final AuditService auditService = new AuditServiceImpl();
     private final ExamDAO examDAO = new ExamDAOImpl();
@@ -87,16 +65,23 @@ public class DocxServiceImpl implements FileService {
     private final ExamViewService viewService = new ExamViewServiceImpl();
     private final EnrollmentService enrollmentService = new EnrollmentServiceImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
-    private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
     private final CandidateAnswerDAO candidateAnswerDAO = new CandidateAnswerDAOImpl();
-    private final QuestionDAO questionDAO = new QuestionDAOImpl();
+    private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
 
-    // Builds poi-tl template config using << >> placeholder delimiters.
-    private static Configure poiTlConfig() {
-        return Configure.builder().buildGramer("<<", ">>").build();
-    }
-
-    // === build* (duplicated from DocumentServiceImpl) ===
+    private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("HH:mm");
+    private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private static final int AUDIT_LIMIT = 5000;
+    private static final int BLOCK_A_FROM = 1;
+    private static final int BLOCK_A_TO = 12;
+    private static final int BLOCK_B_FROM = 13;
+    private static final int BLOCK_B_TO = 25;
+    private static final List<String> CANDIDATE_FIELDS = List.of(
+            "sbd", "hoVaTen", "ngaySinh", "gioiTinh", "cccd", "email", "soDienThoai",
+            "diaChi", "hangGplx", "lyDoThi", "ngayThi", "vangThi", "tinhTrangThi");
+    private static final List<String> CANDIDATE_HEADERS = List.of(
+            "SBD", "Há» vÃ  tÃªn", "NgÃ y sinh", "Giá»›i tÃ­nh", "Sá»‘ cÄƒn cÆ°á»›c", "Email", "Sá»‘ Ä‘iá»‡n thoáº¡i",
+            "Äá»‹a chá»‰", "Háº¡ng GPLX", "LÃ½ do thi", "NgÃ y thi", "Váº¯ng thi", "TÃ¬nh tráº¡ng thi");
 
     // Loads exam code and shift times for export preamble metadata.
     private Map<String, Object> getExamExportMeta(int examId) {
@@ -122,7 +107,7 @@ public class DocxServiceImpl implements FileService {
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Danh sách thí sinh", "danhSachThiSinh", Map.of(), List.of(table), exportTimestampPreamble());
+                "Danh sÃ¡ch thÃ­ sinh", "danhSachThiSinh", Map.of(), List.of(table), exportTimestampPreamble());
     }
 
     // Builds results export from session data.
@@ -134,7 +119,7 @@ public class DocxServiceImpl implements FileService {
         List<List<Object>> rows = new ArrayList<>();
         if (ctx.isTheory() == false) {
             fields = List.of("sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
+            headers = List.of("SBD", "Há» vÃ  tÃªn", "Äiá»ƒm", "Káº¿t quáº£", "TÃ¬nh tráº¡ng", "Váº¯ng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         c.getCandidateNumber(),
@@ -142,12 +127,12 @@ public class DocxServiceImpl implements FileService {
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
             }
         } else {
             fields = List.of("sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
-                    "Vắng thi");
+            headers = List.of("SBD", "Há» vÃ  tÃªn", "ÄÃºng", "Sai", "KhÃ´ng TL", "Káº¿t quáº£", "TÃ¬nh tráº¡ng",
+                    "Váº¯ng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         c.getCandidateNumber(),
@@ -157,16 +142,16 @@ public class DocxServiceImpl implements FileService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
             }
         }
         XmlExportTable table = new XmlExportTable("ketQuaThi", "ketQua", fields, headers, rows);
         return new ExportPayloadDTO(
-                "Tổng hợp kết quả thi", "tongHopKetQuaThi", Map.of(), List.of(table), exportTimestampPreamble());
+                "Tá»•ng há»£p káº¿t quáº£ thi", "tongHopKetQuaThi", Map.of(), List.of(table), exportTimestampPreamble());
     }
 
     // Builds minutes export from session data.
-    private ExportPayloadDTO buildMinutesExport(ExportContextDTO ctx) {
+    public ExportPayloadDTO buildMinutesExport(ExportContextDTO ctx) {
         Map<String, Object> meta = getExamExportMeta(ctx.examId());
         ExamStatsDTO summary = viewService.getStatsByExam(
                 ctx.examId(), ctx.section());
@@ -176,21 +161,21 @@ public class DocxServiceImpl implements FileService {
                 ctx.section() != null ? ctx.section().getValue() : SectionType.LAYOUT.getValue());
         List<List<Object>> preamble = buildMinutesPreamble(meta, summary, ctx.schedule(), ctx.isTheory(),
                 ctx.section() != null ? ctx.section().getValue() : SectionType.LAYOUT.getValue());
-        preamble.add(0, Arrays.asList("Thời gian xuất", nowExportTimestamp()));
+        preamble.add(0, Arrays.asList("Thá»i gian xuáº¥t", nowExportTimestamp()));
         List<String> fields;
         List<String> headers;
         if (ctx.isTheory() == false) {
             fields = List.of("sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
+            headers = List.of("SBD", "Há» vÃ  tÃªn", "Äiá»ƒm", "Káº¿t quáº£", "TÃ¬nh tráº¡ng", "Váº¯ng thi");
         } else {
             fields = List.of("sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
-                    "Vắng thi");
+            headers = List.of("SBD", "Há» vÃ  tÃªn", "ÄÃºng", "Sai", "KhÃ´ng TL", "Káº¿t quáº£", "TÃ¬nh tráº¡ng",
+                    "Váº¯ng thi");
         }
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", fields, headers, buildMinutesRows(candidates, ctx.isTheory()));
         return new ExportPayloadDTO(
-                "Biên bản thi", "bienBanThi", metadata, List.of(table), preamble);
+                "BiÃªn báº£n thi", "bienBanThi", metadata, List.of(table), preamble);
     }
 
     // Builds violations export payload without SBD filter.
@@ -221,7 +206,7 @@ public class DocxServiceImpl implements FileService {
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinhViPham", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Danh sách thí sinh vi phạm",
+                "Danh sÃ¡ch thÃ­ sinh vi pháº¡m",
                 "danhSachThiSinhViPham",
                 Map.of(),
                 List.of(table),
@@ -255,21 +240,21 @@ public class DocxServiceImpl implements FileService {
                 "nhatKy",
                 "banGhi",
                 List.of("nguoiDung", "thaoTac", "doiTuong", "maBanGhi", "thongTin", "cu", "moi", "lyDo", "thoiGian"),
-                List.of("Người dùng", "Thao tác", "Đối tượng", "SBD", "Thông tin", "Cũ", "Mới", "Lý do",
-                        "Thời gian"),
+                List.of("NgÆ°á»i dÃ¹ng", "Thao tÃ¡c", "Äá»‘i tÆ°á»£ng", "SBD", "ThÃ´ng tin", "CÅ©", "Má»›i", "LÃ½ do",
+                        "Thá»i gian"),
                 rows);
         Map<String, Object> metadata = Map.of();
         if (searchQuery != null && !searchQuery.isBlank()) {
             metadata = Map.of("tuKhoa", searchQuery.trim());
         }
-        return new ExportPayloadDTO("Nhật ký", "nhatKyHeThong", metadata, List.of(table), exportTimestampPreamble());
+        return new ExportPayloadDTO("Nháº­t kÃ½", "nhatKyHeThong", metadata, List.of(table), exportTimestampPreamble());
     }
 
     // Private helper: build minutes metadata.
     private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionType) {
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
+        metadata.put("tieuDe", "BIÃŠN Báº¢N Tá»” CHá»¨C THI");
         metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
         metadata.put("maDotThi", nullToDash(meta.get("examCode")));
         metadata.put("ngayThi", formatDate(meta.get("examDate")));
@@ -279,7 +264,7 @@ public class DocxServiceImpl implements FileService {
             metadata.put("khuVucPhong", nullToDash(schedule.getExamArea().getAreaName()));
         }
         metadata.put("phanThi",
-                !isTheory ? nullToDash(sectionType) : "Lý thuyết");
+                !isTheory ? nullToDash(sectionType) : "LÃ½ thuyáº¿t");
         Map<String, Object> thongKe = new LinkedHashMap<>();
         thongKe.put("tongThiSinh", summary.getTotal());
         thongKe.put("daThi", summary.getDone());
@@ -295,24 +280,24 @@ public class DocxServiceImpl implements FileService {
     private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionType) {
         List<List<Object>> preamble = new ArrayList<>();
-        preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
+        preamble.add(Arrays.asList("BIÃŠN Báº¢N Tá»” CHá»¨C THI"));
         preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
-        preamble.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
-        preamble.add(Arrays.asList("Ngày thi", formatDate(meta.get("examDate"))));
-        preamble.add(Arrays.asList("Giờ bắt đầu", formatTime(meta.get("startTime"))));
-        preamble.add(Arrays.asList("Giờ kết thúc", formatTime(meta.get("endTime"))));
+        preamble.add(Arrays.asList("MÃ£ Ä‘á»£t thi", nullToDash(meta.get("examCode"))));
+        preamble.add(Arrays.asList("NgÃ y thi", formatDate(meta.get("examDate"))));
+        preamble.add(Arrays.asList("Giá» báº¯t Ä‘áº§u", formatTime(meta.get("startTime"))));
+        preamble.add(Arrays.asList("Giá» káº¿t thÃºc", formatTime(meta.get("endTime"))));
         if (schedule != null && schedule.getExamArea() != null) {
-            preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(schedule.getExamArea().getAreaName())));
+            preamble.add(Arrays.asList("Khu vá»±c / PhÃ²ng", nullToDash(schedule.getExamArea().getAreaName())));
         }
-        preamble.add(Arrays.asList("Phần thi",
-                !isTheory ? nullToDash(sectionType) : "Lý thuyết"));
+        preamble.add(Arrays.asList("Pháº§n thi",
+                !isTheory ? nullToDash(sectionType) : "LÃ½ thuyáº¿t"));
         preamble.add(Arrays.asList());
-        preamble.add(Arrays.asList("Tổng thí sinh", summary.getTotal()));
-        preamble.add(Arrays.asList("Đã thi", summary.getDone()));
-        preamble.add(Arrays.asList("Đang thi", summary.getTesting()));
-        preamble.add(Arrays.asList("Chưa thi", summary.getPending()));
-        preamble.add(Arrays.asList("Đạt", summary.getPassed()));
-        preamble.add(Arrays.asList("Trượt", summary.getFailed()));
+        preamble.add(Arrays.asList("Tá»•ng thÃ­ sinh", summary.getTotal()));
+        preamble.add(Arrays.asList("ÄÃ£ thi", summary.getDone()));
+        preamble.add(Arrays.asList("Äang thi", summary.getTesting()));
+        preamble.add(Arrays.asList("ChÆ°a thi", summary.getPending()));
+        preamble.add(Arrays.asList("Äáº¡t", summary.getPassed()));
+        preamble.add(Arrays.asList("TrÆ°á»£t", summary.getFailed()));
         preamble.add(Arrays.asList());
         return preamble;
     }
@@ -329,7 +314,7 @@ public class DocxServiceImpl implements FileService {
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
             } else {
                 rows.add(Arrays.asList(
                         c.getCandidateNumber(),
@@ -339,7 +324,7 @@ public class DocxServiceImpl implements FileService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "Có" : "Không"));
+                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
             }
         }
         return rows;
@@ -359,7 +344,7 @@ public class DocxServiceImpl implements FileService {
                 c.getLicenceClass(),
                 c.getReasonForTaking(),
                 c.getExamDate(),
-                c.isAbsent() ? "Có" : "Không",
+                c.isAbsent() ? "CÃ³" : "KhÃ´ng",
                 c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "");
     }
 
@@ -384,10 +369,10 @@ public class DocxServiceImpl implements FileService {
         return sbds;
     }
 
-    // Adds export timestamp row used as table preamble in payloads.
+    // Adds export timestamp row used as sheet preamble in payloads.
     private static List<List<Object>> exportTimestampPreamble() {
         List<List<Object>> preamble = new ArrayList<>();
-        preamble.add(Arrays.asList("Thời gian xuất", nowExportTimestamp()));
+        preamble.add(Arrays.asList("Thá»i gian xuáº¥t", nowExportTimestamp()));
         return preamble;
     }
 
@@ -469,37 +454,120 @@ public class DocxServiceImpl implements FileService {
             case "result" ->
                 buildResultsExport(ctx);
             case "violations" ->
-                throw new IOException("Biên bản vi phạm chỉ xuất Excel, không hỗ trợ DOCX.");
+                buildViolationsExport(ctx, searchQuery);
             case "audit" ->
                 buildAuditExport(ctx, searchQuery);
             default ->
-                throw new IOException("Loại tài liệu xuất không được hỗ trợ: " + documentType);
+                throw new IOException("Loáº¡i tÃ i liá»‡u xuáº¥t khÃ´ng Ä‘Æ°á»£c há»— trá»£: " + documentType);
         };
+    }
+
+    // === Rendering (from XmlServiceImpl) ===
+    // Writes a simple Excel sheet with headers and data rows.
+    private void exportToExcel(String sheetName, List<String> headers, List<List<Object>> rows, OutputStream out)
+            throws IOException {
+        exportToExcel(sheetName, null, headers, rows, out);
+    }
+
+    // Writes an Excel sheet with optional preamble rows, headers, and data rows.
+    private void exportToExcel(String sheetName, List<List<Object>> preambleRows, List<String> headers,
+            List<List<Object>> rows, OutputStream out) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet((sheetName == null || sheetName.isBlank()) ? "newSheet" : sheetName);
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            CellStyle dateStyle = workbook.createCellStyle();
+            dateStyle.setDataFormat(workbook.getCreationHelper().createDataFormat().getFormat("dd/MM/yyyy"));
+            int rowIndex = 0;
+            if (preambleRows != null) {
+                for (List<Object> preambleRow : preambleRows) {
+                    Row row = sheet.createRow(rowIndex++);
+                    if (preambleRow == null) {
+                        continue;
+                    }
+                    for (int col = 0; col < preambleRow.size(); col++) {
+                        writeCell(row.createCell(col), preambleRow.get(col), dateStyle);
+                    }
+                }
+            }
+            int headerColCount = 0;
+            if (headers != null && !headers.isEmpty()) {
+                Row headerRow = sheet.createRow(rowIndex++);
+                headerColCount = headers.size();
+                for (int col = 0; col < headers.size(); col++) {
+                    Cell headerCell = headerRow.createCell(col);
+                    headerCell.setCellValue(headers.get(col));
+                    headerCell.setCellStyle(headerStyle);
+                }
+            }
+            if (rows != null) {
+                for (List<Object> rowData : rows) {
+                    Row row = sheet.createRow(rowIndex++);
+                    for (int col = 0; col < rowData.size(); col++) {
+                        writeCell(row.createCell(col), rowData.get(col), dateStyle);
+                    }
+                    headerColCount = Math.max(headerColCount, rowData.size());
+                }
+            }
+            for (int col = 0; col < headerColCount; col++) {
+                sheet.autoSizeColumn(col);
+            }
+            workbook.write(out);
+        }
+    }
+
+    // Private helper: write cell.
+    private void writeCell(Cell cell, Object value, CellStyle dateStyle) {
+        if (value == null) {
+            cell.setBlank();
+        } else if (value instanceof Number) {
+            cell.setCellValue(((Number) value).doubleValue());
+        } else if (value instanceof Boolean) {
+            cell.setCellValue((Boolean) value);
+        } else if (value instanceof Date) {
+            cell.setCellValue((Date) value);
+            cell.setCellStyle(dateStyle);
+        } else {
+            cell.setCellValue(value.toString());
+        }
     }
 
     // === FileService ===
 
-    // Exports session DOCX tables or per-candidate result forms to the output stream.
+    // Exports examiner session reports to Excel.
     @Override
     public void export(ExportContextDTO ctx, String documentType, FileType format,
             String searchQuery, int sbd, OutputStream out) throws IOException {
         validateExport(documentType, format, sbd);
-        if (isPerCandidateResultExport(documentType, sbd)) {
-            renderResultDocument(ctx, sbd, out);
-            return;
-        }
         ExportPayloadDTO payload = buildPayload(ctx, documentType, searchQuery);
-        renderTableExport(payload, out);
+        if (payload.excelPreambleRows() != null) {
+            exportToExcel(payload.excelSheetName(), payload.excelPreambleRows(),
+                    payload.tables().get(0).headers(), payload.tables().get(0).rows(), out);
+        } else {
+            exportToExcel(payload.excelSheetName(), payload.tables().get(0).headers(),
+                    payload.tables().get(0).rows(), out);
+        }
     }
 
-    // Builds per-candidate BB1/BB2 print preview for browser printing.
+    // Builds print preview for session tables or per-candidate BB1/BB2 JSP pages.
     @Override
     public PrintPreviewDTO print(ExportContextDTO ctx, String documentType,
             int sbd, String searchQuery) throws IOException {
+        String normalized = formatDocumentType(documentType);
+        if (isSessionDocumentType(normalized) && !isCandidateResultDocument(normalized, sbd)) {
+            ExportPayloadDTO payload = buildPayload(ctx, normalized, searchQuery);
+            return new PrintPreviewDTO(
+                    "/views/examiner/print/table.jsp",
+                    payload,
+                    null,
+                    formatPrintTitle(normalized, sbd));
+        }
         if (sbd <= 0) {
             throw new IOException("Thiếu số báo danh.");
         }
-        Map<String, Object> model = buildPrintModel(ctx, documentType, sbd);
+        Map<String, Object> model = buildCandidatePrintModel(ctx, normalized, sbd);
         String form = model.get("_FORM") == null ? "BB1" : model.get("_FORM").toString();
         String jspPath = "BB2".equalsIgnoreCase(form)
                 ? "/views/examiner/print/bb2.jsp"
@@ -508,41 +576,11 @@ public class DocxServiceImpl implements FileService {
                 jspPath,
                 null,
                 model,
-                formatBbPrintTitle(documentType, sbd));
+                formatBbPrintTitle(normalized, sbd));
     }
 
-    // Validates export request for DOCX session and per-candidate result forms.
-    private void validateExport(String documentType, FileType format, int sbd) throws IOException {
-        if (format != FileType.DOCX) {
-            throw new IOException("DocxService chỉ hỗ trợ xuất DOCX.");
-        }
-        String normalized = formatDocumentType(documentType);
-        if (isPerCandidateResultExport(documentType, sbd)) {
-            return;
-        }
-        if (requiresSbd(normalized, sbd)) {
-            throw new IOException("Thiếu số báo danh.");
-        }
-    }
-
-    // Return true when exporting a per-candidate result DOCX for a specific SBD.
-    private static boolean isPerCandidateResultExport(String documentType, int sbd) {
-        return isCandidateResultDocument(documentType, sbd);
-    }
-
-    // Return true when DOCX export requires SBD but none was provided.
-    private static boolean requiresSbd(String type, int sbd) {
-        if (sbd > 0) {
-            return false;
-        }
-        if (isCandidateResultDocument(type, sbd)) {
-            return true;
-        }
-        return !isSessionDocumentType(type);
-    }
-
-    // Builds placeholder map and answer grids for JSP print pages (no PDF conversion).
-    private Map<String, Object> buildPrintModel(ExportContextDTO ctx, String documentType, int sbd)
+    // Builds flattened BB1/BB2 model consumed by JSP print templates.
+    private Map<String, Object> buildCandidatePrintModel(ExportContextDTO ctx, String documentType, int sbd)
             throws IOException {
         String normalized = documentType == null ? "" : documentType.trim().toUpperCase(Locale.ROOT);
         if (normalized.startsWith("BB1")) {
@@ -550,6 +588,7 @@ public class DocxServiceImpl implements FileService {
         } else if (normalized.startsWith("BB2")) {
             normalized = "BB2";
         }
+
         CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String form;
         Map<String, Object> data;
@@ -563,16 +602,15 @@ public class DocxServiceImpl implements FileService {
                 data = buildBb2Placeholders(ctx, candidate);
             }
             case "MINUTES", "RESULT" -> {
-                form = resolveResultDocumentType(ctx, candidate);
-                if ("BB1".equals(form)) {
-                    data = buildBb1Placeholders(ctx, candidate);
-                } else {
-                    data = buildBb2Placeholders(ctx, candidate);
-                }
+                form = ctx.isTheory() ? "BB1" : "BB2";
+                data = "BB1".equals(form)
+                        ? buildBb1Placeholders(ctx, candidate)
+                        : buildBb2Placeholders(ctx, candidate);
             }
             default ->
                 throw new IOException("Loại văn bản in không được hỗ trợ: " + documentType);
         }
+
         data.put("_FORM", form);
         if ("BB1".equals(form)) {
             Map<String, String> answersA = parseAnswerBlockToMap(stringValue(data.get("A")));
@@ -584,140 +622,23 @@ public class DocxServiceImpl implements FileService {
             data.put("marksA", buildChoiceMarks(listA));
             data.put("marksB", buildChoiceMarks(listB));
         }
-        // PIC is a Pictures object for DOCX — expose URL separately for JSP.
         String photoUrl = candidate.getPhotoImageUrl();
         data.put("PHOTO_URL", photoUrl == null ? "" : photoUrl.trim());
         data.put("PIC", "");
         return data;
     }
 
-    // Auto-picks BB1 (theory) or BB2 (practical) and renders the matching template.
-    private void renderResultDocument(ExportContextDTO ctx, int sbd, OutputStream out) throws IOException {
-        CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
-        String docCode = resolveResultDocumentType(ctx, candidate);
-        if ("BB1".equals(docCode)) {
-            renderBb1Theory(ctx, sbd, out);
-            return;
-        }
-        renderBb2Layout(ctx, sbd, out);
-    }
-
-    // Resolves BB1 vs BB2 document code from session section context.
-    private String resolveResultDocumentType(ExportContextDTO ctx, CandidateRowDTO candidate) throws IOException {
-        if (ctx.isTheory()) {
-            return "BB1";
-        }
-        // JSP print page (bb2.jsp) is licence-agnostic; always use BB2 for practical result forms.
-        return "BB2";
-    }
-
-    // === DOCX rendering (kept from old DocxServiceImpl) ===
-
-    // Renders a DOCX template from classpath with poi-tl placeholders.
-    public void render(String templateClasspath, Map<String, Object> placeholders, OutputStream out)
-            throws IOException {
-        try (InputStream in = DocxServiceImpl.class.getResourceAsStream(templateClasspath)) {
-            if (in == null) {
-                throw new IOException("Cannot find: " + templateClasspath);
-            }
-            Map<String, Object> safe = new LinkedHashMap<>();
-            for (Map.Entry<String, Object> entry : placeholders.entrySet()) {
-                safe.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
-            }
-            XWPFTemplate.compile(in, poiTlConfig()).render(safe).write(out);
-        }
-    }
-
-    // Renders BB1 theory result form for one candidate.
-    public void renderBb1Theory(ExportContextDTO ctx, int sbd, OutputStream out) throws IOException {
-        CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
-        String template = pickTemplate("BB1", candidate.getLicenceClass());
-        render(template, buildBb1Placeholders(ctx, candidate), out);
-    }
-
-    // Renders BB2 practical score sheet for one candidate.
-    public void renderBb2Layout(ExportContextDTO ctx, int sbd, OutputStream out) throws IOException {
-        CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
-        String template = pickTemplate("BB2", candidate.getLicenceClass());
-        render(template, buildBb2Placeholders(ctx, candidate), out);
-    }
-
-    // Renders export payload tables into a standalone DOCX workbook-like document.
-    public void renderTableExport(ExportPayloadDTO payload, OutputStream out) throws IOException {
-        try (XWPFDocument document = new XWPFDocument()) {
-            XWPFParagraph title = document.createParagraph();
-            title.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun titleRun = title.createRun();
-            titleRun.setBold(true);
-            titleRun.setFontSize(14);
-            titleRun.setText(payload.excelSheetName());
-
-            XWPFParagraph printedAt = document.createParagraph();
-            printedAt.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun printedAtRun = printedAt.createRun();
-            printedAtRun.setFontSize(10);
-            printedAtRun.setText("Thời gian in: "
-                    + new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date()));
-
-            if (payload.metadata() != null) {
-                for (Map.Entry<String, Object> entry : payload.metadata().entrySet()) {
-                    appendLine(document, entry.getKey() + ": " + format(entry.getValue()));
-                }
-            }
-            if (payload.excelPreambleRows() != null) {
-                for (List<Object> row : payload.excelPreambleRows()) {
-                    if (row == null || row.isEmpty()) {
-                        continue;
-                    }
-                    Object first = row.get(0);
-                    if (first != null && "Thời gian xuất".equals(first.toString().trim())) {
-                        continue;
-                    }
-                    StringBuilder line = new StringBuilder();
-                    for (int i = 0; i < row.size(); i++) {
-                        if (i > 0) {
-                            line.append(" | ");
-                        }
-                        line.append(format(row.get(i)));
-                    }
-                    appendLine(document, line.toString());
-                }
-            }
-            for (XmlExportTable table : payload.tables()) {
-                appendLine(document, "");
-                XWPFTable xwpfTable = document.createTable();
-                XWPFTableRow headerRow = xwpfTable.getRow(0);
-                for (int i = 0; i < table.headers().size(); i++) {
-                    if (i > 0) {
-                        headerRow.addNewTableCell();
-                    }
-                    headerRow.getCell(i).setText(table.headers().get(i));
-                }
-                for (List<Object> row : table.rows()) {
-                    XWPFTableRow dataRow = xwpfTable.createRow();
-                    for (int i = 0; i < row.size(); i++) {
-                        dataRow.getCell(i).setText(format(row.get(i)));
-                    }
-                }
-            }
-            document.write(out);
-        }
-    }
-
-    // Private helper: build bb1 placeholders.
     private Map<String, Object> buildBb1Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
         data.put("A", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_A_FROM, BLOCK_A_TO));
         data.put("B", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_B_FROM, BLOCK_B_TO));
         data.put("SCORE", format(candidate.getScoreTheory()));
-        boolean passed = "Đạt".equalsIgnoreCase(stringValue(candidate.getResultLabel()))
-                || candidate.isPassed();
+        boolean passed = "Đạt".equalsIgnoreCase(stringValue(candidate.getResultLabel())) || candidate.isPassed();
         data.put("P", passed ? "X" : "");
         data.put("F", passed ? "" : "X");
         return data;
     }
 
-    // Private helper: build bb2 placeholders.
     private Map<String, Object> buildBb2Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
         data.put("VNO", format(candidate.getVehicleName()));
@@ -730,37 +651,20 @@ public class DocxServiceImpl implements FileService {
         boolean passed = isPracticalPassed(candidate);
         data.put("P", passed ? "X" : "");
         data.put("F", passed ? "" : "X");
-        // End time = when SHV finalized score (ExamResult.ResultDate).
         ExamResult result = candidate.getEnrollmentId() > 0
                 ? examResultDAO.getByExamEnrollmentId(candidate.getEnrollmentId())
                 : null;
-        if (result != null && result.getResultDate() != null) {
-            data.put("END", formatTime(result.getResultDate()));
-        } else {
-            data.put("END", "-");
-        }
+        data.put("END", result != null && result.getResultDate() != null ? formatTime(result.getResultDate()) : "-");
         return data;
     }
 
-    // Determines practical pass from score threshold or result label flags.
-    private static boolean isPracticalPassed(CandidateRowDTO candidate) {
-        if (candidate.getExamScore() != null) {
-            return candidate.getExamScore() >= 80;
-        }
-        return "Đạt".equalsIgnoreCase(stringValue(candidate.getResultLabel()))
-                || candidate.isPassed();
-    }
-
-    // Private helper: base candidate placeholders.
     private Map<String, Object> baseCandidatePlaceholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = new LinkedHashMap<>();
         TheoryPaper paper = loadTheoryPaper(candidate);
-        String shiftLabel = "-";
-
         data.put("DEPT", "TP. HÀ NỘI");
         data.put("FNAME", format(candidate.getFullName()));
-        data.put("EXAM", shiftLabel);
-        data.put("PIC", buildPicPlaceholder(candidate));
+        data.put("EXAM", formatExamCode(ctx));
+        data.put("PIC", "");
         data.put("DOB", format(candidate.getDob()));
         data.put("DATE", format(candidate.getExamDate()));
         data.put("IDNO", format(candidate.getGovernmentId()));
@@ -772,66 +676,14 @@ public class DocxServiceImpl implements FileService {
         return data;
     }
 
-    // Private helper: build pic placeholder.
-    private Object buildPicPlaceholder(CandidateRowDTO candidate) {
-        String url = candidate.getPhotoImageUrl();
-        if (url == null || url.isBlank()) {
-            return "";
-        }
-        try {
-            return Pictures.ofUrl(url.trim()).size(120, 150).create();
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    // Private helper: find candidate row.
     private CandidateRowDTO findCandidateRow(ExportContextDTO ctx, int sbd) throws IOException {
-        CandidateRowDTO row = viewService.getCandidateViewRow(
-                ctx.examId(), sbd, ctx.section());
+        CandidateRowDTO row = viewService.getCandidateViewRow(ctx.examId(), sbd, ctx.section());
         if (row == null) {
             throw new IOException("Không tìm thấy thí sinh SBD " + sbd);
         }
         return row;
     }
 
-    // Picks BB1/BB2 template path for A1/A/B1 only; null for unsupported licence.
-    private String pickTemplate(String documentCode, String licenceClass) throws IOException {
-        String cls = normalizeLicenceClass(licenceClass);
-        if (cls.isEmpty()) {
-            throw new IOException("Không xác định được hạng GPLX của kỳ thi. Vui lòng kiểm tra cấu hình kỳ thi.");
-        }
-        if ("BB1".equals(documentCode)) {
-            if ("A1".equals(cls) || "A".equals(cls) || "B1".equals(cls)) {
-                return TEMPLATE_DIR + "BB1(A1-A-B1).docx";
-            }
-            throw new IOException("Không có mẫu BB1 cho hạng " + cls + " (chỉ hỗ trợ A1/A/B1).");
-        }
-        if ("BB2".equals(documentCode)) {
-            if ("A1".equals(cls) || "A".equals(cls)) {
-                return TEMPLATE_DIR + "BB2(A1-A).docx";
-            }
-            if ("B1".equals(cls)) {
-                return TEMPLATE_DIR + "BB2(B1).docx";
-            }
-            throw new IOException("Không có mẫu BB2 cho hạng " + cls + " (chỉ hỗ trợ A1/A/B1).");
-        }
-        throw new IOException("Loại biên bản không hợp lệ: " + documentCode);
-    }
-
-    // Private helper: normalize licence class.
-    private static String normalizeLicenceClass(String licenceClass) {
-        if (licenceClass == null || licenceClass.isBlank()) {
-            return "";
-        }
-        String normalized = licenceClass.trim().toUpperCase(Locale.ROOT);
-        if ("-".equals(normalized)) {
-            return "";
-        }
-        return normalized;
-    }
-
-    // Loads theory paper row for enrollment when building BB1 placeholders.
     private TheoryPaper loadTheoryPaper(CandidateRowDTO candidate) {
         if (candidate.getEnrollmentId() <= 0) {
             return null;
@@ -839,7 +691,15 @@ public class DocxServiceImpl implements FileService {
         return theoryPaperDAO.getByExamEnrollmentId(candidate.getEnrollmentId());
     }
 
-    // Private helper: build theory answer block.
+    private String formatExamCode(ExportContextDTO ctx) {
+        if (ctx == null || ctx.examId() <= 0) {
+            return "-";
+        }
+        Exam exam = examDAO.get(ctx.examId());
+        String examCode = exam != null ? exam.getExamCode() : null;
+        return examCode == null || examCode.isBlank() ? "-" : examCode.trim();
+    }
+
     private String buildTheoryAnswerBlock(int enrollmentId, int fromQuestionNo, int toQuestionNo) {
         if (enrollmentId <= 0) {
             return "-";
@@ -853,26 +713,14 @@ public class DocxServiceImpl implements FileService {
             return "-";
         }
 
-        List<Integer> questionIds = new ArrayList<>();
-        for (CandidateAnswer answer : answers) {
-            questionIds.add(answer.getQuestionId());
-        }
-        Map<Integer, Integer> questionNoById = new HashMap<>();
-        for (Question question : questionDAO.getAllByIds(questionIds)) {
-            questionNoById.put(question.getQuestionId(), question.getQuestionNumber());
-        }
-
         Map<Integer, String> answerByNo = new HashMap<>();
-        for (CandidateAnswer answer : answers) {
-            Integer questionNo = questionNoById.get(answer.getQuestionId());
-            if (questionNo == null || questionNo < fromQuestionNo || questionNo > toQuestionNo) {
+        for (int i = 0; i < answers.size(); i++) {
+            int paperQuestionNo = i + 1;
+            if (paperQuestionNo < fromQuestionNo || paperQuestionNo > toQuestionNo) {
                 continue;
             }
-            String letter = answer.getAnswer();
-            if (letter == null || letter.isBlank()) {
-                letter = "-";
-            }
-            answerByNo.put(questionNo, letter.trim());
+            String letter = answers.get(i).getAnswer();
+            answerByNo.put(paperQuestionNo, letter == null || letter.isBlank() ? "-" : letter.trim());
         }
         if (answerByNo.isEmpty()) {
             return "-";
@@ -890,15 +738,14 @@ public class DocxServiceImpl implements FileService {
         return text.toString();
     }
 
-    // Appends one text line paragraph to an in-memory DOCX document.
-    private static void appendLine(XWPFDocument document, String text) {
-        XWPFParagraph paragraph = document.createParagraph();
-        XWPFRun run = paragraph.createRun();
-        run.setText(text == null ? "" : text);
+    private static boolean isPracticalPassed(CandidateRowDTO candidate) {
+        if (candidate.getExamScore() != null) {
+            return candidate.getExamScore() >= 80;
+        }
+        return "Đạt".equalsIgnoreCase(stringValue(candidate.getResultLabel())) || candidate.isPassed();
     }
 
-    // Formats placeholder values as trimmed strings for DOCX output.
-    private String format(Object value) {
+    private static String format(Object value) {
         if (value == null) {
             return "";
         }
@@ -906,20 +753,17 @@ public class DocxServiceImpl implements FileService {
         return text.isEmpty() ? "" : text;
     }
 
-    // Converts nullable object to trimmed string for template logic.
     private static String stringValue(Object value) {
         return value == null ? "" : value.toString().trim();
     }
 
-    // Private helper: parse answer block to map.
     private static Map<String, String> parseAnswerBlockToMap(String text) {
         Map<String, String> map = new HashMap<>();
         if (text == null || text.isBlank() || "-".equals(text.trim())) {
             return map;
         }
         String[] parts = text.trim().split("\\s+");
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
+        for (String part : parts) {
             int dot = part.indexOf('.');
             if (dot <= 0 || dot >= part.length() - 1) {
                 continue;
@@ -933,7 +777,6 @@ public class DocxServiceImpl implements FileService {
         return map;
     }
 
-    // Private helper: to answer list.
     private static List<String> toAnswerList(Map<String, String> answers, int from, int to) {
         List<String> list = new ArrayList<>();
         for (int q = from; q <= to; q++) {
@@ -943,20 +786,18 @@ public class DocxServiceImpl implements FileService {
         return list;
     }
 
-    // 4 rows (choices 1-4) × N columns; cell is "X" if that choice was selected.
     private static List<List<String>> buildChoiceMarks(List<String> answers) {
         List<List<String>> marks = new ArrayList<>();
         for (int choice = 1; choice <= 4; choice++) {
             List<String> row = new ArrayList<>();
-            for (int i = 0; i < answers.size(); i++) {
-                row.add(matchesChoice(answers.get(i), choice) ? "X" : "");
+            for (String answer : answers) {
+                row.add(matchesChoice(answer, choice) ? "X" : "");
             }
             marks.add(row);
         }
         return marks;
     }
 
-    // Private helper: matches choice.
     private static boolean matchesChoice(String answer, int choice) {
         if (answer == null || answer.isBlank()) {
             return false;
@@ -968,5 +809,18 @@ public class DocxServiceImpl implements FileService {
         char letter = (char) ('A' + choice - 1);
         return normalized.equals(String.valueOf(letter));
     }
-}
 
+    // Validates export request for Excel-only session document types.
+    private void validateExport(String documentType, FileType format, int sbd) throws IOException {
+        String normalized = formatDocumentType(documentType);
+        if (format == FileType.DOCX) {
+            throw new IOException("Loại tài liệu này chỉ xuất Excel.");
+        }
+        if (format != FileType.EXCEL) {
+            throw new IOException("Định dạng xuất không được hỗ trợ.");
+        }
+        if (isCandidateResultDocument(normalized, sbd)) {
+            throw new IOException("Biên bản kết quả thi chỉ hỗ trợ in.");
+        }
+    }
+}

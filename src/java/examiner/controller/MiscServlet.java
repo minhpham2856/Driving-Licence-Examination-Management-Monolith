@@ -23,7 +23,7 @@ import java.util.Map;
     "/examiner/export",
     "/examiner/print-documents"
 })
-// Miscellaneous pages: audit log viewer, export hub, and per-candidate print document selector.
+// Miscellaneous pages: audit log viewer and the unified print/export document selector.
 public class MiscServlet extends HttpServlet {
 
     protected final ExamViewService viewService = new ExamViewServiceImpl();
@@ -41,12 +41,16 @@ public class MiscServlet extends HttpServlet {
 
         Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
         String path = stripContextPath(request);
+        if ("/examiner/export".equals(path)) {
+            response.sendRedirect(request.getContextPath() + "/examiner/print-documents");
+            return;
+        }
         Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
 
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
-            // Each URL path loads different hub data for audit, export menu, or print-documents picker.
+            // Each URL path loads different hub data for audit or print-documents picker.
             if ("/examiner/audit".equals(path)) {
                 Map<String, Object> data = viewService.getAuditViewByExam(activeExamId, request.getParameter("page"), search);
                 if (data != null) {
@@ -69,14 +73,12 @@ public class MiscServlet extends HttpServlet {
         String jsp = switch (path) {
             case "/examiner/audit" ->
                 "/views/examiner/audit.jsp";
-            case "/examiner/export" ->
-                "/views/examiner/export.jsp";
             case "/examiner/print-documents" ->
                 "/views/examiner/print-documents.jsp";
             default ->
                 "/views/examiner/audit.jsp";
         };
-        // export.jsp is static; audit and print-documents need server-loaded attributes.
+        // audit and print-documents need server-loaded attributes.
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 

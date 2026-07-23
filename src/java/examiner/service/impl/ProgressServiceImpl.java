@@ -1,18 +1,22 @@
 package examiner.service.impl;
 
 import examiner.dao.ExamEnrollmentSectionDAO;
+import examiner.dao.ExamResultDAO;
 import examiner.dao.impl.ExamEnrollmentSectionDAOImpl;
+import examiner.dao.impl.ExamResultDAOImpl;
 import shared.enums.CandidateStatus;
 import shared.enums.SectionType;
 import shared.util.SectionStatusUtil;
 import java.util.List;
 import java.util.Map;
 import examiner.service.ProgressService;
+import shared.model.ExamResult;
 
 // Updates and reads per-section candidate status and result-print flags on enrollments.
 public class ProgressServiceImpl implements ProgressService {
 
     private final ExamEnrollmentSectionDAO enrollmentSectionDAO = new ExamEnrollmentSectionDAOImpl();
+    private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
 
     // Reads normalized candidate status for one enrollment section row.
     @Override
@@ -65,7 +69,7 @@ public class ProgressServiceImpl implements ProgressService {
         return enrollmentSectionDAO.markResultPrinted(examEnrollmentId, sectionType.getValue());
     }
 
-    // Returns whether practical entry is allowed given theory/layout flags and theory completion.
+    // Returns whether practical entry is allowed given theory/layout flags and theory completion/pass result.
     @Override
     public boolean isPracticalEntryAllowed(int examEnrollmentId, boolean takeTheory, boolean takeLayout) {
         if (!takeLayout) {
@@ -75,6 +79,10 @@ public class ProgressServiceImpl implements ProgressService {
             return true;
         }
         CandidateStatus theoryStatus = get(examEnrollmentId, SectionType.THEORY);
-        return theoryStatus == CandidateStatus.COMPLETED;
+        if (theoryStatus != CandidateStatus.COMPLETED) {
+            return false;
+        }
+        ExamResult result = examResultDAO.getByExamEnrollmentId(examEnrollmentId);
+        return result != null && result.isPassed();
     }
 }

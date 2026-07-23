@@ -9,24 +9,6 @@ import java.util.Map;
 // Service contract for examiner call-board actions, presence, scoring, suspensions, and device operations.
 public interface ActionService {
 
-    // Clears in-memory present flag for a candidate in the exam session.
-    void clearPresent(int examId, int sbd);
-
-    // Marks a candidate present in session memory and removes them from the procedure queue.
-    void markPresent(int examId, int sbd);
-
-    // Returns whether the candidate is marked present in session memory.
-    boolean isPresent(int examId, int sbd);
-
-    // Moves a present candidate into the procedure-room queue and removes them from exam queues.
-    void sendToProcedure(int examId, int sbd);
-
-    // Returns whether the candidate is waiting in the procedure-room queue.
-    boolean isInProcedureQueue(int examId, int sbd);
-
-    // Removes a candidate from all in-memory session tracking sets.
-    void removeCandidate(int examId, int sbd);
-
     // Loads enrollment details for the given exam and candidate number (SBD).
     EnrollmentDTO getIfByExamAndSbd(int examId, int sbd);
 
@@ -41,9 +23,6 @@ public interface ActionService {
     // Invokes call-board actions for a batch of selected candidate numbers.
     ServiceResult<Integer> actionSelectedCandidates(int examId, User user, Integer actionUserId,
             SectionType sectionType, String actionDestination, int[] sbds);
-
-    ServiceResult<Void> deferCandidate(int examId, int examAreaId, int sbd, Integer actionUserId,
-            SectionType sectionType);
 
     // Opens score entry for one eligible candidate and logs the call action.
     ServiceResult<Void> actionScoreEntryCandidate(int examId, Integer sbd, User user, Integer actionUserId,

@@ -9,7 +9,6 @@
 <c:set var="exportResultUrl" value="${ctx}/examiner/export/result" scope="request" />
 <c:set var="exportResultsUrl" value="${exportResultUrl}" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" scope="request" />
-<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -45,7 +44,6 @@
                     <jsp:param name="btnPrintInfo" value="left" />
                     <jsp:param name="btnExportExcel" value="left" />
                     <jsp:param name="btnPrintList" value="left" />
-                    <jsp:param name="btnExportDocx" value="left" />
                     <jsp:param name="btnExportCandidatesExcel" value="left" />
                     <jsp:param name="btnPrintResult" value="left" />
                     <jsp:param name="btnSearch" value="right" />

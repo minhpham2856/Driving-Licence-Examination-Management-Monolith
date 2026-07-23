@@ -18,6 +18,9 @@ public interface ExamEnrollmentDAO {
     // Searches enrollments in one exam by candidate number, name, or gov id.
     List<ExamEnrollment> getFilteredByExam(int examId, String keyword);
 
+    // Lists enrollments with candidate data for lightweight dashboard/list pages.
+    List<ExamEnrollment> getWithCandidateByExam(int examId, String keyword);
+
     // Loads the enrollment row for one exam and candidate pair.
     ExamEnrollment getByExamAndCandidate(int examId, int candidateId);
 

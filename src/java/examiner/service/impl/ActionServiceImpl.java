@@ -11,6 +11,7 @@ import examiner.dao.ExamEnrollmentSectionDAO;
 import examiner.dao.ExamResultDAO;
 import examiner.dao.ExamScoreDAO;
 import examiner.dao.ExamSectionDAO;
+import examiner.dao.ExaminerScheduleDAO;
 import examiner.dao.ExaminerViewDAO;
 import examiner.dao.ScoreDeductionDAO;
 import examiner.dao.UserDAO;
@@ -25,6 +26,7 @@ import examiner.dao.impl.ExamEnrollmentSectionDAOImpl;
 import examiner.dao.impl.ExamResultDAOImpl;
 import examiner.dao.impl.ExamScoreDAOImpl;
 import examiner.dao.impl.ExamSectionDAOImpl;
+import examiner.dao.impl.ExaminerScheduleDAOImpl;
 import examiner.dao.impl.ExaminerViewDAOImpl;
 import examiner.dao.impl.ScoreDeductionDAOImpl;
 import examiner.dao.impl.UserDAOImpl;
@@ -54,12 +56,10 @@ import examiner.service.impl.DispatchServiceImpl;
 import examiner.service.impl.ProgressServiceImpl;
 import java.sql.Timestamp;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import shared.model.ExamSection;
-import shared.queue.ExamRoomQueueRegistry;
+import shared.model.ExaminerSchedule;
 import shared.util.PasswordUtil;
 import examiner.service.DispatchService;
 import examiner.service.ProgressService;
@@ -69,9 +69,6 @@ import examiner.service.EnrollmentService;
 public class ActionServiceImpl implements ActionService {
 
     private static final int PRACTICAL_PASS_SCORE = 80;
-
-    private static final Map<Integer, Set<Integer>> PRESENT = new HashMap<>();
-    private static final Map<Integer, Set<Integer>> PROCEDURE = new HashMap<>();
 
     private final AuditService auditService = new AuditServiceImpl();
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
@@ -86,96 +83,13 @@ public class ActionServiceImpl implements ActionService {
     private final DeductionRecordDAO deductionRecordDAO = new DeductionRecordDAOImpl();
     private final ScoreDeductionDAO scoreDeductionDAO = new ScoreDeductionDAOImpl();
     private final ExamSectionDAO sectionDAO = new ExamSectionDAOImpl();
+    private final ExaminerScheduleDAO scheduleDAO = new ExaminerScheduleDAOImpl();
     private final ExamViewService dataService = new ExamViewServiceImpl();
     private final ExaminerViewDAO examinerDataDAO = new ExaminerViewDAOImpl();
     private final EnrollmentService enrollmentService = new EnrollmentServiceImpl();
     private final UserDAO userDAO = new UserDAOImpl();
     private final DispatchService dispatchService = new DispatchServiceImpl();
     private final ProgressService sectionProgressService = new ProgressServiceImpl();
-
-    // Clears in-memory present flag for a candidate in the exam session.
-    @Override
-    public void clearPresent(int examId, int sbd) {
-        presentSet(examId).remove(sbd);
-    }
-
-    // Marks a candidate present in session memory and removes them from the procedure queue.
-    @Override
-    public void markPresent(int examId, int sbd) {
-        presentSet(examId).add(sbd);
-        procedureSet(examId).remove(sbd);
-    }
-
-    // Returns whether the candidate is marked present in session memory.
-    @Override
-    public boolean isPresent(int examId, int sbd) {
-        return presentSet(examId).contains(sbd);
-    }
-
-    // Moves candidate from present list to the procedure-room queue.
-    @Override
-    public void sendToProcedure(int examId, int sbd) {
-        procedureSet(examId).add(sbd);
-        presentSet(examId).remove(sbd);
-        removeFromAllQueues(examId, sbd);
-    }
-
-    // Returns whether the candidate is waiting in the procedure-room queue.
-    @Override
-    public boolean isInProcedureQueue(int examId, int sbd) {
-        return procedureSet(examId).contains(sbd);
-    }
-
-    // Removes candidate from session tracking.
-    @Override
-    public void removeCandidate(int examId, int sbd) {
-        presentSet(examId).remove(sbd);
-        procedureSet(examId).remove(sbd);
-    }
-
-    @Override
-    public ServiceResult<Void> deferCandidate(int examId, int examAreaId, int sbd, Integer actionUserId,
-            SectionType sectionType) {
-        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
-        if (enrollment == null || examAreaId <= 0 || sectionType == null) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "deferFailed");
-        }
-        int assignedAreaId = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
-                enrollment.getExamEnrollmentId(), sectionType.getValue());
-        if (assignedAreaId != examAreaId
-                || !ExamRoomQueueRegistry.moveToTail(examId, examAreaId, sectionType, sbd)) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "deferFailed");
-        }
-        if (actionUserId != null) {
-            auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE_CALL,
-                    "Đưa SBD " + sbd + " xuống cuối hàng đợi", enrollment.getCandidateId());
-        }
-        return ServiceResult.ok(null);
-    }
-
-    // Lazy per-exam set of SBDs marked present in session memory.
-    private Set<Integer> presentSet(int examId) {
-        synchronized (PRESENT) {
-            Set<Integer> set = PRESENT.get(examId);
-            if (set == null) {
-                set = new HashSet<>();
-                PRESENT.put(examId, set);
-            }
-            return set;
-        }
-    }
-
-    // Lazy per-exam set of SBDs waiting in the procedure-room queue.
-    private Set<Integer> procedureSet(int examId) {
-        synchronized (PROCEDURE) {
-            Set<Integer> set = PROCEDURE.get(examId);
-            if (set == null) {
-                set = new HashSet<>();
-                PROCEDURE.put(examId, set);
-            }
-            return set;
-        }
-    }
 
     // Loads enrollment DTO for the given exam and candidate number.
     @Override
@@ -193,6 +107,20 @@ public class ActionServiceImpl implements ActionService {
         return sectionType != null ? sectionType.getValue() : SectionType.LAYOUT.getValue();
     }
 
+    private static boolean isSectionRequired(EnrollmentDTO enrollment, SectionType sectionType) {
+        if (enrollment == null) {
+            return false;
+        }
+        SectionType current = sectionType != null ? sectionType : SectionType.LAYOUT;
+        if (current == SectionType.THEORY) {
+            return enrollment.isTakeTheory();
+        }
+        if (current == SectionType.LAYOUT) {
+            return enrollment.isTakeLayout();
+        }
+        return true;
+    }
+
     // Performs examiner call-board action: candidate.
     @Override
     public ServiceResult<Void> actionCandidate(int examId, Integer sbd, User user, Integer actionUserId,
@@ -203,6 +131,9 @@ public class ActionServiceImpl implements ActionService {
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+        }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
         if (!dataService.isActionEligible(examId, enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện để thao tác.");
@@ -218,18 +149,6 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public ServiceResult<Integer> actionNextCandidate(int examId, int examAreaId, User user, Integer actionUserId,
             SectionType sectionType, String actionDestination) {
-        if (examAreaId > 0) {
-            List<Integer> order = ExamRoomQueueRegistry.displayOrder(examId, examAreaId, sectionType);
-            for (Integer queuedSbd : order) {
-                if (queuedSbd == null || queuedSbd <= 0) {
-                    continue;
-                }
-                if (actionCandidate(examId, queuedSbd, user, actionUserId, sectionType,
-                        actionDestination).isSuccess()) {
-                    return ServiceResult.ok(queuedSbd);
-                }
-            }
-        }
         List<EnrollmentDTO> all = enrollmentService.getAllByExam(examId, sectionType);
         for (EnrollmentDTO enrollment : all) {
             if (!dataService.isActionEligible(examId, enrollment, sectionType)) {
@@ -273,6 +192,9 @@ public class ActionServiceImpl implements ActionService {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số báo danh không hợp lệ.");
         }
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
+        }
         if (!dataService.isScoreQueueEligible(examId, enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không đủ điều kiện nhập điểm.");
         }
@@ -331,6 +253,9 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
+        }
         if (!isDeviceInExam(examId, deviceId)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thiết bị không thuộc ca thi.");
         }
@@ -359,6 +284,12 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
         }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
+        }
+        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
         String auditReason = buildReasonText(reasonCode, reasonDetail);
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
@@ -380,6 +311,9 @@ public class ActionServiceImpl implements ActionService {
         }
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null || enrollment.isSuspended()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "violationInvalid");
+        }
+        if (!isSectionRequired(enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "violationInvalid");
         }
         int sectionRowId = findSectionRowId(enrollment.getExamEnrollmentId(), sectionType);
@@ -407,6 +341,9 @@ public class ActionServiceImpl implements ActionService {
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh hoặc thí sinh đã bị đình chỉ.");
+        }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
         if (candidateDAO.get(enrollment.getCandidateId()) == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy hồ sơ thí sinh.");
@@ -456,6 +393,9 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điểm danh.");
         }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
+        }
         if (enrollment.getSectionStatus() == CandidateStatus.COMPLETED) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh đã hoàn tất phần thi.");
         }
@@ -472,19 +412,12 @@ public class ActionServiceImpl implements ActionService {
                             "Thí sinh chưa đủ điều kiện thi thực hành.");
                 }
             }
-            int areaId = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
-                    enrollmentRecord.getExamEnrollmentId(), sectionTypeValue(sectionType));
-            if (areaId <= 0) {
-                Candidate candidate = candidateDAO.get(enrollment.getCandidateId());
-                if (candidate != null) {
-                    dispatchService.passOn(candidate, examId, sessionSection);
-                }
-            }
         }
         if (enrollmentRecord != null
                 && (enrollment.getSectionStatus() == null || enrollment.getSectionStatus() == CandidateStatus.NOT_STARTED)) {
-            if (!sectionProgressService.update(
-                    enrollmentRecord.getExamEnrollmentId(), sessionSection, CandidateStatus.IN_PROGRESS)) {
+            ensureSectionAreaFromSchedule(examId, enrollmentRecord.getExamEnrollmentId(), sessionSection, actionUserId);
+            if (!enrollmentSectionDAO.markCheckedIn(
+                    enrollmentRecord.getExamEnrollmentId(), sessionSection.getValue(), actionUserId)) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật trạng thái phần thi.");
             }
         }
@@ -495,6 +428,32 @@ public class ActionServiceImpl implements ActionService {
         return ServiceResult.ok(null);
     }
 
+    private void ensureSectionAreaFromSchedule(int examId, int examEnrollmentId, SectionType sectionType,
+            Integer examinerUserId) {
+        if (examId <= 0 || examEnrollmentId <= 0 || sectionType == null || examinerUserId == null) {
+            return;
+        }
+        int existingAreaId = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
+                examEnrollmentId, sectionType.getValue());
+        if (existingAreaId > 0) {
+            return;
+        }
+        for (ExaminerSchedule schedule : scheduleDAO.getByExamId(examId)) {
+            if (schedule == null || schedule.getExaminerId() != examinerUserId
+                    || schedule.getExamAreaId() == null || schedule.getExamAreaId() <= 0
+                    || schedule.getExamSectionId() == null) {
+                continue;
+            }
+            ExamSection scheduledSection = sectionDAO.get(schedule.getExamSectionId());
+            if (scheduledSection == null || SectionType.fromValue(scheduledSection.getSectionType()) != sectionType) {
+                continue;
+            }
+            enrollmentSectionDAO.updateExamAreaIdByEnrollmentIdAndSectionType(
+                    examEnrollmentId, sectionType.getValue(), schedule.getExamAreaId());
+            return;
+        }
+    }
+
     // Reverses attendance and rolls back in-progress section status when allowed.
     @Override
     public ServiceResult<Void> undoPresent(int examId, int sbd, Integer actionUserId, SectionType sectionType) {
@@ -502,16 +461,17 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tác điểm danh.");
         }
-        if (enrollment.getSectionStatus() == CandidateStatus.AWAITING_SIGNATURE
-                || enrollment.getSectionStatus() == CandidateStatus.COMPLETED) {
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
+        }
+        if (enrollment.getSectionStatus() != CandidateStatus.NOT_STARTED) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Không thể hoàn tác điểm danh ở trạng thái hiện tại.");
         }
         ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
-        if (enrollmentRecord != null
-                && enrollment.getSectionStatus() == CandidateStatus.IN_PROGRESS) {
+        if (enrollmentRecord != null) {
             SectionType sessionSection = sectionType != null ? sectionType : SectionType.LAYOUT;
-            if (!sectionProgressService.update(
-                    enrollmentRecord.getExamEnrollmentId(), sessionSection, CandidateStatus.NOT_STARTED)) {
+            if (!enrollmentSectionDAO.clearCheckedInIfNotStarted(
+                    enrollmentRecord.getExamEnrollmentId(), sessionSection.getValue())) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể hoàn tác trạng thái phần thi.");
             }
         }
@@ -529,6 +489,9 @@ public class ActionServiceImpl implements ActionService {
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh.");
+        }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
         Candidate candidate = candidateDAO.get(enrollment.getCandidateId());
         if (candidate != null) {
@@ -553,6 +516,9 @@ public class ActionServiceImpl implements ActionService {
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể điều chỉnh điểm.");
+        }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
         if (!isPracticalSectionAllowed(examId, enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa đủ điều kiện thi thực hành.");
@@ -579,6 +545,9 @@ public class ActionServiceImpl implements ActionService {
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
         if (enrollment == null || enrollment.isSuspended()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thể hoàn tất nhập điểm.");
+        }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
         if (!isPracticalSectionAllowed(examId, enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa đủ điều kiện thi thực hành.");
@@ -609,10 +578,19 @@ public class ActionServiceImpl implements ActionService {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scorePayloadInvalid");
         }
         EnrollmentDTO enrollment = loadEnrollment(examId, sbd, SectionType.LAYOUT);
+        if (!isSectionRequired(enrollment, SectionType.LAYOUT)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "candidateNotRequired");
+        }
+        if (!isPracticalSectionAllowed(examId, enrollment, SectionType.LAYOUT)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "candidateNotEligibleForPractical");
+        }
         ExamDevice device = deviceDAO.get(deviceId);
         if (enrollment == null || enrollment.isSuspended() || device == null
                 || device.getExamAreaId() != examAreaId || !device.isActive()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "vehicleInvalid");
+        }
+        if (!enrollment.isPresent()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "candidateNotCheckedIn");
         }
         int assignedArea = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
                 enrollment.getExamEnrollmentId(), SectionType.LAYOUT.getValue());
@@ -628,6 +606,11 @@ public class ActionServiceImpl implements ActionService {
         if (!enrollmentSectionDAO.updateDevice(
                 enrollment.getExamEnrollmentId(), SectionType.LAYOUT.getValue(), deviceId)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "vehicleFailed");
+        }
+        if (enrollment.getSectionStatus() == CandidateStatus.NOT_STARTED
+                && !sectionProgressService.update(
+                        enrollment.getExamEnrollmentId(), SectionType.LAYOUT, CandidateStatus.IN_PROGRESS)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "statusFailed");
         }
         for (Map.Entry<Integer, Integer> item : occurrences.entrySet()) {
             int deductionId = item.getKey();
@@ -687,13 +670,16 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh chưa sẵn sàng in biên bản.");
         }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
+        }
         ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
         if (enrollmentRecord == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy đăng ký thi.");
         }
         CandidateStatus current = enrollment.getSectionStatus() != null ? enrollment.getSectionStatus() : CandidateStatus.NOT_STARTED;
         SectionType sessionSection = sectionType != null ? sectionType : SectionType.LAYOUT;
-        if (sessionSection == SectionType.THEORY && current == CandidateStatus.IN_PROGRESS) {
+        if (current == CandidateStatus.AWAITING_SIGNATURE) {
             if (!sectionProgressService.update(
                     enrollmentRecord.getExamEnrollmentId(), sessionSection, CandidateStatus.AWAITING_SIGNATURE)) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật trạng thái phần thi.");
@@ -718,6 +704,9 @@ public class ActionServiceImpl implements ActionService {
         if (enrollment == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
         }
+        if (!isSectionRequired(enrollment, sectionType)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "notRequired");
+        }
         if (enrollment.getSectionStatus() == CandidateStatus.COMPLETED) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "alreadyCompleted");
         }
@@ -741,22 +730,7 @@ public class ActionServiceImpl implements ActionService {
         boolean sectionPassed = sectionPassedHint != null
                 ? sectionPassedHint
                 : computeSectionPassed(examId, enrollment);
-        int areaId = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
-                enrollmentRecord.getExamEnrollmentId(), sectionTypeValue(sectionType));
-        if (areaId <= 0 && enrollmentRecord.getAllocatedExamAreaId() != null) {
-            areaId = enrollmentRecord.getAllocatedExamAreaId();
-        }
-        if (areaId > 0) {
-            dispatchService.onSectionComplete(examId, sbd, completedSection, areaId);
-        } else {
-            ExamRoomQueueRegistry.removeCandidate(examId, sbd);
-        }
-        if (sectionPassed && completedSection == SectionType.THEORY) {
-            Candidate candidate = candidateDAO.get(enrollment.getCandidateId());
-            if (candidate != null && Boolean.TRUE.equals(candidate.getTakeLayout())) {
-                dispatchService.passOn(candidate, examId, SectionType.LAYOUT);
-            }
-        }
+        removeFromAllQueues(examId, sbd);
         return ServiceResult.ok(null);
     }
 
@@ -894,9 +868,8 @@ public class ActionServiceImpl implements ActionService {
         return true;
     }
 
-    // Removes a candidate from the in-memory room queue registry.
+    // Legacy queue hook kept as a no-op; examiner action now uses DB state only.
     private static void removeFromAllQueues(int examId, int sbd) {
-        ExamRoomQueueRegistry.removeCandidate(examId, sbd);
     }
 
     // Private helper: build violation audit text.
