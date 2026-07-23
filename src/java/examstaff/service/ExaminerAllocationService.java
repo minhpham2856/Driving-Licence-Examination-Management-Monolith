@@ -27,6 +27,6 @@ public interface ExaminerAllocationService {
 
     AutoAllocateResultDTO autoAllocateCandidate(int examId, int registrationId);
 
-    /** Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có giám khảo). */
+    /** Phân sân thực hành cho thí sinh đã đỗ lý thuyết (cân bằng tải trên sân có sát hạch viên). */
     AutoAllocateResultDTO autoAllocatePracticalExam(int examId);
 }

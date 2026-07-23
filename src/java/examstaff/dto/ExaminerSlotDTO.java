@@ -1,6 +1,6 @@
 package examstaff.dto;
 
-/** Slot phân công giám khảo trong một kỳ thi (Exam). */
+/** Slot phân công sát hạch viên trong một kỳ thi (Exam). */
 public class ExaminerSlotDTO {
     /** ExamId. */
     private int examId;
