@@ -1,14 +1,13 @@
 :root {
     --exam-primary: #0052cc;
     --exam-accent: #fe6b00;
-    --exam-bg: #f5f7fb;
+    --exam-bg: #ffffff;
     --exam-card: #ffffff;
     --exam-border: #dbe3f0;
     --exam-text: #131b2e;
     --exam-muted: #64748b;
     --exam-success: #047857;
     --exam-danger: #dc2626;
-    --exam-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -19,13 +18,12 @@ html,
 body {
     margin: 0;
     min-height: 100%;
+    background: #ffffff;
 }
 
 .exam-result-body {
     min-height: 100vh;
-    background:
-        radial-gradient(circle at top right, rgba(0, 82, 204, 0.13), transparent 30rem),
-        var(--exam-bg);
+    background: #ffffff;
     color: var(--exam-text);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -40,10 +38,10 @@ body {
 
 .exam-result-card {
     width: min(100%, 620px);
-    border: 1px solid var(--exam-border);
-    border-radius: 26px;
-    background: var(--exam-card);
-    box-shadow: var(--exam-shadow);
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
     padding: 36px;
     text-align: center;
 }
@@ -53,10 +51,10 @@ body {
     height: 64px;
     display: inline-grid;
     place-items: center;
-    border-radius: 20px;
-    background: rgba(0, 82, 204, 0.1);
+    border-radius: 0;
+    background: transparent;
     color: var(--exam-primary);
-    font-size: 36px;
+    font-size: 42px;
 }
 
 .exam-result-eyebrow {
@@ -91,8 +89,8 @@ body {
 
 .exam-result-stats div {
     border: 1px solid var(--exam-border);
-    border-radius: 18px;
-    background: #f8fafc;
+    border-radius: 0;
+    background: #ffffff;
     padding: 16px;
 }
 
@@ -108,15 +106,6 @@ body {
     display: block;
     margin-top: 8px;
     font: 800 1.8rem/1 "JetBrains Mono", monospace;
-}
-
-.exam-result-warning {
-    margin: 0 0 16px;
-    border-radius: 16px;
-    background: rgba(220, 38, 38, 0.08);
-    color: var(--exam-danger);
-    padding: 12px;
-    font-weight: 800;
 }
 
 .exam-result-note {

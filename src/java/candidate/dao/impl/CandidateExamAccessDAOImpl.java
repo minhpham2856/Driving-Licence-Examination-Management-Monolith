@@ -74,7 +74,7 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
         String normalizedSbd = candidateNumber.trim();
         Integer numericSbd = parseNumericSbd(normalizedSbd);
         String sql = """
-                SELECT TOP 1 c.CandidateId, c.CandidateNumber, c.FullName,
+                SELECT TOP 1 c.CandidateId, c.CandidateNumber, c.FullName, c.GovernmentIdNumber,
                        ee.ExamId, ee.ExamEnrollmentId,
                        ees.ExamEnrollmentSectionId, ees.ExamSectionId,
                        COALESCE(ees.ExamAreaId, scheduleArea.ExamAreaId) AS ExamAreaId,
@@ -161,6 +161,7 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
         context.setCandidateId(rs.getInt("CandidateId"));
         context.setCandidateNumber(rs.getString("CandidateNumber"));
         context.setFullName(rs.getString("FullName"));
+        context.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
         context.setExamId(rs.getInt("ExamId"));
         context.setExamEnrollmentId(rs.getInt("ExamEnrollmentId"));
         context.setExamEnrollmentSectionId(rs.getInt("ExamEnrollmentSectionId"));

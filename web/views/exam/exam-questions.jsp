@@ -14,18 +14,22 @@
     <link href="${ctx}/assets/css/exam/exam-questions.css" rel="stylesheet">
 </head>
 <body class="exam-paper-body">
-<main class="exam-paper-shell">
-    <header class="exam-paper-header">
-        <div class="exam-paper-title">
-            <p class="exam-paper-eyebrow">Bài thi lý thuyết</p>
-            <h1>SBD <c:out value="${candidateExam.candidateNumber}"/></h1>
+<header class="exam-paper-header">
+    <div class="exam-paper-title">
+        <p class="exam-paper-eyebrow">Bài thi lý thuyết</p>
+        <div class="exam-paper-candidate">
+            <strong>SBD <c:out value="${candidateExam.candidateNumber}"/></strong>
+            <span><c:out value="${candidateExam.fullName}"/></span>
+            <span>CCCD: <c:out value="${empty candidateExam.governmentIdNumber ? '-' : candidateExam.governmentIdNumber}"/></span>
         </div>
-        <div class="exam-paper-timer">
-            <span class="material-symbols-outlined">timer</span>
-            <strong id="remainingTime" data-seconds="${durationSeconds}"></strong>
-        </div>
-    </header>
+    </div>
+    <div class="exam-paper-timer">
+        <span class="material-symbols-outlined">timer</span>
+        <strong id="remainingTime" data-seconds="${durationSeconds}"></strong>
+    </div>
+</header>
 
+<main class="exam-paper-shell">
     <form method="post" action="${ctx}/exam/submit" id="examForm" class="exam-paper-form">
         <c:forEach var="q" items="${questions}" varStatus="status">
             <section class="exam-question-card">
@@ -39,53 +43,13 @@
                     <img class="exam-question-card__image" src="${q.imageUrl}" alt="Hình câu hỏi ${status.count}">
                 </c:if>
                 <div class="exam-choice-grid">
-                    <label class="exam-choice">
-                        <input type="radio" name="ans_${q.questionId}" value="A">
-                        <span>A</span>
-                    </label>
-                    <label class="exam-choice">
-                        <input type="radio" name="ans_${q.questionId}" value="B">
-                        <span>B</span>
-                    </label>
-                    <label class="exam-choice">
-                        <input type="radio" name="ans_${q.questionId}" value="C">
-                        <span>C</span>
-                    </label>
-                    <label class="exam-choice">
-                        <input type="radio" name="ans_${q.questionId}" value="D">
-                        <span>D</span>
-                    </label>
+                    <label class="exam-choice"><input type="radio" name="ans_${q.questionId}" value="A"><span>A</span></label>
+                    <label class="exam-choice"><input type="radio" name="ans_${q.questionId}" value="B"><span>B</span></label>
+                    <label class="exam-choice"><input type="radio" name="ans_${q.questionId}" value="C"><span>C</span></label>
+                    <label class="exam-choice"><input type="radio" name="ans_${q.questionId}" value="D"><span>D</span></label>
                 </div>
             </section>
         </c:forEach>
-
-        <footer class="exam-paper-footer" aria-label="Thông tin kỳ thi">
-            <div class="exam-paper-footer__meta">
-                <div>
-                    <span>Kỳ thi</span>
-                    <strong><c:out value="${empty candidateExam.examCode ? '-' : candidateExam.examCode}"/></strong>
-                </div>
-                <div>
-                    <span>Hạng GPLX</span>
-                    <strong><c:out value="${empty candidateExam.licenceClass ? '-' : candidateExam.licenceClass}"/></strong>
-                </div>
-                <div>
-                    <span>Ngày thi</span>
-                    <strong><c:out value="${empty candidateExam.examDateDisplay ? '-' : candidateExam.examDateDisplay}"/></strong>
-                </div>
-                <div>
-                    <span>Phần thi</span>
-                    <strong><c:out value="${empty candidateExam.sectionName ? '-' : candidateExam.sectionName}"/></strong>
-                </div>
-            </div>
-            <div class="exam-paper-footer__agency">
-                <div class="exam-paper-footer__agency-text">
-                    <span>BỘ CÔNG AN</span>
-                    <strong>Cục Cảnh sát Giao thông</strong>
-                </div>
-                <img src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
-            </div>
-        </footer>
 
         <div class="exam-submit-bar">
             <button type="submit" class="exam-submit-button">
@@ -95,6 +59,23 @@
         </div>
     </form>
 </main>
+
+<footer class="exam-paper-footer" aria-label="Thông tin kỳ thi">
+    <div class="exam-paper-footer__meta">
+        <div><span>Kỳ thi</span><strong><c:out value="${empty candidateExam.examCode ? '-' : candidateExam.examCode}"/></strong></div>
+        <div><span>Hạng GPLX</span><strong><c:out value="${empty candidateExam.licenceClass ? '-' : candidateExam.licenceClass}"/></strong></div>
+        <div><span>Ngày thi</span><strong><c:out value="${empty candidateExam.examDateDisplay ? '-' : candidateExam.examDateDisplay}"/></strong></div>
+        <div><span>Phần thi</span><strong><c:out value="${empty candidateExam.sectionName ? '-' : candidateExam.sectionName}"/></strong></div>
+    </div>
+    <div class="exam-paper-footer__agency">
+        <div class="exam-paper-footer__agency-text">
+            <span>BỘ CÔNG AN</span>
+            <strong>Cục Cảnh sát Giao thông</strong>
+        </div>
+        <img src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
+    </div>
+</footer>
+
 <script>
 (function () {
     var timer = document.getElementById('remainingTime');
