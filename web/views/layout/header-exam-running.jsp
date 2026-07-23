@@ -20,6 +20,7 @@
 <c:set var="licClass" value="${not empty param.licenseClass ? param.licenseClass : 'A1'}" />
 <c:set var="tLeft" value="${not empty param.timeLeft ? param.timeLeft : '19:59'}" />
 
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
 <style>
     .exam-running-header {
         position: fixed;
@@ -57,7 +58,11 @@
         border-radius: 9999px;
         padding: 2px;
         overflow: hidden;
-        background: #ffffff;
+        background: #e8eefc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
     }
 
     .exam-running-header__photo {
@@ -66,6 +71,13 @@
         display: block;
         object-fit: cover;
         border-radius: 9999px;
+    }
+
+    .exam-running-header__photo-fallback {
+        display: none;
+        font-size: 26px !important;
+        color: #003d9b;
+        line-height: 1;
     }
 
     .exam-running-header__info {
@@ -124,11 +136,13 @@
     }
 
     .exam-running-header__timer-icon {
-        width: 18px;
-        height: 21px;
-        flex: 0 0 18px;
-        display: block;
+        flex: 0 0 auto;
+        font-size: 20px !important;
         color: #003d9b;
+        line-height: 1;
+        width: auto;
+        height: auto;
+        display: block;
     }
 
     .exam-running-header__timer {
@@ -208,14 +222,20 @@
 <header class="exam-running-header" role="banner" data-node-id="115:836" data-name="Header - TopAppBar">
     <div class="exam-running-header__candidate" data-node-id="115:837" data-name="Container">
         <div class="exam-running-header__photo-shell" data-node-id="115:838" data-name="Border">
-            <img
-                src="${pageContext.request.contextPath}/assets/imgs/header-running-photo.png"
-                alt="${name}"
-                class="exam-running-header__photo"
-                onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/imgs/avatar-placeholder.svg';"
-                data-node-id="115:839"
-                data-name="Candidate Photo"
-            >
+            <c:choose>
+                <c:when test="${not empty param.candidatePhoto}">
+                    <img
+                        src="${param.candidatePhoto}"
+                        alt="${name}"
+                        class="exam-running-header__photo"
+                        onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb){fb.style.display='block';}"
+                    >
+                    <span class="material-symbols-outlined exam-running-header__photo-fallback" aria-hidden="true">person</span>
+                </c:when>
+                <c:otherwise>
+                    <span class="material-symbols-outlined exam-running-header__photo-fallback" style="display:block;" aria-hidden="true">person</span>
+                </c:otherwise>
+            </c:choose>
         </div>
 
         <div class="exam-running-header__info" data-node-id="115:840" data-name="Container">
@@ -232,15 +252,7 @@
     </div>
 
     <div class="exam-running-header__timer-card" data-node-id="115:1570" data-name="Background+Border+Shadow">
-        <img
-            src="${pageContext.request.contextPath}/assets/imgs/header-running-timer-icon.svg"
-            alt=""
-            aria-hidden="true"
-            class="exam-running-header__timer-icon"
-            data-node-id="115:1571"
-            data-name="Container"
-            onerror="this.style.display='none';"
-        >
+        <span class="material-symbols-outlined exam-running-header__timer-icon" aria-hidden="true">timer</span>
         <p class="exam-running-header__timer" data-node-id="115:1574">${tLeft}</p>
     </div>
 </header>
