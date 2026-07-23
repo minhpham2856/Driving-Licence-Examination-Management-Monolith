@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Endpoint IPN mẫu cho SePay — đăng ký URL này trên my.sepay.vn.
+ * Endpoint IPN mẫu cho SePay - đăng ký URL này trên my.sepay.vn.
  * Module nghiệp vụ mở rộng: sau {@link SePayIpnResult#getEvent()} cập nhật PaymentRecord / đơn hàng.
  */
 @WebServlet("/payment/sepay/ipn")
