@@ -11,17 +11,24 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Helper thuần quản lý lưu/đọc ảnh thí sinh trên đĩa data (không phụ thuộc webRoot).
- * <p>
- * <b>DB vs đĩa:</b> {@code PhotoImageUrl} lưu {@code candidate-photos/{file}} (hoặc URL
- * {@code http(s)} / basename). File thật nằm dưới thư mục data runtime.
- * <p>
- * Thứ tự thư mục ghi/đọc:
- * <ol>
- *   <li>{@code -Ddlem.photos.dir}</li>
- *   <li>{@code $catalina.base/dlem-data/candidate-photos}</li>
- *   <li>{@code $user.home/.dlem/candidate-photos}</li>
- * </ol>
+ * Utility thuần quản lý lưu/đọc ảnh thí sinh trên đĩa data runtime — không phụ thuộc webRoot.
+ * Đồng bộ {@code PhotoImageUrl} trên CSDL với file thật dưới {@code candidate-photos/}.
+ *
+ * Vai trò trong luồng examstaff:
+ * Bàn thủ tục chụp ảnh ({@code ProcedureWorkflowServiceImpl}) ghi bytes qua {@link #writePhotoFile};
+ * path lưu DB dạng {@link #STORED_PHOTO_PREFIX}{@code fileName} qua {@link #toWebPhotoPath}.
+ * Servlet ảnh và hàng đợi gọi {@link #findPhotoFile} / {@link #normalizePhotoUrl} để phục vụ JSP/TV.
+ *
+ * Thư mục và cách hoạt động:
+ * Thứ tự ưu tiên {@link #photoDir()}: {@code -Ddlem.photos.dir} →
+ * {@code $catalina.base/dlem-data/candidate-photos} → {@code $user.home/.dlem/candidate-photos}.
+ * URL {@code http(s)} giữ nguyên; local → resolve absolute path nếu file tồn tại.
+ * {@link #normalizeQueue} mutate {@code photoUrl} trên list {@code ExamRegistrationDTO} tại chỗ.
+ *
+ * Ai gọi:
+ * {@code ProcedureWorkflowServiceImpl}, {@code CandidatePhotoServiceImpl},
+ * {@code CandidatePhotoServlet}, {@code CandidateQueueQueryServiceImpl},
+ * {@code DocumentServiceImpl} — chụp, hiển thị và validate ảnh thí sinh.
  */
 public final class CandidatePhotoFiles {
 
@@ -33,7 +40,6 @@ public final class CandidatePhotoFiles {
 
     /**
      * Thư mục gốc lưu ảnh theo JVM / Tomcat / user home.
-     *
      * @return thư mục gốc ảnh (chưa đảm bảo đã tồn tại)
      */
     public static File photoDir() {
@@ -50,7 +56,6 @@ public final class CandidatePhotoFiles {
 
     /**
      * Chuẩn hóa {@code photoUrl} trên hàng đợi (mutate tại chỗ).
-     *
      * @param queue danh sách đăng ký (null/rỗng → no-op)
      */
     public static void normalizeQueue(List<ExamRegistrationDTO> queue) {
@@ -70,7 +75,6 @@ public final class CandidatePhotoFiles {
 
     /**
      * Chuẩn hóa tham chiếu ảnh: {@code http(s)} giữ nguyên; local → absolute path nếu tìm thấy file.
-     *
      * @param photoUrl tham chiếu DB / URL
      * @return absolute path nếu tìm thấy; ngược lại chuỗi trim / null
      */
@@ -91,7 +95,6 @@ public final class CandidatePhotoFiles {
 
     /**
      * Basename từ URL/path ảnh.
-     *
      * @param photoUrl URL hoặc path
      * @return tên file, hoặc {@code null} nếu blank
      */
@@ -110,7 +113,6 @@ public final class CandidatePhotoFiles {
 
     /**
      * Ghi bytes ảnh vào thư mục data runtime.
-     *
      * @param fileName   basename
      * @param imageBytes nội dung ảnh
      * @throws IOException dữ liệu/thư mục không hợp lệ
@@ -129,7 +131,6 @@ public final class CandidatePhotoFiles {
     /**
      * Tham chiếu lưu {@code Candidate.PhotoImageUrl}: {@code candidate-photos/{fileName}}.
      * Hàng cũ {@code assets/imgs/candidates/...} vẫn đọc được nhờ {@link #extractFileName}.
-     *
      * @param fileName basename, ví dụ {@code 001_captured.jpg}
      * @return {@code candidate-photos/} + fileName
      */
@@ -143,7 +144,6 @@ public final class CandidatePhotoFiles {
 
     /**
      * Tìm file theo basename trong {@link #photoSearchDirs()}.
-     *
      * @param photoUrl tham chiếu DB / path
      * @return file hợp lệ hoặc {@code null}
      */
