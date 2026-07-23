@@ -3,7 +3,12 @@ package registrant.dao;
 import registrant.dto.AuditLogEntry;
 import java.util.List;
 
-/** Truy vấn bảng Audit cho cổng Registrant (ghi log + timeline theo dõi hồ sơ). */
+/**
+ * Hợp đồng truy vấn và ghi bảng {@code Audit} cho cổng thí sinh.
+ * <p>
+ * {@link #insert} persist hành động upload/profile/…; {@link #getLogsByProfileId} lấy nhật ký
+ * phục vụ timeline {@code track-profile.jsp} và {@link registrant.util.RegistrantAuditHelper}.
+ */
 public interface AuditLogDAO {
 
     /** Ghi một dòng audit. */

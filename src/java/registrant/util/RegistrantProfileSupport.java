@@ -18,7 +18,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Helper dùng chung: nạp profile, tài liệu, trạng thái duyệt cho cổng thí sinh. */
+/**
+ * Helper nạp hồ sơ thí sinh dùng chung giữa các service/controller cổng Registrant.
+ * <p>
+ * Resolve {@code Profile} từ session, liệt kê {@code Document}, đồng bộ {@code ExamRegistration.RegistrationStatus},
+ * build {@link registrant.dto.RegistrantProfileContext} và gắn attribute lên request cho JSP.
+ */
 public final class RegistrantProfileSupport {
 
     private static final Logger LOG = Logger.getLogger(RegistrantProfileSupport.class.getName());

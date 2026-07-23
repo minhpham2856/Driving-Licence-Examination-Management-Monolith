@@ -11,16 +11,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Trang return mà SePay redirect trình duyệt sau thanh toán (không phải IPN).
+ * Servlet xử lý redirect trình duyệt sau thanh toán SePay (bước <b>return</b> — không phải IPN).
  * <p>
- * Ba URL map cùng servlet:
- * <ul>
- *   <li>{@code /payment/sepay/success} — khách thanh toán xong (chỉ UX; Payment ghi bởi IPN)</li>
- *   <li>{@code /payment/sepay/cancel} — khách bấm Hủy trên cổng SePay</li>
- *   <li>{@code /payment/sepay/error} — lỗi phía cổng SePay</li>
- * </ul>
- * Hủy/lỗi: đưa staff về bước 3 thu lệ phí để chọn lại SePay hoặc tiền mặt.
- * Thành công: hiện thông báo đóng tab; desk tự cập nhật khi IPN tới hoặc bấm “Kiểm tra”.
+ * Ba URL: {@code /success} (UX thành công), {@code /cancel} (khách hủy), {@code /error} (lỗi cổng).
+ * Không ghi bảng {@code Payment} — ghi nhận thật qua {@link payment.controller.SePayIpnServlet}.
+ * Hủy/lỗi: đưa staff về bước 3 thu lệ phí ({@code procedure?step=3}); thành công: thông báo đóng tab,
+ * desk cập nhật khi IPN tới hoặc bấm Kiểm tra.
  */
 @WebServlet({"/payment/sepay/success", "/payment/sepay/error", "/payment/sepay/cancel"})
 public class SePayReturnServlet extends HttpServlet {

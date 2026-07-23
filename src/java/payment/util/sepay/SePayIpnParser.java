@@ -4,7 +4,15 @@ import payment.dto.sepay.SePayIpnEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Parser JSON IPN tối giản (regex + đếm ngoặc nested) — đủ cho payload SePay cố định, không dùng lib JSON. */
+/**
+ * Bộ phân tích JSON webhook IPN từ SePay (regex + đếm ngoặc lồng nhau, không dùng thư viện JSON).
+ * <p>
+ * Phục vụ bước <b>IPN</b> trong luồng checkout → IPN → return: đọc raw body POST,
+ * trích {@code notification_type}, {@code order.*} (invoice, amount, status) và
+ * {@code transaction.*} (transaction_id, payment_method).
+ * Đánh dấu {@code paid=true} khi {@code ORDER_PAID} kèm {@code order_status=CAPTURED}
+ * để {@link payment.service.impl.SePayPaymentServiceImpl} ghi bảng {@code Payment}.
+ */
 public final class SePayIpnParser {
 
     private SePayIpnParser() {

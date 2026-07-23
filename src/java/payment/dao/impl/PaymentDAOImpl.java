@@ -14,10 +14,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * DAO bảng {@code Payment} (ngày thi) — dùng chung Cash desk + SePay IPN + Dashboard Registrant.
+ * Triển khai JDBC truy cập bảng {@code Payment} (Cash desk, SePay IPN, dashboard Registrant).
  * <p>
- * Bắt buộc có {@code ExamEnrollmentId} (staff tạo Candidate + Enrollment trước).
- * Không có cột “đã trả” trên Candidate; portal/desk suy từ tồn tại Payment hoàn tất.
+ * INSERT gắn {@code ExamEnrollmentId} (resolve từ Candidate nếu thiếu), cột PaymentStatus Hoàn tất,
+ * TransactionReference UNIQUE cho idempotent IPN. Portal/desk suy trạng thái đã trả từ tồn tại
+ * bản ghi Payment — không có cờ riêng trên bảng Candidate.
  */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
