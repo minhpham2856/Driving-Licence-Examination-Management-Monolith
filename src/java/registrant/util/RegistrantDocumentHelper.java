@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tiện ích tài liệu hồ sơ thí sinh — gom workflow ER, map slot UI và validate upload.
+ * Tiện ích tài liệu hồ sơ thí sinh - gom workflow ER, map slot UI và validate upload.
  */
 public final class RegistrantDocumentHelper {
 

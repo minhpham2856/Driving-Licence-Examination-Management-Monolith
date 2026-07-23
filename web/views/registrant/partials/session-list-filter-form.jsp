@@ -4,7 +4,7 @@
 
 <%--
 
-  Bộ lọc đợt thi khả dụng (register-exam) — form GET độc lập, không lồng form POST.
+  Bộ lọc đợt thi khả dụng (register-exam) - form GET độc lập, không lồng form POST.
 
   Request attributes: searchQuery, locationFilter, locationFilterOptions, fromDate, toDate,
 

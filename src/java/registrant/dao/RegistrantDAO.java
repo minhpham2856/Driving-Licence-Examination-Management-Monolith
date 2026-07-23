@@ -26,7 +26,7 @@ public interface RegistrantDAO {
 
     List<RegistrantRegisteredExamRow> listRegisteredExamsByProfileId(int profileId, int limit);
 
-    /** Đăng ký ca thi còn hiệu lực (loại trừ từ chối / hủy) — hiển thị hồ sơ đa hạng. */
+    /** Đăng ký ca thi còn hiệu lực (loại trừ từ chối / hủy) - hiển thị hồ sơ đa hạng. */
     List<RegistrantRegisteredExamRow> listActiveExamRegistrationsByProfileId(int profileId, int limit);
 
     Map<String, Object> loadDashboardStats(int userId, int profileId);
@@ -53,7 +53,7 @@ public interface RegistrantDAO {
 
     String resolveLatestLicenceClassByProfileId(int profileId);
 
-    /** Trạng thái hồ sơ gốc (4 giấy bắt buộc) — bỏ qua dòng {@code #SUPPLEMENT_DOC#}. */
+    /** Trạng thái hồ sơ gốc (4 giấy bắt buộc) - bỏ qua dòng {@code #SUPPLEMENT_DOC#}. */
     String findProfileDocumentRegistrationStatus(int profileId);
 
     /** Có request hồ sơ bổ sung đang {@code Pending} trên ExamRegistration. */
@@ -71,7 +71,7 @@ public interface RegistrantDAO {
     /** Trạng thái các dòng {@code #SUPPLEMENT_DOC#} theo {@code ExamRegistrationId}. */
     Map<Integer, String> mapSupplementRegistrationStatuses(int profileId);
 
-    /** Cập nhật hoặc tạo bản ghi ExamRegistration cho workflow hồ sơ gốc — không ghi đè ca thi / bổ sung. */
+    /** Cập nhật hoặc tạo bản ghi ExamRegistration cho workflow hồ sơ gốc - không ghi đè ca thi / bổ sung. */
     boolean syncProfileDocumentRegistration(int profileId, String status, String notes);
 
     /** Số ngày còn lại tới ngày thi (>= 0). Trả về null nếu không có kỳ thi sắp tới. */

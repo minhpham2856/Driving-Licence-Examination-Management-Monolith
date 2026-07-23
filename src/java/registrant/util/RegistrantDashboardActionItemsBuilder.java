@@ -69,7 +69,7 @@ public final class RegistrantDashboardActionItemsBuilder {
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status) && registeredExams <= 0) {
             add(items, item(
                     "Chưa đăng ký đợt thi",
-                    "Hồ sơ đã duyệt — bạn có thể chọn kỳ thi và ca phù hợp với hạng GPLX.",
+                    "Hồ sơ đã duyệt - bạn có thể chọn kỳ thi và ca phù hợp với hạng GPLX.",
                     "Đăng ký thi",
                     "/registrant/register-exam",
                     "info"));
@@ -116,7 +116,7 @@ public final class RegistrantDashboardActionItemsBuilder {
         if (cccdComplete && !portraitUploaded) {
             add(items, item(
                     "Tải ảnh chân dung",
-                    "Ảnh 3×4 chuẩn hồ sơ thi — bắt buộc trước khi gửi duyệt.",
+                    "Ảnh 3×4 chuẩn hồ sơ thi - bắt buộc trước khi gửi duyệt.",
                     "Upload ảnh",
                     "/registrant/upload-documents",
                     "warning"));
@@ -132,7 +132,7 @@ public final class RegistrantDashboardActionItemsBuilder {
         if (cccdComplete && portraitUploaded && healthUploaded) {
             add(items, item(
                     "Gửi hồ sơ chờ duyệt",
-                    "Tài liệu đã đủ — gửi yêu cầu duyệt từ trang upload hồ sơ.",
+                    "Tài liệu đã đủ - gửi yêu cầu duyệt từ trang upload hồ sơ.",
                     "Quản lý tài liệu",
                     "/registrant/upload-documents",
                     "info"));
