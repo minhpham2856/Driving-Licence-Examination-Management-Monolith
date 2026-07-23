@@ -7,37 +7,33 @@ import java.sql.Date;
 /**
  * DTO đăng ký / hồ sơ thí sinh trong một kỳ thi — envelope nghiệp vụ trung tâm của luồng ExamStaff.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
+ *
  * Đây là đối tượng dữ liệu mà hầu hết màn hình staff và bảng gọi công khai đều bind lên request/session:
  * hàng chờ gọi, hồ sơ bàn thủ tục, phân bổ khu vực, dossier, báo cáo, snapshot TV.
  * Mỗi instance thường tương ứng một enrollment (đăng ký thi) kèm thông tin Person đã JOIN
  * và cờ trạng thái vận hành (có mặt / vắng / đình chỉ / lệ phí / ảnh).
  *
- * <h2>Ai tạo</h2>
- * <ul>
- *   <li>{@code ExamRegistrationDAOImpl} — map trực tiếp từ JDBC khi đọc bảng đăng ký.</li>
- *   <li>{@code ExamStaffCandidateMapper#toDto} — chuyển từ read-model {@link ExamStaffCandidate}
- *       (DAO view JOIN Candidate+Enrollment) sang DTO này.</li>
- *   <li>Một số service (ví dụ thủ tục / thanh toán) có thể tạo stub rỗng rồi đổ field.</li>
- * </ul>
+ * Ai tạo:
+ * - {@code ExamRegistrationDAOImpl} — map trực tiếp từ JDBC khi đọc bảng đăng ký.
+ * - {@code ExamStaffCandidateMapper#toDto} — chuyển từ read-model {@link ExamStaffCandidate}
+ *       (DAO view JOIN Candidate+Enrollment) sang DTO này.
+ * - Một số service (ví dụ thủ tục / thanh toán) có thể tạo stub rỗng rồi đổ field.
  *
- * <h2>Ai tiêu thụ</h2>
- * <ul>
- *   <li>BLL: {@code RegistrationServiceImpl}, {@code CandidateQueue*}, {@code Procedure*},
+ * Ai tiêu thụ:
+ * - BLL: {@code RegistrationServiceImpl}, {@code CandidateQueue*}, {@code Procedure*},
  *       {@code StaffCallServiceImpl}, {@code Allocation*}, {@code DocumentServiceImpl},
- *       {@code CallQueueRules}, {@code ExamEnrollmentMerge}.</li>
- *   <li>Presentation binders: {@code ExamStaffPageBinder}, {@code PublicCallSnapshotSupport}.</li>
- *   <li>Servlet: {@code DashboardServlet}, {@code CandidateCallServlet}, {@code ProcedureServlet},
+ *       {@code CallQueueRules}, {@code ExamEnrollmentMerge}.
+ * - Presentation binders: {@code ExamStaffPageBinder}, {@code PublicCallSnapshotSupport}.
+ * - Servlet: {@code DashboardServlet}, {@code CandidateCallServlet}, {@code ProcedureServlet},
  *       {@code AllocationServlet}, {@code PublicCallServlet}, {@code CandidateDossierServlet},
- *       {@code ReportServlet}, …</li>
- * </ul>
+ *       {@code ReportServlet}, …
  *
- * <h2>Trang / JSP liên quan</h2>
+ * Trang / JSP liên quan:
  * Bound dưới các attribute như {@code candidateQueue}, {@code callingCandidate}, {@code profile},
  * {@code waitingQueue}, … trên {@code dashboard.jsp}, {@code candidatecall.jsp} (+ include
  * {@code procedure.jsp}), {@code candidate-suspended.jsp}, {@code candidate-dossier.jsp},
  * các JSP phân bổ, {@code public-call.jsp}, báo cáo.
- *
  * <p>Không chứa Servlet API; chỉ mang dữ liệu qua Presentation ↔ BLL.</p>
  */
 public class ExamRegistrationDTO {
@@ -85,7 +81,6 @@ public class ExamRegistrationDTO {
 
     /**
      * Khởi tạo nhanh các field lõi enrollment (không gồm Person JOIN / kết quả thi).
-     *
      * @param id                 mã đăng ký / candidate id tùy ngữ cảnh map
      * @param examId             kỳ thi
      * @param candidateNo        số báo danh số (SBD thô)
@@ -109,7 +104,6 @@ public class ExamRegistrationDTO {
     /**
      * Số báo danh dạng chuỗi 3 chữ số (pad từ {@code candidateNo}) để hiển thị / so khớp bảng gọi.
      * Nếu {@code candidateNo <= 0} trả {@code "000"}; nếu &gt;= 1000 giữ nguyên dạng số đầy đủ.
-     *
      * @return SBD chuẩn hóa cho UI và CallBoard
      */
     public String getSbd() {
@@ -439,7 +433,6 @@ public class ExamRegistrationDTO {
 
     /**
      * Bảo lưu lý thuyết — không thi lại phần lý thuyết trong kỳ này.
-     *
      * @return true khi {@code takeTheory == Boolean.FALSE}
      */
     public boolean skipsTheory() {
@@ -448,7 +441,6 @@ public class ExamRegistrationDTO {
 
     /**
      * Alias bean cho JSP EL: {@code ${profile.skipsTheory}}.
-     *
      * @return cùng nghĩa {@link #skipsTheory()}
      */
     public boolean isSkipsTheory() {
@@ -457,7 +449,6 @@ public class ExamRegistrationDTO {
 
     /**
      * Bảo lưu thực hành / sa hình — không thi lại phần này.
-     *
      * @return true khi {@code takePractical == Boolean.FALSE}
      */
     public boolean skipsPractical() {
@@ -466,7 +457,6 @@ public class ExamRegistrationDTO {
 
     /**
      * Alias bean cho JSP EL: {@code ${profile.skipsPractical}}.
-     *
      * @return cùng nghĩa {@link #skipsPractical()}
      */
     public boolean isSkipsPractical() {
@@ -506,13 +496,9 @@ public class ExamRegistrationDTO {
     /**
      * Thủ tục bàn đã hoàn tất: đã thu lệ phí và có ảnh chụp hợp lệ.
      * Vắng / đình chỉ luôn trả false (không tính là xong thủ tục).
-     *
-     * <ol>
-     *   <li>Loại trừ absent / suspended.</li>
-     *   <li>Yêu cầu {@code isPaymentCompleted}.</li>
-     *   <li>Yêu cầu {@code validCapturedPhoto}.</li>
-     * </ol>
-     *
+     * - Loại trừ absent / suspended.
+     * - Yêu cầu {@code isPaymentCompleted}.
+     * - Yêu cầu {@code validCapturedPhoto}.
      * @return true nếu đủ điều kiện đóng bước thủ tục tại bàn
      */
     public boolean isProcedureComplete() {
@@ -529,19 +515,15 @@ public class ExamRegistrationDTO {
     /**
      * Kỳ thi của thí sinh đã kết thúc (đủ kết quả theo hạng + bảo lưu), hoặc vắng mặt.
      * Đình chỉ → false. Chưa thanh toán → false (trừ nhánh vắng đã xét trên).
-     *
      * <p>Logic lần lượt:</p>
-     * <ol>
-     *   <li>Suspended → chưa kết thúc theo nghĩa “xong kỳ”.</li>
-     *   <li>Absent → coi như kết thúc (không thi tiếp).</li>
-     *   <li>Chưa trả phí → chưa xong.</li>
-     *   <li>Trượt lý thuyết → kết thúc.</li>
-     *   <li>Bỏ lý thuyết (bảo lưu): chỉ phụ thuộc thực hành.</li>
-     *   <li>Bỏ thực hành + đậu lý thuyết → kết thúc.</li>
-     *   <li>Trượt thực hành (khi vẫn thi) → kết thúc.</li>
-     *   <li>Còn lại: cả lý thuyết và thực hành hiệu lực đều {@code passed}.</li>
-     * </ol>
-     *
+     * - Suspended → chưa kết thúc theo nghĩa “xong kỳ”.
+     * - Absent → coi như kết thúc (không thi tiếp).
+     * - Chưa trả phí → chưa xong.
+     * - Trượt lý thuyết → kết thúc.
+     * - Bỏ lý thuyết (bảo lưu): chỉ phụ thuộc thực hành.
+     * - Bỏ thực hành + đậu lý thuyết → kết thúc.
+     * - Trượt thực hành (khi vẫn thi) → kết thúc.
+     * - Còn lại: cả lý thuyết và thực hành hiệu lực đều {@code passed}.
      * @return true nếu thí sinh không còn phần thi mở
      */
     public boolean isExamFinished() {
@@ -577,7 +559,6 @@ public class ExamRegistrationDTO {
     /**
      * Đậu cuối cùng toàn kỳ (không tính vắng / đình chỉ).
      * Tôn trọng bảo lưu: bỏ lý thuyết → chỉ cần thực hành passed; bỏ thực hành → lý thuyết passed là đủ.
-     *
      * @return true nếu đạt kết quả đậu cuối
      */
     public boolean isFinalPass() {

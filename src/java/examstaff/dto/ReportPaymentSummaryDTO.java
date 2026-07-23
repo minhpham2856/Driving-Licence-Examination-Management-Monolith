@@ -8,10 +8,10 @@ import java.util.List;
 /**
  * Tóm tắt thanh toán + dòng lệ phí cho báo cáo / hồ sơ (gói {@link Payment} + {@link Fee}).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Hiển thị chi tiết một khoản thanh toán kèm các dòng phí và tổng dòng trên report/dossier.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ProcedureFeeQueryServiceImpl} → báo cáo thanh toán / view liên quan report.
  */
 public class ReportPaymentSummaryDTO {

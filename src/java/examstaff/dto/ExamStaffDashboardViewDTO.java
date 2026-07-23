@@ -3,10 +3,10 @@ package examstaff.dto;
 /**
  * View-model bổ sung cho dashboard ExamStaff: thống kê sát hạch viên đã phân công / đang hoạt động.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Cung cấp KPI SHV cho {@code dashboard.jsp} bên cạnh queue / kỳ thi từ {@link ExamStaffPageContext}.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code ExamStaffDashboardServiceImpl} → view service / {@code DashboardServlet}.
  */
 public class ExamStaffDashboardViewDTO {

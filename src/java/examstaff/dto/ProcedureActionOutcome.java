@@ -5,19 +5,20 @@ import java.util.List;
 /**
  * Kết quả thao tác wizard thủ tục tại bàn (chụp ảnh / thu lệ phí / reset) từ BLL → Presentation.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Sau khi staff thao tác trên desk (include {@code procedure.jsp} trong {@code candidatecall.jsp}),
  * workflow trả outcome gồm status ảnh/thanh toán, profile cập nhật, queue, và cờ audit.
  * {@code ProcedureServlet} đọc các field để set attribute lỗi/thành công và refresh hồ sơ / board.
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code ProcedureWorkflowServiceImpl} ({@code saveCapturedPhoto}, {@code confirmPayment}, {@code resetProcedure});
  * có thể được {@code ProcedureServiceImpl} bọc thêm trong {@link ServiceResult}.
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code ProcedureServlet} — nhánh payment / photo / reset.
  *
- * <h2>Trang / JSP</h2>
+ * Trang / JSP:
+ *
  * Attribute trên {@code candidatecall.jsp} + {@code procedure.jsp} ({@code deskMode=true}):
  * {@code profile}, {@code photoRequiredMsg}, {@code paymentErrorMsg}, …
  */

@@ -3,11 +3,11 @@ package examstaff.dto;
 /**
  * DTO bản ghi gọi thí sinh dùng trong workflow/DAO CandidateCall.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Mang kỳ thi, số báo danh, nơi gọi, người gọi và kết quả (Present / Absent / …)
  * khi persist hoặc xử lý trong {@code CandidateCallWorkflowServiceImpl}.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * Tạo/tiêu thụ nội bộ BLL call workflow và DAO liên quan; không bind trực tiếp JSP.
  */
 public class CandidateCallDTO {
@@ -24,7 +24,6 @@ public class CandidateCallDTO {
 
     /**
      * Khởi tạo đủ field lõi của một lần gọi.
-     *
      * @param examId      kỳ thi
      * @param candidateNo số báo danh số
      * @param calledTo    nơi / kênh gọi (desk code…)

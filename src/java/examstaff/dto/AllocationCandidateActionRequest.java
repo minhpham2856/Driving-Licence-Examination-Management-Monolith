@@ -5,10 +5,10 @@ import examstaff.dto.ExamRegistrationDTO;
 /**
  * Request thao tác phân bổ một thí sinh (Presentation → BLL).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Gom action (allocate / unallocate / …), regId, examId, profile và khu vực đích từ form allocation.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code AllocationServlet} dựng request → {@code AllocationActionServiceImpl} xử lý →
  * {@link AllocationActionResultDTO} / {@link ServiceResult}.
  */

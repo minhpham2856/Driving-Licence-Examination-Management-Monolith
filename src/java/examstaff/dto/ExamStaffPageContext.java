@@ -5,21 +5,21 @@ import java.util.List;
 /**
  * Ngữ cảnh trang ExamStaff đã chuẩn bị xong: kỳ thi hiện tại, danh sách kỳ, thí sinh và view picker.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Đầu ra của bước {@code prepareExamStaffPage}: sau khi resolve examId (từ
  * {@link ExamStaffPageCommand}) và tùy chọn load candidates, servlet lấy context này để bind
  * attribute request / tiếp tục nghiệp vụ (gọi, thủ tục, phân bổ, báo cáo…).
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code ExamStaffPageServiceImpl} ({@code new ExamStaffPageContext});
  * trả về qua {@code ExamStaffPageSupport#prepareExamStaffPage}.
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code DashboardServlet}, {@code CandidateCallServlet}, {@code ProcedureServlet},
  * {@code AllocationServlet}, {@code ReportServlet}, {@code ExaminerAllocationServlet}
  * (chủ yếu lấy {@code examId} + {@code candidates}).
  *
- * <h2>Trang / JSP</h2>
+ * Trang / JSP:
  * Gián tiếp qua binder: attributes {@code allExams}, {@code currentExam}, {@code candidateQueue}, …
  * trên {@code dashboard.jsp}, {@code candidatecall.jsp}, allocation / report / examiner-allocation.
  */
@@ -36,7 +36,6 @@ public class ExamStaffPageContext {
 
     /**
      * Tạo context với kỳ thi, danh sách kỳ và thí sinh (null list → list rỗng bất biến).
-     *
      * @param examId     kỳ thi hiện tại đã resolve
      * @param allExams   danh sách kỳ cho picker / điều hướng
      * @param candidates hàng thí sinh đã load (có thể rỗng nếu không load)

@@ -9,11 +9,11 @@ import java.util.List;
 /**
  * View-model trang nhật ký audit của staff ExamStaff.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Gom logs cá nhân, slice phân trang, KPI thủ tục và filter để {@code AuditServlet} bind
  * lên {@code audit.jsp}.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * Tạo bởi {@code StaffAuditPageServiceImpl}; tiêu thụ bởi {@code AuditServlet} → {@code audit.jsp}.
  */
 public class StaffAuditPageViewDTO {

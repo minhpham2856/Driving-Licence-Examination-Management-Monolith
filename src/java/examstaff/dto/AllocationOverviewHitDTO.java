@@ -5,10 +5,10 @@ import examstaff.dto.ExamRegistrationDTO;
 /**
  * Một hit tìm kiếm trên trang tổng quan phân bổ.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Gắn thí sinh với stage (key/label/path) để UI điều hướng đúng màn stage sau khi search.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code AllocationStageViewServiceImpl} → nằm trong {@link AllocationStageViewDTO#getOverviewSearchHits()}
  * → JSP allocation overview.
  */

@@ -3,10 +3,10 @@ package examstaff.dto;
 /**
  * KPI thủ tục của staff trên màn audit: số hồ sơ hoàn tất và tổng lệ phí đã thu.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Hiển thị nhanh hiệu suất bàn thủ tục của user đang xem nhật ký ({@code audit.jsp}).
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code AuditLogDAOImpl} → gắn vào {@link StaffAuditPageViewDTO#getProcedureKpi()} → {@code AuditServlet}.
  */
 public class StaffProcedureKpiDTO {
@@ -15,7 +15,6 @@ public class StaffProcedureKpiDTO {
 
     /**
      * Tạo KPI bất biến cho một staff.
-     *
      * @param completedCount số hồ sơ thủ tục đã hoàn tất
      * @param totalFees      tổng lệ phí tương ứng
      */

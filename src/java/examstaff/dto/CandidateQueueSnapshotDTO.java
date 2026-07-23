@@ -7,11 +7,11 @@ import java.util.List;
 /**
  * Snapshot hàng chờ thí sinh tại một thời điểm (BLL → Presentation).
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Tách full queue, active queue, danh sách đã xong thủ tục và examId đã resolve —
  * dùng khi refresh queue / chuẩn bị call / select-exam.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code CandidateQueueServiceImpl} → page refresh, select-exam, call prep
  * ({@code ExamStaffPageSupport}, {@code CandidateCallPageServiceImpl}, …).
  */

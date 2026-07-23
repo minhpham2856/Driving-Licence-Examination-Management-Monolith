@@ -8,18 +8,18 @@ import java.util.List;
 /**
  * Snapshot chỉ-đọc cho màn Public Call (TV / bảng gọi công khai): JSP lần đầu và JSON poll.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Tổng hợp từ {@link CallBoardState} + hàng chờ đã resolve: thí sinh đang gọi, kế tiếp,
  * danh sách chờ, cờ desk bận / ca pause / ca kết thúc. Không cho phép mutation từ phía TV.
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code StaffCallServiceImpl#loadPublicSnapshot} (hỗ trợ {@code PublicCallSnapshotSupport}).
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code PublicCallServlet} (render JSP), {@code PublicCallStateServlet} (JSON);
  * binder {@code PublicCallSnapshotSupport#bindRequest} / {@code toStateJson}.
  *
- * <h2>Trang / endpoint</h2>
+ * Trang / endpoint:
  * {@code web/views/public/public-call.jsp}; API poll {@code /api/public-call/state}.
  */
 public class PublicCallSnapshotDTO {

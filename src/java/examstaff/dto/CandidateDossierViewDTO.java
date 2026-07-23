@@ -6,10 +6,10 @@ import examstaff.dto.ExamRegistrationDTO;
 /**
  * View-model hồ sơ thí sinh (dossier) trên màn ExamStaff.
  *
- * <h2>Vai trò</h2>
+ * Vai trò:
  * Gói profile {@link ExamRegistrationDTO}, tóm tắt kỳ, lệ phí và tiêu đề hiển thị cho trang dossier.
  *
- * <h2>Ai tạo / tiêu thụ</h2>
+ * Ai tạo / tiêu thụ:
  * {@code CandidateDossierServiceImpl} → {@code CandidateDossierServlet} → {@code candidate-dossier.jsp}.
  */
 public class CandidateDossierViewDTO {

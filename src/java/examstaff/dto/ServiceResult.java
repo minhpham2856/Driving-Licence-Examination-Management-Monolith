@@ -6,23 +6,22 @@ import shared.enums.ErrorType;
  * Bao kết quả nghiệp vụ generic {@code <T>} từ BLL ExamStaff về Presentation:
  * thành công / thất bại, loại lỗi, thông điệp và payload tùy chọn.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
  * Chuẩn hóa trả về cho các thao tác control ca, thủ tục, phân bổ, chọn kỳ, phân công SHV…
  * Servlet đọc {@link #isSuccess()}, lấy {@link #getMessage()} đưa flash/error, lấy {@link #getData()}
  * khi cần tiếp tục side-effect (ví dụ {@link ExamTransitionResultDTO}, {@link AllocationActionResultDTO}).
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * Factory {@link #ok}/{@link #fail} trong {@code ExamControlServiceImpl}, {@code ProcedureServiceImpl} /
  * {@code ProcedureWorkflowServiceImpl}, {@code AllocationServiceImpl}, {@code ExaminerAssignServiceImpl},
  * {@code ExamStaffSelectionServiceImpl}, …
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code ExamControlServlet}, {@code ExamStaffShiftSupport}, {@code ProcedureServlet},
  * {@code AllocationServlet}, {@code ExaminerAllocationServlet}, {@code ExamSelectServlet}.
  *
- * <h2>Trang / JSP</h2>
+ * Trang / JSP:
  * Không bind type wrapper; message thường thành {@code errorMsg} / {@code alertMsg} trên request/session.
- *
  * @param <T> kiểu payload khi thành công (hoặc failure kèm data)
  */
 public final class ServiceResult<T> {
@@ -34,7 +33,6 @@ public final class ServiceResult<T> {
 
     /**
      * Khởi tạo nội bộ — dùng các factory {@code ok}/{@code fail}.
-     *
      * @param success   kết quả nghiệp vụ
      * @param errorType loại lỗi (null khi thành công)
      * @param message   thông điệp hiển thị / log
@@ -49,7 +47,6 @@ public final class ServiceResult<T> {
 
     /**
      * Kết quả thành công kèm payload, không message.
-     *
      * @param data dữ liệu trả về
      * @param <T>  kiểu payload
      * @return instance success
@@ -60,7 +57,6 @@ public final class ServiceResult<T> {
 
     /**
      * Kết quả thành công kèm payload và thông điệp (alert thành công).
-     *
      * @param data    dữ liệu trả về
      * @param message thông báo UI
      * @param <T>     kiểu payload
@@ -72,7 +68,6 @@ public final class ServiceResult<T> {
 
     /**
      * Kết quả thành công chỉ có thông điệp, không payload.
-     *
      * @param message thông báo UI
      * @param <T>     kiểu payload (null)
      * @return instance success
@@ -83,7 +78,6 @@ public final class ServiceResult<T> {
 
     /**
      * Kết quả thất bại với loại lỗi và thông điệp, không data.
-     *
      * @param type    {@link ErrorType} phân loại xử lý UI
      * @param message mô tả lỗi
      * @param <T>     kiểu payload
@@ -95,7 +89,6 @@ public final class ServiceResult<T> {
 
     /**
      * Kết quả thất bại nhưng vẫn kèm payload (ví dụ partial state / outcome).
-     *
      * @param type    loại lỗi
      * @param message mô tả lỗi
      * @param data    payload đi kèm failure

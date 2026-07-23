@@ -9,18 +9,19 @@ import java.util.List;
  * Kết quả orchestrator trang gọi thí sinh — BLL → Presentation để servlet áp dụng side-effect
  * session / board rồi forward JSP.
  *
- * <h2>Vai trò trong luồng examstaff</h2>
+ * Vai trò trong luồng examstaff:
+ *
  * Sau khi {@code CandidateCallPageServiceImpl} xử lý {@link CandidateCallPageCommand}, DTO này mang:
  * các list hàng chờ (full / active / suspended), SBD đang gọi, cờ ca, và các chỉ thị side-effect
  * (release desk, sync board, persist queue order, clear SBD vừa thanh toán thủ tục, alert UI).
  *
- * <h2>Ai tạo</h2>
+ * Ai tạo:
  * {@code CandidateCallPageServiceImpl} (qua facade {@code StaffCallServiceImpl#preparePage}).
  *
- * <h2>Ai tiêu thụ</h2>
+ * Ai tiêu thụ:
  * {@code CandidateCallServlet} — {@code applyCallSideEffects}, {@code applyBoardOp}, {@code bindActionAlert}.
  *
- * <h2>Trang / JSP</h2>
+ * Trang / JSP:
  * {@code candidatecall.jsp}, {@code candidate-suspended.jsp} (attributes lấy từ view + session sau bind).
  */
 public class CandidateCallPageViewDTO {
