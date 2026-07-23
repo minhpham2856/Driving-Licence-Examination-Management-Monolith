@@ -930,7 +930,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             int examAreaId, SectionType sectionType) {
         List<Integer> order = ExamRoomQueueRegistry.displayOrder(examId, examAreaId, sectionType);
         if (order.isEmpty() || rows.isEmpty()) {
-            return rows;
+            return new ArrayList<>();
         }
         Map<Integer, CandidateRowDTO> bySbd = new LinkedHashMap<>();
         for (CandidateRowDTO row : rows) {
@@ -944,8 +944,6 @@ public class ExamViewServiceImpl implements ExamViewService {
                 ordered.add(row);
             }
         }
-        // Add remaining rows not in the queue
-        ordered.addAll(bySbd.values());
         return ordered;
     }
 

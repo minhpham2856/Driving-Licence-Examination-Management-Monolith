@@ -365,6 +365,40 @@ public class ExamEnrollmentSectionDAOImpl extends DBContext implements ExamEnrol
         return isResultPrinted(examEnrollmentId, sectionType);
     }
 
+    @Override
+    public boolean isDeviceAvailable(int deviceId, int examEnrollmentId) {
+        String sql = "SELECT COUNT(*) FROM ExamEnrollmentSection "
+                + "WHERE ExamDeviceId = ? AND ExamEnrollmentId <> ? AND Status <> ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, deviceId);
+            ps.setInt(2, examEnrollmentId);
+            ps.setString(3, CandidateStatus.COMPLETED.getValue());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) == 0;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean updateDevice(int examEnrollmentId, String sectionType, Integer deviceId) {
+        String sql = "UPDATE ees SET ExamDeviceId = ? FROM ExamEnrollmentSection ees "
+                + "INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
+                + "WHERE ees.ExamEnrollmentId = ? AND es.SectionType = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            if (deviceId == null) ps.setNull(1, java.sql.Types.INTEGER);
+            else ps.setInt(1, deviceId);
+            ps.setInt(2, examEnrollmentId);
+            ps.setString(3, sectionType);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
     // Private helper: map.
     private static ExamEnrollmentSection map(ResultSet rs) throws SQLException {
         ExamEnrollmentSection row = new ExamEnrollmentSection();

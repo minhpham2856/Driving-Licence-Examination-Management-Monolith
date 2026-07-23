@@ -1,4 +1,4 @@
-package registrant.util;
+package shared.storage;
 
 import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
@@ -29,6 +29,14 @@ public final class CloudinaryDocumentStorage {
     private static final int DEFAULT_SIGNED_URL_TTL_SECONDS = 1800;
 
     private CloudinaryDocumentStorage() {
+    }
+
+    private static String sanitizeFileName(String value) {
+        if (value == null || value.isBlank()) {
+            return "file";
+        }
+        String sanitized = value.trim().replaceAll("[^A-Za-z0-9._-]", "_");
+        return sanitized.isBlank() ? "file" : sanitized;
     }
 
     public static boolean isConfigured() {
@@ -82,7 +90,7 @@ public final class CloudinaryDocumentStorage {
 
         String submitted = part.getSubmittedFileName();
         String fileName = submitted != null && !submitted.isBlank()
-                ? RegistrantUploadStorage.sanitizeFileName(submitted)
+                ? sanitizeFileName(submitted)
                 : docType + "." + ext;
 
         long timestamp = Instant.now().getEpochSecond();
@@ -172,7 +180,7 @@ public final class CloudinaryDocumentStorage {
     }
 
     private static String buildPublicId(int profileId, String docType, String ext) {
-        String safeType = RegistrantUploadStorage.sanitizeFileName(docType);
+        String safeType = sanitizeFileName(docType);
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         String base = folderPrefix()
                 + "/p" + profileId
@@ -188,13 +196,13 @@ public final class CloudinaryDocumentStorage {
     private static String buildRegistrantContext(int profileId, String docType) {
         return "profile_id=" + profileId
                 + "|profile_code=HS-" + profileId
-                + "|document_type=" + RegistrantUploadStorage.sanitizeFileName(docType)
+                + "|document_type=" + sanitizeFileName(docType)
                 + "|source=registrant"
                 + "|lifecycle=pending";
     }
 
     private static String buildRegistrantTags(int profileId, String docType) {
-        String typeTag = RegistrantUploadStorage.sanitizeFileName(docType)
+        String typeTag = sanitizeFileName(docType)
                 .replace('_', '-')
                 .toLowerCase();
         return "dlem,registrant,pending,p" + profileId + "," + typeTag;

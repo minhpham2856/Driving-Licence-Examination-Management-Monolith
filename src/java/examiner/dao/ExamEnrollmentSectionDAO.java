@@ -39,4 +39,8 @@ public interface ExamEnrollmentSectionDAO {
 
     // Stamps ResultPrintedAt on the section row when the result form is printed.
     boolean markResultPrinted(int examEnrollmentId, String sectionType);
+
+    boolean isDeviceAvailable(int deviceId, int examEnrollmentId);
+
+    boolean updateDevice(int examEnrollmentId, String sectionType, Integer deviceId);
 }

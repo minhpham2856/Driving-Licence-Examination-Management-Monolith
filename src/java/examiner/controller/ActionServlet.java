@@ -13,6 +13,7 @@ import examiner.service.ActionService;
 import examiner.service.impl.ActionServiceImpl;
 import examiner.util.ListUtil;
 import shared.model.ExaminerSchedule;
+import shared.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,9 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @WebServlet("/examiner/action")
 
@@ -67,6 +71,19 @@ public class ActionServlet extends HttpServlet {
             request.setAttribute("candidates", candidates);
             request.setAttribute("candidateQueue", candidates);
             request.setAttribute("examSummary", viewService.getStatsByExam(activeExamId, sectionType));
+            request.setAttribute("examAreaId", examAreaId);
+            Integer selectedSbd = formatPositiveInteger(request.getParameter("sbd"));
+            if (sectionType != SectionType.THEORY && selectedSbd != null) {
+                Map<String, Object> scoreModel = viewService.getScoreEntryViewByExam(
+                        activeExamId, selectedSbd, sectionType);
+                for (Map.Entry<String, Object> item : scoreModel.entrySet()) {
+                    request.setAttribute(item.getKey(), item.getValue());
+                }
+                String scoreToken = UUID.randomUUID().toString();
+                session.setAttribute("scoreSubmissionToken", scoreToken);
+                request.setAttribute("scoreSubmissionToken", scoreToken);
+                request.setAttribute("scoreModalOpen", Boolean.TRUE);
+            }
         }
         request.getRequestDispatcher("/views/examiner/action.jsp").forward(request, response);
     }
@@ -108,10 +125,50 @@ public class ActionServlet extends HttpServlet {
             HttpSession session, int activeExamId, String action, Integer sbd) throws IOException {
         UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
         int userId = userDto.getUserId();
+        User user = userDto.toUser();
         SectionType sectionType = ExaminerFilter.resolveSectionType(session);
+        int examAreaId = resolveExamAreaId(session);
 
         // Each branch delegates to ActionService then redirects with flash query params for action.jsp.
         switch (action) {
+            case "call" -> {
+                if (sbd == null || !actionService.actionCandidate(activeExamId, sbd, user, userId,
+                        sectionType, "Khu vực thi").isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=callFailed");
+                    return true;
+                }
+                response.sendRedirect(request.getContextPath() + "/examiner/action?called=" + urlEncode(sbd));
+                return true;
+            }
+            case "savePracticalScore" -> {
+                if (sbd == null || sectionType == SectionType.THEORY
+                        || !consumeScoreToken(session, request.getParameter("submissionToken"))) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=scorePayloadInvalid");
+                    return true;
+                }
+                Integer deviceId = formatPositiveInteger(request.getParameter("deviceId"));
+                Integer elapsedSeconds = formatPositiveInteger(request.getParameter("elapsedSeconds"));
+                Map<Integer, Integer> occurrences = parseOccurrences(request);
+                if (deviceId == null || elapsedSeconds == null
+                        || !actionService.savePracticalScore(activeExamId, examAreaId, sbd, deviceId,
+                                elapsedSeconds, occurrences, userId).isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
+                            + urlEncode(sbd) + "&error=scoreFailed");
+                    return true;
+                }
+                response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
+                        + urlEncode(sbd) + "&scoreSaved=1");
+                return true;
+            }
+            case "defer" -> {
+                if (sbd == null || !actionService.deferCandidate(
+                        activeExamId, examAreaId, sbd, userId, sectionType).isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=deferFailed");
+                    return true;
+                }
+                response.sendRedirect(request.getContextPath() + "/examiner/action?deferred=" + urlEncode(sbd));
+                return true;
+            }
             case "undoPresent" -> {
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
@@ -225,5 +282,35 @@ public class ActionServlet extends HttpServlet {
 
     private String urlEncode(int value) {
         return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+    }
+
+    private int resolveExamAreaId(HttpSession session) {
+        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+        return schedule != null && schedule.getExamAreaId() != null ? schedule.getExamAreaId() : 0;
+    }
+
+    private boolean consumeScoreToken(HttpSession session, String submitted) {
+        Object stored = session.getAttribute("scoreSubmissionToken");
+        if (submitted == null || stored == null || !submitted.equals(stored.toString())) {
+            return false;
+        }
+        session.removeAttribute("scoreSubmissionToken");
+        return true;
+    }
+
+    private Map<Integer, Integer> parseOccurrences(HttpServletRequest request) {
+        Map<Integer, Integer> occurrences = new HashMap<>();
+        for (Map.Entry<String, String[]> item : request.getParameterMap().entrySet()) {
+            if (!item.getKey().startsWith("deduction_")) {
+                continue;
+            }
+            try {
+                int deductionId = Integer.parseInt(item.getKey().substring("deduction_".length()));
+                int count = Integer.parseInt(item.getValue()[0]);
+                occurrences.put(deductionId, count);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return occurrences;
     }
 }

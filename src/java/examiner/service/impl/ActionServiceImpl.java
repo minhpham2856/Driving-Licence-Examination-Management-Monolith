@@ -2,6 +2,7 @@ package examiner.service.impl;
 
 import examiner.dao.AuditDAO;
 import examiner.dao.CandidateDAO;
+import examiner.dao.CandidateViolationDAO;
 import examiner.dao.DeductionRecordDAO;
 import examiner.dao.ExamAreaDAO;
 import examiner.dao.ExamDeviceDAO;
@@ -15,6 +16,7 @@ import examiner.dao.ScoreDeductionDAO;
 import examiner.dao.UserDAO;
 import examiner.dao.impl.AuditDAOImpl;
 import examiner.dao.impl.CandidateDAOImpl;
+import examiner.dao.impl.CandidateViolationDAOImpl;
 import examiner.dao.impl.DeductionRecordDAOImpl;
 import examiner.dao.impl.ExamAreaDAOImpl;
 import examiner.dao.impl.ExamDeviceDAOImpl;
@@ -36,6 +38,7 @@ import shared.enums.ErrorType;
 import shared.enums.ViolationReason;
 import shared.model.Audit;
 import shared.model.Candidate;
+import shared.model.CandidateViolation;
 import shared.model.DeductionRecord;
 import shared.model.ExamArea;
 import shared.model.ExamDevice;
@@ -72,6 +75,7 @@ public class ActionServiceImpl implements ActionService {
 
     private final AuditService auditService = new AuditServiceImpl();
     private final CandidateDAO candidateDAO = new CandidateDAOImpl();
+    private final CandidateViolationDAO candidateViolationDAO = new CandidateViolationDAOImpl();
     private final ExamEnrollmentDAO enrollmentDAO = new ExamEnrollmentDAOImpl();
     private final ExamEnrollmentSectionDAO enrollmentSectionDAO = new ExamEnrollmentSectionDAOImpl();
     private final AuditDAO auditDAO = new AuditDAOImpl();
@@ -127,6 +131,26 @@ public class ActionServiceImpl implements ActionService {
     public void removeCandidate(int examId, int sbd) {
         presentSet(examId).remove(sbd);
         procedureSet(examId).remove(sbd);
+    }
+
+    @Override
+    public ServiceResult<Void> deferCandidate(int examId, int examAreaId, int sbd, Integer actionUserId,
+            SectionType sectionType) {
+        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
+        if (enrollment == null || examAreaId <= 0 || sectionType == null) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "deferFailed");
+        }
+        int assignedAreaId = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
+                enrollment.getExamEnrollmentId(), sectionType.getValue());
+        if (assignedAreaId != examAreaId
+                || !ExamRoomQueueRegistry.moveToTail(examId, examAreaId, sectionType, sbd)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "deferFailed");
+        }
+        if (actionUserId != null) {
+            auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE_CALL,
+                    "Đưa SBD " + sbd + " xuống cuối hàng đợi", enrollment.getCandidateId());
+        }
+        return ServiceResult.ok(null);
     }
 
     // Lazy per-exam set of SBDs marked present in session memory.
@@ -349,8 +373,31 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public ServiceResult<Void> recordViolation(int examId, int sbd, Integer actionUserId, String reasonCode,
             String reasonDetail, String evidencePath, SectionType sectionType) {
-        // Slim path: one-click suspend = Candidate.IsSuspended only (reason optional for audit).
-        return markSuspended(examId, sbd, actionUserId, reasonCode, reasonDetail, sectionType);
+        ViolationReason reason = ViolationReason.fromValue(reasonCode);
+        if (actionUserId == null || reason == null || evidencePath == null || evidencePath.isBlank()
+                || (reason == ViolationReason.OTHER && (reasonDetail == null || reasonDetail.isBlank()))) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "violationInvalid");
+        }
+        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
+        if (enrollment == null || enrollment.isSuspended()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "violationInvalid");
+        }
+        int sectionRowId = findSectionRowId(enrollment.getExamEnrollmentId(), sectionType);
+        CandidateViolation violation = new CandidateViolation();
+        violation.setExamEnrollmentSectionId(sectionRowId);
+        violation.setReason(reason.getValue());
+        violation.setDetails(reasonDetail != null ? reasonDetail.trim() : null);
+        violation.setEvidenceUrl(evidencePath);
+        violation.setCreatedBy(actionUserId);
+        if (sectionRowId <= 0 || !candidateViolationDAO.addAndSuspend(enrollment.getCandidateId(), violation)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "violationFailed");
+        }
+        enrollmentSectionDAO.updateDevice(enrollment.getExamEnrollmentId(),
+                (sectionType != null ? sectionType : SectionType.LAYOUT).getValue(), null);
+        removeFromAllQueues(examId, sbd);
+        auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
+                buildViolationAuditText(reason.getValue(), reasonDetail, evidencePath), enrollment.getCandidateId());
+        return ServiceResult.ok(null);
     }
 
     // One-click suspend: sets Candidate.IsSuspended=true.
@@ -367,6 +414,8 @@ public class ActionServiceImpl implements ActionService {
         if (!candidateDAO.updateSuspended(enrollment.getCandidateId(), true)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể đình chỉ thí sinh.");
         }
+        enrollmentSectionDAO.updateDevice(enrollment.getExamEnrollmentId(),
+                (sectionType != null ? sectionType : SectionType.LAYOUT).getValue(), null);
         String auditText = "Đình chỉ SBD " + enrollment.getCandidateNumber();
         if (reasonCode != null && !reasonCode.isBlank()) {
             ViolationReason reason = ViolationReason.fromValue(reasonCode);
@@ -553,6 +602,64 @@ public class ActionServiceImpl implements ActionService {
         return ServiceResult.ok(null);
     }
 
+    @Override
+    public ServiceResult<Void> savePracticalScore(int examId, int examAreaId, int sbd, int deviceId,
+            int elapsedSeconds, Map<Integer, Integer> occurrences, Integer actionUserId) {
+        if (examAreaId <= 0 || deviceId <= 0 || elapsedSeconds < 0 || occurrences == null) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scorePayloadInvalid");
+        }
+        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, SectionType.LAYOUT);
+        ExamDevice device = deviceDAO.get(deviceId);
+        if (enrollment == null || enrollment.isSuspended() || device == null
+                || device.getExamAreaId() != examAreaId || !device.isActive()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "vehicleInvalid");
+        }
+        int assignedArea = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
+                enrollment.getExamEnrollmentId(), SectionType.LAYOUT.getValue());
+        if (assignedArea != examAreaId) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "areaMismatch");
+        }
+        if (!enrollmentSectionDAO.isDeviceAvailable(deviceId, enrollment.getExamEnrollmentId())) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "vehicleOccupied");
+        }
+        if (!changeCandidateVehicle(examId, sbd, deviceId, actionUserId, SectionType.LAYOUT).isSuccess()) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "vehicleFailed");
+        }
+        if (!enrollmentSectionDAO.updateDevice(
+                enrollment.getExamEnrollmentId(), SectionType.LAYOUT.getValue(), deviceId)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "vehicleFailed");
+        }
+        for (Map.Entry<Integer, Integer> item : occurrences.entrySet()) {
+            int deductionId = item.getKey();
+            int requested = item.getValue() != null ? item.getValue() : 0;
+            if (deductionId <= 0 || requested < 0 || requested > 100) {
+                return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scorePayloadInvalid");
+            }
+            ScoreDeduction rule = scoreDeductionDAO.get(deductionId);
+            if (rule == null || rule.getExamSectionId() <= 0) {
+                return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "deductionInvalid");
+            }
+            int examScoreId = ensurePracticalExamScore(enrollment.getCandidateId(), examId);
+            if (examScoreId <= 0) {
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreFailed");
+            }
+            int current = deductionRecordDAO.getOccurrenceCount(examScoreId, deductionId);
+            if (current != requested && !applyDeductionDelta(examScoreId, deductionId, requested - current)) {
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreFailed");
+            }
+            if (!examScoreDAO.recalculateFromDeductions(examScoreId)) {
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreFailed");
+            }
+        }
+        ServiceResult<Void> result = finalizeScoreEntry(examId, sbd, actionUserId, SectionType.LAYOUT);
+        if (result.isSuccess() && actionUserId != null) {
+            auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
+                    "Lưu điểm thực hành SBD " + sbd + ", thời gian " + elapsedSeconds + " giây",
+                    enrollment.getCandidateId());
+        }
+        return result;
+    }
+
     // Verifies password before sensitive action.
     @Override
     public boolean verifyPassword(User user, String password) {
@@ -618,10 +725,15 @@ public class ActionServiceImpl implements ActionService {
         if (enrollmentRecord == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "completeFailed");
         }
+        if (!sectionProgressService.isResultPrinted(enrollmentRecord.getExamEnrollmentId(), completedSection)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "needResultPrint");
+        }
         if (!sectionProgressService.update(
                 enrollmentRecord.getExamEnrollmentId(), completedSection, CandidateStatus.COMPLETED)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "completeFailed");
         }
+        enrollmentSectionDAO.updateDevice(
+                enrollmentRecord.getExamEnrollmentId(), completedSection.getValue(), null);
         if (actionUserId != null) {
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
                     "Hoàn tất phần thi SBD " + enrollment.getCandidateNumber(), enrollment.getCandidateId());
@@ -828,6 +940,20 @@ public class ActionServiceImpl implements ActionService {
         return label;
     }
 
+    private int findSectionRowId(int enrollmentId, SectionType sectionType) {
+        SectionType expected = sectionType != null ? sectionType : SectionType.LAYOUT;
+        for (shared.model.ExamEnrollmentSection row : enrollmentSectionDAO.getAllByEnrollmentId(enrollmentId)) {
+            if (row.getExamSectionId() == null) {
+                continue;
+            }
+            ExamSection section = sectionDAO.get(row.getExamSectionId());
+            if (section != null && SectionType.fromValue(section.getSectionType()) == expected) {
+                return row.getExamEnrollmentSectionId();
+            }
+        }
+        return 0;
+    }
+
     // Private helper: adjust score deduction occurrence.
     private boolean adjustScoreDeductionOccurrence(int candidateId, int examId, int scoreDeductionId, int delta) {
         if (candidateId <= 0 || examId <= 0 || scoreDeductionId <= 0 || delta == 0) {
@@ -880,6 +1006,33 @@ public class ActionServiceImpl implements ActionService {
         }
         // Keep IsPassed in sync while scoring; ResultDate is stamped only on finalize.
         return persistPracticalOutcome(examId, enrollment.getExamEnrollmentId(), false);
+    }
+
+    private int ensurePracticalExamScore(int candidateId, int examId) {
+        ExamEnrollment enrollment = enrollmentDAO.getByExamAndCandidate(examId, candidateId);
+        if (enrollment == null) {
+            return 0;
+        }
+        int resultId = examResultDAO.getExamResultIdByExamEnrollmentId(enrollment.getExamEnrollmentId());
+        if (resultId <= 0) {
+            ExamResult result = new ExamResult();
+            result.setExamEnrollmentId(enrollment.getExamEnrollmentId());
+            result.setPassed(false);
+            resultId = examResultDAO.add(result);
+        }
+        int sectionId = loadLayoutSectionId(examId);
+        if (resultId <= 0 || sectionId <= 0) {
+            return 0;
+        }
+        ExamScore score = examScoreDAO.getByExamResultAndSection(resultId, sectionId);
+        if (score != null) {
+            return score.getExamScoreId();
+        }
+        score = new ExamScore();
+        score.setExamResultId(resultId);
+        score.setExamSectionId(sectionId);
+        score.setScore(100);
+        return examScoreDAO.add(score);
     }
 
     // Ensures ExamScore exists, then sets IsPassed from score >= 80. When stampResultDate,
@@ -965,4 +1118,3 @@ public class ActionServiceImpl implements ActionService {
         return false;
     }
 }
-

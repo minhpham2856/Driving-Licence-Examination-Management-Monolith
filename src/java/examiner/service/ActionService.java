@@ -4,6 +4,7 @@ import examiner.dto.EnrollmentDTO;
 import examiner.dto.ServiceResult;
 import shared.enums.SectionType;
 import shared.model.User;
+import java.util.Map;
 
 // Service contract for examiner call-board actions, presence, scoring, suspensions, and device operations.
 public interface ActionService {
@@ -41,6 +42,9 @@ public interface ActionService {
     ServiceResult<Integer> actionSelectedCandidates(int examId, User user, Integer actionUserId,
             SectionType sectionType, String actionDestination, int[] sbds);
 
+    ServiceResult<Void> deferCandidate(int examId, int examAreaId, int sbd, Integer actionUserId,
+            SectionType sectionType);
+
     // Opens score entry for one eligible candidate and logs the call action.
     ServiceResult<Void> actionScoreEntryCandidate(int examId, Integer sbd, User user, Integer actionUserId,
             SectionType sectionType, String actionDestination, boolean scoreEntry);
@@ -51,6 +55,9 @@ public interface ActionService {
 
     // Finalizes practical score entry and moves the candidate to awaiting-signature status.
     ServiceResult<Void> finalizeScoreEntry(int examId, int sbd, Integer actionUserId, SectionType sectionType);
+
+    ServiceResult<Void> savePracticalScore(int examId, int examAreaId, int sbd, int deviceId,
+            int elapsedSeconds, Map<Integer, Integer> occurrences, Integer actionUserId);
 
     // Sets an exam device to maintenance status and writes an audit entry.
     ServiceResult<Void> setDeviceMaintenance(int deviceId, Integer actionUserId);

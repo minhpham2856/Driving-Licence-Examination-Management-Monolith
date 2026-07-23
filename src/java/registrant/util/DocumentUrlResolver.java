@@ -1,5 +1,7 @@
 package registrant.util;
 
+import shared.storage.CloudinaryDocumentStorage;
+
 import registrant.dto.RegistrantDocumentView;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
