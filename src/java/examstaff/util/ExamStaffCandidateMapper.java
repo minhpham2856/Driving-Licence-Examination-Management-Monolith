@@ -7,8 +7,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Map read-model {@link ExamStaffCandidate} → {@link ExamRegistrationDTO} dùng trên UI/controller.
- * Field tùy chọn (khu vực phân bổ, điểm) chỉ set khi nguồn khác null.
+ * Mapper chuyển read-model {@link ExamStaffCandidate} (DAO view JOIN Candidate+Enrollment)
+ * sang {@link ExamRegistrationDTO} dùng trên UI, servlet và BLL ExamStaff.
+ *
+ * Vai trò trong luồng examstaff:
+ * DAO trả {@code ExamStaffCandidate} gọn cho query phức tạp; presentation và hầu hết service
+ * làm việc với {@code ExamRegistrationDTO}. Mapper copy field bắt buộc; khu vực phân bổ và điểm
+ * chỉ set khi nguồn khác null — tránh ghi đè giá trị mặc định bằng null.
+ *
+ * Cách hoạt động:
+ * - {@link #toDto} — null row → null; copy id/enrollment/SBD/thanh toán/hiện diện/hồ sơ cá nhân;
+ *       optional allocated area + theory/practical score.
+ * - {@link #toDtoList} — giữ thứ tự; null list → list rỗng (không null).
+ *
+ * Ai gọi:
+ * {@code ExamStaffViewServiceImpl}, {@code ExamRegistrationDAOImpl},
+ * {@code CandidateQueueQueryServiceImpl}, {@code StaffCallServiceImpl},
+ * {@code AllocationStageViewServiceImpl} — mọi luồng đọc thí sinh từ view DAO.
  */
 public final class ExamStaffCandidateMapper {
 
@@ -19,15 +34,13 @@ public final class ExamStaffCandidateMapper {
     /**
      * Map một read-model thí sinh sang DTO đăng ký.
      * <p>
+ *
      * Luồng:
-     * <ol>
-     *   <li>null row → null</li>
-     *   <li>Copy id / enrollment / SBD / loại ĐK / thanh toán / hiện diện / hồ sơ cá nhân</li>
-     *   <li>Copy hạng GPLX, máy tính, cờ phần thi, ngày thi, vắng/đình chỉ, ghi chú</li>
-     *   <li>Nếu có → copy khu vực LT/TH đã phân bổ</li>
-     *   <li>Nếu có → copy điểm lý thuyết / thực hành</li>
-     * </ol>
-     *
+     * - null row → null
+     * - Copy id / enrollment / SBD / loại ĐK / thanh toán / hiện diện / hồ sơ cá nhân
+     * - Copy hạng GPLX, máy tính, cờ phần thi, ngày thi, vắng/đình chỉ, ghi chú
+     * - Nếu có → copy khu vực LT/TH đã phân bổ
+     * - Nếu có → copy điểm lý thuyết / thực hành
      * @param row dòng nguồn (null → null)
      * @return DTO hoặc {@code null}
      */
@@ -83,7 +96,6 @@ public final class ExamStaffCandidateMapper {
 
     /**
      * Map danh sách read-model → danh sách DTO (giữ thứ tự; null list → list rỗng).
-     *
      * @param rows danh sách nguồn
      * @return danh sách DTO (không null)
      */

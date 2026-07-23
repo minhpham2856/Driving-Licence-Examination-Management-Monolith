@@ -8,8 +8,22 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Sắp xếp danh sách đăng ký / thí sinh theo cột và hướng (server-side).
- * Chỉ cho phép cột trong whitelist; alias {@code cccd} được map sang {@code govIdNo}.
+ * Utility sắp xếp server-side danh sách {@link ExamRegistrationDTO} theo cột và hướng
+ * — whitelist cột an toàn, alias {@code cccd} → {@code govIdNo}.
+ *
+ * Vai trò trong luồng examstaff:
+ * Các màn allocation, dashboard và báo cáo nhận tham số {@code sort}/{@code dir} từ URL;
+ * helper parse thành {@link Spec} rồi {@link #sort} mutate list tại chỗ trước khi bind JSP
+ * hoặc export — tránh sort không kiểm soát trên cột JDBC.
+ *
+ * Cách hoạt động:
+ * - {@link #parse} — trim, alias cccd, whitelist ({@code sbd}, {@code name}, {@code clazz},
+ *       {@code govIdNo}, {@code dob}, {@code theoryScore}, {@code practicalScore}); invalid → default SBD asc.
+ * - {@link #sort} — no-op nếu &lt; 2 phần tử; SBD parse số từ chữ số; điểm null = -1.
+ *
+ * Ai gọi:
+ * {@code AllocationStageViewServiceImpl}, {@code AllocationServlet}, {@code ReportServlet},
+ * {@code CandidateQueueQueryServiceImpl} — paging/sort bảng thí sinh trên UI staff.
  */
 public final class ExamRegistrationSort {
 
@@ -36,7 +50,6 @@ public final class ExamRegistrationSort {
 
         /**
          * Tạo đặc tả sort đã được caller đảm bảo hợp lệ.
-         *
          * @param column    tên cột đã whitelist
          * @param ascending {@code true} = tăng dần
          */
@@ -63,14 +76,12 @@ public final class ExamRegistrationSort {
     /**
      * Parse tham số sort/dir thành {@link Spec} (alias {@code cccd} → {@code govIdNo}).
      * <p>
+ *
      * Luồng:
-     * <ol>
-     *   <li>Trim sort; null → {@link #DEFAULT_COLUMN}</li>
-     *   <li>{@code cccd} → {@code govIdNo}</li>
-     *   <li>Không nằm whitelist → default column</li>
-     *   <li>dir khác {@code desc} (không phân biệt hoa thường) → tăng dần</li>
-     * </ol>
-     *
+     * - Trim sort; null → {@link #DEFAULT_COLUMN}
+     * - {@code cccd} → {@code govIdNo}
+     * - Không nằm whitelist → default column
+     * - dir khác {@code desc} (không phân biệt hoa thường) → tăng dần
      * @param sort tên cột (invalid → default)
      * @param dir  {@code desc} = giảm; còn lại = tăng
      * @return spec hợp lệ
@@ -96,7 +107,6 @@ public final class ExamRegistrationSort {
      * <p>
      * No-op khi list null, &lt; 2 phần tử, hoặc spec null.
      * Lấy comparator theo cột rồi reverse nếu giảm dần.
-     *
      * @param rows danh sách (mutate nếu ≥ 2 phần tử)
      * @param spec đặc tả sắp xếp
      */
@@ -116,7 +126,6 @@ public final class ExamRegistrationSort {
 
     /**
      * Tạo {@link Comparator} theo tên cột whitelist (mặc định so sánh SBD số).
-     *
      * @param column tên cột đã parse
      * @return comparator không null
      */
@@ -134,7 +143,6 @@ public final class ExamRegistrationSort {
 
     /**
      * Rút số nguyên từ chữ số trong SBD; thiếu/lỗi → {@code -1} (xếp trước/sau tùy chiều).
-     *
      * @param c hồ sơ thí sinh
      * @return số SBD hoặc -1
      */
@@ -156,7 +164,6 @@ public final class ExamRegistrationSort {
 
     /**
      * Epoch millis của ngày sinh; null DTO/DOB → {@code 0}.
-     *
      * @param c hồ sơ thí sinh
      * @return millis hoặc 0
      */
@@ -167,7 +174,6 @@ public final class ExamRegistrationSort {
 
     /**
      * Điểm null coi như {@code -1} khi so sánh (chưa có điểm xếp trước khi tăng dần).
-     *
      * @param score điểm hoặc null
      * @return giá trị so sánh
      */
@@ -177,7 +183,6 @@ public final class ExamRegistrationSort {
 
     /**
      * Chuẩn hóa chuỗi so sánh: trim, token {@code "-"} → rỗng, lower-case.
-     *
      * @param value chuỗi gốc
      * @return khóa so sánh (không null)
      */

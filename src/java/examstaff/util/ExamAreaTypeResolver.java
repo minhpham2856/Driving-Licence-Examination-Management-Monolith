@@ -4,10 +4,23 @@ import examstaff.enums.ExamSection;
 import shared.enums.ExamAreaType;
 
 /**
- * Phân loại khu vực thi (lý thuyết / thực hành) qua nhãn và alias schema.
- * <p>
- * Pure helper — không gọi BLL/DAO. Dùng khi query exact AreaType trên schema Clean
- * hoặc map alias schema SWP/DLEM ({@code Phòng thi}/{@code Sân thi}).
+ * Utility phân loại khu vực thi (lý thuyết / thực hành) qua nhãn chuẩn và alias schema SWP/DLEM.
+ * Pure helper — không gọi BLL/DAO; cung cấp chuỗi AreaType cho JDBC query.
+ *
+ * Vai trò trong luồng examstaff:
+ * CSDL có thể lưu AreaType theo schema Clean ({@code Lý thuyết}/{@code Thực hành}) hoặc
+ * alias SWP ({@code Phòng thi}/{@code Sân thi}). Resolver trả cả hai biến thể để DAO
+ * (ví dụ {@code ExamAreaDAOImpl#getActiveTheoryRooms}) gộp không trùng {@code ExamAreaId}.
+ *
+ * Nhãn và alias:
+ * - Lý thuyết — {@link #theoryAreaTypeLabel()} = {@link ExamSection#LY_THUYET} display name;
+ *       alias {@link #theoryAreaTypeAlias()} = {@code ExamAreaType.EXAM_ROOM}.
+ * - Thực hành — {@link #practicalAreaTypeLabel()} = {@link #PRACTICAL_AREA_TYPE};
+ *       alias {@link #practicalAreaTypeAlias()} = {@code ExamAreaType.EXAM_GROUND}.
+ *
+ * Ai gọi:
+ * {@code ExamAreaDAOImpl}, {@code ExaminerAllocationServiceImpl}, {@code AllocationStageHelper},
+ * {@code ExaminerAssignmentRules} — query phòng LT/sân TH theo loại khu vực.
  */
 public final class ExamAreaTypeResolver {
 
@@ -21,7 +34,6 @@ public final class ExamAreaTypeResolver {
     /**
      * Giá trị AreaType “chuẩn” cho khu vực lý thuyết khi query exact (schema Clean).
      * Lấy từ {@link ExamSection#LY_THUYET} display name.
-     *
      * @return chuỗi nhãn lý thuyết (ví dụ {@code "Lý thuyết"})
      */
     public static String theoryAreaTypeLabel() {
@@ -30,7 +42,6 @@ public final class ExamAreaTypeResolver {
 
     /**
      * Giá trị AreaType “chuẩn” cho khu vực thực hành khi query exact (schema Clean).
-     *
      * @return {@link #PRACTICAL_AREA_TYPE}
      */
     public static String practicalAreaTypeLabel() {
@@ -40,7 +51,6 @@ public final class ExamAreaTypeResolver {
     /**
      * Alias schema SWP/DLEM cho lý thuyết: {@code Phòng thi}
      * ({@link ExamAreaType#EXAM_ROOM}).
-     *
      * @return giá trị enum AreaType phòng thi
      */
     public static String theoryAreaTypeAlias() {
@@ -50,7 +60,6 @@ public final class ExamAreaTypeResolver {
     /**
      * Alias schema SWP/DLEM cho thực hành: {@code Sân thi}
      * ({@link ExamAreaType#EXAM_GROUND}).
-     *
      * @return giá trị enum AreaType sân thi
      */
     public static String practicalAreaTypeAlias() {

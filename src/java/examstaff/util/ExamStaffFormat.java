@@ -3,8 +3,22 @@ package examstaff.util;
 import java.util.Locale;
 
 /**
- * Format / parse chuỗi kỹ thuật cho exam staff (SBD, audit gọi thí sinh).
- * Pure static helper — không phụ thuộc Servlet/BLL.
+ * Utility format/parse chuỗi kỹ thuật cho exam staff — SBD (số báo danh) và câu mô tả audit gọi thí sinh.
+ * Pure static; không phụ thuộc Servlet API hay BLL.
+ *
+ * Vai trò trong luồng examstaff:
+ * {@link #parseCandidateNo} rút số nguyên từ SBD dạng {@code A-12} hoặc {@code 12} để sort/so sánh
+ * hàng đợi và audit. {@link #formatDetail} ghép đích gọi + mã kết quả ({@code calling}, {@code absent})
+ * thành câu tiếng Việt ngắn ghi vào nhật ký khi staff gọi thí sinh lên bảng/phòng.
+ *
+ * Cách hoạt động:
+ * - Parse SBD — blank → 0; có {@code -} → phần sau dấu; {@code NumberFormatException} → 0.
+ * - Format audit — outcome rỗng → “Gọi lên {destination}”; map {@code calling}/{@code absent}
+ *       sang câu cố định; còn lại ghép {@code destination - outcome}.
+ *
+ * Ai gọi:
+ * {@code StaffCallServiceImpl}, {@code StaffAuditLogServiceImpl}, {@code CandidateQueueServiceImpl},
+ * {@code ExaminerAssignmentRules} — sort SBD và ghi chi tiết thao tác gọi thí sinh.
  */
 public final class ExamStaffFormat {
 
@@ -19,14 +33,12 @@ public final class ExamStaffFormat {
     /**
      * Lấy phần số từ candidate number (sau dấu {@code -} nếu có).
      * <p>
+ *
      * Luồng parse:
-     * <ol>
-     *   <li>null/blank → {@code 0}</li>
-     *   <li>Có dấu {@code -} → parse phần sau dấu {@code -}</li>
-     *   <li>Không có {@code -} → parse toàn bộ chuỗi đã trim</li>
-     *   <li>NumberFormatException → {@code 0}</li>
-     * </ol>
-     *
+     * - null/blank → {@code 0}
+     * - Có dấu {@code -} → parse phần sau dấu {@code -}
+     * - Không có {@code -} → parse toàn bộ chuỗi đã trim
+     * - NumberFormatException → {@code 0}
      * @param candidateNumber chuỗi SBD/số thí sinh (ví dụ {@code A-12} hoặc {@code 12})
      * @return số nguyên hoặc {@code 0} nếu không parse được
      */
@@ -59,14 +71,12 @@ public final class ExamStaffFormat {
     /**
      * Ghép đích gọi và kết quả thành câu tiếng Việt ngắn cho audit “gọi thí sinh”.
      * <p>
+ *
      * Luồng:
-     * <ol>
-     *   <li>Chuẩn hóa {@code calledTo} / {@code result} (null → rỗng)</li>
-     *   <li>Outcome rỗng → chỉ mô tả đích hoặc “Gọi thí sinh”</li>
-     *   <li>{@code calling} / {@code absent} → câu cố định theo đích</li>
-     *   <li>Outcome khác → ghép {@code destination - outcome} hoặc chỉ outcome</li>
-     * </ol>
-     *
+     * - Chuẩn hóa {@code calledTo} / {@code result} (null → rỗng)
+     * - Outcome rỗng → chỉ mô tả đích hoặc “Gọi thí sinh”
+     * - {@code calling} / {@code absent} → câu cố định theo đích
+     * - Outcome khác → ghép {@code destination - outcome} hoặc chỉ outcome
      * @param calledTo đích / bàn gọi (có thể blank)
      * @param result   mã kết quả ({@code calling}, {@code absent}, …)
      * @return chuỗi mô tả thao tác
