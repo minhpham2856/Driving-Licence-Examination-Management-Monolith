@@ -17,7 +17,7 @@
 <main class="exam-kiosk-shell">
     <section class="exam-kiosk-card" aria-label="Đăng nhập kỳ thi">
         <div class="exam-kiosk-brand">
-            <span class="material-symbols-outlined">school</span>
+            <img class="exam-kiosk-logo" src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
             <div>
                 <p class="exam-kiosk-eyebrow">Máy thi lý thuyết</p>
                 <h1>Đăng nhập kỳ thi</h1>

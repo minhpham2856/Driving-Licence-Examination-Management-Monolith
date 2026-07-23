@@ -14,6 +14,10 @@ public class CandidateExamContextDTO {
     private int examSectionId;
     private int examAreaId;
     private int licenceId;
+    private String examCode;
+    private String licenceClass;
+    private String examDateDisplay;
+    private String sectionName;
     private int durationMinutes;
     private int theoryPaperId;
     private long startedAtMillis;
@@ -37,6 +41,14 @@ public class CandidateExamContextDTO {
     public void setExamAreaId(int value) { examAreaId = value; }
     public int getLicenceId() { return licenceId; }
     public void setLicenceId(int value) { licenceId = value; }
+    public String getExamCode() { return examCode; }
+    public void setExamCode(String value) { examCode = value; }
+    public String getLicenceClass() { return licenceClass; }
+    public void setLicenceClass(String value) { licenceClass = value; }
+    public String getExamDateDisplay() { return examDateDisplay; }
+    public void setExamDateDisplay(String value) { examDateDisplay = value; }
+    public String getSectionName() { return sectionName; }
+    public void setSectionName(String value) { sectionName = value; }
     public int getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(int value) { durationMinutes = value; }
     public int getTheoryPaperId() { return theoryPaperId; }

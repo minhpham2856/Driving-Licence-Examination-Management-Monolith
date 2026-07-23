@@ -17,7 +17,7 @@
 <main class="exam-kiosk-shell">
     <section class="exam-kiosk-card exam-kiosk-card--compact" aria-label="Nhập số báo danh">
         <div class="exam-kiosk-brand">
-            <span class="material-symbols-outlined">assignment_ind</span>
+            <img class="exam-kiosk-logo" src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
             <div>
                 <p class="exam-kiosk-eyebrow">Vào thi lý thuyết</p>
                 <h1>Nhập số báo danh</h1>

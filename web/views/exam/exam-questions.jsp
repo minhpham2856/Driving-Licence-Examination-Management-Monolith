@@ -16,7 +16,7 @@
 <body class="exam-paper-body">
 <main class="exam-paper-shell">
     <header class="exam-paper-header">
-        <div>
+        <div class="exam-paper-title">
             <p class="exam-paper-eyebrow">Bài thi lý thuyết</p>
             <h1>SBD <c:out value="${candidateExam.candidateNumber}"/></h1>
         </div>
@@ -58,6 +58,35 @@
                 </div>
             </section>
         </c:forEach>
+
+        <footer class="exam-paper-footer" aria-label="Thông tin kỳ thi">
+            <div class="exam-paper-footer__meta">
+                <div>
+                    <span>Kỳ thi</span>
+                    <strong><c:out value="${empty candidateExam.examCode ? '-' : candidateExam.examCode}"/></strong>
+                </div>
+                <div>
+                    <span>Hạng GPLX</span>
+                    <strong><c:out value="${empty candidateExam.licenceClass ? '-' : candidateExam.licenceClass}"/></strong>
+                </div>
+                <div>
+                    <span>Ngày thi</span>
+                    <strong><c:out value="${empty candidateExam.examDateDisplay ? '-' : candidateExam.examDateDisplay}"/></strong>
+                </div>
+                <div>
+                    <span>Phần thi</span>
+                    <strong><c:out value="${empty candidateExam.sectionName ? '-' : candidateExam.sectionName}"/></strong>
+                </div>
+            </div>
+            <div class="exam-paper-footer__agency">
+                <div class="exam-paper-footer__agency-text">
+                    <span>BỘ CÔNG AN</span>
+                    <strong>Cục Cảnh sát Giao thông</strong>
+                </div>
+                <img src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
+            </div>
+        </footer>
+
         <div class="exam-submit-bar">
             <button type="submit" class="exam-submit-button">
                 <span class="material-symbols-outlined">send</span>
