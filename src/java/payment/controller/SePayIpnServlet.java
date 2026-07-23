@@ -15,14 +15,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Webhook IPN SePay — <b>nguồn sự thật</b> khi ghi nhận đã thanh toán.
+ * Webhook IPN SePay — <b>nguồn sự thật</b> ghi nhận thanh toán vào bảng {@code Payment}.
  * <p>
- * Cấu hình trên SePay Dashboard:
- * URL = {@code {SEPAY_APP_BASE_URL}/payment/sepay/ipn} (phải public, thường qua ngrok khi local),
- * method POST, auth {@code X-Secret-Key} = secret IPN (thường = {@code SEPAY_SECRET_KEY}
- * hoặc {@code SEPAY_IPN_SECRET} nếu Dashboard dùng secret riêng).
- * <p>
- * Khác return URL (success/cancel): IPN do server SePay gọi, không phụ thuộc trình duyệt staff.
+ * Bước <b>IPN</b> trong luồng checkout → IPN → return: SePay server POST JSON tới
+ * {@code /payment/sepay/ipn} (public qua ngrok khi dev), xác thực {@code X-Secret-Key}
+ * hoặc HMAC, parse {@code ORDER_PAID}/{@code CAPTURED}, INSERT Payment Hoàn tất.
+ * Khác return URL (success/cancel/error): IPN không phụ thuộc trình duyệt staff.
  */
 @WebServlet("/payment/sepay/ipn")
 public class SePayIpnServlet extends HttpServlet {

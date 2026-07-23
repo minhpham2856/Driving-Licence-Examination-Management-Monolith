@@ -1,6 +1,13 @@
 package payment.util.sepay;
 
-/** Hằng số SePay Payment Gateway - tham chiếu developer.sepay.vn */
+/**
+ * Hằng số tham chiếu spec SePay Payment Gateway (developer.sepay.vn).
+ * <p>
+ * Gom giá trị dùng xuyên suốt checkout (operation, currency, đường dẫn init),
+ * IPN ({@code ORDER_PAID}, header {@code X-Secret-Key}, {@code X-SePay-Signature})
+ * và môi trường sandbox/production. Không chứa logic — tránh magic string trong
+ * {@link SePayConfig}, {@link SePaySignature} và {@link SePayIpnParser}.
+ */
 public final class SePayConstants {
 
     public static final String ENV_SANDBOX = "sandbox";

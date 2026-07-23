@@ -4,7 +4,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Ánh xạ tên đối tượng Audit (EntityName) sang tiếng Việt.
+ * Hằng số ánh xạ tên đối tượng {@code Audit.EntityName} sang nhãn tiếng Việt trên UI.
+ * <p>
+ * Dùng khi hiển thị timeline track-profile và log thao tác (Profile, Document, Candidate, Payment…).
  */
 public final class AuditEntityLabels {
 

@@ -20,6 +20,7 @@ import registrant.util.RegistrantAuditHelper;
 import registrant.util.RegistrantDocumentStatusHelper;
 import registrant.util.RegistrantProfileProgressBuilder;
 import registrant.util.RegistrantProfileSupport;
+import registrant.util.RegistrantTrackingCategories;
 import registrant.util.RegistrantTrackingFilter;
 import registrant.util.RegistrantTrackingFilter.TrackingFilterState;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +30,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Triển khai {@link registrant.service.RegistrantTrackProfileService} cho trang theo dõi hồ sơ.
+ * <p>
+ * Đọc {@code AuditLogDAO}, {@code DocumentDAO}, {@code RegistrantDAO}; hợp nhất audit + upload tài liệu
+ * thành {@link registrant.dto.RegistrantTrackingLog}, dựng timeline 5 bước qua
+ * {@link registrant.util.RegistrantProfileProgressBuilder} và áp bộ lọc phân trang.
+ */
 public class RegistrantTrackProfileServiceImpl implements RegistrantTrackProfileService {
 
     private static final int TRACKING_PAGE_SIZE = 50;
@@ -50,9 +58,19 @@ public class RegistrantTrackProfileServiceImpl implements RegistrantTrackProfile
         int profileId = ctx.getProfileId();
         List<AuditLogEntry> auditLogs = auditLogdao.getLogsByProfileId(profileId, TRACKING_FETCH_LIMIT);
         List<RegistrantTrackingLog> auditTracking = RegistrantAuditHelper.toTrackingLogs(auditLogs);
-        List<RegistrantTrackingLog> legacyTracking =
-                registrantdao.buildProfileTrackingLogs(profileId, user.getUserId());
-        List<RegistrantTrackingLog> unified = mergeTrackingLogs(auditTracking, legacyTracking);
+        /*
+         * Ưu tiên Audit.CreatedAt (thời điểm sự kiện thật).
+         * Không merge log giả lập dùng new Date() — các dòng đó luôn ra ngày đăng nhập/xem.
+         * Chỉ bổ sung thanh toán (PaidAt thật) khi chưa có trong Audit.
+         */
+        List<RegistrantTrackingLog> unified;
+        if (!auditTracking.isEmpty()) {
+            List<RegistrantTrackingLog> paymentOnly = filterPaymentLogs(
+                    registrantdao.buildProfileTrackingLogs(profileId, user.getUserId()));
+            unified = mergeTrackingLogs(auditTracking, paymentOnly);
+        } else {
+            unified = registrantdao.buildProfileTrackingLogs(profileId, user.getUserId());
+        }
 
         TrackingFilterState filterState = RegistrantTrackingFilter.parse(request, unified);
         List<RegistrantTrackingLog> filtered = RegistrantTrackingFilter.apply(unified, filterState);
@@ -77,6 +95,21 @@ public class RegistrantTrackProfileServiceImpl implements RegistrantTrackProfile
         List<RegistrantProfileProgressStep> progressSteps = RegistrantProfileProgressBuilder.build(
                 registrationStatus, documentSummary, unified, registeredExams);
         request.setAttribute("profileProgressSteps", progressSteps);
+    }
+
+    private static List<RegistrantTrackingLog> filterPaymentLogs(List<RegistrantTrackingLog> logs) {
+        List<RegistrantTrackingLog> payment = new ArrayList<>();
+        if (logs == null) {
+            return payment;
+        }
+        for (RegistrantTrackingLog log : logs) {
+            if (log != null
+                    && RegistrantTrackingCategories.RegistrantPayment.equals(log.getCategory())
+                    && log.getTimestamp() != null) {
+                payment.add(log);
+            }
+        }
+        return payment;
     }
 
     private static List<RegistrantTrackingLog> mergeTrackingLogs(

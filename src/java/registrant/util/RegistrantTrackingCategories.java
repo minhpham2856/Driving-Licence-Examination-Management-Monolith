@@ -8,7 +8,10 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Loại tác vụ trong nhật ký theo dõi hồ sơ - dùng cho filter track-profile.
+ * Hằng số loại tác vụ và trạng thái trong nhật ký theo dõi hồ sơ — phục vụ filter {@code track-profile.jsp}.
+ * <p>
+ * Map {@code category} (upload, gửi duyệt, phê duyệt, profile, exam, payment…) và {@code statusClass}
+ * sang nhãn tiếng Việt; phân loại dòng {@link registrant.dto.RegistrantTrackingLog}.
  */
 public final class RegistrantTrackingCategories {
 
