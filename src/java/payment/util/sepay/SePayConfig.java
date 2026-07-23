@@ -3,16 +3,11 @@ package payment.util.sepay;
 import shared.ConfigManager;
 
 /**
- * Đọc cấu hình SePay từ {@code .env} / biến môi trường (qua {@link ConfigManager}).
+ * Đọc cấu hình SePay từ {@code .env}/biến môi trường (qua {@link shared.ConfigManager}).
  * <p>
- * Key chính trong {@code .env}:
- * <ul>
- *   <li>{@code SEPAY_MERCHANT_ID}, {@code SEPAY_SECRET_KEY} — bắt buộc để checkout</li>
- *   <li>{@code SEPAY_ENV} — {@code sandbox} hoặc {@code production}</li>
- *   <li>{@code SEPAY_APP_BASE_URL} — URL public (thường ngrok) cho <b>IPN</b></li>
- *   <li>{@code SEPAY_RETURN_BASE_URL} — URL trình duyệt (localhost) cho success/error/<b>cancel</b>
- *       để tránh trang “Visit Site” của ngrok free</li>
- * </ul>
+ * Phục vụ cả ba bước checkout → IPN → return: merchant/secret cho ký checkout;
+ * {@code SEPAY_APP_BASE_URL} cho webhook IPN; {@code SEPAY_RETURN_BASE_URL} cho redirect
+ * trình duyệt success/error/cancel. Thiếu merchant + secret → desk ẩn nút SePay.
  */
 public final class SePayConfig {
 

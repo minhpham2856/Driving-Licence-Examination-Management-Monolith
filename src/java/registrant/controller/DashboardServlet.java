@@ -11,16 +11,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Dashboard Registrant — {@code GET /registrant/dashboard}.
+ * Trang tổng quan cổng thí sinh — {@code GET /registrant/dashboard} → {@code dashboard.jsp}.
  * <p>
- * Service build model rồi copy sang request:
- * <ul>
- *   <li>Stats ca thi / hồ sơ từ {@code RegistrantDAO}</li>
- *   <li>{@code totalFee} = {@link payment.dao.PaymentDAO#sumCompletedPaymentsByUserId}
- *       (SUM Payment hoàn tất — Cash <b>và</b> SePay — join Profile↔Candidate qua CCCD)</li>
- *   <li>CTA / upcoming / filter danh sách</li>
- * </ul>
- * Registrant <b>không</b> tự checkout SePay; chỉ <b>đọc</b> tiền đã thu tại bàn thủ tục.
+ * Luồng: {@link RegistrantAuth#requireRegistrant} → {@link RegistrantDashboardService#buildDashboardModel}
+ * → {@code copyToRequest} → forward JSP. Service gom stats hồ sơ/ca thi, {@code totalFee} (Payment đã hoàn tất),
+ * {@code registeredExamList}, hoạt động gần đây, ca sắp tới và panel việc cần làm.
+ * Thí sinh chỉ đọc tiền đã thu tại bàn thủ tục — không checkout SePay từ đây.
  */
 @WebServlet("/registrant/dashboard")
 public class DashboardServlet extends HttpServlet {

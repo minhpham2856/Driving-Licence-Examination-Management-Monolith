@@ -486,7 +486,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 .side-nav-bar__submenu {
-    display: none;
+    display: flex;
     flex-direction: column;
     gap: 4px;
     padding-left: 12px;
@@ -497,7 +497,16 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 .side-nav-bar__link.is-active + .side-nav-bar__submenu {
-    display: flex;
+    border-left-color: #0052cc;
+}
+
+/* Registrant: luôn hiện submenu Hồ sơ */
+.side-nav-bar--registrant .side-nav-bar__submenu,
+.side-nav-bar--registrant .side-nav-bar__menu-group.is-open .side-nav-bar__submenu {
+    display: flex !important;
+}
+
+.side-nav-bar--registrant .side-nav-bar__link.is-active + .side-nav-bar__submenu {
     border-left-color: #0052cc;
 }
 

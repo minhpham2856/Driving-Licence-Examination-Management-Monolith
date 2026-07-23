@@ -1,6 +1,11 @@
 package registrant.dto;
 
-/** Một mục trong panel "Việc cần làm" trên dashboard thí sinh. */
+/**
+ * DTO một mục trong panel "Việc cần làm" trên dashboard thí sinh.
+ * <p>
+ * Chứa tiêu đề, mô tả, nhãn nút hành động, {@code href} servlet (vd. {@code /registrant/upload-documents})
+ * và {@code tone} màu (warning/danger/info/…). Sinh bởi {@link registrant.util.RegistrantDashboardActionItemsBuilder}.
+ */
 public class RegistrantDashboardActionItem {
 
     private String title;

@@ -3,12 +3,11 @@ package payment.dto;
 import java.sql.Timestamp;
 
 /**
- * DTO map bảng {@code Payment}.
- * <ul>
- *   <li>{@code candidateId} — resolve ExamEnrollment khi IPN/cash insert</li>
- *   <li>{@code examEnrollmentId} — FK thật trên DB</li>
- *   <li>{@code amount} → TotalAmount; {@code transactionReference} UNIQUE (idempotent IPN)</li>
- * </ul>
+ * DTO ánh xạ bản ghi bảng {@code Payment} — dùng khi INSERT từ Cash desk hoặc SePay IPN.
+ * <p>
+ * {@code candidateId} và {@code examEnrollmentId} liên kết thí sinh/đăng ký thi;
+ * {@code paymentStatus} thường Hoàn tất; {@code transactionReference} UNIQUE (chống IPN trùng);
+ * {@code amount} map cột TotalAmount. Registrant đọc qua {@link payment.dao.PaymentDAO#sumCompletedPaymentsByUserId}.
  */
 public class PaymentRecord {
     private int id;
