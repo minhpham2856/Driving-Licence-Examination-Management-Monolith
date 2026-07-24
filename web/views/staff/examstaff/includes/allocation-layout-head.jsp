@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
@@ -24,7 +24,7 @@
 
 <c:set var="layoutListPath" value="${not empty requestScope.allocationListPath ? requestScope.allocationListPath : pageContext.request.servletPath}" />
 
-<c:url var="allocOverviewUrl" value="/examstaff/allocation">
+<c:url var="allocOverviewUrl" value="/views/staff/examstaff/allocation">
     <c:if test="${not empty layoutExamId}"><c:param name="examId" value="${layoutExamId}" /></c:if>
 </c:url>
 
@@ -89,7 +89,7 @@
                 </c:if>
                 <div class="es-search-box">
                     <input type="text" name="q" id="candidateSearch" class="es-search-box__input"
-                           value="${allocationSearchQuery}" placeholder="Tìm SBD, họ tên, căn cước…">
+                           value="${allocationSearchQuery}" placeholder="Tìm SBD, họ tên, CCCD…">
                 </div>
                 <button type="submit" class="allocation-search-btn" aria-label="Tìm kiếm">
                     <span class="material-symbols-outlined" aria-hidden="true">search</span>

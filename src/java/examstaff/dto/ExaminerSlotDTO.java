@@ -1,12 +1,14 @@
 package examstaff.dto;
 
-/** Slot phân công sát hạch viên trong một kỳ thi (Exam). */
+/**
+ * Slot phân công sát hạch viên trong một kỳ thi (Exam + khu vực + loại phần thi).
+ */
 public class ExaminerSlotDTO {
-    /** ExamId. */
+    /** Mã kỳ thi. */
     private int examId;
-    /** ExamAreaId. */
+    /** Mã khu vực thi (ExamArea). */
     private int areaId;
-    /** ExamType: 1=Theory, 2=Practical, 4=Road. */
+    /** Loại phần thi: 1=Lý thuyết, 2=Trong hình, 4=Trên đường. */
     private int examTypeId;
     private int examinerUserId;
     private int assignedBy;
@@ -17,6 +19,7 @@ public class ExaminerSlotDTO {
     private String examTypeName;
     private String examName;
 
+    /** Khóa slot duy nhất: examId:areaId:examinerUserId. */
     public String getSlotKey() {
         return examId + ":" + areaId + ":" + examinerUserId;
     }

@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix = "fmt" uri = "http://java.sun.com/jsp/jstl/fmt" %>
@@ -7,16 +7,15 @@
     <jsp:param name="activeSidebar" value="goi-thi" />
     <jsp:param name="pageTitle" value="${requestScope.deskMode ? 'Bàn làm thủ tục' : 'Gọi làm thủ tục'}" />
     <jsp:param name="sectionTitle" value="Gọi làm thủ tục" />
-    <jsp:param name="sectionUrl" value="${pageContext.request.contextPath}/examstaff/candidatecall" />
+    <jsp:param name="sectionUrl" value="${pageContext.request.contextPath}/views/staff/examstaff/candidatecall" />
     <jsp:param name="mainClass" value="examstaff-main--scroll" />
 </jsp:include>
 
         <header class="page-header page-header--toolbar">
-            <p class="examiner-page-desc">Điều hành hàng đợi gọi thủ tục; phát loa qua màn hình TV riêng.</p>
             <div class="call-page-actions">
                 <c:if test="${sessionScope.shiftEnded ne 'true' and sessionScope.shiftPaused ne 'true'}">
                     <a href="candidatecall?action=pauseShift" class="call-toolbar-btn call-toolbar-btn--warn"
-                       onclick="return confirm('Tạm dừng gọi số? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng. Sát hạch viên cũng không đăng nhập được khi đang tạm dừng.');">
+                       onclick="return confirm('Tạm dừng gọi số? Hàng đợi thí sinh chưa làm thủ tục sẽ được giữ nguyên và không bị đánh vắng. Giám khảo cũng không đăng nhập được khi đang tạm dừng.');">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
                             <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>
@@ -42,6 +41,14 @@
         <c:if test="${not empty sessionScope.examControlError}">
             <div class="examstaff-flash examstaff-flash--error">${sessionScope.examControlError}</div>
             <c:remove var="examControlError" scope="session"/>
+        </c:if>
+        <c:if test="${not empty requestScope.examLockedMsg}">
+            <div class="examstaff-flash examstaff-flash--error">${requestScope.examLockedMsg}</div>
+        </c:if>
+        <c:if test="${requestScope.examMutationsLocked}">
+            <div class="examstaff-flash examstaff-flash--error">
+                Kỳ thi đã kết thúc. Không thể xóa/sửa hồ sơ thủ tục, đình chỉ hoặc hoàn tác đình chỉ.
+            </div>
         </c:if>
 
         <nav class="call-subnav" aria-label="Điều hướng gọi thủ tục">
@@ -137,7 +144,7 @@
                                 </svg>
                             </div>
                             <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #92400e;">Đã tạm dừng gọi số</h3>
-                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. Sát hạch viên không đăng nhập được khi đang tạm dừng.</p>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. Giám khảo không đăng nhập được khi đang tạm dừng.</p>
 
                             <a href="candidatecall?action=startShift" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
                                 Tiếp tục gọi số
@@ -193,14 +200,14 @@
                                         </div>
                                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
                                             <span class="role-badge role-badge--coi" style="font-size: 0.72rem; padding: 2px 8px;">Hạng ${callingCandidate.clazz}</span>
-                                            <span style="font-size: 0.75rem; color: #64748b; font-family: monospace;">Căn cước: ${callingCandidate.cccd}</span>
+                                            <span style="font-size: 0.75rem; color: #64748b; font-family: monospace;">CCCD: ${callingCandidate.cccd}</span>
                                         </div>
 
                                         <p style="margin: 0.75rem 0 0; font-size: 0.78rem; color: #64748b; line-height: 1.45;">
                                             Loa gọi tên phát trên
                                             <c:choose>
                                                 <c:when test="${not empty sessionScope.selectedExamId}">
-                                                    <a href="${pageContext.request.contextPath}/examstaff/public-call?examId=${sessionScope.selectedExamId}"
+                                                    <a href="${pageContext.request.contextPath}/views/public/public-call?examId=${sessionScope.selectedExamId}"
                                                        target="_blank" rel="noopener"
                                                        style="font-weight: 700; color: #0052cc; text-decoration: none;">màn hình TV</a>.
                                                 </c:when>
@@ -244,6 +251,7 @@
                                             </a>
 
                                             <div style="display: flex; gap: 8px; width: 100%;">
+                                                <c:if test="${not requestScope.examMutationsLocked}">
                                                 <a href="candidatecall?action=absent&amp;sbd=${callingCandidate.sbd}" class="btn-batch btn-batch--alt" style="flex: 1; height: 38px; border-color: rgba(245, 158, 11, 0.3); color: #d97706; background: rgba(245, 158, 11, 0.01); font-size: 0.8rem;" title="Đẩy xuống cuối hàng đợi">
                                                     Vắng
                                                 </a>
@@ -251,6 +259,7 @@
                                                    onclick="return confirm('Đình chỉ thí sinh ${callingCandidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">
                                                     Đình chỉ
                                                 </a>
+                                                </c:if>
                                             </div>
                                         </div>
                                     </div>
@@ -312,7 +321,7 @@
                                         <th scope="col" style="width: 80px;">SBD</th>
                                         <th scope="col">Họ tên</th>
                                         <th scope="col" style="width: 60px; text-align: center;">Hạng</th>
-                                        <th scope="col" style="width: 110px; text-align: center;">Căn cước</th>
+                                        <th scope="col" style="width: 110px; text-align: center;">CCCD</th>
                                         <th scope="col" style="width: 200px; text-align: right;">Hành động</th>
                                     </tr>
                                 </thead>
@@ -332,9 +341,11 @@
                                                 <td style="text-align: right;">
                                                     <div style="display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
                                                         <a href="procedure?sbd=${candidate.sbd}#procedure-desk" class="btn-filter" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">Hồ sơ</a>
+                                                        <c:if test="${not requestScope.examMutationsLocked}">
                                                         <a href="candidatecall?action=absent&amp;sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #d97706; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);" title="Đẩy xuống cuối hàng chờ">Vắng</a>
                                                         <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}" class="btn-reset" style="height: 26px; padding: 0 8px; font-size: 0.7rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; color: #dc2626; border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.04);" title="Đình chỉ thi"
                                                            onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
+                                                        </c:if>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -381,21 +392,25 @@
                                                 </td>
                                                 <td>
                                                     <div class="procedure-done-actions">
-                                                        <a href="procedure?sbd=${candidate.sbd}&amp;step=1#procedure-desk"
-                                                           class="procedure-done-btn procedure-done-btn--edit"
-                                                           title="Sửa hồ sơ thủ tục">Sửa</a>
+                                                        <c:if test="${not requestScope.examMutationsLocked}">
+                                                            <a href="procedure?sbd=${candidate.sbd}&amp;step=1#procedure-desk"
+                                                               class="procedure-done-btn procedure-done-btn--edit"
+                                                               title="Sửa hồ sơ thủ tục">Sửa</a>
+                                                        </c:if>
                                                         <a href="candidate-dossier?sbd=${candidate.sbd}&amp;print=true"
                                                            target="_blank"
                                                            class="procedure-done-btn procedure-done-btn--print"
                                                            title="In phiếu hồ sơ">In</a>
-                                                        <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}"
-                                                           class="procedure-done-btn procedure-done-btn--suspend"
-                                                           title="Đình chỉ thi"
-                                                           onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
-                                                        <a href="procedure?sbd=${candidate.sbd}&amp;action=resetProcedure"
-                                                           class="procedure-done-btn procedure-done-btn--delete"
-                                                           title="Xóa hồ sơ thủ tục, làm lại từ đầu"
-                                                           onclick="return confirm('Xóa hồ sơ thủ tục của ${candidate.sbd}? Ảnh và thanh toán sẽ bị hủy để làm lại.');">Xóa</a>
+                                                        <c:if test="${not requestScope.examMutationsLocked}">
+                                                            <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}"
+                                                               class="procedure-done-btn procedure-done-btn--suspend"
+                                                               title="Đình chỉ thi"
+                                                               onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
+                                                            <a href="procedure?sbd=${candidate.sbd}&amp;action=resetProcedure"
+                                                               class="procedure-done-btn procedure-done-btn--delete"
+                                                               title="Xóa hồ sơ thủ tục, làm lại từ đầu"
+                                                               onclick="return confirm('Xóa hồ sơ thủ tục của ${candidate.sbd}? Ảnh và thanh toán sẽ bị hủy để làm lại.');">Xóa</a>
+                                                        </c:if>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -421,10 +436,10 @@
             <c:set var="currentStep" value="${not empty requestScope.step ? requestScope.step : param.step}" />
             <c:if test="${empty currentStep}"><c:set var="currentStep" value="1" /></c:if>
             <div id="procedureCameraConfig"
-                 data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto ? 'true' : 'false'}"
+                 data-enabled="${currentStep eq '2' and not requestScope.hasValidPhoto and not requestScope.examMutationsLocked ? 'true' : 'false'}"
                  data-ctx-path="${pageContext.request.contextPath}"
                  data-sbd="${not empty requestScope.profile ? requestScope.profile.sbd : ''}"
-                 data-msg-live="LIVE - Camera sẵn sàng"
+                 data-msg-live="LIVE — Camera sẵn sàng"
                  data-msg-starting="Đang khởi động camera..."
                  data-msg-unavailable="Camera không khả dụng"
                  data-msg-no-api="Trình duyệt không hỗ trợ camera. Dùng Chrome/Edge/Firefox trên localhost hoặc HTTPS."

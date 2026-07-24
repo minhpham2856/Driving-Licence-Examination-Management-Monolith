@@ -4,7 +4,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Hoàn tác đình chỉ" />
-<c:set var="backUrl" value="${ctx}/examiner/violations" />
+<c:set var="backUrl" value="${ctx}/views/examiner/violations" />
 <c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
@@ -83,7 +83,7 @@
                     </div>
 
                     <aside class="score-entry-col score-entry-col--penalties">
-                        <form action="${ctx}/examiner/violation-undo" method="post"
+                        <form action="${ctx}/views/examiner/violation-undo" method="post"
                               class="score-entry-card score-entry-card--penalties">
                             <input type="hidden" name="sbd" value="${candidate.sbd}">
                             <div class="score-entry-card__head">

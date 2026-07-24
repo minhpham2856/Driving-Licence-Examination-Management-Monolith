@@ -4,13 +4,23 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Kết quả thu lệ phí / thanh toán thủ tục (BLL → Presentation).
+ * Mang status nghiệp vụ, profile cập nhật và dữ liệu audit.
+ */
 public class ProcedurePaymentOutcomeDTO {
 
+    /** Kết quả nghiệp vụ thu lệ phí. */
     public enum Status {
+        /** Thanh toán thành công. */
         SUCCESS,
+        /** Đã thanh toán trước đó. */
         ALREADY_PAID,
+        /** Thiếu ảnh thủ tục — không thu phí. */
         NO_PHOTO,
+        /** Ghi thanh toán thất bại. */
         PAYMENT_FAILED,
+        /** Không tìm thấy hồ sơ thí sinh. */
         PROFILE_NOT_FOUND
     }
 

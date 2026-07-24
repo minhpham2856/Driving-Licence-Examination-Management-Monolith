@@ -6,7 +6,9 @@
 <c:set var="headerTitle" value="Xuất dữ liệu" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" />
 <c:set var="exportResultUrl" value="${ctx}/examiner/export/result" />
+<c:set var="exportViolationsUrl" value="${ctx}/examiner/export/violations" />
 <c:set var="exportAuditUrl" value="${ctx}/examiner/export/audit" />
+<c:set var="exportDocxUrl" value="${ctx}/examiner/export/docx" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -38,7 +40,7 @@
 
             <!--main content-->
             <main class="examiner-main examiner-main--scroll">
-
+                
                 <!--export list-->
                 <div class="export-card">
                     <jsp:include page="/views/examiner/components/export-row.jsp" />
@@ -57,6 +59,10 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
+                            <a href="${exportDocxUrl}?type=candidates" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
                         </div>
                     </div>
 
@@ -74,12 +80,33 @@
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
                             </a>
+                            <a href="${exportDocxUrl}?type=result" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
                         </div>
                     </div>
 
-                    <jsp:include page="/views/examiner/components/violation-export-row.jsp">
-                        <jsp:param name="mode" value="export" />
-                    </jsp:include>
+                    <div class="export-row">
+                        <div class="export-row__left">
+                            <div class="export-row__icon export-row__icon--red">
+                                <span class="material-symbols-outlined">warning</span>
+                            </div>
+                            <div class="export-row__info">
+                                <p class="export-row__title">Biên bản vi phạm</p>
+                            </div>
+                        </div>
+                        <div class="export-row__actions">
+                            <a href="${exportViolationsUrl}" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportDocxUrl}?type=violations" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
+                            </a>
+                        </div>
+                    </div>
 
                     <div class="export-row export-row--last">
                         <div class="export-row__left">
@@ -94,6 +121,10 @@
                             <a href="${exportAuditUrl}" class="export-btn">
                                 <span class="material-symbols-outlined">download</span>
                                 <span class="export-btn__text">excel</span>
+                            </a>
+                            <a href="${exportDocxUrl}?type=audit" class="export-btn">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="export-btn__text">docx</span>
                             </a>
                         </div>
                     </div>

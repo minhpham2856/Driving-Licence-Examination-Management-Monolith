@@ -7,11 +7,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import examstaff.util.LicenseClassRules;
 
+/**
+ * Bind {@link PublicCallSnapshotDTO} sang request attributes cho {@code public-call.jsp}.
+ */
 public final class PublicCallViewBinder {
 
     private PublicCallViewBinder() {
     }
 
+    /** Chuẩn hóa mã hạng bằng hiển thị công khai (managed → uppercase fallback). */
     private static String normalizeLicenseForPublicCall(String raw) {
         if (raw == null) {
             return null;
@@ -23,6 +27,7 @@ public final class PublicCallViewBinder {
         return raw.trim().toUpperCase(Locale.ROOT);
     }
 
+    /** Normalize licenseCode trên kỳ thi. */
     private static void normalizeExam(ExamSummaryDTO exam) {
         if (exam == null) {
             return;
@@ -30,6 +35,7 @@ public final class PublicCallViewBinder {
         exam.setLicenseCode(normalizeLicenseForPublicCall(exam.getLicenseCode()));
     }
 
+    /** Normalize licenseCode trên thí sinh. */
     private static void normalizeCandidate(ExamRegistrationDTO c) {
         if (c == null) {
             return;
@@ -37,6 +43,12 @@ public final class PublicCallViewBinder {
         c.setLicenseCode(normalizeLicenseForPublicCall(c.getLicenseCode()));
     }
 
+    /**
+     * Gán attribute JSP: currentExam, calling/next candidate, waitingQueue, cờ pause/end.
+     *
+     * @param request  request hiện tại
+     * @param snapshot snapshot từ {@link examstaff.service.PublicCallQueryService}
+     */
     public static void bind(HttpServletRequest request, PublicCallSnapshotDTO snapshot) {
         if (request == null || snapshot == null) {
             return;

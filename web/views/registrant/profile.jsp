@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -153,47 +153,47 @@
                     <h3 class="p-form-section-title">II. Căn cước công dân</h3>
                     <div class="p-form-grid p-form-grid--single-row">
                         <div class="p-input-group">
-                            <label class="p-input-label" for="view-idCard">Số căn cước / CMND</label>
+                            <label class="p-input-label" for="view-idCard">Số CCCD / CMND</label>
                             <div class="p-input-wrapper">
                                 <input type="text" class="p-input-field p-input-field--no-icon" id="view-idCard"
-                                       value="${not empty idCardNumber ? idCardNumber : '-'}" disabled
+                                       value="${not empty idCardNumber ? idCardNumber : '—'}" disabled
                                        inputmode="numeric" autocomplete="off">
                             </div>
                             <c:if test="${not idCardEditable}">
                                 <span class="profile-edit-hint">Số định danh đã khóa sau khi hồ sơ được duyệt.</span>
                             </c:if>
                             <c:if test="${idCardEditable}">
-                                <span class="profile-edit-hint">Nhập đúng số in trên thẻ - Ban quản lý sẽ đối chiếu với ảnh căn cước.</span>
+                                <span class="profile-edit-hint">Nhập đúng số in trên thẻ — Ban quản lý sẽ đối chiếu với ảnh CCCD.</span>
                             </c:if>
                         </div>
                     </div>
 
-                    <div class="profile-cccd-note" aria-label="Thông tin trên thẻ căn cước">
+                    <div class="profile-cccd-note" aria-label="Thông tin trên thẻ CCCD">
                         <p class="profile-cccd-note__title">Ngày cấp &amp; nơi cấp trên thẻ</p>
                         <p class="profile-cccd-note__text">
-                            Không cần nhập tay. Thông tin chi tiết trên căn cước được lưu qua
-                            <strong>ảnh mặt trước và mặt sau</strong> tại mục tải hồ sơ - Ban quản lý đối chiếu khi duyệt.
+                            Không cần nhập tay. Thông tin chi tiết trên CCCD được lưu qua
+                            <strong>ảnh mặt trước và mặt sau</strong> tại mục tải hồ sơ — Ban quản lý đối chiếu khi duyệt.
                         </p>
                         <ul class="profile-cccd-note__list">
                             <li>
                                 <span class="profile-cccd-note__dot profile-cccd-note__dot--${cccdFrontUploaded ? 'done' : 'pending'}"></span>
-                                Mặt trước căn cước
+                                Mặt trước CCCD
                                 <c:choose>
-                                    <c:when test="${cccdFrontUploaded}"> - đã tải lên</c:when>
-                                    <c:otherwise> - chưa tải</c:otherwise>
+                                    <c:when test="${cccdFrontUploaded}"> — đã tải lên</c:when>
+                                    <c:otherwise> — chưa tải</c:otherwise>
                                 </c:choose>
                             </li>
                             <li>
                                 <span class="profile-cccd-note__dot profile-cccd-note__dot--${cccdBackUploaded ? 'done' : 'pending'}"></span>
-                                Mặt sau căn cước
+                                Mặt sau CCCD
                                 <c:choose>
-                                    <c:when test="${cccdBackUploaded}"> - đã tải lên</c:when>
-                                    <c:otherwise> - chưa tải</c:otherwise>
+                                    <c:when test="${cccdBackUploaded}"> — đã tải lên</c:when>
+                                    <c:otherwise> — chưa tải</c:otherwise>
                                 </c:choose>
                             </li>
                         </ul>
                         <c:if test="${not cccdImagesComplete}">
-                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Tải ảnh căn cước</a>
+                            <a href="${pageContext.request.contextPath}/registrant/upload-documents" class="profile-checklist-link">Tải ảnh CCCD</a>
                         </c:if>
                     </div>
 
@@ -201,7 +201,7 @@
                     <div class="profile-exam-block">
                         <p class="profile-exam-summary__hint">
                             Một thí sinh có thể đăng ký nhiều hạng GPLX. Hạng được xác định khi chọn đợt thi,
-                            không lấy từ thông tin trên thẻ căn cước. Giữa các hạng khác nhau chỉ được thi vào ngày khác nhau.
+                            không lấy từ thông tin trên thẻ CCCD. Giữa các hạng khác nhau chỉ được thi vào ngày khác nhau.
                         </p>
 
                         <c:choose>
@@ -265,7 +265,7 @@
                         <img src="${pageContext.request.contextPath}/assets/imgs/LOGO.png" alt="Ảnh chân dung" class="profile-photo-img">
                     </div>
                     <div class="profile-photo-meta">
-                        <h2 class="profile-photo-name">${not empty registrantName ? registrantName : '-'}</h2>
+                        <h2 class="profile-photo-name">${not empty registrantName ? registrantName : '—'}</h2>
 
                         <div class="profile-photo-tags" aria-label="Vai trò thí sinh">
                             <span class="profile-photo-tag profile-photo-tag--role">Thí sinh</span>
@@ -418,18 +418,18 @@
                                placeholder="Nhập địa chỉ thường trú">
                     </div>
                     <div class="p-input-group">
-                        <label class="p-input-label" for="edit-idCard">Số căn cước / CMND</label>
+                        <label class="p-input-label" for="edit-idCard">Số CCCD / CMND</label>
                         <input type="text" class="p-input-field p-input-field--no-icon" id="edit-idCard" name="idCard"
                                value="${not empty param.idCard ? param.idCard : idCardNumber}"
-                               placeholder="Nhập 12 số căn cước hoặc 9 số CMND"
+                               placeholder="Nhập 12 số CCCD hoặc 9 số CMND"
                                inputmode="numeric" maxlength="12" autocomplete="off"
                                ${not idCardEditable ? 'readonly' : ''}>
                         <c:choose>
                             <c:when test="${not idCardEditable}">
-                                <span class="profile-edit-hint">Không thể đổi số căn cước sau khi hồ sơ đã được duyệt.</span>
+                                <span class="profile-edit-hint">Không thể đổi số CCCD sau khi hồ sơ đã được duyệt.</span>
                             </c:when>
                             <c:otherwise>
-                                <span class="profile-edit-hint">Phải khớp số in trên thẻ. Ngày cấp / nơi cấp xem trên ảnh căn cước đã tải.</span>
+                                <span class="profile-edit-hint">Phải khớp số in trên thẻ. Ngày cấp / nơi cấp xem trên ảnh CCCD đã tải.</span>
                             </c:otherwise>
                         </c:choose>
                     </div>

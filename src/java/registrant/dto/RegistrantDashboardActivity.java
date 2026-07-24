@@ -11,7 +11,7 @@ public class RegistrantDashboardActivity {
     private String desc;
     /** Nhãn hiển thị trên UI (vd: "Hôm nay, 09:45"). */
     private String time;
-    /** Mốc thời gian thực - dùng nội bộ để sắp xếp, không hiển thị trên JSP. */
+    /** Mốc thời gian thực — dùng nội bộ để sắp xếp, không hiển thị trên JSP. */
     private java.util.Date occurredAt;
 
     public String getColorClass() {

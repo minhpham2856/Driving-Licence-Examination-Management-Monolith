@@ -4,10 +4,8 @@ import java.sql.Timestamp;
 
 public class PaymentRecord {
     private int id;
-    /** CandidateId — dùng resolve ExamEnrollmentId khi insert. */
+    /** CandidateId trong bảng Candidate (cột RegistrantPayment.CandidateId). */
     private int candidateId;
-    /** FK Payment.ExamEnrollmentId (DLEM_DB_2). */
-    private int examEnrollmentId;
     private double amount;
     private String paymentStatus;
     private String paymentMethod;
@@ -44,14 +42,6 @@ public class PaymentRecord {
 
     public void setCandidateId(int candidateId) {
         this.candidateId = candidateId;
-    }
-
-    public int getExamEnrollmentId() {
-        return examEnrollmentId;
-    }
-
-    public void setExamEnrollmentId(int examEnrollmentId) {
-        this.examEnrollmentId = examEnrollmentId;
     }
 
     public double getAmount() {

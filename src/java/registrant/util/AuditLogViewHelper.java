@@ -60,7 +60,7 @@ public final class AuditLogViewHelper {
             row.put("reason", nullToDash(reason));
             row.put("multiline", log.getOldValue().contains(";"));
         } else {
-            row.put("info", "-");
+            row.put("info", "—");
             row.put("oldValue", null);
             row.put("newValue", nullToDash(log.getNewValue()));
             row.put("reason", nullToDash(reason));
@@ -102,7 +102,7 @@ public final class AuditLogViewHelper {
                 return mapped;
             }
         }
-        return "-";
+        return "—";
     }
 
     private static String extractSbdFromText(String text) {
@@ -134,7 +134,7 @@ public final class AuditLogViewHelper {
     private static String buildChangeInfo(AuditLogEntry log, String sbd) {
         String entity = AuditEntityLabels.toVietnamese(log.getTableName());
         String action = log.getAction() != null ? log.getAction().toUpperCase() : "UPDATE";
-        String sbdSuffix = "-".equals(sbd) ? "" : " SBD " + sbd;
+        String sbdSuffix = "—".equals(sbd) ? "" : " SBD " + sbd;
         return switch (action) {
             case "WARNING" -> "Cảnh báo" + sbdSuffix;
             case "INSERT" -> "Thêm " + entity.toLowerCase() + sbdSuffix;
@@ -185,6 +185,6 @@ public final class AuditLogViewHelper {
     }
 
     private static String nullToDash(String value) {
-        return value == null || value.isBlank() ? "-" : value;
+        return value == null || value.isBlank() ? "—" : value;
     }
 }

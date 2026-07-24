@@ -1,6 +1,8 @@
 package registrant.enums;
 
-/** Trạng thái phần thi trên ExamEnrollmentSection.Status. */
+/**
+ * Trạng thái thí sinh theo phần thi (Exam_Candidate.SectionStatus).
+ */
 public final class CandidateSectionStatus {
 
     public static final String PENDING = "Pending";

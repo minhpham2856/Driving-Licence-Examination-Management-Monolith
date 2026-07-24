@@ -5,6 +5,9 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 
 import java.util.List;
 
+/**
+ * Ngữ cảnh trang ExamStaff sau khi chuẩn bị: kỳ thi hiện tại, danh sách kỳ và thí sinh, picker.
+ */
 public class ExamStaffPageContextDTO {
 
     private int examId;

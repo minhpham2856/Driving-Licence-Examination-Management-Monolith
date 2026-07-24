@@ -58,13 +58,13 @@ public final class RegistrantAuditHelper {
 
     public static void logExamRegistration(HttpSession session, int profileId, String examLabel) {
         RegistrantAuditLogHelper.persistForEntity(session, "ExamRegistration", "INSERT",
-                "Đăng ký đợt thi: " + (examLabel != null ? examLabel : "-"),
+                "Đăng ký đợt thi: " + (examLabel != null ? examLabel : "—"),
                 "PreRegistered", profileId);
     }
 
     public static void logExamCancellationRequest(HttpSession session, int profileId,
             String examLabel, String reason) {
-        String detail = "Yêu cầu hủy đăng ký: " + (examLabel != null ? examLabel : "-");
+        String detail = "Yêu cầu hủy đăng ký: " + (examLabel != null ? examLabel : "—");
         if (reason != null && !reason.isBlank()) {
             detail += ". Lý do: " + reason.trim();
         }
@@ -117,7 +117,7 @@ public final class RegistrantAuditHelper {
                 Map<String, Object> enriched = new LinkedHashMap<>(viewRow);
                 enriched.put("changedAt", log.getChangedAt());
                 enriched.put("timeFormatted", log.getChangedAt() != null
-                        ? TIME_FMT.format(log.getChangedAt()) : "-");
+                        ? TIME_FMT.format(log.getChangedAt()) : "—");
                 rows.add(enriched);
             }
         }
@@ -150,7 +150,7 @@ public final class RegistrantAuditHelper {
         if (log.getDetails() != null && !log.getDetails().isBlank()) {
             return log.getDetails();
         }
-        return "-";
+        return "—";
     }
 
     private static String mapStatusLabel(String action) {

@@ -11,21 +11,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/** Implementation: dựng view dashboard Exam Staff (số giám khảo đã phân công). */
 public class ExamStaffDashboardServiceImpl implements ExamStaffDashboardService {
 
     private final ExamStaffExamQueryService examQuery;
     private final ExaminerAllocationService allocationService;
 
+    /** Wiring mặc định khi không inject từ composition root. */
     public ExamStaffDashboardServiceImpl() {
         this(new ExamStaffExamQueryServiceImpl(), new ExaminerAllocationServiceImpl());
     }
 
+    /** Inject dependencies cho unit test / composition root. */
     public ExamStaffDashboardServiceImpl(ExamStaffExamQueryService examQuery,
             ExaminerAllocationService allocationService) {
         this.examQuery = examQuery;
         this.allocationService = allocationService;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExamStaffDashboardViewDTO buildView(List<ExamSummaryDTO> allExams, int examId) {
         ExamStaffDashboardViewDTO view = new ExamStaffDashboardViewDTO();

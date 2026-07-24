@@ -1,26 +1,21 @@
-﻿/* ========================================================
+/* ========================================================
    Landing Page Design System & Styles
    Matching Figma design: Giới thiệu trung tâm (node-id=1:1058)
    ======================================================== */
 
 /* Utility & Layout Wrapper */
 .landing-container {
-    max-width: none;
+    max-width: 1216px;
     width: 100%;
-    margin: 0;
-    padding: 0 28px;
+    margin: 0 auto;
+    padding: 0 32px;
     box-sizing: border-box;
 }
 
 .landing-section {
-    padding: 64px 0;
+    padding: 80px 0;
     width: 100%;
     box-sizing: border-box;
-}
-
-.landing-section--cta {
-    padding-top: 40px;
-    padding-bottom: 0;
 }
 
 /* ========================================================
@@ -28,34 +23,38 @@
    ======================================================== */
 .hero-history-grid {
     display: grid;
-    grid-template-columns: minmax(260px, 0.95fr) minmax(280px, 1.05fr);
-    gap: clamp(24px, 3.5vw, 48px);
+    grid-template-columns: 592px 1fr;
+    gap: 64px;
     align-items: center;
 }
 
 .hero-history-image-wrap {
     position: relative;
-    width: 100%;
-    /* max-width: 920px; */
-    aspect-ratio: 5 / 4;
-    min-height: 0;
-    display: block;
-    margin-inline: auto 0;
+    width: 592px;
+    height: 500px;
 }
 
+/* Subtle decorative blue box behind the image */
 .hero-history-image-wrap::before {
-    display: none;
+    content: "";
+    position: absolute;
+    top: -16px;
+    left: -16px;
+    width: 624px;
+    height: 532px;
+    background-color: rgba(0, 61, 155, 0.05);
+    border-radius: 24px;
+    z-index: 1;
 }
 
 .hero-history-img {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: 592px;
+    height: 500px;
     object-fit: cover;
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: 16px;
+    box-shadow: 0px 8px 10px -6px rgba(0, 0, 0, 0.1), 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
     z-index: 2;
-    display: block;
 }
 
 .hero-history-content {
@@ -104,11 +103,11 @@
 
 .vision-mission-card {
     background-color: #F2F3FF;
-    border-radius: 0;
-    padding: 14px 16px 14px 18px;
+    border-radius: 4px;
+    padding: 16px 16px 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
     box-sizing: border-box;
 }
 
@@ -136,8 +135,8 @@
 }
 
 .vision-mission-card p {
-    font-size: 13px;
-    line-height: 1.35;
+    font-size: 14px;
+    line-height: 20px;
     color: #434654;
     margin: 0;
 }
@@ -176,33 +175,33 @@
 
 .bento-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 12px;
-    height: min(560px, 58vh);
+    grid-template-columns: 703px 1fr;
+    gap: 16px;
+    height: 600px;
     width: 100%;
 }
 
 .bento-left {
     position: relative;
-    border-radius: 0;
+    border-radius: 16px;
     overflow: hidden;
     height: 100%;
-    box-shadow: none;
+    box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.06);
 }
 
 .bento-right {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     height: 100%;
 }
 
 .bento-card-small {
     position: relative;
-    border-radius: 0;
+    border-radius: 16px;
     overflow: hidden;
     flex: 1;
-    box-shadow: none;
+    box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.06);
 }
 
 .bento-bg {
@@ -253,11 +252,11 @@
 }
 
 .bento-card-desc {
-    font-size: 13px;
-    line-height: 1.35;
+    font-size: 14px;
+    line-height: 20px;
     color: rgba(255, 255, 255, 0.9);
     margin: 0;
-    max-width: 36rem;
+    max-width: 450px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
@@ -270,7 +269,7 @@
 
 .instructors-header {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: flex-end;
     margin-bottom: 48px;
     width: 100%;
@@ -280,24 +279,15 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    max-width: none;
-    flex: 1 1 auto;
-    min-width: 0;
+    max-width: 553px;
 }
 
 .instructors-title {
-    font-size: clamp(1.75rem, 2.8vw, 2.75rem);
-    line-height: 1.2;
+    font-size: 48px;
+    line-height: 60px;
     font-weight: 800;
     color: #131B2E;
     margin: 0;
-    white-space: nowrap;
-}
-
-@media (max-width: 720px) {
-    .instructors-title {
-        white-space: normal;
-    }
 }
 
 .instructors-desc {
@@ -342,7 +332,7 @@
 .instructor-card {
     background-color: #FFFFFF;
     border: 1px solid #C3C6D6;
-    border-radius: 0;
+    border-radius: 16px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -357,11 +347,11 @@
 }
 
 .instructor-img-wrap {
-    height: 320px;
+    height: 256px;
     width: 100%;
     position: relative;
     background-size: cover;
-    background-position: center top;
+    background-position: center;
 }
 
 .instructor-badge {
@@ -431,8 +421,8 @@
    ======================================================== */
 .cta-container {
     background-color: #003D9B;
-    border-radius: 0;
-    padding: clamp(40px, 6vw, 72px) 28px;
+    border-radius: 32px;
+    padding: 64px 48px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -441,8 +431,7 @@
     align-items: center;
     gap: 16px;
     box-sizing: border-box;
-    margin: 0 -28px 0;
-    width: calc(100% + 56px);
+    margin-bottom: 40px;
 }
 
 /* Glassmorphic Ambient Gradients in Corners */
@@ -547,33 +536,26 @@
    ======================================================== */
 @media (max-width: 1280px) {
     .hero-history-grid {
-        grid-template-columns: minmax(240px, 0.95fr) minmax(260px, 1.05fr);
-        gap: 28px;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 32px;
     }
-
     .hero-history-image-wrap,
     .hero-history-image-wrap::before,
     .hero-history-img {
         width: 100%;
-        max-width: 480px;
         height: auto;
-        max-height: 400px;
-        aspect-ratio: 5 / 4;
+        aspect-ratio: 592/500;
     }
-
     .bento-grid {
         grid-template-columns: 1.2fr 1fr;
         height: auto;
     }
-
     .bento-left {
         height: 500px;
     }
-
     .bento-right {
         height: 500px;
     }
-
     .instructor-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
@@ -584,22 +566,18 @@
     .landing-section {
         padding: 60px 0;
     }
-
     .hero-history-grid {
         grid-template-columns: 1fr;
         gap: 40px;
     }
-
     .hero-history-image-wrap {
         max-width: 592px;
         margin: 0 auto;
     }
-
     .hero-history-content {
         align-items: center;
         text-align: center;
     }
-
     .hero-history-title,
     .facilities-title,
     .instructors-title,
@@ -607,30 +585,24 @@
         font-size: 36px;
         line-height: 44px;
     }
-
     .bento-grid {
         grid-template-columns: 1fr;
     }
-
     .bento-left {
         height: 400px;
     }
-
     .bento-right {
         height: auto;
     }
-
     .bento-card-small {
         height: 250px;
     }
-
     .instructors-header {
         flex-direction: column;
         align-items: center;
         text-align: center;
         gap: 24px;
     }
-
     .instructors-title-wrap {
         align-items: center;
     }
@@ -638,42 +610,28 @@
 
 @media (max-width: 600px) {
     .landing-container {
-        padding: 0 16px;
+        padding: 0 20px;
     }
-
     .landing-section {
         padding: 48px 0;
     }
-
-    .landing-section--cta {
-        padding-top: 32px;
-        padding-bottom: 0;
-    }
-
     .vision-mission-row {
         grid-template-columns: 1fr;
     }
-
     .instructor-grid {
         grid-template-columns: 1fr;
     }
-
     .instructor-img-wrap {
-        height: 340px;
+        height: 280px;
     }
-
     .cta-container {
-        margin: 0 -16px 0;
-        width: calc(100% + 32px);
-        padding: 40px 20px;
+        padding: 40px 24px;
     }
-
     .cta-buttons {
         flex-direction: column;
         gap: 12px;
         align-items: stretch;
     }
-
     .btn-cta-primary,
     .btn-cta-secondary {
         padding: 14px 20px;

@@ -5,7 +5,10 @@ import examstaff.dto.exam.ExamRegistrationDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Kết quả orchestrator trang gọi thí sinh để servlet bind session/view. */
+/**
+ * Kết quả orchestrator trang gọi thí sinh để servlet bind session/view.
+ * Mang hàng chờ, cờ ca/board/desk và alert sau khi xử lý.
+ */
 public class CandidateCallPageViewDTO {
 
     private String redirectPath;

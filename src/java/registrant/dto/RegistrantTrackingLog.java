@@ -13,7 +13,7 @@ public class RegistrantTrackingLog {
     private String statusClass;
     private String statusLabel;
     private String remarks;
-    /** Khóa loại tác vụ - phục vụ filter track-profile. */
+    /** Khóa loại tác vụ — phục vụ filter track-profile. */
     private String category;
 
     public Date getTimestamp() {

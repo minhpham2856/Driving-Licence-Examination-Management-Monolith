@@ -36,8 +36,6 @@ public final class Attributes {
         public static final String ACCOUNT_USER = "accountUser";
         public static final String ACCOUNT_PROFILE = "accountProfile";
         public static final String ACCOUNT_SHELL = "accountShell";
-        public static final String ACCOUNT_PROFILE_PATH = "accountProfilePath";
-        public static final String ACCOUNT_CHANGE_PASSWORD_PATH = "accountChangePasswordPath";
     }
 
     // Examiner session and request context
@@ -50,7 +48,6 @@ public final class Attributes {
         public static final String EXAM_MESSAGE = "examinerExamMessage";
         public static final String IS_THEORY = "isTheory";
         public static final String EXAM_SECTION_NAME = "examSectionName";
-        public static final String SECTION_THEORY = "examinerSectionTheory";
     }
 
     // Exam staff session and request context
@@ -64,14 +61,14 @@ public final class Attributes {
         public static final String LOADED_EXAM_ID = "examStaffLoadedExamId";
         public static final String LAST_LOADED_EXAM_ID = "lastLoadedExamId";
 
-        // Dropdown phân công sát hạch viên (list map areaId/areaName/...).
+        /** Dropdown phân công giám khảo (list map areaId/areaName/...). */
         public static final String AREA_ASSIGN_OPTIONS = "areaAssignOptions";
         public static final String EXAM_ASSIGNMENTS = "examAssignments";
         public static final String ALL_EXAMINERS = "allExaminers";
         public static final String AVAILABLE_EXAMINERS = "availableExaminers";
         public static final String BUSY_EXAMINERS = "busyExaminers";
 
-        // Phòng LT / sân TH đã có sát hạch viên - trang phân bổ thí sinh.
+        /** Phòng LT / sân TH đã có giám khảo — trang phân bổ thí sinh. */
         public static final String ACTIVE_THEORY_ROOMS = "activeTheoryRooms";
         public static final String ACTIVE_PRACTICAL_AREAS = "activePracticalAreas";
         public static final String ALLOCATION_AREA_FILTER = "allocationAreaFilter";

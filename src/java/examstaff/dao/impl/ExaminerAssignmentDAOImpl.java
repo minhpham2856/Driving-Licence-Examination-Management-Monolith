@@ -18,13 +18,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-// JDBC implementation of {@link ExaminerAssignmentDAO}.
+/** JDBC implementation của {@link ExaminerAssignmentDAO}. */
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
 
-    // Entity name used in the Audit table for examiner-area mappings.
+    /** EntityName trong bảng Audit cho mapping giám khảo–khu vực. */
     private static final String ROOM_MAPPING_ENTITY = "ExaminerSchedule";
 
-    // SQL to list all active examiners with their profile and role info.
+    /** SELECT giám khảo đang active kèm Profile/Role. */
     private static final String EXAMINER_SELECT = """
             SELECT u.UserId,
                    u.Username,
@@ -47,12 +47,13 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             ORDER BY p.FullName, u.Username
             """;
 
+    /** SELECT slot phân công (ExaminerSchedule + ExamArea). */
     private static final String SLOT_SELECT =
             "SELECT esch.ExaminerScheduleId AS ExamExaminerId, "
             + "esch.ExamId AS examId, "
             + "esch.ExaminerId AS examinerUserId, "
             + "COALESCE(NULLIF(LTRIM(RTRIM(e.ExamCode)), N''), "
-            + "  N'Hạng ' + l.LicenceClass + N' - ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
+            + "  N'Hạng ' + l.LicenceClass + N' — ' + CONVERT(NVARCHAR(10), e.ExamDate, 103)) AS examName, "
             + "eu.Username AS examinerUsername, "
             + "ep.FullName AS examinerName, "
             + "CAST(esch.ExamAreaId AS VARCHAR(20)) AS mappingEntityId, "
@@ -77,10 +78,9 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             + "LEFT JOIN ExamArea ea ON ea.ExamAreaId = esch.ExamAreaId "
             + "LEFT JOIN ExamSection esect ON esect.ExamSectionId = esch.ExamSectionId";
 
-    // Retrieves all active examiner users with their profiles from the database
+    /** {@inheritDoc} */
     @Override
     public List<UserDTO> getActiveExaminers() {
-        // List to hold the examiner DTOs
         List<UserDTO> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(EXAMINER_SELECT)) {
             ps.setString(1, UserRole.SAT_HACH_VIEN.getDisplayName());
@@ -95,7 +95,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return list;
     }
 
-    // Inserts an ExaminerSchedule row and an audit mapping in a single transaction.
+    /** {@inheritDoc} */
     @Override
     public boolean assign(ExaminerSlotDTO slot) {
         if (slot == null || slot.getExamId() <= 0 || slot.getExaminerUserId() <= 0) {
@@ -143,7 +143,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 VALUES (?, 'ASSIGN', ?, ?, ?, GETDATE())
                 """;
         try {
-            // Begin transaction - both assignment and audit mapping must succeed together
+            // Begin transaction — both assignment and audit mapping must succeed together
             getConnection().setAutoCommit(false);
             try (PreparedStatement ps = getConnection().prepareStatement(existingAssignmentSql)) {
                 ps.setInt(1, slot.getExaminerUserId());
@@ -187,7 +187,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                 ps.setString(4, slot.getAreaName() != null ? slot.getAreaName() : String.valueOf(slot.getAreaId()));
                 ps.executeUpdate();
             }
-            // Commit the transaction - all three operations succeeded
+            // Commit the transaction — all three operations succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
@@ -212,53 +212,40 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return false;
     }
 
-    // Removes a ExaminerSchedule row and its audit mapping in a single transaction.
+    /** {@inheritDoc} */
     @Override
     public boolean remove(String slotKey) {
-        // Parse the composite slot key into its three integer components
         int[] parts = parseSlotKey(slotKey);
-        // Return false if the key is malformed (null or wrong number of parts)
         if (parts == null) {
             return false;
         }
-        // Extract the individual components from the parsed array
         int examId = parts[0];
         int areaId = parts[1];
         int examinerId = parts[2];
-        // Rebuild the audit entity ID from the parsed components
         String entityId = buildMappingEntityId(examId, areaId, examinerId);
-        // SQL: delete the ExaminerSchedule row
         String deleteAssignment = "DELETE FROM ExaminerSchedule WHERE ExamId = ? AND ExaminerId = ?";
-        // SQL: delete the audit mapping row
         String deleteMapping = "DELETE FROM Audit WHERE EntityName = ? AND EntityId = ?";
         try {
-            // Begin transaction - both deletions must succeed together
             getConnection().setAutoCommit(false);
-            // Step 1: delete the ExaminerSchedule row
             try (PreparedStatement ps = getConnection().prepareStatement(deleteAssignment)) {
                 ps.setInt(1, examId);
                 ps.setInt(2, examinerId);
                 ps.executeUpdate();
             }
-            // Step 2: delete the audit mapping row
             try (PreparedStatement ps = getConnection().prepareStatement(deleteMapping)) {
                 ps.setString(1, ROOM_MAPPING_ENTITY);
                 ps.setString(2, entityId);
                 ps.executeUpdate();
             }
-            // Commit the transaction - both deletions succeeded
             getConnection().commit();
             return true;
         } catch (SQLException e) {
-            // Rollback the transaction on any error
             try {
                 getConnection().rollback();
             } catch (SQLException ignored) {
             }
-            // Log unexpected SQL errors
             e.printStackTrace();
         } finally {
-            // Restore auto-commit mode regardless of outcome
             try {
                 getConnection().setAutoCommit(true);
             } catch (SQLException ignored) {
@@ -267,34 +254,30 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return false;
     }
 
-    // Retrieves all assignment slots for a specific exam, ordered by area name
+    /** {@inheritDoc} */
     @Override
     public List<ExaminerSlotDTO> getByExamId(int examId) {
         String sql = SLOT_SELECT + " WHERE esch.ExamId = ? ORDER BY ea.AreaName, esch.ExaminerScheduleId";
         return querySlots(sql, ps -> ps.setInt(1, examId));
     }
 
-    // Executes a parameterised slot query and maps result rows to ExaminerSlotDTO objects.
+    /** Chạy câu SELECT slot và map sang {@link ExaminerSlotDTO}. */
     private List<ExaminerSlotDTO> querySlots(String sql, SqlBinder binder) {
-        // List to hold the mapped slot objects
         List<ExaminerSlotDTO> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            // Bind parameters using the caller-provided lambda
             binder.bind(ps);
             try (ResultSet rs = ps.executeQuery()) {
-                // Map each result row to an ExaminerSlotDTO
                 while (rs.next()) {
                     list.add(mapSlot(rs));
                 }
             }
         } catch (SQLException e) {
-            // Log the error - caller receives the partially-populated list
             e.printStackTrace();
         }
         return list;
     }
 
-    // Maps a result-set row to an {@link ExaminerSlotDTO}.
+    /** Ánh xạ ResultSet → {@link ExaminerSlotDTO}. */
     private ExaminerSlotDTO mapSlot(ResultSet rs) throws SQLException {
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
         slot.setExamId(rs.getInt("examId"));
@@ -311,12 +294,12 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         // Attempt to read the area ID from the ExamArea LEFT JOIN
         int areaId = rs.getInt("areaId");
         if (!rs.wasNull()) {
-            // Area was found via the join - use the direct values
+            // Area was found via the join — use the direct values
             slot.setAreaId(areaId);
             slot.setAreaName(rs.getString("areaName"));
             slot.setAreaType(rs.getString("areaType"));
         } else {
-            // Area join returned null - fall back to parsing the audit mapping entity ID
+            // Area join returned null — fall back to parsing the audit mapping entity ID
             String mappingEntityId = rs.getString("mappingEntityId");
             int[] parsed = parseMappingEntityId(mappingEntityId);
             if (parsed != null) {
@@ -336,17 +319,17 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return slot;
     }
 
-    // Builds the audit entity ID as {@code examId:areaId:examinerId}.
+    /** Ghép EntityId audit dạng {@code examId:areaId:examinerId}. */
     static String buildMappingEntityId(int examId, int areaId, int examinerId) {
         return examId + ":" + areaId + ":" + examinerId;
     }
 
-    // Delegates to {@link #parseSlotKey}.
+    /** Parse EntityId mapping — ủy quyền {@link #parseSlotKey}. */
     static int[] parseMappingEntityId(String entityId) {
         return parseSlotKey(entityId);
     }
 
-    // Converts an exam-type ID to its constant name.
+    /** Đổi exam-type id sang tên section hiển thị. */
     static String examTypeFromId(int examTypeId) {
         return switch (examTypeId) {
             case 2 ->
@@ -358,32 +341,27 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         };
     }
 
-    // Parses a colon-delimited slot key into {@code [examId, areaId, examinerId]}.
+    /** Parse khóa slot {@code examId:areaId:examinerId} → mảng int. */
     static int[] parseSlotKey(String slotKey) {
-        // Return null for null input
         if (slotKey == null) {
             return null;
         }
-        // Split on colon delimiter
         String[] parts = slotKey.split(":");
-        // Validate that exactly three components exist
         if (parts.length != 3) {
             return null;
         }
         try {
-            // Parse each component to an integer
             return new int[]{
                 Integer.parseInt(parts[0]), // examId
                 Integer.parseInt(parts[1]), // areaId
                 Integer.parseInt(parts[2]) // examinerId
             };
         } catch (NumberFormatException e) {
-            // Return null if any component is not a valid integer
             return null;
         }
     }
 
-    // Maps a result-set row to a {@link UserDTO} with nested {@link Profile}.
+    /** Ánh xạ ResultSet → {@link UserDTO} kèm {@link Profile}. */
     private UserDTO mapExaminer(ResultSet rs) throws SQLException {
         UserDTO user = new UserDTO();
         user.setUserId(rs.getInt("UserId"));
@@ -407,7 +385,7 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
         return user;
     }
 
-    // Functional interface for parameter binding on prepared statements.
+    /** Binder tham số cho PreparedStatement. */
     @FunctionalInterface
     private interface SqlBinder {
 

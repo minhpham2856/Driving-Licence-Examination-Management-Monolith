@@ -2,7 +2,10 @@ package examstaff.dto;
 
 import examstaff.dto.exam.ExamRegistrationDTO;
 
-/** Kết quả tìm kiếm trên trang tổng quan phân bổ. */
+/**
+ * Kết quả tìm kiếm trên trang tổng quan phân bổ.
+ * Gắn thí sinh với stage (key/label/path) để điều hướng UI.
+ */
 public class AllocationOverviewHitDTO {
 
     private ExamRegistrationDTO candidate;

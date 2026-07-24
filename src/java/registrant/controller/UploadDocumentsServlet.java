@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/** Upload hồ sơ GET/POST /registrant/upload-documents (multipart 5MB/file) — upload, requestApproval, deleteDocument. */
 @WebServlet("/registrant/upload-documents")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 30)
 public class UploadDocumentsServlet extends HttpServlet {

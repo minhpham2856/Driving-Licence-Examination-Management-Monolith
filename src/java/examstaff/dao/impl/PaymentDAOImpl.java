@@ -13,10 +13,12 @@ import java.sql.Types;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/** JDBC implementation của {@link PaymentDAO}. */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
 
+    /** {@inheritDoc} */
     @Override
     public boolean insert(Payment payment) {
         int enrollmentId = payment.getExamEnrollmentId();
@@ -53,6 +55,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Payment getByCandidateId(int candidateId) {
         String sql = """
@@ -84,6 +87,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int resolveEnrollmentId(int candidateId) {
         String sql = """

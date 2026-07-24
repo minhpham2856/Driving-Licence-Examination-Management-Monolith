@@ -18,10 +18,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/** Implementation: view và thao tác phân công giám khảo tại bàn làm việc. */
 public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDeskService {
 
-    private final ExaminerAllocationService allocationService = new ExaminerAllocationServiceImpl();
+    private final ExaminerAllocationService allocationService;
 
+    /** Wiring mặc định. */
+    public ExaminerAllocationDeskServiceImpl() {
+        this(new ExaminerAllocationServiceImpl());
+    }
+
+    /** Inject allocation service từ composition root. */
+    public ExaminerAllocationDeskServiceImpl(ExaminerAllocationService allocationService) {
+        this.allocationService = allocationService;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public ExaminerAllocationViewDTO buildAllocationView(int examId, int fallbackExamId,
             List<ExamSummaryDTO> allExams) {
@@ -74,6 +86,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return view;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<Integer, UserDTO> buildExaminerMap() {
         Map<Integer, UserDTO> map = new HashMap<>();
@@ -83,6 +96,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return map;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExaminerAllocationActionResultDTO assignExaminer(int targetExamId, int areaId,
             int examinerUserId, int staffId) {
@@ -99,7 +113,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         }
 
         if (!ExamAreaTypeResolver.isAssignableExamArea(area)) {
-            result.setErrorMsg("Chỉ phân công sát hạch viên vào phòng lý thuyết hoặc sân thực hành.");
+            result.setErrorMsg("Chỉ phân công giám khảo vào phòng lý thuyết hoặc sân thực hành.");
             return result;
         }
 
@@ -119,18 +133,19 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         boolean ok = allocationService.assignExaminer(slot);
         if (ok) {
             result.setSuccess(true);
-            result.setAlertMsg("Đã phân công sát hạch viên " + slot.getExaminerName()
+            result.setAlertMsg("Đã phân công giám khảo " + slot.getExaminerName()
                     + " vào " + area.getAreaName() + ".");
             result.setAuditAction("ASSIGN Examiner");
             result.setAuditDetails(formatAssignAuditDetails(slot.getExaminerName(), area.getAreaName(),
                     targetExam.getExamName()));
         } else {
             result.setErrorMsg(
-                    "Sát hạch viên đã được phân công ở phòng khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán mới.");
+                    "Giám khảo đã được phân công ở phòng khác trong cùng kỳ thi. Gỡ phân công cũ trước khi gán mới.");
         }
         return result;
     }
 
+    /** {@inheritDoc} */
     @Override
     public ExaminerAllocationActionResultDTO removeExaminer(String slotKey) {
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
@@ -144,8 +159,8 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         if (ok) {
             result.setSuccess(true);
             result.setAlertMsg(existing != null
-                    ? "Đã gỡ phân công sát hạch viên " + resolveSlotExaminerLabel(existing) + "."
-                    : "Đã gỡ phân công sát hạch viên.");
+                    ? "Đã gỡ phân công giám khảo " + resolveSlotExaminerLabel(existing) + "."
+                    : "Đã gỡ phân công giám khảo.");
             result.setAuditAction("REMOVE Examiner");
             result.setAuditDetails(formatRemoveAuditDetails(existing));
         } else {
@@ -154,6 +169,7 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return result;
     }
 
+    /** Tìm slot theo khóa examId:areaId:examinerUserId. */
     private ExaminerSlotDTO findSlotByKey(String slotKey) {
         String[] parts = slotKey.split(":");
         if (parts.length < 3) {
@@ -177,31 +193,35 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return null;
     }
 
+    /** Chi tiết audit khi phân công. */
     private static String formatAssignAuditDetails(String examinerName, String areaName, String examName) {
-        StringBuilder details = new StringBuilder("Phân công sát hạch viên ");
+        StringBuilder details = new StringBuilder("Phân công giám khảo ");
         details.append(blankToDash(examinerName));
         details.append(" vào ").append(blankToDash(areaName));
         appendExamSuffix(details, examName);
         return details.toString();
     }
 
+    /** Chi tiết audit khi gỡ phân công. */
     private static String formatRemoveAuditDetails(ExaminerSlotDTO slot) {
         if (slot == null) {
-            return "Gỡ phân công sát hạch viên.";
+            return "Gỡ phân công giám khảo.";
         }
-        StringBuilder details = new StringBuilder("Gỡ phân công sát hạch viên ");
+        StringBuilder details = new StringBuilder("Gỡ phân công giám khảo ");
         details.append(resolveSlotExaminerLabel(slot));
         details.append(" khỏi ").append(blankToDash(slot.getAreaName()));
         appendExamSuffix(details, slot.getExamName());
         return details.toString();
     }
 
+    /** Thêm hậu tố tên kỳ thi vào chuỗi audit. */
     private static void appendExamSuffix(StringBuilder details, String examName) {
         if (examName != null && !examName.isBlank()) {
-            details.append(" - kỳ thi ").append(examName.trim());
+            details.append(" — kỳ thi ").append(examName.trim());
         }
     }
 
+    /** Nhãn hiển thị giám khảo từ slot. */
     private static String resolveSlotExaminerLabel(ExaminerSlotDTO slot) {
         if (slot.getExaminerName() != null && !slot.getExaminerName().isBlank()) {
             return slot.getExaminerName().trim();
@@ -212,10 +232,12 @@ public class ExaminerAllocationDeskServiceImpl implements ExaminerAllocationDesk
         return "userId=" + slot.getExaminerUserId();
     }
 
+    /** Chuỗi trống thành dấu gạch ngang. */
     private static String blankToDash(String value) {
-        return value == null || value.isBlank() ? "-" : value.trim();
+        return value == null || value.isBlank() ? "—" : value.trim();
     }
 
+    /** Tên đầy đủ hoặc username của giám khảo. */
     private static String resolveExaminerName(UserDTO examiner) {
         if (examiner.getProfile() != null && examiner.getProfile().getFullName() != null
                 && !examiner.getProfile().getFullName().isBlank()) {

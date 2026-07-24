@@ -4,8 +4,8 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Sửa kết quả" />
-<c:set var="pageUrl" value="${ctx}/examiner/result-details" scope="request" />
-<c:set var="editUrl" value="${ctx}/examiner/result-details-edit" scope="request" />
+<c:set var="pageUrl" value="${ctx}/views/examiner/result-details" scope="request" />
+<c:set var="editUrl" value="${ctx}/views/examiner/result-details-edit" scope="request" />
 <c:set var="exportResultUrl" value="${ctx}/examiner/export/result" scope="request" />
 <c:set var="exportResultsUrl" value="${exportResultUrl}" />
 <c:set var="exportCandidatesUrl" value="${ctx}/examiner/export/candidates" scope="request" />
