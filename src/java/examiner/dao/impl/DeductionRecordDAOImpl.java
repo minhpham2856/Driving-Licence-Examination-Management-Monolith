@@ -12,8 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// JDBC implementation for DeductionRecord; examiner module DAO layer only.
 public class DeductionRecordDAOImpl extends DBContext implements DeductionRecordDAO {
 
+    // Returns occurrence count for one exam score and deduction rule pair.
     @Override
     public int getOccurrenceCount(int examScoreId, int scoreDeductionId) {
         String sql = "SELECT OccurrenceCount FROM DeductionRecord WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
@@ -31,6 +33,7 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         return 0;
     }
 
+    // Inserts a new deduction occurrence row.
     @Override
     public boolean add(DeductionRecord record) {
         String sql = "INSERT INTO DeductionRecord (ExamScoreId, ScoreDeductionId, OccurrenceCount, RecordedAt) "
@@ -47,6 +50,7 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         return false;
     }
 
+    // Updates occurrence count and recorded timestamp for one score/rule pair.
     @Override
     public boolean updateOccurrence(int examScoreId, int scoreDeductionId, int occurrenceCount, Timestamp recordedAt) {
         String sql = "UPDATE DeductionRecord SET OccurrenceCount = ?, RecordedAt = ? "
@@ -63,6 +67,7 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         return false;
     }
 
+    // Deletes the deduction row for one exam score and rule.
     @Override
     public boolean deleteByExamScoreAndRule(int examScoreId, int scoreDeductionId) {
         String sql = "DELETE FROM DeductionRecord WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
@@ -74,31 +79,6 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
             e.printStackTrace();
         }
         return false;
-    }
-
-    @Override
-    public List<Map<String, Object>> getTopReasons(int limit) {
-        int safeLimit = limit > 0 ? limit : 5;
-        String sql = "SELECT TOP (?) sd.Reason, COUNT(*) AS TotalCount "
-                + "FROM DeductionRecord dr "
-                + "INNER JOIN ScoreDeduction sd ON sd.ScoreDeductionId = dr.ScoreDeductionId "
-                + "GROUP BY sd.Reason "
-                + "ORDER BY TotalCount DESC";
-        List<Map<String, Object>> rows = new ArrayList<>();
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, safeLimit);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Map<String, Object> row = new HashMap<>();
-                    row.put("reason", rs.getString("Reason"));
-                    row.put("count", rs.getInt("TotalCount"));
-                    rows.add(row);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return rows;
     }
 }
 
