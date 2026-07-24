@@ -6,6 +6,13 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.util.Map;
 
+/**
+ * Hợp đồng service upload và gửi duyệt hồ sơ tài liệu ({@code UploadDocumentsServlet}).
+ * <p>
+ * Quản lý 4 loại bắt buộc + Other trên bảng {@code Document} (Cloudinary),
+ * chuyển {@code ExamRegistration} Draft/Rejected → Pending với marker Notes,
+ * xóa tài liệu khi trạng thái cho phép. Không tạo Payment/Candidate.
+ */
 public interface RegistrantUploadService {
 
     /** Xây model trang upload tài liệu (slot bắt buộc, Other, trạng thái duyệt). */

@@ -13,8 +13,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * My exams: list ca (ngày mong muốn + ngày thi chính thức khi có Candidate),
- * chi tiết điểm/SBD.
+ * Triển khai {@link registrant.service.RegistrantMyExamsService} — trang {@code my-exams.jsp}.
+ * <p>
+ * Liệt kê ca thi qua {@code RegistrantDAO.listMyExamsByUserId}: nguyện vọng {@code RegistrationDates}
+ * và ca chính thức khi đã có {@code Candidate}/SBD; gắn bộ lọc tìm kiếm/trạng thái/hạng lên request.
  */
 public class RegistrantMyExamsServiceImpl implements RegistrantMyExamsService {
 

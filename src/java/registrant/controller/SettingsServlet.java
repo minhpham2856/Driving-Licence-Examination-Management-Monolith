@@ -12,9 +12,11 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Cài đặt tài khoản — {@code GET/POST /registrant/settings}.
- * Đổi mật khẩu/email ({@code User}); deactivate → IsActive=0 + invalidate session.
- * Không đụng Payment / SePay.
+ * Trang cài đặt tài khoản — {@code GET/POST /registrant/settings} → {@code settings.jsp}.
+ * <p>
+ * GET: {@link RegistrantSettingsService#applySettingsView} gắn {@code userEmail}, tóm tắt hồ sơ/CCCD và số ca đang đăng ký.
+ * POST theo {@code formId}: {@code password} đổi mật khẩu; {@code deactivate} vô hiệu hóa tài khoản rồi redirect {@code /login}.
+ * Lỗi ghi {@code error} và forward lại JSP; thành công redirect {@code ?success=1}. Không xử lý Payment/SePay.
  */
 @WebServlet("/registrant/settings")
 public class SettingsServlet extends HttpServlet {

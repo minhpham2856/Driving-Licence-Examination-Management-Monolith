@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tóm tắt trạng thái tài liệu đính kèm - dùng chung cho profile.jsp và track-profile.jsp.
+ * DTO tóm tắt tiến độ tài liệu hồ sơ — dùng chung {@code profile.jsp} và {@code track-profile.jsp}.
+ * <p>
+ * Đếm 4 giấy bắt buộc, Other, chờ duyệt/đã duyệt/từ chối; nhãn và class trạng thái tổng thể
+ * theo {@code ExamRegistration.RegistrationStatus} qua {@link registrant.util.RegistrantDocumentStatusHelper}.
  */
 public class RegistrantDocumentSummary {
 

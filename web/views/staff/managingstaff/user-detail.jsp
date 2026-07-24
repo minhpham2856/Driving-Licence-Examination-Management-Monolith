@@ -336,7 +336,6 @@
             <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['ID_BACK']}" /><c:set var="defaultDocumentLabel" value="CCCD mặt sau" /></c:if>
             <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['HEALTH_CERTIFICATE']}" /><c:set var="defaultDocumentLabel" value="Giấy khám sức khỏe" /></c:if>
             <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['GRADUATION_CERTIFICATE']}" /><c:set var="defaultDocumentLabel" value="Giấy tốt nghiệp / chứng chỉ đào tạo" /></c:if>
-            <c:if test="${empty defaultDocument}"><c:set var="defaultDocument" value="${dossier.documents['APPROVED_DOSSIER_PDF']}" /><c:set var="defaultDocumentLabel" value="PDF hồ sơ đã duyệt" /></c:if>
 
             <div class="dossier-detail-workspace">
                 <aside class="dossier-detail-card dossier-detail-summary">
@@ -385,13 +384,6 @@
                             <div class="dossier-document-item">
                                 <div><strong class="dossier-document-item__name">Giấy tốt nghiệp / chứng chỉ đào tạo</strong><span class="action-badge action-badge--${not empty document ? 'success' : 'warning'}">${not empty document ? 'Đã tải lên' : 'Còn thiếu'}</span></div>
                                 <c:if test="${not empty document}"><a class="btn-export dossier-document-link js-dossier-document-link ${defaultDocument.documentId eq document.documentId ? 'is-active' : ''}" href="${ctx}/manager/document-view?id=${document.documentId}" data-document-label="Giấy tốt nghiệp / chứng chỉ đào tạo">Xem</a></c:if>
-                            </div>
-                        </c:if>
-                        <c:if test="${not empty dossier.documents['APPROVED_DOSSIER_PDF']}">
-                            <c:set var="document" value="${dossier.documents['APPROVED_DOSSIER_PDF']}" />
-                            <div class="dossier-document-item">
-                                <div><strong class="dossier-document-item__name">PDF hồ sơ đã duyệt</strong><span class="action-badge action-badge--success">Đã tạo</span></div>
-                                <a class="btn-export dossier-document-link js-dossier-document-link ${defaultDocument.documentId eq document.documentId ? 'is-active' : ''}" href="${ctx}/manager/document-view?id=${document.documentId}" data-document-label="PDF hồ sơ đã duyệt">Xem</a>
                             </div>
                         </c:if>
                     </div>

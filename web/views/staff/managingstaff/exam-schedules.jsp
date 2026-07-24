@@ -162,6 +162,7 @@
                 <form class="schedule-form" action="${ctx}/manager/exam-schedules" method="post">
                     <input type="hidden" name="action" value="save">
                     <input type="hidden" name="sessionId" value="${editingSession.id}">
+                    <c:if test="${empty editingSession}"><div class="input-group"><label class="input-label">Danh sách CSGT đã duyệt</label><select class="input-field" name="sourceExamDateId" required><option value="">Chọn danh sách chính thức</option><c:forEach var="source" items="${policeCompletedDates}"><option value="${source.id}"><fmt:formatDate value="${source.examDate}" pattern="dd/MM/yyyy"/> · Hạng ${source.licenceClass} · ${source.officialCandidateCount} thí sinh chính thức</option></c:forEach></select><small style="color:#64748b">Ngày, hạng và toàn bộ thí sinh sẽ được lấy trực tiếp từ danh sách CSGT.</small></div></c:if>
                     <div class="input-group"><label class="input-label">Trung tâm</label>
                         <input class="input-field" name="centreName" required minlength="3" value="<c:out value='${editingSession.centreName}' />"></div>
                     <div class="input-group"><label class="input-label">Hạng GPLX</label><select class="input-field" name="licenceId" required>
@@ -176,8 +177,6 @@
                     <div class="btn-group"><button class="btn-filter" type="submit">${empty editingSession ? 'Tạo phiên thi' : 'Lưu thay đổi'}</button>
                         <c:if test="${not empty editingSession}"><a class="btn-reset" href="${ctx}/manager/exam-schedules">Hủy sửa</a></c:if></div>
                 </form>
-                <hr style="border:0;border-top:1px solid #e2e8f0;margin:1.25rem 0">
-                <a class="btn-export" href="${ctx}/manager/exam-schedules/create" style="display:flex;justify-content:center;text-decoration:none">Import danh sách thí sinh</a>
             </section>
 
             <section class="schedule-card">

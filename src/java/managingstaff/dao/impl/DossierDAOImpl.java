@@ -469,7 +469,6 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
             case "ID_FRONT" -> "Căn cước công dân (mặt trước)";
             case "ID_BACK" -> "Căn cước công dân (mặt sau)";
             case "HEALTH_CERTIFICATE" -> "Giấy khám sức khỏe";
-            case "APPROVED_DOSSIER_PDF" -> "Hồ sơ đã duyệt (PDF)";
             default -> key;
         };
     }
@@ -480,7 +479,6 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
         if (type.contains("id_front") || type.contains("mặt trước")) return "ID_FRONT";
         if (type.contains("id_back") || type.contains("mặt sau")) return "ID_BACK";
         if (type.contains("health") || type.contains("sức khỏe")) return "HEALTH_CERTIFICATE";
-        if (type.contains("approved") || type.contains("hồ sơ đã duyệt")) return "APPROVED_DOSSIER_PDF";
         if (type.contains("graduation") || type.contains("tốt nghiệp")) return "GRADUATION_CERTIFICATE";
         return "OTHER_" + dossier.getDocuments().size();
     }

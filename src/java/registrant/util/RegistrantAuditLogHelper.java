@@ -8,7 +8,12 @@ import jakarta.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import shared.Attributes;
 
-/** Ghi audit log cho cổng thí sinh. */
+/**
+ * Lớp tiện ích ghi audit log cho cổng thí sinh — tầng util gọi {@link registrant.dao.AuditLogDAO}.
+ * <p>
+ * Lấy {@code UserId} từ session, persist vào bảng {@code Audit} với {@code EntityName}, {@code Action},
+ * {@code Details} và {@code NewValue}. Được gọi từ {@link registrant.util.RegistrantAuditHelper} và các service.
+ */
 public final class RegistrantAuditLogHelper {
 
     private static final AuditLogDAO DAO = new AuditLogDAOImpl();
@@ -39,7 +44,11 @@ public final class RegistrantAuditLogHelper {
             log.setOldValue(oldValue);
             log.setNewValue(newValue);
             log.setReason(reason);
-            log.setDetails(detailsJson);
+            // Ưu tiên mô tả nghiệp vụ (contextDetails); detailsJson chỉ khi gọi kèm JSON
+            String details = contextDetails != null && !contextDetails.isBlank()
+                    ? contextDetails.trim()
+                    : detailsJson;
+            log.setDetails(details);
             log.setChangedBy(userId);
             log.setChangedAt(new Timestamp(System.currentTimeMillis()));
             DAO.insert(log);

@@ -72,8 +72,8 @@
             <span class="side-nav-bar__label">Dashboard cá nhân</span>
         </a>
 
-        <%-- 2. Hồ sơ cá nhân (Nhóm menu với Submenu) --%>
-        <div class="side-nav-bar__menu-group">
+        <%-- 2. Hồ sơ cá nhân — submenu luôn mở --%>
+        <div class="side-nav-bar__menu-group is-open">
             <a href="${ctx}/registrant/profile"
                class="side-nav-bar__link${(activeSidebar eq 'profile' or activeSidebar eq 'upload-documents') ? ' is-active' : ''}"
                <c:if test="${activeSidebar eq 'profile' or activeSidebar eq 'upload-documents'}">aria-current="page"</c:if>>
@@ -85,7 +85,7 @@
                 </span>
                 <span class="side-nav-bar__label">Hồ sơ cá nhân</span>
             </a>
-            <div class="side-nav-bar__submenu">
+            <div class="side-nav-bar__submenu" style="display:flex;">
                 <a href="${ctx}/registrant/profile"
                    class="side-nav-bar__submenu-link${activeSidebar eq 'profile' ? ' is-active' : ''}">
                     <span class="submenu-dot"></span>

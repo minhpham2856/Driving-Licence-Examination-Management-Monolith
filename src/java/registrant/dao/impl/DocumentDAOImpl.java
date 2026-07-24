@@ -20,7 +20,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Document: lưu DocumentTypeId; trạng thái duyệt trong Notes (#PENDING#/#APPROVED#/#LICENCE#). */
+/**
+ * Triển khai {@link registrant.dao.DocumentDAO} — truy vấn SQL bảng {@code Document} + {@code DocumentType}.
+ * <p>
+ * Map loại UI ↔ DB qua {@link registrant.util.RegistrantDocumentTypeMapping};
+ * marker trạng thái duyệt trong {@code Notes}: {@code #PENDING#}, {@code #APPROVED#}, {@code #LICENCE#}.
+ */
 public class DocumentDAOImpl extends DBContext implements DocumentDAO {
 
     private static final Logger LOG = Logger.getLogger(DocumentDAOImpl.class.getName());

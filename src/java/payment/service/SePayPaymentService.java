@@ -6,12 +6,15 @@ import payment.dto.sepay.SePayIpnResult;
 import payment.dto.sepay.SePayPaymentException;
 
 /**
- * Facade cổng SePay (dùng bởi Examstaff desk; Registrant chỉ đọc Payment sau IPN/cash).
+ * Giao diện facade tích hợp cổng SePay cho bàn thủ tục (Examstaff); Registrant chỉ đọc Payment sau IPN/tiền mặt.
+ * <p>
+ * Ba bước luồng checkout → IPN → return:
  * <ol>
- *   <li>{@link #createCheckout} + {@link #buildAutoSubmitHtml} — mở QR (chưa ghi Payment)</li>
- *   <li>{@link #handleIpn} — webhook ghi Payment (nguồn sự thật)</li>
- *   <li>{@link #generateInvoiceNumber} — {@code DLEM-CHK-…} gắn candidate/enrollment</li>
+ *   <li>{@link #createCheckout} + {@link #buildAutoSubmitHtml} — tạo form signed, mở QR (chưa ghi {@code Payment})</li>
+ *   <li>{@link #handleIpn} — webhook server-to-server, ghi {@code Payment} Hoàn tất (nguồn sự thật)</li>
+ *   <li>Return URL (success/cancel/error) — chỉ UX trình duyệt, không ghi DB</li>
  * </ol>
+ * {@link #generateInvoiceNumber} sinh mã {@code DLEM-CHK-…} gắn Candidate/ExamEnrollment cho IPN parse.
  */
 public interface SePayPaymentService {
 

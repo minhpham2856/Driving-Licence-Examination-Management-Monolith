@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Truy cập bảng Document cho luồng thí sinh upload hồ sơ.
+ * Truy cập bảng {@code Document} cho luồng upload hồ sơ thí sinh.
+ * <p>
+ * CRUD theo {@code ProfileId} + {@code DocumentType}; trạng thái duyệt lưu trong {@code Notes}
+ * (marker {@code #PENDING#}, {@code #APPROVED#}, {@code #LICENCE#}). Dùng bởi upload, profile và track-profile.
  */
 public interface DocumentDAO {
 

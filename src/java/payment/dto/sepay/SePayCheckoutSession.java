@@ -4,7 +4,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Kết quả tạo phiên checkout - dùng redirect form POST tới SePay. */
+/**
+ * DTO phiên checkout SePay sau khi ký form (bước đầu luồng checkout → IPN → return).
+ * <p>
+ * Chứa URL cổng {@code pay.sepay.vn/.../checkout/init}, {@code order_invoice_number}
+ * (mã {@code DLEM-CHK-...} gắn Candidate/Enrollment) và map field POST đã ký HMAC.
+ * Desk dùng {@link payment.service.SePayPaymentService#buildAutoSubmitHtml} để chuyển khách
+ * sang SePay; chưa ghi bảng {@code Payment} — ghi nhận thật sự qua webhook IPN.
+ */
 public class SePayCheckoutSession {
 
     private String checkoutUrl;

@@ -9,12 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import managingstaff.dao.DossierDAO;
 import managingstaff.dao.LicenceDAO;
 import managingstaff.dao.TentativeExamDateDAO;
@@ -24,11 +21,10 @@ import managingstaff.dao.impl.TentativeExamDateDAOImpl;
 import managingstaff.dto.DossierDTO;
 import managingstaff.dto.TentativeExamDateDTO;
 import managingstaff.service.ApprovedCandidateExcelService;
-import managingstaff.service.DossierPdfService;
 import managingstaff.service.impl.ApprovedCandidateExcelServiceImpl;
-import managingstaff.service.impl.AwtDossierPdfService;
 import managingstaff.util.AuditLogHelper;
 import managingstaff.util.SessionUtil;
+import shared.util.TentativeExamDatePolicy;
 
 @WebServlet("/manager/tentative-exam-dates")
 public class TentativeExamDateServlet extends HttpServlet {
@@ -37,7 +33,6 @@ public class TentativeExamDateServlet extends HttpServlet {
     private final TentativeExamDateDAO dateDAO = new TentativeExamDateDAOImpl();
     private final DossierDAO dossierDAO = new DossierDAOImpl();
     private final LicenceDAO licenceDAO = new LicenceDAOImpl();
-    private final DossierPdfService pdfService = new AwtDossierPdfService();
     private final ApprovedCandidateExcelService excelService = new ApprovedCandidateExcelServiceImpl();
 
     @Override
@@ -59,6 +54,8 @@ public class TentativeExamDateServlet extends HttpServlet {
         req.setAttribute("dates", dateDAO.findPage(tab, page, DATE_PAGE_SIZE));
         req.setAttribute("licences", licenceDAO.findAll());
         req.setAttribute("today", java.time.LocalDate.now().toString());
+        req.setAttribute("minimumExamDate",
+                TentativeExamDatePolicy.earliestCreatableDate(java.time.LocalDate.now()).toString());
         req.setAttribute("currentPage", page);
         req.setAttribute("totalPages", pages);
         req.setAttribute("totalItems", total);
@@ -66,6 +63,9 @@ public class TentativeExamDateServlet extends HttpServlet {
         req.setAttribute("activeCount", dateDAO.countAll("active"));
         req.setAttribute("expiredCount", dateDAO.countAll("expired"));
         req.setAttribute("cancelledCount", dateDAO.countAll("cancelled"));
+        List<TentativeExamDateDTO> policeReturned = dateDAO.findPoliceCompletedUnlinked();
+        req.setAttribute("policeReturnedDates", policeReturned);
+        req.setAttribute("policeReturnedCount", policeReturned.size());
         if (dateId > 0) {
             TentativeExamDateDTO selected = dateDAO.findById(dateId);
             if (selected == null) {
@@ -116,6 +116,22 @@ public class TentativeExamDateServlet extends HttpServlet {
             }
             return;
         }
+        if ("sendPolice".equals(req.getParameter("action"))) {
+            int id = integer(req.getParameter("dateId"));
+            try {
+                int count = dateDAO.submitToPolice(id);
+                AuditLogHelper.persistChange(req.getSession(), "SEND POLICE DOSSIERS",
+                        "Gửi ngày thi dự kiến #" + id + " cùng " + count + " hồ sơ tới CSGT.",
+                        "NOT_SENT", "PENDING", "ExamDates", id);
+                req.getSession().setAttribute("tentativeSuccess",
+                        "Đã gửi " + count + " hồ sơ tới CSGT. Danh sách đã đóng và không thể sửa.");
+            } catch (Exception ex) {
+                req.getSession().setAttribute("tentativeError", ex.getMessage());
+            }
+            resp.sendRedirect(req.getContextPath()
+                    + "/manager/tentative-exam-dates?tab=active&dateId=" + Math.max(id, 0));
+            return;
+        }
         try {
             Date date = Date.valueOf(req.getParameter("examDate"));
             int licenceId = integer(req.getParameter("licenceId"));
@@ -149,31 +165,6 @@ public class TentativeExamDateServlet extends HttpServlet {
             excelService.writeApprovedCandidates(date.getLicenceClass(), rows, resp.getOutputStream());
             return;
         }
-        if ("pdf".equals(type)) {
-            int registrationId = integer(req.getParameter("registrationId"));
-            DossierDTO dossier = dossierDAO.findByRegistrationId(registrationId);
-            if (dossier == null || !dateDAO.findAllRegistrationIds(dateId).contains(registrationId)) {
-                resp.sendError(404);
-                return;
-            }
-            byte[] pdf = pdfService.generate(dossier, webRoot());
-            resp.setContentType("application/pdf");
-            download(resp, "ho-so-" + registrationId + ".pdf");
-            resp.getOutputStream().write(pdf);
-            return;
-        }
-        if ("zip".equals(type)) {
-            resp.setContentType("application/zip");
-            download(resp, base + ".zip");
-            try (ZipOutputStream zip = new ZipOutputStream(resp.getOutputStream())) {
-                for (DossierDTO d : rows) {
-                    zip.putNextEntry(new ZipEntry(String.format("%03d_%s.pdf", d.getRegistrationId(), safe(d.getProfile().getGovIdNo()))));
-                    zip.write(pdfService.generate(d, webRoot()));
-                    zip.closeEntry();
-                }
-            }
-            return;
-        }
         resp.sendError(400, "Loại file không hợp lệ.");
     }
 
@@ -188,20 +179,8 @@ public class TentativeExamDateServlet extends HttpServlet {
         return out;
     }
 
-    private Path webRoot() throws IOException {
-        String value = getServletContext().getRealPath("/");
-        if (value == null) {
-            throw new IOException("Không xác định được thư mục web.");
-        }
-        return Path.of(value).toAbsolutePath().normalize();
-    }
-
     private static void download(HttpServletResponse r, String name) {
         r.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20"));
-    }
-
-    private static String safe(String s) {
-        return s == null ? "unknown" : s.replaceAll("[^0-9A-Za-z_-]", "_");
     }
 
     private boolean authorized(HttpServletRequest req, HttpServletResponse resp) throws IOException {

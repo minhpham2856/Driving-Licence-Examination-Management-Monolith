@@ -2,6 +2,12 @@ package registrant.dto;
 
 import java.sql.Timestamp;
 
+/**
+ * DTO ánh xạ một dòng bảng {@code Audit} — dùng ghi log và hiển thị timeline theo dõi hồ sơ.
+ * <p>
+ * Chứa {@code EntityName}, {@code Action}, giá trị cũ/mới, {@code Details}/{@code Reason},
+ * thời điểm và tên người thực hiện ({@code changerName} join từ {@code User}/{@code Profile}).
+ */
 public class AuditLogEntry {
     private long id;
     private String tableName;

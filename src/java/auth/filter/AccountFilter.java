@@ -21,6 +21,7 @@ import java.io.IOException;
             "/examstaff/profile", "/examstaff/change-password",
             "/examiner/profile", "/examiner/change-password",
             "/managingstaff/profile", "/managingstaff/change-password",
+            "/police/profile", "/police/change-password",
             "/admin/profile", "/admin/change-password"
         },
         dispatcherTypes = {DispatcherType.REQUEST}

@@ -18,7 +18,15 @@ import examstaff.enums.PaymentStatus;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** SePay Payment Gateway: checkout (form signed) → khách trả → IPN ghi Payment. */
+/**
+ * Triển khai tích hợp SePay Payment Gateway cho bàn thủ tục (Examstaff).
+ * <p>
+ * Luồng: (1) {@link #createCheckout} + {@link #buildAutoSubmitHtml} — tạo form signed,
+ * mở QR/chuyển khoản; (2) khách thanh toán → SePay gọi IPN → {@link #handleIpn}
+ * parse {@code ORDER_PAID}/{@code CAPTURED} và INSERT {@code Payment} (Hoàn tất, TransactionReference);
+ * (3) return URL chỉ phục vụ UX ({@link payment.controller.SePayReturnServlet}).
+ * Idempotent IPN qua {@link payment.dao.PaymentDAO#existsCompletedByTransactionReference}.
+ */
 public class SePayPaymentServiceImpl implements SePayPaymentService {
 
     /** Cho phép lệch tối đa 5 phút giữa timestamp webhook và đồng hồ server (chống replay). */
