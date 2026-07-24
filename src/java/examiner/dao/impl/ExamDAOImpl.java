@@ -8,7 +8,9 @@ import examiner.dao.ExamDAO;
 import shared.dbconnection.DBContext;
 import shared.model.Exam;
 
+// JDBC implementation for Exam; examiner module DAO layer only.
 public class ExamDAOImpl extends DBContext implements ExamDAO {
+    // Returns total count of exam rows.
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM Exam";
@@ -21,8 +23,9 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return 0;
     }
 
+    // Loads one exam row by primary key.
     @Override
-    public Exam getById(int examId) {
+    public Exam get(int examId) {
         String sql = "SELECT * FROM Exam WHERE ExamId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examId);
@@ -37,6 +40,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return null;
     }
 
+    // Lists exams filtered by status.
     @Override
     public List<Exam> getByStatus(ExamStatus status) {
         List<Exam> list = new ArrayList<>();
@@ -52,6 +56,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return list;
     }
 
+    // Lists exams assigned to one examiner via ExaminerSchedule.
     @Override
     public List<Exam> getExamsByExaminerId(int examinerId) {
         List<Exam> list = new ArrayList<>();
@@ -68,6 +73,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return list;
     }
 
+    // Private helper: map exam.
     private Exam mapExam(ResultSet rs) throws SQLException {
         Exam e = new Exam();
         e.setExamId(rs.getInt("ExamId"));
