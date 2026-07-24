@@ -12,23 +12,23 @@ import java.util.Set;
 /**
  * Luật nghiệp vụ thuần (pure) cho phân công sát hạch viên và lọc phòng/sân đủ điều kiện.
  * <p>
- * <b>Không</b> gọi DAO / SQL / Servlet — chỉ nhận {@link ExamArea}, {@link ExaminerSlotDTO}
+ * <b>Không</b> gọi DAO / SQL / Servlet — chỉ nhận ExamArea, ExaminerSlotDTO
  * và trả boolean / tập id / thông báo lỗi tiếng Việt.
  *
  * Nhận diện loại khu vực:
- * - {@link #isTheoryAreaType} / {@link #isTheoryRoom} — LT (schema Clean “Lý thuyết”, SWP “Phòng thi”, alias EN)
- * - {@link #isPracticalAreaType} / {@link #isPracticalRoom} — TH (Clean “Thực hành”, SWP “Sân thi”)
- * - {@link #isAssignableExamArea} — chỉ LT hoặc TH (bỏ khu hỗn hợp / thủ tục)
+ * - isTheoryAreaType / isTheoryRoom — LT (schema Clean “Lý thuyết”, SWP “Phòng thi”, alias EN)
+ * - isPracticalAreaType / isPracticalRoom — TH (Clean “Thực hành”, SWP “Sân thi”)
+ * - isAssignableExamArea — chỉ LT hoặc TH (bỏ khu hỗn hợp / thủ tục)
  *
  * Slot đã có sát hạch viên (staffed):
- * - {@link #isStaffedSlot} — có {@code examinerUserId} và {@code areaId} dương
- * - {@link #isTheorySlot} / {@link #isPracticalSlot} — staffed + khớp areaType hoặc examTypeId
- * - {@link #staffedTheoryAreaIds} / {@link #staffedPracticalAreaIds} — tập areaId đã gán SHV
- * - {@link #filterTheoryRoomsWithStaff} / {@link #filterPracticalRoomsWithStaff} — lọc dropdown phân phòng
+ * - isStaffedSlot — có examinerUserId và areaId dương
+ * - isTheorySlot / isPracticalSlot — staffed + khớp areaType hoặc examTypeId
+ * - staffedTheoryAreaIds / staffedPracticalAreaIds — tập areaId đã gán SHV
+ * - filterTheoryRoomsWithStaff / filterPracticalRoomsWithStaff — lọc dropdown phân phòng
  *
  * Kiểm tra trước khi bắt đầu kỳ:
- * {@link #validateStartCoverage} — kỳ phải có ít nhất một phòng LT và một sân TH đã staffed;
- * trả thông báo lỗi hoặc {@code null} nếu đủ.
+ * validateStartCoverage — kỳ phải có ít nhất một phòng LT và một sân TH đã staffed;
+ * trả thông báo lỗi hoặc null nếu đủ.
  */
 public final class ExaminerAssignmentRules {
 
@@ -39,7 +39,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Slot đã gán sát hạch viên hợp lệ (có userId và areaId dương).
      * @param slot slot phân công
-     * @return {@code true} nếu đã staffed
+     * @return true nếu đã staffed
      */
     public static boolean isStaffedSlot(ExaminerSlotDTO slot) {
         return slot != null && slot.getExaminerUserId() > 0 && slot.getAreaId() > 0;
@@ -48,7 +48,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Nhận diện loại khu vực lý thuyết (schema Clean / SWP alias / tiếng Anh).
      * @param areaType chuỗi loại khu vực
-     * @return {@code true} nếu là phòng LT
+     * @return true nếu là phòng LT
      */
     public static boolean isTheoryAreaType(String areaType) {
         // validate
@@ -70,7 +70,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Nhận diện loại khu vực thực hành / sân thi (schema Clean / SWP alias).
      * @param areaType chuỗi loại khu vực
-     * @return {@code true} nếu là sân/phòng TH
+     * @return true nếu là sân/phòng TH
      */
     public static boolean isPracticalAreaType(String areaType) {
         // validate
@@ -93,7 +93,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Slot lý thuyết đã có sát hạch viên (theo areaType hoặc examTypeId).
      * @param slot slot phân công
-     * @return {@code true} nếu là slot LT đã staffed
+     * @return true nếu là slot LT đã staffed
      */
     public static boolean isTheorySlot(ExaminerSlotDTO slot) {
         // validate
@@ -110,7 +110,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Slot thực hành đã có sát hạch viên (theo areaType hoặc examTypeId trong hình/đường).
      * @param slot slot phân công
-     * @return {@code true} nếu là slot TH đã staffed
+     * @return true nếu là slot TH đã staffed
      */
     public static boolean isPracticalSlot(ExaminerSlotDTO slot) {
         // validate
@@ -129,7 +129,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Kiểm tra coverage tối thiểu trước khi bắt đầu kỳ (cần cả LT và TH có SHV).
      * @param assignments danh sách slot hiện có của kỳ
-     * @return thông báo lỗi tiếng Việt, hoặc {@code null} nếu đủ phòng lý thuyết + thực hành có sát hạch viên
+     * @return thông báo lỗi tiếng Việt, hoặc null nếu đủ phòng lý thuyết + thực hành có sát hạch viên
      */
     public static String validateStartCoverage(List<ExaminerSlotDTO> assignments) {
         // validate: chưa có phân công nào
@@ -182,9 +182,9 @@ public final class ExaminerAssignmentRules {
     }
 
     /**
-     * Kiểm tra {@link ExamArea} có phải phòng lý thuyết không.
+     * Kiểm tra ExamArea có phải phòng lý thuyết không.
      * @param room khu vực thi
-     * @return {@code true} nếu là phòng LT
+     * @return true nếu là phòng LT
      */
     public static boolean isTheoryRoom(ExamArea room) {
         return room != null && isTheoryAreaType(room.getAreaType());
@@ -209,9 +209,9 @@ public final class ExaminerAssignmentRules {
     }
 
     /**
-     * Kiểm tra {@link ExamArea} có phải sân/phòng thực hành không.
+     * Kiểm tra ExamArea có phải sân/phòng thực hành không.
      * @param room khu vực thi
-     * @return {@code true} nếu là sân TH
+     * @return true nếu là sân TH
      */
     public static boolean isPracticalRoom(ExamArea room) {
         return room != null && isPracticalAreaType(room.getAreaType());
@@ -220,7 +220,7 @@ public final class ExaminerAssignmentRules {
     /**
      * Phòng dùng để phân sát hạch viên / phân thí sinh (bỏ khu hỗn hợp / thủ tục).
      * @param area khu vực thi
-     * @return {@code true} nếu là LT hoặc TH
+     * @return true nếu là LT hoặc TH
      */
     public static boolean isAssignableExamArea(ExamArea area) {
         return isTheoryRoom(area) || isPracticalRoom(area);

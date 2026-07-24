@@ -23,16 +23,16 @@ import java.nio.charset.StandardCharsets;
  *
  * Vai trò:
  * Hiển thị lịch sử hành động của staff hiện tại (lọc theo ngày, phân trang),
- * kèm KPI thủ tục đã xử lý trong ngày/lịch sử. Export Excel ủy quyền sang {@link AuditExportServlet}.
+ * kèm KPI thủ tục đã xử lý trong ngày/lịch sử. Export Excel ủy quyền sang AuditExportServlet.
  *
  * Luồng GET:
- * - Nếu {@code exportExcel=true} → redirect {@code /examstaff/audit-export} (kèm filterDate)
+ * - Nếu exportExcel=true → redirect /examstaff/audit-export (kèm filterDate)
  * - Resolve userId + filterDate; reset paging khi đổi user hoặc ngày lọc
- * - {@code AuditService.buildPage} → {@code ExamStaffPageSupport.prepareExamStaffPage} (sidebar)
- * - Bind personalLogs / paging / KPI → forward {@code audit.jsp}
+ * - AuditService.buildPage → ExamStaffPageSupport.prepareExamStaffPage (sidebar)
+ * - Bind personalLogs / paging / KPI → forward audit.jsp
  *
  * Ai gọi:
- * Menu exam staff; sidebar navigation; redirect lỗi từ {@link AuditExportServlet}.
+ * Menu exam staff; sidebar navigation; redirect lỗi từ AuditExportServlet.
  */
 @WebServlet("/examstaff/audit")
 public class AuditServlet extends HttpServlet {
@@ -88,7 +88,7 @@ public class AuditServlet extends HttpServlet {
     }
 
     /**
-     * Đọc {@code filterDate} (ưu tiên) hoặc {@code date} từ request.
+     * Đọc filterDate (ưu tiên) hoặc date từ request.
      * @return chuỗi ngày lọc hoặc null
      */
     private static String resolveFilterDate(HttpServletRequest request) {

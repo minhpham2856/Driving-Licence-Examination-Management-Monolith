@@ -28,16 +28,16 @@ import java.util.List;
  *
  * Vai trò:
  * Trang phân công sát hạch viên vào khu lý thuyết/thực hành theo kỳ đang chọn.
- * Xử lý action gán/gỡ examiner, ghi audit; không cần load queue thí sinh (prepare {@code loadCandidates=false}).
+ * Xử lý action gán/gỡ examiner, ghi audit; không cần load queue thí sinh (prepare loadCandidates=false).
  *
  * Luồng GET:
  * - No-cache + consume flash exam-control / exam-select
- * - {@code prepareExamStaffPage} (sidebar, không queue) → resolve kỳ từ URL/session
- * - Nếu có {@code action}: {@code handleAction} (assign/remove) + audit
- * - Build {@code ExaminerAllocationViewDTO} → bind → forward {@code examiner-allocation.jsp}
+ * - prepareExamStaffPage (sidebar, không queue) → resolve kỳ từ URL/session
+ * - Nếu có action: handleAction (assign/remove) + audit
+ * - Build ExaminerAllocationViewDTO → bind → forward examiner-allocation.jsp
  *
  * Ai gọi:
- * Menu exam staff; sidebar sau khi chọn kỳ ({@link ExamSelectServlet}).
+ * Menu exam staff; sidebar sau khi chọn kỳ (ExamSelectServlet).
  */
 @WebServlet("/examstaff/examiner-allocation")
 public class ExaminerAllocationServlet extends HttpServlet {
@@ -125,8 +125,8 @@ public class ExaminerAllocationServlet extends HttpServlet {
     }
 
     /**
-     * Xử lý assign / remove sát hạch viên rồi {@link #applyActionResult}.
-     * @param action {@code assign} hoặc {@code remove}
+     * Xử lý assign / remove sát hạch viên rồi applyActionResult.
+     * @param action assign hoặc remove
      */
     private void handleAction(HttpServletRequest request, HttpSession session, String action) {
         try {

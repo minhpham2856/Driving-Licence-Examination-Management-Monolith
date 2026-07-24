@@ -7,13 +7,13 @@ import examstaff.dto.ExamRegistrationDTO;
  * Quy tắc điểm đạt / điều kiện vào giai đoạn thực hành theo hạng GPLX (pure, không JDBC).
  *
  * Khi nào dùng?:
- * - {@link AllocationStageHelper} — phân bucket pass/fail khi stage = results
- * - {@code ExamRegistrationDAOImpl} — cập nhật / đánh giá kết quả LT-TH
+ * - AllocationStageHelper — phân bucket pass/fail khi stage = results
+ * - ExamRegistrationDAOImpl — cập nhật / đánh giá kết quả LT-TH
  *
  * Ngưỡng hiện hành (A / A1 / B1):
- * Lý thuyết: ≥ {@link #THEORY_PASS_CORRECT}/{@link #THEORY_MAX_QUESTIONS} câu đúng
- * và <strong>không sai câu điểm liệt</strong> ({@code Question.IsCritical}).
- * Thực hành: điểm ≥ {@link #PRACTICAL_PASS_SCORE}.
+ * Lý thuyết: ≥ THEORY_PASS_CORRECT/THEORY_MAX_QUESTIONS câu đúng
+ * và <strong>không sai câu điểm liệt</strong> (Question.IsCritical).
+ * Thực hành: điểm ≥ PRACTICAL_PASS_SCORE.
  */
 public final class AllocationPassRules {
 
@@ -32,7 +32,7 @@ public final class AllocationPassRules {
      * Chuẩn hóa hạng từ licenseCode hoặc clazz (fallback).
      * @param licenseCode mã hạng ưu tiên
      * @param clazz       hạng dự phòng
-     * @return mã đã normalize theo {@link LicenseClassRules}
+     * @return mã đã normalize theo LicenseClassRules
      */
     public static String normalizeLicense(String licenseCode, String clazz) {
         String raw = licenseCode != null && !licenseCode.isBlank() ? licenseCode : clazz;
@@ -40,7 +40,7 @@ public final class AllocationPassRules {
     }
 
     /**
-     * Số câu đúng tối thiểu để đạt lý thuyết (A/A1/B1: {@link #THEORY_PASS_CORRECT}).
+     * Số câu đúng tối thiểu để đạt lý thuyết (A/A1/B1: THEORY_PASS_CORRECT).
      * @param license mã hạng (sau normalize hoặc thô) — hiện mọi hạng quản lý dùng cùng ngưỡng
      * @return ngưỡng câu đúng
      */
@@ -49,7 +49,7 @@ public final class AllocationPassRules {
     }
 
     /**
-     * Tổng câu đề LT theo hạng (A/A1/B1: {@link #THEORY_MAX_QUESTIONS}).
+     * Tổng câu đề LT theo hạng (A/A1/B1: THEORY_MAX_QUESTIONS).
      * @param license mã hạng
      * @return tổng câu
      */
@@ -59,10 +59,10 @@ public final class AllocationPassRules {
 
     /**
      * Đạt lý thuyết theo số câu đúng (chưa xét câu liệt).
-     * Chỉ dùng khi không có dữ liệu điểm liệt; ưu tiên overload có {@code hasWrongCritical}.
+     * Chỉ dùng khi không có dữ liệu điểm liệt; ưu tiên overload có hasWrongCritical.
      * @param license      mã hạng
      * @param correctCount số câu đúng
-     * @return {@code true} nếu đủ số câu đúng
+     * @return true nếu đủ số câu đúng
      */
     public static boolean isTheoryPassed(String license, int correctCount) {
         return isTheoryPassed(license, correctCount, false);
@@ -72,8 +72,8 @@ public final class AllocationPassRules {
      * Đạt lý thuyết: đủ số câu đúng và không sai câu điểm liệt.
      * @param license           mã hạng
      * @param correctCount      số câu đúng
-     * @param hasWrongCritical  {@code true} nếu đã trả lời sai ít nhất một câu {@code IsCritical}
-     * @return {@code true} nếu đạt
+     * @param hasWrongCritical  true nếu đã trả lời sai ít nhất một câu IsCritical
+     * @return true nếu đạt
      */
     public static boolean isTheoryPassed(String license, int correctCount, boolean hasWrongCritical) {
         if (hasWrongCritical) {
@@ -83,9 +83,9 @@ public final class AllocationPassRules {
     }
 
     /**
-     * Đạt thực hành nếu điểm ≥ {@link #PRACTICAL_PASS_SCORE}.
+     * Đạt thực hành nếu điểm ≥ PRACTICAL_PASS_SCORE.
      * @param score điểm thực hành
-     * @return {@code true} nếu đạt
+     * @return true nếu đạt
      */
     public static boolean isPracticalPassed(int score) {
         return score >= PRACTICAL_PASS_SCORE;
@@ -94,7 +94,7 @@ public final class AllocationPassRules {
     /**
      * Hạng mô tô (nhóm A/A1).
      * @param license mã hạng
-     * @return {@code true} nếu A/A1
+     * @return true nếu A/A1
      */
     public static boolean isMotorcycle(String license) {
         return LicenseClassRules.isMotorcycle(license);
@@ -102,9 +102,9 @@ public final class AllocationPassRules {
 
     /**
      * Thí sinh đủ điều kiện vào giai đoạn thực hành / sa hình.
-     * Bảo lưu lý thuyết ({@code TakeTheory = 0}) → vào TH ngay sau thủ tục.
+     * Bảo lưu lý thuyết (TakeTheory = 0) → vào TH ngay sau thủ tục.
      * @param c hồ sơ đăng ký
-     * @return {@code true} nếu đủ điều kiện
+     * @return true nếu đủ điều kiện
      */
     public static boolean isPracticalStageEligible(ExamRegistrationDTO c) {
         if (c == null || c.isAbsent() || !c.isProcedureComplete() || c.skipsPractical()) {
@@ -131,7 +131,7 @@ public final class AllocationPassRules {
     }
 
     /**
-     * Boolean đạt → cờ {@code passed}/{@code failed}.
+     * Boolean đạt → cờ passed/failed.
      * @param passed kết quả
      * @return chuỗi cờ
      */
@@ -142,7 +142,7 @@ public final class AllocationPassRules {
     /**
      * Ghi cờ đạt LT/TH lên DTO từ điểm hiện có (bỏ qua nếu vắng).
      * LT: chỉ dựa số câu đúng — nếu đã biết sai câu liệt, gọi
-     * {@link #applyTheoryResult(ExamRegistrationDTO, boolean)} trước/sau.
+     * boolean) trước/sau.
      * @param c hồ sơ (mutate)
      */
     public static void applyToCandidate(ExamRegistrationDTO c) {

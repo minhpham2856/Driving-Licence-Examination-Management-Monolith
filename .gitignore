@@ -28,3 +28,4 @@ priv
 doc/
 /.codex-artifacts
 tools/_lines_out.txt
+/outputs

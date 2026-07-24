@@ -13,18 +13,18 @@ import java.util.List;
 /**
  * Dựng view trang nhật ký audit cá nhân — phân trang, KPI thủ tục và nhãn tiếng Việt.
  * <p>
- * Orchestrate {@link StaffAuditQueryServiceImpl}; không gọi DAO trực tiếp.
- * Trả {@link examstaff.dto.StaffAuditPageViewDTO} cho {@code AuditServlet}.
+ * Orchestrate StaffAuditQueryServiceImpl; không gọi DAO trực tiếp.
+ * Trả examstaff.dto.StaffAuditPageViewDTO cho AuditServlet.
  *
  * Luồng buildPage:
- * - Chuẩn hóa {@code filterKey} qua {@code AuditFilterHelper}; reset page=1 nếu filter đổi
- * - Đếm tổng dòng → tính {@code totalPages}, clamp page hiện tại
- * - Tải slice audit phân trang; gắn nhãn VI ({@code ExamStaffLabels})
- * - Tải {@link examstaff.dto.StaffProcedureKpiDTO} (hoàn tất thủ tục, tổng phí)
- * - Đóng gói {@code PageSlice} qua {@code AllocationStageHelper}
+ * - Chuẩn hóa filterKey qua AuditFilterHelper; reset page=1 nếu filter đổi
+ * - Đếm tổng dòng → tính totalPages, clamp page hiện tại
+ * - Tải slice audit phân trang; gắn nhãn VI (ExamStaffLabels)
+ * - Tải examstaff.dto.StaffProcedureKpiDTO (hoàn tất thủ tục, tổng phí)
+ * - Đóng gói PageSlice qua AllocationStageHelper
  *
  * Phụ thuộc:
- * Inject {@link StaffAuditQueryServiceImpl} từ composition root; constructor mặc định tạo instance mới.
+ * Inject StaffAuditQueryServiceImpl từ composition root; constructor mặc định tạo instance mới.
  */
 public class StaffAuditPageServiceImpl {
 
@@ -100,7 +100,7 @@ public class StaffAuditPageServiceImpl {
     }
 
     /**
-     * Gắn nhãn tiếng Việt cho từng {@link AuditDTO}.
+     * Gắn nhãn tiếng Việt cho từng AuditDTO.
      * @param logs danh sách audit (có thể null)
      */
     private static void applyVietnameseLabels(List<AuditDTO> logs) {

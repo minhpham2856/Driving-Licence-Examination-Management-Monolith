@@ -17,19 +17,19 @@ import java.util.List;
 /**
  * Dựng context trang Exam Staff — picker kỳ thi, resolve examId và refresh hàng đợi thí sinh.
  * <p>
- * Không xử lý HTTP/session trực tiếp; nhận {@link examstaff.dto.ExamStaffPageCommand}
- * từ servlet binder. Orchestrate {@link ExamStaffExamQueryServiceImpl} và
- * {@link CandidateQueueServiceImpl}.
+ * Không xử lý HTTP/session trực tiếp; nhận examstaff.dto.ExamStaffPageCommand
+ * từ servlet binder. Orchestrate ExamStaffExamQueryServiceImpl và
+ * CandidateQueueServiceImpl.
  *
  * API chính:
- * - {@link #listAllExams} / {@link #findExamById} / {@link #representativeExam} — tra cứu kỳ
- * - {@link #buildPickerView} — sidebar option, kỳ hiện tại, {@code pickerCommittedExamId}
- * - {@link #preparePageContext} — ghép examId + picker + candidates (cache hoặc refresh queue)
- * - {@link #resolvePrimaryExamId} / {@link #resolveDefaultExamId} — fallback khi URL/session thiếu
+ * - listAllExams / findExamById / representativeExam — tra cứu kỳ
+ * - buildPickerView — sidebar option, kỳ hiện tại, pickerCommittedExamId
+ * - preparePageContext — ghép examId + picker + candidates (cache hoặc refresh queue)
+ * - resolvePrimaryExamId / resolveDefaultExamId — fallback khi URL/session thiếu
  *
  * Refresh hàng đợi:
- * Khi {@code input.isLoadCandidates()}, gọi {@code CandidateQueueService#refreshQueue};
- * nếu không tải, trả cache session khi {@code loadedExamId} khớp {@code examId}.
+ * Khi input.isLoadCandidates(), gọi CandidateQueueService#refreshQueue;
+ * nếu không tải, trả cache session khi loadedExamId khớp examId.
  */
 public class ExamStaffPageServiceImpl {
 

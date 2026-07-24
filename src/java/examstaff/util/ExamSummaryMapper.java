@@ -6,22 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility identity / copy danh sách cho {@link ExamSummaryDTO} — đồng bộ cặp {@code id}/{@code examId}
+ * Utility identity / copy danh sách cho ExamSummaryDTO — đồng bộ cặp id/examId
  * sau khi DAO map JDBC (một số query chỉ populate một phía).
  *
  * Vai trò trong luồng examstaff:
- * Sidebar, chọn ca và dashboard làm việc với {@code ExamSummaryDTO}; code downstream so sánh
- * cả {@code getId()} và {@code getExamId()}. Mapper đảm bảo hai field luôn khớp trước khi
- * bind session hoặc truyền sang {@code ExamStaffExamRules}.
+ * Sidebar, chọn ca và dashboard làm việc với ExamSummaryDTO; code downstream so sánh
+ * cả getId() và getExamId(). Mapper đảm bảo hai field luôn khớp trước khi
+ * bind session hoặc truyền sang ExamStaffExamRules.
  *
  * Cách hoạt động:
- * - {@link #toDto} — null → null; {@code id ≤ 0 && examId > 0} → setId; ngược lại setExamId;
+ * - toDto — null → null; id ≤ 0 && examId > 0 → setId; ngược lại setExamId;
  *       mutate tại chỗ, trả cùng instance.
- * - {@link #toDtoList} — map từng phần tử; null list → list rỗng.
+ * - toDtoList — map từng phần tử; null list → list rỗng.
  *
  * Ai gọi:
- * {@code ExamStaffViewServiceImpl}, {@code ExamStaffPageBinder}, {@code ExamStaffExamQueryServiceImpl},
- * {@code DashboardServlet}, {@code ExamSelectServlet} — nạp danh sách kỳ thi cho sidebar/UI.
+ * ExamStaffViewServiceImpl, ExamStaffPageBinder, ExamStaffExamQueryServiceImpl,
+ * DashboardServlet, ExamSelectServlet — nạp danh sách kỳ thi cho sidebar/UI.
  */
 public final class ExamSummaryMapper {
 
@@ -30,13 +30,13 @@ public final class ExamSummaryMapper {
     }
 
     /**
-     * Pass-through DTO: đồng bộ {@code id} ↔ {@code examId} khi một phía thiếu.
+     * Pass-through DTO: đồng bộ id ↔ examId khi một phía thiếu.
      * <p>
  *
      * Luồng:
      * - null → null
-     * - id ≤ 0 và examId &gt; 0 → setId(examId)
-     * - examId ≤ 0 và id &gt; 0 → setExamId(id)
+     * - id ≤ 0 và examId > 0 → setId(examId)
+     * - examId ≤ 0 và id > 0 → setExamId(id)
      * - trả cùng instance (mutate tại chỗ)
      * @param dto nguồn (có thể null)
      * @return cùng DTO hoặc null
@@ -58,7 +58,7 @@ public final class ExamSummaryMapper {
     }
 
     /**
-     * Copy danh sách DTO qua {@link #toDto} từng phần tử.
+     * Copy danh sách DTO qua toDto từng phần tử.
      * @param rows danh sách nguồn (null → rỗng)
      * @return danh sách DTO (không null)
      */

@@ -8,22 +8,22 @@ import examstaff.dao.impl.AuditLogDAOImpl;
 import java.util.List;
 
 /**
- * Dispatch action gọi thí sinh sang handler nội bộ và trả {@link CandidateCallActionResultDTO}.
+ * Dispatch action gọi thí sinh sang handler nội bộ và trả CandidateCallActionResultDTO.
  * <p>
  * Không render view — chỉ mutate hàng đợi in-place, ghi audit CALL, set cờ cho
- * {@link CandidateCallPageServiceImpl} (promote, reload, sync order, alert).
+ * CandidateCallPageServiceImpl (promote, reload, sync order, alert).
  *
  * Action được hỗ trợ:
- * - {@code startCall} — bắt đầu ca, promote SBD pending đầu
- * - {@code absent} / {@code moveToBottom} — đẩy cuối hàng + audit Absent
- * - {@code permanentAbsent} — đình chỉ qua {@link CandidateAttendanceServiceImpl}
- * - {@code undoAbsent} — khôi phục + đưa lên đầu hàng
- * - {@code endShift} / {@code closeExam} — đóng ca, đánh vắng dở
- * - {@code pauseShift} / {@code startShift} — tạm dừng / resume gọi
+ * - startCall — bắt đầu ca, promote SBD pending đầu
+ * - absent / moveToBottom — đẩy cuối hàng + audit Absent
+ * - permanentAbsent — đình chỉ qua CandidateAttendanceServiceImpl
+ * - undoAbsent — khôi phục + đưa lên đầu hàng
+ * - endShift / closeExam — đóng ca, đánh vắng dở
+ * - pauseShift / startShift — tạm dừng / resume gọi
  *
  * Side-effect trả về:
- * {@code callingSbd}, {@code promoteAfterSbd}, {@code reloadQueue}, {@code syncQueueOrder},
- * {@code alertType/alertSbd}, {@code shiftPaused/shiftEnded} — page service đọc để sync board + session.
+ * callingSbd, promoteAfterSbd, reloadQueue, syncQueueOrder,
+ * alertType/alertSbd, shiftPaused/shiftEnded — page service đọc để sync board + session.
  */
 public class CandidateCallWorkflowServiceImpl {
 
@@ -55,7 +55,7 @@ public class CandidateCallWorkflowServiceImpl {
 
     /**
      * Chạy một action gọi thí sinh và trả kết quả side-effect cho orchestrator trang.
-     * @param action           mã action ({@code startCall}, {@code absent}, {@code pauseShift}…)
+     * @param action           mã action (startCall, absent, pauseShift…)
      * @param sbd              SBD liên quan (nếu có)
      * @param fullQueue        hàng đợi đầy đủ (có thể bị sửa thứ tự in-place)
      * @param permanentAbsents danh sách đình chỉ trên session
@@ -123,7 +123,7 @@ public class CandidateCallWorkflowServiceImpl {
     }
 
     /**
-     * Vắng / đẩy xuống cuối hàng ({@code absent}, {@code moveToBottom}).
+     * Vắng / đẩy xuống cuối hàng (absent, moveToBottom).
      * Ghi audit Absent rồi yêu cầu promote người kế.
      * @param result          kết quả action
      * @param sbd             SBD bị vắng
@@ -288,9 +288,9 @@ public class CandidateCallWorkflowServiceImpl {
     }
 
     /**
-     * Map sang {@link CandidateCallDTO} rồi ghi qua {@link AuditLogDAO#insertCall}.
+     * Map sang CandidateCallDTO rồi ghi qua AuditLogDAO.insertCall.
      * @param candidate       hồ sơ thí sinh
-     * @param callResult      kết quả gọi ({@code Calling}, {@code Absent}, …)
+     * @param callResult      kết quả gọi (Calling, Absent, …)
      * @param calledByStaffId userId staff
      */
     private void recordCall(ExamRegistrationDTO candidate, String callResult, int calledByStaffId) {

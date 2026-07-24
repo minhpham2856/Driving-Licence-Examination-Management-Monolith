@@ -6,21 +6,21 @@ import shared.model.Payment;
 import java.util.List;
 
 /**
- * Utility tính tổng lệ phí thủ tục thống nhất — ưu tiên cộng dòng {@link Fee},
- * fallback {@link Payment#getTotalAmount()} khi tổng dòng ≤ 0.
+ * Utility tính tổng lệ phí thủ tục thống nhất — ưu tiên cộng dòng Fee,
+ * fallback Payment.getTotalAmount() khi tổng dòng ≤ 0.
  *
  * Vai trò trong luồng examstaff:
  * Một payment có thể có nhiều dòng phí chi tiết (Fee) hoặc chỉ tổng trên Payment.
  * Audit cuối ngày và báo cáo thu phí cần cùng một quy tắc tính “tiền đã thu” để số khớp
- * giữa {@code StaffAuditExportServiceImpl} và {@code ReportServlet}.
+ * giữa StaffAuditExportServiceImpl và ReportServlet.
  *
  * Cách hoạt động:
- * - {@link #resolvePaidAmount(List, double)} — feeLines rỗng → paymentTotal nếu &gt; 0;
- *       cộng Fee; lineSum &gt; 0 → lineSum; không thì fallback payment.
- * - {@link #resolvePaidAmount(Payment, List)} — payment null → 0; ủy quyền overload trên.
+ * - double) — feeLines rỗng → paymentTotal nếu > 0;
+ *       cộng Fee; lineSum > 0 → lineSum; không thì fallback payment.
+ * - List) — payment null → 0; ủy quyền overload trên.
  *
  * Ai gọi:
- * {@code ProcedureFeeQueryServiceImpl}, {@code StaffAuditExportServiceImpl}, {@code ReportServlet} —
+ * ProcedureFeeQueryServiceImpl, StaffAuditExportServiceImpl, ReportServlet —
  * tổng hợp doanh thu lệ phí thủ tục theo ca/ngày.
  */
 public final class ProcedureFeeTotals {
@@ -30,13 +30,13 @@ public final class ProcedureFeeTotals {
     }
 
     /**
-     * Ưu tiên tổng các dòng {@link Fee}; nếu tổng ≤ 0 thì dùng {@code paymentTotalAmount}.
+     * Ưu tiên tổng các dòng Fee; nếu tổng ≤ 0 thì dùng paymentTotalAmount.
      * <p>
  *
      * Luồng:
-     * - feeLines null/rỗng → trả paymentTotalAmount nếu &gt; 0, ngược lại 0
+     * - feeLines null/rỗng → trả paymentTotalAmount nếu > 0, ngược lại 0
      * - Cộng amount các dòng Fee
-     * - lineSum &gt; 0 → trả lineSum; không thì fallback paymentTotalAmount (≥ 0)
+     * - lineSum > 0 → trả lineSum; không thì fallback paymentTotalAmount (≥ 0)
      * @param feeLines           danh sách dòng phí
      * @param paymentTotalAmount tổng trên Payment (fallback)
      * @return số tiền đã thu (≥ 0)
@@ -56,9 +56,9 @@ public final class ProcedureFeeTotals {
     }
 
     /**
-     * Tính tiền đã thu từ {@link Payment} và danh sách Fee.
+     * Tính tiền đã thu từ Payment và danh sách Fee.
      * <p>
-     * payment null → 0; ngược lại ủy quyền {@link #resolvePaidAmount(List, double)}.
+     * payment null → 0; ngược lại ủy quyền double).
      * @param payment  bản ghi thanh toán (null → 0)
      * @param feeLines dòng phí chi tiết
      * @return số tiền đã thu

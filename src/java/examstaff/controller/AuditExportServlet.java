@@ -24,19 +24,19 @@ import java.util.Locale;
  * Xuất Excel nhật ký audit cá nhân (stream attachment); lỗi → redirect audit kèm exportError.
  *
  * Vai trò:
- * Endpoint tải file {@code .xlsx} nhật ký hành động của staff đang đăng nhập,
- * kèm KPI thủ tục (số hoàn tất, tổng phí). Tách riêng khỏi {@link AuditServlet}
+ * Endpoint tải file .xlsx nhật ký hành động của staff đang đăng nhập,
+ * kèm KPI thủ tục (số hoàn tất, tổng phí). Tách riêng khỏi AuditServlet
  * để stream binary không lẫn HTML forward.
  *
  * Luồng GET:
- * - Kiểm tra session đăng nhập → redirect {@code /staff/login} nếu thiếu
- * - Resolve {@code filterDate} → {@code loadLogs} + {@code getStaffProcedureKpi} theo userId
- * - {@code streamExcel}: header no-store + Content-Disposition attachment
- * - Lỗi stream → redirect {@code /examstaff/audit?exportError=1} (giữ filterDate nếu có)
+ * - Kiểm tra session đăng nhập → redirect /staff/login nếu thiếu
+ * - Resolve filterDate → loadLogs + getStaffProcedureKpi theo userId
+ * - streamExcel: header no-store + Content-Disposition attachment
+ * - Lỗi stream → redirect /examstaff/audit?exportError=1 (giữ filterDate nếu có)
  *
  * Ai gọi:
- * Redirect từ {@link AuditServlet} khi {@code exportExcel=true};
- * link trực tiếp từ JSP {@code audit.jsp} (nút xuất Excel).
+ * Redirect từ AuditServlet khi exportExcel=true;
+ * link trực tiếp từ JSP audit.jsp (nút xuất Excel).
  */
 @WebServlet("/examstaff/audit-export")
 public class AuditExportServlet extends HttpServlet {
@@ -141,7 +141,7 @@ public class AuditExportServlet extends HttpServlet {
     }
 
     /**
-     * Đọc {@code filterDate} (ưu tiên) hoặc {@code date} từ request.
+     * Đọc filterDate (ưu tiên) hoặc date từ request.
      * @return chuỗi ngày hoặc null
      */
     private static String resolveFilterDate(HttpServletRequest request) {

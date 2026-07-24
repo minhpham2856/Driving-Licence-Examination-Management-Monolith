@@ -36,17 +36,17 @@ import java.util.List;
  *
  * Cách URL map sang stage:
  *
- * {@link AllocationStageHelper#resolveStageFromServletPath} đọc {@code request.getServletPath()}:
- * ví dụ {@code /examstaff/allocation-theory} → stage {@code theory} + JSP tương ứng.
- * Một servlet, nhiều {@code @WebServlet} patterns — tránh nhân đôi code controller.
+ * AllocationStageHelper.resolveStageFromServletPath đọc request.getServletPath():
+ * ví dụ /examstaff/allocation-theory → stage theory + JSP tương ứng.
+ * Một servlet, nhiều @WebServlet patterns — tránh nhân đôi code controller.
  *
  * Luồng GET (và POST ủy quyền GET):
- * - Chuẩn bị kỳ thi + queue thí sinh ({@code ExamStaffPageSupport})
- * - Nếu có {@code action} (allocateRoom / allocatePracticalRoom):
- *       {@code AllocationService.executeCandidateAction} → flash → redirect PRG
- * - Overview không action: có thể {@code autoAllocateOnOverview}
+ * - Chuẩn bị kỳ thi + queue thí sinh (ExamStaffPageSupport)
+ * - Nếu có action (allocateRoom / allocatePracticalRoom):
+ *       AllocationService.executeCandidateAction → flash → redirect PRG
+ * - Overview không action: có thể autoAllocateOnOverview
  * - Không action: bind danh sách stage → forward JSP
- * <p>Ghi DB phân phòng nằm ở DAO ({@code ExamEnrollmentSectionSupport}); servlet chỉ HTTP.
+ * <p>Ghi DB phân phòng nằm ở DAO (ExamEnrollmentSectionSupport); servlet chỉ HTTP.
  */
 @WebServlet(urlPatterns = {
         "/examstaff/allocation",

@@ -20,24 +20,24 @@ import shared.model.Role;
 import java.io.IOException;
 
 /**
- * Servlet filter bảo vệ và chuẩn bị request-scope cho mọi URL {@code /examstaff/*}.
+ * Servlet filter bảo vệ và chuẩn bị request-scope cho mọi URL /examstaff/*.
  * Chạy trước mọi servlet/JSP exam staff — auth, role, đồng bộ ca thi, bind sidebar.
  *
  * Vai trò trong luồng examstaff:
- * Đảm bảo chỉ {@code UserDTO} đã đăng nhập với {@link RoleType#EXAM_STAFF} mới vào module.
- * Khi URL mang {@code examId} khác ca đã nạp session → xóa cache thí sinh và apply ca mới.
- * Cuối cùng gọi {@link ExamStaffPageSupport#bindSidebarIfNeeded} để menu/sidebar có dữ liệu kỳ thi.
+ * Đảm bảo chỉ UserDTO đã đăng nhập với RoleType.EXAM_STAFF mới vào module.
+ * Khi URL mang examId khác ca đã nạp session → xóa cache thí sinh và apply ca mới.
+ * Cuối cùng gọi ExamStaffPageSupport.bindSidebarIfNeeded để menu/sidebar có dữ liệu kỳ thi.
  *
- * Luồng xử lý {@link #doFilter}:
+ * Luồng xử lý doFilter:
  * - No-cache headers — tránh sidebar/menu cũ sau đổi ca.
- * - Auth — thiếu session user → redirect {@code /staff/login}.
+ * - Auth — thiếu session user → redirect /staff/login.
  * - Role — không phải ExamStaff → HTTP 403.
- * - Exam context — parse {@code examId}, clear cache, {@code applyExamIdFromRequest}.
- * - Sidebar bind — {@code bindSidebarIfNeeded} qua {@link ExamStaffViewService}.
- * - {@link FilterChain#doFilter} — chuyển tiếp servlet/JSP.
+ * - Exam context — parse examId, clear cache, applyExamIdFromRequest.
+ * - Sidebar bind — bindSidebarIfNeeded qua ExamStaffViewService.
+ * - FilterChain.doFilter — chuyển tiếp servlet/JSP.
  *
  * Phạm vi và ai gọi:
- * Annotation {@code @WebFilter(urlPatterns = "/examstaff/*")} — mọi request exam staff
+ * Annotation @WebFilter(urlPatterns = "/examstaff/*") — mọi request exam staff
  * (dashboard, candidate call, allocation, audit, report, …) đi qua filter này trước controller.
  */
 @WebFilter(urlPatterns = {"/examstaff/*"})
@@ -48,7 +48,7 @@ public class ExamStaffSidebarFilter extends HttpFilter {
 
     /**
      * Lọc request exam staff: no-cache → đăng nhập → vai trò → đồng bộ ca → bind sidebar → chain.
-     * @param request  HTTP request đi vào {@code /examstaff/*}
+     * @param request  HTTP request đi vào /examstaff/*
      * @param response HTTP response (có thể redirect/403)
      * @param chain    chuỗi filter/servlet tiếp theo
      * @throws IOException      lỗi I/O khi redirect hoặc ghi lỗi

@@ -8,12 +8,12 @@ import java.util.List;
  * Kết quả truy vấn lệ phí thủ tục: dòng phí, tổng tiền và nguồn dữ liệu.
  *
  * Vai trò:
- * Cung cấp bảng lệ phí trên wizard thủ tục ({@code procedure.jsp}) và dossier;
- * {@code feesFromPayment} cho biết lấy từ Payment đã thu hay bảng Fee mặc định.
+ * Cung cấp bảng lệ phí trên wizard thủ tục (procedure.jsp) và dossier;
+ * feesFromPayment cho biết lấy từ Payment đã thu hay bảng Fee mặc định.
  *
  * Ai tạo / tiêu thụ:
- * {@code ProcedureFeeQueryServiceImpl} → {@code ExamStaffPageBinder#bindProcedureFees},
- * {@link CandidateDossierViewDTO}.
+ * ProcedureFeeQueryServiceImpl → ExamStaffPageBinder#bindProcedureFees,
+ * CandidateDossierViewDTO.
  */
 public class ProcedureFeeResultDTO {
 

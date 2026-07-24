@@ -12,16 +12,16 @@ import java.util.Set;
 /**
  * Dựng view dashboard Exam Staff — tổng hợp số giám khảo đã phân công trong ngày.
  * <p>
- * Gom các phiên cùng ngày qua {@link ExamStaffExamQueryServiceImpl#listExamsForDay};
- * đếm SHV unique từ slot {@link ExaminerAllocationServiceImpl#getAssignmentsByExamId}.
+ * Gom các phiên cùng ngày qua ExamStaffExamQueryServiceImpl.listExamsForDay;
+ * đếm SHV unique từ slot ExaminerAllocationServiceImpl.getAssignmentsByExamId.
  *
  * Luồng buildView:
- * - Lấy {@code dayExams} — mọi phiên thi cùng ngày với kỳ đang chọn
- * - Duyệt slot từng phiên; gom {@code examinerUserId} vào {@code HashSet}
- * - Ghi {@code assignedExaminerCount} vào {@link examstaff.dto.ExamStaffDashboardViewDTO}
+ * - Lấy dayExams — mọi phiên thi cùng ngày với kỳ đang chọn
+ * - Duyệt slot từng phiên; gom examinerUserId vào HashSet
+ * - Ghi assignedExaminerCount vào examstaff.dto.ExamStaffDashboardViewDTO
  *
  * Điểm gọi:
- * {@code DashboardServlet} qua {@code ExamStaffViewServiceImpl}.
+ * DashboardServlet qua ExamStaffViewServiceImpl.
  */
 public class ExamStaffDashboardServiceImpl {
 

@@ -39,21 +39,21 @@ import java.util.Set;
 /**
  * Dịch vụ nền phân công sát hạch viên và tự động phân bổ phòng/sân cho thí sinh.
  * <p>
- * Gọi trực tiếp {@code ExamAreaDAO}, {@code ExaminerAssignmentDAO}, {@code ExamRegistrationDAO}.
- * Được {@link ExaminerAllocationDeskServiceImpl} (gán thủ công) và
- * {@code AllocationActionServiceImpl} (auto sau thủ tục) sử dụng.
+ * Gọi trực tiếp ExamAreaDAO, ExaminerAssignmentDAO, ExamRegistrationDAO.
+ * Được ExaminerAllocationDeskServiceImpl (gán thủ công) và
+ * AllocationActionServiceImpl (auto sau thủ tục) sử dụng.
  *
  * Phân công giám khảo (CRUD):
- * - {@link #getActiveExaminers} / {@link #getAssignmentsByExamId} — đọc danh sách
- * - {@link #assignExaminer} / {@link #removeAssignment} — ghi slot qua DAO
- * - {@link #getAvailableAreasForExam} — khu gắn kỳ; fallback theo loại LT+TH nếu chưa gắn
+ * - getActiveExaminers / getAssignmentsByExamId — đọc danh sách
+ * - assignExaminer / removeAssignment — ghi slot qua DAO
+ * - getAvailableAreasForExam — khu gắn kỳ; fallback theo loại LT+TH nếu chưa gắn
  *
  * Auto-allocate thí sinh:
- * - Phòng LT — {@link #autoAllocateExam} / {@link #autoAllocateCandidate}: chỉ phòng đã staffed
- *       ({@link ExaminerAssignmentRules#filterTheoryRoomsWithStaff}); chọn phòng ít tải nhất
- * - Sân TH — {@link #autoAllocatePracticalExam}: thí sinh đậu LT hoặc bảo lưu LT;
+ * - Phòng LT — autoAllocateExam / autoAllocateCandidate: chỉ phòng đã staffed
+ *       (ExaminerAssignmentRules.filterTheoryRoomsWithStaff); chọn phòng ít tải nhất
+ * - Sân TH — autoAllocatePracticalExam: thí sinh đậu LT hoặc bảo lưu LT;
  *       chỉ sân đã staffed; cân bằng tải tương tự
- * - Sau thủ tục — {@link #autoAllocateCandidate}: bảo lưu LT → sân TH; còn lại → phòng LT
+ * - Sau thủ tục — autoAllocateCandidate: bảo lưu LT → sân TH; còn lại → phòng LT
  *
  * Điều kiện sẵn sàng phân bổ:
  * Thí sinh cần đã thu phí, có ảnh, không vắng/đình chỉ; LT yêu cầu chưa có kết quả LT;
@@ -69,7 +69,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Lấy tóm tắt kỳ thi theo mã.
      * @param examId mã kỳ thi
-     * @return DTO kỳ thi hoặc {@code null}
+     * @return DTO kỳ thi hoặc null
      */
     public ExamSummaryDTO getExamById(int examId) {
         return examQuery.findByExamId(examId);
@@ -78,7 +78,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Lấy khu vực thi theo mã.
      * @param id mã ExamArea
-     * @return khu vực hoặc {@code null}
+     * @return khu vực hoặc null
      */
     public ExamArea getAreaById(int id) {
         return areaDAO.getById(id);
@@ -133,7 +133,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Gán giám khảo vào một slot (kỳ + khu vực + phần thi).
      * @param slot thông tin phân công
-     * @return {@code true} nếu lưu thành công
+     * @return true nếu lưu thành công
      */
     public boolean assignExaminer(ExaminerSlotDTO slot) {
         return assignmentDAO.assign(slot);
@@ -142,7 +142,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Gỡ phân công giám khảo theo khóa slot.
      * @param slotKey khóa slot
-     * @return {@code true} nếu gỡ thành công
+     * @return true nếu gỡ thành công
      */
     public boolean removeAssignment(String slotKey) {
         return assignmentDAO.remove(slotKey);
@@ -184,7 +184,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Phân bổ tự động phòng lý thuyết cho toàn kỳ hoặc một thí sinh.
      * @param examId      mã kỳ thi
-     * @param targetRegId {@code null} = toàn kỳ; khác null = chỉ thí sinh đó
+     * @param targetRegId null = toàn kỳ; khác null = chỉ thí sinh đó
      * @return kết quả phân bổ
      */
     private AllocationActionResultDTO autoAllocate(int examId, Integer targetRegId) {
@@ -287,9 +287,9 @@ public class ExaminerAllocationServiceImpl {
 
     /**
      * Phân bổ tự động sân thực hành cho thí sinh đã đậu lý thuyết
-     * (hoặc bảo lưu LT / {@code TakeTheory = 0}).
+     * (hoặc bảo lưu LT / TakeTheory = 0).
      * @param examId      mã kỳ thi
-     * @param targetRegId {@code null} = toàn kỳ; khác null = chỉ thí sinh đó
+     * @param targetRegId null = toàn kỳ; khác null = chỉ thí sinh đó
      * @return kết quả phân bổ
      */
     private AllocationActionResultDTO autoAllocatePractical(int examId, Integer targetRegId) {
@@ -442,7 +442,7 @@ public class ExaminerAllocationServiceImpl {
      * Chọn phòng/sân ít thí sinh nhất.
      * @param rooms         danh sách phòng/sân
      * @param roomOccupancy map occupancy hiện tại
-     * @return phòng/sân tối ưu, hoặc {@code null}
+     * @return phòng/sân tối ưu, hoặc null
      */
     private ExamArea pickBestRoom(List<ExamArea> rooms, Map<Integer, Integer> roomOccupancy) {
         ExamArea bestRoom = null;
@@ -461,7 +461,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Thí sinh sẵn sàng phân phòng LT (đã thu phí, có ảnh, chưa thi LT, không bảo lưu LT).
      * @param c hồ sơ
-     * @return {@code true} nếu sẵn sàng
+     * @return true nếu sẵn sàng
      */
     private boolean isReadyForAllocation(ExamRegistrationDTO c) {
         // validate cơ bản
@@ -484,7 +484,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Đã có phòng lý thuyết được phân.
      * @param c hồ sơ
-     * @return {@code true} nếu đã gán phòng LT
+     * @return true nếu đã gán phòng LT
      */
     private boolean isAlreadyAllocated(ExamRegistrationDTO c) {
         if (c == null) {
@@ -497,7 +497,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Thí sinh sẵn sàng phân sân TH: đã đậu LT, hoặc bảo lưu LT sau thủ tục; không miễn TH.
      * @param c hồ sơ
-     * @return {@code true} nếu sẵn sàng
+     * @return true nếu sẵn sàng
      */
     private boolean isReadyForPracticalAllocation(ExamRegistrationDTO c) {
         // validate
@@ -536,7 +536,7 @@ public class ExaminerAllocationServiceImpl {
     /**
      * Đã có sân thực hành được phân.
      * @param c hồ sơ
-     * @return {@code true} nếu đã gán sân TH
+     * @return true nếu đã gán sân TH
      */
     private boolean isAlreadyPracticalAllocated(ExamRegistrationDTO c) {
         if (c == null) {

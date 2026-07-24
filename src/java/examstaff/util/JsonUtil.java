@@ -7,17 +7,17 @@ import examstaff.dto.ExamRegistrationDTO;
  * không dùng thư viện JSON bên ngoài để kiểm soát chặt output.
  *
  * Vai trò trong luồng examstaff:
- * {@code PublicCallServlet} và {@code PublicCallSnapshotSupport} stream trạng thái gọi thí sinh
+ * PublicCallServlet và PublicCallSnapshotSupport stream trạng thái gọi thí sinh
  * (SBD, tên, hạng) tới TV/bảng công khai. Helper escape ký tự đặc biệt và build object/mảng
- * rút gọn {@code {sbd,name,clazz}} từ {@link ExamRegistrationDTO}.
+ * rút gọn {sbd,name,clazz} từ ExamRegistrationDTO.
  *
  * Cách hoạt động:
- * - {@link #escapeJson} — null → token {@code null}; escape {@code \ " \r \n \t} rồi bọc quote.
- * - {@link #appendJsonField} — overload String/long/boolean với trailing comma tùy chọn.
- * - {@link #appendCandidateJson} / {@link #appendCandidateArrayJson} — object hoặc mảng rút gọn.
+ * - escapeJson — null → token null; escape \ " \r \n \t rồi bọc quote.
+ * - appendJsonField — overload String/long/boolean với trailing comma tùy chọn.
+ * - appendCandidateJson / appendCandidateArrayJson — object hoặc mảng rút gọn.
  *
  * Ai gọi:
- * {@code PublicCallSnapshotSupport}, {@code PublicCallServlet}, {@code PublicCallStateServlet} —
+ * PublicCallSnapshotSupport, PublicCallServlet, PublicCallStateServlet —
  * endpoint JSON/SSE bảng gọi công khai ngoài session staff.
  */
 public final class JsonUtil {
@@ -27,9 +27,9 @@ public final class JsonUtil {
     }
 
     /**
-     * Escape chuỗi thành literal JSON (null → token {@code null}).
+     * Escape chuỗi thành literal JSON (null → token null).
      * <p>
-     * Thay lần lượt: {@code \} → {@code \\}, {@code "} → {@code \"},
+     * Thay lần lượt: \ → \\, " → \",
      * rồi CR/LF/TAB; sau đó bọc dấu ngoặc kép.
      * @param value chuỗi gốc
      * @return literal JSON (đã bọc dấu ngoặc kép nếu không null)
@@ -51,7 +51,7 @@ public final class JsonUtil {
     }
 
     /**
-     * Nối field chuỗi vào builder dạng {@code "name":"value"} (value đã escape).
+     * Nối field chuỗi vào builder dạng "name":"value" (value đã escape).
      * @param json           buffer JSON
      * @param name           tên field
      * @param value          giá trị chuỗi
@@ -67,7 +67,7 @@ public final class JsonUtil {
     }
 
     /**
-     * Nối field số nguyên dài vào builder dạng {@code "name":123} (không quote số).
+     * Nối field số nguyên dài vào builder dạng "name":123 (không quote số).
      * @param json           buffer JSON
      * @param name           tên field
      * @param value          giá trị long
@@ -81,7 +81,7 @@ public final class JsonUtil {
     }
 
     /**
-     * Nối field boolean vào builder dạng {@code "name":true|false}.
+     * Nối field boolean vào builder dạng "name":true|false.
      * @param json           buffer JSON
      * @param name           tên field
      * @param value          giá trị boolean
@@ -95,11 +95,11 @@ public final class JsonUtil {
     }
 
     /**
-     * Nối object thí sinh rút gọn {@code {sbd, name, clazz}} vào buffer.
+     * Nối object thí sinh rút gọn {sbd, name, clazz} vào buffer.
      * <p>
-     * null candidate → token {@code null}; ngược lại mở {@code {}}, nối 3 field, đóng.
+     * null candidate → token null; ngược lại mở {}, nối 3 field, đóng.
      * @param json      buffer JSON
-     * @param candidate hồ sơ (null → {@code null})
+     * @param candidate hồ sơ (null → null)
      */
     public static void appendCandidateJson(StringBuilder json, ExamRegistrationDTO candidate) {
         // Bước 1: thiếu thí sinh
@@ -116,11 +116,11 @@ public final class JsonUtil {
     }
 
     /**
-     * Nối mảng thí sinh rút gọn {@code [...]} vào buffer.
+     * Nối mảng thí sinh rút gọn [...] vào buffer.
      * <p>
-     * null/rỗng → {@code []}; có phần tử → nối từng object, phẩy giữa các phần tử.
+     * null/rỗng → []; có phần tử → nối từng object, phẩy giữa các phần tử.
      * @param json       buffer JSON
-     * @param candidates danh sách (null/rỗng → {@code []})
+     * @param candidates danh sách (null/rỗng → [])
      */
     public static void appendCandidateArrayJson(StringBuilder json, java.util.List<ExamRegistrationDTO> candidates) {
         // Bước 1: mảng rỗng

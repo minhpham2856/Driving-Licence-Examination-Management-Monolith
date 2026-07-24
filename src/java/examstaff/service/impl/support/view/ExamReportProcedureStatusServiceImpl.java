@@ -8,17 +8,17 @@ import java.util.List;
 /**
  * Phân tích trạng thái thủ tục (ảnh, hoàn tất, đang chờ) cho báo cáo kỳ thi.
  * <p>
- * Duyệt {@link ExamRegistrationDTO}; dùng {@link CandidatePhotoServiceImpl#resolveCapturedPhoto}
- * để xác định thiếu ảnh. Trả {@link examstaff.dto.ExamReportProcedureStatusDTO}.
+ * Duyệt ExamRegistrationDTO; dùng CandidatePhotoServiceImpl.resolveCapturedPhoto
+ * để xác định thiếu ảnh. Trả examstaff.dto.ExamReportProcedureStatusDTO.
  *
  * Phân loại thí sinh:
- * - <b>Hoàn tất thủ tục</b> — {@code isProcedureComplete()}; bỏ qua vắng mặt
- * - <b>Đang chờ</b> — chưa hoàn tất; gom vào {@code procedurePendingCandidates}
- * - <b>Thiếu ảnh</b> — trong nhóm chờ, {@code resolveCapturedPhoto} = false;
+ * - <b>Hoàn tất thủ tục</b> — isProcedureComplete(); bỏ qua vắng mặt
+ * - <b>Đang chờ</b> — chưa hoàn tất; gom vào procedurePendingCandidates
+ * - <b>Thiếu ảnh</b> — trong nhóm chờ, resolveCapturedPhoto = false;
  *       ghi SBD + tên vào danh sách cảnh báo
  *
  * Điểm gọi:
- * {@code ReportServlet} qua {@code ExamStaffViewServiceImpl} khi dựng báo cáo tổng hợp.
+ * ReportServlet qua ExamStaffViewServiceImpl khi dựng báo cáo tổng hợp.
  */
 public class ExamReportProcedureStatusServiceImpl {
 

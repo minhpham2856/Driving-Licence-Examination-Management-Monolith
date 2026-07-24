@@ -15,16 +15,16 @@ import java.util.Locale;
  * Chuẩn hóa hạng GPLX trước khi đưa ra UI/JSON.
  *
  * Vai trò:
- * Chuyển {@link PublicCallSnapshotDTO} sang request attributes (JSP) hoặc JSON
- * (poll API). Chuẩn hóa {@code licenseCode} trên kỳ và thí sinh trước khi render.
+ * Chuyển PublicCallSnapshotDTO sang request attributes (JSP) hoặc JSON
+ * (poll API). Chuẩn hóa licenseCode trên kỳ và thí sinh trước khi render.
  *
  * Luồng sử dụng:
- * - {@link PublicCallServlet}: {@code bindRequest} → forward {@code public-call.jsp}
- * - {@link PublicCallStateServlet}: {@code toStateJson} → response poll (~1–2s)
- * - Cả hai dùng cùng snapshot từ {@link examstaff.service.StaffCallService#loadPublicSnapshot}
+ * - PublicCallServlet: bindRequest → forward public-call.jsp
+ * - PublicCallStateServlet: toStateJson → response poll (~1–2s)
+ * - Cả hai dùng cùng snapshot từ examstaff.service.StaffCallService.loadPublicSnapshot
  *
  * Ai gọi:
- * {@link PublicCallServlet}, {@link PublicCallStateServlet}.
+ * PublicCallServlet, PublicCallStateServlet.
  */
 public final class PublicCallSnapshotSupport {
 
@@ -99,10 +99,10 @@ public final class PublicCallSnapshotSupport {
     }
 
     /**
-     * Serialize snapshot thành JSON state (poll API {@code /api/public-call/state}).
+     * Serialize snapshot thành JSON state (poll API /api/public-call/state).
      * <p>
      * Luồng: normalize → append meta flags → examDate/deskSbd → calling/next/waitingQueue.
-     * @param snapshot snapshot; null → {@code "{}"}
+     * @param snapshot snapshot; null → "{}"
      * @return chuỗi JSON
      */
     public static String toStateJson(PublicCallSnapshotDTO snapshot) {

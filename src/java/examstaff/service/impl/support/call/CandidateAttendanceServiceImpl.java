@@ -10,18 +10,18 @@ import java.util.List;
 /**
  * Xử lý điểm danh thí sinh: đánh vắng, đình chỉ, khôi phục và đóng ca.
  * <p>
- * Ghi DB qua {@link examstaff.service.RegistrationService}; được gọi từ
- * {@link CandidateCallWorkflowServiceImpl} (action vắng / undo / đóng ca).
+ * Ghi DB qua examstaff.service.RegistrationService; được gọi từ
+ * CandidateCallWorkflowServiceImpl (action vắng / undo / đóng ca).
  * Không gọi trực tiếp từ servlet.
  *
  * Các thao tác:
- * - {@link #markPermanentAbsent} — fail điểm → đình chỉ → đánh vắng cố định
- * - {@link #restoreAbsentCandidate} — undo suspension + clear absent, reset điểm in-memory
- * - {@link #markIncompleteAsAbsentAtEndShift} — khi đóng ca: vắng thí sinh chưa xong thủ tục
+ * - markPermanentAbsent — fail điểm → đình chỉ → đánh vắng cố định
+ * - restoreAbsentCandidate — undo suspension + clear absent, reset điểm in-memory
+ * - markIncompleteAsAbsentAtEndShift — khi đóng ca: vắng thí sinh chưa xong thủ tục
  *
  * Luồng gọi:
- * {@code permanentAbsent} / {@code endShift} trên trang gọi → workflow → attendance service →
- * {@code RegistrationService} mutate DB + cập nhật DTO trong hàng đợi session.
+ * permanentAbsent / endShift trên trang gọi → workflow → attendance service →
+ * RegistrationService mutate DB + cập nhật DTO trong hàng đợi session.
  */
 public class CandidateAttendanceServiceImpl {
 

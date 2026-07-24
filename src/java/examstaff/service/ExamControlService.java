@@ -7,11 +7,11 @@ import examstaff.dto.ServiceResult;
  *
  * Chuyển trạng thái kỳ thi:
  * - <b>startExam</b> — bắt đầu kỳ, mở đăng nhập SHV theo phân công;
- *       trả {@link StartExamData} (nhãn kỳ + số SHV)
+ *       trả StartExamData (nhãn kỳ + số SHV)
  * - <b>pauseExam / resumeExam</b> — tạm dừng / tiếp tục; giữ hàng đợi gọi số,
  *       khóa/mở đăng nhập SHV
  * - <b>endExam</b> — kết thúc kỳ; SHV không còn đăng nhập được
- * Mọi thao tác trả {@link ServiceResult}; lỗi nghiệp vụ dùng {@code ErrorType} tương ứng.
+ * Mọi thao tác trả ServiceResult; lỗi nghiệp vụ dùng ErrorType tương ứng.
  */
 public interface ExamControlService {
 
@@ -19,28 +19,28 @@ public interface ExamControlService {
      * Bắt đầu kỳ thi và cho phép sát hạch viên đăng nhập theo phân công.
      * @param examId      mã kỳ thi
      * @param staffUserId mã nhân viên thực hiện
-     * @return {@link ServiceResult} kèm {@link StartExamData} khi thành công
+     * @return ServiceResult kèm StartExamData khi thành công
      */
     ServiceResult<StartExamData> startExam(int examId, int staffUserId);
 
     /**
      * Kết thúc kỳ thi; sát hạch viên không còn đăng nhập được kỳ này.
      * @param examId mã kỳ thi
-     * @return {@link ServiceResult} với data = nhãn kỳ thi khi thành công
+     * @return ServiceResult với data = nhãn kỳ thi khi thành công
      */
     ServiceResult<String> endExam(int examId);
 
     /**
      * Tạm dừng kỳ thi; giữ hàng đợi gọi số, khóa đăng nhập sát hạch viên.
      * @param examId mã kỳ thi
-     * @return {@link ServiceResult} với data = nhãn kỳ thi khi thành công
+     * @return ServiceResult với data = nhãn kỳ thi khi thành công
      */
     ServiceResult<String> pauseExam(int examId);
 
     /**
      * Tiếp tục kỳ thi sau khi tạm dừng.
      * @param examId mã kỳ thi
-     * @return {@link ServiceResult} với data = nhãn kỳ thi khi thành công
+     * @return ServiceResult với data = nhãn kỳ thi khi thành công
      */
     ServiceResult<String> resumeExam(int examId);
 

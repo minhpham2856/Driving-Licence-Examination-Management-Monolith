@@ -7,34 +7,34 @@ import java.util.List;
  * Trạng thái runtime bảng gọi thí sinh (in-memory) — nguồn sự thật chia sẻ giữa staff desk và Public Call.
  *
  * Vai trò trong luồng examstaff:
- * Lưu calling / next / thứ tự queue / desk busy / pause / end theo từng {@code examId}.
- * Không phụ thuộc Servlet API trong model; persistence runtime qua {@code CallBoardDAO}
- * (thường {@code InMemoryCallBoardDAO}). Staff ghi khi gọi / thủ tục / control ca;
- * Public Call đọc để dựng {@link PublicCallSnapshotDTO}.
+ * Lưu calling / next / thứ tự queue / desk busy / pause / end theo từng examId.
+ * Không phụ thuộc Servlet API trong model; persistence runtime qua CallBoardDAO
+ * (thường InMemoryCallBoardDAO). Staff ghi khi gọi / thủ tục / control ca;
+ * Public Call đọc để dựng PublicCallSnapshotDTO.
  *
  * Vòng đời một field (ví dụ callingSbd):
- * - Staff gọi số → {@code StaffCallService.syncBoard} → {@code CallBoardRules.syncBoard} set calling
- * - {@code InMemoryCallBoardDAO.saveState} copy vào map JVM
- * - TV poll {@code /api/public-call/state} → {@code getState} → snapshot {@code calling}
- * - Vào bàn thủ tục → {@code occupyDesk} (giữ calling, set deskBusy)
- * - Xong thủ tục → {@code releaseDeskAndCall} (clear desk, calling mới)
+ * - Staff gọi số → StaffCallService.syncBoard → CallBoardRules.syncBoard set calling
+ * - InMemoryCallBoardDAO.saveState copy vào map JVM
+ * - TV poll /api/public-call/state → getState → snapshot calling
+ * - Vào bàn thủ tục → occupyDesk (giữ calling, set deskBusy)
+ * - Xong thủ tục → releaseDeskAndCall (clear desk, calling mới)
  *
  * Ai tạo / cập nhật:
- * {@code CallBoardRules} (new/update); copy qua {@code InMemoryCallBoardDAO};
- * mutate từ {@code StaffCallServiceImpl} (get/sync/occupy/release/pause).
+ * CallBoardRules (new/update); copy qua InMemoryCallBoardDAO;
+ * mutate từ StaffCallServiceImpl (get/sync/occupy/release/pause).
  *
  * Ai tiêu thụ:
- * {@code CandidateCallServlet}, {@code ProcedureServlet}, {@code PublicCallServlet} /
- * {@code PublicCallStateServlet}; {@code CandidateQueueServiceImpl#resolveSyncedCallingSbd}.
+ * CandidateCallServlet, ProcedureServlet, PublicCallServlet /
+ * PublicCallStateServlet; CandidateQueueServiceImpl#resolveSyncedCallingSbd.
  *
  * Trang / JSP:
- * Không bind type này trực tiếp; field lộ qua session {@code callingSbd} và snapshot public TV.
- * - {@code callingSbd} — SBD đang được gọi (TV “Đang gọi”)
- * - {@code nextSbd} — SBD chuẩn bị gọi (TV “Tiếp theo”)
- * - {@code deskBusy}/{@code deskSbd} — bàn thủ tục đang bận (syncBoard không ghi đè calling)
- * - {@code queueOrderSbds} — thứ tự hàng đợi đồng bộ (cache; danh sách chi tiết lấy từ DB)
- * - {@code shiftEnded}/{@code examPaused} — trạng thái ca trên board (khác Status kỳ thi DB)
- * - {@code updatedAtMs} — client poll so sánh để biết có cần re-render
+ * Không bind type này trực tiếp; field lộ qua session callingSbd và snapshot public TV.
+ * - callingSbd — SBD đang được gọi (TV “Đang gọi”)
+ * - nextSbd — SBD chuẩn bị gọi (TV “Tiếp theo”)
+ * - deskBusy/deskSbd — bàn thủ tục đang bận (syncBoard không ghi đè calling)
+ * - queueOrderSbds — thứ tự hàng đợi đồng bộ (cache; danh sách chi tiết lấy từ DB)
+ * - shiftEnded/examPaused — trạng thái ca trên board (khác Status kỳ thi DB)
+ * - updatedAtMs — client poll so sánh để biết có cần re-render
  */
 public class CallBoardState {
 

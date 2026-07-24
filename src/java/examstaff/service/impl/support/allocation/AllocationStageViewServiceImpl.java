@@ -14,9 +14,9 @@ import java.util.Set;
  * Dựng view phân bổ theo giai đoạn (LT / TH / tổng quan / results).
  *
  * Cách hoạt động:
- * Nhận list {@link ExamRegistrationDTO} đã load từ DB →
- * {@link AllocationStageHelper} lọc theo stage/result → search/sort/paging →
- * {@link AllocationStageViewDTO} (kèm {@link AllocationStageHelper.StageCounts} cho tab).
+ * Nhận list ExamRegistrationDTO đã load từ DB →
+ * AllocationStageHelper lọc theo stage/result → search/sort/paging →
+ * AllocationStageViewDTO (kèm AllocationStageHelper.StageCounts cho tab).
  * Không gọi JDBC; chỉ biến đổi in-memory cho JSP.
  */
 public class AllocationStageViewServiceImpl {
@@ -30,7 +30,7 @@ public class AllocationStageViewServiceImpl {
      * @param page         trang hiện tại
      * @param pageSize     kích thước trang
      * @param sortSpec     quy tắc sắp xếp
-     * @param areaFilterId lọc theo khu vực ({@code null} = không lọc)
+     * @param areaFilterId lọc theo khu vực (null = không lọc)
      * @return DTO view phân phòng theo stage
      */
     public AllocationStageViewDTO buildView(List<ExamRegistrationDTO> candidates, String stage,

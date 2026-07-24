@@ -10,18 +10,18 @@ import java.sql.Timestamp;
 /**
  * Ghi một dòng nhật ký audit khi cán bộ thực hiện hành động nghiệp vụ.
  * <p>
- * Wrap {@link AuditLogDAO#insert}; map action/details → entity và action chuẩn qua
- * {@code AuditLogHelper}. Lỗi insert được nuốt (log stderr) — không làm fail luồng chính.
+ * Wrap AuditLogDAO.insert; map action/details → entity và action chuẩn qua
+ * AuditLogHelper. Lỗi insert được nuốt (log stderr) — không làm fail luồng chính.
  *
  * Luồng ghi log:
- * - {@link #resolveEntityName} — suy entity từ action/details; Payment → {@code Thanh toán}
- * - {@link #normalizeAction} — chuẩn hóa mã hành động trước khi lưu
- * - Dựng {@link shared.model.Audit}: entity, recordId, reason, userId (fallback 3), timestamp
- * - Insert qua {@link AuditLogDAO}
+ * - resolveEntityName — suy entity từ action/details; Payment → Thanh toán
+ * - normalizeAction — chuẩn hóa mã hành động trước khi lưu
+ * - Dựng shared.model.Audit: entity, recordId, reason, userId (fallback 3), timestamp
+ * - Insert qua AuditLogDAO
  *
  * Điểm gọi điển hình:
- * {@code ExaminerAllocationDeskServiceImpl} (ASSIGN/REMOVE Examiner), thủ tục, phân bổ, gọi số —
- * consolidator hoặc desk truyền {@code userId}, {@code action}, {@code details}, {@code recordId}.
+ * ExaminerAllocationDeskServiceImpl (ASSIGN/REMOVE Examiner), thủ tục, phân bổ, gọi số —
+ * consolidator hoặc desk truyền userId, action, details, recordId.
  */
 public class StaffAuditLogServiceImpl {
 

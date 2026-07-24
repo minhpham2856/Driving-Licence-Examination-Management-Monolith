@@ -14,13 +14,13 @@ import java.util.List;
  * Facade bàn thủ tục: hồ sơ thí sinh, ảnh, phí, thanh toán và reset trạng thái.
  *
  * Luồng chính trên desk:
- * - <b>Hồ sơ</b> — {@code findProfile}, {@code prepareProfileForDesk},
- *       {@code reloadProfile}, {@code saveProfile}
- * - <b>Ảnh</b> — {@code saveCapturedPhoto}, {@code recapturePhoto}
- * - <b>Phí / thanh toán</b> — {@code resolveProcedureFees}, {@code previewFees},
- *       {@code confirmPayment}, SePay ({@code startSePayCheckout}, {@code finalizeAfterSePayPayment})
- * - <b>Reset</b> — {@code resetProcedure} gỡ ảnh / thanh toán theo SBD
- * Thao tác trả {@link ServiceResult} kèm {@link ProcedureActionOutcome} khi cần cập nhật UI desk.
+ * - <b>Hồ sơ</b> — findProfile, prepareProfileForDesk,
+ *       reloadProfile, saveProfile
+ * - <b>Ảnh</b> — saveCapturedPhoto, recapturePhoto
+ * - <b>Phí / thanh toán</b> — resolveProcedureFees, previewFees,
+ *       confirmPayment, SePay (startSePayCheckout, finalizeAfterSePayPayment)
+ * - <b>Reset</b> — resetProcedure gỡ ảnh / thanh toán theo SBD
+ * Thao tác trả ServiceResult kèm ProcedureActionOutcome khi cần cập nhật UI desk.
  */
 public interface ProcedureService {
 
@@ -31,7 +31,7 @@ public interface ProcedureService {
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh
      * @param queue          hàng đợi thí sinh (có thể null)
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     ExamRegistrationDTO findProfile(String webRoot, int examId, int fallbackExamId,
             String sbd, List<ExamRegistrationDTO> queue);
@@ -43,7 +43,7 @@ public interface ProcedureService {
      * @param fallbackExamId mã kỳ dự phòng
      * @param profile        hồ sơ hiện tại
      * @param queue          hàng đợi
-     * @return {@link ServiceResult} kèm hồ sơ đã chuẩn bị
+     * @return ServiceResult kèm hồ sơ đã chuẩn bị
      */
     ServiceResult<ExamRegistrationDTO> prepareProfileForDesk(String webRoot, int examId, int fallbackExamId,
             ExamRegistrationDTO profile, List<ExamRegistrationDTO> queue);
@@ -55,7 +55,7 @@ public interface ProcedureService {
      * @param candidateId mã thí sinh
      * @param sbd         số báo danh
      * @param queue       hàng đợi
-     * @return hồ sơ mới nhất hoặc {@code null}
+     * @return hồ sơ mới nhất hoặc null
      */
     ExamRegistrationDTO reloadProfile(String webRoot, int examId, int candidateId,
             String sbd, List<ExamRegistrationDTO> queue);
@@ -68,7 +68,7 @@ public interface ProcedureService {
      * @param govIdNo     số CMND/CCCD
      * @param email       email
      * @param phoneNo     số điện thoại
-     * @return {@link ServiceResult} thành công/thất bại
+     * @return ServiceResult thành công/thất bại
      */
     ServiceResult<Boolean> saveProfile(int candidateId, String fullName, Date dob,
             String govIdNo, String email, String phoneNo);
@@ -80,7 +80,7 @@ public interface ProcedureService {
      * @param examId      mã kỳ thi
      * @param sbd         số báo danh
      * @param queue       hàng đợi
-     * @return hồ sơ sau khi gỡ ảnh hoặc {@code null}
+     * @return hồ sơ sau khi gỡ ảnh hoặc null
      */
     ExamRegistrationDTO recapturePhoto(int candidateId, String webRoot, int examId,
             String sbd, List<ExamRegistrationDTO> queue);
@@ -92,7 +92,7 @@ public interface ProcedureService {
      * @param examId     mã kỳ thi
      * @param base64Data ảnh base64
      * @param queue      hàng đợi
-     * @return {@link ServiceResult} kèm {@link ProcedureActionOutcome}
+     * @return ServiceResult kèm ProcedureActionOutcome
      */
     ServiceResult<ProcedureActionOutcome> saveCapturedPhoto(String webRoot, String sbd, int examId,
             String base64Data, List<ExamRegistrationDTO> queue);
@@ -104,7 +104,7 @@ public interface ProcedureService {
      * @param examId   mã kỳ thi
      * @param webRoot  thư mục gốc web
      * @param allExams danh sách kỳ thi (context)
-     * @return {@link ServiceResult} kèm {@link ProcedureActionOutcome}
+     * @return ServiceResult kèm ProcedureActionOutcome
      */
     ServiceResult<ProcedureActionOutcome> confirmPayment(ExamRegistrationDTO profile, String sbd,
             int examId, String webRoot, List<ExamSummaryDTO> allExams);
@@ -129,7 +129,7 @@ public interface ProcedureService {
      * @param sbd     số báo danh
      * @param examId  mã kỳ thi
      * @param webRoot thư mục gốc web
-     * @return {@link ServiceResult} kèm {@link ProcedureActionOutcome}
+     * @return ServiceResult kèm ProcedureActionOutcome
      */
     ServiceResult<ProcedureActionOutcome> resetProcedure(String sbd, int examId, String webRoot);
 
