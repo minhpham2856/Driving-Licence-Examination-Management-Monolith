@@ -9,6 +9,7 @@ import auth.service.ProfileService;
 import auth.service.impl.AuditServiceImpl;
 import auth.service.impl.ProfileServiceImpl;
 import shared.util.FormatUtil;
+import auth.util.AuthSessionUtil;
 import auth.util.ValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -78,9 +79,9 @@ public class ProfileServlet extends HttpServlet {
                     AuditEntity.DOSSIER,
                     "Cập nhật hồ sơ cá nhân",
                     sessionUser.getUserId());
-            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.SUCCESS);
         } else {
-            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.DANGER);
         }
 
         request.setAttribute(Attributes.Request.MESSAGE,
@@ -95,7 +96,7 @@ public class ProfileServlet extends HttpServlet {
 
     // session user set by login; filter guarantees non-null here
     private static UserDTO sessionUser(HttpServletRequest request) {
-        return (UserDTO) request.getSession(false).getAttribute(Attributes.Session.USER);
+        return AuthSessionUtil.sessionUser(request);
     }
 
     // load account from DB and sync session profile for sidebar display

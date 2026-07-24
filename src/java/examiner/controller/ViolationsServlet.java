@@ -19,11 +19,10 @@ import examiner.dto.ServiceResult;
 import examiner.service.impl.ActionServiceImpl;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.util.ListUtil;
+import examiner.util.RequestUtil;
 import static shared.util.FormatUtil.formatPositiveInt;
 import static shared.util.FormatUtil.formatString;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -50,7 +49,7 @@ public class ViolationsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId != null && activeExamId > 0) {
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
             // Search filter is applied in-memory after DB load on violations.jsp.
@@ -58,15 +57,14 @@ public class ViolationsServlet extends HttpServlet {
             List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
                     activeExamId, sectionType, formatString(search));
             ListUtil.applySortAndSearch(request, candidates);
-            request.setAttribute("candidates", candidates);
-            request.setAttribute("candidateQueue", candidates);
+            request.setAttribute(Attributes.Request.CANDIDATES, candidates);
             int selectedSbd = formatPositiveInt(request.getParameter("sbd"));
             if (selectedSbd > 0) {
-                request.setAttribute("candidate", viewService.getCandidateViewRow(
+                request.setAttribute(Attributes.Request.CANDIDATE, viewService.getCandidateViewRow(
                         activeExamId, selectedSbd, sectionType));
-                request.setAttribute("violationReasons",
+                request.setAttribute(Attributes.Examiner.VIOLATION_REASONS,
                         viewService.getViolationViewByExam(activeExamId, selectedSbd, sectionType)
-                                .get("violationReasons"));
+                                .get(Attributes.Examiner.VIOLATION_REASONS));
             }
         }
         // Forward even without active exam so JSP can show empty state.
@@ -82,7 +80,7 @@ public class ViolationsServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -101,8 +99,8 @@ public class ViolationsServlet extends HttpServlet {
         if ("undoSuspend".equals(action)) {
             ServiceResult<Void> result = actionService.undoSuspension(activeExamId, sbd, userId, sectionType);
             redirect = result.isSuccess()
-                    ? "/examiner/violations?sbd=" + urlEncode(sbd) + "&unsuspended=1"
-                    : "/examiner/violations?sbd=" + urlEncode(sbd) + "&error=unsuspendFailed";
+                    ? "/examiner/violations?sbd=" + RequestUtil.urlEncode(sbd) + "&unsuspended=1"
+                    : "/examiner/violations?sbd=" + RequestUtil.urlEncode(sbd) + "&error=unsuspendFailed";
         } else if ("createViolation".equals(action)) {
             Part evidence;
             try {
@@ -135,34 +133,26 @@ public class ViolationsServlet extends HttpServlet {
                 try { CloudinaryDocumentStorage.destroy(storedRef); } catch (IOException ignored) {}
             }
             redirect = result.isSuccess()
-                    ? "/examiner/violations?suspended=" + urlEncode(sbd)
-                    : "/examiner/violations?sbd=" + urlEncode(sbd) + "&mode=create&error=violationFailed";
+                    ? "/examiner/violations?suspended=" + RequestUtil.urlEncode(sbd)
+                    : "/examiner/violations?sbd=" + RequestUtil.urlEncode(sbd) + "&mode=create&error=violationFailed";
         } else {
             // Default: one-click suspend (action=suspend or missing).
             ServiceResult<Void> result = actionService.markSuspended(activeExamId, sbd, userId, null, null,
                     sectionType);
             redirect = result.isSuccess()
-                    ? "/examiner/violations?suspended=" + urlEncode(sbd)
-                    : "/examiner/violations?sbd=" + urlEncode(sbd) + "&error=suspendFailed";
+                    ? "/examiner/violations?suspended=" + RequestUtil.urlEncode(sbd)
+                    : "/examiner/violations?sbd=" + RequestUtil.urlEncode(sbd) + "&error=suspendFailed";
         }
         response.sendRedirect(request.getContextPath() + redirect);
-    }
-
-    private String urlEncode(int value) {
-        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
-    }
-
-    private String urlEncode(String value) {
-        return URLEncoder.encode(value != null ? value : "", StandardCharsets.UTF_8);
     }
 
     private void redirectCreate(HttpServletRequest request, HttpServletResponse response, int sbd,
             String error, String uploadMessage) throws IOException {
         String redirect = request.getContextPath()
-                + "/examiner/violations?sbd=" + urlEncode(sbd)
-                + "&mode=create&error=" + urlEncode(error);
+                + "/examiner/violations?sbd=" + RequestUtil.urlEncode(sbd)
+                + "&mode=create&error=" + RequestUtil.urlEncode(error);
         if (uploadMessage != null && !uploadMessage.isBlank()) {
-            redirect += "&uploadMessage=" + urlEncode(uploadMessage);
+            redirect += "&uploadMessage=" + RequestUtil.urlEncode(uploadMessage);
         }
         response.sendRedirect(redirect);
     }

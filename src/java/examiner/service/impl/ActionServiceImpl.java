@@ -300,6 +300,55 @@ public class ActionServiceImpl implements ActionService {
         return ServiceResult.ok(null);
     }
 
+    // Updates practical score directly after password-confirmed reason validation.
+    @Override
+    public ServiceResult<Void> updatePracticalScoreWithReason(int examId, int sbd, int newScore, User user,
+            String password, String reasonCode, String reasonDetail, Integer actionUserId, SectionType sectionType) {
+        if (newScore < 0 || newScore > 100 || newScore % 5 != 0) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "invalidScore");
+        }
+        if (reasonCode == null || reasonCode.isBlank()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
+        }
+        if (!verifyPassword(user, password)) {
+            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
+        }
+        SectionType targetSection = sectionType != null ? sectionType : SectionType.LAYOUT;
+        if (targetSection != SectionType.LAYOUT) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
+        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, targetSection);
+        if (enrollment == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
+        }
+        if (!isSectionRequired(enrollment, targetSection)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
+        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
+        ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
+        if (enrollmentRecord == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
+        }
+        int examScoreId = ensurePracticalExamScore(enrollment.getCandidateId(), examId);
+        if (examScoreId <= 0 || !examScoreDAO.updateScore(examScoreId, newScore)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
+        }
+        if (!persistPracticalOutcome(examId, enrollmentRecord.getExamEnrollmentId(), false)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
+        }
+        if (actionUserId != null) {
+            String reasonText = buildReasonText(reasonCode, reasonDetail);
+            auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
+                    "Cập nhật điểm thực hành SBD " + enrollment.getCandidateNumber()
+                    + " thành " + newScore
+                    + (reasonText.isBlank() ? "" : " - Lý do: " + reasonText),
+                    enrollment.getCandidateId());
+        }
+        return ServiceResult.ok(null);
+    }
+
     // Records violation with audit trail.
     @Override
     public ServiceResult<Void> recordViolation(int examId, int sbd, Integer actionUserId, String reasonCode,
@@ -591,6 +640,12 @@ public class ActionServiceImpl implements ActionService {
         }
         if (!enrollment.isPresent()) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "candidateNotCheckedIn");
+        }
+        CandidateStatus currentStatus = enrollment.getSectionStatus() != null
+                ? enrollment.getSectionStatus()
+                : CandidateStatus.NOT_STARTED;
+        if (currentStatus != CandidateStatus.NOT_STARTED && currentStatus != CandidateStatus.IN_PROGRESS) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreAlreadySaved");
         }
         int assignedArea = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
                 enrollment.getExamEnrollmentId(), SectionType.LAYOUT.getValue());

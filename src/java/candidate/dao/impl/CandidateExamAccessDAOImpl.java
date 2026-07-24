@@ -15,10 +15,8 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import shared.model.Question;
 import shared.util.PasswordUtil;
 
@@ -208,11 +206,17 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
             context.setStartedAtMillis(System.currentTimeMillis());
             return true;
         } catch (SQLException ex) {
-            try { connection.rollback(); } catch (SQLException ignored) {}
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+            }
             ex.printStackTrace();
             return false;
         } finally {
-            try { connection.setAutoCommit(true); } catch (SQLException ignored) {}
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException ignored) {
+            }
         }
     }
 
@@ -274,9 +278,18 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
     private List<Question> chooseRandomQuestions(Connection connection, int licenceId, int limit)
             throws SQLException {
         List<Question> pool = new ArrayList<>();
-        String sql = "SELECT q.QuestionId, q.QuestionNumber, q.ImageUrl, q.CorrectAnswer, "
-                + "q.IsCritical, q.QuestionCategoryId FROM Question q "
-                + "INNER JOIN Licence_Question lq ON lq.QuestionId = q.QuestionId WHERE lq.LicenceId = ?";
+        String sql = """
+                    SELECT 
+                        q.QuestionId, 
+                        q.QuestionNumber, 
+                        q.ImageUrl, 
+                        q.CorrectAnswer, 
+                        q.IsCritical, 
+                        q.QuestionCategoryId 
+                    FROM Question q 
+                    JOIN Licence_Question lq ON lq.QuestionId = q.QuestionId 
+                    WHERE lq.LicenceId = ?
+                     """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, licenceId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -285,21 +298,80 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 }
             }
         }
-        Collections.shuffle(pool);
-        List<Question> selected = new ArrayList<>();
-        Set<Integer> ids = new HashSet<>();
-        for (Question question : pool) {
-            if (question.isCritical()) {
-                selected.add(question);
-                ids.add(question.getQuestionId());
-                break;
+
+        List<Question> criticalPool = new ArrayList<>();
+        List<Question> cat1Pool = new ArrayList<>();
+        List<Question> cat2Pool = new ArrayList<>();
+        List<Question> cat34Pool = new ArrayList<>();
+        List<Question> cat5Pool = new ArrayList<>();
+        List<Question> cat6Pool = new ArrayList<>();
+
+        for (Question q : pool) {
+            if (q.isCritical()) {
+                criticalPool.add(q);
+            } else {
+                int catId = q.getQuestionCategoryId();
+                switch (catId) {
+                    case 1 ->
+                        cat1Pool.add(q);
+                    case 2 ->
+                        cat2Pool.add(q);
+                    case 3, 4 ->
+                        cat34Pool.add(q);
+                    case 5 ->
+                        cat5Pool.add(q);
+                    case 6 ->
+                        cat6Pool.add(q);
+                    default -> {
+                    }
+                }
             }
         }
-        for (Question question : pool) {
-            if (selected.size() >= limit) break;
-            if (ids.add(question.getQuestionId())) selected.add(question);
+
+        Collections.shuffle(criticalPool);
+        Collections.shuffle(cat1Pool);
+        Collections.shuffle(cat2Pool);
+        Collections.shuffle(cat34Pool);
+        Collections.shuffle(cat5Pool);
+        Collections.shuffle(cat6Pool);
+
+        List<Question> selected = new ArrayList<>();
+
+        // 1 critical question
+        addUpTo(selected, criticalPool, 1);
+        // 8 from chapter I
+        addUpTo(selected, cat1Pool, 8);
+        // 1 from chapter II
+        addUpTo(selected, cat2Pool, 1);
+        // 1 from chapter III/IV
+        addUpTo(selected, cat34Pool, 1);
+        // 8 from chapter V
+        addUpTo(selected, cat5Pool, 8);
+        // 6 from chapter VI
+        addUpTo(selected, cat6Pool, 6);
+
+        // Fallback in case there are not enough questions in specific categories
+        if (selected.size() < limit) {
+            List<Question> remaining = new ArrayList<>(pool);
+            remaining.removeAll(selected);
+            Collections.shuffle(remaining);
+            int needed = limit - selected.size();
+            addUpTo(selected, remaining, needed);
         }
+
+        Collections.shuffle(selected);
         return selected;
+    }
+
+    private void addUpTo(List<Question> selected, List<Question> source, int count) {
+        int added = 0;
+        for (Question q : source) {
+            if (added >= count) {
+                break;
+            }
+            selected.add(q);
+            added++;
+        }
     }
 
     private boolean insertQuestionPlaceholders(Connection connection, int paperId, List<Question> questions)
@@ -355,11 +427,17 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
             connection.commit();
             return result;
         } catch (SQLException ex) {
-            try { connection.rollback(); } catch (SQLException ignored) {}
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+            }
             ex.printStackTrace();
             return null;
         } finally {
-            try { connection.setAutoCommit(true); } catch (SQLException ignored) {}
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException ignored) {
+            }
         }
     }
 
@@ -397,8 +475,11 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 insert.setInt(1, paperId);
                 insert.setInt(2, question.getQuestionId());
                 String answer = answers.get(question.getQuestionId());
-                if (answer == null || answer.isBlank()) insert.setNull(3, Types.NVARCHAR);
-                else insert.setString(3, answer.trim());
+                if (answer == null || answer.isBlank()) {
+                    insert.setNull(3, Types.NVARCHAR);
+                } else {
+                    insert.setString(3, answer.trim());
+                }
                 insert.addBatch();
             }
             insert.executeBatch();
@@ -441,7 +522,9 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
             update.setDouble(1, score);
             update.setInt(2, resultId);
             update.setInt(3, sectionId);
-            if (update.executeUpdate() > 0) return;
+            if (update.executeUpdate() > 0) {
+                return;
+            }
         }
         try (PreparedStatement insert = connection.prepareStatement(
                 "INSERT INTO ExamScore (ExamResultId, ExamSectionId, Score) VALUES (?, ?, ?)")) {

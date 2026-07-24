@@ -46,6 +46,7 @@ import java.util.Map;
 import examiner.dao.ExaminerViewDAO;
 import examiner.dao.LicenceDAO;
 import examiner.dao.impl.LicenceDAOImpl;
+import shared.Attributes;
 import shared.model.ExamArea;
 import shared.model.Licence;
 import shared.model.Candidate;
@@ -272,13 +273,13 @@ public class ExamViewServiceImpl implements ExamViewService {
             String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
             viewRows.addAll(AuditService.toViewRows(log, changerName, sbdLookup));
         }
-        model.put("auditLogs", viewRows);
-        model.put("auditPage", page);
-        model.put("auditTotalPages", totalPages);
+        model.put(Attributes.Examiner.AUDIT_LOGS, viewRows);
+        model.put(Attributes.Examiner.AUDIT_PAGE, page);
+        model.put(Attributes.Examiner.AUDIT_TOTAL_PAGES, totalPages);
         // Indicate if search is active and include search query
         if (searchQuery != null && !searchQuery.isBlank()) {
-            model.put("searchActive", true);
-            model.put("searchQuery", searchQuery.trim());
+            model.put(Attributes.Examiner.SEARCH_ACTIVE, true);
+            model.put(Attributes.Request.SEARCH_QUERY, searchQuery.trim());
         }
         return model;
     }
@@ -296,23 +297,23 @@ public class ExamViewServiceImpl implements ExamViewService {
         // Find the enrollment for the given candidate number (SBD) in theory section.
         EnrollmentDTO enrollment = getIfByExamAndSbd(examId, sbd, SectionType.THEORY);
         if (enrollment == null || enrollment.getExamEnrollmentId() <= 0) {
-            model.put("paperAnswers", rows);
-            model.put("paperSummary", summary);
+            model.put(Attributes.Examiner.PAPER_ANSWERS, rows);
+            model.put(Attributes.Examiner.PAPER_SUMMARY, summary);
             return model;
         }
         int enrollmentId = enrollment.getExamEnrollmentId();
         // Retrieve the theory paper for this enrollment
         TheoryPaper paper = theoryPaperDAO.getByExamEnrollmentId(enrollmentId);
         if (paper == null) {
-            model.put("paperAnswers", rows);
-            model.put("paperSummary", summary);
+            model.put(Attributes.Examiner.PAPER_ANSWERS, rows);
+            model.put(Attributes.Examiner.PAPER_SUMMARY, summary);
             return model;
         }
         // Get all candidate answers for this theory paper
         List<CandidateAnswer> answers = candidateAnswerDAO.getAllByTheoryPaperId(paper.getTheoryPaperId());
         if (answers.isEmpty()) {
-            model.put("paperAnswers", rows);
-            model.put("paperSummary", summary);
+            model.put(Attributes.Examiner.PAPER_ANSWERS, rows);
+            model.put(Attributes.Examiner.PAPER_SUMMARY, summary);
             return model;
         }
         // Collect all question IDs from answers
@@ -368,8 +369,8 @@ public class ExamViewServiceImpl implements ExamViewService {
         summary.put("correctCount", correctCount);
         summary.put("wrongCount", wrongCount);
         summary.put("unansweredCount", unansweredCount);
-        model.put("paperAnswers", rows);
-        model.put("paperSummary", summary);
+        model.put(Attributes.Examiner.PAPER_ANSWERS, rows);
+        model.put(Attributes.Examiner.PAPER_SUMMARY, summary);
         return model;
     }
 
@@ -442,27 +443,26 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setActive(selected);
             row.setInvoked(selected);
         }
-        model.put("scoreQueue", allRows);
-        model.put("candidates", allRows);
-        model.put("examVehicles", loadAvailableExamVehicles(examId));
+        model.put(Attributes.Request.CANDIDATES, allRows);
+        model.put(Attributes.Examiner.EXAM_VEHICLES, loadAvailableExamVehicles(examId));
         String licenceClass = loadLicenceClass(examId);
-        model.put("licenceClass", licenceClass);
-        model.put("defaultTimerMinutes", defaultTimerMinutesForLicence(licenceClass));
+        model.put(Attributes.Examiner.LICENCE_CLASS, licenceClass);
+        model.put(Attributes.Examiner.DEFAULT_TIMER_MINUTES, defaultTimerMinutesForLicence(licenceClass));
         EnrollmentDTO activeReg = null;
         if (sbdParam != null && sbdParam > 0) {
             activeReg = getIfByExamAndSbd(examId, sbdParam, activeSection);
         }
         Integer candidateId = activeReg != null ? activeReg.getCandidateId() : null;
         if (activeReg != null && activeReg.getExamEnrollmentId() > 0) {
-            model.put("candidateVehicleId", activeReg.getExamDeviceId());
+            model.put(Attributes.Examiner.CANDIDATE_VEHICLE_ID, activeReg.getExamDeviceId());
         }
-        model.put("scoreDeductions", loadScoreDeductions(activeSection, candidateId, examId));
+        model.put(Attributes.Examiner.SCORE_DEDUCTIONS, loadScoreDeductions(activeSection, candidateId, examId));
         applyScoreSummary(model, candidateId, examId, activeSection);
         if (sbdParam != null && sbdParam > 0) {
             for (CandidateRowDTO row : allRows) {
                 if (row.getCandidateNumber() == sbdParam) {
-                    model.put("candidate", row);
-                    model.put("singleCandidateList", List.of(row));
+                    model.put(Attributes.Request.CANDIDATE, row);
+                    model.put(Attributes.Examiner.SINGLE_CANDIDATE_LIST, List.of(row));
                     break;
                 }
             }
@@ -485,15 +485,15 @@ public class ExamViewServiceImpl implements ExamViewService {
         if (sbdParam != null && sbdParam > 0) {
             for (CandidateRowDTO row : getAllFilteredByExam(examId, activeSection, null)) {
                 if (row.getCandidateNumber() == sbdParam) {
-                    model.put("candidate", row);
-                    model.put("singleCandidateList", List.of(row));
+                    model.put(Attributes.Request.CANDIDATE, row);
+                    model.put(Attributes.Examiner.SINGLE_CANDIDATE_LIST, List.of(row));
                     break;
                 }
             }
             enrollment = getIfByExamAndSbd(examId, sbdParam, activeSection);
         }
         Integer candidateId = enrollment != null ? enrollment.getCandidateId() : null;
-        model.put("scoreDeductions", loadScoreDeductions(activeSection, candidateId, examId));
+        model.put(Attributes.Examiner.SCORE_DEDUCTIONS, loadScoreDeductions(activeSection, candidateId, examId));
         applyScoreSummary(model, candidateId, examId, activeSection);
         return model;
     }
@@ -522,14 +522,14 @@ public class ExamViewServiceImpl implements ExamViewService {
         Map<String, Object> model = new HashMap<>();
         SectionType activeSection = sectionType != null ? sectionType : SectionType.THEORY;
         List<CandidateRowDTO> candidates = getAllFilteredByExam(examId, activeSection, null);
-        model.put("candidates", candidates);
+        model.put(Attributes.Request.CANDIDATES, candidates);
         // Build options for violation reason dropdown
-        model.put("violationReasons", buildViolationReasonOptions());
+        model.put(Attributes.Examiner.VIOLATION_REASONS, buildViolationReasonOptions());
         // If a specific candidate is selected, add to model
         if (sbdParam != null && sbdParam > 0) {
             for (CandidateRowDTO row : candidates) {
                 if (row.getCandidateNumber() == sbdParam) {
-                    model.put("candidate", row);
+                    model.put(Attributes.Request.CANDIDATE, row);
                     break;
                 }
             }
@@ -568,9 +568,9 @@ public class ExamViewServiceImpl implements ExamViewService {
                         filtered.add(row);
                     }
                 }
-                model.put("devices", filtered);
+                model.put(Attributes.Examiner.DEVICES, filtered);
             } else {
-                model.put("devices", vehicles);
+                model.put(Attributes.Examiner.DEVICES, vehicles);
             }
             return model;
         }
@@ -611,7 +611,7 @@ public class ExamViewServiceImpl implements ExamViewService {
                 devices.add(toDeviceRow(device, areaNames.get(areaId)));
             }
         }
-        model.put("devices", devices);
+        model.put(Attributes.Examiner.DEVICES, devices);
         return model;
     }
 
@@ -725,6 +725,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setSectionStatus(sectionStatus);
         row.setSuspended(enrollment.isSuspended());
         row.setAbsent(enrollment.isAbsent());
+        row.setPresent(enrollment.isPresent());
         row.setStatus(resolveStatusKey(sectionStatus, enrollment.isSuspended()));
         row.setStatusLabel(resolveStatusLabel(sectionStatus, enrollment.isSuspended()));
         row.setSexValue(sex == Sex.FEMALE ? "1" : "0");
@@ -761,11 +762,17 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setWrongInfoEligible(sectionRequired && !enrollment.isSuspended() && notDone);
         row.setCompleteEligible(sectionRequired && sectionStatus == CandidateStatus.AWAITING_SIGNATURE && resultPrinted);
         row.setPracticalEntryAllowed(practicalEntryAllowed);
+        row.setScoreEntryEligible(practicalSection
+                && sectionRequired
+                && practicalEntryAllowed
+                && !enrollment.isSuspended()
+                && (sectionStatus == CandidateStatus.NOT_STARTED || sectionStatus == CandidateStatus.IN_PROGRESS));
         if (!sectionRequired) {
             row.setStatus("not-required");
             row.setStatusLabel("Không thi");
             row.setAwaitingSignature(false);
             row.setResultPrinted(false);
+            row.setScoreEntryEligible(false);
         }
         Integer displayScore = score != null ? Integer.valueOf(score.intValue()) : scoreFromEnrollment(enrollment, sectionType);
         row.setExamScore(displayScore);
@@ -847,12 +854,18 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setResultPrinted(false);
         }
         row.setPracticalEntryAllowed(practicalEntryAllowed);
+        row.setScoreEntryEligible(practicalSection
+                && sectionRequired
+                && practicalEntryAllowed
+                && !enrollment.isSuspended()
+                && (sectionStatus == CandidateStatus.NOT_STARTED || sectionStatus == CandidateStatus.IN_PROGRESS));
         row.setSectionRequired(sectionRequired);
         if (!sectionRequired) {
             row.setStatus("not-required");
             row.setStatusLabel("Không thi");
             row.setAwaitingSignature(false);
             row.setResultPrinted(false);
+            row.setScoreEntryEligible(false);
         }
         // Action eligibility for examiner table buttons.
         boolean notDone = sectionStatus != CandidateStatus.COMPLETED;
@@ -1164,8 +1177,8 @@ public class ExamViewServiceImpl implements ExamViewService {
                 candidateId != null ? candidateId : 0,
                 examId != null ? examId : 0,
                 sectionTypeValue(sectionType));
-        model.put("currentScore", summary.get("currentScore"));
-        model.put("scoreDisqualified", summary.get("scoreDisqualified"));
+        model.put(Attributes.Examiner.CURRENT_SCORE, summary.get("currentScore"));
+        model.put(Attributes.Examiner.SCORE_DISQUALIFIED, summary.get("scoreDisqualified"));
     }
 
     // Finds the primary exam area ID for the session.

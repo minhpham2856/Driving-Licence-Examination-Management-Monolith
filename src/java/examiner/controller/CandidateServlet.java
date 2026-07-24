@@ -5,6 +5,8 @@ import examiner.service.ExamViewService;
 import examiner.dto.CandidateRowDTO;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.util.ListUtil;
+import examiner.util.RequestUtil;
+import shared.Attributes;
 import static shared.util.FormatUtil.formatPositiveInteger;
 import static shared.util.FormatUtil.formatString;
 import shared.enums.SectionType;
@@ -38,8 +40,8 @@ public class CandidateServlet extends HttpServlet {
             return;
         }
 
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
-        String path = stripContextPath(request);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
+        String path = RequestUtil.stripContextPath(request);
         Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
 
         String search = request.getParameter("q");
@@ -53,24 +55,19 @@ public class CandidateServlet extends HttpServlet {
                 List<CandidateRowDTO> candidates = viewService.getActionCandidateListByExam(
                         activeExamId, sectionType, formatString(normalizedSearch));
                 ListUtil.applySortAndSearch(request, candidates);
-                request.setAttribute("candidates", candidates);
-                request.setAttribute("candidateQueue", candidates);
+                request.setAttribute(Attributes.Request.CANDIDATES, candidates);
             }
 
             if (sbd != null && sbd > 0) {
                 CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
                 if (candidate != null) {
-                    request.setAttribute("candidate", candidate);
+                    request.setAttribute(Attributes.Request.CANDIDATE, candidate);
                 }
 
                 if ("/examiner/candidate-paper".equals(path)) {
                     // Theory paper view needs answer map keyed for candidate-paper.jsp.
                     Map<String, Object> ansData = viewService.getPaperAnswersData(activeExamId, sbd, request.getContextPath());
-                    if (ansData != null) {
-                        for (Map.Entry<String, Object> mapEntry : ansData.entrySet()) {
-                            request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-                        }
-                    }
+                    RequestUtil.applyModel(request, ansData);
                 }
             }
         }
@@ -86,15 +83,5 @@ public class CandidateServlet extends HttpServlet {
                 "/views/examiner/candidates.jsp";
         };
         request.getRequestDispatcher(jsp).forward(request, response);
-    }
-
-    // Strip the servlet context path prefix from the request URI for multi-path routing.
-    private String stripContextPath(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        String ctx = request.getContextPath();
-        if (ctx != null && !ctx.isEmpty() && uri.startsWith(ctx)) {
-            return uri.substring(ctx.length());
-        }
-        return uri;
     }
 }

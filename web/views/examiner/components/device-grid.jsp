@@ -25,8 +25,8 @@
                 <c:set var="compactEmptyClass" value=" examiner-table__empty--compact" />
             </c:if>
             <c:choose>
-                <c:when test="${param.itemsAttr eq 'sessionVehicles'}">
-                    <c:set var="deviceItems" value="${sessionVehicles}" />
+                <c:when test="${param.itemsAttr eq 'examVehicles'}">
+                    <c:set var="deviceItems" value="${examVehicles}" />
                 </c:when>
                 <c:otherwise>
                     <c:set var="deviceItems" value="${devices}" />

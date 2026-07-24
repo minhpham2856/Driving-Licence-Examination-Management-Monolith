@@ -148,7 +148,7 @@ public class AuditServiceImpl implements AuditService {
         return action != null ? action : AuditAction.UPDATE;
     }
 
-    // Maps raw entity name from DB to Vietnamese AuditEntity label when known.
+    // Maps raw entity name from DB to AuditEntity label when known.
     private static String entityLabelFromDb(String entityName) {
         if (entityName == null || entityName.isBlank()) {
             return "-";

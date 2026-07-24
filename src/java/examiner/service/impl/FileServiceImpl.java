@@ -8,10 +8,12 @@ import examiner.dto.ExportPayloadDTO;
 import examiner.dto.PrintPreviewDTO;
 import examiner.dto.XmlExportTable;
 import examiner.dao.CandidateAnswerDAO;
+import examiner.dao.CandidateViolationDAO;
 import shared.enums.FileType;
 import shared.enums.SectionType;
 import shared.model.Audit;
 import shared.model.CandidateAnswer;
+import shared.model.CandidateViolation;
 import shared.model.Exam;
 import shared.model.ExamResult;
 import shared.model.ExaminerSchedule;
@@ -21,6 +23,7 @@ import examiner.dao.ExamDAO;
 import examiner.dao.ExamResultDAO;
 import examiner.dao.TheoryPaperDAO;
 import examiner.dao.impl.CandidateAnswerDAOImpl;
+import examiner.dao.impl.CandidateViolationDAOImpl;
 import examiner.dao.impl.DeductionRecordViewDAOImpl;
 import examiner.dao.impl.ExamDAOImpl;
 import examiner.dao.impl.ExamResultDAOImpl;
@@ -66,6 +69,7 @@ public class FileServiceImpl implements FileService {
     private final EnrollmentService enrollmentService = new EnrollmentServiceImpl();
     private final TheoryPaperDAO theoryPaperDAO = new TheoryPaperDAOImpl();
     private final CandidateAnswerDAO candidateAnswerDAO = new CandidateAnswerDAOImpl();
+    private final CandidateViolationDAO candidateViolationDAO = new CandidateViolationDAOImpl();
     private final ExamResultDAO examResultDAO = new ExamResultDAOImpl();
 
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
@@ -551,7 +555,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    // Builds print preview for session tables or per-candidate BB1/BB2 JSP pages.
+    // Builds print preview for session tables or per-candidate THEORY/LAYOUT/VIOLATION JSP pages.
     @Override
     public PrintPreviewDTO print(ExportContextDTO ctx, String documentType,
             int sbd, String searchQuery) throws IOException {
@@ -568,10 +572,15 @@ public class FileServiceImpl implements FileService {
             throw new IOException("Thiếu số báo danh.");
         }
         Map<String, Object> model = buildCandidatePrintModel(ctx, normalized, sbd);
-        String form = model.get("_FORM") == null ? "BB1" : model.get("_FORM").toString();
-        String jspPath = "BB2".equalsIgnoreCase(form)
-                ? "/views/examiner/print/bb2.jsp"
-                : "/views/examiner/print/bb1.jsp";
+        String form = model.get("_FORM") == null ? "THEORY" : model.get("_FORM").toString();
+        String jspPath;
+        if ("LAYOUT".equalsIgnoreCase(form)) {
+            jspPath = "/views/examiner/print/layout.jsp";
+        } else if ("VIOLATION".equalsIgnoreCase(form)) {
+            jspPath = "/views/examiner/print/violation.jsp";
+        } else {
+            jspPath = "/views/examiner/print/theory.jsp";
+        }
         return new PrintPreviewDTO(
                 jspPath,
                 null,
@@ -579,31 +588,30 @@ public class FileServiceImpl implements FileService {
                 formatBbPrintTitle(normalized, sbd));
     }
 
-    // Builds flattened BB1/BB2 model consumed by JSP print templates.
+    // Builds flattened candidate model consumed by JSP print templates.
     private Map<String, Object> buildCandidatePrintModel(ExportContextDTO ctx, String documentType, int sbd)
             throws IOException {
-        String normalized = documentType == null ? "" : documentType.trim().toUpperCase(Locale.ROOT);
-        if (normalized.startsWith("BB1")) {
-            normalized = "BB1";
-        } else if (normalized.startsWith("BB2")) {
-            normalized = "BB2";
-        }
+        String normalized = formatDocumentType(documentType);
 
         CandidateRowDTO candidate = findCandidateRow(ctx, sbd);
         String form;
         Map<String, Object> data;
         switch (normalized) {
-            case "BB1", "SIGNATURE", "SIGNATURE_FORM" -> {
-                form = "BB1";
+            case "theory", "signature", "signature_form" -> {
+                form = "THEORY";
                 data = buildBb1Placeholders(ctx, candidate);
             }
-            case "BB2", "LAYOUT", "SCORE_SHEET" -> {
-                form = "BB2";
+            case "layout" -> {
+                form = "LAYOUT";
                 data = buildBb2Placeholders(ctx, candidate);
             }
-            case "MINUTES", "RESULT" -> {
-                form = ctx.isTheory() ? "BB1" : "BB2";
-                data = "BB1".equals(form)
+            case "violation" -> {
+                form = "VIOLATION";
+                data = buildViolationPlaceholders(ctx, candidate);
+            }
+            case "result" -> {
+                form = ctx.isTheory() ? "THEORY" : "LAYOUT";
+                data = "THEORY".equals(form)
                         ? buildBb1Placeholders(ctx, candidate)
                         : buildBb2Placeholders(ctx, candidate);
             }
@@ -612,7 +620,7 @@ public class FileServiceImpl implements FileService {
         }
 
         data.put("_FORM", form);
-        if ("BB1".equals(form)) {
+        if ("THEORY".equals(form)) {
             Map<String, String> answersA = parseAnswerBlockToMap(stringValue(data.get("A")));
             Map<String, String> answersB = parseAnswerBlockToMap(stringValue(data.get("B")));
             List<String> listA = toAnswerList(answersA, BLOCK_A_FROM, BLOCK_A_TO);
@@ -646,7 +654,17 @@ public class FileServiceImpl implements FileService {
         data.put("RAND1", "");
         data.put("RAND2", "");
         data.put("RAND3", "");
-        data.put("A", format(candidate.getExamScore()));
+        List<Map<String, Object>> deductionRows = buildLayoutDeductionRows(ctx, candidate);
+        data.put("deductionRows", deductionRows);
+        int totalTimes = 0;
+        double totalDeducted = 0;
+        for (Map<String, Object> row : deductionRows) {
+            totalTimes += toInt(row.get("occurrenceCount"));
+            totalDeducted += toDouble(row.get("totalDeducted"));
+        }
+        data.put("A", deductionRows);
+        data.put("TIMES", totalTimes);
+        data.put("TOTAL", formatNumber(totalDeducted));
         data.put("SCORE", format(candidate.getExamScore()));
         boolean passed = isPracticalPassed(candidate);
         data.put("P", passed ? "X" : "");
@@ -656,6 +674,39 @@ public class FileServiceImpl implements FileService {
                 : null;
         data.put("END", result != null && result.getResultDate() != null ? formatTime(result.getResultDate()) : "-");
         return data;
+    }
+
+    private Map<String, Object> buildViolationPlaceholders(ExportContextDTO ctx, CandidateRowDTO candidate)
+            throws IOException {
+        Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
+        SectionType section = ctx.section() != null ? ctx.section() : SectionType.LAYOUT;
+        CandidateViolation violation = candidateViolationDAO.getLatestByExamAndSbd(
+                ctx.examId(), candidate.getCandidateNumber(), section.getValue());
+        if (violation == null) {
+            throw new IOException("Không tìm thấy biên bản vi phạm cho SBD " + candidate.getCandidateNumber());
+        }
+        data.put("REASON", format(violation.getReason()));
+        data.put("TIME", violation.getCreatedAt() != null ? AUDIT_DATE_FMT.format(violation.getCreatedAt()) : "");
+        data.put("DETAILS", format(violation.getDetails()));
+        data.put("VIOPIC", format(violation.getEvidenceUrl()));
+        data.put("VIOPIC_URL", format(violation.getEvidenceUrl()));
+        return data;
+    }
+
+    private List<Map<String, Object>> buildLayoutDeductionRows(ExportContextDTO ctx, CandidateRowDTO candidate) {
+        List<Map<String, Object>> rawRows = deductionRecordViewDAO.getDeductionRowsForCandidate(
+                ctx.examId(), candidate.getCandidateNumber(), SectionType.LAYOUT.getValue());
+        List<Map<String, Object>> rows = new ArrayList<>();
+        int index = 1;
+        for (Map<String, Object> raw : rawRows) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("stt", index++);
+            row.put("reason", format(raw.get("reason")));
+            row.put("occurrenceCount", toInt(raw.get("occurrenceCount")));
+            row.put("totalDeducted", formatNumber(toDouble(raw.get("totalDeducted"))));
+            rows.add(row);
+        }
+        return rows;
     }
 
     private Map<String, Object> baseCandidatePlaceholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
@@ -755,6 +806,39 @@ public class FileServiceImpl implements FileService {
 
     private static String stringValue(Object value) {
         return value == null ? "" : value.toString().trim();
+    }
+
+    private static int toInt(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        if (value != null) {
+            try {
+                return Integer.parseInt(value.toString().trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0;
+    }
+
+    private static double toDouble(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        if (value != null) {
+            try {
+                return Double.parseDouble(value.toString().trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0;
+    }
+
+    private static String formatNumber(double value) {
+        if (Math.rint(value) == value) {
+            return String.valueOf((int) value);
+        }
+        return String.format(Locale.ROOT, "%.2f", value);
     }
 
     private static Map<String, String> parseAnswerBlockToMap(String text) {

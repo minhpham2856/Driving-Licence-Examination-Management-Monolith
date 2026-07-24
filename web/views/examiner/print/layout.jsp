@@ -13,7 +13,7 @@
     <button type="button" class="print-doc__btn" onclick="window.close()">Đóng</button>
 </div>
 
-<div class="print-doc__page print-doc__page--result">
+<div class="print-doc__page print-doc__page--bb1 print-doc__page--layout">
     <div class="print-doc__header">
         <div class="print-doc__header-col">
             <div class="print-doc__org">CÔNG AN <c:out value="${bb.DEPT}"/></div>
@@ -67,54 +67,34 @@
     <table class="print-doc__practice">
         <thead>
         <tr>
-            <th>STT</th>
-            <th>Bài thi</th>
-            <th>Thời điểm</th>
-            <th>Chi tiết lỗi</th>
-            <th>Điểm trừ</th>
-            <th>Vào / Ra bài</th>
+            <th>Số TT</th>
+            <th>Các lỗi bị trừ điểm</th>
+            <th>Số lần mắc lỗi</th>
+            <th>Tổng số điểm trừ</th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>1</td>
-            <td>Đi qua hình số 8</td>
-            <td></td>
-            <td></td>
-            <td><c:out value="${bb.A}"/></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>2</td>
-            <td>Đi qua vạch đường thẳng</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>3</td>
-            <td>Đi qua đường có vạch cản</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>4</td>
-            <td>Đi qua đường gồ ghề</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>5</td>
-            <td>Các lỗi khác</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+        <c:choose>
+            <c:when test="${empty bb.deductionRows}">
+                <tr>
+                    <td colspan="4" class="print-doc__empty">Không có lỗi bị trừ điểm</td>
+                </tr>
+            </c:when>
+            <c:otherwise>
+                <c:forEach var="row" items="${bb.deductionRows}">
+                    <tr>
+                        <td><c:out value="${row.stt}"/></td>
+                        <td><c:out value="${row.reason}"/></td>
+                        <td><c:out value="${row.occurrenceCount}"/></td>
+                        <td><c:out value="${row.totalDeducted}"/></td>
+                    </tr>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
+        <tr class="print-doc__practice-total">
+            <td colspan="2">Cộng</td>
+            <td><c:out value="${bb.TIMES}"/></td>
+            <td><c:out value="${bb.TOTAL}"/></td>
         </tr>
         </tbody>
     </table>

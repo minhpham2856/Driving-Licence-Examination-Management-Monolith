@@ -39,7 +39,7 @@
     </div>
     <div class="export-row__actions">
         <form class="export-sbd-form" action="${printUrl}" method="get" target="_blank">
-            <input type="hidden" name="type" value="bb1">
+            <input type="hidden" name="type" value="theory">
             <input type="text" name="sbd" class="examiner-search__input" placeholder="Nhập SBD" required>
             <button type="submit" class="print-btn">
                 <span class="material-symbols-outlined">print</span>
@@ -60,8 +60,8 @@
     </div>
     <div class="export-row__actions">
         <form class="export-sbd-form" action="${printUrl}" method="get" target="_blank">
-            <input type="hidden" name="type" value="violations">
-            <input type="text" name="q" class="examiner-search__input" placeholder="Nhập SBD" required>
+            <input type="hidden" name="type" value="violation">
+            <input type="text" name="sbd" class="examiner-search__input" placeholder="Nhập SBD" required>
             <button type="submit" class="print-btn">
                 <span class="material-symbols-outlined">print</span>
                 <span class="print-btn__text">In</span>

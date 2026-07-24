@@ -19,9 +19,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import static shared.util.FormatUtil.formatPositiveInteger;
 import static examiner.util.FormatUtil.formatSbdFromRequest;
+import examiner.util.RequestUtil;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -44,7 +43,7 @@ public class ScoreServlet extends HttpServlet {
             return;
         }
 
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         Integer sbd = formatPositiveInteger(request.getParameter("sbd"));
 
         String action = request.getParameter("action");
@@ -69,28 +68,22 @@ public class ScoreServlet extends HttpServlet {
             // Always load queue + licence-scoped fault list (even before selecting SBD).
             Map<String, Object> data = viewService.getScoreEntryViewByExam(activeExamId, sbd, sectionType);
             if (data != null) {
-                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-                }
-                // JSP expects sessionVehicles; service provides examVehicles.
-                if (request.getAttribute("sessionVehicles") == null
-                        && request.getAttribute("examVehicles") != null) {
-                    request.setAttribute("sessionVehicles", request.getAttribute("examVehicles"));
-                }
-                Object selectedCandidate = request.getAttribute("candidate");
-                if (selectedCandidate instanceof CandidateRowDTO candidate
-                        && !candidate.isPracticalEntryAllowed()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=practicalNotAllowed");
-                    return;
+                RequestUtil.applyModel(request, data);
+                Object selectedCandidate = request.getAttribute(Attributes.Request.CANDIDATE);
+                if (selectedCandidate instanceof CandidateRowDTO) {
+                    CandidateRowDTO candidate = (CandidateRowDTO) selectedCandidate;
+                    if (!candidate.isScoreEntryEligible()) {
+                        response.sendRedirect(request.getContextPath() + "/examiner/action?error=practicalNotAllowed");
+                        return;
+                    }
                 }
             }
-            request.setAttribute("activeExamId", activeExamId);
-            request.setAttribute("examAreaId", resolveExamAreaId(session));
-            request.setAttribute("scoreFromAction", "action".equals(request.getParameter("from")));
+            request.setAttribute(Attributes.Examiner.ACTIVE_EXAM_ID, activeExamId);
+            request.setAttribute(Attributes.Examiner.EXAM_AREA_ID, resolveExamAreaId(session));
             if (sectionType != THEORY && sbd != null && sbd > 0) {
                 String scoreToken = UUID.randomUUID().toString();
-                session.setAttribute("scoreSubmissionToken", scoreToken);
-                request.setAttribute("scoreSubmissionToken", scoreToken);
+                session.setAttribute(Attributes.Examiner.SCORE_SUBMISSION_TOKEN, scoreToken);
+                request.setAttribute(Attributes.Examiner.SCORE_SUBMISSION_TOKEN, scoreToken);
             }
         }
 
@@ -107,7 +100,7 @@ public class ScoreServlet extends HttpServlet {
             return;
         }
 
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -280,13 +273,14 @@ public class ScoreServlet extends HttpServlet {
 
         // GET-side shortcuts mirror POST handlers but keep bookmarkable URLs.
         switch (action) {
-            case "invoke" -> {
+            case "invoke":
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noCandidate");
                     return true;
                 }
 
-                if (!actionService.actionScoreEntryCandidate(activeExamId, sbd, user, user.getUserId(),
+                Integer invokeUserId = user != null ? user.getUserId() : null;
+                if (!actionService.actionScoreEntryCandidate(activeExamId, sbd, user, invokeUserId,
                         sectionType, destination, true).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=invokeFailed&sbd="
                             + urlEncode(sbd));
@@ -296,8 +290,7 @@ public class ScoreServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
                         + urlEncode(sbd) + "&scoreInvoked=1");
                 return true;
-            }
-            case "changeVehicle" -> {
+            case "changeVehicle":
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noSbd");
                     return true;
@@ -316,13 +309,13 @@ public class ScoreServlet extends HttpServlet {
                 }
                 response.sendRedirect(buildScoreEntryUrl(request, sbd, "vehicleChanged=1"));
                 return true;
-            }
-            case "printResult", "printSignature" -> {
+            case "printResult":
+            case "printSignature":
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noSbd");
                     return true;
                 }
-                Integer userId = user != null ? user.getUserId() : null;
+                userId = user != null ? user.getUserId() : null;
                 if (!actionService.printResultForm(activeExamId, sbd, userId, sectionType).isSuccess()) {
                     response.sendRedirect(buildScoreEntryUrl(request, sbd, "error=resultPrintFailed"));
                     return true;
@@ -330,13 +323,13 @@ public class ScoreServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/examiner/print?type=result&sbd="
                         + urlEncode(sbd));
                 return true;
-            }
-            case "completeSectionScore", "completeSection" -> {
+            case "completeSectionScore":
+            case "completeSection":
                 if (sbd == null) {
                     response.sendRedirect(request.getContextPath() + "/examiner/score-entry?error=noSbd");
                     return true;
                 }
-                Integer userId = user != null ? user.getUserId() : null;
+                userId = user != null ? user.getUserId() : null;
                 examiner.dto.ServiceResult<Void> res = actionService.completeCandidateSection(
                         activeExamId, sbd, userId, null, sectionType);
                 if (res != null && "needResultPrint".equals(res.getMessage())) {
@@ -350,10 +343,8 @@ public class ScoreServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/examiner/action?completeDone="
                         + urlEncode(sbd));
                 return true;
-            }
-            default -> {
+            default:
                 return false;
-            }
         }
     }
 
@@ -372,20 +363,20 @@ public class ScoreServlet extends HttpServlet {
     }
 
     private String urlEncode(int value) {
-        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
+        return RequestUtil.urlEncode(value);
     }
 
     private int resolveExamAreaId(HttpSession session) {
-        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(Attributes.Examiner.SCHEDULE);
         return schedule != null && schedule.getExamAreaId() != null ? schedule.getExamAreaId() : 0;
     }
 
     private boolean consumeScoreToken(HttpSession session, String submitted) {
-        Object stored = session.getAttribute("scoreSubmissionToken");
+        Object stored = session.getAttribute(Attributes.Examiner.SCORE_SUBMISSION_TOKEN);
         if (submitted == null || stored == null || !submitted.equals(stored.toString())) {
             return false;
         }
-        session.removeAttribute("scoreSubmissionToken");
+        session.removeAttribute(Attributes.Examiner.SCORE_SUBMISSION_TOKEN);
         return true;
     }
 
@@ -405,7 +396,7 @@ public class ScoreServlet extends HttpServlet {
         return occurrences;
     }
 
-    // Resolve the Vietnamese section label used in audit messages for call-board actions.
+    // Resolve the section label used in audit messages for call-board actions.
     private String resolveActionDestination(HttpSession session) {
         SectionType sectionType = ExaminerFilter.resolveSectionType(session);
         if (sectionType != null) {

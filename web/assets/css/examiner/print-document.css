@@ -215,6 +215,46 @@
     text-align: left;
 }
 
+.print-doc__practice th:first-child,
+.print-doc__practice td:first-child,
+.print-doc__practice th:nth-child(3),
+.print-doc__practice td:nth-child(3),
+.print-doc__practice th:nth-child(4),
+.print-doc__practice td:nth-child(4) {
+    text-align: center;
+}
+
+.print-doc__practice-total td {
+    font-weight: 700;
+}
+
+.print-doc__empty {
+    text-align: center !important;
+}
+
+.print-doc__violation-body {
+    margin-top: 18px;
+    font-size: 20px;
+    line-height: 1.65;
+}
+
+.print-doc__violation-body p {
+    margin: 0 0 12px;
+}
+
+.print-doc__evidence {
+    margin-top: 12px;
+}
+
+.print-doc__evidence img {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin-top: 10px;
+    border: 1px solid #000;
+    object-fit: contain;
+}
+
 .print-doc__data th {
     background: #f1f5f9;
     font-weight: 700;
