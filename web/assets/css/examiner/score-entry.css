@@ -26,7 +26,7 @@
     flex-shrink: 1;
     min-height: 0;
     align-items: stretch;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .examiner-main--score-entry .score-entry-col {
@@ -168,10 +168,11 @@
 
 .score-entry-grid {
     display: grid;
-    grid-template-columns: 7fr 5fr;
+    grid-template-columns: minmax(360px, 5fr) minmax(520px, 7fr);
     gap: 24px;
     width: 100%;
-    flex-shrink: 0;
+    flex: 1;
+    min-height: 0;
 }
 
 .score-entry-col {
@@ -179,6 +180,7 @@
     flex-direction: column;
     gap: 24px;
     min-width: 0;
+    min-height: 0;
 }
 
 .score-entry-card {
@@ -401,7 +403,7 @@
 .score-entry-score-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 16px;
     padding: 26px 24px;
     background: #fff;
@@ -421,7 +423,7 @@
 .score-entry-score-display {
     display: flex;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
 }
 
@@ -790,6 +792,18 @@
     display: flex;
     justify-content: flex-start;
     margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+#scoreEntryWorkspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.score-entry-hidden-form {
+    display: none;
 }
 
 .score-entry-selected-card {
@@ -831,6 +845,11 @@
     gap: 8px;
 }
 
+.score-entry-selected-card__meta--left {
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+
 .score-entry-selected-card__meta span {
     padding: 6px 10px;
     border-radius: 4px;
@@ -842,6 +861,67 @@
 
 .score-entry-save-card {
     overflow: visible;
+}
+
+.score-entry-candidate-card {
+    flex-shrink: 0;
+}
+
+.score-entry-candidate-card__body {
+    padding: 20px 24px;
+}
+
+.score-entry-candidate-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.score-entry-candidate-table th,
+.score-entry-candidate-table td {
+    border: 1px solid #c3c6d6;
+    padding: 12px 14px;
+    text-align: left;
+}
+
+.score-entry-candidate-table th {
+    background: #f8fafc;
+    color: #434654;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.score-entry-candidate-table td {
+    font-size: 18px;
+    font-weight: 700;
+    color: #131b2e;
+}
+
+.score-entry-score-card__body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.score-entry-save-button {
+    min-width: 180px;
+    flex-shrink: 0;
+}
+
+.score-entry-action-panel {
+    flex-shrink: 0;
+}
+
+.score-entry-action-panel .score-entry-select {
+    width: 100%;
+}
+
+.score-entry-col--side .score-entry-card--penalties {
+    flex: 1;
+    min-height: 0;
 }
 
 .score-entry-form-body {

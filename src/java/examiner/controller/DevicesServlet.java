@@ -15,9 +15,8 @@ import examiner.service.ExamViewService;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.service.ActionService;
 import examiner.service.impl.ActionServiceImpl;
+import examiner.util.RequestUtil;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @WebServlet("/examiner/devices")
@@ -38,28 +37,24 @@ public class DevicesServlet extends HttpServlet {
             return;
         }
 
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         String search = request.getParameter("q");
 
         if (activeExamId != null && activeExamId > 0) {
             // Echo search back to JSP for the filter input value.
             if (search != null && !search.isBlank()) {
-                request.setAttribute("searchQuery", search.trim());
+                request.setAttribute(Attributes.Request.SEARCH_QUERY, search.trim());
             }
             // Prefer devices in the examiner's assigned area when schedule provides examAreaId.
             Integer preferredAreaId = null;
-            ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+            ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(Attributes.Examiner.SCHEDULE);
             if (schedule != null && schedule.getExamAreaId() != null && schedule.getExamAreaId() > 0) {
                 preferredAreaId = schedule.getExamAreaId();
             }
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
             // Service returns a map of list rows and summary counts for devices.jsp.
             Map<String, Object> data = viewService.getDeviceViewByExam(activeExamId, search, preferredAreaId, sectionType);
-            if (data != null) {
-                for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-                    request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-                }
-            }
+            RequestUtil.applyModel(request, data);
         }
         request.getRequestDispatcher("/views/examiner/devices.jsp").forward(request, response);
     }
@@ -74,7 +69,7 @@ public class DevicesServlet extends HttpServlet {
             return;
         }
 
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -116,11 +111,11 @@ public class DevicesServlet extends HttpServlet {
         String q = request.getParameter("q");
         boolean hasParam = false;
         if (q != null && !q.isBlank()) {
-            url.append("?q=").append(URLEncoder.encode(q.trim(), StandardCharsets.UTF_8));
+            url.append("?q=").append(RequestUtil.urlEncode(q.trim()));
             hasParam = true;
         }
         if (error != null && !error.isBlank()) {
-            url.append(hasParam ? "&" : "?").append("error=").append(URLEncoder.encode(error, StandardCharsets.UTF_8));
+            url.append(hasParam ? "&" : "?").append("error=").append(RequestUtil.urlEncode(error));
         }
         return url.toString();
     }

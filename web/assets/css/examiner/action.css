@@ -30,3 +30,20 @@
 .examiner-action-card form {
     margin: 0;
 }
+
+.examiner-action-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.examiner-action-card .examiner-card__head {
+    flex-shrink: 0;
+}
+
+.examiner-action-card .examiner-table-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}

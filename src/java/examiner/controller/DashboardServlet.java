@@ -4,6 +4,7 @@ import static shared.util.FormatUtil.formatPositiveInteger;
 import static shared.util.FormatUtil.formatString;
 import examiner.dto.CandidateRowDTO;
 import shared.enums.SectionType;
+import shared.Attributes;
 import examiner.filter.ExaminerFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,13 +32,14 @@ public class DashboardServlet extends HttpServlet {
 
         // Read session information prepared by ExaminerFilter
         HttpSession session = request.getSession(false);
-        Integer examId = (Integer) request.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
-        if (examId == null && session != null) {
-            examId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer examId = (Integer) request.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
+        SectionType sectionType = null;
+        Object rawSection = request.getAttribute(Attributes.Examiner.EXAM_SECTION);
+        if (rawSection instanceof SectionType value) {
+            sectionType = value;
+        } else if (session != null) {
+            sectionType = ExaminerFilter.resolveSectionType(session);
         }
-        SectionType sectionType = session != null
-                ? ExaminerFilter.resolveSectionType(session)
-                : null;
         if (examId == null || sectionType == null) {
             response.sendRedirect(request.getContextPath() + "/examiner/exam");
             return;
@@ -53,9 +55,9 @@ public class DashboardServlet extends HttpServlet {
         ListUtil.applySortAndSearch(request, candidates);
 
         // Provide candidate list and summary for the dashboard
-        request.setAttribute("candidates", candidates);
-        request.setAttribute("candidateQueue", candidates);
-        request.setAttribute("examSummary", examViewService.getStatsByCandidateRows(examId, sectionType, candidates));
+        request.setAttribute(Attributes.Request.CANDIDATES, candidates);
+        request.setAttribute(Attributes.Examiner.EXAM_SUMMARY,
+                examViewService.getStatsByCandidateRows(examId, sectionType, candidates));
 
         // Load detailed information for the selected candidate
         if (candidateNumber != null && candidateNumber > 0) {
@@ -65,7 +67,7 @@ public class DashboardServlet extends HttpServlet {
                     sectionType);
 
             if (candidate != null) {
-                request.setAttribute("candidate", candidate);
+                request.setAttribute(Attributes.Request.CANDIDATE, candidate);
             }
         }
 

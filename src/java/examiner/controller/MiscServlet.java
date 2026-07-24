@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServlet;
 import examiner.filter.ExaminerFilter;
+import shared.Attributes;
+import examiner.util.RequestUtil;
 import examiner.service.ExamViewService;
 import examiner.dto.CandidateRowDTO;
 import examiner.service.impl.ExamViewServiceImpl;
@@ -39,8 +41,8 @@ public class MiscServlet extends HttpServlet {
             return;
         }
 
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
-        String path = stripContextPath(request);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
+        String path = RequestUtil.stripContextPath(request);
         if ("/examiner/export".equals(path)) {
             response.sendRedirect(request.getContextPath() + "/examiner/print-documents");
             return;
@@ -53,18 +55,14 @@ public class MiscServlet extends HttpServlet {
             // Each URL path loads different hub data for audit or print-documents picker.
             if ("/examiner/audit".equals(path)) {
                 Map<String, Object> data = viewService.getAuditViewByExam(activeExamId, request.getParameter("page"), search);
-                if (data != null) {
-                    for (Map.Entry<String, Object> mapEntry : data.entrySet()) {
-                        request.setAttribute(mapEntry.getKey(), mapEntry.getValue());
-                    }
-                }
+                RequestUtil.applyModel(request, data);
             } else if ("/examiner/print-documents".equals(path)) {
                 SectionType sectionType = ExaminerFilter.resolveSectionType(session);
 
                 if (sbd != null && sbd > 0) {
                     CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
                     if (candidate != null) {
-                        request.setAttribute("candidate", candidate);
+                        request.setAttribute(Attributes.Request.CANDIDATE, candidate);
                     }
                 }
             }
@@ -80,15 +78,5 @@ public class MiscServlet extends HttpServlet {
         };
         // audit and print-documents need server-loaded attributes.
         request.getRequestDispatcher(jsp).forward(request, response);
-    }
-
-    // Strip the servlet context path prefix from the request URI for multi-path routing.
-    private String stripContextPath(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        String ctx = request.getContextPath();
-        if (ctx != null && !ctx.isEmpty() && uri.startsWith(ctx)) {
-            return uri.substring(ctx.length());
-        }
-        return uri;
     }
 }

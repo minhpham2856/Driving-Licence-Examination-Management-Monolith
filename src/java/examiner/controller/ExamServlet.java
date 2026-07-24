@@ -52,8 +52,8 @@ public class ExamServlet extends HttpServlet {
         for (ExaminerSchedule schedule : schedules) {
             hydrated.add(hydrateSchedule(schedule, licencesByExamId));
         }
-        request.setAttribute("schedules", hydrated);
-        request.setAttribute("licencesByExamId", licencesByExamId);
+        request.setAttribute(Attributes.Examiner.SCHEDULES, hydrated);
+        request.setAttribute(Attributes.Examiner.LICENCES_BY_EXAM_ID, licencesByExamId);
         request.getRequestDispatcher("/views/examiner/exam-select.jsp").forward(request, response);
     }
 
@@ -109,10 +109,9 @@ public class ExamServlet extends HttpServlet {
                 : null;
 
         // Bind active exam context used by all subsequent examiner pages.
-        httpSession.setAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE, schedule);
-        httpSession.setAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID, exam.getExamId());
-        httpSession.setAttribute("isTheory", sectionType == SectionType.THEORY);
-        httpSession.setAttribute(ExaminerFilter.ATTR_EXAM_SECTION, sectionType);
+        httpSession.setAttribute(Attributes.Examiner.SCHEDULE, schedule);
+        httpSession.setAttribute(Attributes.Examiner.ACTIVE_EXAM_ID, exam.getExamId());
+        httpSession.setAttribute(Attributes.Examiner.EXAM_SECTION, sectionType);
 
         response.sendRedirect(request.getContextPath() + "/examiner/dashboard");
     }

@@ -29,7 +29,6 @@
         var scoreDisplay = document.getElementById('currentScore');
         var deviceSelect = document.getElementById('deviceId');
         var counts = new Map();
-        var times = new Map();
         var remainingSeconds = 0;
         var elapsedSeconds = 0;
         var running = false;
@@ -60,9 +59,6 @@
                 Object.keys(draft.counts || {}).forEach(function (key) {
                     counts.set(Number(key), Number(draft.counts[key]));
                 });
-                Object.keys(draft.times || {}).forEach(function (key) {
-                    times.set(Number(key), String(draft.times[key] || ''));
-                });
                 if (draft.deviceId && deviceSelect) {
                     deviceSelect.value = draft.deviceId;
                 }
@@ -74,18 +70,13 @@
 
         function persist() {
             var plain = {};
-            var timePlain = {};
             counts.forEach(function (value, key) {
                 plain[key] = value;
-            });
-            times.forEach(function (value, key) {
-                timePlain[key] = value;
             });
             sessionStorage.setItem(draftKey, JSON.stringify({
                 remainingSeconds: remainingSeconds,
                 elapsedSeconds: elapsedSeconds,
                 counts: plain,
-                times: timePlain,
                 deviceId: deviceSelect ? deviceSelect.value : ''
             }));
         }
@@ -125,11 +116,8 @@
                 }
 
                 var timeLabel = row.querySelector('.js-deduction-time');
-                if (timeLabel) {
-                    if (!times.has(id)) {
-                        times.set(id, count > 0 ? String(timeLabel.dataset.baseTime || '') : '');
-                    }
-                    timeLabel.textContent = count > 0 ? (times.get(id) || '') : '';
+                if (timeLabel && count === 0) {
+                    timeLabel.textContent = '';
                 }
 
                 if (row.dataset.critical === 'true' && count > 0) {
@@ -140,7 +128,7 @@
             });
 
             if (scoreDisplay) {
-                scoreDisplay.textContent = failed ? '0 - TRƯỢT' : Math.max(0, score);
+                scoreDisplay.textContent = failed ? '0' : Math.max(0, score);
             }
             if (elapsedInput) {
                 elapsedInput.value = elapsedSeconds;
@@ -218,10 +206,19 @@
                 var previous = counts.get(id) || 0;
                 var next = Math.max(0, previous + Number(button.dataset.delta));
                 counts.set(id, next);
-                if (next > 0 && previous === 0) {
-                    times.set(id, formatTime(elapsedSeconds));
-                } else if (next === 0) {
-                    times.delete(id);
+                var row = button.closest('tr[data-deduction-id]');
+                var timeLabel = row ? row.querySelector('.js-deduction-time') : null;
+                if (timeLabel) {
+                    if (next > 0 && previous === 0) {
+                        timeLabel.textContent = new Date().toLocaleTimeString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        });
+                    } else if (next === 0) {
+                        timeLabel.textContent = '';
+                    }
                 }
                 render();
                 persist();

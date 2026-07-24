@@ -50,109 +50,113 @@
                     <c:otherwise>
                         <div id="scoreEntryWorkspace"
                              data-draft-key="exam-score:${activeExamId}:LAYOUT:${examAreaId}:${candidate.candidateNumber}">
-                            <section class="score-entry-selected-card">
-                                <div class="score-entry-selected-card__main">
-                                    <span class="score-entry-selected-card__eyebrow">Thí sinh đang nhập điểm</span>
-                                    <h2>${candidate.fullName}</h2>
-                                    <p>SBD: <strong>${candidate.candidateNumber}</strong></p>
-                                </div>
-                                <div class="score-entry-selected-card__meta">
-                                    <span>${candidate.statusLabel}</span>
-                                    <span>Xe hiện tại: ${empty candidate.vehicleName ? '-' : candidate.vehicleName}</span>
-                                    <span>Điểm hiện có: ${empty candidate.examScore ? '-' : candidate.examScore}</span>
-                                </div>
-                            </section>
+                            <form method="post" action="${pageUrl}" id="practicalScoreForm" class="score-entry-hidden-form">
+                                <input type="hidden" name="action" value="savePracticalScore">
+                                <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
+                                <input type="hidden" name="submissionToken" value="${scoreSubmissionToken}">
+                                <input type="hidden" name="elapsedSeconds" id="elapsedSeconds" value="0">
+                            </form>
 
                             <div class="score-entry-grid">
                                 <div class="score-entry-col score-entry-col--main">
-                                    <form method="post" action="${pageUrl}" id="practicalScoreForm" class="score-entry-card score-entry-save-card">
-                                        <input type="hidden" name="action" value="savePracticalScore">
-                                        <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
-                                        <input type="hidden" name="submissionToken" value="${scoreSubmissionToken}">
-                                        <input type="hidden" name="elapsedSeconds" id="elapsedSeconds" value="0">
-
+                                    <section class="score-entry-card score-entry-candidate-card">
                                         <div class="score-entry-card__head">
                                             <div class="score-entry-card__title">
-                                                <span class="material-symbols-outlined">directions_car</span>
-                                                <h2>Xe và thời gian thi</h2>
+                                                <span class="material-symbols-outlined">badge</span>
+                                                <h2>Thí sinh</h2>
                                             </div>
                                         </div>
+                                        <div class="score-entry-candidate-card__body">
+                                            <table class="score-entry-candidate-table">
+                                                <thead>
+                                                <tr>
+                                                    <th>SBD</th>
+                                                    <th>Tên</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <td>${candidate.candidateNumber}</td>
+                                                    <td>${candidate.fullName}</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </section>
 
+                                    <c:set var="timerMinutes" value="${empty defaultTimerMinutes ? 20 : defaultTimerMinutes}" />
+                                    <section class="score-entry-timer-card">
+                                        <div class="score-entry-timer">
+                                            <p class="score-entry-timer__label">THỜI GIAN THI</p>
+                                            <p class="score-entry-timer__value" id="examTimer">00:00:00</p>
+                                            <div class="score-entry-timer__setup">
+                                                <label class="score-entry-timer__input-label" for="timerMinutesInput">Phút</label>
+                                                <input type="number" id="timerMinutesInput" class="score-entry-timer__input"
+                                                       min="1" max="120" step="1" value="${timerMinutes}"
+                                                       data-default-minutes="${timerMinutes}">
+                                                <div class="score-entry-timer__presets" role="group" aria-label="Thời gian theo hạng">
+                                                    <button type="button" class="score-entry-timer__preset" data-minutes="10" title="A1, A">10p</button>
+                                                    <button type="button" class="score-entry-timer__preset" data-minutes="18" title="B1, B">18p</button>
+                                                    <button type="button" class="score-entry-timer__preset" data-minutes="15" title="D1, D2">15p</button>
+                                                    <button type="button" class="score-entry-timer__preset" data-minutes="20" title="C1, C, D">20p</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="score-entry-timer__actions">
+                                            <button type="button" class="examiner-btn examiner-btn--success score-entry-timer__btn" id="timerStartBtn">
+                                                <span class="material-symbols-outlined">timer</span>
+                                                Bắt đầu / Tạm dừng
+                                            </button>
+                                            <button type="button" class="examiner-btn examiner-btn--white score-entry-timer__btn" id="timerResetBtn">
+                                                <span class="material-symbols-outlined">restart_alt</span>
+                                                Đặt lại
+                                            </button>
+                                        </div>
+                                    </section>
+
+                                    <section class="score-entry-score-card">
+                                        <h3 class="score-entry-score-card__title">Điểm tạm tính</h3>
+                                        <div class="score-entry-score-card__body">
+                                            <div class="score-entry-score-display">
+                                                <span class="score-entry-score-value" id="currentScore">
+                                                    <c:choose>
+                                                        <c:when test="${scoreDisqualified}">0</c:when>
+                                                        <c:otherwise><fmt:formatNumber value="${empty currentScore ? 100 : currentScore}" pattern="#"/></c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <span class="score-entry-score-max" id="scoreMaxLabel">/ 100</span>
+                                            </div>
+                                            <button type="submit" form="practicalScoreForm" class="examiner-btn examiner-btn--primary score-entry-save-button">
+                                                <span class="material-symbols-outlined">save</span>
+                                                Nhập điểm
+                                            </button>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <aside class="score-entry-col score-entry-col--side">
+                                    <section class="score-entry-card score-entry-action-panel">
+                                        <div class="score-entry-card__head">
+                                            <div class="score-entry-card__title">
+                                                <span class="material-symbols-outlined">rule_settings</span>
+                                                <h2>Thao tác hồ sơ</h2>
+                                            </div>
+                                        </div>
                                         <div class="score-entry-form-body">
                                             <label class="score-entry-form-label" for="deviceId">Chọn xe thi</label>
-                                            <select id="deviceId" name="deviceId" class="score-entry-select" required>
+                                            <select id="deviceId" name="deviceId" form="practicalScoreForm" class="score-entry-select" required>
                                                 <option value="">-- Chọn xe --</option>
                                                 <c:forEach var="vehicle" items="${examVehicles}">
                                                     <option value="${vehicle.id}" ${candidateVehicleId == vehicle.id ? 'selected' : ''}>${vehicle.name}</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
-
-                                        <c:set var="timerMinutes" value="${empty defaultTimerMinutes ? 20 : defaultTimerMinutes}" />
-                                        <section class="score-entry-timer-card score-entry-timer-card--embedded">
-                                            <div class="score-entry-timer">
-                                                <p class="score-entry-timer__label">THỜI GIAN THI</p>
-                                                <p class="score-entry-timer__value" id="examTimer">00:00:00</p>
-                                                <div class="score-entry-timer__setup">
-                                                    <label class="score-entry-timer__input-label" for="timerMinutesInput">Phút</label>
-                                                    <input type="number" id="timerMinutesInput" class="score-entry-timer__input"
-                                                           min="1" max="120" step="1" value="${timerMinutes}"
-                                                           data-default-minutes="${timerMinutes}">
-                                                    <div class="score-entry-timer__presets" role="group" aria-label="Thời gian theo hạng">
-                                                        <button type="button" class="score-entry-timer__preset" data-minutes="10" title="A1, A">10p</button>
-                                                        <button type="button" class="score-entry-timer__preset" data-minutes="18" title="B1, B">18p</button>
-                                                        <button type="button" class="score-entry-timer__preset" data-minutes="15" title="D1, D2">15p</button>
-                                                        <button type="button" class="score-entry-timer__preset" data-minutes="20" title="C1, C, D">20p</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="score-entry-timer__actions">
-                                                <button type="button" class="examiner-btn examiner-btn--success score-entry-timer__btn" id="timerStartBtn">
-                                                    <span class="material-symbols-outlined">timer</span>
-                                                    Bắt đầu / Tạm dừng
-                                                </button>
-                                                <button type="button" class="examiner-btn examiner-btn--white score-entry-timer__btn" id="timerResetBtn">
-                                                    <span class="material-symbols-outlined">restart_alt</span>
-                                                    Đặt lại
-                                                </button>
-                                            </div>
-                                        </section>
-
-                                        <section class="score-entry-score-card">
-                                            <h3 class="score-entry-score-card__title">Điểm tạm tính</h3>
-                                            <div class="score-entry-score-display">
-                                                <span class="score-entry-score-value" id="currentScore">
-                                                    <c:choose>
-                                                        <c:when test="${scoreDisqualified}">0 - TRƯỢT</c:when>
-                                                        <c:otherwise><fmt:formatNumber value="${empty currentScore ? 100 : currentScore}" pattern="#"/></c:otherwise>
-                                                    </c:choose>
-                                                </span>
-                                                <span class="score-entry-score-max" id="scoreMaxLabel">/ 100</span>
-                                            </div>
-                                        </section>
-
-                                        <jsp:include page="/views/examiner/components/faults.jsp">
-                                            <jsp:param name="deferredAdjust" value="true" />
-                                        </jsp:include>
-
-                                        <div class="score-entry-flow-actions">
-                                            <button type="submit" class="examiner-btn examiner-btn--primary">
-                                                <span class="material-symbols-outlined">save</span>
-                                                Lưu điểm
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <aside class="score-entry-col score-entry-col--side">
-                                    <section class="score-entry-card">
-                                        <div class="score-entry-card__head">
-                                            <div class="score-entry-card__title">
-                                                <span class="material-symbols-outlined">task_alt</span>
-                                                <h2>Hoàn tất hồ sơ</h2>
-                                            </div>
-                                        </div>
                                         <div class="score-entry-flow-actions score-entry-flow-actions--stacked">
+                                            <a href="${ctx}/examiner/violations?sbd=${candidate.candidateNumber}&amp;mode=create&amp;from=score-entry"
+                                               class="examiner-btn examiner-btn--danger">
+                                                <span class="material-symbols-outlined">gavel</span>
+                                                Đình chỉ
+                                            </a>
                                             <c:choose>
                                                 <c:when test="${candidate.awaitingSignature}">
                                                     <form method="post" action="${pageUrl}" target="examinerPrintTab"
@@ -187,6 +191,10 @@
                                             </c:choose>
                                         </div>
                                     </section>
+
+                                    <jsp:include page="/views/examiner/components/faults.jsp">
+                                        <jsp:param name="deferredAdjust" value="true" />
+                                    </jsp:include>
                                 </aside>
                             </div>
                         </div>

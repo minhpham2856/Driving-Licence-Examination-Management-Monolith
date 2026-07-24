@@ -8,6 +8,6 @@ public interface RoleService {
     // Loads one role row by primary key.
     Role get(int id);
 
-    // Loads one role row by Vietnamese display name.
+    // Loads one role row by display name.
     Role getByName(String name);
 }

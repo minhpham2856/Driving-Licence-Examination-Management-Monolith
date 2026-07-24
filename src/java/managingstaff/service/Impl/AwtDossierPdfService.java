@@ -32,7 +32,7 @@ import javax.imageio.ImageIO;
 
 /**
  * Creates a printable image-based PDF without adding a third-party PDF library.
- * Vietnamese text is rendered by Java2D first, so PDF font embedding is not required.
+ * text is rendered by Java2D first, so PDF font embedding is not required.
  */
 public class AwtDossierPdfService implements DossierPdfService {
 

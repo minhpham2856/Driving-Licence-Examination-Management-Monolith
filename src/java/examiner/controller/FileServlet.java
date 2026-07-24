@@ -141,8 +141,8 @@ public class FileServlet extends HttpServlet {
             PrintPreviewDTO preview = fileService.print(ctx, normalizedType, sbd, request.getParameter("q"));
             bindPrintPreview(request, preview);
             syncResultPrintedFlag(ctx, normalizedType, sbd);
-            request.setAttribute("docTitle", preview.docTitle());
-            request.setAttribute("autoPrint", Boolean.TRUE);
+            request.setAttribute(Attributes.Examiner.Print.DOC_TITLE, preview.docTitle());
+            request.setAttribute(Attributes.Examiner.Print.AUTO_PRINT, Boolean.TRUE);
             request.getRequestDispatcher(preview.jspPath()).forward(request, response);
             logAudit(request.getSession(false), ctx, AuditAction.EXPORT,
                     formatPrintAuditMessage(normalizedType, sbd), sbd);
@@ -156,17 +156,17 @@ public class FileServlet extends HttpServlet {
 
     private static void bindPrintPreview(HttpServletRequest request, PrintPreviewDTO preview) {
         if (preview.tablePayload() != null) {
-            request.setAttribute("payload", preview.tablePayload());
-            request.setAttribute("printedAt",
+            request.setAttribute(Attributes.Examiner.Print.PAYLOAD, preview.tablePayload());
+            request.setAttribute(Attributes.Examiner.Print.PRINTED_AT,
                     new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date()));
         }
         if (preview.bbModel() != null) {
             Map<String, Object> model = preview.bbModel();
-            request.setAttribute("bb", model);
-            request.setAttribute("answerListA", model.get("answerListA"));
-            request.setAttribute("answerListB", model.get("answerListB"));
-            request.setAttribute("marksA", model.get("marksA"));
-            request.setAttribute("marksB", model.get("marksB"));
+            request.setAttribute(Attributes.Examiner.Print.MODEL, model);
+            request.setAttribute(Attributes.Examiner.Print.ANSWER_LIST_A, model.get(Attributes.Examiner.Print.ANSWER_LIST_A));
+            request.setAttribute(Attributes.Examiner.Print.ANSWER_LIST_B, model.get(Attributes.Examiner.Print.ANSWER_LIST_B));
+            request.setAttribute(Attributes.Examiner.Print.MARKS_A, model.get(Attributes.Examiner.Print.MARKS_A));
+            request.setAttribute(Attributes.Examiner.Print.MARKS_B, model.get(Attributes.Examiner.Print.MARKS_B));
         }
     }
 
@@ -177,18 +177,19 @@ public class FileServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
-        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(ExaminerFilter.ATTR_EXAMINER_SCHEDULE);
+        ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(Attributes.Examiner.SCHEDULE);
         SectionType sectionType = ExaminerFilter.resolveSectionType(session);
         return new ExportContextDTO(activeExamId, schedule, sectionType == SectionType.THEORY, sectionType);
     }
 
     private void syncResultPrintedFlag(ExportContextDTO ctx, String type, int sbd) {
-        if (!isCandidateResultDocument(type, sbd) || sbd <= 0 || ctx == null || ctx.section() == null) {
+        if ("violation".equals(formatDocumentType(type))
+                || !isCandidateResultDocument(type, sbd) || sbd <= 0 || ctx == null || ctx.section() == null) {
             return;
         }
         EnrollmentDTO enrollment = enrollmentService.getByExamAndSbd(ctx.examId(), sbd, ctx.section());

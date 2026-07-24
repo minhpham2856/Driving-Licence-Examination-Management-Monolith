@@ -3,7 +3,6 @@ package examiner.util;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-// Examiner-specific format helpers for export/print document types and SBD request parsing.
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -18,10 +17,12 @@ public final class FormatUtil {
         return switch (normalized) {
             case "minutes" ->
                 "result";
-            case "paper", "exam-paper", "de-thi" ->
-                "bb1";
+            case "paper", "exam-paper", "de-thi", "theory", "bb1", "bb1-ly-thuyet" ->
+                "theory";
+            case "layout", "bb2", "bb2-thuc-hanh-trong-hinh", "score-sheet" ->
+                "layout";
             case "violation", "violation-minutes", "bien-ban-vi-pham" ->
-                "violations";
+                "violation";
             default ->
                 normalized;
         };
@@ -45,10 +46,9 @@ public final class FormatUtil {
         }
         String normalized = formatDocumentType(type);
         return "result".equals(normalized)
-                || "bb1".equals(normalized)
-                || "bb1-ly-thuyet".equals(normalized)
-                || "bb2".equals(normalized)
-                || "bb2-thuc-hanh-trong-hinh".equals(normalized);
+                || "theory".equals(normalized)
+                || "layout".equals(normalized)
+                || "violation".equals(normalized);
     }
 
     // Parse optional positive SBD filter from a raw query parameter.
@@ -80,13 +80,15 @@ public final class FormatUtil {
             case "result", "results" ->
                 sbd > 0 ? "biên bản kết quả thi" : "tổng hợp kết quả thi";
             case "violations" ->
+                "danh sách thí sinh vi phạm";
+            case "violation" ->
                 sbd > 0 ? "biên bản vi phạm" : "danh sách thí sinh vi phạm";
             case "audit" ->
                 "nhật ký";
-            case "bb1", "bb1-ly-thuyet" ->
+            case "theory" ->
                 "đề thi";
-            case "bb2", "bb2-thuc-hanh-trong-hinh" ->
-                "BB2";
+            case "layout" ->
+                "biên bản thực hành";
             default ->
                 type != null ? type : "tài liệu";
         };
@@ -96,7 +98,7 @@ public final class FormatUtil {
         return "In " + label;
     }
 
-    // Build the Vietnamese page title for print preview header (session table exports).
+    // Build the page title for print preview header (session table exports).
     public static String formatPrintTitle(String type, int sbd) {
         String normalized = formatDocumentType(type);
         String label = switch (normalized) {
@@ -117,16 +119,18 @@ public final class FormatUtil {
         return label;
     }
 
-    // Build the Vietnamese page title for per-candidate BB1/BB2 print preview.
+    // Build the page title for per-candidate print preview.
     public static String formatBbPrintTitle(String type, int sbd) {
         String normalized = formatDocumentType(type);
         String label = switch (normalized) {
             case "result", "results" ->
                 "Biên bản kết quả thi";
-            case "bb1", "bb1-ly-thuyet" ->
-                "Đề thi";
-            case "bb2", "bb2-thuc-hanh-trong-hinh" ->
-                "BB2";
+            case "theory" ->
+                "Biên bản sát hạch lý thuyết";
+            case "layout" ->
+                "Biên bản sát hạch thực hành";
+            case "violation" ->
+                "Biên bản vi phạm";
             default ->
                 "Văn bản in";
         };

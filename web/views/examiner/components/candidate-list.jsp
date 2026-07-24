@@ -215,7 +215,7 @@
                                         <td>
                                             <c:choose>
                                                 <c:when test="${c.status == 'awaiting' or c.status == 'done'}">
-                                                    <a href="${ctx}/examiner/print?type=bb1&amp;sbd=${c.candidateNumber}" class="examiner-btn examiner-btn--white examiner-btn--compact" target="_blank" rel="noopener">In KQ</a>
+                                                    <a href="${ctx}/examiner/print?type=result&amp;sbd=${c.candidateNumber}" class="examiner-btn examiner-btn--white examiner-btn--compact" target="_blank" rel="noopener">In KQ</a>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">In KQ</span>
@@ -412,36 +412,15 @@
                                         <c:if test="${actionDetail}">
                                             <div class="examiner-actions">
                                                 <a href="${candidateDetailUrl}?sbd=${c.candidateNumber}${detailFromQuery}" class="examiner-btn examiner-btn--white examiner-btn--compact">Thông tin</a>
-                                                <c:choose>
-                                                    <c:when test="${c.sectionRequired}">
-                                                        <a href="${ctx}/examiner/violations?sbd=${c.candidateNumber}" class="examiner-btn examiner-btn--white examiner-btn--compact">Vi phạm</a>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Vi phạm</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                                <c:choose>
-                                                    <c:when test="${requestScope.examinerSectionTheory}">
-                                                        <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Sửa KQ</span>
-                                                    </c:when>
-                                                    <c:when test="${not c.sectionRequired}">
-                                                        <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Sửa KQ</span>
-                                                    </c:when>
-                                                    <c:when test="${c.status eq 'done'}">
+                                                <c:if test="${c.sectionRequired and c.practicalEntryAllowed}">
+                                                    <a href="${ctx}/examiner/violations?sbd=${c.candidateNumber}" class="examiner-btn examiner-btn--white examiner-btn--compact">Vi phạm</a>
+                                                    <c:if test="${not requestScope.examinerSectionTheory and c.status eq 'done'}">
                                                         <a href="${requestScope.resultUrl}?sbd=${c.candidateNumber}" class="examiner-btn examiner-btn--white examiner-btn--compact">Sửa KQ</a>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Sửa KQ</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                                <c:choose>
-                                                    <c:when test="${requestScope.examinerSectionTheory and c.sectionRequired}">
+                                                    </c:if>
+                                                    <c:if test="${requestScope.examinerSectionTheory}">
                                                         <a href="${ctx}/examiner/candidate-paper?sbd=${c.candidateNumber}" class="examiner-btn examiner-btn--white examiner-btn--compact">Đề thi</a>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="examiner-btn examiner-btn--white examiner-btn--compact examiner-btn--disabled">Đề thi</span>
-                                                    </c:otherwise>
-                                                </c:choose>
+                                                    </c:if>
+                                                </c:if>
                                             </div>
                                         </c:if>
 

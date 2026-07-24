@@ -39,6 +39,7 @@ public class CandidateRowDTO {
     private String dobRaw;
     private boolean suspended;
     private boolean absent;
+    private boolean present;
     private boolean resultPrinted;
     private boolean awaitingSignature;
     private boolean actionEligible;
@@ -49,6 +50,7 @@ public class CandidateRowDTO {
     private boolean completeEligible;
     private boolean practicalEntryAllowed = true;
     private boolean sectionRequired = true;
+    private boolean scoreEntryEligible;
     private boolean active;
     private boolean invoked;
 
@@ -316,6 +318,14 @@ public class CandidateRowDTO {
         this.absent = absent;
     }
 
+    public boolean isPresent() {
+        return present;
+    }
+
+    public void setPresent(boolean present) {
+        this.present = present;
+    }
+
     public boolean isResultPrinted() {
         return resultPrinted;
     }
@@ -394,6 +404,14 @@ public class CandidateRowDTO {
 
     public void setSectionRequired(boolean sectionRequired) {
         this.sectionRequired = sectionRequired;
+    }
+
+    public boolean isScoreEntryEligible() {
+        return scoreEntryEligible;
+    }
+
+    public void setScoreEntryEligible(boolean scoreEntryEligible) {
+        this.scoreEntryEligible = scoreEntryEligible;
     }
 
     public boolean isActive() {

@@ -5,6 +5,7 @@ import shared.Attributes;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
+import auth.util.AuthFlashUtil;
 import static shared.util.FormatUtil.formatString;
 import shared.enums.RoleType;
 import jakarta.servlet.ServletException;
@@ -23,7 +24,8 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // transfer flash messages from session to request
-        sessionToRequest(request);
+        AuthFlashUtil.promoteLoginFlash(request);
+        AuthFlashUtil.promoteRegistrationCredentials(request);
 
         // show login page
         request.getRequestDispatcher("/views/auth/general/login.jsp").forward(request, response);
@@ -75,32 +77,6 @@ public class LoginServlet extends HttpServlet {
     // forward back to login page with an error message
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
-
-        request.setAttribute(Attributes.Request.ERROR, errorMessage);
-        request.getRequestDispatcher("/views/auth/general/login.jsp").forward(request, response);
-    }
-
-    // move session messages to request scope
-    private void sessionToRequest(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-
-        // transfer flash messages
-        transferAttribute(request, session, Attributes.Session.SUCCESS_MESSAGE, Attributes.Request.SUCCESS);
-        transferAttribute(request, session, Attributes.Session.ERROR_MESSAGE, Attributes.Request.ERROR);
-
-        // transfer registration credentials
-        transferAttribute(request, session, Attributes.Session.REGISTRATION_USERNAME, Attributes.Session.REGISTRATION_USERNAME);
-        transferAttribute(request, session, Attributes.Session.REGISTRATION_PASSWORD, Attributes.Session.REGISTRATION_PASSWORD);
-    }
-
-    // move one attribute from session to request
-    private void transferAttribute(HttpServletRequest request, HttpSession session,
-            String sessionAttribute, String requestAttribute) {
-        Object value = session.getAttribute(sessionAttribute);
-
-        if (value != null) {
-            request.setAttribute(requestAttribute, value);
-            session.removeAttribute(sessionAttribute);
-        }
+        AuthFlashUtil.forwardWithError(request, response, "/views/auth/general/login.jsp", errorMessage);
     }
 }

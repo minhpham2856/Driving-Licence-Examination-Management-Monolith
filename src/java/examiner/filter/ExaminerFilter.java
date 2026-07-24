@@ -3,7 +3,6 @@ package examiner.filter;
 import auth.dto.UserDTO;
 import shared.Attributes;
 import shared.enums.SectionType;
-import static shared.enums.SectionType.THEORY;
 import shared.enums.ExamStatus;
 import shared.enums.RoleType;
 import jakarta.servlet.FilterChain;
@@ -25,6 +24,7 @@ import examiner.service.impl.ExamServiceImpl;
 import examiner.service.impl.RoleServiceImpl;
 
 @WebFilter(urlPatterns = {"/examiner/*"})
+
 // Authentication and session-context filter for all examiner URLs; enforces EXAMINER role and active exam binding.
 public class ExaminerFilter extends HttpFilter {
 
@@ -42,12 +42,12 @@ public class ExaminerFilter extends HttpFilter {
     private final RoleService roleService = new RoleServiceImpl();
     private final ExamService examService = new ExamServiceImpl();
 
-    // Authenticate examiner, refresh session exam context, and block export when no active session exists.
+    // Authenticate examiner and refresh active exam context for all examiner pages.
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        // Get the logged-in user
+        // Get user
         HttpSession session = request.getSession(false);
         UserDTO user = session != null ? (UserDTO) session.getAttribute(Attributes.Session.USER) : null;
 
@@ -81,12 +81,6 @@ public class ExaminerFilter extends HttpFilter {
 
         // Make session data available as request attributes
         updateRequest(session, request);
-
-        // Prevent export requests when no active session exists
-        if (!isActive(session) && isExportPath(request)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
 
         // Continue processing
         chain.doFilter(request, response);
@@ -149,8 +143,6 @@ public class ExaminerFilter extends HttpFilter {
         session.setAttribute(ATTR_EXAM_SECTION, sectionType);
         session.setAttribute(ATTR_HAS_ACTIVE, Boolean.TRUE);
         session.setAttribute(ATTR_MESSAGE, null);
-        session.setAttribute("isTheory", sectionType == THEORY);
-
         return true;
     }
 
@@ -170,31 +162,10 @@ public class ExaminerFilter extends HttpFilter {
         copySessionToRequest(session, request, ATTR_EXAM_SECTION);
         copySessionToRequest(session, request, ATTR_MESSAGE);
         request.setAttribute(Attributes.Examiner.HAS_ACTIVE_EXAM, session.getAttribute(ATTR_HAS_ACTIVE));
-        request.setAttribute("examinerHasActiveExam", session.getAttribute(ATTR_HAS_ACTIVE));
         SectionType sectionType = resolveSectionType(session);
-        request.setAttribute("examinerSectionTheory", sectionType == THEORY);
-        String sectionDisplay = sectionType != null ? sectionType.getValue() : SectionType.LAYOUT.getValue();
+        request.setAttribute(Attributes.Examiner.SECTION_IS_THEORY, sectionType == SectionType.THEORY);
+        String sectionDisplay = sectionType.getValue();
         request.setAttribute(Attributes.Examiner.EXAM_SECTION_NAME, sectionDisplay);
-        request.setAttribute("examSectionName", sectionDisplay);
-    }
-
-    // Resolve SectionType from a session or request attribute (enum constant or legacy Vietnamese string).
-    public static SectionType resolveExamSection(Object raw) {
-        if (raw instanceof SectionType) {
-            return (SectionType) raw;
-        }
-        if (raw instanceof String) {
-            String trimmed = ((String) raw).trim();
-            if (trimmed.isEmpty()) {
-                return null;
-            }
-            try {
-                return SectionType.valueOf(trimmed);
-            } catch (IllegalArgumentException ignored) {
-                return SectionType.fromValue(trimmed);
-            }
-        }
-        return null;
     }
 
     // Copy a single named session attribute onto the request scope.
@@ -202,17 +173,7 @@ public class ExaminerFilter extends HttpFilter {
         request.setAttribute(attribute, session.getAttribute(attribute));
     }
 
-    // Return true when the session has a validated active exam (ATTR_HAS_ACTIVE is true).
-    private boolean isActive(HttpSession session) {
-        return session != null && Boolean.TRUE.equals(session.getAttribute(ATTR_HAS_ACTIVE));
-    }
-
-    // Return true when the request path is under /examiner/ (export/print endpoints).
-    private boolean isExportPath(HttpServletRequest request) {
-        return requestPath(request).startsWith("/examiner/");
-    }
-
-    // Return the request URI with the servlet context path prefix removed.
+    // Return the request  with the servlet context path prefix removed.
     private String requestPath(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String ctx = request.getContextPath();
@@ -224,20 +185,15 @@ public class ExaminerFilter extends HttpFilter {
         return uri;
     }
 
-    // Resolve the active section enum from session, falling back to LAYOUT or legacy isTheory flag.
+    // Resolve the active section enum from the canonical session attribute.
     public static SectionType resolveSectionType(HttpSession session) {
         if (session == null) {
             return SectionType.LAYOUT;
         }
-        SectionType sectionType = resolveExamSection(session.getAttribute(ATTR_EXAM_SECTION));
-        if (sectionType != null) {
+        Object raw = session.getAttribute(ATTR_EXAM_SECTION);
+        if (raw instanceof SectionType sectionType) {
             return sectionType;
         }
-        return Boolean.TRUE.equals(session.getAttribute("isTheory")) ? THEORY : SectionType.LAYOUT;
-    }
-
-    // Return true when the active exam section is theory (used by controllers to gate practical-only screens).
-    public static boolean isTheory(HttpSession session) {
-        return resolveSectionType(session) == THEORY;
+        return SectionType.LAYOUT;
     }
 }

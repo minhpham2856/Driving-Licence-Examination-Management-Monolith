@@ -60,20 +60,20 @@
         </c:if>
 
         <c:if test="${param.btnVehicle eq 'left'}">
-            <c:if test="${not empty requestScope.candidate and not empty requestScope.sessionVehicles}">
+            <c:if test="${not empty requestScope.candidate and not empty requestScope.examVehicles}">
                 <form method="post" action="${requestScope.pageUrl}" class="score-entry-vehicle-form">
                     <input type="hidden" name="action" value="changeVehicle">
                     <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
                     <select name="deviceId" class="score-entry-select" aria-label="Chọn xe" required>
                         <option value="">Chọn xe...</option>
-                        <c:forEach var="vehicle" items="${requestScope.sessionVehicles}">
+                        <c:forEach var="vehicle" items="${requestScope.examVehicles}">
                             <option value="${vehicle.id}"${requestScope.candidateVehicleId eq vehicle.id ? ' selected' : ''}>${vehicle.name}</option>
                         </c:forEach>
                     </select>
                     <button type="submit" class="examiner-btn examiner-btn--success">Thay xe</button>
                 </form>
             </c:if>
-            <c:if test="${empty requestScope.candidate or empty requestScope.sessionVehicles}">
+            <c:if test="${empty requestScope.candidate or empty requestScope.examVehicles}">
                 <select class="score-entry-select" aria-label="Chọn xe" disabled><option value="">Chọn xe...</option></select>
                 <button type="button" class="examiner-btn examiner-btn--success" disabled>Thay xe</button>
             </c:if>
@@ -287,20 +287,20 @@
         </c:if>
 
         <c:if test="${param.btnVehicle eq 'right'}">
-            <c:if test="${not empty requestScope.candidate and not empty requestScope.sessionVehicles}">
+            <c:if test="${not empty requestScope.candidate and not empty requestScope.examVehicles}">
                 <form method="post" action="${requestScope.pageUrl}" class="score-entry-vehicle-form">
                     <input type="hidden" name="action" value="changeVehicle">
                     <input type="hidden" name="sbd" value="${requestScope.candidate.candidateNumber}">
                     <select name="deviceId" class="score-entry-select" aria-label="Chọn xe" required>
                         <option value="">Chọn xe...</option>
-                        <c:forEach var="vehicle" items="${requestScope.sessionVehicles}">
+                        <c:forEach var="vehicle" items="${requestScope.examVehicles}">
                             <option value="${vehicle.id}"${requestScope.candidateVehicleId eq vehicle.id ? ' selected' : ''}>${vehicle.name}</option>
                         </c:forEach>
                     </select>
                     <button type="submit" class="examiner-btn examiner-btn--success">Thay xe</button>
                 </form>
             </c:if>
-            <c:if test="${empty requestScope.candidate or empty requestScope.sessionVehicles}">
+            <c:if test="${empty requestScope.candidate or empty requestScope.examVehicles}">
                 <select class="score-entry-select" aria-label="Chọn xe" disabled><option value="">Chọn xe...</option></select>
                 <button type="button" class="examiner-btn examiner-btn--success" disabled>Thay xe</button>
             </c:if>

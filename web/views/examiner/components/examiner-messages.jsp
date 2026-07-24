@@ -150,12 +150,6 @@
     <c:if test="${param.error eq 'scoreEditNotAllowed'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Chỉ có thể sửa kết quả sau khi thí sinh đã hoàn tất phần thi thực hành.</p>
     </c:if>
-    <c:if test="${not empty violationError}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">${violationError}</p>
-    </c:if>
-    <c:if test="${not empty undoError}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">${undoError}</p>
-    </c:if>
     <c:if test="${not empty editError}">
         <p class="examiner-flash-bar examiner-flash-bar--error">${editError}</p>
     </c:if>

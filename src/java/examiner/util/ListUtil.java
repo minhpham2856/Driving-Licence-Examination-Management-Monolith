@@ -3,6 +3,7 @@ package examiner.util;
 import examiner.dto.CandidateRowDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import shared.Attributes;
 
 // Shared pagination, search, and sort wiring for examiner candidate list screens.
 public final class ListUtil {
@@ -17,14 +18,14 @@ public final class ListUtil {
         }
         String search = request.getParameter("q");
         if (search != null && !search.isBlank()) {
-            request.setAttribute("searchActive", true);
-            request.setAttribute("searchQuery", search.trim());
+            request.setAttribute(Attributes.Examiner.SEARCH_ACTIVE, true);
+            request.setAttribute(Attributes.Request.SEARCH_QUERY, search.trim());
         }
         SortUtil.Spec spec = SortUtil.parse(
                 request.getParameter("sort"), request.getParameter("dir"));
         SortUtil.sort(candidates, spec);
-        request.setAttribute("sortBy", spec.getColumn());
-        request.setAttribute("sortDir", spec.isAscending() ? "asc" : "desc");
+        request.setAttribute(Attributes.Request.SORT_BY, spec.getColumn());
+        request.setAttribute(Attributes.Request.SORT_DIR, spec.isAscending() ? "asc" : "desc");
     }
 
     // Normalize search for examiner workflow.

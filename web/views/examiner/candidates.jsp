@@ -50,7 +50,6 @@
                 <!--candidate list-->
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
-                    <jsp:param name="showCheckbox" value="true" />
                     <jsp:param name="showDob" value="false" />
                     <jsp:param name="showAddress" value="false" />
                     <jsp:param name="showExamDate" value="false" />

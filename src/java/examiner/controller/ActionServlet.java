@@ -12,6 +12,7 @@ import examiner.service.impl.ExamViewServiceImpl;
 import examiner.service.ActionService;
 import examiner.service.impl.ActionServiceImpl;
 import examiner.util.ListUtil;
+import examiner.util.RequestUtil;
 import shared.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,8 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServlet;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @WebServlet("/examiner/action")
@@ -44,7 +43,7 @@ public class ActionServlet extends HttpServlet {
         }
 
         // Load action data only when the examiner has selected an active exam session.
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId != null && activeExamId > 0) {
             // Section type (theory vs layout) drives eligibility rules.
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
@@ -55,9 +54,7 @@ public class ActionServlet extends HttpServlet {
                     activeExamId, sectionType, formatString(search));
             ListUtil.applySortAndSearch(request, candidates);
 
-            // Keep candidateQueue name for existing JSP compatibility; content is no longer a queue.
-            request.setAttribute("candidates", candidates);
-            request.setAttribute("candidateQueue", candidates);
+            request.setAttribute(Attributes.Request.CANDIDATES, candidates);
         }
         request.getRequestDispatcher("/views/examiner/action.jsp").forward(request, response);
     }
@@ -72,7 +69,7 @@ public class ActionServlet extends HttpServlet {
             return;
         }
         // POST actions require a bound exam id from exam-select flow.
-        Integer activeExamId = (Integer) session.getAttribute(ExaminerFilter.ATTR_ACTIVE_EXAM_ID);
+        Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         if (activeExamId == null || activeExamId <= 0) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing active exam");
             return;
@@ -109,7 +106,7 @@ public class ActionServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=callFailed");
                     return true;
                 }
-                response.sendRedirect(request.getContextPath() + "/examiner/action?called=" + urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/examiner/action?called=" + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "undoPresent" -> {
@@ -119,11 +116,11 @@ public class ActionServlet extends HttpServlet {
                 }
                 if (!actionService.undoPresent(activeExamId, sbd, userId, sectionType).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=undoPresentFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?undoPresent="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "markPresent" -> {
@@ -133,11 +130,11 @@ public class ActionServlet extends HttpServlet {
                 }
                 if (!actionService.markPresent(activeExamId, sbd, userId, sectionType).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=presentFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?presentDone="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "wrongInfo" -> {
@@ -147,11 +144,11 @@ public class ActionServlet extends HttpServlet {
                 }
                 if (!actionService.sendWrongInfoToProcedure(activeExamId, sbd, userId, sectionType).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=wrongInfoFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?wrongInfoDone="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "printResult", "printSignature" -> {
@@ -161,11 +158,11 @@ public class ActionServlet extends HttpServlet {
                 }
                 if (!actionService.printResultForm(activeExamId, sbd, userId, sectionType).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=resultPrintFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/print?type=result&sbd="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "completeSection" -> {
@@ -177,16 +174,16 @@ public class ActionServlet extends HttpServlet {
                         activeExamId, sbd, userId, null, sectionType);
                 if (res != null && "needResultPrint".equals(res.getMessage())) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=needResultPrint&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 if (res != null && !res.isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=completeFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?completeDone="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "suspend" -> {
@@ -196,11 +193,11 @@ public class ActionServlet extends HttpServlet {
                 }
                 if (!actionService.markSuspended(activeExamId, sbd, userId, null, null, sectionType).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=suspendFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?suspended="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             case "undoSuspend" -> {
@@ -210,11 +207,11 @@ public class ActionServlet extends HttpServlet {
                 }
                 if (!actionService.undoSuspension(activeExamId, sbd, userId, sectionType).isSuccess()) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=unsuspendFailed&sbd="
-                            + urlEncode(sbd));
+                            + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?unsuspended="
-                        + urlEncode(sbd));
+                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             default -> {
@@ -222,9 +219,4 @@ public class ActionServlet extends HttpServlet {
             }
         }
     }
-
-    private String urlEncode(int value) {
-        return URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
-    }
-
 }

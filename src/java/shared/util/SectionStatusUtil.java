@@ -7,7 +7,7 @@ public final class SectionStatusUtil {
     private SectionStatusUtil() {
     }
 
-    // Maps legacy DB values (Pending) to examiner-facing Vietnamese statuses.
+    // Maps legacy DB values (Pending) to examiner-facing statuses.
     public static String normalize(String status) {
         if (status == null || status.isBlank()) {
             return CandidateStatus.NOT_STARTED.getValue();
