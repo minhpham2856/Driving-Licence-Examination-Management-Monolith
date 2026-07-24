@@ -17,16 +17,16 @@ import java.io.IOException;
  *
  * Vai trò:
  * Trang in/xem hồ sơ đăng ký thí sinh (profile, phí, cờ ảnh) theo SBD và kỳ đang chọn.
- * Hỗ trợ {@code print=true} để JSP tự kích hoạt in.
+ * Hỗ trợ print=true để JSP tự kích hoạt in.
  *
  * Luồng GET:
- * - Bắt buộc param {@code sbd}; thiếu → redirect {@code candidatecall}
- * - {@code ensureExamId} → {@code loadDossier}; không có profile → redirect candidatecall
- * - Bind profile / examSummary / feeLines / autoPrint → forward {@code candidate-dossier.jsp}
+ * - Bắt buộc param sbd; thiếu → redirect candidatecall
+ * - ensureExamId → loadDossier; không có profile → redirect candidatecall
+ * - Bind profile / examSummary / feeLines / autoPrint → forward candidate-dossier.jsp
  *
  * Ai gọi:
- * Link từ {@link ProcedureServlet} và {@link CandidateCallServlet} sau thu phí/in hồ sơ;
- * mở tab mới từ bàn thủ tục với {@code ?sbd=&amp;print=true}.
+ * Link từ ProcedureServlet và CandidateCallServlet sau thu phí/in hồ sơ;
+ * mở tab mới từ bàn thủ tục với ?sbd=&print=true.
  */
 @WebServlet("/examstaff/candidate-dossier")
 public class CandidateDossierServlet extends HttpServlet {
@@ -34,7 +34,7 @@ public class CandidateDossierServlet extends HttpServlet {
     private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
 
     /**
-     * GET: bắt buộc {@code sbd} → ensureExamId → loadDossier → bind → {@code candidate-dossier.jsp}.
+     * GET: bắt buộc sbd → ensureExamId → loadDossier → bind → candidate-dossier.jsp.
      * Thiếu SBD/hồ sơ → redirect candidatecall.
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi redirect

@@ -7,18 +7,18 @@ import java.util.Locale;
  * Pure static; không phụ thuộc Servlet API hay BLL.
  *
  * Vai trò trong luồng examstaff:
- * {@link #parseCandidateNo} rút số nguyên từ SBD dạng {@code A-12} hoặc {@code 12} để sort/so sánh
- * hàng đợi và audit. {@link #formatDetail} ghép đích gọi + mã kết quả ({@code calling}, {@code absent})
+ * parseCandidateNo rút số nguyên từ SBD dạng A-12 hoặc 12 để sort/so sánh
+ * hàng đợi và audit. formatDetail ghép đích gọi + mã kết quả (calling, absent)
  * thành câu tiếng Việt ngắn ghi vào nhật ký khi staff gọi thí sinh lên bảng/phòng.
  *
  * Cách hoạt động:
- * - Parse SBD — blank → 0; có {@code -} → phần sau dấu; {@code NumberFormatException} → 0.
- * - Format audit — outcome rỗng → “Gọi lên {destination}”; map {@code calling}/{@code absent}
- *       sang câu cố định; còn lại ghép {@code destination - outcome}.
+ * - Parse SBD — blank → 0; có - → phần sau dấu; NumberFormatException → 0.
+ * - Format audit — outcome rỗng → “Gọi lên {destination}”; map calling/absent
+ *       sang câu cố định; còn lại ghép destination - outcome.
  *
  * Ai gọi:
- * {@code StaffCallServiceImpl}, {@code StaffAuditLogServiceImpl}, {@code CandidateQueueServiceImpl},
- * {@code ExaminerAssignmentRules} — sort SBD và ghi chi tiết thao tác gọi thí sinh.
+ * StaffCallServiceImpl, StaffAuditLogServiceImpl, CandidateQueueServiceImpl,
+ * ExaminerAssignmentRules — sort SBD và ghi chi tiết thao tác gọi thí sinh.
  */
 public final class ExamStaffFormat {
 
@@ -31,16 +31,16 @@ public final class ExamStaffFormat {
     // -------------------------------------------------------------------------
 
     /**
-     * Lấy phần số từ candidate number (sau dấu {@code -} nếu có).
+     * Lấy phần số từ candidate number (sau dấu - nếu có).
      * <p>
  *
      * Luồng parse:
-     * - null/blank → {@code 0}
-     * - Có dấu {@code -} → parse phần sau dấu {@code -}
-     * - Không có {@code -} → parse toàn bộ chuỗi đã trim
-     * - NumberFormatException → {@code 0}
-     * @param candidateNumber chuỗi SBD/số thí sinh (ví dụ {@code A-12} hoặc {@code 12})
-     * @return số nguyên hoặc {@code 0} nếu không parse được
+     * - null/blank → 0
+     * - Có dấu - → parse phần sau dấu -
+     * - Không có - → parse toàn bộ chuỗi đã trim
+     * - NumberFormatException → 0
+     * @param candidateNumber chuỗi SBD/số thí sinh (ví dụ A-12 hoặc 12)
+     * @return số nguyên hoặc 0 nếu không parse được
      */
     public static int parseCandidateNo(String candidateNumber) {
         // Bước 1: thiếu dữ liệu
@@ -73,12 +73,12 @@ public final class ExamStaffFormat {
      * <p>
  *
      * Luồng:
-     * - Chuẩn hóa {@code calledTo} / {@code result} (null → rỗng)
+     * - Chuẩn hóa calledTo / result (null → rỗng)
      * - Outcome rỗng → chỉ mô tả đích hoặc “Gọi thí sinh”
-     * - {@code calling} / {@code absent} → câu cố định theo đích
-     * - Outcome khác → ghép {@code destination - outcome} hoặc chỉ outcome
+     * - calling / absent → câu cố định theo đích
+     * - Outcome khác → ghép destination - outcome hoặc chỉ outcome
      * @param calledTo đích / bàn gọi (có thể blank)
-     * @param result   mã kết quả ({@code calling}, {@code absent}, …)
+     * @param result   mã kết quả (calling, absent, …)
      * @return chuỗi mô tả thao tác
      */
     public static String formatDetail(String calledTo, String result) {

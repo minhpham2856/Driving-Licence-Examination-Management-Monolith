@@ -7,23 +7,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Mapper chuyển read-model {@link ExamStaffCandidate} (DAO view JOIN Candidate+Enrollment)
- * sang {@link ExamRegistrationDTO} dùng trên UI, servlet và BLL ExamStaff.
+ * Mapper chuyển read-model ExamStaffCandidate (DAO view JOIN Candidate+Enrollment)
+ * sang ExamRegistrationDTO dùng trên UI, servlet và BLL ExamStaff.
  *
  * Vai trò trong luồng examstaff:
- * DAO trả {@code ExamStaffCandidate} gọn cho query phức tạp; presentation và hầu hết service
- * làm việc với {@code ExamRegistrationDTO}. Mapper copy field bắt buộc; khu vực phân bổ và điểm
+ * DAO trả ExamStaffCandidate gọn cho query phức tạp; presentation và hầu hết service
+ * làm việc với ExamRegistrationDTO. Mapper copy field bắt buộc; khu vực phân bổ và điểm
  * chỉ set khi nguồn khác null — tránh ghi đè giá trị mặc định bằng null.
  *
  * Cách hoạt động:
- * - {@link #toDto} — null row → null; copy id/enrollment/SBD/thanh toán/hiện diện/hồ sơ cá nhân;
+ * - toDto — null row → null; copy id/enrollment/SBD/thanh toán/hiện diện/hồ sơ cá nhân;
  *       optional allocated area + theory/practical score.
- * - {@link #toDtoList} — giữ thứ tự; null list → list rỗng (không null).
+ * - toDtoList — giữ thứ tự; null list → list rỗng (không null).
  *
  * Ai gọi:
- * {@code ExamStaffViewServiceImpl}, {@code ExamRegistrationDAOImpl},
- * {@code CandidateQueueQueryServiceImpl}, {@code StaffCallServiceImpl},
- * {@code AllocationStageViewServiceImpl} — mọi luồng đọc thí sinh từ view DAO.
+ * ExamStaffViewServiceImpl, ExamRegistrationDAOImpl,
+ * CandidateQueueQueryServiceImpl, StaffCallServiceImpl,
+ * AllocationStageViewServiceImpl — mọi luồng đọc thí sinh từ view DAO.
  */
 public final class ExamStaffCandidateMapper {
 
@@ -42,7 +42,7 @@ public final class ExamStaffCandidateMapper {
      * - Nếu có → copy khu vực LT/TH đã phân bổ
      * - Nếu có → copy điểm lý thuyết / thực hành
      * @param row dòng nguồn (null → null)
-     * @return DTO hoặc {@code null}
+     * @return DTO hoặc null
      */
     public static ExamRegistrationDTO toDto(ExamStaffCandidate row) {
         // Bước 1: null-safe

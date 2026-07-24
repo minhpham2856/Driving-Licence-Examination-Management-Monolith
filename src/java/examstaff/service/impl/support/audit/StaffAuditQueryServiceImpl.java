@@ -9,18 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Truy vấn nhật ký audit và KPI thủ tục qua {@link AuditLogDAO}.
+ * Truy vấn nhật ký audit và KPI thủ tục qua AuditLogDAO.
  * <p>
  * Lớp đọc thuần — không format UI, không ghi log. Lỗi DAO trả list rỗng (stderr).
  *
  * API truy vấn:
- * - {@link #countLogsByUserAndDate} — tổng dòng theo nhân viên + ngày lọc
- * - {@link #listLogsByUserAndDatePaginated} — slice cho trang audit
- * - {@link #listLogsByUserAndDate} — toàn bộ (dùng export Excel; blank date → null DAO)
- * - {@link #getStaffProcedureKpi} — số thí sinh hoàn tất thủ tục, tổng lệ phí trong ngày
+ * - countLogsByUserAndDate — tổng dòng theo nhân viên + ngày lọc
+ * - listLogsByUserAndDatePaginated — slice cho trang audit
+ * - listLogsByUserAndDate — toàn bộ (dùng export Excel; blank date → null DAO)
+ * - getStaffProcedureKpi — số thí sinh hoàn tất thủ tục, tổng lệ phí trong ngày
  *
  * Điểm gọi:
- * {@link StaffAuditPageServiceImpl} (trang web) và {@code AuditExportServlet} (tải full list trước export).
+ * StaffAuditPageServiceImpl (trang web) và AuditExportServlet (tải full list trước export).
  */
 public class StaffAuditQueryServiceImpl {
 

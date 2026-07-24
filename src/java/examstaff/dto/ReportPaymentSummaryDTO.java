@@ -6,13 +6,13 @@ import shared.model.Payment;
 import java.util.List;
 
 /**
- * Tóm tắt thanh toán + dòng lệ phí cho báo cáo / hồ sơ (gói {@link Payment} + {@link Fee}).
+ * Tóm tắt thanh toán + dòng lệ phí cho báo cáo / hồ sơ (gói Payment + Fee).
  *
  * Vai trò:
  * Hiển thị chi tiết một khoản thanh toán kèm các dòng phí và tổng dòng trên report/dossier.
  *
  * Ai tạo / tiêu thụ:
- * {@code ProcedureFeeQueryServiceImpl} → báo cáo thanh toán / view liên quan report.
+ * ProcedureFeeQueryServiceImpl → báo cáo thanh toán / view liên quan report.
  */
 public class ReportPaymentSummaryDTO {
 

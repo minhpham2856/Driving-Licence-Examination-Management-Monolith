@@ -14,17 +14,17 @@ import shared.model.Payment;
 /**
  * Preview phí và ghi nhận thanh toán tiền mặt tại bàn thủ tục.
  * <p>
- * Gọi {@link ProcedureFeeQueryServiceImpl} để tính phí; insert {@link shared.model.Payment}
- * qua {@link examstaff.dao.PaymentDAO}. SePay do {@link ProcedureWorkflowServiceImpl} xử lý riêng.
+ * Gọi ProcedureFeeQueryServiceImpl để tính phí; insert shared.model.Payment
+ * qua examstaff.dao.PaymentDAO. SePay do ProcedureWorkflowServiceImpl xử lý riêng.
  *
- * Luồng tiền mặt ({@link #recordProcedureCashPayment}):
- * - {@link #previewFees} — load hồ sơ, resolve catalog phí theo hạng bằng
- * - Tính {@code totalAmount} (fallback 200_000 nếu catalog trống)
- * - Insert Payment CASH hoàn tất; fallback {@code updatePayment} trên đăng ký
+ * Luồng tiền mặt (recordProcedureCashPayment):
+ * - previewFees — load hồ sơ, resolve catalog phí theo hạng bằng
+ * - Tính totalAmount (fallback 200_000 nếu catalog trống)
+ * - Insert Payment CASH hoàn tất; fallback updatePayment trên đăng ký
  *
  * Quan hệ workflow:
- * {@link ProcedureWorkflowServiceImpl#confirmPayment} gọi preview + record rồi
- * {@code completeProcedureAfterPaid} (present, clear absent, auto-allocate).
+ * ProcedureWorkflowServiceImpl.confirmPayment gọi preview + record rồi
+ * completeProcedureAfterPaid (present, clear absent, auto-allocate).
  */
 public class ProcedurePaymentServiceImpl {
 

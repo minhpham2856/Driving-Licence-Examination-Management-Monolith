@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Thống kê kết quả kỳ thi cho màn báo cáo ExamStaff ({@code report.jsp} / bản in).
+ * Thống kê kết quả kỳ thi cho màn báo cáo ExamStaff (report.jsp / bản in).
  *
  * Vai trò:
  * Tổng hợp số liệu đậu/trượt/vắng/đình chỉ, theo phần lý thuyết–thực hành,
  * thống kê theo hạng bằng và danh sách lỗi / infractions.
  *
  * Ai tạo / tiêu thụ:
- * {@code ExamReportStatsServiceImpl} → {@code ReportServlet} (và luồng in báo cáo).
+ * ExamReportStatsServiceImpl → ReportServlet (và luồng in báo cáo).
  */
 public class ExamReportStatsDTO {
 

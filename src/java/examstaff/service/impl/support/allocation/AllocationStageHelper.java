@@ -17,15 +17,15 @@ import java.util.Set;
  *
  * đếm số lượng từng bucket cho tab UI. Servlet/service gọi helper này để:
  * - Map servlet path → stage + resultFilter + đường dẫn JSP
- * - Lọc list {@link ExamRegistrationDTO} theo stage
+ * - Lọc list ExamRegistrationDTO theo stage
  * - Phân trang / encode query khi redirect PRG
  *
  * Hằng stage:
- * {@link #STAGE_OVERVIEW}, {@link #STAGE_WAITING}, {@link #STAGE_THEORY},
- * {@link #STAGE_PRACTICAL}, {@link #STAGE_RESULTS}; kết quả
- * {@link #RESULT_PASS} / {@link #RESULT_FAIL} / {@link #RESULT_SUSPENDED}.
+ * STAGE_OVERVIEW, STAGE_WAITING, STAGE_THEORY,
+ * STAGE_PRACTICAL, STAGE_RESULTS; kết quả
+ * RESULT_PASS / RESULT_FAIL / RESULT_SUSPENDED.
  * <p>Quy tắc “đã phân phòng LT chưa?” dựa field allocation trên DTO
- * (từ {@code Db2CandidateSql} + section LT/TH), không query SQL tại đây.
+ * (từ Db2CandidateSql + section LT/TH), không query SQL tại đây.
  */
 public final class AllocationStageHelper {
 
@@ -187,7 +187,7 @@ public final class AllocationStageHelper {
     /**
      * Map servlet path → đường dẫn JSP tương ứng.
      * @param servletPath đường dẫn request
-     * @return path JSP dưới {@code /views/staff/examstaff/}
+     * @return path JSP dưới /views/staff/examstaff/
      */
     public static String resolveJspPath(String servletPath) {
         if (servletPath == null || servletPath.endsWith("/allocation")) {
@@ -215,7 +215,7 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Xây chuỗi query phụ (page/size/q/examId/sort/dir/areaFilter) — bắt đầu bằng {@code &}.
+     * Xây chuỗi query phụ (page/size/q/examId/sort/dir/areaFilter) — bắt đầu bằng &.
      * @param page         trang hiện tại
      * @param pageSize     kích thước trang
      * @param searchQuery  từ khóa tìm
@@ -255,9 +255,9 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Parse filter phòng: {@code null}/0 = tất cả; âm = chưa phân phòng/sân; dương = ExamAreaId.
-     * @param raw giá trị thô ({@code none}/{@code unassigned}/số)
-     * @return Integer filter hoặc {@code null}
+     * Parse filter phòng: null/0 = tất cả; âm = chưa phân phòng/sân; dương = ExamAreaId.
+     * @param raw giá trị thô (none/unassigned/số)
+     * @return Integer filter hoặc null
      */
     public static Integer parseAreaFilter(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -276,10 +276,10 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Lọc theo phòng đã phân (LT hoặc TH tùy {@code practical}).
+     * Lọc theo phòng đã phân (LT hoặc TH tùy practical).
      * @param list         danh sách nguồn
-     * @param areaFilterId filter (null/0 = giữ nguyên; &lt;0 = chưa gán; &gt;0 = đúng areaId)
-     * @param practical    {@code true} dùng practicalAllocatedAreaId
+     * @param areaFilterId filter (null/0 = giữ nguyên; <0 = chưa gán; >0 = đúng areaId)
+     * @param practical    true dùng practicalAllocatedAreaId
      * @return danh sách đã lọc
      */
     public static List<ExamRegistrationDTO> filterByAllocatedArea(List<ExamRegistrationDTO> list,
@@ -341,7 +341,7 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Parse page size (10…{@link #MAX_PAGE_SIZE}); lỗi → {@link #DEFAULT_PAGE_SIZE}.
+     * Parse page size (10…MAX_PAGE_SIZE); lỗi → DEFAULT_PAGE_SIZE.
      * @param raw chuỗi size
      * @return kích thước trang
      */
@@ -364,7 +364,7 @@ public final class AllocationStageHelper {
      * Đếm thí sinh theo từng stage trên toàn danh sách.
      * @param all               danh sách đầy đủ
      * @param practicalStageIds id thí sinh đang stage thực hành
-     * @return {@link StageCounts}
+     * @return StageCounts
      */
     public static StageCounts computeCounts(List<ExamRegistrationDTO> all, Set<Integer> practicalStageIds) {
         StageCounts counts = new StageCounts();
@@ -404,7 +404,7 @@ public final class AllocationStageHelper {
      * @param stage             STAGE_*
      * @param practicalStageIds id đang TH
      * @param resultFilter      RESULT_* khi stage = results
-     * @return {@code true} nếu thuộc stage
+     * @return true nếu thuộc stage
      */
     public static boolean inStage(ExamRegistrationDTO c, String stage,
             Set<Integer> practicalStageIds, String resultFilter) {
@@ -486,7 +486,7 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Xác định phần hiện tại của thí sinh (ưu tiên kết quả -&gt; sa hình -&gt; LT -&gt; chờ).
+     * Xác định phần hiện tại của thí sinh (ưu tiên kết quả -> sa hình -> LT -> chờ).
      * Trả về key: waiting | theory | practical | results-pass | results-fail | results-suspended | unknown.
      * @param c                 hồ sơ
      * @param practicalStageIds id đang TH
@@ -564,7 +564,7 @@ public final class AllocationStageHelper {
      * @param list     nguồn
      * @param page     trang yêu cầu
      * @param pageSize kích thước
-     * @return {@link PageSlice}
+     * @return PageSlice
      */
     public static PageSlice<ExamRegistrationDTO> paginate(List<ExamRegistrationDTO> list, int page, int pageSize) {
         // validate: rỗng → slice trống
@@ -588,7 +588,7 @@ public final class AllocationStageHelper {
      * Khớp từ khóa với các trường tìm kiếm của thí sinh.
      * @param c hồ sơ
      * @param q từ khóa đã lower-case
-     * @return {@code true} nếu khớp
+     * @return true nếu khớp
      */
     private static boolean matchesSearch(ExamRegistrationDTO c, String q) {
         // load: nếu toàn số → ưu tiên SBD ngắn / CCCD / SĐT
@@ -619,7 +619,7 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Trả về chuỗi nếu toàn chữ số; ngược lại {@code ""}.
+     * Trả về chuỗi nếu toàn chữ số; ngược lại "".
      * @param q chuỗi nguồn
      * @return chỉ chữ số hoặc rỗng
      */
@@ -639,7 +639,7 @@ public final class AllocationStageHelper {
      * So khớp SBD dạng số (bằng / prefix / suffix).
      * @param sbd     số báo danh
      * @param qDigits từ khóa toàn số
-     * @return {@code true} nếu khớp
+     * @return true nếu khớp
      */
     private static boolean matchesSbdNumeric(String sbd, String qDigits) {
         // validate
@@ -662,19 +662,19 @@ public final class AllocationStageHelper {
     }
 
     /**
-     * Kiểm tra {@code value} chứa {@code q} (không phân biệt hoa thường).
+     * Kiểm tra value chứa q (không phân biệt hoa thường).
      * @param value chuỗi nguồn
      * @param q     từ khóa đã lower-case
-     * @return {@code true} nếu chứa
+     * @return true nếu chứa
      */
     private static boolean contains(String value, String q) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(q);
     }
 
     /**
-     * Chuẩn hóa cờ đạt: null/blank → {@code none}.
+     * Chuẩn hóa cờ đạt: null/blank → none.
      * @param v giá trị thô
-     * @return chuỗi đã trim hoặc {@code none}
+     * @return chuỗi đã trim hoặc none
      */
     private static String nullToPass(String v) {
         return v == null || v.isBlank() ? "none" : v.trim();

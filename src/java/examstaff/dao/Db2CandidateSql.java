@@ -1,20 +1,20 @@
 package examstaff.dao;
 
 /**
- * Hằng SQL SELECT thí sinh ({@code Candidate} + {@code ExamEnrollment}) cho schema DLEM_DB_2.
+ * Hằng SQL SELECT thí sinh (Candidate + ExamEnrollment) cho schema DLEM_DB_2.
  *
  * Approach B — vì sao SELECT “full text”?:
  * Trước đây có thể ghép SQL bằng splice/CSV helper khó đọc. Mỗi hằng ở đây là
- * <b>một câu SELECT đầy đủ</b> (chưa có {@code WHERE}); caller chỉ nối điều kiện khi chạy.
- * Đoạn JOIN section LT/TH lấy từ {@link Db2ExamSchemaSql} để không lặp alias.
+ * <b>một câu SELECT đầy đủ</b> (chưa có WHERE); caller chỉ nối điều kiện khi chạy.
+ * Đoạn JOIN section LT/TH lấy từ Db2ExamSchemaSql để không lặp alias.
  *
  * Hai biến thể:
- * - {@link #CANDIDATE_SELECT} — đủ cột + subquery điểm LT/TH ({@code theoryScore}/{@code practicalScore})
- * - {@link #CANDIDATE_SELECT_MINIMAL} — bỏ JOIN điểm (score = NULL); fallback khi query đầy đủ lỗi
+ * - CANDIDATE_SELECT — đủ cột + subquery điểm LT/TH (theoryScore/practicalScore)
+ * - CANDIDATE_SELECT_MINIMAL — bỏ JOIN điểm (score = NULL); fallback khi query đầy đủ lỗi
  *
  * Ai dùng?:
- * Chủ yếu {@code ExamRegistrationDAOImpl} ({@code getById}, {@code getCandidatesByExam},
- * {@code getByExamAndSbd}, …) → map {@code ExamRegistrationDTO} cho dashboard / allocation / call / procedure.
+ * Chủ yếu ExamRegistrationDAOImpl (getById, getCandidatesByExam,
+ * getByExamAndSbd, …) → map ExamRegistrationDTO cho dashboard / allocation / call / procedure.
  *
  * Luồng đọc một thí sinh:
  * <pre>
@@ -33,7 +33,7 @@ public final class Db2CandidateSql {
 
     /**
      * Câu SELECT thí sinh đầy đủ (có JOIN điểm LT/TH).
-     * Gắn thêm {@code WHERE} từ caller khi thực thi.
+     * Gắn thêm WHERE từ caller khi thực thi.
      */
     public static final String CANDIDATE_SELECT = """
             SELECT
@@ -137,7 +137,7 @@ public final class Db2CandidateSql {
 
     /**
      * Câu SELECT tối thiểu (không JOIN điểm) — fallback khi query đầy đủ thất bại.
-     * Điểm LT/TH trả về {@code NULL}.
+     * Điểm LT/TH trả về NULL.
      */
     public static final String CANDIDATE_SELECT_MINIMAL = """
             SELECT

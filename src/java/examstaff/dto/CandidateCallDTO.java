@@ -5,7 +5,7 @@ package examstaff.dto;
  *
  * Vai trò:
  * Mang kỳ thi, số báo danh, nơi gọi, người gọi và kết quả (Present / Absent / …)
- * khi persist hoặc xử lý trong {@code CandidateCallWorkflowServiceImpl}.
+ * khi persist hoặc xử lý trong CandidateCallWorkflowServiceImpl.
  *
  * Ai tạo / tiêu thụ:
  * Tạo/tiêu thụ nội bộ BLL call workflow và DAO liên quan; không bind trực tiếp JSP.

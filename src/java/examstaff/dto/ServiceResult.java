@@ -3,25 +3,25 @@ package examstaff.dto;
 import shared.enums.ErrorType;
 
 /**
- * Bao kết quả nghiệp vụ generic {@code <T>} từ BLL ExamStaff về Presentation:
+ * Bao kết quả nghiệp vụ generic <T> từ BLL ExamStaff về Presentation:
  * thành công / thất bại, loại lỗi, thông điệp và payload tùy chọn.
  *
  * Vai trò trong luồng examstaff:
  * Chuẩn hóa trả về cho các thao tác control ca, thủ tục, phân bổ, chọn kỳ, phân công SHV…
- * Servlet đọc {@link #isSuccess()}, lấy {@link #getMessage()} đưa flash/error, lấy {@link #getData()}
- * khi cần tiếp tục side-effect (ví dụ {@link ExamTransitionResultDTO}, {@link AllocationActionResultDTO}).
+ * Servlet đọc isSuccess(), lấy getMessage() đưa flash/error, lấy getData()
+ * khi cần tiếp tục side-effect (ví dụ ExamTransitionResultDTO, AllocationActionResultDTO).
  *
  * Ai tạo:
- * Factory {@link #ok}/{@link #fail} trong {@code ExamControlServiceImpl}, {@code ProcedureServiceImpl} /
- * {@code ProcedureWorkflowServiceImpl}, {@code AllocationServiceImpl}, {@code ExaminerAssignServiceImpl},
- * {@code ExamStaffSelectionServiceImpl}, …
+ * Factory ok/fail trong ExamControlServiceImpl, ProcedureServiceImpl /
+ * ProcedureWorkflowServiceImpl, AllocationServiceImpl, ExaminerAssignServiceImpl,
+ * ExamStaffSelectionServiceImpl, …
  *
  * Ai tiêu thụ:
- * {@code ExamControlServlet}, {@code ExamStaffShiftSupport}, {@code ProcedureServlet},
- * {@code AllocationServlet}, {@code ExaminerAllocationServlet}, {@code ExamSelectServlet}.
+ * ExamControlServlet, ExamStaffShiftSupport, ProcedureServlet,
+ * AllocationServlet, ExaminerAllocationServlet, ExamSelectServlet.
  *
  * Trang / JSP:
- * Không bind type wrapper; message thường thành {@code errorMsg} / {@code alertMsg} trên request/session.
+ * Không bind type wrapper; message thường thành errorMsg / alertMsg trên request/session.
  * @param <T> kiểu payload khi thành công (hoặc failure kèm data)
  */
 public final class ServiceResult<T> {
@@ -32,7 +32,7 @@ public final class ServiceResult<T> {
     private final T data;
 
     /**
-     * Khởi tạo nội bộ — dùng các factory {@code ok}/{@code fail}.
+     * Khởi tạo nội bộ — dùng các factory ok/fail.
      * @param success   kết quả nghiệp vụ
      * @param errorType loại lỗi (null khi thành công)
      * @param message   thông điệp hiển thị / log
@@ -78,7 +78,7 @@ public final class ServiceResult<T> {
 
     /**
      * Kết quả thất bại với loại lỗi và thông điệp, không data.
-     * @param type    {@link ErrorType} phân loại xử lý UI
+     * @param type    ErrorType phân loại xử lý UI
      * @param message mô tả lỗi
      * @param <T>     kiểu payload
      * @return instance fail

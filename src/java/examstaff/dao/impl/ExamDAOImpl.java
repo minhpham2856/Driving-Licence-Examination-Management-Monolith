@@ -11,20 +11,20 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * Triển khai JDBC của {@link ExamDAO} — đọc và cập nhật trạng thái kỳ thi trên bảng {@code Exam}.
+ * Triển khai JDBC của ExamDAO — đọc và cập nhật trạng thái kỳ thi trên bảng Exam.
  *
  * SQL tóm tắt kỳ:
- * Dùng chung {@link examstaff.dao.Db2ExamSummarySql#EXAM_SUMMARY_SELECT} với {@code ExamViewDAOImpl}
- * để cột map {@code ExamSummaryDTO} không lệch. {@link #getById} chỉ thêm {@code WHERE e.ExamId = ?}.
+ * Dùng chung examstaff.dao.Db2ExamSummarySql.EXAM_SUMMARY_SELECT với ExamViewDAOImpl
+ * để cột map ExamSummaryDTO không lệch. getById chỉ thêm WHERE e.ExamId = ?.
  *
  * Status trên DB vs Call Board:
- * {@link #updateStatus} ghi {@code Exam.Status} (Chưa diễn ra / Đang diễn ra / …).
- * Pause gọi số runtime nằm trên {@code CallBoardState.examPaused} — không qua class này.
+ * updateStatus ghi Exam.Status (Chưa diễn ra / Đang diễn ra / …).
+ * Pause gọi số runtime nằm trên CallBoardState.examPaused — không qua class này.
  */
 public class ExamDAOImpl extends DBContext implements ExamDAO {
 
     /**
-     * Lấy một kỳ thi theo mã từ bảng {@code Exam} (JOIN {@code Licence} để lấy hạng GPLX).
+     * Lấy một kỳ thi theo mã từ bảng Exam (JOIN Licence để lấy hạng GPLX).
      */
     @Override
     public ExamSummaryDTO getById(int id) {
@@ -46,7 +46,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
     }
 
     /**
-     * Cập nhật trường {@code Status} của kỳ thi trên bảng {@code Exam}.
+     * Cập nhật trường Status của kỳ thi trên bảng Exam.
      */
     @Override
     public boolean updateStatus(int examId, String status) {
@@ -62,7 +62,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
     }
 
     /**
-     * Kết thúc kỳ thi: ghi {@code Status} và {@code EndTime} vào bảng {@code Exam}.
+     * Kết thúc kỳ thi: ghi Status và EndTime vào bảng Exam.
      */
     @Override
     public boolean finishExam(int examId, String status, Timestamp endTime) {

@@ -3,11 +3,11 @@ package examstaff.dao;
 import shared.model.Payment;
 
 /**
- * Cổng truy cập thanh toán lệ phí ({@link Payment}).
+ * Cổng truy cập thanh toán lệ phí (Payment).
  *
  * Vai trò trong kiến trúc:
- * Ghi và đọc giao dịch thanh toán gắn {@code ExamEnrollment}. Thường được gọi
- * từ luồng thủ tục ({@link ExamRegistrationDAO#updatePayment} có thể ủy quyền impl riêng).
+ * Ghi và đọc giao dịch thanh toán gắn ExamEnrollment. Thường được gọi
+ * từ luồng thủ tục (ExamRegistrationDAO.updatePayment có thể ủy quyền impl riêng).
  * <pre>
  *   ProcedureServlet / ExamRegistrationDAOImpl
  *            │  insert / getByCandidateId
@@ -19,39 +19,39 @@ import shared.model.Payment;
  * </pre>
  *
  * Hợp đồng:
- * - {@link #insert} — bắt buộc {@code ExamEnrollmentId} hợp lệ; trả {@code PaymentId} sinh ra
- * - {@link #getByCandidateId} — TOP 1 payment mới nhất của thí sinh
- * - {@link #resolveEnrollmentId} — tra {@code ExamEnrollmentId} mới nhất (helper trước INSERT)
+ * - insert — bắt buộc ExamEnrollmentId hợp lệ; trả PaymentId sinh ra
+ * - getByCandidateId — TOP 1 payment mới nhất của thí sinh
+ * - resolveEnrollmentId — tra ExamEnrollmentId mới nhất (helper trước INSERT)
  *
  * Triển khai mặc định:
- * {@link examstaff.dao.impl.PaymentDAOImpl}.
+ * examstaff.dao.impl.PaymentDAOImpl.
  */
 public interface PaymentDAO {
 
     /**
      * Thêm bản ghi thanh toán mới.
-     * Thực thi INSERT vào bảng {@code Payment} với PaymentStatus, PaymentMethod,
+     * Thực thi INSERT vào bảng Payment với PaymentStatus, PaymentMethod,
      * TransactionReference, TotalAmount, PaidAt, ExamEnrollmentId.
-     * @param payment entity thanh toán; cần có {@code ExamEnrollmentId} hợp lệ
-     * @return {@code true} nếu INSERT thành công; {@code false} nếu thất bại
+     * @param payment entity thanh toán; cần có ExamEnrollmentId hợp lệ
+     * @return true nếu INSERT thành công; false nếu thất bại
      */
     boolean insert(Payment payment);
 
     /**
      * Lấy thanh toán mới nhất theo mã thí sinh.
-     * Thực thi SELECT TOP 1 trên {@code Payment} INNER JOIN {@code ExamEnrollment}
-     * theo {@code CandidateId}, ưu tiên bản ghi mới nhất.
-     * @param candidateId mã thí sinh ({@code Candidate.CandidateId})
-     * @return entity {@link Payment} nếu tìm thấy; {@code null} nếu thí sinh chưa có thanh toán
+     * Thực thi SELECT TOP 1 trên Payment INNER JOIN ExamEnrollment
+     * theo CandidateId, ưu tiên bản ghi mới nhất.
+     * @param candidateId mã thí sinh (Candidate.CandidateId)
+     * @return entity Payment nếu tìm thấy; null nếu thí sinh chưa có thanh toán
      */
     Payment getByCandidateId(int candidateId);
 
     /**
-     * Tra mã ghi danh ({@code ExamEnrollmentId}) mới nhất của thí sinh.
-     * Thực thi SELECT TOP 1 {@code ExamEnrollmentId} FROM {@code ExamEnrollment}
-     * WHERE {@code CandidateId = ?}.
+     * Tra mã ghi danh (ExamEnrollmentId) mới nhất của thí sinh.
+     * Thực thi SELECT TOP 1 ExamEnrollmentId FROM ExamEnrollment
+     * WHERE CandidateId = ?.
      * @param candidateId mã thí sinh cần tra ghi danh
-     * @return mã {@code ExamEnrollmentId} mới nhất; {@code -1} nếu không có ghi danh
+     * @return mã ExamEnrollmentId mới nhất; -1 nếu không có ghi danh
      */
     int resolveEnrollmentId(int candidateId);
 }

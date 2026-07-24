@@ -8,8 +8,8 @@ package examstaff.dto;
  * (allocate một / hàng loạt).
  *
  * Ai tạo / tiêu thụ:
- * {@code AllocationActionServiceImpl}, {@code ExaminerAllocationServiceImpl}
- * → thường bọc {@link ServiceResult} → {@code AllocationServlet} flash + PRG.
+ * AllocationActionServiceImpl, ExaminerAllocationServiceImpl
+ * → thường bọc ServiceResult → AllocationServlet flash + PRG.
  */
 public class AllocationActionResultDTO {
 
@@ -93,7 +93,7 @@ public class AllocationActionResultDTO {
 
     /**
      * Có đủ action + details để servlet ghi nhật ký audit.
-     * @return true khi cả {@code auditAction} và {@code auditDetails} khác null
+     * @return true khi cả auditAction và auditDetails khác null
      */
     public boolean hasAuditLog() {
         return auditAction != null && auditDetails != null;

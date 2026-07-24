@@ -14,33 +14,33 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Triển khai JDBC của {@link PaymentDAO} — INSERT/SELECT trên bảng {@code Payment}.
+ * Triển khai JDBC của PaymentDAO — INSERT/SELECT trên bảng Payment.
  *
  * INSERT payment:
- * {@link #insert} ghi {@code PaymentStatus} (mặc định {@code HOAN_TAT}), {@code PaymentMethod},
- * {@code TransactionReference}, {@code TotalAmount}, {@code PaidAt = GETDATE()},
- * {@code ExamEnrollmentId}. Trả {@code true} khi lấy được {@code PaymentId} sinh ra
- * ({@code RETURN_GENERATED_KEYS}).
+ * insert ghi PaymentStatus (mặc định HOAN_TAT), PaymentMethod,
+ * TransactionReference, TotalAmount, PaidAt = GETDATE(),
+ * ExamEnrollmentId. Trả true khi lấy được PaymentId sinh ra
+ * (RETURN_GENERATED_KEYS).
  *
  * Đọc theo thí sinh:
- * {@link #getByCandidateId} — TOP 1 qua JOIN {@code ExamEnrollment}.
- * {@link #resolveEnrollmentId} — helper tra enrollment mới nhất trước INSERT;
- * trả {@code -1} nếu thí sinh chưa ghi danh.
+ * getByCandidateId — TOP 1 qua JOIN ExamEnrollment.
+ * resolveEnrollmentId — helper tra enrollment mới nhất trước INSERT;
+ * trả -1 nếu thí sinh chưa ghi danh.
  *
  * Quan hệ ExamRegistrationDAO:
- * {@code ExamRegistrationDAOImpl#updatePayment} có thể tự INSERT/DELETE payment;
- * class này dùng khi cần thao tác trực tiếp trên entity {@link Payment}.
+ * ExamRegistrationDAOImpl#updatePayment có thể tự INSERT/DELETE payment;
+ * class này dùng khi cần thao tác trực tiếp trên entity Payment.
  */
 public class PaymentDAOImpl extends DBContext implements PaymentDAO {
 
     private static final Logger LOG = Logger.getLogger(PaymentDAOImpl.class.getName());
 
     /**
-     * Thêm bản ghi thanh toán mới vào bảng {@code Payment}.
-     * Ghi {@code PaymentStatus}, {@code PaymentMethod}, {@code TransactionReference},
-     * {@code TotalAmount}, {@code PaidAt} (GETDATE), {@code ExamEnrollmentId}.
-     * @param payment entity thanh toán (bắt buộc có {@code ExamEnrollmentId} hợp lệ)
-     * @return {@code true} nếu INSERT thành công và lấy được {@code PaymentId} sinh ra
+     * Thêm bản ghi thanh toán mới vào bảng Payment.
+     * Ghi PaymentStatus, PaymentMethod, TransactionReference,
+     * TotalAmount, PaidAt (GETDATE), ExamEnrollmentId.
+     * @param payment entity thanh toán (bắt buộc có ExamEnrollmentId hợp lệ)
+     * @return true nếu INSERT thành công và lấy được PaymentId sinh ra
      */
     @Override
     public boolean insert(Payment payment) {
@@ -82,9 +82,9 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
     }
 
     /**
-     * Lấy thanh toán mới nhất của thí sinh từ {@code Payment} JOIN {@code ExamEnrollment}.
-     * @param candidateId mã thí sinh ({@code CandidateId})
-     * @return entity {@link Payment} hoặc {@code null} nếu không có bản ghi
+     * Lấy thanh toán mới nhất của thí sinh từ Payment JOIN ExamEnrollment.
+     * @param candidateId mã thí sinh (CandidateId)
+     * @return entity Payment hoặc null nếu không có bản ghi
      */
     @Override
     public Payment getByCandidateId(int candidateId) {
@@ -123,9 +123,9 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
     }
 
     /**
-     * Tra {@code ExamEnrollmentId} mới nhất của thí sinh từ bảng {@code ExamEnrollment}.
+     * Tra ExamEnrollmentId mới nhất của thí sinh từ bảng ExamEnrollment.
      * @param candidateId mã thí sinh
-     * @return mã ghi danh mới nhất, hoặc {@code -1} nếu không có
+     * @return mã ghi danh mới nhất, hoặc -1 nếu không có
      */
     @Override
     public int resolveEnrollmentId(int candidateId) {

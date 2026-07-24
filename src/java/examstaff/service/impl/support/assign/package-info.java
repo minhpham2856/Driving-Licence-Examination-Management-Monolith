@@ -13,13 +13,13 @@
  * </pre>
  *
  * Vai trò từng lớp:
- * - {@link examstaff.service.impl.support.assign.ExaminerAssignmentRules} — nhận diện LT/TH,
+ * - examstaff.service.impl.support.assign.ExaminerAssignmentRules — nhận diện LT/TH,
  *       lọc phòng/sân đã có SHV, kiểm tra coverage trước khi bắt đầu kỳ
- * - {@link examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl} — CRUD phân công,
+ * - examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl — CRUD phân công,
  *       auto-allocate phòng LT / sân TH (cân bằng tải, chỉ khu đã staffed)
- * - {@link examstaff.service.impl.support.assign.ExaminerAllocationDeskServiceImpl} — dựng
- *       {@code ExaminerAllocationViewDTO}, tách available/busy SHV, gán·gỡ kèm audit
- * <p>Được {@code support.allocation} và {@code AllocationActionServiceImpl} gọi để biết phòng/sân
+ * - examstaff.service.impl.support.assign.ExaminerAllocationDeskServiceImpl — dựng
+ *       ExaminerAllocationViewDTO, tách available/busy SHV, gán·gỡ kèm audit
+ * <p>Được support.allocation và AllocationActionServiceImpl gọi để biết phòng/sân
  * nào đủ điều kiện gán thí sinh (chỉ khu vực đã có sát hạch viên).
  */
 package examstaff.service.impl.support.assign;

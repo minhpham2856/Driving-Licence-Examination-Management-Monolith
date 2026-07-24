@@ -12,7 +12,7 @@ import java.util.List;
  * Mang số đếm từng stage, danh sách thí sinh stage hiện tại, phân trang và hit tìm kiếm tổng quan.
  *
  * Ai tạo / tiêu thụ:
- * {@code AllocationStageViewServiceImpl} → {@code AllocationServlet} → các JSP allocation.
+ * AllocationStageViewServiceImpl → AllocationServlet → các JSP allocation.
  */
 public class AllocationStageViewDTO {
 
