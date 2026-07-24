@@ -167,56 +167,6 @@
                     </div>
                 </section>
 
-                <%-- Card 2: Danger Zone / Deactivate Account --%>
-                <section class="p-form-card p-form-card--danger" aria-label="Vô hiệu hóa tài khoản">
-                    <div class="p-form-header">
-                        <h2 class="p-form-title">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Vô hiệu hóa tài khoản
-                        </h2>
-                    </div>
-
-                    <div class="p-form-body">
-                        <%-- Warning Banner --%>
-                        <div class="exam-details-rules-banner" style="margin-top: 0; margin-bottom: 20px; background-color: #fff5f5; border-left-color: #ef4444;">
-                            <div class="rules-banner__icon" style="color: #dc2626;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                    <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <div class="rules-banner__content">
-                                <span class="rules-banner__title" style="color: #b91c1c;">Hành động này không thể hoàn tác</span>
-                                <p class="rules-banner__desc" style="color: #dc2626;">
-                                    Tài khoản sẽ bị vô hiệu hóa và bạn không thể đăng nhập lại. Hồ sơ cá nhân, tài liệu (CCCD, giấy khám sức khỏe), đăng ký dự thi và lịch sử điểm vẫn được lưu trên hệ thống theo quy định Ban quản lý. Muốn khôi phục quyền truy cập, vui lòng liên hệ Ban quản lý.
-                                </p>
-                            </div>
-                        </div>
-
-                        <form action="${pageContext.request.contextPath}/registrant/settings" method="post" id="settings-deactivate-form" onsubmit="return confirm('Bạn có chắc muốn vô hiệu hóa tài khoản? Sau khi vô hiệu hóa bạn sẽ không đăng nhập được. Dữ liệu hồ sơ vẫn được lưu trên hệ thống.');">
-                            <input type="hidden" name="formId" value="deactivate">
-                            
-                            <%-- Confirmation Checkbox --%>
-                            <label class="danger-zone-checkbox-container">
-                                <input type="checkbox" id="confirmDeactivate" name="confirmDeactivate" onchange="document.getElementById('btn-submit-deactivate').disabled = !this.checked;">
-                                <span>Tôi xác nhận đã hiểu rõ hệ quả và đồng ý vô hiệu hóa tài khoản này.</span>
-                            </label>
-
-                            <%-- Submit Button --%>
-                            <button type="submit" id="btn-submit-deactivate" class="p-btn-danger" disabled>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Xác nhận vô hiệu hóa tài khoản
-                            </button>
-
-                        </form>
-                    </div>
-                </section>
-
             </div>
 
 
