@@ -15,7 +15,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Hiển thị tài liệu theo ExamRegistration.RegistrationStatus (nguồn chân lý); Notes chỉ marker tệp. A1/A/B1: 4 giấy bắt buộc. */
+/**
+ * Logic hiển thị và tóm tắt trạng thái tài liệu theo {@code ExamRegistration.RegistrationStatus} (nguồn chân lý).
+ * <p>
+ * {@code Document.Notes} chỉ chứa marker tệp ({@code #PENDING#}, {@code #APPROVED#}, {@code #LICENCE#});
+ * hạng A1/A/B1 cần đủ 4 giấy bắt buộc. Dùng trên upload, profile, track-profile và dashboard.
+ */
 public final class RegistrantDocumentStatusHelper {
 
     public static final String[] REQUIRED_TYPES = {

@@ -10,7 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Tiện ích tài liệu hồ sơ — markers Notes (#PROFILE_DOC#, #SUPPLEMENT_DOC#, #SUPPLEMENT_ER#id#, #PENDING#/#APPROVED#/#LICENCE#) cho workflow chính và bổ sung. */
+/**
+ * Tiện ích workflow tài liệu hồ sơ thí sinh — marker Notes và validate upload.
+ * <p>
+ * Hằng số {@code #PROFILE_DOC#}, {@code #SUPPLEMENT_DOC#}, {@code #LICENCE_DOC#}, {@code #SUPPLEMENT_ER#id#}
+ * trên {@code ExamRegistration}/{@code Document}; giới hạn 5MB và loại bắt buộc Portrait/IdFront/IdBack/HealthCertificate/Other.
+ */
 public final class RegistrantDocumentHelper {
 
     // --- Workflow markers trên ExamRegistration / Document.Notes ---

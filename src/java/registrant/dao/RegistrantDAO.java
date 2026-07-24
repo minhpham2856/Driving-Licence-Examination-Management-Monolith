@@ -13,11 +13,40 @@ import java.util.Map;
 /**
  * Tập trung các truy vấn phức tạp phục vụ cổng thí sinh (Registrant portal).
  * Tách riêng để không làm phình các dao dùng chung với staff/examiner.
+ * <p>
+ * <b>Cách tìm nhanh:</b> Ctrl+F {@code REGION:} hoặc nhảy theo <b>LOC index</b> bên dưới
+ * (số dòng ~ gần đúng — cập nhật khi sửa lớn). Impl cùng thứ tự:
+ * {@link registrant.dao.impl.RegistrantDAOImpl}.
+ * <p>
+ * <b>LOC index (interface):</b>
+ * <ul>
+ *   <li><b>~L35</b> — Hạng GPLX / resolve LicenceId</li>
+ *   <li><b>~L48</b> — Ngày thi dự kiến (ExamDates) &amp; nguyện vọng</li>
+ *   <li><b>~L71</b> — Danh sách đăng ký thi</li>
+ *   <li><b>~L84</b> — Dashboard (stats / upcoming / activity / daysUntil)</li>
+ *   <li><b>~L103</b> — Lịch thi &amp; kết quả (my-exams)</li>
+ *   <li><b>~L113</b> — Hồ sơ tài liệu (#PROFILE_DOC# …)</li>
+ *   <li><b>~L147</b> — Theo dõi hồ sơ (track-profile)</li>
+ * </ul>
  */
 public interface RegistrantDAO {
 
+    // =========================================================================
+    // REGION: Hạng GPLX / resolve LicenceId  (~L35)
+    // =========================================================================
+
     /** Liệt kê hạng GPLX đang mở đăng ký cho wizard. */
     List<RegistrantLicenceOption> listOpenLicenceOptions();
+
+    /** Đổi mã hạng UI sang LicenceId trong DB. */
+    int resolveLicenceIdByUiCode(String uiLicenceCode);
+
+    /** Lấy mã hạng GPLX mới nhất gắn với hồ sơ. */
+    String resolveLatestLicenceClassByProfileId(int profileId);
+
+    // =========================================================================
+    // REGION: Ngày thi dự kiến (ExamDates) & nguyện vọng (RegistrationDates)  (~L48)
+    // =========================================================================
 
     /**
      * Ngày thi dự kiến (ExamDates) theo hạng — managing staff tạo; thí sinh chọn trên wizard đăng ký.
@@ -38,6 +67,10 @@ public interface RegistrantDAO {
     /** True nếu hồ sơ đã có nguyện vọng ngày thi active cho hạng (LicenceId) này. */
     boolean hasActivePreferredExamDate(int profileId, int licenceId);
 
+    // =========================================================================
+    // REGION: Danh sách đăng ký thi (dashboard / hồ sơ)  (~L71)
+    // =========================================================================
+
     /** Danh sách đăng ký thi (nguyện vọng + chính thức) theo UserId. */
     List<RegistrantRegisteredExamRow> listRegisteredExamsByUserId(int userId, int limit);
 
@@ -46,6 +79,10 @@ public interface RegistrantDAO {
 
     /** Đăng ký ca thi còn hiệu lực (loại trừ từ chối / hủy) - hiển thị hồ sơ đa hạng. */
     List<RegistrantRegisteredExamRow> listActiveExamRegistrationsByProfileId(int profileId, int limit);
+
+    // =========================================================================
+    // REGION: Dashboard — stats, upcoming, activity, daysUntil  (~L84)
+    // =========================================================================
 
     /** Thống kê dashboard: số đăng ký, kết quả, trạng thái hồ sơ. */
     Map<String, Object> loadDashboardStats(int userId, int profileId);
@@ -59,20 +96,22 @@ public interface RegistrantDAO {
     /** Hoạt động gần đây trên hồ sơ để hiển thị dashboard. */
     List<RegistrantDashboardActivity> listRecentActivities(int profileId, int limit);
 
+    /** Số ngày còn lại tới ngày thi (>= 0). Trả về null nếu không có kỳ thi sắp tới. */
+    Integer daysUntil(Date examDate);
+
+    // =========================================================================
+    // REGION: Lịch thi & kết quả (my-exams)  (~L103)
+    // =========================================================================
+
     /** Danh sách ca của tôi kèm điểm và cờ thanh toán. */
     List<RegistrantMyExamRow> listMyExamsByUserId(int userId);
 
     /** Chi tiết một enrollment/candidate thuộc user. */
     RegistrantMyExamRow findMyExamByCandidateId(int userId, int candidateId);
 
-    /** Tổng hợp log theo dõi hồ sơ từ audit/đăng ký. */
-    List<RegistrantTrackingLog> buildProfileTrackingLogs(int profileId, int userId);
-
-    /** Đổi mã hạng UI sang LicenceId trong DB. */
-    int resolveLicenceIdByUiCode(String uiLicenceCode);
-
-    /** Lấy mã hạng GPLX mới nhất gắn với hồ sơ. */
-    String resolveLatestLicenceClassByProfileId(int profileId);
+    // =========================================================================
+    // REGION: Hồ sơ tài liệu — ExamRegistration workflow (#PROFILE_DOC# …)  (~L113)
+    // =========================================================================
 
     /** Trạng thái hồ sơ gốc (4 giấy bắt buộc) - bỏ qua dòng {@code #SUPPLEMENT_DOC#} / {@code #LICENCE_DOC#}. */
     String findProfileDocumentRegistrationStatus(int profileId);
@@ -81,7 +120,7 @@ public interface RegistrantDAO {
      * Các mã hạng UI (A1/A/B1/…) đã được ban quản lý duyệt hồ sơ kèm hạng đó
      * (ER Approved: #PROFILE_DOC#, #LICENCE_DOC# hoặc #SUPPLEMENT_DOC#).
      */
-    java.util.List<String> listApprovedDocumentLicenceCodes(int profileId);
+    List<String> listApprovedDocumentLicenceCodes(int profileId);
 
     /** Có request hồ sơ bổ sung / xin duyệt hạng đang {@code Pending} trên ExamRegistration. */
     boolean hasOpenSupplementPending(int profileId);
@@ -104,6 +143,10 @@ public interface RegistrantDAO {
      */
     boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId);
 
-    /** Số ngày còn lại tới ngày thi (>= 0). Trả về null nếu không có kỳ thi sắp tới. */
-    Integer daysUntil(Date examDate);
+    // =========================================================================
+    // REGION: Theo dõi hồ sơ (track-profile)  (~L147)
+    // =========================================================================
+
+    /** Tổng hợp log theo dõi hồ sơ từ audit/đăng ký. */
+    List<RegistrantTrackingLog> buildProfileTrackingLogs(int profileId, int userId);
 }

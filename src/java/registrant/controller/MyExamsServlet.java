@@ -11,13 +11,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Danh sách ca thi của tôi — {@code GET /registrant/my-exams}.
+ * Trang lịch thi và kết quả — {@code GET /registrant/my-exams} → {@code my-exams.jsp}.
  * <p>
- * Join Profile → Candidate (CCCD) → ExamEnrollment → Exam + Payment
- * → list {@code myExamList}, điểm/SBD (khi staff đã tạo ngày thi).
- * Flash {@code success=registered} = vừa chọn RegistrationDates (chưa có SBD chính thức).
- * <p>
- * Registrant không gửi yêu cầu hủy lịch thi từ portal.
+ * Luồng: auth → {@link RegistrantMyExamsService#copyMyExamsToRequest} (tham số {@code examId} chọn ca chi tiết)
+ * → forward. Gắn {@code myExamList}, thống kê ca, bộ lọc và {@code selectedExam}/{@code showExamDetails}.
+ * Query {@code success=registered} hiển thị flash sau đăng ký nguyện vọng ngày thi (chưa có SBD chính thức).
  */
 @WebServlet("/registrant/my-exams")
 public class MyExamsServlet extends HttpServlet {

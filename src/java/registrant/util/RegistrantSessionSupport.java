@@ -3,7 +3,11 @@ package registrant.util;
 import auth.dto.UserDTO;
 import shared.model.Profile;
 
-/** Session helpers for registrant portal (UserDTO + profile context). */
+/**
+ * Tiện ích session cho cổng thí sinh — đọc/ghi {@code ProfileId} trên {@link auth.dto.UserDTO}.
+ * <p>
+ * Dùng sau khi tạo hoặc cập nhật hồ sơ để giữ {@code UserDTO} và {@code Profile} đồng bộ trong session đăng nhập.
+ */
 public final class RegistrantSessionSupport {
 
     private RegistrantSessionSupport() {
