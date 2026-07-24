@@ -8,29 +8,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Hỗ trợ thao tác {@code ExamEnrollmentSection} trên DLEM_DB_2 — <b>Approach B</b>.
+ * Hỗ trợ thao tác ExamEnrollmentSection trên DLEM_DB_2 — <b>Approach B</b>.
  *
  * Vì sao tách Theory / Practical (không CSV splice)?:
- * Trước đây helper nhận chuỗi CSV {@code sectionTypes} rồi ghép vào SQL → khó đọc,
- * dễ nhầm LT/TH. Hiện mỗi method có SQL đầy đủ + {@link Db2ExamSchemaSql#THEORY_SECTION_TYPES}
- * hoặc {@link Db2ExamSchemaSql#PRACTICAL_SECTION_TYPES} nhúng tường minh.
+ * Trước đây helper nhận chuỗi CSV sectionTypes rồi ghép vào SQL → khó đọc,
+ * dễ nhầm LT/TH. Hiện mỗi method có SQL đầy đủ + Db2ExamSchemaSql.THEORY_SECTION_TYPES
+ * hoặc Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES nhúng tường minh.
  *
  * Hai lớp bảng liên quan:
  * <pre>
- *   Exam ──&lt; ExamSection (SectionType = LT | TH | …)
- *   Candidate ──&lt; ExamEnrollment ──&lt; ExamEnrollmentSection
+ *   Exam ──< ExamSection (SectionType = LT | TH | …)
+ *   Candidate ──< ExamEnrollment ──< ExamEnrollmentSection
  *                                      ├── ExamSectionId
  *                                      ├── ExamAreaId   (phòng / sân đã phân)
  *                                      └── Status       (Pending / … / AwaitingSignature)
  * </pre>
  *
  * Nhóm API:
- * - <b>find*SectionId</b> — tra {@code ExamSectionId} theo kỳ hoặc theo enrollment
- * - <b>updateTheoryAllocation</b> — ghi phòng LT lên section + {@code ExamEnrollment.AllocatedExamAreaId}
+ * - <b>find*SectionId</b> — tra ExamSectionId theo kỳ hoặc theo enrollment
+ * - <b>updateTheoryAllocation</b> — ghi phòng LT lên section + ExamEnrollment.AllocatedExamAreaId
  * - <b>updatePracticalAllocation</b> — ghi sân TH chỉ trên section TH
- * - <b>resetTheoryStatus</b> — về {@code Pending} sau hủy đánh vắng
- * <p>Package-private: chỉ {@code ExamRegistrationDAOImpl} (và DAO cùng package) gọi.
- * Caller mở {@link Connection}; class này không quản lý transaction.
+ * - <b>resetTheoryStatus</b> — về Pending sau hủy đánh vắng
+ * <p>Package-private: chỉ ExamRegistrationDAOImpl (và DAO cùng package) gọi.
+ * Caller mở Connection; class này không quản lý transaction.
  */
 final class ExamEnrollmentSectionSupport {
 
@@ -38,12 +38,12 @@ final class ExamEnrollmentSectionSupport {
     }
 
     /**
-     * Tìm {@code ExamSectionId} phần lý thuyết của kỳ thi.
+     * Tìm ExamSectionId phần lý thuyết của kỳ thi.
      * <p>
      * Dùng khi cần biết section LT tồn tại trước khi tạo/cập nhật enrollment section.
      * @param conn   connection đang mở
      * @param examId mã kỳ thi
-     * @return ExamSectionId hoặc {@code null} nếu kỳ chưa có section LT
+     * @return ExamSectionId hoặc null nếu kỳ chưa có section LT
      */
     static Integer findTheorySectionId(Connection conn, int examId) throws SQLException {
         String sql = """
@@ -65,11 +65,11 @@ final class ExamEnrollmentSectionSupport {
     }
 
     /**
-     * Tìm {@code ExamSectionId} phần thực hành của kỳ thi
+     * Tìm ExamSectionId phần thực hành của kỳ thi
      * (sa hình / trên đường / Practical / TH…).
      * @param conn   connection đang mở
      * @param examId mã kỳ thi
-     * @return ExamSectionId hoặc {@code null}
+     * @return ExamSectionId hoặc null
      */
     static Integer findPracticalSectionId(Connection conn, int examId) throws SQLException {
         String sql = """
@@ -91,11 +91,11 @@ final class ExamEnrollmentSectionSupport {
     }
 
     /**
-     * Section LT đã gắn với một {@code ExamEnrollment}
-     * (qua {@code ExamEnrollmentSection} JOIN {@code ExamSection}).
+     * Section LT đã gắn với một ExamEnrollment
+     * (qua ExamEnrollmentSection JOIN ExamSection).
      * @param conn             connection đang mở
      * @param examEnrollmentId mã ghi danh
-     * @return ExamSectionId hoặc {@code null}
+     * @return ExamSectionId hoặc null
      */
     static Integer findTheorySectionIdForEnrollment(Connection conn, int examEnrollmentId)
             throws SQLException {
@@ -120,10 +120,10 @@ final class ExamEnrollmentSectionSupport {
     }
 
     /**
-     * Section TH đã gắn với một {@code ExamEnrollment}.
+     * Section TH đã gắn với một ExamEnrollment.
      * @param conn             connection đang mở
      * @param examEnrollmentId mã ghi danh
-     * @return ExamSectionId hoặc {@code null}
+     * @return ExamSectionId hoặc null
      */
     static Integer findPracticalSectionIdForEnrollment(Connection conn, int examEnrollmentId)
             throws SQLException {
@@ -150,11 +150,11 @@ final class ExamEnrollmentSectionSupport {
     /**
      * Phân phòng lý thuyết cho một thí sinh trong kỳ.
      * <p>
-     * <b>Bước 1:</b> UPDATE {@code ExamEnrollmentSection} (LT) — set {@code ExamAreaId},
-     * clear device, stamp {@code AllocatedAt}.<br>
-     * <b>Bước 2:</b> nếu bước 1 thành công, UPDATE {@code ExamEnrollment.AllocatedExamAreaId}
-     * (cột “phòng chính” dùng UI/legacy) và clear {@code ExamDeviceId}.
-     * @return {@code true} nếu có ít nhất một section LT được cập nhật
+     * <b>Bước 1:</b> UPDATE ExamEnrollmentSection (LT) — set ExamAreaId,
+     * clear device, stamp AllocatedAt.<br>
+     * <b>Bước 2:</b> nếu bước 1 thành công, UPDATE ExamEnrollment.AllocatedExamAreaId
+     * (cột “phòng chính” dùng UI/legacy) và clear ExamDeviceId.
+     * @return true nếu có ít nhất một section LT được cập nhật
      */
     static boolean updateTheoryAllocation(Connection conn, int candidateId, int examId, int areaId)
             throws SQLException {
@@ -188,9 +188,9 @@ final class ExamEnrollmentSectionSupport {
     }
 
     /**
-     * Phân khu vực thực hành: chỉ UPDATE section TH ({@code ExamAreaId}).
-     * Không đụng {@code ExamEnrollment.AllocatedExamAreaId} (cột đó dành phòng LT).
-     * @return {@code true} nếu có section TH được cập nhật
+     * Phân khu vực thực hành: chỉ UPDATE section TH (ExamAreaId).
+     * Không đụng ExamEnrollment.AllocatedExamAreaId (cột đó dành phòng LT).
+     * @return true nếu có section TH được cập nhật
      */
     static boolean updatePracticalAllocation(Connection conn, int candidateId, int examId, int areaId)
             throws SQLException {
@@ -212,7 +212,7 @@ final class ExamEnrollmentSectionSupport {
     }
 
     /**
-     * Reset {@code Status} phần lý thuyết về {@code Pending} và clear {@code CompletedAt}.
+     * Reset Status phần lý thuyết về Pending và clear CompletedAt.
      * Gọi sau khi hủy đánh dấu vắng — thí sinh quay lại hàng đợi thủ tục.
      * @param candidateId mã thí sinh (mọi enrollment LT của candidate)
      */

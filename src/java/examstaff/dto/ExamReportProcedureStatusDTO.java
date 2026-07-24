@@ -8,10 +8,10 @@ import java.util.List;
  * Thống kê trạng thái thủ tục cho báo cáo kỳ thi.
  *
  * Vai trò:
- * Đếm thiếu ảnh / đã xong / đang chờ thủ tục và liệt kê thí sinh tương ứng trên {@code report.jsp}.
+ * Đếm thiếu ảnh / đã xong / đang chờ thủ tục và liệt kê thí sinh tương ứng trên report.jsp.
  *
  * Ai tạo / tiêu thụ:
- * {@code ExamReportProcedureStatusServiceImpl} → {@code ReportServlet}.
+ * ExamReportProcedureStatusServiceImpl → ReportServlet.
  */
 public class ExamReportProcedureStatusDTO {
 

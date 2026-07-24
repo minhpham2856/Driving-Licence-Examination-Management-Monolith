@@ -12,24 +12,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Orchestrator trang gọi thí sinh: dựng {@link CandidateCallPageViewDTO} từ
- * {@link CandidateCallPageCommand}.
+ * Orchestrator trang gọi thí sinh: dựng CandidateCallPageViewDTO từ
+ * CandidateCallPageCommand.
  * <p>
  * Consolidator/servlet bind session + JSP; không chứa quy tắc thuần — ủy quyền workflow,
  * queue và exam query.
  *
- * Luồng {@link #preparePage}:
- * - Validate command; nhánh {@code startShift} → redirect resume ca
- * - Load {@code fullQueue} (refresh DB hoặc session)
- * - Chạy action qua {@link CandidateCallWorkflowServiceImpl#executeAction}
+ * Luồng preparePage:
+ * - Validate command; nhánh startShift → redirect resume ca
+ * - Load fullQueue (refresh DB hoặc session)
+ * - Chạy action qua CandidateCallWorkflowServiceImpl.executeAction
  * - Apply kết quả: reload queue, persist order, promote SBD kế
- * - {@link CandidateQueueServiceImpl#advanceCallingIfDone} + sync {@link CallBoardState}
+ * - CandidateQueueServiceImpl.advanceCallingIfDone + sync CallBoardState
  * - Bind view: alert, suspended list, board flags
  *
  * Phụ thuộc:
- * - {@link CandidateCallWorkflowServiceImpl} — dispatch gọi / vắng / pause / đóng ca
- * - {@link CandidateQueueServiceImpl} — refresh, filter, resolve/advance calling SBD
- * - {@link ExamStaffExamQueryServiceImpl} — danh sách kỳ thi cho refresh queue
+ * - CandidateCallWorkflowServiceImpl — dispatch gọi / vắng / pause / đóng ca
+ * - CandidateQueueServiceImpl — refresh, filter, resolve/advance calling SBD
+ * - ExamStaffExamQueryServiceImpl — danh sách kỳ thi cho refresh queue
  */
 public class CandidateCallPageServiceImpl {
 

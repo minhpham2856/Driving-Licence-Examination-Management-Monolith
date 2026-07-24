@@ -16,13 +16,13 @@ import examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl;
 import examstaff.service.impl.support.assign.ExaminerAllocationDeskServiceImpl;
 
 /**
- * Implementation {@link ExaminerAssignService}: facade phân công SHV vào khu vực thi.
+ * Implementation ExaminerAssignService: facade phân công SHV vào khu vực thi.
  *
  * Ủy quyền support services:
- * - {@link ExaminerAllocationServiceImpl} — truy vấn kỳ/khu vực/SHV,
- *       persistence slot ({@code assignExaminer(ExaminerSlotDTO)}, {@code removeAssignment})
- * - {@link ExaminerAllocationDeskServiceImpl} — desk API validate + {@link ServiceResult}
- *       ({@code buildAllocationView}, {@code assignExaminer(...)}, {@code removeExaminer})
+ * - ExaminerAllocationServiceImpl — truy vấn kỳ/khu vực/SHV,
+ *       persistence slot (assignExaminer(ExaminerSlotDTO), removeAssignment)
+ * - ExaminerAllocationDeskServiceImpl — desk API validate + ServiceResult
+ *       (buildAllocationView, assignExaminer(...), removeExaminer)
  * Desk service nhận reference allocation service để tái sử dụng query sau khi ghi.
  */
 public class ExaminerAssignServiceImpl implements ExaminerAssignService {
@@ -48,7 +48,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getExamById}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.getExamById.
      * @param examId mã kỳ thi
      * @return tóm tắt kỳ thi
      */
@@ -58,7 +58,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getAreaById}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.getAreaById.
      * @param id mã khu vực
      * @return khu vực
      */
@@ -68,7 +68,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getActiveExaminers}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.getActiveExaminers.
      * @return danh sách SHV active
      */
     @Override
@@ -77,7 +77,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getAvailableAreasForExam}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.getAvailableAreasForExam.
      * @param examId mã kỳ thi
      * @return khu vực khả dụng
      */
@@ -87,7 +87,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#getAssignmentsByExamId}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.getAssignmentsByExamId.
      * @param examId mã kỳ thi
      * @return danh sách slot
      */
@@ -97,9 +97,9 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#assignExaminer}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.assignExaminer.
      * @param slot thông tin slot
-     * @return {@code true} nếu thành công
+     * @return true nếu thành công
      */
     @Override
     public boolean assignExaminer(ExaminerSlotDTO slot) {
@@ -107,9 +107,9 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationServiceImpl#removeAssignment}.
+     * Ủy quyền sang ExaminerAllocationServiceImpl.removeAssignment.
      * @param slotKey khóa slot
-     * @return {@code true} nếu thành công
+     * @return true nếu thành công
      */
     @Override
     public boolean removeAssignment(String slotKey) {
@@ -117,7 +117,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationDeskServiceImpl#buildAllocationView}.
+     * Ủy quyền sang ExaminerAllocationDeskServiceImpl.buildAllocationView.
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param allExams       danh sách kỳ
@@ -130,7 +130,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Ủy quyền sang {@link ExaminerAllocationDeskServiceImpl#buildExaminerMap}.
+     * Ủy quyền sang ExaminerAllocationDeskServiceImpl.buildExaminerMap.
      * @return map userId → SHV
      */
     @Override
@@ -139,7 +139,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Phân công SHV qua desk rồi map kết quả → {@link ServiceResult}.
+     * Phân công SHV qua desk rồi map kết quả → ServiceResult.
      * @param targetExamId   mã kỳ đích
      * @param areaId         mã khu vực
      * @param examinerUserId mã user SHV
@@ -161,7 +161,7 @@ public class ExaminerAssignServiceImpl implements ExaminerAssignService {
     }
 
     /**
-     * Gỡ SHV qua desk rồi map kết quả → {@link ServiceResult}.
+     * Gỡ SHV qua desk rồi map kết quả → ServiceResult.
      * @param slotKey khóa slot
      * @return kết quả gỡ phân công
      */

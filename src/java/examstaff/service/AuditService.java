@@ -12,19 +12,19 @@ import java.util.List;
  * Facade nhật ký audit nhân viên kỳ thi: trang lọc, truy vấn, xuất file và ghi log hành động.
  *
  * Bốn nhóm chức năng:
- * - <b>Page</b> — {@code buildPage} ghép view lọc ngày + phân trang + KPI thủ tục
- * - <b>Query</b> — {@code countLogsByUserAndDate}, {@code listLogsByUserAndDatePaginated},
- *       {@code listLogsByUserAndDate}, {@code getStaffProcedureKpi}
- * - <b>Export</b> — {@code exportAuditLog} ghi nhật ký ra luồng (Excel/CSV)
- * - <b>Log</b> — {@code logAction} ghi hành động staff (có hoặc không {@code recordId})
- * Presentation gọi facade này thay vì truy cập trực tiếp {@code AuditLogDAO}.
+ * - <b>Page</b> — buildPage ghép view lọc ngày + phân trang + KPI thủ tục
+ * - <b>Query</b> — countLogsByUserAndDate, listLogsByUserAndDatePaginated,
+ *       listLogsByUserAndDate, getStaffProcedureKpi
+ * - <b>Export</b> — exportAuditLog ghi nhật ký ra luồng (Excel/CSV)
+ * - <b>Log</b> — logAction ghi hành động staff (có hoặc không recordId)
+ * Presentation gọi facade này thay vì truy cập trực tiếp AuditLogDAO.
  */
 public interface AuditService {
 
     /**
      * Ghép view trang nhật ký audit (lọc ngày, phân trang, KPI).
      * @param userId               mã nhân viên
-     * @param filterDate           ngày lọc ({@code yyyy-MM-dd} hoặc rỗng)
+     * @param filterDate           ngày lọc (yyyy-MM-dd hoặc rỗng)
      * @param page                 trang (1-based)
      * @param pageSize             số dòng mỗi trang
      * @param filterContextChanged có thay đổi bộ lọc (reset trang)

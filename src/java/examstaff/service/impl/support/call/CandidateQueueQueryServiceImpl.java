@@ -11,18 +11,18 @@ import java.util.List;
 /**
  * Đường đọc danh sách thí sinh kỳ thi cho UI gọi số / CallBoard / Public Call.
  * <p>
- * Wrap {@link ExamStaffCandidateViewDAO} + mapper; chuẩn hóa đường ảnh qua
- * {@link examstaff.service.impl.support.view.CandidatePhotoServiceImpl}.
+ * Wrap ExamStaffCandidateViewDAO + mapper; chuẩn hóa đường ảnh qua
+ * examstaff.service.impl.support.view.CandidatePhotoServiceImpl.
  * Presentation không gọi DAO trực tiếp.
  *
  * API đọc:
- * - {@link #listByExamId} — toàn bộ đăng ký một kỳ
- * - {@link #findByExamIdAndSbd} — tra cứu theo SBD
- * - {@link #normalizePhotoPaths} — chuẩn hóa {@code photoUrl} trên hàng đợi
+ * - listByExamId — toàn bộ đăng ký một kỳ
+ * - findByExamIdAndSbd — tra cứu theo SBD
+ * - normalizePhotoPaths — chuẩn hóa photoUrl trên hàng đợi
  *
  * Luồng dữ liệu:
- * DB view → {@link examstaff.util.ExamStaffCandidateMapper} → {@link ExamRegistrationDTO} →
- * {@link CandidateQueueServiceImpl#refreshQueue} / Public Call poll.
+ * DB view → examstaff.util.ExamStaffCandidateMapper → ExamRegistrationDTO →
+ * CandidateQueueServiceImpl.refreshQueue / Public Call poll.
  */
 public class CandidateQueueQueryServiceImpl {
 

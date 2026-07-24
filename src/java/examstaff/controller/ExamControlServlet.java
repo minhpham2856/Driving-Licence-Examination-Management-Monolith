@@ -26,17 +26,17 @@ import java.util.List;
  *
  * Vai trò:
  * Xử lý nút điều khiển kỳ thi trên dashboard/sidebar: bắt đầu, kết thúc, tạm dừng, tiếp tục ca.
- * Ghi DB qua {@link ExamControlService}, cập nhật runtime session + {@link examstaff.dao.CallBoardDAO},
+ * Ghi DB qua ExamControlService, cập nhật runtime session + examstaff.dao.CallBoardDAO,
  * ghi audit và flash message (PRG).
  *
  * Luồng GET/POST:
- * - Đọc {@code action} + examId + staffId
- * - {@code startExam | endExam | pauseExam | resumeExam} → {@code applyRuntime*}
- * - Audit log + set {@code examControlMsg} / {@code examControlError} trên session
- * - Redirect về trang gọi ({@code buildRedirect}) — GET ủy quyền POST
+ * - Đọc action + examId + staffId
+ * - startExam | endExam | pauseExam | resumeExam → applyRuntime*
+ * - Audit log + set examControlMsg / examControlError trên session
+ * - Redirect về trang gọi (buildRedirect) — GET ủy quyền POST
  *
  * Ai gọi:
- * Form/nút trên {@code dashboard.jsp}, sidebar exam staff; có thể gọi GET từ link điều khiển nhanh.
+ * Form/nút trên dashboard.jsp, sidebar exam staff; có thể gọi GET từ link điều khiển nhanh.
  */
 @WebServlet("/examstaff/exam-control")
 public class ExamControlServlet extends HttpServlet {
@@ -46,7 +46,7 @@ public class ExamControlServlet extends HttpServlet {
     private final StaffCallService staffCall = new StaffCallServiceImpl();
 
     /**
-     * POST: đọc {@code action} → gọi controlService → applyRuntime* → audit → flash → redirect.
+     * POST: đọc action → gọi controlService → applyRuntime* → audit → flash → redirect.
      * @throws ServletException không dùng
      * @throws IOException      lỗi redirect
      */
@@ -128,7 +128,7 @@ public class ExamControlServlet extends HttpServlet {
     }
 
     /**
-     * Xây URL redirect theo {@code redirect} param (examiner-allocation / report / dashboard).
+     * Xây URL redirect theo redirect param (examiner-allocation / report / dashboard).
      * @return URL tuyệt đối trong context
      */
     private String buildRedirect(HttpServletRequest request, int examId) {

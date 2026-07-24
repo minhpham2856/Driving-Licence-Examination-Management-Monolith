@@ -6,17 +6,17 @@ package examstaff.util;
  *
  * Vai trò trong luồng examstaff:
  * Khi staff thao tác (phân bổ, thu phí, gọi thí sinh, nhập điểm, …), BLL ghi audit với
- * action/details thô. Helper map sang tên bảng/entity ({@code Candidate}, {@code Payment},
- * {@code ExamScore}, …) và action chuẩn ({@code INSERT}/{@code UPDATE}/{@code ASSIGN}/…)
- * trước khi persist qua {@code AuditLogDAO}.
+ * action/details thô. Helper map sang tên bảng/entity (Candidate, Payment,
+ * ExamScore, …) và action chuẩn (INSERT/UPDATE/ASSIGN/…)
+ * trước khi persist qua AuditLogDAO.
  *
  * Cách hoạt động:
- * - {@link #resolveEntityName} — ưu tiên từ khóa trong action/details (ScoreEntry → ScoreEntryQueue,
- *       Payment → Payment, ALLOCATE → Candidate, …); mặc định {@code Candidate}.
- * - {@link #normalizeAction} — null → UPDATE; chứa IMPORT/INSERT/DELETE/EXPORT/ASSIGN → mã tương ứng.
+ * - resolveEntityName — ưu tiên từ khóa trong action/details (ScoreEntry → ScoreEntryQueue,
+ *       Payment → Payment, ALLOCATE → Candidate, …); mặc định Candidate.
+ * - normalizeAction — null → UPDATE; chứa IMPORT/INSERT/DELETE/EXPORT/ASSIGN → mã tương ứng.
  *
  * Ai gọi:
- * {@code StaffAuditLogServiceImpl}, {@code AuditLogDAOImpl} — mọi điểm ghi audit từ allocation,
+ * StaffAuditLogServiceImpl, AuditLogDAOImpl — mọi điểm ghi audit từ allocation,
  * procedure, call board, examiner assignment, exam control.
  */
 public final class AuditLogHelper {
@@ -30,19 +30,19 @@ public final class AuditLogHelper {
      * <p>
  *
      * Luồng ưu tiên (return ngay khi khớp):
-     * - ScoreEntry / hàng đợi → {@code ScoreEntryQueue}
-     * - ExamDevice / thiết bị → {@code ExamDevice}
-     * - IMPORT → {@code ExamRegistration}
-     * - PAYMENT → {@code Payment}
-     * - PERSON / PROFILE → {@code Profile}
-     * - EXAMINER / ASSIGN / REMOVE → {@code ExaminerSchedule}
-     * - Điểm / lý thuyết / thực hành / ExamScore → {@code ExamScore}
-     * - ExamRegistration / ALLOCATE → {@code Candidate}
-     * - EXAM (không dính các nhánh trên) → {@code Exam}
-     * - Mặc định → {@code Candidate}
+     * - ScoreEntry / hàng đợi → ScoreEntryQueue
+     * - ExamDevice / thiết bị → ExamDevice
+     * - IMPORT → ExamRegistration
+     * - PAYMENT → Payment
+     * - PERSON / PROFILE → Profile
+     * - EXAMINER / ASSIGN / REMOVE → ExaminerSchedule
+     * - Điểm / lý thuyết / thực hành / ExamScore → ExamScore
+     * - ExamRegistration / ALLOCATE → Candidate
+     * - EXAM (không dính các nhánh trên) → Exam
+     * - Mặc định → Candidate
      * @param action  mã/cụm action
      * @param details mô tả chi tiết
-     * @return tên entity (mặc định {@code Candidate})
+     * @return tên entity (mặc định Candidate)
      */
     public static String resolveEntityName(String action, String details) {
         // Bước 1: chuẩn hóa chữ hoa để so khớp từ khóa

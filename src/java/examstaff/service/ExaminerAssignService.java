@@ -15,26 +15,26 @@ import java.util.Map;
  * Facade phân công sát hạch viên (SHV) vào khu vực thi theo kỳ.
  *
  * Hai tầng API:
- * - <b>Persistence thô</b> — {@code assignExaminer(ExaminerSlotDTO)},
- *       {@code removeAssignment}, {@code getAssignmentsByExamId} (DAO trực tiếp)
- * - <b>Desk API</b> — {@code buildAllocationView}, {@code assignExaminer(...)},
- *       {@code removeExaminer} (validate + ghi + {@link ServiceResult} cho UI)
- * Truy vấn hỗ trợ: {@code getActiveExaminers}, {@code getAvailableAreasForExam},
- * {@code buildExaminerMap}, {@code getExamById}, {@code getAreaById}.
+ * - <b>Persistence thô</b> — assignExaminer(ExaminerSlotDTO),
+ *       removeAssignment, getAssignmentsByExamId (DAO trực tiếp)
+ * - <b>Desk API</b> — buildAllocationView, assignExaminer(...),
+ *       removeExaminer (validate + ghi + ServiceResult cho UI)
+ * Truy vấn hỗ trợ: getActiveExaminers, getAvailableAreasForExam,
+ * buildExaminerMap, getExamById, getAreaById.
  */
 public interface ExaminerAssignService {
 
     /**
      * Lấy tóm tắt kỳ thi theo mã.
      * @param examId mã kỳ thi
-     * @return {@link ExamSummaryDTO} hoặc {@code null}
+     * @return ExamSummaryDTO hoặc null
      */
     ExamSummaryDTO getExamById(int examId);
 
     /**
      * Lấy khu vực thi theo mã.
      * @param id mã khu vực
-     * @return khu vực hoặc {@code null}
+     * @return khu vực hoặc null
      */
     ExamArea getAreaById(int id);
 
@@ -61,14 +61,14 @@ public interface ExaminerAssignService {
     /**
      * Gán SHV vào slot (API persistence thô).
      * @param slot thông tin slot
-     * @return {@code true} nếu thành công
+     * @return true nếu thành công
      */
     boolean assignExaminer(ExaminerSlotDTO slot);
 
     /**
      * Gỡ phân công theo khóa slot.
      * @param slotKey khóa slot
-     * @return {@code true} nếu thành công
+     * @return true nếu thành công
      */
     boolean removeAssignment(String slotKey);
 
@@ -83,7 +83,7 @@ public interface ExaminerAssignService {
 
     /**
      * Map mã user → thông tin sát hạch viên (lookup UI).
-     * @return map userId → {@link UserDTO}
+     * @return map userId → UserDTO
      */
     Map<Integer, UserDTO> buildExaminerMap();
 
@@ -93,7 +93,7 @@ public interface ExaminerAssignService {
      * @param areaId         mã khu vực
      * @param examinerUserId mã user SHV
      * @param staffId        mã nhân viên thao tác
-     * @return {@link ServiceResult} kèm kết quả
+     * @return ServiceResult kèm kết quả
      */
     ServiceResult<ExaminerAllocationActionResultDTO> assignExaminer(int targetExamId, int areaId,
             int examinerUserId, int staffId);
@@ -101,7 +101,7 @@ public interface ExaminerAssignService {
     /**
      * Gỡ SHV qua desk API theo khóa slot.
      * @param slotKey khóa slot
-     * @return {@link ServiceResult} kèm kết quả
+     * @return ServiceResult kèm kết quả
      */
     ServiceResult<ExaminerAllocationActionResultDTO> removeExaminer(String slotKey);
 }

@@ -5,18 +5,18 @@ import examstaff.dto.ExamRegistrationDTO;
 /**
  * Suy luận bước thủ tục (1–3) và thông báo lỗi UI cho màn bàn thủ tục.
  * <p>
- * <b>Không</b> gọi DAO / HTTP — chỉ đọc {@link ExamRegistrationDTO} + cờ client
- * ({@code requestedStep}, {@code sbdChanged}, {@code hasValidPhoto}).
- * Servlet/consolidator gọi {@link #resolveStep} trước khi bind JSP.
+ * <b>Không</b> gọi DAO / HTTP — chỉ đọc ExamRegistrationDTO + cờ client
+ * (requestedStep, sbdChanged, hasValidPhoto).
+ * Servlet/consolidator gọi resolveStep trước khi bind JSP.
  *
- * Thứ tự ưu tiên bước ({@link #resolveStep}):
- * - {@code requestedStep} từ form (nếu có)
+ * Thứ tự ưu tiên bước (resolveStep):
+ * - requestedStep từ form (nếu có)
  * - Đổi SBD → ép bước 1 nếu chưa có step
  * - Suy từ profile: chưa có → 1; đã trả phí → 3; đã có ảnh → 2; còn lại → 1
  *
  * Thông báo validation:
- * - {@link #photoRequiredForStep3Message} — bắt buộc chụp ảnh trước bước thu phí
- * - {@link #paymentBlockedNoPhotoMessage} — chặn thu phí khi chưa có ảnh
+ * - photoRequiredForStep3Message — bắt buộc chụp ảnh trước bước thu phí
+ * - paymentBlockedNoPhotoMessage — chặn thu phí khi chưa có ảnh
  */
 public final class ProcedureStepHelper {
 
@@ -25,12 +25,12 @@ public final class ProcedureStepHelper {
     }
 
     /**
-     * Chọn bước hiện tại: ưu tiên {@code requestedStep}, rồi SBD đổi, rồi profile/ảnh/thanh toán.
+     * Chọn bước hiện tại: ưu tiên requestedStep, rồi SBD đổi, rồi profile/ảnh/thanh toán.
      * @param requestedStep bước client gửi (có thể blank)
      * @param sbdChanged    vừa đổi SBD → ép về bước 1 nếu chưa có step
      * @param profile       hồ sơ đăng ký (null = bước 1)
      * @param hasValidPhoto đã có ảnh chân dung hợp lệ
-     * @return mã bước {@code "1"}, {@code "2"} hoặc {@code "3"}
+     * @return mã bước "1", "2" hoặc "3"
      */
     public static String resolveStep(String requestedStep, boolean sbdChanged,
             ExamRegistrationDTO profile, boolean hasValidPhoto) {

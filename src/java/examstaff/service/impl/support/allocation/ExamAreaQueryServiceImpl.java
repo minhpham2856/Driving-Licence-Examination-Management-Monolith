@@ -13,16 +13,16 @@ import java.util.Set;
 /**
  * Truy vấn khu vực thi đã có sát hạch viên phân công — phục vụ dropdown phân phòng thí sinh.
  * <p>
- * Gọi {@link ExamAreaDAO} lấy phòng gắn kỳ; {@link ExaminerAssignmentDAO} lấy slot staffed;
- * lọc qua {@link ExaminerAssignmentRules}. Được {@code AllocationServiceImpl} ủy quyền.
+ * Gọi ExamAreaDAO lấy phòng gắn kỳ; ExaminerAssignmentDAO lấy slot staffed;
+ * lọc qua ExaminerAssignmentRules. Được AllocationServiceImpl ủy quyền.
  *
  * API:
- * - {@link #listStaffedTheoryRoomsForExam} — phòng LT gắn kỳ ∩ tập areaId đã có SHV
- * - {@link #listStaffedPracticalAreasForExam} — sân TH tương tự
- * - {@link #findById} — tra cứu một {@link shared.model.ExamArea}
+ * - listStaffedTheoryRoomsForExam — phòng LT gắn kỳ ∩ tập areaId đã có SHV
+ * - listStaffedPracticalAreasForExam — sân TH tương tự
+ * - findById — tra cứu một shared.model.ExamArea
  *
  * Quan hệ với assign:
- * Chỉ trả khu vực đã staffed — cùng quy tắc {@code ExaminerAllocationServiceImpl} dùng
+ * Chỉ trả khu vực đã staffed — cùng quy tắc ExaminerAllocationServiceImpl dùng
  * trước auto-allocate; staff phải vào “Phân bổ sát hạch viên” trước khi phân phòng thí sinh.
  */
 public class ExamAreaQueryServiceImpl {
@@ -86,7 +86,7 @@ public class ExamAreaQueryServiceImpl {
     /**
      * Tìm khu vực thi theo mã.
      * @param examAreaId mã khu vực
-     * @return khu vực, hoặc {@code null} nếu không có
+     * @return khu vực, hoặc null nếu không có
      */
     public ExamArea findById(int examAreaId) {
         return examAreaDAO.getById(examAreaId);

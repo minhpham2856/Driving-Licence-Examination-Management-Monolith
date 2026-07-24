@@ -12,18 +12,18 @@ import jakarta.servlet.http.HttpSession;
  * Không chứa nghiệp vụ.
  *
  * Vai trò:
- * Tập tiện ích HTTP dùng chung: singleton {@link CallBoardDAO}, header no-cache,
- * parse {@code examId}, flash PRG, redirect an toàn (Referer trong {@code /examstaff/}),
+ * Tập tiện ích HTTP dùng chung: singleton CallBoardDAO, header no-cache,
+ * parse examId, flash PRG, redirect an toàn (Referer trong /examstaff/),
  * thao tác query string. Tách khỏi servlet để tránh nhân đôi code.
  *
  * Luồng sử dụng:
- * - Servlet gọi {@code applyNoCacheHeaders} trước forward/redirect trang động
- * - Resolve examId: {@code parseExamIdParam} → {@code readSelectedExamId} → board active
- * - Sau POST: {@code consumeFlash} trên GET tiếp theo; {@code resolveSafeRedirect} cho PRG
+ * - Servlet gọi applyNoCacheHeaders trước forward/redirect trang động
+ * - Resolve examId: parseExamIdParam → readSelectedExamId → board active
+ * - Sau POST: consumeFlash trên GET tiếp theo; resolveSafeRedirect cho PRG
  *
  * Ai gọi:
- * Hầu hết servlet exam staff ({@link DashboardServlet}, {@link CandidateCallServlet},
- * {@link PublicCallStateServlet}, {@link AllocationServlet}, …) và {@link ExamStaffPageSupport}.
+ * Hầu hết servlet exam staff (DashboardServlet, CandidateCallServlet,
+ * PublicCallStateServlet, AllocationServlet, …) và ExamStaffPageSupport.
  */
 public final class ExamStaffHttpSupport {
 
@@ -34,23 +34,23 @@ public final class ExamStaffHttpSupport {
     /**
      * Lấy repository Call Board dùng chung toàn JVM.
      * <p>
-     * <b>Cách hoạt động:</b> luôn trả {@link InMemoryCallBoardDAO#getInstance()} —
-     * cùng một map {@code examId → CallBoardState} cho mọi request (staff + Public Call).
-     * Không đọc/ghi attribute trên {@code ServletContext} nữa (Approach 1).
+     * <b>Cách hoạt động:</b> luôn trả InMemoryCallBoardDAO.getInstance() —
+     * cùng một map examId → CallBoardState cho mọi request (staff + Public Call).
+     * Không đọc/ghi attribute trên ServletContext nữa (Approach 1).
      * <p>
-     * <b>Tham số {@code ctx}:</b> giữ chữ ký cũ để servlet hiện có
-     * ({@code callBoardDao(getServletContext())}) không phải sửa; giá trị {@code ctx}
-     * bị bỏ qua (kể cả {@code null}).
+     * <b>Tham số ctx:</b> giữ chữ ký cũ để servlet hiện có
+     * (callBoardDao(getServletContext())) không phải sửa; giá trị ctx
+     * bị bỏ qua (kể cả null).
      * @param ctx ServletContext (không dùng; giữ tương thích)
-     * @return singleton {@link CallBoardDAO}
+     * @return singleton CallBoardDAO
      */
     public static CallBoardDAO callBoardDao(ServletContext ctx) {
         return InMemoryCallBoardDAO.getInstance();
     }
 
     /**
-     * Overload không cần ServletContext — cùng instance với {@link #callBoardDao(ServletContext)}.
-     * @return singleton {@link CallBoardDAO}
+     * Overload không cần ServletContext — cùng instance với callBoardDao(ServletContext).
+     * @return singleton CallBoardDAO
      */
     public static CallBoardDAO callBoardDao() {
         return InMemoryCallBoardDAO.getInstance();
@@ -70,7 +70,7 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Đọc mã kỳ thi từ query/form param {@code examId}.
+     * Đọc mã kỳ thi từ query/form param examId.
      * @param request request HTTP
      * @return examId dương hoặc 0
      */
@@ -82,7 +82,7 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Đọc {@code selectedExamId} dương từ session request (không tạo session mới).
+     * Đọc selectedExamId dương từ session request (không tạo session mới).
      * @param request request HTTP
      * @return Integer dương hoặc null
      */
@@ -121,9 +121,9 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Redirect an toàn: ưu tiên Referer trong {@code /examstaff/}; không thì context + fallbackPath.
+     * Redirect an toàn: ưu tiên Referer trong /examstaff/; không thì context + fallbackPath.
      * @param request      request hiện tại
-     * @param fallbackPath đường dẫn tương đối (ví dụ {@code /examstaff/dashboard})
+     * @param fallbackPath đường dẫn tương đối (ví dụ /examstaff/dashboard)
      * @return URL tuyệt đối tương đối context hoặc Referer
      */
     public static String resolveSafeRedirect(HttpServletRequest request, String fallbackPath) {
@@ -142,9 +142,9 @@ public final class ExamStaffHttpSupport {
     }
 
     /**
-     * Cắt phần query string sau {@code ?}.
+     * Cắt phần query string sau ?.
      * @param url URL gốc
-     * @return phần trước {@code ?}, hoặc null nếu url null
+     * @return phần trước ?, hoặc null nếu url null
      */
     public static String stripQueryString(String url) {
         if (url == null) {

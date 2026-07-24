@@ -20,30 +20,30 @@ import java.io.IOException;
  * Chọn / đổi kỳ thi trên sidebar: processSelection → clear state → refresh queue → redirect PRG.
  *
  * Vai trò:
- * Xử lý picker kỳ thi trên sidebar: persist {@code selectedExamId}, xóa state bàn thủ tục khi đổi kỳ,
+ * Xử lý picker kỳ thi trên sidebar: persist selectedExamId, xóa state bàn thủ tục khi đổi kỳ,
  * refresh queue session và flash thông báo. Pattern PRG — không render JSP trực tiếp.
  *
  * Luồng GET/POST:
- * - UTF-8 + no-cache → {@code viewService.processSelection}
- * - Lỗi → flash {@code examSelectError} → redirect dashboard
- * - Thành công: {@code applyExamIdFromRequest} → clear procedure (nếu đổi kỳ) → refresh queue
- * - Flash {@code examSelectMsg} → redirect Referer/dashboard kèm {@code examId} + cache-buster
+ * - UTF-8 + no-cache → viewService.processSelection
+ * - Lỗi → flash examSelectError → redirect dashboard
+ * - Thành công: applyExamIdFromRequest → clear procedure (nếu đổi kỳ) → refresh queue
+ * - Flash examSelectMsg → redirect Referer/dashboard kèm examId + cache-buster
  *
  * Ai gọi:
- * Form GET/POST trên sidebar mọi trang exam staff (picker {@code select-exam}).
+ * Form GET/POST trên sidebar mọi trang exam staff (picker select-exam).
  */
 @WebServlet("/examstaff/select-exam")
 public class ExamSelectServlet extends HttpServlet {
 
     private final ExamStaffViewService viewService = new ExamStaffViewServiceImpl();
 
-    /** GET: ủy quyền {@link #handleSelect}. */
+    /** GET: ủy quyền handleSelect. */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         handleSelect(request, response);
     }
 
-    /** POST: ủy quyền {@link #handleSelect} (form chọn kỳ). */
+    /** POST: ủy quyền handleSelect (form chọn kỳ). */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         handleSelect(request, response);

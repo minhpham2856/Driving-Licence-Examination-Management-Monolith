@@ -9,8 +9,8 @@ import examstaff.dto.ExamRegistrationDTO;
  * Gom action (allocate / unallocate / …), regId, examId, profile và khu vực đích từ form allocation.
  *
  * Ai tạo / tiêu thụ:
- * {@code AllocationServlet} dựng request → {@code AllocationActionServiceImpl} xử lý →
- * {@link AllocationActionResultDTO} / {@link ServiceResult}.
+ * AllocationServlet dựng request → AllocationActionServiceImpl xử lý →
+ * AllocationActionResultDTO / ServiceResult.
  */
 public class AllocationCandidateActionRequest {
 

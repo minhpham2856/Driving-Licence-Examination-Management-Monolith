@@ -3,29 +3,29 @@ package examstaff.controller;
 import shared.Attributes;
 
 /**
- * Alias session keys exam staff — giá trị khớp {@link Attributes.ExamStaff} / JSP.
+ * Alias session keys exam staff — giá trị khớp Attributes.ExamStaff / JSP.
  * <p>
  *
  * Nhóm key (không có method nghiệp vụ; chỉ hằng số):
- * - <b>Kỳ thi đã chọn/load:</b> {@link #SELECTED_EXAM_ID}, {@link #LOADED_EXAM_ID},
- *       {@link #LAST_LOADED_EXAM_ID}
- * - <b>Hàng đợi thí sinh:</b> {@link #CANDIDATE_QUEUE}, {@link #ACTIVE_CALL_QUEUE},
- *       {@link #PROCEDURE_DONE_CANDIDATES}, {@link #CALL_QUEUE_ORDER},
- *       {@link #CALL_QUEUE_ORDER_EXAM_ID}
- * - <b>Gọi số / vắng:</b> {@link #CALLING_SBD}, {@link #LAST_SELECTED_SBD},
- *       {@link #PERMANENT_ABSENTS}
- * - <b>Bàn thủ tục:</b> {@link #PROCEDURE_STEP}, {@link #PROCEDURE_JUST_PAID},
- *       {@link #PROCEDURE_JUST_PAID_SBD}
- * - <b>Ca thi:</b> {@link #SHIFT_PAUSED}, {@link #SHIFT_ENDED}
- * - <b>Flash exam-control:</b> {@link #EXAM_CONTROL_MSG}, {@link #EXAM_CONTROL_ERROR}
- * - <b>Cờ boolean dạng chuỗi:</b> {@link #FLAG_TRUE} ({@code "true"})
+ * - <b>Kỳ thi đã chọn/load:</b> SELECTED_EXAM_ID, LOADED_EXAM_ID,
+ *       LAST_LOADED_EXAM_ID
+ * - <b>Hàng đợi thí sinh:</b> CANDIDATE_QUEUE, ACTIVE_CALL_QUEUE,
+ *       PROCEDURE_DONE_CANDIDATES, CALL_QUEUE_ORDER,
+ *       CALL_QUEUE_ORDER_EXAM_ID
+ * - <b>Gọi số / vắng:</b> CALLING_SBD, LAST_SELECTED_SBD,
+ *       PERMANENT_ABSENTS
+ * - <b>Bàn thủ tục:</b> PROCEDURE_STEP, PROCEDURE_JUST_PAID,
+ *       PROCEDURE_JUST_PAID_SBD
+ * - <b>Ca thi:</b> SHIFT_PAUSED, SHIFT_ENDED
+ * - <b>Flash exam-control:</b> EXAM_CONTROL_MSG, EXAM_CONTROL_ERROR
+ * - <b>Cờ boolean dạng chuỗi:</b> FLAG_TRUE ("true")
  *
  * Vai trò:
  * Tránh magic string khi đọc/ghi session exam staff; đồng bộ tên key với
- * {@link shared.Attributes.ExamStaff} và EL trên JSP.
+ * shared.Attributes.ExamStaff và EL trên JSP.
  *
  * Ai gọi:
- * {@link ExamStaffHttpSupport}, {@link ExamStaffPageBinder}, {@link ExamStaffPageSupport},
+ * ExamStaffHttpSupport, ExamStaffPageBinder, ExamStaffPageSupport,
  * servlet gọi số/thủ tục và JSP exam staff (qua cùng tên attribute).
  */
 public final class ExamStaffSessionKeys {
@@ -45,7 +45,7 @@ public final class ExamStaffSessionKeys {
     public static final String PROCEDURE_DONE_CANDIDATES = Attributes.ExamStaff.PROCEDURE_DONE_CANDIDATES;
     /** Thứ tự SBD khi gọi số. */
     public static final String CALL_QUEUE_ORDER = Attributes.ExamStaff.CALL_QUEUE_ORDER;
-    /** Kỳ thi gắn với {@link #CALL_QUEUE_ORDER}. */
+    /** Kỳ thi gắn với CALL_QUEUE_ORDER. */
     public static final String CALL_QUEUE_ORDER_EXAM_ID = Attributes.ExamStaff.CALL_QUEUE_ORDER_EXAM_ID;
 
     /** SBD đang được gọi / mở bàn. */
@@ -72,7 +72,7 @@ public final class ExamStaffSessionKeys {
     /** Flash lỗi điều khiển kỳ thi. */
     public static final String EXAM_CONTROL_ERROR = Attributes.ExamStaff.EXAM_CONTROL_ERROR;
 
-    /** Giá trị cờ session dạng chuỗi {@code "true"}. */
+    /** Giá trị cờ session dạng chuỗi "true". */
     public static final String FLAG_TRUE = Attributes.ExamStaff.FLAG_TRUE;
 
     /** Không khởi tạo. */

@@ -7,13 +7,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Triển khai {@link CallBoardDAO} lưu {@link CallBoardState} trong bộ nhớ JVM (singleton).
+ * Triển khai CallBoardDAO lưu CallBoardState trong bộ nhớ JVM (singleton).
  *
  * Vì sao dùng in-memory thay ServletContext?:
  * Call Board là trạng thái <b>runtime</b> (ai đang được gọi, bàn thủ tục bận, pause…),
  * không cần persist SQL. Approach 1 dùng một singleton JVM thay vì attribute trên
  *
- * {@code ServletContext}, nên:
+ * ServletContext, nên:
  * - Không phụ thuộc Servlet API trong tầng persistence
  * - Mọi request (staff desk, TV public-call, JSON poll) đọc cùng một map
  * - Restart Tomcat / redeploy → mất state (giống hành vi cũ trên ServletContext)
@@ -21,21 +21,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Cấu trúc dữ liệu:
  * <pre>
  *   INSTANCE
- *     ├── boards: ConcurrentHashMap&lt;examId, CallBoardState&gt;
+ *     ├── boards: ConcurrentHashMap<examId, CallBoardState>
  *     │     key   = ExamId (kỳ thi)
  *     │     value = snapshot calling/next/desk/queue/pause của kỳ đó
  *     └── activeExamId: Integer (kỳ đang chiếu trên màn Public Call)
  * </pre>
  *
  * Luồng đọc / ghi điển hình:
- * - Servlet lấy DAO qua {@code ExamStaffHttpSupport.callBoardDao(...)}
- * - Service: {@code getState} → mutate bằng {@code CallBoardRules} → {@code saveState}
- * - Public Call / API poll: {@code getState} + {@code getActiveExamId} → dựng snapshot JSON/JSP
+ * - Servlet lấy DAO qua ExamStaffHttpSupport.callBoardDao(...)
+ * - Service: getState → mutate bằng CallBoardRules → saveState
+ * - Public Call / API poll: getState + getActiveExamId → dựng snapshot JSON/JSP
  *
  * An toàn đồng thời (thread-safety):
- * - {@code ConcurrentHashMap} cho map boards — put/get theo examId an toàn giữa các request
- * - {@code volatile} cho {@code activeExamId} — đọc/ghi kỳ active thấy ngay giữa thread
- * - {@link #copy(CallBoardState)} khi get/save — caller không giữ reference nội bộ map,
+ * - ConcurrentHashMap cho map boards — put/get theo examId an toàn giữa các request
+ * - volatile cho activeExamId — đọc/ghi kỳ active thấy ngay giữa thread
+ * - copy(CallBoardState) khi get/save — caller không giữ reference nội bộ map,
  *       tránh race khi một thread sửa object đang đọc bởi thread khác
  * <p><b>Lưu ý cluster:</b> mỗi JVM node có bản copy riêng; không sync giữa các Tomcat instance.
  */
@@ -46,18 +46,18 @@ public final class InMemoryCallBoardDAO implements CallBoardDAO {
 
     /**
      * Map trạng thái board theo kỳ thi.
-     * Key = examId &gt; 0; value = bản copy đã lưu lần save gần nhất.
+     * Key = examId > 0; value = bản copy đã lưu lần save gần nhất.
      */
     private final Map<Integer, CallBoardState> boards = new ConcurrentHashMap<>();
 
     /**
      * Kỳ thi đang active trên màn Public Call (TV).
-     * {@code null} hoặc ≤ 0 nghĩa là chưa chọn kỳ chiếu.
-     * Dùng {@code volatile} vì nhiều request (poll API) đọc đồng thời với staff ghi.
+     * null hoặc ≤ 0 nghĩa là chưa chọn kỳ chiếu.
+     * Dùng volatile vì nhiều request (poll API) đọc đồng thời với staff ghi.
      */
     private volatile Integer activeExamId;
 
-    /** Chỉ tạo qua {@link #INSTANCE}; không cho {@code new} từ bên ngoài. */
+    /** Chỉ tạo qua INSTANCE; không cho new từ bên ngoài. */
     private InMemoryCallBoardDAO() {
     }
 
@@ -73,9 +73,9 @@ public final class InMemoryCallBoardDAO implements CallBoardDAO {
      * Đọc board của một kỳ.
      * <p>
      * Trả về <b>bản copy</b> (không phải object trong map) để service có thể mutate
-     * rồi {@link #saveState} mà không làm hỏng bản đang lưu giữa chừng.
+     * rồi saveState mà không làm hỏng bản đang lưu giữa chừng.
      * @param examId mã kỳ thi
-     * @return copy {@link CallBoardState}, hoặc {@code null} nếu kỳ chưa từng được save
+     * @return copy CallBoardState, hoặc null nếu kỳ chưa từng được save
      */
     @Override
     public CallBoardState getState(int examId) {
@@ -84,12 +84,12 @@ public final class InMemoryCallBoardDAO implements CallBoardDAO {
     }
 
     /**
-     * Ghi đè board của kỳ {@code examId}.
+     * Ghi đè board của kỳ examId.
      * <p>
-     * Cũng lưu <b>bản copy</b> vào map — sau khi return, thay đổi trên {@code state}
+     * Cũng lưu <b>bản copy</b> vào map — sau khi return, thay đổi trên state
      * của caller không ảnh hưởng bản đã lưu (phải gọi save lại).
      * @param examId mã kỳ thi
-     * @param state  trạng thái mới; {@code null} → bỏ qua (không xóa entry cũ)
+     * @param state  trạng thái mới; null → bỏ qua (không xóa entry cũ)
      */
     @Override
     public void saveState(int examId, CallBoardState state) {
@@ -102,7 +102,7 @@ public final class InMemoryCallBoardDAO implements CallBoardDAO {
     /**
      * Đánh dấu kỳ đang chiếu trên Public Call (sau sync/occupy/release/pause).
      * Staff gọi số / thủ tục thường set luôn khi lưu board để TV biết kỳ nào đang live.
-     * @param examId mã kỳ &gt; 0 để set; ≤ 0 → clear ({@code null})
+     * @param examId mã kỳ > 0 để set; ≤ 0 → clear (null)
      */
     @Override
     public void setActiveExamId(int examId) {
@@ -110,8 +110,8 @@ public final class InMemoryCallBoardDAO implements CallBoardDAO {
     }
 
     /**
-     * Kỳ đang active cho Public Call khi URL/session không chỉ rõ {@code examId}.
-     * @return examId dương, hoặc {@code null} nếu chưa set / đã clear
+     * Kỳ đang active cho Public Call khi URL/session không chỉ rõ examId.
+     * @return examId dương, hoặc null nếu chưa set / đã clear
      */
     @Override
     public Integer getActiveExamId() {
@@ -121,7 +121,7 @@ public final class InMemoryCallBoardDAO implements CallBoardDAO {
 
     /**
      * Deep-ish copy field-by-field.
-     * {@code queueOrderSbds} được copy lại trong {@link CallBoardState#setQueueOrderSbds}
+     * queueOrderSbds được copy lại trong CallBoardState.setQueueOrderSbds
      * (ArrayList mới), nên list trong map độc lập với list của caller.
      */
     private static CallBoardState copy(CallBoardState source) {

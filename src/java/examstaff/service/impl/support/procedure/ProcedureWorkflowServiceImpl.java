@@ -30,20 +30,20 @@ import java.util.List;
 /**
  * Điều phối luồng thủ tục thí sinh tại bàn: hồ sơ → ảnh → thu phí → auto-allocate.
  * <p>
- * Consolidator {@code ProcedureService} ủy quyền xuống đây; không render JSP.
- * Đồng bộ hàng đợi gọi qua {@link CandidateQueueServiceImpl} sau mỗi mutate hồ sơ.
+ * Consolidator ProcedureService ủy quyền xuống đây; không render JSP.
+ * Đồng bộ hàng đợi gọi qua CandidateQueueServiceImpl sau mỗi mutate hồ sơ.
  *
  * Bước nghiệp vụ:
- * - {@link #findProfile} / {@link #prepareProfileForDesk} — mở bàn, đánh present, validate ảnh
- * - {@link #saveProfile} / {@link #saveCapturedPhoto} — cập nhật hồ sơ và lưu ảnh base64
- * - {@link #confirmPayment} — tiền mặt: preview phí → ghi Payment → complete procedure
- * - {@link #startSePayCheckout} / {@link #finalizeAfterSePayPayment} — luồng SePay (IPN ghi Payment)
- * - {@link #resetProcedure} — xóa tiến độ thủ tục để làm lại
+ * - findProfile / prepareProfileForDesk — mở bàn, đánh present, validate ảnh
+ * - saveProfile / saveCapturedPhoto — cập nhật hồ sơ và lưu ảnh base64
+ * - confirmPayment — tiền mặt: preview phí → ghi Payment → complete procedure
+ * - startSePayCheckout / finalizeAfterSePayPayment — luồng SePay (IPN ghi Payment)
+ * - resetProcedure — xóa tiến độ thủ tục để làm lại
  *
  * Phụ thuộc chéo subdomain:
- * - {@link ProcedurePaymentServiceImpl} — preview + ghi Payment CASH
- * - {@link examstaff.service.impl.support.view.CandidatePhotoServiceImpl} — resolve / ghi file ảnh
- * - {@link examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl} — auto-allocate sau trả phí
+ * - ProcedurePaymentServiceImpl — preview + ghi Payment CASH
+ * - examstaff.service.impl.support.view.CandidatePhotoServiceImpl — resolve / ghi file ảnh
+ * - examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl — auto-allocate sau trả phí
  */
 public class ProcedureWorkflowServiceImpl {
 
@@ -348,9 +348,9 @@ public class ProcedureWorkflowServiceImpl {
     /**
      * Luồng bàn thủ tục → payment module (không ghi Payment tại đây).
      * - Validate: hồ sơ, ảnh đã chụp, chưa trả phí, SePay đã cấu hình, có enrollment, có số tiền
-     * - Sinh invoice {@code DLEM-CHK-{candidateId}-{enrollmentId}-{ts}}
-     * - {@link SePayPaymentService#createCheckout} ký form + build HTML auto-submit
-     * IPN ({@code /payment/sepay/ipn}) mới insert bảng Payment.
+     * - Sinh invoice DLEM-CHK-{candidateId}-{enrollmentId}-{ts}
+     * - SePayPaymentService.createCheckout ký form + build HTML auto-submit
+     * IPN (/payment/sepay/ipn) mới insert bảng Payment.
      */
     public SePayProcedureCheckoutDTO startSePayCheckout(ExamRegistrationDTO profile, String sbd,
             int examId, String webRoot) {
@@ -432,7 +432,7 @@ public class ProcedureWorkflowServiceImpl {
 
     /**
      * Sau khi IPN (hoặc poll) đã thấy Payment: hoàn tất thủ tục như thu tiền mặt
-     * (có mặt + allocate). Nếu chưa có Payment → {@code PAYMENT_FAILED} + message chờ IPN
+     * (có mặt + allocate). Nếu chưa có Payment → PAYMENT_FAILED + message chờ IPN
      * (không coi là lỗi cứng — JS hiện “Đang chờ…”).
      */
     public ProcedureActionOutcome finalizeAfterSePayPayment(ExamRegistrationDTO profile, String sbd,

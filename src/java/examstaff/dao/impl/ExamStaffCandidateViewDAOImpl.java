@@ -14,28 +14,28 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Triển khai JDBC của {@link ExamStaffCandidateViewDAO} — read model thí sinh theo kỳ thi.
+ * Triển khai JDBC của ExamStaffCandidateViewDAO — read model thí sinh theo kỳ thi.
  *
  * SQL và fallback:
- * {@link #findByExamId} chạy {@link Db2CandidateSql#CANDIDATE_SELECT} + {@code WHERE ex.ExamId = ?};
- * nếu rỗng (schema thiếu cột điểm) fallback {@code CANDIDATE_SELECT_MINIMAL} — cùng pattern
- * {@code ExamRegistrationDAOImpl}.
+ * findByExamId chạy Db2CandidateSql.CANDIDATE_SELECT + WHERE ex.ExamId = ?;
+ * nếu rỗng (schema thiếu cột điểm) fallback CANDIDATE_SELECT_MINIMAL — cùng pattern
+ * ExamRegistrationDAOImpl.
  *
  * Tra SBD:
- * {@link #findByExamIdAndSbd} format SBD 3 chữ số, duyệt list kỳ hoặc so khớp trực tiếp
+ * findByExamIdAndSbd format SBD 3 chữ số, duyệt list kỳ hoặc so khớp trực tiếp
  * tùy input — phục vụ gọi số / tra cứu nhanh trên màn staff.
  *
  * Map DTO:
- * Private {@code query(...)} map {@code ResultSet} → {@link ExamStaffCandidate}
- * (gọn hơn {@code ExamRegistrationDTO}, không method ghi).
+ * Private query(...) map ResultSet → ExamStaffCandidate
+ * (gọn hơn ExamRegistrationDTO, không method ghi).
  */
 public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaffCandidateViewDAO {
 
     /**
-     * Liệt kê thí sinh thuộc kỳ thi từ view SQL {@link Db2CandidateSql}.
-     * Fallback sang {@code CANDIDATE_SELECT_MINIMAL} nếu SELECT đầy đủ không trả dữ liệu.
+     * Liệt kê thí sinh thuộc kỳ thi từ view SQL Db2CandidateSql.
+     * Fallback sang CANDIDATE_SELECT_MINIMAL nếu SELECT đầy đủ không trả dữ liệu.
      * @param examId mã kỳ thi
-     * @return danh sách {@link ExamStaffCandidate}; rỗng nếu {@code examId} không hợp lệ
+     * @return danh sách ExamStaffCandidate; rỗng nếu examId không hợp lệ
      */
     @Override
     public List<ExamStaffCandidate> findByExamId(int examId) {
@@ -56,7 +56,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
      * Duyệt danh sách kỳ thi và so khớp SBD đã format 3 chữ số.
      * @param examId mã kỳ thi
      * @param sbd    số báo danh (chuỗi, có thể có/không zero-pad)
-     * @return thí sinh khớp hoặc {@code null}
+     * @return thí sinh khớp hoặc null
      */
     @Override
     public ExamStaffCandidate findByExamIdAndSbd(int examId, String sbd) {
@@ -73,10 +73,10 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     }
 
     /**
-     * Chạy SELECT thí sinh (từ {@code selectSql} + {@code whereSql}) và ánh xạ danh sách.
-     * @param selectSql phần SELECT (từ {@link Db2CandidateSql})
+     * Chạy SELECT thí sinh (từ selectSql + whereSql) và ánh xạ danh sách.
+     * @param selectSql phần SELECT (từ Db2CandidateSql)
      * @param whereSql  mệnh đề WHERE + ORDER BY
-     * @param bindInt   giá trị bind cho placeholder đầu tiên (thường là {@code examId})
+     * @param bindInt   giá trị bind cho placeholder đầu tiên (thường là examId)
      * @return danh sách thí sinh; rỗng nếu không có kết nối hoặc lỗi SQL
      */
     private List<ExamStaffCandidate> query(String selectSql, String whereSql, int bindInt) {
@@ -104,7 +104,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     }
 
     /**
-     * Ánh xạ một dòng ResultSet (alias từ {@link Db2CandidateSql}) sang {@link ExamStaffCandidate}.
+     * Ánh xạ một dòng ResultSet (alias từ Db2CandidateSql) sang ExamStaffCandidate.
      * @param rs ResultSet đang trỏ tại dòng cần đọc
      * @return DTO thí sinh view đầy đủ thông tin hiển thị
      * @throws SQLException nếu đọc cột bắt buộc thất bại
@@ -187,7 +187,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     }
 
     /**
-     * Đọc cột BIT; giá trị SQL NULL được coi là {@code false}.
+     * Đọc cột BIT; giá trị SQL NULL được coi là false.
      * @param rs     ResultSet nguồn
      * @param column tên cột BIT
      * @return giá trị boolean (false nếu NULL)
@@ -199,10 +199,10 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     }
 
     /**
-     * Đọc cột BIT nullable, trả {@code null} nếu SQL NULL.
+     * Đọc cột BIT nullable, trả null nếu SQL NULL.
      * @param rs     ResultSet nguồn
      * @param column tên cột BIT
-     * @return {@link Boolean} hoặc {@code null}
+     * @return Boolean hoặc null
      * @throws SQLException nếu đọc cột thất bại
      */
     private static Boolean readNullableBoolean(ResultSet rs, String column) throws SQLException {
@@ -216,7 +216,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
     /**
      * Format số báo danh thành chuỗi 3 chữ số (zero-pad).
      * @param candidateNo số thứ tự thí sinh
-     * @return SBD dạng {@code 001}, {@code 042}, ...
+     * @return SBD dạng 001, 042, ...
      */
     private static String formatSbd(int candidateNo) {
         return String.format(Locale.ROOT, "%03d", candidateNo);

@@ -21,15 +21,15 @@ import java.sql.Date;
 import java.util.List;
 
 /**
- * Implementation {@link ProcedureService}: facade bàn thủ tục thí sinh kỳ thi.
+ * Implementation ProcedureService: facade bàn thủ tục thí sinh kỳ thi.
  *
  * Ủy quyền support services:
- * - {@link ProcedureWorkflowServiceImpl} — hồ sơ, ảnh, present, reset
- *       (inject {@link RegistrationServiceImpl}, {@link CandidatePhotoServiceImpl},
- *       {@link CandidateQueueServiceImpl}, {@link ExaminerAllocationServiceImpl})
- * - {@link ProcedureFeeQueryServiceImpl} — {@code resolveProcedureFees}, {@code previewFees}
- * - {@link ProcedurePaymentServiceImpl} — {@code confirmPayment}, tích hợp SePay
- *       qua {@link SePayPaymentService}
+ * - ProcedureWorkflowServiceImpl — hồ sơ, ảnh, present, reset
+ *       (inject RegistrationServiceImpl, CandidatePhotoServiceImpl,
+ *       CandidateQueueServiceImpl, ExaminerAllocationServiceImpl)
+ * - ProcedureFeeQueryServiceImpl — resolveProcedureFees, previewFees
+ * - ProcedurePaymentServiceImpl — confirmPayment, tích hợp SePay
+ *       qua SePayPaymentService
  * Constructor mặc định tự wiring toàn bộ dependency; constructor inject dùng cho test.
  */
 public class ProcedureServiceImpl implements ProcedureService {
@@ -66,13 +66,13 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Ủy quyền sang {@link ProcedureWorkflowServiceImpl#findProfile}.
+     * Ủy quyền sang ProcedureWorkflowServiceImpl.findProfile.
      * @param webRoot        thư mục gốc web
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh
      * @param queue          hàng đợi
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     @Override
     public ExamRegistrationDTO findProfile(String webRoot, int examId, int fallbackExamId,
@@ -81,13 +81,13 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Ủy quyền sang {@link ProcedureWorkflowServiceImpl#prepareProfileForDesk}.
+     * Ủy quyền sang ProcedureWorkflowServiceImpl.prepareProfileForDesk.
      * @param webRoot        thư mục gốc web
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param profile        hồ sơ hiện tại
      * @param queue          hàng đợi
-     * @return {@link ServiceResult} kèm hồ sơ
+     * @return ServiceResult kèm hồ sơ
      */
     @Override
     public ServiceResult<ExamRegistrationDTO> prepareProfileForDesk(String webRoot, int examId, int fallbackExamId,
@@ -96,13 +96,13 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Ủy quyền sang {@link ProcedureWorkflowServiceImpl#reloadProfile}.
+     * Ủy quyền sang ProcedureWorkflowServiceImpl.reloadProfile.
      * @param webRoot     thư mục gốc web
      * @param examId      mã kỳ thi
      * @param candidateId mã thí sinh
      * @param sbd         số báo danh
      * @param queue       hàng đợi
-     * @return hồ sơ mới nhất hoặc {@code null}
+     * @return hồ sơ mới nhất hoặc null
      */
     @Override
     public ExamRegistrationDTO reloadProfile(String webRoot, int examId, int candidateId,
@@ -111,7 +111,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Lưu hồ sơ rồi bọc kết quả boolean thành {@link ServiceResult}.
+     * Lưu hồ sơ rồi bọc kết quả boolean thành ServiceResult.
      * @param candidateId mã thí sinh
      * @param fullName    họ và tên
      * @param dob         ngày sinh
@@ -133,7 +133,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Ủy quyền sang {@link ProcedureWorkflowServiceImpl#recapturePhoto}.
+     * Ủy quyền sang ProcedureWorkflowServiceImpl.recapturePhoto.
      * @param candidateId mã thí sinh
      * @param webRoot     thư mục gốc web
      * @param examId      mã kỳ thi
@@ -148,7 +148,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Lưu ảnh thủ tục rồi map {@link ProcedureActionOutcome} → {@link ServiceResult}.
+     * Lưu ảnh thủ tục rồi map ProcedureActionOutcome → ServiceResult.
      * @param webRoot    thư mục gốc web
      * @param sbd        số báo danh
      * @param examId     mã kỳ thi
@@ -170,7 +170,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Xác nhận thanh toán rồi map trạng thái outcome → {@link ServiceResult}.
+     * Xác nhận thanh toán rồi map trạng thái outcome → ServiceResult.
      * @param profile  hồ sơ thí sinh
      * @param sbd      số báo danh
      * @param examId   mã kỳ thi
@@ -235,7 +235,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Reset thủ tục rồi map outcome → {@link ServiceResult}.
+     * Reset thủ tục rồi map outcome → ServiceResult.
      * @param sbd     số báo danh
      * @param examId  mã kỳ thi
      * @param webRoot thư mục gốc web
@@ -254,7 +254,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Ủy quyền sang {@link ProcedureFeeQueryServiceImpl#resolveProcedureFees}.
+     * Ủy quyền sang ProcedureFeeQueryServiceImpl.resolveProcedureFees.
      * @param profile hồ sơ thí sinh
      * @return kết quả phí
      */
@@ -264,7 +264,7 @@ public class ProcedureServiceImpl implements ProcedureService {
     }
 
     /**
-     * Ủy quyền sang {@link ProcedurePaymentServiceImpl#previewFees}.
+     * Ủy quyền sang ProcedurePaymentServiceImpl.previewFees.
      * @param candidateId      mã thí sinh
      * @param licenseCode      mã hạng
      * @param requiresRoadTest có thi đường
