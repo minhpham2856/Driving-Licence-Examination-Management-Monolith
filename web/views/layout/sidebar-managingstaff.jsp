@@ -135,15 +135,6 @@
             <span class="side-nav-bar__label" data-node-id="manager:46">Quản lý phiên thi</span>
         </a>
 
-        <a href="${ctx}/manager/exam-schedules/create"
-           class="side-nav-bar__link${activeSidebar eq 'import-thi-sinh' ? ' is-active' : ''}"
-           <c:if test="${activeSidebar eq 'import-thi-sinh'}">aria-current="page"</c:if>>
-            <span class="side-nav-bar__icon side-nav-bar__icon--md" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="side-nav-bar__label">Import danh sách</span>
-        </a>
-
         <%-- SC-035: Báo cáo quản lý --%>
         <a href="${ctx}/manager/reports"
            class="side-nav-bar__link${activeSidebar eq 'bao-cao' ? ' is-active' : ''}"

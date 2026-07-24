@@ -219,6 +219,20 @@
                                                 </label>
                                             </div>
 
+                                            <c:if test="${not empty doc.documentUrl}">
+                                                <p class="upload-card__view-link" style="margin:0.5rem 0 0;">
+                                                    <c:choose>
+                                                        <c:when test="${doc.documentId gt 0}">
+                                                            <a href="${pageContext.request.contextPath}/registrant/document-view?id=${doc.documentId}"
+                                                               target="_blank" rel="noopener" class="upload-other-item__link">Xem tệp đã tải</a>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <a href="${doc.documentUrl}" target="_blank" rel="noopener" class="upload-other-item__link">Xem tệp đã tải</a>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </p>
+                                            </c:if>
+
                                             <c:if test="${not mandatoryReplaceBlocked}">
                                                 <div class="upload-card__actions">
                                                     <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary upload-card__submit">Tải lên</button>
@@ -253,7 +267,8 @@
                                             <article class="upload-other-item upload-other-item--${other.statusClass}">
                                                 <div class="upload-other-item__preview">
                                                     <c:choose>
-                                                        <c:when test="${fn:contains(fn:toLowerCase(other.documentUrl), '.pdf')}">
+                                                        <c:when test="${fn:contains(fn:toLowerCase(other.documentUrl), '.pdf')
+                                                                or fn:contains(fn:toLowerCase(other.fileName), '.pdf')}">
                                                             <span class="upload-other-item__pdf">PDF</span>
                                                         </c:when>
                                                         <c:otherwise>
@@ -282,7 +297,15 @@
                                                         </c:choose>
                                                     </p>
                                                     <div class="upload-other-item__actions">
-                                                        <a href="${other.documentUrl}" target="_blank" rel="noopener" class="upload-other-item__link">Xem tệp</a>
+                                                        <c:choose>
+                                                            <c:when test="${other.documentId gt 0}">
+                                                                <a href="${pageContext.request.contextPath}/registrant/document-view?id=${other.documentId}"
+                                                                   target="_blank" rel="noopener" class="upload-other-item__link">Xem tệp</a>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <a href="${other.documentUrl}" target="_blank" rel="noopener" class="upload-other-item__link">Xem tệp</a>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                         <c:if test="${other.documentId gt 0 and not hasPendingReview and (not profileApproved or other.statusLabel eq 'Chưa gửi duyệt')}">
                                                             <form method="post" action="${pageContext.request.contextPath}/registrant/upload-documents" class="upload-other-item__delete-form">
                                                                 <input type="hidden" name="action" value="deleteDocument">
@@ -416,16 +439,6 @@
                         </div>
                     </c:otherwise>
                 </c:choose>
-
-                <div class="upload-action-bar upload-action-bar--compact">
-                    <div class="upload-action-bar__info">
-                        <span class="upload-action-bar__title">Quay lại hồ sơ</span>
-                        <span class="upload-action-bar__subtitle">Kiểm tra thông tin cá nhân và trạng thái xét duyệt.</span>
-                    </div>
-                    <a href="${pageContext.request.contextPath}/registrant/profile" class="welcome-banner__btn welcome-banner__btn--outline upload-action-bar__btn-outline">
-                        Quay lại hồ sơ
-                    </a>
-                </div>
 
             </main>
 

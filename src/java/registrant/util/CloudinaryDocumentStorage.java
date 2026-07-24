@@ -11,7 +11,9 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.TreeMap;
 import java.util.UUID;
 import shared.ConfigManager;
@@ -26,7 +28,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 public final class CloudinaryDocumentStorage {
 
     private static final String REF_PREFIX = "cloudinary:";
-    private static final int DEFAULT_SIGNED_URL_TTL_SECONDS = 1800;
 
     private CloudinaryDocumentStorage() {
     }
@@ -153,27 +154,32 @@ public final class CloudinaryDocumentStorage {
         }
     }
 
-    /** URL có chữ ký, hết hạn sau TTL cấu hình (mặc định 30 phút). */
+    /**
+     * URL xem tạm trên trình duyệt cho asset authenticated.
+     * Dùng chữ ký delivery {@code /s--XXXX--/} (không dùng query api_key — res.cloudinary.com sẽ từ chối).
+     */
     public static String signedDeliveryUrl(String resourceType, String publicId) {
-        if (!isConfigured() || blank(publicId)) {
+        if (!isConfigured() || blank(publicId) || blank(resourceType)) {
             return null;
         }
-        long ttl = signedUrlTtlSeconds();
-        long timestamp = Instant.now().getEpochSecond() + ttl;
-
-        TreeMap<String, String> signParams = new TreeMap<>();
-        signParams.put("public_id", publicId);
-        signParams.put("timestamp", String.valueOf(timestamp));
-        String signature = signApi(signParams);
-
-        return "https://res.cloudinary.com/"
-                + cloudName()
-                + "/" + resourceType
-                + "/" + accessType()
-                + "/" + publicId
-                + "?api_key=" + urlEncode(apiKey())
-                + "&timestamp=" + timestamp
-                + "&signature=" + signature;
+        try {
+            String toSign = publicId + apiSecret();
+            byte[] digest = MessageDigest.getInstance("SHA-1")
+                    .digest(toSign.getBytes(StandardCharsets.UTF_8));
+            String signature = Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(digest);
+            if (signature.length() > 8) {
+                signature = signature.substring(0, 8);
+            }
+            return "https://res.cloudinary.com/"
+                    + cloudName()
+                    + "/" + resourceType.trim()
+                    + "/" + accessType()
+                    + "/s--" + signature + "--/"
+                    + publicId;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     private static String buildPublicId(int profileId, String docType, String ext) {
@@ -213,16 +219,6 @@ public final class CloudinaryDocumentStorage {
     private static String accessType() {
         String configured = ConfigManager.get("CLOUDINARY_ACCESS_TYPE", "authenticated");
         return configured != null && !configured.isBlank() ? configured.trim() : "authenticated";
-    }
-
-    private static long signedUrlTtlSeconds() {
-        String raw = ConfigManager.get("CLOUDINARY_SIGNED_URL_TTL_SECONDS", String.valueOf(DEFAULT_SIGNED_URL_TTL_SECONDS));
-        try {
-            long parsed = Long.parseLong(raw.trim());
-            return parsed > 60 ? parsed : DEFAULT_SIGNED_URL_TTL_SECONDS;
-        } catch (NumberFormatException ex) {
-            return DEFAULT_SIGNED_URL_TTL_SECONDS;
-        }
     }
 
     private static String cloudName() {

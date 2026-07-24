@@ -7,7 +7,14 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
-/** Ký/xác thực SePay: checkout = nối SIGN_FIELD_ORDER → HMAC-SHA256 Base64; webhook = timestamp.body → HMAC hex + skew. */
+/**
+ * Tiện ích ký và xác thực chữ ký SePay cho hai giai đoạn luồng thanh toán.
+ * <p>
+ * <b>Checkout:</b> ghép field theo {@code SIGN_FIELD_ORDER} → HMAC-SHA256 → Base64
+ * (form POST lên pay.sepay.vn). <b>IPN:</b> HMAC {@code timestamp + "." + body} dạng hex,
+ * kiểm tra lệch thời gian chống replay. Không thao tác bảng DB — phục vụ
+ * {@link payment.service.impl.SePayPaymentServiceImpl} và {@link payment.controller.SePayIpnServlet}.
+ */
 public final class SePaySignature {
 
     /** Thứ tự field ký checkout theo spec SePay PG — field thiếu trong map bị bỏ qua. */

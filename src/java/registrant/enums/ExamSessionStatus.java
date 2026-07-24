@@ -1,5 +1,11 @@
 package registrant.enums;
 
+/**
+ * Enum trạng thái ca thi ({@code ExamSession.Status} / {@code ExamDates}) trên cổng thí sinh.
+ * <p>
+ * Hỗ trợ cả mã EN (Scheduled, Open, InProgress…) và nhãn VN (Chưa diễn ra, Đang diễn ra);
+ * dùng trong {@link registrant.util.RegistrantExamSupport} để badge trạng thái ca trên my-exams/dashboard.
+ */
 public enum ExamSessionStatus {
     SCHEDULED("Scheduled"),
     OPEN("Open"),

@@ -15,7 +15,10 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Parse và áp dụng bộ lọc nhật ký track-profile trên danh sách thống nhất (Audit + tài liệu).
+ * Parse và áp dụng bộ lọc nhật ký track-profile trên danh sách hợp nhất Audit + sự kiện tài liệu.
+ * <p>
+ * Hỗ trợ tìm kiếm, lọc theo {@link RegistrantTrackingCategories}, trạng thái, khoảng ngày và phân trang;
+ * state nội bộ {@code TrackingFilterState} gắn lên request bởi {@code RegistrantTrackProfileServiceImpl}.
  */
 public final class RegistrantTrackingFilter {
 

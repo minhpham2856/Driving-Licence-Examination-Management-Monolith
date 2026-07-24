@@ -20,7 +20,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
-/** Đổi mật khẩu và vô hiệu hoá tài khoản thí sinh. Thông báo Gmail luôn bật (không lưu tùy chọn). */
+/**
+ * Triển khai {@link registrant.service.RegistrantSettingsService} — trang {@code settings.jsp}.
+ * <p>
+ * Đổi mật khẩu qua {@code UserDAO} + {@code PasswordUtil}; gửi email xác nhận qua {@code EmailServiceImpl};
+ * deactivate đặt {@code User.IsActive=0} và xóa session. Thông báo Gmail luôn bật (không lưu tùy chọn UI).
+ */
 public class RegistrantSettingsServiceImpl implements RegistrantSettingsService {
 
     private final UserDAO userdao = new UserDAOImpl();
